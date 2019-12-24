@@ -1,0 +1,69 @@
+<html><head><meta charset='utf-8'><meta name='viewport' content='width=device-width, initial-scale=1'>
+<meta name='applicable-device' content='pc'><meta name='keywords' content='电脑,电脑讲解,电脑技术,编程,电脑故障维修IntelliJ IDEA搭建Spring Boot 2 项目入门' />
+<script src='../../highlight/highlight.pack.js'></script>
+<link rel='stylesheet' type='text/css' href='../../highlight/styles/monokai.css'/>
+
+<link rel='stylesheet' href='../../fenxiang/dist/css/share.min.css'>
+<script src='../../fenxiang/src/js/social-share.js'></script>
+<script src='../../fenxiang/src/js/qrcode.js'></script>
+
+</head><body><script>hljs.initHighlightingOnLoad();</script><script>
+var system ={};  
+var p = navigator.platform;       
+system.win = p.indexOf('Win') == 0;  
+system.mac = p.indexOf('Mac') == 0;  
+system.x11 = (p == 'X11') || (p.indexOf('Linux') == 0);     
+if(system.win||system.mac||system.xll){
+document.write("<link href='../css/3.css' rel='stylesheet' type='text/css'>");}else{ document.write("<link href='../css/3wap.css' rel='stylesheet' type='text/css'>");}</script><script src='../../js/3.js'></script><div class='div2'><div class='heading_nav'><ul><div><li><a href='../../index.html'>首页</a></li>
+</div><div onclick='hidden1()' >分享</div>
+</ul></div></div>
+<div id='heading_nav2'> 
+<li class='row' >
+<div class='social-share' data-mode='prepend'><a href='javascript:' class='social-share-icon icon-heart'></a></div></li></div><script charset='utf-8' src='../../3/js/hengfu.js'></script><script charset='utf-8' src='../../3/js/hengfu2.js'></script><hr><div class='div1'><div class='biaoti'><center>IntelliJ IDEA搭建Spring Boot 2 项目入门</center></div><div class='banquan'>原文出处:本文由博客园博主gdjlc提供。<br/>
+原文连接:https://www.cnblogs.com/gdjlc/p/11545906.html</div><br>
+    <p>之前都是用Eclipse，今天试了下IntelliJ IDEA，搭建了一个Spring Boot 2的Hello world项目。</p>
+<p><strong><span style="font-size: 16px;">一、IntelliJ IDEA 下载安装</span></strong></p>
+<p>官网下载：https://www.jetbrains.com/idea/download/<br />目前版本是2019.2.2。<br />下载后按默认设置安装。</p>
+<p><span style="font-size: 16px;"><strong>二、根据自己需要，修改Maven远程仓库地址</strong></span></p>
+<p><span style="color: #888888;">备注：本人用的是Maven3.3.9，官方下载地址是 <a href="http://archive.apache.org/dist/maven/maven-3/3.3.9/binaries/" target="_blank">http://archive.apache.org/dist/maven/maven-3/3.3.9/binaries/</a></span></p>
+<p>默认情况下，maven会到Apache官方仓库下载依赖包，下载速度较慢。<br />可在maven安装目录\conf\setting.xml增加一个国内阿里云的镜像地址，以加快依赖包的下载速度。</p>
+<src class="cnblogs_code">
+<pre><code><span style="color: #0000ff;">&lt;</span><span style="color: #800000;">mirror</span><span style="color: #0000ff;">&gt;</span>
+    <span style="color: #0000ff;">&lt;</span><span style="color: #800000;">id</span><span style="color: #0000ff;">&gt;</span>alimaven<span style="color: #0000ff;">&lt;/</span><span style="color: #800000;">id</span><span style="color: #0000ff;">&gt;</span>
+    <span style="color: #0000ff;">&lt;</span><span style="color: #800000;">mirrorOf</span><span style="color: #0000ff;">&gt;</span>central<span style="color: #0000ff;">&lt;/</span><span style="color: #800000;">mirrorOf</span><span style="color: #0000ff;">&gt;</span>
+    <span style="color: #0000ff;">&lt;</span><span style="color: #800000;">name</span><span style="color: #0000ff;">&gt;</span>aliyun maven<span style="color: #0000ff;">&lt;/</span><span style="color: #800000;">name</span><span style="color: #0000ff;">&gt;</span>
+    <span style="color: #0000ff;">&lt;</span><span style="color: #800000;">url</span><span style="color: #0000ff;">&gt;</span>http://maven.aliyun.com/nexus/content/repositories/central/<span style="color: #0000ff;">&lt;/</span><span style="color: #800000;">url</span><span style="color: #0000ff;">&gt;</span>
+<span style="color: #0000ff;">&lt;/</span><span style="color: #800000;">mirror</span><span style="color: #0000ff;">&gt;</span></code></pre>
+
+<p><span style="font-size: 16px;"><strong>三、IDEA创建Spring Boot 项目</strong></span></p>
+<p><span style="color: #333399;">1、初次打开IDEA后，点击右下角Configure，选择Settings,修改maven配置文件setting.xml的位置：</span><br />File -&gt; Settings -&gt; Build,Execution,Deployment -&gt; Build Tools -&gt; Maven，修改User settings file的位置，<br />默认为C:\Users\本机用户名\.m2\settings.xml修改为和Maven的安装位置一致，本人的为：<br />User settings file：D:\java\apache-maven-3.3.9\conf\settings.xml<br />修改为Local repository自动变成D:\java\apache-maven-3.3.9\repository</p>
+<p><span style="color: #333399;">2、创建Spring Boot项目</span><br />Create New Project -&gt; Spring Initializr -&gt; Project SDK 默认1.8,Initializr Service URL 默认https://start.spring.io -&gt; Next<br />-&gt; Project Metadata的所有项目保持默认</p>
+<p><img src="./images/IntelliJ IDEA搭建Spring Boot 2 项目入门0.png" alt="" /></p>
+<p>&nbsp;&nbsp;-&gt; Next-&gt;&nbsp;选择Web，Spring Web</p>
+<p><img src="./images/IntelliJ IDEA搭建Spring Boot 2 项目入门1.png" alt="" /></p>
+<p>&nbsp;&nbsp;-&gt; Next</p>
+<p>Project name：默认demo </p>
+<p><img src="./images/IntelliJ IDEA搭建Spring Boot 2 项目入门2.png" alt="" /></p>
+<p>&nbsp;&nbsp;-&gt; Finish</p>
+<p><span style="color: #333399;">3、在src/main/java/com.example.demo下新建一个叫controller的Package，在controller下面新建类HelloWorldController&nbsp;</span></p>
+<src class="cnblogs_code">
+<pre><code><span style="color: #0000ff;">package</span><span style="color: #000000;"> com.example.demo.controller;
+
+</span><span style="color: #0000ff;">import</span><span style="color: #000000;"> org.springframework.web.bind.annotation.RequestMapping;
+</span><span style="color: #0000ff;">import</span><span style="color: #000000;"> org.springframework.web.bind.annotation.RestController;
+
+@RestController
+</span><span style="color: #0000ff;">public</span> <span style="color: #0000ff;">class</span><span style="color: #000000;"> HelloWorldController {
+    @RequestMapping(</span>"/"<span style="color: #000000;">)
+    </span><span style="color: #0000ff;">public</span><span style="color: #000000;"> String index() {
+        </span><span style="color: #0000ff;">return</span> "Hello World!"<span style="color: #000000;">;
+    }
+}</span></code></pre>
+
+<p><span style="color: #000000;">项目结构如下：</span></p>
+<p><span style="color: #333399;"><img src="./images/IntelliJ IDEA搭建Spring Boot 2 项目入门3.png" alt="" /></span></p>
+<p>&nbsp;&nbsp;<span style="color: #333399;">4、点击右上角运行按钮，访问http://localhost:8080/</span></p>
+<p>页面显示：Hello World!</p>
+<p>&nbsp;</p>
+
+</div><hr><script charset='utf-8' src='../../js/sming.js'></script></body></html>

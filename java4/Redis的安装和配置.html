@@ -1,0 +1,81 @@
+<html><head><meta charset='utf-8'><meta name='viewport' content='width=device-width, initial-scale=1'>
+<meta name='applicable-device' content='pc'><meta name='keywords' content='电脑,电脑讲解,电脑技术,编程,电脑故障维修Redis的安装和配置' />
+<script src='../../highlight/highlight.pack.js'></script>
+<link rel='stylesheet' type='text/css' href='../../highlight/styles/monokai.css'/>
+
+<link rel='stylesheet' href='../../fenxiang/dist/css/share.min.css'>
+<script src='../../fenxiang/src/js/social-share.js'></script>
+<script src='../../fenxiang/src/js/qrcode.js'></script>
+
+</head><body><script>hljs.initHighlightingOnLoad();</script><script>
+var system ={};  
+var p = navigator.platform;       
+system.win = p.indexOf('Win') == 0;  
+system.mac = p.indexOf('Mac') == 0;  
+system.x11 = (p == 'X11') || (p.indexOf('Linux') == 0);     
+if(system.win||system.mac||system.xll){
+document.write("<link href='../css/3.css' rel='stylesheet' type='text/css'>");}else{ document.write("<link href='../css/3wap.css' rel='stylesheet' type='text/css'>");}</script><script src='../../js/3.js'></script><div class='div2'><div class='heading_nav'><ul><div><li><a href='../../index.html'>首页</a></li>
+</div><div onclick='hidden1()' >分享</div>
+</ul></div></div>
+<div id='heading_nav2'> 
+<li class='row' >
+<div class='social-share' data-mode='prepend'><a href='javascript:' class='social-share-icon icon-heart'></a></div></li></div><script charset='utf-8' src='../../3/js/hengfu.js'></script><script charset='utf-8' src='../../3/js/hengfu2.js'></script><hr><div class='div1'><div class='biaoti'><center>Redis的安装和配置</center></div><div class='banquan'>原文出处:本文由博客园博主TOUCH_EKKO提供。<br/>
+原文连接:https://www.cnblogs.com/fanqinglu/p/11762165.html</div><br>
+    <h1>1.下载Redis</h1>
+<src class="cnblogs_code">
+<pre><code>cd /opt/resources/
+wget http:<span style="color: #008000;">//</span><span style="color: #008000;">download.redis.io/releases/redis-3.2.11.tar.gz</span>
+tar -xf redis-<span style="color: #800080;">3.2</span>.<span style="color: #800080;">11</span>.tar.gz -C /opt/software/</code></pre>
+
+<h1>2.安装Redis</h1>
+<src class="cnblogs_code">
+<pre><code>cd /opt/software/redis-<span style="color: #800080;">3.2</span>.<span style="color: #800080;">11</span><span style="color: #000000;">
+make </span>&amp;&amp; make install</code></pre>
+
+<h1>3.启动单机版Redis</h1>
+<src class="cnblogs_code">
+<pre><code><span style="color: #000000;">#启动   默认端口6379
+redis</span>-<span style="color: #000000;">server
+
+#登陆
+redis</span>-<span style="color: #000000;">cli
+
+#关闭服务
+shutdown
+
+#退出客户端
+quit</span></code></pre>
+
+<h1>4.分布式配置Redis</h1>
+<p>配置文件redis.conf&nbsp; &nbsp; 主要做如下配置，其它默认不变</p>
+<src class="cnblogs_code">
+<pre><code><span style="color: #000000;">第61行      关闭只本地访问
+#bind </span><span style="color: #800080;">127.0</span>.<span style="color: #800080;">0.1</span><span style="color: #000000;">
+
+第80行      关闭保护模式
+</span><span style="color: #0000ff;">protected</span>-<span style="color: #000000;">mode no
+
+第84行      端口号
+port </span><span style="color: #800080;">6379</span><span style="color: #000000;">
+
+第128行    后台守护进程
+daemonize yes
+
+第150行    纪录pid值
+pidfile </span>/<span style="color: #0000ff;">var</span>/run/<span style="color: #000000;">redis_6379.pid
+
+第163行    日志文件
+logfile </span><span style="color: #800000;">"</span><span style="color: #800000;">6379redis.log</span><span style="color: #800000;">"</span><span style="color: #000000;">
+
+第202行    持久化保存策略
+save </span><span style="color: #800080;">900</span> <span style="color: #800080;">1</span><span style="color: #000000;">
+save </span><span style="color: #800080;">300</span> <span style="color: #800080;">10</span><span style="color: #000000;">
+save </span><span style="color: #800080;">60</span> <span style="color: #800080;">10000</span><span style="color: #000000;">
+
+第237行    持久化文件rdb
+dbfilename dump6379.rdb<br /><br /></span></code></pre>
+<pre><code><span>第237行    持久化文件aof<br />appendonly yes</span></code></pre>
+
+<p>&nbsp;</p>
+
+</div><hr><script charset='utf-8' src='../../js/sming.js'></script></body></html>

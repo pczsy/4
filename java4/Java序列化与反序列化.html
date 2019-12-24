@@ -1,0 +1,45 @@
+<html><head><meta charset='utf-8'><meta name='viewport' content='width=device-width, initial-scale=1'>
+<meta name='applicable-device' content='pc'><meta name='keywords' content='电脑,电脑讲解,电脑技术,编程,电脑故障维修Java序列化与反序列化' />
+<script src='../../highlight/highlight.pack.js'></script>
+<link rel='stylesheet' type='text/css' href='../../highlight/styles/monokai.css'/>
+
+<link rel='stylesheet' href='../../fenxiang/dist/css/share.min.css'>
+<script src='../../fenxiang/src/js/social-share.js'></script>
+<script src='../../fenxiang/src/js/qrcode.js'></script>
+
+</head><body><script>hljs.initHighlightingOnLoad();</script><script>
+var system ={};  
+var p = navigator.platform;       
+system.win = p.indexOf('Win') == 0;  
+system.mac = p.indexOf('Mac') == 0;  
+system.x11 = (p == 'X11') || (p.indexOf('Linux') == 0);     
+if(system.win||system.mac||system.xll){
+document.write("<link href='../css/3.css' rel='stylesheet' type='text/css'>");}else{ document.write("<link href='../css/3wap.css' rel='stylesheet' type='text/css'>");}</script><script src='../../js/3.js'></script><div class='div2'><div class='heading_nav'><ul><div><li><a href='../../index.html'>首页</a></li>
+</div><div onclick='hidden1()' >分享</div>
+</ul></div></div>
+<div id='heading_nav2'> 
+<li class='row' >
+<div class='social-share' data-mode='prepend'><a href='javascript:' class='social-share-icon icon-heart'></a></div></li></div><script charset='utf-8' src='../../3/js/hengfu.js'></script><script charset='utf-8' src='../../3/js/hengfu2.js'></script><hr><div class='div1'><div class='biaoti'><center>Java序列化与反序列化</center></div><div class='banquan'>原文出处:本文由博客园博主MrHH提供。<br/>
+原文连接:https://www.cnblogs.com/HuiH/p/11934518.html</div><br>
+    <p><span style="color: #ff0000;"><strong><span style="font-size: 16px;">Java序列化（创建可复用的Java对象）</span></strong></span></p>
+<p><strong><span style="font-size: 16px; color: #0000ff;">保持（持久化）对象及其状态到内存或磁盘</span></strong></p>
+<p><span style="font-size: 16px;">　　Java平台允许我们在内存中创建可复用的Java对象，但一般情况下，只有当JVM处于运行时，这些对象才可能存在，即这些对象的生命周期不会比JVM的生命周期更长。但在现实应用中，就可能要求在JVM停止运行之后能够保存（持久化）指定的对象，并在将来重新读取被保存的对象。Java对象序列化就能够帮助我们实现该功能。</span></p>
+<p><strong><span style="font-size: 16px; color: #0000ff;">序列化对象以字节数组保持--静态成员不保存</span></strong></p>
+<p><span style="font-size: 16px;">　　使用Java对象序列化，在保存对象时，会把其状态保存为一组字节，在未来，再将这些字节组装成对象。必须注意的是，对象序列化保存的是对象的&ldquo;状态&rdquo;，即它的成员变量。由此可知，对象序列化不会关注类中的静态变量。</span></p>
+<p><strong><span style="font-size: 16px; color: #0000ff;">序列化用户远程对象传输</span></strong></p>
+<p><span style="font-size: 16px;">　　除了在持久化对象时会用到对象序列化之外，当使用RMI（远程方法调用），或在网络中传递对象时，都会用到对象序列化。Java序列化API为处理对象序列化提供了一个标准机制，该API简单易用。</span></p>
+<p><strong><span style="font-size: 16px; color: #0000ff;">Serializable实现序列化</span></strong></p>
+<p><span style="font-size: 16px;">　　在Java中，只要一个类实现了java.io.Serializable接口，那么它就可以被序列化。<br /></span></p>
+<p><strong><span style="font-size: 16px; color: #0000ff;">ObjectOutputStream和ObjectInputStream对对象进行序列化及反序列化</span></strong></p>
+<p><strong><span style="font-size: 16px; color: #0000ff;">writeObject和readObject自定义序列化策略</span></strong></p>
+<p><span style="font-size: 16px;">　　在类中增加writeIbject和readObject方法可以实现自定义序列化策略。</span></p>
+<p><strong><span style="font-size: 16px; color: #0000ff;">序列化ID</span></strong></p>
+<p><span style="font-size: 16px;">　　虚拟机是否允许反序列化，不仅取决于类路径和功能代码是否一致，一个非常重要的一点是两个类的序列化ID是否一致（就是private static final long serialVersionUID）。</span></p>
+<p><span style="font-size: 16px;">序列化不保存静态变量</span></p>
+<p><strong><span style="font-size: 16px; color: #0000ff;">序列化子父类说明</span></strong></p>
+<p><span style="font-size: 16px;">　　要想将父类对象也序列化，就需要让父类也实现Serializable接口。</span></p>
+<p><strong><span style="font-size: 16px; color: #0000ff;">Transient关键字阻止该变量被序列化到文件中</span></strong></p>
+<p><span style="font-size: 16px;">　　1.在变量声明前加上Transient关键字，可以阻止该变量被序列化到文件中，在被反序列化后，transient变量的值被设为初始值，如int型的是0，对象型的是null。</span></p>
+<p><span style="font-size: 16px;">　　2.服务器端给客户端发送序列化对象数据，对象中有一些数据是敏感的，比如密码字符串等，希望对该密码字段在序列化时，进行加密，而客户端如果拥有解密的密钥，只有在客户端进行反序列化时，才可以对密码进行读取，这样可以一定程度保证序列化对象的数据安全。</span></p>
+
+</div><hr><script charset='utf-8' src='../../js/sming.js'></script></body></html>

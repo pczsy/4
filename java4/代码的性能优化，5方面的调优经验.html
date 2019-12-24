@@ -1,0 +1,817 @@
+<html><head><meta charset='utf-8'><meta name='viewport' content='width=device-width, initial-scale=1'>
+<meta name='applicable-device' content='pc'><meta name='keywords' content='电脑,电脑讲解,电脑技术,编程,电脑故障维修代码的性能优化，5方面的调优经验' />
+<script src='../../highlight/highlight.pack.js'></script>
+<link rel='stylesheet' type='text/css' href='../../highlight/styles/monokai.css'/>
+
+<link rel='stylesheet' href='../../fenxiang/dist/css/share.min.css'>
+<script src='../../fenxiang/src/js/social-share.js'></script>
+<script src='../../fenxiang/src/js/qrcode.js'></script>
+
+</head><body><script>hljs.initHighlightingOnLoad();</script><script>
+var system ={};  
+var p = navigator.platform;       
+system.win = p.indexOf('Win') == 0;  
+system.mac = p.indexOf('Mac') == 0;  
+system.x11 = (p == 'X11') || (p.indexOf('Linux') == 0);     
+if(system.win||system.mac||system.xll){
+document.write("<link href='../css/3.css' rel='stylesheet' type='text/css'>");}else{ document.write("<link href='../css/3wap.css' rel='stylesheet' type='text/css'>");}</script><script src='../../js/3.js'></script><div class='div2'><div class='heading_nav'><ul><div><li><a href='../../index.html'>首页</a></li>
+</div><div onclick='hidden1()' >分享</div>
+</ul></div></div>
+<div id='heading_nav2'> 
+<li class='row' >
+<div class='social-share' data-mode='prepend'><a href='javascript:' class='social-share-icon icon-heart'></a></div></li></div><script charset='utf-8' src='../../3/js/hengfu.js'></script><script charset='utf-8' src='../../3/js/hengfu2.js'></script><hr><div class='div1'><div class='biaoti'><center>代码的性能优化，5方面的调优经验</center></div><div class='banquan'>原文出处:本文由博客园博主Java博客手留余香提供。<br/>
+原文连接:https://www.cnblogs.com/yuxiang1/p/11643186.html</div><br>
+    <blockquote>
+<h3><span style="color: #ff0000;">免费Java高级资料需要自己领取，涵盖了Java、Redis、MongoDB、MySQL、Zookeeper、Spring Cloud、Dubbo高并发分布式等教程，一共30G。&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span><br /><span style="color: #ff0000;">传送门：</span><a href="https://link.zhihu.com/?target=https%3A//links.jianshu.com/go%3Fto%3Dhttps%253A%252F%252Flink.zhihu.com%252F%253Ftarget%253Dhttps%25253A%252F%252Fmp.weixin.qq.com%252Fs%252FJzddfH-7yNudmkjT0IRL8Q" rel="nofollow" target="_blank">https://mp.weixin.qq.com/s/JzddfH-7yNudmkjT0IRL8Q</a></h3>
+</blockquote>
+<h2>&nbsp;</h2>
+<h2>前言</h2>
+<p>前一段时间一直在做性能调优的工作，颇有收获。因此，简单的总结并分享下研究成果。性能调优很有趣但也是个无底洞，不可能在一篇文章全部阐述完。这里只是提供一个方向，以后碰到了知道可以从这些方面入手即可。具体如下</p>
+<p class="ztext-empty-paragraph">&nbsp;<img src="./images/代码的性能优化，5方面的调优经验0.png" alt="" /></p>
+<h2>代码层面</h2>
+<h2>for循环中不要利用 + 号去拼接字符串</h2>
+<p>在循环次数比较多的for循环中，我们也不要利用 + 号去拼接字符串。具体例子如下：</p>
+<p class="ztext-empty-paragraph">&nbsp;</p>
+<src class="highlight">
+<src class="cnblogs_code">
+<pre><code>程序清单 1-1<span style="color: #000000;">
+@Test
+</span><span style="color: #0000ff;">public</span> <span style="color: #0000ff;">void</span><span style="color: #000000;"> test(){
+    String str </span>= "ay"<span style="color: #000000;">;
+    </span><span style="color: #0000ff;">for</span>(<span style="color: #0000ff;">int</span> i=0;i&lt;Integer.MAX_VALUE;i++<span style="color: #000000;">){
+         str </span>= str +<span style="color: #000000;"> i;
+    }
+}</span></code></pre>
+
+<p>&nbsp;</p>
+
+<p class="ztext-empty-paragraph">&nbsp;</p>
+<p>具体解决方法如下：</p>
+<p>根据具体的业务场景，使用 StringBuffer（线程安全）或者 StringBuilder（非线程安全）</p>
+<p>使用数组</p>
+<src class="highlight">
+<src class="cnblogs_code">
+<pre><code>程序清单 1-1<span style="color: #000000;">
+@Test
+</span><span style="color: #0000ff;">public</span> <span style="color: #0000ff;">void</span><span style="color: #000000;"> test(){
+    </span><span style="color: #008000;">//</span><span style="color: #008000;">第一种解决方法</span>
+    StringBuilder stringBuilder = <span style="color: #0000ff;">new</span><span style="color: #000000;"> StringBuilder(Integer.MAX_VALUE);
+    </span><span style="color: #008000;">//</span><span style="color: #008000;">第二种解决方法</span>
+    String[] strArray = <span style="color: #0000ff;">new</span> String[Integer.MAX_VALUE + 1<span style="color: #000000;">];
+    stringBuilder.append(</span>"ay"<span style="color: #000000;">);
+    strArray[</span>0] = "ay"<span style="color: #000000;">;
+    </span><span style="color: #0000ff;">for</span>(<span style="color: #0000ff;">int</span> i=0;i&lt;Integer.MAX_VALUE + 1;i++<span style="color: #000000;">){
+        stringBuilder.append(</span>"al"<span style="color: #000000;">);
+        strArray[i </span>+ 1] = "al"<span style="color: #000000;">;
+    }
+    System.out.println(stringBuilder.toString());
+    System.out.println(ArrayUtils.toString(strArray));
+}</span></code></pre>
+
+<p>&nbsp;</p>
+
+<p class="ztext-empty-paragraph">&nbsp;</p>
+<h2>设置容量参数提高系统性能</h2>
+<p>对于 StringBuffer（线程安全）或者 StringBuilder（非线程安全），都有相应的构造方法：</p>
+<p class="ztext-empty-paragraph">&nbsp;</p>
+<src class="highlight">
+<src class="cnblogs_code">
+<pre><code>程序清单 1-1
+<span style="color: #0000ff;">public</span> StringBuilder(<span style="color: #0000ff;">int</span><span style="color: #000000;"> capacity) {
+    </span><span style="color: #0000ff;">super</span><span style="color: #000000;">(capacity);
+}</span></code></pre>
+
+<p>&nbsp;</p>
+
+<p class="ztext-empty-paragraph">&nbsp;</p>
+<p>如果我们可以事先知道需要拼接的字符串长度，设置容量参数，防止 StringBuffer 在源码内部进行一系列复杂的内存复制操作，影响性能。</p>
+<p>如上面的</p>
+<src class="highlight">
+<src class="cnblogs_code">
+<pre><code>StringBuilder stringBuilder = <span style="color: #0000ff;">new</span> StringBuilder(Integer.MAX_VALUE);</code></pre>
+
+<p>&nbsp;</p>
+
+<h2>for循环建议写法</h2>
+<src class="highlight">
+<src class="cnblogs_code">
+<pre><code><span style="color: #0000ff;">for</span> (<span style="color: #0000ff;">int</span> i = 0, <span style="color: #0000ff;">int</span> length = list.size(); i &lt; length; i++)</code></pre>
+
+<p>&nbsp;</p>
+
+<p>方法的返回值</p>
+<p>返回List：</p>
+<src class="highlight">
+<src class="cnblogs_code">
+<pre><code><span style="color: #0000ff;">private</span> List&lt;PcsTaskDTO&gt; sortDecisionAndBackTask(List&lt;PcsTaskDTO&gt; pcsTaskDTOList) <span style="color: #0000ff;">throws</span><span style="color: #000000;"> Exception{
+        </span><span style="color: #0000ff;">if</span>(CollectionUtils.isEmpty(pcsTaskDTOList)) <span style="color: #0000ff;">return</span> <span style="color: #0000ff;">null</span><span style="color: #000000;">;
+}</span></code></pre>
+
+<p>&nbsp;</p>
+
+<p>解决方法：</p>
+<src class="highlight">
+<src class="cnblogs_code">
+<pre><code><span style="color: #0000ff;">private</span> List&lt;PcsTaskDTO&gt; sortDecisionAndBackTask(List&lt;PcsTaskDTO&gt; pcsTaskDTOList) <span style="color: #0000ff;">throws</span><span style="color: #000000;"> Exception{
+        </span><span style="color: #0000ff;">if</span>(CollectionUtils.isEmpty(pcsTaskDTOList)) <span style="color: #0000ff;">return</span><span style="color: #000000;"> Collections.EMPTY_LIST;
+}</span></code></pre>
+
+<p>&nbsp;</p>
+
+<p>返回Set：</p>
+<src class="highlight">
+<src class="cnblogs_code">
+<pre><code>Collections.EMPTY_SET</code></pre>
+
+<p>&nbsp;</p>
+
+<p>返回Map：</p>
+<src class="highlight">
+<src class="cnblogs_code">
+<pre><code>Collections.EMPTY_MAP</code></pre>
+
+<p>&nbsp;</p>
+
+<p>返回Boolean：</p>
+<src class="highlight">
+<src class="cnblogs_code">
+<pre><code>Boolean.TRUE</code></pre>
+
+<p>&nbsp;</p>
+
+<p>不要再for循环中查询数据库</p>
+<p>解决：</p>
+<ul>
+<li>根据业务场景，把for循环中的多次连接数据库查询，写到sql中去查询，既一次性查询出来</li>
+<li>根据业务场景，看是否可以利用缓存，提高查询效率</li>
+</ul>
+<h2>去掉System.out.println</h2>
+<p>代码部署到生产环境前，去掉全部System.out.println</p>
+<h2>四种数组复制方式的性能比较和抉择</h2>
+<p>数组copy有很多种方法，效率不一。我们先看下面具体实例：</p>
+<src class="highlight">
+<pre><code><code class="language-java"><span class="n">程序清单 <span class="n">2<span class="o">-<span class="n">1</span></span></span></span></code></code></pre>
+<src class="cnblogs_code">
+<pre><code><span style="color: #008000;">/**</span><span style="color: #008000;">
+ * 测试4种数组复制效率比较
+ * </span><span style="color: #808080;">@author</span><span style="color: #008000;"> 阿毅
+ * @date 2017/2/7.
+ </span><span style="color: #008000;">*/</span>
+<span style="color: #0000ff;">public</span> <span style="color: #0000ff;">class</span><span style="color: #000000;"> AyTest {
+    </span><span style="color: #0000ff;">private</span> <span style="color: #0000ff;">static</span> <span style="color: #0000ff;">final</span> <span style="color: #0000ff;">byte</span>[] buffer = <span style="color: #0000ff;">new</span> <span style="color: #0000ff;">byte</span>[1024*10<span style="color: #000000;">];
+    </span><span style="color: #0000ff;">static</span><span style="color: #000000;"> {
+        </span><span style="color: #0000ff;">for</span> (<span style="color: #0000ff;">int</span> i = 0; i &lt; buffer.length; i++<span style="color: #000000;">) {
+            buffer[i] </span>= (<span style="color: #0000ff;">byte</span>) (i &amp; 0xFF<span style="color: #000000;">);
+        }
+    }
+    </span><span style="color: #0000ff;">private</span> <span style="color: #0000ff;">static</span> <span style="color: #0000ff;">long</span><span style="color: #000000;"> startTime;
+
+    </span><span style="color: #0000ff;">public</span> <span style="color: #0000ff;">static</span> <span style="color: #0000ff;">void</span><span style="color: #000000;"> main(String[] args) {
+        startTime </span>=<span style="color: #000000;"> System.nanoTime();
+        </span><span style="color: #0000ff;">byte</span>[] newBuffer = <span style="color: #0000ff;">new</span> <span style="color: #0000ff;">byte</span><span style="color: #000000;">[buffer.length];
+        </span><span style="color: #0000ff;">for</span>(<span style="color: #0000ff;">int</span> i=0;i&lt;buffer.length;i++<span style="color: #000000;">) {
+            newBuffer[i] </span>=<span style="color: #000000;"> buffer[i];
+        }
+        calcTime(</span>"forCopy"<span style="color: #000000;">);
+
+        startTime </span>=<span style="color: #000000;"> System.nanoTime();
+        </span><span style="color: #0000ff;">byte</span>[] newBuffer2 =<span style="color: #000000;"> buffer.clone();
+        calcTime(</span>"cloneCopy"<span style="color: #000000;">);
+
+        startTime </span>=<span style="color: #000000;"> System.nanoTime();
+        </span><span style="color: #0000ff;">byte</span>[] newBuffer3 =<span style="color: #000000;"> Arrays.copyOf(buffer, buffer.length);
+        calcTime(</span>"arraysCopyOf"<span style="color: #000000;">);
+
+        startTime </span>=<span style="color: #000000;"> System.nanoTime();
+        </span><span style="color: #0000ff;">byte</span>[] newBuffer4 = <span style="color: #0000ff;">new</span> <span style="color: #0000ff;">byte</span><span style="color: #000000;">[buffer.length];
+        System.arraycopy(buffer, </span>0, newBuffer, 0<span style="color: #000000;">, buffer.length);
+        calcTime(</span>"systemArraycopy"<span style="color: #000000;">);
+    }
+
+    </span><span style="color: #0000ff;">private</span> <span style="color: #0000ff;">static</span> <span style="color: #0000ff;">void</span><span style="color: #000000;"> calcTime(String type) {
+        </span><span style="color: #0000ff;">long</span> endTime =<span style="color: #000000;"> System.nanoTime();
+        System.out.println(type </span>+ " cost " +(endTime-startTime)+ " nanosecond"<span style="color: #000000;">);
+    }
+}</span></code></pre>
+
+<p>&nbsp;</p>
+<pre><code><code class="language-java"><span class="n"><span class="n"><span class="o"><span class="n">&nbsp;</span></span></span></span></code></code></pre>
+
+<p class="ztext-empty-paragraph">&nbsp;</p>
+<p>运行结果：</p>
+<src class="highlight">
+<src class="cnblogs_code">
+<pre><code>forCopy cost 711576<span style="color: #000000;"> nanosecond
+cloneCopy cost </span>53490<span style="color: #000000;"> nanosecond
+arraysCopyOf cost </span>119946<span style="color: #000000;"> nanosecond
+systemArraycopy cost </span>39712 nanosecond</code></pre>
+
+<p>&nbsp;</p>
+
+<p class="ztext-empty-paragraph">&nbsp;</p>
+<p>多运行几次，我们得出数组复制效率：</p>
+<p>System.arraycopy &gt; clone &gt; Arrays.copyOf &gt; for</p>
+<p>综上所述，当复制大量数据时，使用System.arraycopy()命令。</p>
+<p class="ztext-empty-paragraph">&nbsp;</p>
+<h2>8.实现高性能的字符串分割</h2>
+<p>实现字符串的分割的方法有很多种，常用的是 split ，StringTokenizer ，indexOf 和 substring 的配合，以及一些开源工具类，如：StringUtils。它们各有优缺。</p>
+<src class="highlight">
+<src class="cnblogs_code">
+<pre><code><span style="color: #000000;">@Test
+</span><span style="color: #0000ff;">public</span> <span style="color: #0000ff;">void</span><span style="color: #000000;"> test(){
+    </span><span style="color: #008000;">//</span><span style="color: #008000;">数据初始化</span>
+    StringBuffer sb = <span style="color: #0000ff;">new</span><span style="color: #000000;"> StringBuffer();
+    </span><span style="color: #0000ff;">for</span>(<span style="color: #0000ff;">int</span> i=0;i&lt;10000;i++<span style="color: #000000;">){
+        sb.append(i).append(</span>";"<span style="color: #000000;">);
+    }
+    String originStr </span>=<span style="color: #000000;"> sb.toString();
+    </span><span style="color: #008000;">//</span><span style="color: #008000;">第一种分隔字符方法</span>
+    <span style="color: #0000ff;">long</span> startTime =<span style="color: #000000;"> System.nanoTime();
+
+    String[] splitArray </span>=  originStr.split(";"<span style="color: #000000;">);
+    </span><span style="color: #0000ff;">for</span>(<span style="color: #0000ff;">int</span> i=0,len = splitArray.length;i&lt;len;i++<span style="color: #000000;">){
+        String temp </span>=<span style="color: #000000;"> splitArray[i];
+    }
+    </span><span style="color: #0000ff;">long</span> endTime =<span style="color: #000000;"> System.nanoTime();
+    System.out.println(</span>"the cost of split is :" + (endTime -<span style="color: #000000;"> startTime));
+    </span><span style="color: #008000;">//</span><span style="color: #008000;">第二种分隔字符方法</span>
+    System.out.println("--------------------------------------------"<span style="color: #000000;">);
+    originStr </span>=<span style="color: #000000;"> sb.toString();
+    startTime </span>=<span style="color: #000000;"> System.nanoTime();
+    StringTokenizer st </span>= <span style="color: #0000ff;">new</span> StringTokenizer(originStr,";"<span style="color: #000000;">);
+    </span><span style="color: #0000ff;">while</span><span style="color: #000000;">(st.hasMoreTokens()){
+        st.nextToken();
+    }
+    endTime </span>=<span style="color: #000000;"> System.nanoTime();
+    System.out.println(</span>"the cost of stringTokenizer is :" + (endTime -<span style="color: #000000;"> startTime));
+    </span><span style="color: #008000;">//</span><span style="color: #008000;">第三种分隔字符的方法</span>
+    System.out.println("--------------------------------------------"<span style="color: #000000;">);
+    originStr </span>=<span style="color: #000000;"> sb.toString();
+    startTime </span>=<span style="color: #000000;"> System.nanoTime();
+    </span><span style="color: #0000ff;">while</span> (<span style="color: #0000ff;">true</span><span style="color: #000000;">){
+        </span><span style="color: #0000ff;">int</span> index = originStr.indexOf(";"<span style="color: #000000;">);
+        </span><span style="color: #0000ff;">if</span>(index &lt; 0) <span style="color: #0000ff;">break</span><span style="color: #000000;">;
+        String origin </span>= originStr.substring(0<span style="color: #000000;">,index);
+        originStr </span>= originStr.substring(index + 1<span style="color: #000000;">);
+    }
+    endTime </span>=<span style="color: #000000;"> System.nanoTime();
+    System.out.println(</span>"the cost of indexOf is :" + (endTime -<span style="color: #000000;"> startTime));
+
+    </span><span style="color: #008000;">//</span><span style="color: #008000;">第四种分隔字符的方法</span>
+    System.out.println("--------------------------------------------"<span style="color: #000000;">);
+    originStr </span>=<span style="color: #000000;"> sb.toString();
+    startTime </span>=<span style="color: #000000;"> System.nanoTime();
+    String[] utilSplit </span>= StringUtils.split(originStr,';'<span style="color: #000000;">);
+    </span><span style="color: #0000ff;">for</span>(<span style="color: #0000ff;">int</span> i=0,len = utilSplit.length;i&lt;len;i++<span style="color: #000000;">){
+        String temp </span>=<span style="color: #000000;"> utilSplit[i];
+    }
+    endTime </span>=<span style="color: #000000;"> System.nanoTime();
+    System.out.println(</span>"the cost of StringUtils.split is :" + (endTime -<span style="color: #000000;"> startTime));
+}</span></code></pre>
+
+<p>&nbsp;</p>
+
+<p class="ztext-empty-paragraph">&nbsp;</p>
+<p>运行结果：</p>
+<src class="highlight">
+<src class="cnblogs_code">
+<pre><code>the cost of split is :35710479
+--------------------------------------------<span style="color: #000000;">
+the cost of stringTokenizer is :</span>11992643
+--------------------------------------------<span style="color: #000000;">
+the cost of indexOf is :</span>323050471
+--------------------------------------------<span style="color: #000000;">
+the cost of StringUtils.split is :</span>59026333</code></pre>
+
+<p>&nbsp;</p>
+
+<p class="ztext-empty-paragraph">&nbsp;</p>
+<p>从上面例子可以看出，字符分割的性能，由高到低的排序为：StringTokenizer &gt; split ，StringUtils.split &gt; indexOf 。有些书籍写着 indexOf 的性能是最高的，但是按照我的测试，index的性能是最差的。但是事物都有两面性，从上面的例子也可以看出，虽然 StringTokenizer 的性能高，但是代码量多，可读性差，而 split 代码相对就整洁多了。</p>
+<h2>切勿把异常放置在循环体内</h2>
+<p>try-catch语句本身性能不高，如果再放到循环体中，无非是雪上加霜。因此在开发中，我们要极力避免。</p>
+<p>例：</p>
+<src class="highlight">
+<src class="cnblogs_code">
+<pre><code><span style="color: #0000ff;">for</span>(<span style="color: #0000ff;">int</span> i=0;i&lt;10;i++<span style="color: #000000;">){
+    </span><span style="color: #0000ff;">try</span><span style="color: #000000;">{
+    }</span><span style="color: #0000ff;">catch</span><span style="color: #000000;"> (Exception e){
+    }
+}</span></code></pre>
+
+<p>&nbsp;</p>
+
+<p class="ztext-empty-paragraph">&nbsp;</p>
+<p>正确做法：</p>
+<src class="highlight">
+<src class="cnblogs_code">
+<pre><code><span style="color: #0000ff;">try</span><span style="color: #000000;">{
+    </span><span style="color: #0000ff;">for</span>(<span style="color: #0000ff;">int</span> i=0;i&lt;10;i++<span style="color: #000000;">){
+    }
+}</span><span style="color: #0000ff;">catch</span><span style="color: #000000;"> (Exception e)
+{
+}</span></code></pre>
+
+<p>&nbsp;</p>
+
+<p class="ztext-empty-paragraph">&nbsp;</p>
+<p>综上所述：不要再循环体内执行复制，耗时的操作。</p>
+<h2>尽量缩小锁的范围</h2>
+<p>锁优化的思路和方法总结一下，有以下几种。</p>
+<ul>
+<li>减少锁持有时间（尽量缩小锁的范围）</li>
+<li>减小锁粒度</li>
+<li>锁分离</li>
+<li>锁粗化</li>
+<li>锁消除</li>
+</ul>
+<p>我们应该确保我们只在必要的地方加锁，将锁从方法声明移到方法体中会延迟锁的加载，进而降低了锁竞争的可能性。先看下面的实例：</p>
+<src class="highlight">
+<src class="cnblogs_code">
+<pre><code><span style="color: #0000ff;">class</span><span style="color: #000000;"> SynObj {
+    </span><span style="color: #008000;">//</span><span style="color: #008000;">方法锁/或者对象锁</span>
+    <span style="color: #0000ff;">public</span> <span style="color: #0000ff;">synchronized</span> <span style="color: #0000ff;">void</span><span style="color: #000000;"> methodA() {
+        System.out.println(</span>"methodA....."<span style="color: #000000;">);
+        </span><span style="color: #0000ff;">try</span><span style="color: #000000;"> {
+            Thread.sleep(</span>5000<span style="color: #000000;">);
+        } </span><span style="color: #0000ff;">catch</span><span style="color: #000000;"> (InterruptedException e) {
+            e.printStackTrace();
+        }
+    }
+
+    </span><span style="color: #0000ff;">public</span>  <span style="color: #0000ff;">void</span><span style="color: #000000;"> methodB() {
+        </span><span style="color: #008000;">//</span><span style="color: #008000;">对代码块进行锁，降低锁的竞争</span>
+        <span style="color: #0000ff;">synchronized</span>(<span style="color: #0000ff;">this</span><span style="color: #000000;">) {
+            System.out.println(</span>"methodB....."<span style="color: #000000;">);
+        }
+    }
+
+    </span><span style="color: #0000ff;">public</span> <span style="color: #0000ff;">void</span><span style="color: #000000;"> methodC() {
+        String str </span>= "sss"<span style="color: #000000;">;
+        </span><span style="color: #008000;">//</span><span style="color: #008000;">这里锁的是 str 这个对象，而不是 SynObj 对象</span>
+        <span style="color: #0000ff;">synchronized</span><span style="color: #000000;"> (str) {
+            System.out.println(</span>"methodC....."<span style="color: #000000;">);
+        }
+    }
+}
+
+</span><span style="color: #008000;">/**</span><span style="color: #008000;">
+ * Created by Ay on 2017/3/26.
+ </span><span style="color: #008000;">*/</span>
+<span style="color: #0000ff;">public</span> <span style="color: #0000ff;">class</span><span style="color: #000000;"> AyTest {
+
+    </span><span style="color: #0000ff;">public</span> <span style="color: #0000ff;">static</span> <span style="color: #0000ff;">void</span><span style="color: #000000;"> main(String[] args) {
+        </span><span style="color: #0000ff;">final</span> SynObj obj = <span style="color: #0000ff;">new</span><span style="color: #000000;"> SynObj();
+
+        Thread t1 </span>= <span style="color: #0000ff;">new</span> Thread(<span style="color: #0000ff;">new</span><span style="color: #000000;"> Runnable() {
+            @Override
+            </span><span style="color: #0000ff;">public</span> <span style="color: #0000ff;">void</span><span style="color: #000000;"> run() {
+                obj.methodA();
+            }
+        });
+        t1.start();
+
+        Thread t2 </span>= <span style="color: #0000ff;">new</span> Thread(<span style="color: #0000ff;">new</span><span style="color: #000000;"> Runnable() {
+            @Override
+            </span><span style="color: #0000ff;">public</span> <span style="color: #0000ff;">void</span><span style="color: #000000;"> run() {
+                obj.methodB();
+            }
+        });
+        t2.start();
+
+        Thread t3 </span>= <span style="color: #0000ff;">new</span> Thread(<span style="color: #0000ff;">new</span><span style="color: #000000;"> Runnable() {
+            @Override
+            </span><span style="color: #0000ff;">public</span> <span style="color: #0000ff;">void</span><span style="color: #000000;"> run() {
+                obj.methodC();
+            }
+        });
+        t3.start();
+    }
+}</span></code></pre>
+
+<p>&nbsp;</p>
+
+<p class="ztext-empty-paragraph">&nbsp;</p>
+<p>打印结果:</p>
+<src class="highlight">
+<src class="cnblogs_code">
+<pre><code><span style="color: #000000;">methodA.....
+methodC.....
+</span><span style="color: #008000;">//</span><span style="color: #008000;">methodB会隔一段时间才会打印出来</span>
+methodB.....</code></pre>
+
+<p>&nbsp;</p>
+
+<p>总结：因为，一个线程访问了 synchronized 同步代码块中的代码，另一个线程不可以访问该对象的任何同步代码块，但可以访问非同步代码块。所有缩小锁的范围可以在一定程度上提高代码性能。</p>
+<h2>锁分离</h2>
+<p>最常见的锁分离就是读写锁ReadWriteLock，根据功能进行分离成读锁和写锁，这样读读不互斥，读写互斥，写写互斥，即保证了线程安全，又提高了性能。</p>
+<p>还有就是网上一个高手写的一个例子：</p>
+<src class="highlight">
+<src class="cnblogs_code">
+<pre><code><span style="color: #0000ff;">public</span> <span style="color: #0000ff;">class</span><span style="color: #000000;"> Grocery {
+    </span><span style="color: #0000ff;">private</span> <span style="color: #0000ff;">final</span> ArrayList fruits = <span style="color: #0000ff;">new</span><span style="color: #000000;"> ArrayList();
+    </span><span style="color: #0000ff;">private</span> <span style="color: #0000ff;">final</span> ArrayList vegetables = <span style="color: #0000ff;">new</span><span style="color: #000000;"> ArrayList();
+    </span><span style="color: #008000;">//</span><span style="color: #008000;">对象锁，不好，效率低</span>
+    <span style="color: #0000ff;">public</span> <span style="color: #0000ff;">synchronized</span> <span style="color: #0000ff;">void</span> addFruit(<span style="color: #0000ff;">int</span><span style="color: #000000;"> index, String fruit) {
+        fruits.add(index, fruit);
+    }
+    </span><span style="color: #008000;">//</span><span style="color: #008000;">对象锁，不好，效率低</span>
+    <span style="color: #0000ff;">public</span> <span style="color: #0000ff;">synchronized</span> <span style="color: #0000ff;">void</span> removeFruit(<span style="color: #0000ff;">int</span><span style="color: #000000;"> index) {
+        fruits.remove(index);
+    }
+    </span><span style="color: #008000;">//</span><span style="color: #008000;">对象锁，不好，效率低</span>
+    <span style="color: #0000ff;">public</span> <span style="color: #0000ff;">synchronized</span> <span style="color: #0000ff;">void</span> addVegetable(<span style="color: #0000ff;">int</span><span style="color: #000000;"> index, String vegetable) {
+        vegetables.add(index, vegetable);
+    }
+    </span><span style="color: #008000;">//</span><span style="color: #008000;">对象锁，不好，效率低</span>
+    <span style="color: #0000ff;">public</span> <span style="color: #0000ff;">synchronized</span> <span style="color: #0000ff;">void</span> removeVegetable(<span style="color: #0000ff;">int</span><span style="color: #000000;"> index) {
+        vegetables.remove(index);
+    }
+}</span></code></pre>
+
+<p>&nbsp;</p>
+
+<p class="ztext-empty-paragraph">&nbsp;</p>
+<p>优化后：</p>
+<src class="highlight">
+<src class="cnblogs_code">
+<pre><code><span style="color: #0000ff;">public</span> <span style="color: #0000ff;">class</span><span style="color: #000000;"> Grocery {
+    </span><span style="color: #0000ff;">private</span> <span style="color: #0000ff;">final</span> ArrayList fruits = <span style="color: #0000ff;">new</span><span style="color: #000000;"> ArrayList();
+    </span><span style="color: #0000ff;">private</span> <span style="color: #0000ff;">final</span> ArrayList vegetables = <span style="color: #0000ff;">new</span><span style="color: #000000;"> ArrayList();
+    </span><span style="color: #0000ff;">public</span> <span style="color: #0000ff;">void</span> addFruit(<span style="color: #0000ff;">int</span><span style="color: #000000;"> index, String fruit) {
+        </span><span style="color: #008000;">//</span><span style="color: #008000;">水果锁 </span>
+        <span style="color: #0000ff;">synchronized</span><span style="color: #000000;">(fruits) fruits.add(index, fruit);
+    }
+    </span><span style="color: #0000ff;">public</span> <span style="color: #0000ff;">void</span> removeFruit(<span style="color: #0000ff;">int</span><span style="color: #000000;"> index) {
+        </span><span style="color: #008000;">//</span><span style="color: #008000;">水果锁 </span>
+        <span style="color: #0000ff;">synchronized</span><span style="color: #000000;">(fruits) {fruits.remove(index);}
+    }
+    </span><span style="color: #0000ff;">public</span> <span style="color: #0000ff;">void</span> addVegetable(<span style="color: #0000ff;">int</span><span style="color: #000000;"> index, String vegetable) {
+        </span><span style="color: #008000;">//</span><span style="color: #008000;">蔬菜锁</span>
+        <span style="color: #0000ff;">synchronized</span><span style="color: #000000;">(vegetables) vegetables.add(index, vegetable);
+    }
+    </span><span style="color: #0000ff;">public</span> <span style="color: #0000ff;">void</span> removeVegetable(<span style="color: #0000ff;">int</span><span style="color: #000000;"> index) {
+        </span><span style="color: #008000;">//</span><span style="color: #008000;">蔬菜锁</span>
+        <span style="color: #0000ff;">synchronized</span><span style="color: #000000;">(vegetables) vegetables.remove(index);
+    }
+}</span></code></pre>
+
+<p>&nbsp;</p>
+
+<p class="ztext-empty-paragraph">&nbsp;</p>
+<h2>文件导入导出注意使用缓存流</h2>
+<h2>批量插入数据性能优化</h2>
+<h2>1.1 问题一</h2>
+<p>直接批量保存3万多条数据。</p>
+<src class="highlight">
+<src class="cnblogs_code">
+<pre><code>List&lt;PcsTestcase&gt; pcsTestcases = <span style="color: #0000ff;">new</span> ArrayList&lt;&gt;<span style="color: #000000;">();
+</span><span style="color: #008000;">//</span><span style="color: #008000;"> ......
+</span><span style="color: #008000;">//</span><span style="color: #008000;">直接调用批量保存  </span>
+<span style="color: #0000ff;">this</span>.batchCreate(pcsTestcases);</code></pre>
+
+<p>&nbsp;</p>
+
+<h2>1.2 问题二</h2>
+<p>批量保存时，利用UUID生成工具，给主键设置Id。找出Hibernate的先查询后更新的机制触发，造成不必要的查询损耗。</p>
+<src class="highlight">
+<src class="cnblogs_code">
+<pre><code>List&lt;PcsTestcase&gt; pcsTestcases = <span style="color: #0000ff;">new</span> ArrayList&lt;&gt;<span style="color: #000000;">();
+PcsTestcase pcsTestcase </span>= <span style="color: #0000ff;">null</span><span style="color: #000000;">;
+</span><span style="color: #0000ff;">for</span> (<span style="color: #0000ff;">int</span> j = sheet.getFirstRowNum() + 1,len = sheet.getLastRowNum(); j &lt;= len;j++<span style="color: #000000;">) {
+    Row row </span>=<span style="color: #000000;"> sheet.getRow(j);
+    </span><span style="color: #0000ff;">if</span> (row == <span style="color: #0000ff;">null</span>) <span style="color: #0000ff;">continue</span><span style="color: #000000;">;
+    pcsTestcase </span>= <span style="color: #0000ff;">new</span><span style="color: #000000;"> PcsTestcase();
+    </span><span style="color: #008000;">//</span><span style="color: #008000;">看这里，重要：这里在插入数据时，设置主键Id</span>
+<span style="color: #000000;">    pcsTestcase.setId(UUIDUtils.generate());
+    pcsTestcase.setPmMilestoneId(pcsMainTask.getId());
+}</span></code></pre>
+
+<p>&nbsp;</p>
+
+<h2>1.1 问题一解决方法</h2>
+<p>对于问题二，我们可以把所有数据，每500条进行一次批量保存操作，速度会比一次性批量保存好。具体如下：</p>
+<src class="highlight">
+<src class="cnblogs_code">
+<pre><code><span style="color: #0000ff;">if</span>(j % 500 == 0 || j ==<span style="color: #000000;"> len){
+    </span><span style="color: #0000ff;">this</span><span style="color: #000000;">.batchCreate(pcsTestcases);
+    pcsTestcases </span>= <span style="color: #0000ff;">new</span> ArrayList&lt;&gt;<span style="color: #000000;">();
+}</span></code></pre>
+
+<p>&nbsp;</p>
+
+<h2>1.2 问题二解决方法</h2>
+<p>对于问题三，由于Hibernate在进行插入时，会判断数据是进行插入还是进行更新。如果模型的主键不为空，查询数据后，再进行更新数据，否则，进行插入数据操作。因此，我们在进行插入操作时候，不要设置模型的主键，可以避免不必要查询消耗。</p>
+<src class="highlight">
+<src class="cnblogs_code">
+<pre><code>pcsTestcase.setId(UUIDUtils.generate());</code></pre>
+
+<p>&nbsp;</p>
+
+<p>业务层面</p>
+<ul>
+<li>减少前端请求数</li>
+<li>过度复用方法带来的性能问题</li>
+<li>后端如果需要一次性加载数据，防止多次请求数据库</li>
+</ul>
+<p>数据库层面</p>
+<h2>SQL语句大小写规范</h2>
+<p>我们在写SQL的时候，通常会出现大小写混用的情况。如下：</p>
+<src class="highlight">
+<src class="cnblogs_code">
+<pre><code>select * FROM pm_testcase pt where pt.Name = 'ay'</code></pre>
+
+<p>&nbsp;</p>
+
+<p>正确的做法是SQL语句全部大写或者全部小写。如下：</p>
+<src class="highlight">
+<pre><code><code class="language-text">-- 全部小写</code></code></pre>
+<src class="cnblogs_code">
+<pre><code>select * from pm_testcase pt where pt.name = 'ay'
+
+--<span style="color: #000000;"> 全部大写
+SELECT </span>* FROM PM_TESTCASE PT WHERE PT.NAME = 'ay'</code></pre>
+
+<p>&nbsp;</p>
+<pre><code><code class="language-text">&nbsp;</code></code></pre>
+
+<h2>PostgreSQL执行计划</h2>
+<p>PostgreSQL的执行计划，做为数据库性能调优的利器，有必要在开头简单的介绍下。</p>
+<src class="highlight">
+<src class="cnblogs_code">
+<pre><code>explain analyse select *<span style="color: #000000;"> from pm_testcase pt
+</span>--<span style="color: #000000;">执行计划
+Seq Scan on pm_testcase pt  (cost</span>=0.00..5237.11 rows=60011 width=2020) (actual time=37.347..435.601 rows=60012 loops=1<span style="color: #000000;">)
+Planning time: </span>0.426<span style="color: #000000;"> ms
+Execution time: </span>438.442 ms</code></pre>
+
+<p>&nbsp;</p>
+
+<p>cost说明：</p>
+<ul>
+<li>第一个数字0.00表示启动cost，这是执行到返回第一行时需要的cost值。</li>
+<li>第二个数字4621.00表示执行整个SQL的cost</li>
+</ul>
+<p>通过查看执行计划，我们就能够找到SQL中的哪部分比较慢，或者说花费时间多。然后重点分析哪部分的逻辑，比如减少循环查询，或者强制改变执行计划。</p>
+<p>更多执行计划 Explain，可网上搜索。</p>
+<h2>建立索引避免全表扫描</h2>
+<p>首先，在数据库里有一张表 pm_testcase，里面有150万条数据。</p>
+<p>如下SQL，我们利用执行计划，对创建时间（created_time）进行排序，输出执行计划结果。</p>
+<src class="highlight">
+<pre><code><code class="language-java"><span class="n">程序清单 <span class="n">2<span class="o">-<span class="n">1</span></span></span></span></code></code></pre>
+<src class="cnblogs_code">
+<pre><code><span style="color: #000000;">explain 
+select </span>*<span style="color: #000000;"> from pm_testcase pt
+order by pt.created_time desc
+
+</span>--Sort  (cost=4103259.72..4107084.44 rows=1529885 width=1920<span style="color: #000000;">)
+</span>--<span style="color: #000000;">Sort Key: created_time
+</span>---&gt;  Seq Scan on pm_testcase pt  (cost=0.00..134087.85 rows=1529885 width=1920)</code></pre>
+
+<p>&nbsp;</p>
+<pre><code><code class="language-java"><span class="n"><span class="n"><span class="o"><span class="n">&nbsp;</span></span></span></span></code></code></pre>
+
+<p>cost=说明：</p>
+<p>第一个数字4103259.72表示启动cost，这是执行到返回第一行时需要的cost值。</p>
+<p>第二个数字4107084.44表示执行整个SQL的cost。</p>
+<p>该语句总共耗时 4107084.44</p>
+<p>这里我们创建 created_time 索引，对相同语句执行 程序清单 2-1 的SQL，得到的执行计划结果为：</p>
+<src class="highlight">
+<src class="cnblogs_code">
+<pre><code>Index Scan Backward using idx_create_time on pm_testcase pt  (cost=0.43..384739.28 rows=1530024 width=1920)</code></pre>
+
+<p>&nbsp;</p>
+
+<p>很明显，执行整个SQL的 cost 由 4107084.44 减少到 384739.28</p>
+<p>因此，为了避免全表扫描，建议在考虑在 where 及 order by 涉及的列上建立索引。</p>
+<h2>防止索引失效</h2>
+<p>我们应尽量避免在 where 子句中使用 != 或 &lt;&gt; 操作符，否则引擎将放弃使用索引而进行全表扫描。</p>
+<p>如下例子，我们在 pm_testcase 的 code 上添加了索引：</p>
+<src class="highlight">
+<src class="cnblogs_code">
+<pre><code><span style="color: #000000;">explain select pt.code from pm_testcase pt
+where pt.code </span>!= 'case005510'
+
+--<span style="color: #000000;">执行计划，Seq Scan 全表扫描
+Seq Scan on pm_testcase pt  (cost</span>=0.00..137914.30 rows=1529973 width=11<span style="color: #000000;">)
+
+explain select pt.code from pm_testcase pt
+where pt.code </span>= 'case005510'
+
+--<span style="color: #000000;">执行计划，Bitmap Heap Scan 索引扫描
+Bitmap Heap Scan on pm_testcase pt  (cost</span>=4.82..206.29 rows=51 width=11)</code></pre>
+
+<p>&nbsp;</p>
+
+<p>通过上面的例子可以看出，!= 操作符使得索引失效。</p>
+<h2>避免建立太多的索引</h2>
+<p>索引并不是越多越好，索引固然可以提高相应的 select 的效率，但同时也降低了 insert 和 update 的效率，因为 insert 或 update 时有可能会重建索引，所以视具体情况而定。一个表的索引数最好不要超过7个，若太多则应考虑一些不常使用到的列上建的索引是否有必要.</p>
+<h2>关于查询效率的几点建议</h2>
+<ul>
+<li>尽量使用数字型字段，若只含数值信息的字段尽量不要设计为字符型，这会降低查询和连接的性能，并会增加存储开销。</li>
+<li>尽可能的使用 varchar/nvarchar 代替 char/nchar ，因为变长字段存储空间小，对于查询来说，在一个相对较小的字段内搜索效率显然要高些。</li>
+<li>最好不要给数据库留NULL，尽可能的使用 NOT NULL填充数据库。备注、描述、评论之类的可以设置为 NULL。其他的，最好不要使用NULL。</li>
+<li>任何地方都不要使用 select * from t ，用具体的字段列表代替 * ，不要返回用不到的任何字段。</li>
+<li>应尽量避免在 where 子句中使用 or 来连接条件,可以考虑使用 union 代替</li>
+<li>in 和 not in 也要慎用。对于连续的数值，能用 between 就不要用 in，exists 代替 in</li>
+<li>尽量避免在 where 子句中对字段进行表达式操作和函数操作</li>
+</ul>
+<h2>在Join表的时候字段使用相同类型，并将其索引</h2>
+<p>如果你的应用程序有很多JOIN查询，你应该确认两个表中Join的字段是被建过索引的。这样，SQL内部会启动为你优化Join的SQL语句的机制。而且，这些被用来Join的字段，应该是相同的类型的。例如：如果你要把 DECIMAL 字段和一个 INT 字段 Join 在一起，SQL 就无法使用它们的索引。对于那些STRING 类型，还需要有相同的字符集才行。（两个表的字符集有可能不一样）程序员站</p>
+<h2>优化子查询</h2>
+<p>子查询很灵活可以极大的节省查询的步骤，但是子查询的执行效率不高。执行子查询时数据库需要为内部嵌套的语句查询的结果建立一个临时表，然后再使用临时表中的数据进行查询。查询完成后再删除这个临时表，所以子查询的速度会慢一点。</p>
+<p>我们可以使用join语句来替换掉子查询，来提高效率。join语句不需要建立临时表，所以其查询速度会优于子查询。大部分的不是很复杂的子查询都可以替换成join语句。</p>
+<h2>服务器层面</h2>
+<p>服务器的调优，就得根据客户提供的真实环境的配置。如服务器是几核几个CPU等等。服务器的硬件指标确定下来后，根据指标调整Tomcat，JDK，数据库，Apatch等配置参数。让整个环境达到最优的效果。这块工作一般不是开发人员进行的。但是我们要了解清楚一些配置参数</p>
+<h2>Tomcat &amp;&amp; JDK</h2>
+<ul>
+<li>tomcat 配置</li>
+<li>JDK垃圾回收机制</li>
+<li>垃圾回收机制算法选择</li>
+<li>JVM内存模型</li>
+</ul>
+<h2>Postgresql数据库配置</h2>
+<h2>Linux服务器</h2>
+<h2>输出系统日志最后10行 dmesg | tail</h2>
+<src class="highlight">
+<src class="cnblogs_code">
+<pre><code>ubuntu@ubuntu:~$ dmesg |<span style="color: #000000;"> tail
+[</span>38060.138072<span style="color: #000000;">] e1000: eno16777736 NIC Link is Down
+[</span>38068.362442] e1000: eno16777736 NIC Link is Up 1000<span style="color: #000000;"> Mbps Full Duplex, Flow Control: None
+[</span>38070.366445<span style="color: #000000;">] e1000: eno16777736 NIC Link is Down
+[</span>38076.376947] e1000: eno16777736 NIC Link is Up 1000<span style="color: #000000;"> Mbps Full Duplex, Flow Control: None
+[</span>38084.386812<span style="color: #000000;">] e1000: eno16777736 NIC Link is Down
+[</span>38090.411818] e1000: eno16777736 NIC Link is Up 1000<span style="color: #000000;"> Mbps Full Duplex, Flow Control: None
+[</span>38480.597723<span style="color: #000000;">] e1000: eno16777736 NIC Link is Down
+[</span>38495.064487] e1000: eno16777736 NIC Link is Up 1000<span style="color: #000000;"> Mbps Full Duplex, Flow Control: None
+[</span>38607.910407<span style="color: #000000;">] IPv6: ADDRCONF(NETDEV_UP): eno16777736: link is not ready
+[</span>38607.978329] e1000: eno16777736 NIC Link is Up 1000 Mbps Full Duplex, Flow Control: None</code></pre>
+
+<p>&nbsp;</p>
+
+<p>命令会输出系统日志的最后10行。这些日志可以帮助排查性能问题。</p>
+<h2>top命令</h2>
+<p>top命令是进行性能分析最常使用的命令，也是最重要的命令。每个参数代表什么意思，都必须非常清楚。</p>
+<src class="highlight">
+<src class="cnblogs_code">
+<pre><code>top - 07:01:15 up 10:57,  3 users,  load average: 0.00, 0.04, 0.13<span style="color: #000000;">
+Tasks: </span>238 total,   1 running, 237 sleeping,   0 stopped,   0<span style="color: #000000;"> zombie
+</span>%Cpu(s):  3.4 us,  3.8 sy,  0.0 ni, 92.8 id,  0.0 wa,  0.0 hi,  0.0 si,  0.0<span style="color: #000000;"> st
+KiB Mem:   </span>2040024 total,  2020312 used,    19712 free,    11220<span style="color: #000000;"> buffers
+KiB Swap:  </span>3142652 total,   927204 used,  2215448 free.   121276<span style="color: #000000;"> cached Mem
+
+  PID USER      PR  NI    VIRT    RES    SHR S  </span>%CPU %MEM     TIME+<span style="color: #000000;"> COMMAND                                                                   
+ </span>6844 root      20   0  333020  20520   3600 S   6.0  1.0  29:48.44<span style="color: #000000;"> Xorg                                                                      
+</span>61687 ubuntu    20   0 1635056  43716  18108 S   3.6  2.1   5:00.27<span style="color: #000000;"> compiz                                                                    
+ </span>5444 ubuntu    20   0 3765292 875688  10020 S   2.7 42.9  42:13.69<span style="color: #000000;"> java                                                                      
+ </span>6788 root      20   0  293028   9284   1112 S   2.3  0.5   0:51.92<span style="color: #000000;"> dockerd                                                                   
+ </span>5175 ubuntu    20   0  578736  22496  14888 S   1.7  1.1   0:04.60 gnome-terminal-                                                           
+   27 root      39  19       0      0      0 S   0.7  0.0   0:09.02<span style="color: #000000;"> khugepaged                                                                
+ </span>7932 ubuntu    20   0 3060636  16560 </code></pre>
+
+<p>&nbsp;</p>
+
+<p>top命令包含了前面好几个命令的检查的内容。比如系统负载情况（uptime）、系统内存使用情况（free）、系统CPU使用情况（vmstat）等。因此通过这个命令，可以相对全面的查看系统负载的来源。同时，top命令支持排序，可以按照不同的列排序，方便查找出诸如内存占用最多的进程、CPU占用率最高的进程等。</p>
+<p>但是，top命令相对于前面一些命令，输出是一个瞬间值，如果不持续盯着，可能会错过一些线索。这时可能需要暂停top命令刷新，来记录和比对数据。</p>
+<p>第一行：</p>
+<src class="highlight">
+<src class="cnblogs_code">
+<pre><code>top - 07:01:15 up 10:57,  3 users,  load average: 0.00, 0.04, 0.13</code></pre>
+
+<p>&nbsp;</p>
+
+<p>解释：</p>
+<src class="highlight">
+<pre><code><code class="language-java"><span class="nl">07:01:<span class="n">15    <span class="n">当前时间
+<span class="n">up <span class="nl">10:<span class="n">57    <span class="n">系统运行时间<span class="err">，<span class="nl">格式为时:<span class="n">分
+<span class="n">3 <span class="n">user    <span class="n">当前登录用户数
+<span class="n">load <span class="nl">average: <span class="n">0<span class="o">.<span class="na">00<span class="o">, <span class="n">0<span class="o">.<span class="na">04<span class="o">, <span class="n">0<span class="o">.<span class="na">13    <span class="n">系统负载<span class="err">，<span class="n">即任务队列的平均长度<span class="err">。<span class="n">三个数值分别为 <span class="n">1分钟<span class="err">、<span class="n">5分钟<span class="err">、<span class="n">15分钟前到现在的平均值<span class="err">。</span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></code></code></pre>
+
+<p>第二行和第三行，当有多个CPU时，这些内容可能会超过两行。内容如下：</p>
+<src class="highlight">
+<src class="cnblogs_code">
+<pre><code><span style="color: #000000;">total 进程总数
+running 正在运行的进程数
+sleeping 睡眠的进程数
+stopped 停止的进程数
+zombie 僵尸进程数
+Cpu(s): 
+</span>3.4%<span style="color: #000000;"> us 用户空间占用CPU百分比
+</span>3.8%<span style="color: #000000;"> sy 内核空间占用CPU百分比
+</span>0.0%<span style="color: #000000;"> ni 用户进程空间内改变过优先级的进程占用CPU百分比
+</span>92.8%<span style="color: #000000;"> id 空闲CPU百分比
+</span>0.0%<span style="color: #000000;"> wa 等待输入输出的CPU时间百分比
+</span>0.0%<span style="color: #000000;">hi：硬件CPU中断占用百分比
+</span>0.0%<span style="color: #000000;">si：软中断占用百分比
+</span>0.0%st：虚拟机占用百分比</code></pre>
+
+<p>&nbsp;</p>
+
+<p>最后两行为内存信息。内容如下：</p>
+<src class="highlight">
+<src class="cnblogs_code">
+<pre><code><span style="color: #000000;">Mem:
+</span>2040024<span style="color: #000000;"> total    物理内存总量
+</span>2020312<span style="color: #000000;"> used    使用的物理内存总量
+17616k free    空闲内存总量
+</span>11220<span style="color: #000000;"> buffers    用作内核缓存的内存量
+Swap: 
+</span>3142652<span style="color: #000000;"> total    交换区总量
+</span>927204<span style="color: #000000;"> used    使用的交换区总量
+</span>2215448<span style="color: #000000;"> free    空闲交换区总量
+</span>121276 cached    缓冲的交换区总量,内存中的内容被换出到交换区，而后又被换入到内存，但使用过的交换区尚未被覆盖，该数值即为这些内容已存在于内存中的交换区的大小,相应的内存再次被换出时可不必再对交换区写入。</code></pre>
+
+<p>&nbsp;</p>
+
+<p>进程信息区统计信息区域的下方显示了各个进程的详细信息。首先来认识一下各列的含义。</p>
+<p class="ztext-empty-paragraph">&nbsp;</p>
+<p>序号 列名 含义</p>
+<src class="highlight">
+<pre><code><code class="language-java"><span class="n">a    <span class="n">PID     <span class="n">进程id
+<span class="n">b    <span class="n">PPID    <span class="n">父进程id
+<span class="n">c    <span class="n">RUSER   <span class="n">Real <span class="n">user <span class="n">name
+<span class="n">d    <span class="n">UID     <span class="n">进程所有者的用户id
+<span class="n">e    <span class="n">USER    <span class="n">进程所有者的用户名
+<span class="n">f    <span class="n">GROUP   <span class="n">进程所有者的组名
+<span class="n">g    <span class="n">TTY     <span class="n">启动进程的终端名<span class="err">。<span class="n">不是从终端启动的进程则显示为 <span class="o">?
+<span class="n">h    <span class="n">PR      <span class="n">优先级
+<span class="n">i    <span class="n">NI      <span class="n">nice值<span class="err">。<span class="n">负值表示高优先级<span class="err">，<span class="n">正值表示低优先级
+<span class="n">j    <span class="n">P       <span class="n">最后使用的CPU<span class="err">，<span class="n">仅在多CPU环境下有意义
+<span class="n">k    <span class="o">%<span class="n">CPU    <span class="n">上次更新到现在的CPU时间占用百分比
+<span class="n">l    <span class="n">TIME    <span class="n">进程使用的CPU时间总计<span class="err">，<span class="n">单位秒
+<span class="n">m    <span class="n">TIME<span class="o">+   <span class="n">进程使用的CPU时间总计<span class="err">，<span class="n">单位1<span class="o">/<span class="n">100秒
+<span class="n">n    <span class="o">%<span class="n">MEM    <span class="n">进程使用的物理内存百分比
+<span class="n">o    <span class="n">VIRT    <span class="n">进程使用的虚拟内存总量<span class="err">，<span class="n">单位kb<span class="err">。<span class="n">VIRT<span class="o">=<span class="n">SWAP<span class="o">+<span class="n">RES
+<span class="n">p    <span class="n">SWAP    <span class="n">进程使用的虚拟内存中<span class="err">，<span class="n">被换出的大小<span class="err">，<span class="n">单位kb<span class="err">。
+<span class="n">q    <span class="n">RES     <span class="n">进程使用的<span class="err">、<span class="n">未被换出的物理内存大小<span class="err">，<span class="n">单位kb<span class="err">。<span class="n">RES<span class="o">=<span class="n">CODE<span class="o">+<span class="n">DATA
+<span class="n">r    <span class="n">CODE    <span class="n">可执行代码占用的物理内存大小<span class="err">，<span class="n">单位kb
+<span class="n">s    <span class="n">DATA    <span class="nf">可执行代码以外的部分<span class="o">(<span class="n">数据段<span class="o">+<span class="n">栈<span class="o">)<span class="n">占用的物理内存大小<span class="err">，<span class="n">单位kb
+<span class="n">t    <span class="n">SHR     <span class="n">共享内存大小<span class="err">，<span class="n">单位kb
+<span class="n">u    <span class="n">nFLT    <span class="n">页面错误次数
+<span class="n">v    <span class="n">nDRT    <span class="n">最后一次写入到现在<span class="err">，<span class="n">被修改过的页面数<span class="err">。
+<span class="n">w    <span class="n">S       <span class="nf">进程状态<span class="o">(<span class="n">D<span class="o">=<span class="n">不可中断的睡眠状态<span class="o">,<span class="n">R<span class="o">=<span class="n">运行<span class="o">,<span class="n">S<span class="o">=<span class="n">睡眠<span class="o">,<span class="n">T<span class="o">=<span class="n">跟踪<span class="o">/<span class="n">停止<span class="o">,<span class="n">Z<span class="o">=<span class="n">僵尸进程<span class="o">)
+<span class="n">x    <span class="n">COMMAND <span class="n">命令名<span class="o">/<span class="n">命令行
+<span class="n">y    <span class="n">WCHAN   <span class="n">若该进程在睡眠<span class="err">，<span class="n">则显示睡眠中的系统函数名
+<span class="n">z    <span class="n">Flags   <span class="n">任务标志<span class="err">，<span class="n">参考 <span class="n">sched<span class="o">.<span class="na">h</span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></code></code></pre>
+
+<p class="ztext-empty-paragraph">&nbsp;</p>
+<p>查询登录当前系统的用户信息：w命令</p>
+<src class="highlight">
+<src class="cnblogs_code">
+<pre><code>ubuntu@ubuntu:~<span style="color: #000000;">$ w
+ </span>20:15:44 up 11:17,  3 users,  load average: 0.21, 0.16, 0.16<span style="color: #000000;">
+USER     TTY      FROM             LOGIN@   IDLE   JCPU   PCPU WHAT
+ubuntu   :</span>0       :0               Thu00   ?xdm?  30:09   1.63s /sbin/upstart --<span style="color: #000000;">user
+ubuntu   pts</span>/7    :0               Thu23   45:01m 42:57   8.80s /home/ubuntu/inno/idea-IU-162.2032.8/bin/<span style="color: #000000;">fsnotifier64
+ubuntu   pts</span>/18   :0               06:47    0.00s  0.47s  0.05s w</code></pre>
+
+<p>&nbsp;</p>
+
+<p>可查询登录当前系统的用户信息，以及这些用户目前正在做什么操作</p>
+<h2>iostat</h2>
+<p>运行时，如果出现下面的提示信息</p>
+<src class="highlight">
+<src class="cnblogs_code">
+<pre><code>ubuntu@ubuntu:~<span style="color: #000000;">$ iostat
+The program </span>'iostat'<span style="color: #000000;"> is currently not installed. You can install it by typing:
+sudo apt</span>-get install sysstat</code></pre>
+
+<p>&nbsp;</p>
+
+<p>执行下 sudo apt-get install sysstat 即可。</p>
+<p>Iostat提供三个报告：CPU利用率、设备利用率和网络文件系统利用率，使用-c，-d和-h参数可以分别独立显示这三个报告。</p>
+<h2>内存分析命令：free m</h2>
+<src class="highlight">
+<src class="cnblogs_code">
+<pre><code>ubuntu@ubuntu:~$ free -<span style="color: #000000;">m
+             total       used       free     shared    buffers     cached
+Mem:          </span>1992        672       1320          6         22        209
+-/+ buffers/cache:        440       1552<span style="color: #000000;">
+Swap:         </span>3068        403       2665</code></pre>
+
+<p>&nbsp;</p>
+
+<p class="ztext-empty-paragraph">&nbsp;</p>
+<p>free: 查看系统内存的使用情况，-m参数表示按照兆字节展示。</p>
+<p>最后两列分别表示用于IO缓存的内存数，和用于文件系统页缓存的内存数。需要注意的是，第二行-/+ buffers/cache，看上去缓存占用了大量内存空间。这是Linux系统的内存使用策略，尽可能的利用内存，如果应用程序需要内存，这部分内存会立即被回收并分配给应用程序。因此，这部分内存一般也被当成是可用内存。如果可用内存非常少，系统可能会动用交换区（如果配置了的话），这样会增加IO开销（可以在iostat命令中提现），降低系统性能。</p>
+<p class="ztext-empty-paragraph">&nbsp;</p>
+<h2>查看CPU的占用情况 mpstat</h2>
+<p>显示每个CPU的占用情况，如果有一个CPU占用率特别高，那么有可能是一个单线程应用程序引起的。</p>
+<src class="highlight">
+<src class="cnblogs_code">
+<pre><code>ubuntu@ubuntu:~$ mpstat -P ALL 1<span style="color: #000000;">
+Linux </span>4.2.0-16-generic (ubuntu)     04/30/2017  _x86_64_    (2<span style="color: #000000;"> CPU)
+
+</span>10:57:30 PM  CPU    %usr   %nice    %sys %iowait    %irq   %soft  %steal  %guest  %gnice   %<span style="color: #000000;">idle
+</span>10:57:31 PM  all    1.52    0.00    0.51    0.00    0.00    0.51    0.00    0.00    0.00   97.47
+10:57:31 PM    0    3.03    0.00    0.00    0.00    0.00    0.00    0.00    0.00    0.00   96.97
+10:57:31 PM    1    0.00    0.00    0.00    0.00    0.00    1.02    0.00    0.00    0.00   98.98</code></pre>
+
+<p>&nbsp;</p>
+
+<p>前端</p>
+<p>由于我不是做前端的工作，所以没有太多的经验总结。不过代码方面性能优化有些是可以运用到前端。同事也可以减少前端的请求链接等等手段去优化。这里由于本人不了解，不做过多的阐述。</p>
+<p class="ztext-empty-paragraph">&nbsp;</p>
+<p>作者：阿_毅</p>
+<p>原文链接：<a class=" external" href="https://link.zhihu.com/?target=https%3A//blog.csdn.net/huangwenyi1010/article/details/72673447" rel="nofollow noreferrer" target="_blank" data-za-detail-view-id="1043"><span class="invisible">https://<span class="visible">blog.csdn.net/huangweny<span class="invisible">i1010/article/details/72673447</span></span></span></a></p>
+
+</div><hr><script charset='utf-8' src='../../js/sming.js'></script></body></html>

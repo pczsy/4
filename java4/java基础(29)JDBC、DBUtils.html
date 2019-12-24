@@ -1,0 +1,485 @@
+<html><head><meta charset='utf-8'><meta name='viewport' content='width=device-width, initial-scale=1'>
+<meta name='applicable-device' content='pc'><meta name='keywords' content='电脑,电脑讲解,电脑技术,编程,电脑故障维修java基础(29)JDBC、DBUtils' />
+<script src='../../highlight/highlight.pack.js'></script>
+<link rel='stylesheet' type='text/css' href='../../highlight/styles/monokai.css'/>
+
+<link rel='stylesheet' href='../../fenxiang/dist/css/share.min.css'>
+<script src='../../fenxiang/src/js/social-share.js'></script>
+<script src='../../fenxiang/src/js/qrcode.js'></script>
+
+</head><body><script>hljs.initHighlightingOnLoad();</script><script>
+var system ={};  
+var p = navigator.platform;       
+system.win = p.indexOf('Win') == 0;  
+system.mac = p.indexOf('Mac') == 0;  
+system.x11 = (p == 'X11') || (p.indexOf('Linux') == 0);     
+if(system.win||system.mac||system.xll){
+document.write("<link href='../css/3.css' rel='stylesheet' type='text/css'>");}else{ document.write("<link href='../css/3wap.css' rel='stylesheet' type='text/css'>");}</script><script src='../../js/3.js'></script><div class='div2'><div class='heading_nav'><ul><div><li><a href='../../index.html'>首页</a></li>
+</div><div onclick='hidden1()' >分享</div>
+</ul></div></div>
+<div id='heading_nav2'> 
+<li class='row' >
+<div class='social-share' data-mode='prepend'><a href='javascript:' class='social-share-icon icon-heart'></a></div></li></div><script charset='utf-8' src='../../3/js/hengfu.js'></script><script charset='utf-8' src='../../3/js/hengfu2.js'></script><hr><div class='div1'><div class='biaoti'><center>java基础(29)JDBC、DBUtils</center></div><div class='banquan'>原文出处:本文由博客园博主爱编程的小灰灰提供。<br/>
+原文连接:https://www.cnblogs.com/liuhui0308/p/11661004.html</div><br>
+    <h1>1.&nbsp;<strong>JDBC</strong></h1>
+<h2><!--[if !supportLists]-->1.1&nbsp;<!--[endif]--><strong>JDBC<span style="font-family: 华文楷体;">概述</span></strong></h2>
+<p>JDBC<span style="font-family: 宋体;">（</span><span style="font-family: Calibri;">Java Data Base Connectivity,java</span><span style="font-family: 宋体;">数据库连接）是一种用于执行</span><span style="font-family: Calibri;">SQL</span><span style="font-family: 宋体;">语句的</span><span style="font-family: Calibri;">Java API</span><span style="font-family: 宋体;">，可以为多种关系数据库提供统一访问，它由一组用</span><span style="font-family: Calibri;">Java</span><span style="font-family: 宋体;">语言编写的类和接口组成。是</span><span style="font-family: Calibri;">Java</span><span style="font-family: 宋体;">访问数据库的标准规范</span></p>
+<p>JDBC<span style="font-family: 宋体;">提供了一种基准</span><span style="font-family: Calibri;">,</span><span style="font-family: 宋体;">据此可以构建更高级的工具和接口，使数据库开发人员能够编写数据库应用程序。</span></p>
+<p>JDBC<span style="font-family: 宋体;">需要连接驱动，驱动是两个设备要进行通信，满足一定通信数据格式，数据格式由设备提供商规定，设备提供商为设备提供驱动软件，通过软件可以与该设备进行通信。</span></p>
+<p><span style="font-family: 宋体;">今天我们使用的是</span>mysql<span style="font-family: 宋体;">的驱动</span>mysql-connector-java-5.1.39-bin.jar</p>
+<h2><!--[if !supportLists]-->1.2&nbsp;<!--[endif]--><strong>JDBC<span style="font-family: 华文楷体;">原理</span></strong></h2>
+<p>Java<span style="font-family: 宋体;">提供访问数据库规范称为</span><span style="font-family: Calibri;">JDBC</span><span style="font-family: 宋体;">，而生产厂商提供规范的实现类称为驱动。</span></p>
+<p><strong><img src="./images/java基础(29)JDBC、DBUtils0.png" alt="" /></strong></p>
+<p>JDBC<span style="font-family: 宋体;">是接口，驱动是接口的实现，没有驱动将无法完成数据库连接，从而不能操作数据库！每个数据库厂商都需要提供自己的驱动，用来连接自己公司的数据库，也就是说驱动一般都由数据库生成厂商提供。</span></p>
+<h2><!--[if !supportLists]-->1.3&nbsp;<!--[endif]--><strong>案例分析</strong></h2>
+<p><span style="font-family: 宋体;">昨天我们学习了</span>sql<span style="font-family: 宋体;">语句的使用，并创建的分类表</span><span style="font-family: Calibri;">sort</span><span style="font-family: 宋体;">，今天我们将使用</span><span style="font-family: Calibri;">JDBC</span><span style="font-family: 宋体;">对分类表进行增删改查操作。</span></p>
+<src class="cnblogs_code">
+<pre><code><span style="color: #000000;">#创建数据库
+</span><span style="color: #0000ff;">create</span> <span style="color: #0000ff;">database</span><span style="color: #000000;"> day22_JDBC;
+#使用数据库
+</span><span style="color: #0000ff;">use</span><span style="color: #000000;"> day22_JDBC;
+###创建分类表
+</span><span style="color: #0000ff;">create</span> <span style="color: #0000ff;">table</span><span style="color: #000000;"> sort(
+  sid </span><span style="color: #0000ff;">int</span> <span style="color: #0000ff;">PRIMARY</span> <span style="color: #0000ff;">KEY</span><span style="color: #000000;"> ,
+  sname </span><span style="color: #0000ff;">varchar</span>(<span style="color: #800000; font-weight: bold;">100</span><span style="color: #000000;">)
+);
+#初始化数据
+</span><span style="color: #0000ff;">insert</span> <span style="color: #0000ff;">into</span> sort(sname) <span style="color: #0000ff;">values</span>(<span style="color: #ff0000;">'</span><span style="color: #ff0000;">家电</span><span style="color: #ff0000;">'</span><span style="color: #000000;">);
+</span><span style="color: #0000ff;">insert</span> <span style="color: #0000ff;">into</span> sort(sname) <span style="color: #0000ff;">values</span>(<span style="color: #ff0000;">'</span><span style="color: #ff0000;">服饰</span><span style="color: #ff0000;">'</span><span style="color: #000000;">);
+</span><span style="color: #0000ff;">insert</span> <span style="color: #0000ff;">into</span> sort(sname) <span style="color: #0000ff;">values</span>(<span style="color: #ff0000;">'</span><span style="color: #ff0000;">化妆品</span><span style="color: #ff0000;">'</span>);</code></pre>
+
+<h2><!--[if !supportLists]-->1.4&nbsp;<!--[endif]--><strong>JDBC<span style="font-family: 华文楷体;">开发步骤</span></strong></h2>
+<ol>
+<li><span style="font-family: 宋体;">注册驱动</span>.</li>
+<li><span style="font-family: 宋体;">获得连接</span>.</li>
+<li>获得语句执行平台</li>
+<li><span style="font-family: 宋体;">执行</span>sql<span style="font-family: 宋体;">语句</span></li>
+<li>处理结果</li>
+<li><span style="font-family: 宋体;">释放资源</span>.</li>
+</ol>
+<h3><!--[if !supportLists]-->1.4.1&nbsp;<!--[endif]--><strong><span style="font-family: 黑体;">导入驱动</span>jar<span style="font-family: 黑体;">包</span></strong></h3>
+<p><span style="font-family: 宋体;">创建</span>lib<span style="font-family: 宋体;">目录，用于存放当前项目需要的所有</span><span style="font-family: Calibri;">jar</span><span style="font-family: 宋体;">包</span></p>
+<p><span style="font-family: 宋体;">选择</span>jar<span style="font-family: 宋体;">包，右键执行</span><span style="font-family: Calibri;">build path / Add to Build Path</span></p>
+<p><strong><img src="./images/java基础(29)JDBC、DBUtils1.png" alt="" /></strong></p>
+<h3><!--[if !supportLists]-->1.4.2&nbsp;<!--[endif]--><strong>API<span style="font-family: 黑体;">详解：注册驱动</span></strong></h3>
+<src class="cnblogs_code">
+<pre><code>代码：Class.forName("com.mysql.jdbc.Driver");</code></pre>
+
+<p>JDBC<span style="font-family: 宋体;">规范定义驱动接口：</span><span style="font-family: Calibri;">java.sql.Driver</span><span style="font-family: 宋体;">，</span><span style="font-family: Calibri;">MySql</span><span style="font-family: 宋体;">驱动包提供了实现类：</span><span style="font-family: Calibri;">com.mysql.jdbc.Driver</span></p>
+<p>DriverManager<span style="font-family: 宋体;">工具类，提供注册驱动的方法 </span><span style="font-family: Calibri;">registerDriver()</span><span style="font-family: 宋体;">，方法的参数是</span><span style="font-family: Calibri;">java.sql.Driver</span><span style="font-family: 宋体;">，所以我们可以通过如下语句进行注册</span><span style="font-family: Calibri;">:</span></p>
+<p>DriverManager.registerDriver(new com.mysql.jdbc.Driver());</p>
+<p>以上代码不推荐使用，存在两方面不足</p>
+<ol>
+<li>硬编码，后期不易于程序扩展和维护</li>
+<li>驱动被注册两次。</li>
+</ol>
+<p><span style="font-family: 宋体;">通常开发我们使用</span>Class.forName() <span style="font-family: 宋体;">加载一个使用字符串描述的驱动类。</span></p>
+<p><span style="font-family: 宋体;">如果使用</span>Class.forName()<span style="font-family: 宋体;">将类加载到内存，该类的静态代码将自动执行。</span></p>
+<p><span style="font-family: 宋体;">通过查询</span>com.mysql.jdbc.Driver<span style="font-family: 宋体;">源码，我们发现</span><span style="font-family: Calibri;">Driver</span><span style="font-family: 宋体;">类&ldquo;主动&rdquo;将自己进行注册</span></p>
+<src class="cnblogs_code">
+<pre><code><span style="color: #0000ff;">public</span> <span style="color: #0000ff;">class</span> Driver <span style="color: #0000ff;">extends</span> NonRegisteringDriver <span style="color: #0000ff;">implements</span><span style="color: #000000;"> java.sql.Driver {
+    </span><span style="color: #0000ff;">static</span><span style="color: #000000;"> {
+        </span><span style="color: #0000ff;">try</span><span style="color: #000000;"> {
+            java.sql.DriverManager.registerDriver(</span><span style="color: #0000ff;">new</span><span style="color: #000000;"> Driver());
+        } </span><span style="color: #0000ff;">catch</span><span style="color: #000000;"> (SQLException E) {
+            </span><span style="color: #0000ff;">throw</span> <span style="color: #0000ff;">new</span> RuntimeException("Can't register driver!"<span style="color: #000000;">);
+        }
+    }
+　　&hellip;&hellip;
+}</span></code></pre>
+
+<h3><!--[if !supportLists]-->1.4.3&nbsp;<!--[endif]--><strong>API<span style="font-family: 黑体;">详解：获得链接</span></strong></h3>
+<src class="cnblogs_code">
+<pre><code>代码：Connection con =<span style="color: #000000;"> DriverManager.getConnection
+(&ldquo;jdbc:mysql:</span><span style="color: #008000;">//</span><span style="color: #008000;">localhost:3306/mydb&rdquo;,&rdquo;root&rdquo;,&rdquo;root&rdquo;);</span></code></pre>
+
+<p><span style="font-family: 宋体;">获取连接需要方法</span> DriverManager.getConnection(url,username,password)<span style="font-family: 宋体;">，三个参数分别表示，</span><span style="font-family: Calibri;">url </span><span style="font-family: 宋体;">需要连接数据库的位置（网址） </span><span style="font-family: Calibri;">user</span><span style="font-family: 宋体;">用户名 &nbsp;</span><span style="font-family: Calibri;">password </span><span style="font-family: 宋体;">密码</span></p>
+<p>url<span style="font-family: 宋体;">比较复杂，下面是</span><span style="font-family: Calibri;">mysql</span><span style="font-family: 宋体;">的</span><span style="font-family: Calibri;">url</span><span style="font-family: 宋体;">：</span></p>
+<src class="cnblogs_code">
+<pre><code>jdbc:mysql:<span style="color: #008000;">//</span><span style="color: #008000;">localhost:3306/mydb</span>
+<span style="color: #000000;">JDBC规定url的格式由三部分组成，每个部分中间使用冒号分隔。
+　　第一部分是jdbc，这是固定的；
+　　第二部分是数据库名称，那么连接mysql数据库，第二部分当然是mysql了；
+　　第三部分是由数据库厂商规定的，我们需要了解每个数据库厂商的要求，mysql的第三部分分别由数据库服务器的IP地址（localhost）、端口号（</span>3306），以及DATABASE名称(mydb)组成。</code></pre>
+
+<h3><!--[if !supportLists]-->1.4.4&nbsp;<!--[endif]--><strong>API<span style="font-family: 黑体;">详解：获得语句执行平台</span></strong></h3>
+<src class="cnblogs_code">
+<pre><code>String sql = "某SQL语句"<span style="color: #000000;">;
+获取Statement语句执行平台：Statement stmt </span>= con.createStatement();</code></pre>
+
+<p>常用方法：</p>
+<blockquote>
+<p>int executeUpdate(String sql); --<span style="font-family: 宋体;">执行</span><span style="font-family: Calibri;">insert update delete</span><span style="font-family: 宋体;">语句</span><span style="font-family: Calibri;">.</span></p>
+<p>ResultSet executeQuery(String sql); --<span style="font-family: 宋体;">执行</span><span style="font-family: Calibri;">select</span><span style="font-family: 宋体;">语句</span><span style="font-family: Calibri;">.</span></p>
+<p>boolean execute(String sql); --<span style="font-family: 宋体;">执行</span><span style="font-family: Calibri;">select</span><span style="font-family: 宋体;">返回</span><span style="font-family: Calibri;">true </span><span style="font-family: 宋体;">执行其他的语句返回</span><span style="font-family: Calibri;">false.</span></p>
+</blockquote>
+<h3><!--[if !supportLists]-->1.4.5&nbsp;<!--[endif]--><strong>API<span style="font-family: 黑体;">详解：处理结果集（执行</span><span style="font-family: 'Times New Roman';">insert</span><span style="font-family: 黑体;">、</span><span style="font-family: 'Times New Roman';">update</span><span style="font-family: 黑体;">、</span><span style="font-family: 'Times New Roman';">delete</span><span style="font-family: 黑体;">无需处理）</span></strong></h3>
+<p>ResultSet<span style="font-family: 宋体;">实际上就是一张二维的表格，我们可以调用其</span><span style="font-family: Calibri;">boolean next()</span><span style="font-family: 宋体;">方法指向某行记录，当第一次调用</span><span style="font-family: Calibri;">next()</span><span style="font-family: 宋体;">方法时，便指向第一行记录的位置，这时就可以使用</span><span style="font-family: Calibri;">ResultSet</span><span style="font-family: 宋体;">提供的</span><span style="font-family: Calibri;">getXXX(int col)</span><span style="font-family: 宋体;">方法</span><span style="font-family: Calibri;">(</span><span style="font-family: 宋体;">与索引从</span><span style="font-family: Calibri;">0</span><span style="font-family: 宋体;">开始不同个，列从</span><span style="font-family: Calibri;">1</span><span style="font-family: 宋体;">开始</span><span style="font-family: Calibri;">)</span><span style="font-family: 宋体;">来获取指定列的数据：</span></p>
+<src class="cnblogs_code">
+<pre><code>rs.next();<span style="color: #008000;">//</span><span style="color: #008000;">指向第一行</span>
+rs.getInt(1);<span style="color: #008000;">//</span><span style="color: #008000;">获取第一行第一列的数据</span></code></pre>
+
+<p>常用方法：</p>
+<blockquote>
+<p>Object getObject(int index)&nbsp;/ Object getObject(String name) <span style="font-family: 宋体;">获得任意对象</span></p>
+<p>String getString(int index)&nbsp;/ Object getObject(String name) <span style="font-family: 宋体;">获得字符串</span></p>
+<p>int getInt(int index)&nbsp;/ Object getObject(String name) <span style="font-family: 宋体;">获得整形</span></p>
+<p>double getDouble(int index)&nbsp;/ Object getObject(String name) <span style="font-family: 宋体;">获得双精度浮点型</span></p>
+</blockquote>
+<h3><!--[if !supportLists]-->1.4.6&nbsp;<!--[endif]--><strong>API<span style="font-family: 黑体;">详解：释放资源</span></strong></h3>
+<p><span style="font-family: 宋体;">与</span>IO<span style="font-family: 宋体;">流一样，使用后的东西都需要关闭！关闭的顺序是先得到的后关闭，后得到的先关闭。</span></p>
+<src class="cnblogs_code">
+<pre><code><span style="color: #000000;">rs.close();
+stmt.close();
+con.close();</span></code></pre>
+
+<h2><!--[if !supportLists]-->1.5&nbsp;<!--[endif]--><strong>SQL<span style="font-family: 华文楷体;">注入问题</span></strong></h2>
+<p><span style="font-family: 宋体;">假设有登录案例</span>SQL<span style="font-family: 宋体;">语句如下</span><strong>:</strong></p>
+<src class="cnblogs_code">
+<pre><code><span style="color: #0000ff;">SELECT</span> <span style="color: #808080;">*</span> <span style="color: #0000ff;">FROM</span> 用户表 <span style="color: #0000ff;">WHERE</span> NAME <span style="color: #808080;">=</span> 用户输入的用户名 <span style="color: #808080;">AND</span> PASSWORD <span style="color: #808080;">=</span> 用户输的密码;</code></pre>
+
+<p><span style="font-family: 宋体;">此时，当用户输入正确的账号与密码后，查询到了信息则让用户登录。但是当用户输入的账号为</span>XXX <span style="font-family: 宋体;">密码为：</span>XXX&rsquo;&nbsp;&nbsp;OR &lsquo;a&rsquo;=&rsquo;a时，则真正执行的代码变为：</p>
+<src class="cnblogs_code">
+<pre><code><span style="color: #0000ff;">SELECT</span> <span style="color: #808080;">*</span> <span style="color: #0000ff;">FROM</span> 用户表 <span style="color: #0000ff;">WHERE</span> NAME <span style="color: #808080;">=</span> &lsquo;XXX&rsquo; <span style="color: #808080;">AND</span> PASSWORD <span style="color: #808080;">=</span>&rsquo; XXX&rsquo;  <span style="color: #808080;">OR</span> &rsquo;a&rsquo;<span style="color: #808080;">=</span>&rsquo;a&rsquo;;</code></pre>
+
+<p><span style="font-family: 宋体;">此时，上述查询语句时永远可以查询出结果的。那么用户就直接登录成功了，显然我们不希望看到这样的结果，这便是</span>SQL<span style="font-family: 宋体;">注入问题。</span></p>
+<p>为此，我们使用PreparedStatement来解决对应的问题。</p>
+<h2><!--[if !supportLists]-->1.6&nbsp;<!--[endif]--><strong>API<span style="font-family: 华文楷体;">详解：预处理对象</span></strong></h2>
+<p>使用PreparedStatement<span style="font-family: 宋体;">预</span><span style="font-family: 宋体;">处理对象时，建议每条</span>sql<span style="font-family: 宋体;">语句所有的实际参数，都使用逗号分隔。</span></p>
+<p>&nbsp;</p>
+<src class="cnblogs_code">
+<pre><code>String sql = "insert into sort(sid,sname) values(?,?)"<span style="color: #000000;">;;
+PreparedStatement预处理对象代码：
+PreparedStatement psmt </span>= conn.prepareStatement(sql)</code></pre>
+
+<p>&nbsp;</p>
+<p>常用方法：</p>
+<p><span style="font-family: Calibri;">1.执行SQL语句:</span></p>
+<p>&nbsp;</p>
+<p>&nbsp;</p>
+<blockquote>
+<p class="16">int executeUpdate(); --执行insert update delete语句.</p>
+<p>&nbsp;</p>
+<p class="16">ResultSet executeQuery(); --执行select语句.</p>
+<p>&nbsp;</p>
+<p class="16">boolea execute(); --执行select返回true 执行其他的语句返回false.</p>
+</blockquote>
+<p>&nbsp;</p>
+<p>&nbsp;</p>
+<p>2.设置实际参数</p>
+<p>&nbsp;</p>
+<p>&nbsp;</p>
+<p class="17">void <strong>set</strong><strong>Xxx</strong>(int&nbsp;index, Xxx&nbsp;xx) 将指定参数设置为给定Java的xx<span style="font-family: 宋体;">值。在将此值发送到数据库时，驱动程序将它转换成一个</span> SQL Xxx类型值。</p>
+<p>&nbsp;</p>
+<p>例如：</p>
+<p>&nbsp;</p>
+<p>&nbsp;</p>
+<src class="cnblogs_code">
+<pre><code>setString(2, "家用电器") 把SQL语句中第2个位置的占位符？ 替换成实际参数 "家用电器"</code></pre>
+
+<p>&nbsp;</p>
+<h2><!--[if !supportLists]-->1.7&nbsp;<!--[endif]--><strong><span style="font-family: 华文楷体;">预</span></strong><strong><span style="font-family: 华文楷体;">处理对象</span>executeUpdate<span style="font-family: 华文楷体;">方法</span></strong></h2>
+<p>&nbsp;</p>
+<p>&nbsp;</p>
+<p><span style="font-family: 宋体;">通过预处理对象的</span>executeUpdate<span style="font-family: 宋体;">方法，完成记录的</span><span style="font-family: Calibri;">insert\update\delete</span><span style="font-family: 宋体;">语句的执行。操作格式统一如下：</span></p>
+<p>&nbsp;</p>
+<p>1. <span style="font-family: 宋体;">注册驱动</span></p>
+<p>&nbsp;</p>
+<p>2. <span style="font-family: 宋体;">获取连接</span></p>
+<p>&nbsp;</p>
+<p>3. <span style="font-family: 宋体;">获取预处理对象</span></p>
+<p>&nbsp;</p>
+<p>4. SQL<span style="font-family: 宋体;">语句占位符设置实际参数</span></p>
+<p>&nbsp;</p>
+<p>5. <span style="font-family: 宋体;">执行</span><span style="font-family: Calibri;">SQL</span><span style="font-family: 宋体;">语句</span></p>
+<p>&nbsp;</p>
+<p>6. <span style="font-family: 宋体;">释放资源</span></p>
+<p>&nbsp;</p>
+<p>&nbsp;</p>
+<h3><!--[if !supportLists]-->1.7.1&nbsp;<!--[endif]--><strong><span style="font-family: 黑体;">插入记录：</span>insert</strong></h3>
+<p>&nbsp;</p>
+<p>&nbsp;</p>
+<p class="16">实现向分类表中插入指定的新分类</p>
+<p>&nbsp;</p>
+<p>&nbsp;</p>
+<src class="cnblogs_code">
+<pre><code><span style="color: #0000ff;">public</span> <span style="color: #0000ff;">void</span> demo01() <span style="color: #0000ff;">throws</span><span style="color: #000000;"> Exception {
+        </span><span style="color: #008000;">//</span><span style="color: #008000;"> 1注册驱动</span>
+        Class.forName("com.mysql.jdbc.Driver"<span style="color: #000000;">);
+        </span><span style="color: #008000;">//</span><span style="color: #008000;"> 2获取连接</span>
+        Connection conn = DriverManager.getConnection("jdbc:mysql://localhost:3306/mydb", "root", "root"<span style="color: #000000;">);
+        </span><span style="color: #008000;">//</span><span style="color: #008000;"> 3获得预处理对象</span>
+        String sql = "insert into sort(sname) values(?)"<span style="color: #000000;">;
+        PreparedStatement stat </span>=<span style="color: #000000;"> conn.prepareStatement(sql);
+        </span><span style="color: #008000;">//</span><span style="color: #008000;"> 4 SQL语句占位符设置实际参数</span>
+        stat.setString(1, "奢侈品"<span style="color: #000000;">);
+        </span><span style="color: #008000;">//</span><span style="color: #008000;"> 5执行SQL语句</span>
+        <span style="color: #0000ff;">int</span> line =<span style="color: #000000;"> stat.executeUpdate();
+        System.out.println(</span>"新添加记录数：" +<span style="color: #000000;"> line);
+        </span><span style="color: #008000;">//</span><span style="color: #008000;"> 6释放资源</span>
+<span style="color: #000000;">        stat.close();
+        conn.close();
+    }</span></code></pre>
+
+<p>&nbsp;</p>
+<h3><!--[if !supportLists]-->1.7.2&nbsp;<!--[endif]--><strong><span style="font-family: 黑体;">更新记录：</span>update</strong></h3>
+<p>&nbsp;</p>
+<p>&nbsp;</p>
+<p class="16"><span style="font-family: 宋体;">实现更新分类表中指定分类</span>ID所对应记录的分类名称</p>
+<p>&nbsp;</p>
+<p>&nbsp;</p>
+<src class="cnblogs_code">
+<pre><code><span style="color: #0000ff;">public</span> <span style="color: #0000ff;">void</span> demo02() <span style="color: #0000ff;">throws</span><span style="color: #000000;"> Exception {
+        </span><span style="color: #008000;">//</span><span style="color: #008000;"> 1注册驱动</span>
+        Class.forName("com.mysql.jdbc.Driver"<span style="color: #000000;">);
+        </span><span style="color: #008000;">//</span><span style="color: #008000;"> 2获取连接</span>
+        Connection conn = DriverManager.getConnection("jdbc:mysql://localhost:3306/mydb", "root", "root"<span style="color: #000000;">);
+        </span><span style="color: #008000;">//</span><span style="color: #008000;"> 3获得预处理对象中</span>
+        String sql = "update sort set sname=? where sid=?"<span style="color: #000000;">;
+        PreparedStatement stat </span>=<span style="color: #000000;"> conn.prepareStatement(sql);
+        </span><span style="color: #008000;">//</span><span style="color: #008000;"> 4 SQL语句占位符设置实际参数</span>
+        stat.setString(1, "数码产品"<span style="color: #000000;">);
+        stat.setInt(</span>2, 1<span style="color: #000000;">);
+　　　　  </span><span style="color: #008000;">//</span><span style="color: #008000;"> 5执行SQL语句</span>
+        <span style="color: #0000ff;">int</span> line =<span style="color: #000000;"> stat.executeUpdate();
+        System.out.println(</span>"更新记录数：" +<span style="color: #000000;"> line);
+        </span><span style="color: #008000;">//</span><span style="color: #008000;"> 6释放资源</span>
+<span style="color: #000000;">        stat.close();
+        conn.close();
+    }</span></code></pre>
+
+<p>&nbsp;</p>
+<h3><!--[if !supportLists]-->1.7.3&nbsp;<!--[endif]--><strong><span style="font-family: 黑体;">删除记录：</span>delete</strong></h3>
+<p>&nbsp;</p>
+<p>&nbsp;</p>
+<p class="16"><span style="font-family: 宋体;">实现删除分类表中指定分类</span>ID的记录</p>
+<p>&nbsp;</p>
+<p>&nbsp;</p>
+<src class="cnblogs_code">
+<pre><code><span style="color: #0000ff;">public</span> <span style="color: #0000ff;">void</span> demo03() <span style="color: #0000ff;">throws</span><span style="color: #000000;"> Exception {
+        </span><span style="color: #008000;">//</span><span style="color: #008000;"> 1注册驱动</span>
+        Class.forName("com.mysql.jdbc.Driver"<span style="color: #000000;">);
+        </span><span style="color: #008000;">//</span><span style="color: #008000;"> 2获取连接</span>
+        Connection conn = DriverManager.getConnection("jdbc:mysql://localhost:3306/mydb", "root", "root"<span style="color: #000000;">);
+        </span><span style="color: #008000;">//</span><span style="color: #008000;"> 3获得预处理对象</span>
+        String sql = "delete from sort where sid=?"<span style="color: #000000;">;
+        PreparedStatement stat </span>=<span style="color: #000000;"> conn.prepareStatement(sql);
+        </span><span style="color: #008000;">//</span><span style="color: #008000;"> 4 SQL语句占位符设置实际参数</span>
+        stat.setInt(1, 1<span style="color: #000000;">);
+　　　　  </span><span style="color: #008000;">//</span><span style="color: #008000;"> 5执行SQL语句</span>
+        <span style="color: #0000ff;">int</span> line =<span style="color: #000000;"> stat.executeUpdate();
+        System.out.println(</span>"删除记录数：" +<span style="color: #000000;"> line);
+        </span><span style="color: #008000;">//</span><span style="color: #008000;"> 6释放资源</span>
+<span style="color: #000000;">        stat.close();
+        conn.close();
+    }</span></code></pre>
+
+<p>&nbsp;</p>
+<h2><!--[if !supportLists]-->1.8&nbsp;<!--[endif]--><strong><span style="font-family: 华文楷体;">预</span></strong><strong><span style="font-family: 华文楷体;">处理对象</span>executeQuery<span style="font-family: 华文楷体;">方法</span></strong></h2>
+<p>&nbsp;</p>
+<p>&nbsp;</p>
+<p><span style="font-family: 宋体;">通过预处理对象的</span>executeQuery<span style="font-family: 宋体;">方法，完成记录的</span><span style="font-family: Calibri;">select</span><span style="font-family: 宋体;">语句的执行。操作格式统一如下：</span></p>
+<p>&nbsp;</p>
+<p>1. <span style="font-family: 宋体;">注册驱动</span></p>
+<p>&nbsp;</p>
+<p>2. <span style="font-family: 宋体;">获取连接</span></p>
+<p>&nbsp;</p>
+<p>3. <span style="font-family: 宋体;">获取预处理对象</span></p>
+<p>&nbsp;</p>
+<p>4. SQL<span style="font-family: 宋体;">语句占位符设置实际参数</span></p>
+<p>&nbsp;</p>
+<p>5. <span style="font-family: 宋体;">执行</span><span style="font-family: Calibri;">SQL</span><span style="font-family: 宋体;">语句</span></p>
+<p>&nbsp;</p>
+<p>6. <span style="font-family: 宋体;">处理结果集</span>(<span style="font-family: 宋体;">遍历结果集合</span><span style="font-family: Calibri;">)</span></p>
+<p>&nbsp;</p>
+<p>7. <span style="font-family: 宋体;">释放资源</span></p>
+<p>&nbsp;</p>
+<p>&nbsp;</p>
+<h3><!--[if !supportLists]-->1.8.1&nbsp;<!--[endif]--><strong><span style="font-family: 黑体;">查询记录：</span>select</strong></h3>
+<p>&nbsp;</p>
+<p>&nbsp;</p>
+<p class="16">实现查询分类表所有记录</p>
+<p>&nbsp;</p>
+<p>&nbsp;</p>
+<src class="cnblogs_code">
+<pre><code><span style="color: #0000ff;">public</span> <span style="color: #0000ff;">void</span> demo04() <span style="color: #0000ff;">throws</span><span style="color: #000000;"> Exception {
+        </span><span style="color: #008000;">//</span><span style="color: #008000;"> 1注册驱动</span>
+        Class.forName("com.mysql.jdbc.Driver"<span style="color: #000000;">);
+        </span><span style="color: #008000;">//</span><span style="color: #008000;"> 2获取连接</span>
+        Connection conn = DriverManager.getConnection("jdbc:mysql://localhost:3306/mydb", "root", "root"<span style="color: #000000;">);
+        </span><span style="color: #008000;">//</span><span style="color: #008000;"> 3获得预处理对象</span>
+        String sql = "select * from sort"<span style="color: #000000;">;
+        PreparedStatement stat </span>=<span style="color: #000000;"> conn.prepareStatement(sql);
+        </span><span style="color: #008000;">//</span><span style="color: #008000;"> 4 SQL语句占位符设置实际参数
+   　　  </span><span style="color: #008000;">//</span><span style="color: #008000;"> 5执行SQL语句</span>
+        ResultSet rs =<span style="color: #000000;"> stat.executeQuery();
+        </span><span style="color: #008000;">//</span><span style="color: #008000;"> 6处理结果集(遍历结果集合)</span>
+        <span style="color: #0000ff;">while</span><span style="color: #000000;">( rs.next() ){
+            </span><span style="color: #008000;">//</span><span style="color: #008000;">获取当前行的分类ID</span>
+            String sid = rs.getString("sid");<span style="color: #008000;">//</span><span style="color: #008000;">方法参数为数据库表中的列名
+            </span><span style="color: #008000;">//</span><span style="color: #008000;">获取当前行的分类名称</span>
+            String sname = rs.getString("sname"<span style="color: #000000;">);
+            </span><span style="color: #008000;">//</span><span style="color: #008000;">显示数据</span>
+            System.out.println(sid+"-----"+<span style="color: #000000;">sname);
+        }
+        </span><span style="color: #008000;">//</span><span style="color: #008000;"> 7释放资源</span>
+<span style="color: #000000;">        rs.close();
+        stat.close();
+        conn.close();
+    }</span></code></pre>
+
+<p>&nbsp;</p>
+<p class="16">实现查询分类表中指定分类名称的记录</p>
+<p>&nbsp;</p>
+<p>&nbsp;</p>
+<src class="cnblogs_code">
+<pre><code><span style="color: #0000ff;">public</span> <span style="color: #0000ff;">void</span> demo05() <span style="color: #0000ff;">throws</span><span style="color: #000000;"> Exception {
+        </span><span style="color: #008000;">//</span><span style="color: #008000;"> 1注册驱动</span>
+        Class.forName("com.mysql.jdbc.Driver"<span style="color: #000000;">);
+        </span><span style="color: #008000;">//</span><span style="color: #008000;"> 2获取连接</span>
+        Connection conn = DriverManager.getConnection("jdbc:mysql://localhost:3306/mydb", "root", "root"<span style="color: #000000;">);
+        </span><span style="color: #008000;">//</span><span style="color: #008000;"> 3获得预处理对象</span>
+        String sql = "select * from sort where sname=?"<span style="color: #000000;">;
+        PreparedStatement stat </span>=<span style="color: #000000;"> conn.prepareStatement(sql);
+        </span><span style="color: #008000;">//</span><span style="color: #008000;"> 4 SQL语句占位符设置实际参数</span>
+        stat.setString(1, "奢侈品"<span style="color: #000000;">);
+　　 　　</span><span style="color: #008000;">//</span><span style="color: #008000;"> 5执行SQL语句</span>
+        ResultSet rs =<span style="color: #000000;"> stat.executeQuery();
+        </span><span style="color: #008000;">//</span><span style="color: #008000;"> 6处理结果集(遍历结果集合)</span>
+        <span style="color: #0000ff;">while</span><span style="color: #000000;">( rs.next() ){
+            </span><span style="color: #008000;">//</span><span style="color: #008000;">获取当前行的分类ID</span>
+            String sid = rs.getString("sid");<span style="color: #008000;">//</span><span style="color: #008000;">方法参数为数据库表中的列名
+            </span><span style="color: #008000;">//</span><span style="color: #008000;">获取当前行的分类名称</span>
+            String sname = rs.getString("sname"<span style="color: #000000;">);
+            </span><span style="color: #008000;">//</span><span style="color: #008000;">显示数据</span>
+            System.out.println(sid+"-----"+<span style="color: #000000;">sname);
+        }
+        </span><span style="color: #008000;">//</span><span style="color: #008000;"> 7释放资源</span>
+<span style="color: #000000;">        rs.close();
+        stat.close();
+        conn.close();
+    }</span></code></pre>
+
+<p>&nbsp;</p>
+<h2><!--[if !supportLists]-->1.9&nbsp;<!--[endif]--><strong>JDBC<span style="font-family: 华文楷体;">工具类</span></strong></h2>
+<p>&ldquo;获得数据库连接&rdquo;操作，将在以后的增删改查所有功能中都存在，可以封装工具类<span style="font-family: Calibri;">JDBCUtils</span><span style="font-family: 宋体;">。提供获取连接对象的方法，从而达到代码的重复利用。</span></p>
+<p>该工具类提供方法：public static Connection getConn ()。代码如下：</p>
+<src class="cnblogs_code">
+<pre><code><span style="color: #008000;">/*</span><span style="color: #008000;">
+ * JDBC工具类
+ </span><span style="color: #008000;">*/</span>
+<span style="color: #0000ff;">public</span> <span style="color: #0000ff;">class</span><span style="color: #000000;"> JDBCUtils {
+    </span><span style="color: #0000ff;">public</span> <span style="color: #0000ff;">static</span> <span style="color: #0000ff;">final</span>  String DRIVERNAME = "com.mysql.jdbc.Driver"<span style="color: #000000;">;
+    </span><span style="color: #0000ff;">public</span> <span style="color: #0000ff;">static</span> <span style="color: #0000ff;">final</span>  String URL = "jdbc:mysql://localhost:3306/mydb"<span style="color: #000000;">;
+    </span><span style="color: #0000ff;">public</span> <span style="color: #0000ff;">static</span> <span style="color: #0000ff;">final</span>  String USER = "root"<span style="color: #000000;">;
+    </span><span style="color: #0000ff;">public</span> <span style="color: #0000ff;">static</span> <span style="color: #0000ff;">final</span>  String PASSWORD = "root"<span style="color: #000000;">;
+
+    </span><span style="color: #0000ff;">static</span><span style="color: #000000;"> {
+        </span><span style="color: #0000ff;">try</span><span style="color: #000000;"> {
+            Class.forName(DRIVERNAME);
+        } </span><span style="color: #0000ff;">catch</span><span style="color: #000000;"> (ClassNotFoundException e) {
+            System.out.println(</span>"数据库驱动注册失败！"<span style="color: #000000;">);
+        }
+    }
+    </span><span style="color: #008000;">//</span><span style="color: #008000;">提供获取连接的方法</span>
+    <span style="color: #0000ff;">public</span> <span style="color: #0000ff;">static</span> Connection getConn() <span style="color: #0000ff;">throws</span><span style="color: #000000;"> Exception {
+        </span><span style="color: #008000;">//</span><span style="color: #008000;"> 2. 获得连接</span>
+        Connection conn =<span style="color: #000000;"> DriverManager.getConnection(URL, USER, PASSWORD);
+        </span><span style="color: #008000;">//</span><span style="color: #008000;"> 返回连接</span>
+        <span style="color: #0000ff;">return</span><span style="color: #000000;"> conn;
+    }
+}<br /></span></code></pre>
+
+<h1 style="margin-left: 21.0000pt; mso-list: l0 level1 lfo1;"><!--[if !supportLists]--><span style="font-family: 'Times New Roman'; font-size: 22pt;">2.&nbsp;</span><!--[endif]--><strong><span style="font-family: 'Times New Roman'; font-size: 22pt;">properties配置文件</span></strong></h1>
+<h2><!--[if !supportLists]--><span style="font-family: 华文楷体; font-size: 16pt;">2.1&nbsp;</span><!--[endif]--><strong><span style="font-family: 华文楷体; font-size: 16pt;"><span style="font-family: 华文楷体;">使用</span>properties<span style="font-family: 华文楷体;">配置文件</span></span></strong></h2>
+<p class="MsoNormal" style="text-indent: 21.0000pt; mso-char-indent-count: 2.0000;"><span style="mso-spacerun: 'yes'; font-family: 宋体; font-size: 10.5000pt; mso-font-kerning: 1.0000pt;"><span style="font-family: 宋体;">开发中获得连接的</span>4<span style="font-family: 宋体;">个参数（驱动、</span><span style="font-family: Calibri;">URL</span><span style="font-family: 宋体;">、用户名、密码）通常都存在配置文件中，方便后期维护，程序如果需要更换数据库，只需要修改配置文件即可。</span></span></p>
+<p class="MsoNormal" style="text-indent: 21.0000pt; mso-char-indent-count: 2.0000;"><span style="mso-spacerun: 'yes'; font-family: 宋体; font-size: 10.5000pt; mso-font-kerning: 1.0000pt;"><span style="font-family: 宋体;">通常情况下，我们习惯使用</span>properties<span style="font-family: 宋体;">文件，此文件我们将做如下要求：</span></span></p>
+<p class="MsoNormal" style="margin-left: 42.0000pt; text-indent: -21.0000pt; mso-list: l0 level1 lfo1;"><!--[if !supportLists]--><span style="font-family: 宋体; font-size: 10.5000pt; mso-font-kerning: 1.0000pt;">1.&nbsp;</span><!--[endif]--><span style="mso-spacerun: 'yes'; font-family: 宋体; font-size: 10.5000pt; mso-font-kerning: 1.0000pt;"><span style="font-family: 宋体;">文件位置：任意，建议</span>src<span style="font-family: 宋体;">下</span></span></p>
+<p class="MsoNormal" style="margin-left: 42.0000pt; text-indent: -21.0000pt; mso-list: l0 level1 lfo1;"><!--[if !supportLists]--><span style="font-family: 宋体; font-size: 10.5000pt; mso-font-kerning: 1.0000pt;">2.&nbsp;</span><!--[endif]--><span style="mso-spacerun: 'yes'; font-family: 宋体; font-size: 10.5000pt; mso-font-kerning: 1.0000pt;"><span style="font-family: 宋体;">文件名称：任意，扩展名为</span>properties</span></p>
+<p class="MsoNormal" style="margin-left: 42.0000pt; text-indent: -21.0000pt; mso-list: l0 level1 lfo1;"><!--[if !supportLists]--><span style="font-family: 宋体; font-size: 10.5000pt; mso-font-kerning: 1.0000pt;">3.&nbsp;</span><!--[endif]--><span style="mso-spacerun: 'yes'; font-family: 宋体; font-size: 10.5000pt; mso-font-kerning: 1.0000pt;"><span style="font-family: 宋体;">文件内容：一行一组数据，格式是</span>&ldquo;<span style="font-family: Calibri;">key=value</span><span style="font-family: 宋体;">&rdquo;</span><span style="font-family: Calibri;">.</span></span></p>
+<p class="MsoNormal" style="margin-left: 63.0000pt; text-indent: -21.0000pt; mso-list: l0 level2 lfo1;"><!--[if !supportLists]--><span style="font-family: 宋体; font-size: 10.5000pt; mso-font-kerning: 1.0000pt;">a)&nbsp;</span><!--[endif]--><span style="mso-spacerun: 'yes'; font-family: 宋体; font-size: 10.5000pt; mso-font-kerning: 1.0000pt;">key<span style="font-family: 宋体;">命名自定义，如果是多个单词，习惯使用点分隔。例如：</span><span style="font-family: Calibri;">jdbc.driver</span></span></p>
+<p class="MsoNormal" style="margin-left: 63.0000pt; text-indent: -21.0000pt; mso-list: l0 level2 lfo1;"><!--[if !supportLists]--><span style="font-family: 宋体; font-size: 10.5000pt; mso-font-kerning: 1.0000pt;">b)&nbsp;</span><!--[endif]--><span style="mso-spacerun: 'yes'; font-family: 宋体; font-size: 10.5000pt; mso-font-kerning: 1.0000pt;">value<span style="font-family: 宋体;">值不支持中文，如果需要使用非英文字符，将进行</span><span style="font-family: Calibri;">unicode</span><span style="font-family: 宋体;">转换。</span></span></p>
+<h2><!--[if !supportLists]--><span style="font-family: 华文楷体; font-size: 16pt;">2.2&nbsp;</span><!--[endif]--><strong><span style="font-family: 华文楷体; font-size: 16pt;">创建配置文件</span></strong></h2>
+<p class="MsoNormal" style="text-indent: 21.0000pt;"><span style="mso-spacerun: 'yes'; font-family: 宋体; font-size: 10.5000pt; mso-font-kerning: 1.0000pt;"><span style="font-family: 宋体;">在项目跟目录下，创建文件，输入</span>&ldquo;</span><span style="mso-spacerun: 'yes'; font-family: Calibri; font-size: 10.5000pt; mso-font-kerning: 1.0000pt;">db.properties</span><span style="mso-spacerun: 'yes'; font-family: 宋体; font-size: 10.5000pt; mso-font-kerning: 1.0000pt;">&rdquo;文件名。</span></p>
+<p class="16"><!--[if !supportLists]--><span style="mso-spacerun: 'yes'; font-family: 宋体; mso-bidi-font-family: 'Times New Roman'; font-size: 10.5000pt; mso-font-kerning: 0.0000pt;">文件中的内容</span></p>
+<src class="cnblogs_code">
+<pre><code>driver=<span style="color: #000000;">com.mysql.jdbc.Driver
+url</span>=jdbc:mysql:<span style="color: #008000;">//</span><span style="color: #008000;">localhost:3306/mydb</span>
+user=<span style="color: #000000;">root
+password</span>=root</code></pre>
+
+<h2><!--[if !supportLists]--><span style="font-family: 华文楷体; font-size: 16pt;">2.3&nbsp;</span><!--[endif]--><strong><span style="font-family: 华文楷体; font-size: 16pt;"><span style="font-family: 华文楷体;">加载配置文件：</span>Properties<span style="font-family: 华文楷体;">对象</span></span></strong></h2>
+<p class="MsoNormal" style="text-indent: 21.0000pt; mso-char-indent-count: 2.0000;"><span style="mso-spacerun: 'yes'; font-family: 宋体; font-size: 10.5000pt; mso-font-kerning: 1.0000pt;"><span style="font-family: 宋体;">对应</span>properties<span style="font-family: 宋体;">文件处理，开发中也使用</span><span style="font-family: Calibri;">Properties</span><span style="font-family: 宋体;">对象进行。我们将采用加载</span><span style="font-family: Calibri;">properties</span><span style="font-family: 宋体;">文件获得流，然后使用</span><span style="font-family: Calibri;">Properties</span><span style="font-family: 宋体;">对象进行处理。</span></span></p>
+<p class="16"><!--[if !supportLists]--><span style="mso-spacerun: 'yes'; font-family: 宋体; mso-bidi-font-family: 'Times New Roman'; font-size: 10.5000pt; mso-font-kerning: 0.0000pt;">JDBCUtils.java中编写代码</span></p>
+<src class="cnblogs_code">
+<pre><code><span style="color: #0000ff;">public</span> <span style="color: #0000ff;">class</span><span style="color: #000000;"> JDBCUtils {
+
+    </span><span style="color: #0000ff;">private</span> <span style="color: #0000ff;">static</span><span style="color: #000000;"> String driver;
+    </span><span style="color: #0000ff;">private</span> <span style="color: #0000ff;">static</span><span style="color: #000000;"> String url;
+    </span><span style="color: #0000ff;">private</span> <span style="color: #0000ff;">static</span><span style="color: #000000;"> String user;
+    </span><span style="color: #0000ff;">private</span> <span style="color: #0000ff;">static</span><span style="color: #000000;"> String password;
+    </span><span style="color: #008000;">//</span><span style="color: #008000;"> 静态代码块</span>
+    <span style="color: #0000ff;">static</span><span style="color: #000000;"> {
+        </span><span style="color: #0000ff;">try</span><span style="color: #000000;"> {
+            </span><span style="color: #008000;">//</span><span style="color: #008000;"> 1 使用Properties处理流
+            </span><span style="color: #008000;">//</span><span style="color: #008000;"> 使用load()方法加载指定的流</span>
+            Properties props = <span style="color: #0000ff;">new</span><span style="color: #000000;"> Properties();
+            Reader is </span>= <span style="color: #0000ff;">new</span> FileReader("db.properties"<span style="color: #000000;">);
+            props.load(is);
+            </span><span style="color: #008000;">//</span><span style="color: #008000;"> 2 使用getProperty(key)，通过key获得需要的值，</span>
+            driver = props.getProperty("driver"<span style="color: #000000;">);
+            url </span>= props.getProperty("url"<span style="color: #000000;">);
+            user </span>= props.getProperty("user"<span style="color: #000000;">);
+            password </span>= props.getProperty("password"<span style="color: #000000;">);
+        } </span><span style="color: #0000ff;">catch</span><span style="color: #000000;"> (Exception e) {
+            </span><span style="color: #0000ff;">throw</span> <span style="color: #0000ff;">new</span><span style="color: #000000;"> RuntimeException(e);
+        }
+    }
+
+    </span><span style="color: #008000;">/**</span><span style="color: #008000;">
+     * 获得连接
+     </span><span style="color: #008000;">*/</span>
+    <span style="color: #0000ff;">public</span> <span style="color: #0000ff;">static</span><span style="color: #000000;"> Connection getConnection() {
+        </span><span style="color: #0000ff;">try</span><span style="color: #000000;"> {
+            </span><span style="color: #008000;">//</span><span style="color: #008000;"> 1 注册驱动</span>
+<span style="color: #000000;">            Class.forName(driver);
+            </span><span style="color: #008000;">//</span><span style="color: #008000;"> 2 获得连接</span>
+            Connection conn =<span style="color: #000000;"> DriverManager.getConnection(url, user, password);
+            </span><span style="color: #0000ff;">return</span><span style="color: #000000;"> conn;
+        } </span><span style="color: #0000ff;">catch</span><span style="color: #000000;"> (Exception e) {
+            </span><span style="color: #0000ff;">throw</span> <span style="color: #0000ff;">new</span><span style="color: #000000;"> RuntimeException(e);
+        }
+    }
+}</span></code></pre>
+
+<h2><!--[if !supportLists]--><span style="font-family: 华文楷体; font-size: 16pt;">2.4&nbsp;</span><!--[endif]--><strong><span style="font-family: 华文楷体; font-size: 16pt;"><span style="font-family: 华文楷体;">使用</span>JDBCUtils<span style="font-family: 华文楷体;">工具类</span></span></strong></h2>
+<p class="16"><!--[if !supportLists]--><span style="mso-spacerun: 'yes'; font-family: 宋体; mso-bidi-font-family: 'Times New Roman'; font-size: 10.5000pt; mso-font-kerning: 0.0000pt;">测试类</span></p>
+<src class="cnblogs_code">
+<pre><code><span style="color: #0000ff;">public</span> <span style="color: #0000ff;">class</span><span style="color: #000000;"> Demo {
+    @Test
+    </span><span style="color: #0000ff;">public</span> <span style="color: #0000ff;">void</span><span style="color: #000000;"> insert(){
+        </span><span style="color: #0000ff;">try</span><span style="color: #000000;">{
+            </span><span style="color: #008000;">//</span><span style="color: #008000;">1,获取连接对象</span>
+            Connection conn =<span style="color: #000000;"> JDBCUtils.getConnection();
+            </span><span style="color: #008000;">//</span><span style="color: #008000;">2,指定要执行的SQL语句</span>
+            String sql = "INSERT INTO zhangwu(name,money,parent) VALUES(?,?,?)"<span style="color: #000000;">;
+            </span><span style="color: #008000;">//</span><span style="color: #008000;">4，获取SQL语句的执行对象 PreparedStatement</span>
+            PreparedStatement ppstat =<span style="color: #000000;"> conn.prepareStatement(sql);
+            </span><span style="color: #008000;">//</span><span style="color: #008000;">5,执行SQL语句</span>
+            ppstat.setString(1, "股票收入"<span style="color: #000000;">);
+            ppstat.setDouble(</span>2, 5000<span style="color: #000000;">);
+            ppstat.setString(</span>3, "收入"<span style="color: #000000;">);
+            </span><span style="color: #0000ff;">int</span> line =<span style="color: #000000;"> ppstat.executeUpdate();
+            </span><span style="color: #008000;">//</span><span style="color: #008000;">6,处理结果集</span>
+            System.out.println("line=" +<span style="color: #000000;"> line);
+            </span><span style="color: #008000;">//</span><span style="color: #008000;">7,关闭连接</span>
+<span style="color: #000000;">            ppstat.close();
+            conn.close();
+        } </span><span style="color: #0000ff;">catch</span><span style="color: #000000;">(SQLException e){
+            </span><span style="color: #0000ff;">throw</span> <span style="color: #0000ff;">new</span><span style="color: #000000;"> RuntimeException(e);
+        }
+    }
+}</span></code></pre>
+
+
+</div><hr><script charset='utf-8' src='../../js/sming.js'></script></body></html>

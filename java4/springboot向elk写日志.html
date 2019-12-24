@@ -1,0 +1,85 @@
+<html><head><meta charset='utf-8'><meta name='viewport' content='width=device-width, initial-scale=1'>
+<meta name='applicable-device' content='pc'><meta name='keywords' content='电脑,电脑讲解,电脑技术,编程,电脑故障维修springboot向elk写日志' />
+<script src='../../highlight/highlight.pack.js'></script>
+<link rel='stylesheet' type='text/css' href='../../highlight/styles/monokai.css'/>
+
+<link rel='stylesheet' href='../../fenxiang/dist/css/share.min.css'>
+<script src='../../fenxiang/src/js/social-share.js'></script>
+<script src='../../fenxiang/src/js/qrcode.js'></script>
+
+</head><body><script>hljs.initHighlightingOnLoad();</script><script>
+var system ={};  
+var p = navigator.platform;       
+system.win = p.indexOf('Win') == 0;  
+system.mac = p.indexOf('Mac') == 0;  
+system.x11 = (p == 'X11') || (p.indexOf('Linux') == 0);     
+if(system.win||system.mac||system.xll){
+document.write("<link href='../css/3.css' rel='stylesheet' type='text/css'>");}else{ document.write("<link href='../css/3wap.css' rel='stylesheet' type='text/css'>");}</script><script src='../../js/3.js'></script><div class='div2'><div class='heading_nav'><ul><div><li><a href='../../index.html'>首页</a></li>
+</div><div onclick='hidden1()' >分享</div>
+</ul></div></div>
+<div id='heading_nav2'> 
+<li class='row' >
+<div class='social-share' data-mode='prepend'><a href='javascript:' class='social-share-icon icon-heart'></a></div></li></div><script charset='utf-8' src='../../3/js/hengfu.js'></script><script charset='utf-8' src='../../3/js/hengfu2.js'></script><hr><div class='div1'><div class='biaoti'><center>springboot向elk写日志</center></div><div class='banquan'>原文出处:本文由博客园博主张占岭提供。<br/>
+原文连接:https://www.cnblogs.com/lori/p/11517334.html</div><br>
+    <p>springboot里连接elk里的logstash，然后写指定index索引的日志，而之后使用kibana去查询和分析日志，使用elasticsearch去保存日志。</p>
+<h2 id="添加引用">添加引用</h2>
+<pre><code><code>implementation &#39;net.logstash.logback:logstash-logback-encoder:5.3&#39;
+</code></code></pre>
+<h2 id="添加配置">添加配置</h2>
+<pre><code><code>&lt;?xml version=&quot;1.0&quot; encoding=&quot;UTF-8&quot;?&gt;
+&lt;configuration debug=&quot;false&quot;&gt;
+    &lt;!--定义日志文件的存储地址 勿在 LogBack 的配置中使用相对路径--&gt;
+    &lt;property name=&quot;LOG_HOME&quot; value=&quot;./logs&quot; /&gt;
+    &lt;!-- 控制台输出 --&gt;
+    &lt;appender name=&quot;STDOUT&quot; class=&quot;ch.qos.logback.core.ConsoleAppender&quot;&gt;
+        &lt;encoder class=&quot;ch.qos.logback.classic.encoder.PatternLayoutEncoder&quot;&gt;
+            &lt;!--格式化输出：%d表示日期，%thread表示线程名，%-5level：级别从左显示5个字符宽度%msg：日志消息，%n是换行符--&gt;
+            &lt;pattern&gt;%d{yyyy-MM-dd HH:mm:ss.SSS} [%thread] %-5level %logger{50} - %msg  %n&lt;/pattern&gt;
+        &lt;/encoder&gt;
+    &lt;/appender&gt;
+
+    &lt;appender name=&quot;logstash&quot; class=&quot;net.logstash.logback.appender.LogstashTcpSocketAppender&quot;&gt;
+        &lt;param name=&quot;Encoding&quot; value=&quot;UTF-8&quot;/&gt;
+        &lt;destination&gt;127.0.0.1:5000&lt;/destination&gt;
+        &lt;encoder charset=&quot;UTF-8&quot; class=&quot;net.logstash.logback.encoder.LogstashEncoder&quot; &gt;
+            &lt;customFields&gt;{&quot;appname&quot;:&quot;elkDemo&quot;}&lt;/customFields&gt;
+        &lt;/encoder&gt;
+    &lt;/appender&gt;
+
+
+    &lt;!-- 日志输出级别 --&gt;
+    &lt;root level=&quot;INFO&quot;&gt;
+        &lt;appender-ref ref=&quot;STDOUT&quot; /&gt;
+        &lt;appender-ref ref=&quot;logstash&quot; /&gt;
+    &lt;/root&gt;
+
+&lt;/configuration&gt;
+</code></code></pre>
+<h2 id="指定配置">指定配置</h2>
+<pre><code><code>server.port=81
+logging.config=classpath:logback-spring.xml</code></code></pre>
+<h2 id="logstash配置索引">logstash配置索引</h2>
+<pre><code><code>input {
+    tcp {
+        port =&gt; 5000
+        codec =&gt; &quot;json&quot;
+
+    }
+}
+
+## Add your filters / logstash plugins configuration here
+
+output {
+    elasticsearch {
+        hosts =&gt; &quot;elasticsearch:9200&quot;
+        user =&gt; &quot;elastic&quot;
+        password =&gt; &quot;changeme&quot;
+        index =&gt; &quot;%{[appname]}&quot;
+    }
+}
+</code></code></pre>
+<h2 id="kibana里建立索引">kibana里建立索引</h2>
+<p>通过kiban菜单去建立索引：Management&gt;Index patterns&gt;Create index pattern，这里会显示可用的索引名称。</p>
+
+
+</div><hr><script charset='utf-8' src='../../js/sming.js'></script></body></html>

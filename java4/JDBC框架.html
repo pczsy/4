@@ -1,0 +1,472 @@
+<html><head><meta charset='utf-8'><meta name='viewport' content='width=device-width, initial-scale=1'>
+<meta name='applicable-device' content='pc'><meta name='keywords' content='电脑,电脑讲解,电脑技术,编程,电脑故障维修JDBC框架' />
+<script src='../../highlight/highlight.pack.js'></script>
+<link rel='stylesheet' type='text/css' href='../../highlight/styles/monokai.css'/>
+
+<link rel='stylesheet' href='../../fenxiang/dist/css/share.min.css'>
+<script src='../../fenxiang/src/js/social-share.js'></script>
+<script src='../../fenxiang/src/js/qrcode.js'></script>
+
+</head><body><script>hljs.initHighlightingOnLoad();</script><script>
+var system ={};  
+var p = navigator.platform;       
+system.win = p.indexOf('Win') == 0;  
+system.mac = p.indexOf('Mac') == 0;  
+system.x11 = (p == 'X11') || (p.indexOf('Linux') == 0);     
+if(system.win||system.mac||system.xll){
+document.write("<link href='../css/3.css' rel='stylesheet' type='text/css'>");}else{ document.write("<link href='../css/3wap.css' rel='stylesheet' type='text/css'>");}</script><script src='../../js/3.js'></script><div class='div2'><div class='heading_nav'><ul><div><li><a href='../../index.html'>首页</a></li>
+</div><div onclick='hidden1()' >分享</div>
+</ul></div></div>
+<div id='heading_nav2'> 
+<li class='row' >
+<div class='social-share' data-mode='prepend'><a href='javascript:' class='social-share-icon icon-heart'></a></div></li></div><script charset='utf-8' src='../../3/js/hengfu.js'></script><script charset='utf-8' src='../../3/js/hengfu2.js'></script><hr><div class='div1'><div class='biaoti'><center>JDBC框架</center></div><div class='banquan'>原文出处:本文由博客园博主#Temptation提供。<br/>
+原文连接:https://www.cnblogs.com/blizzawang/p/11411594.html</div><br>
+    <p>在实际的开发中，如果直接使用JDBC开发，是非常繁琐且麻烦的，所以现在的企业在开发web程序时，连接数据库一定会使用一些JDBC的框架。<br />
+在学习框架之前，得先掌握一些基础知识。</p>
+<ul>
+<li>JDBC元数据(编写JDBC框架的基础)</li>
+</ul>
+<p>首先就来学习一下JDBC元数据。<br />
+元数据就是数据库、表、列的定义信息。<br />
+<strong>元数据相关类(DataBaseMetaData)</strong>，可以通过Connetion接口中的getMetaData()方法来获得一个DataBaseMetaData对象。<br />
+通过实例感受一下：<br />
+新建一个web项目，名为demo<br />
+因为在之前已经学习了数据库连接池技术，所以之后有关数据库操作的部分都可以使用连接池，推荐使用c3p0，因为它相较于别的连接池更加简单和人性化。<br />
+重新编写工具类JDBCUtils</p>
+<pre><code><code>/**
+ * JDBC 工具类，抽取公共方法
+ * 
+ * @author seawind
+ * 
+ */
+public class JDBCUtils {
+    //获得数据库的连接  通过c3p0连接池
+    private static DataSource dataSource = new ComboPooledDataSource();
+    
+    public static Connection getConnection() throws SQLException{
+        return dataSource.getConnection();
+    }
+    
+    // 释放资源
+    public static void release(ResultSet rs, Statement stmt, Connection conn) {
+        if (rs != null) {
+            try {
+                rs.close();
+            } catch (SQLException e) {
+                e.printStackTrace();
+            }
+            rs = null;
+        }
+
+        release(stmt, conn);
+    }
+
+    public static void release(Statement stmt, Connection conn) {
+        if (stmt != null) {
+            try {
+                stmt.close();
+            } catch (SQLException e) {
+                e.printStackTrace();
+            }
+            stmt = null;
+        }
+        if (conn != null) {
+            try {
+                conn.close();
+            } catch (SQLException e) {
+                e.printStackTrace();
+            }
+            conn = null;
+        }
+    }
+}</code></code></pre>
+<p>新建测试类MetaDataTest，编写测试代码</p>
+<pre><code><code>@Test
+public void demo1() throws SQLException{
+    //通过Connection对象获得DataBaseMetaData
+    Connection conn = JDBCUtils.getConnection();
+    DatabaseMetaData databaseMetaData = conn.getMetaData();
+    
+    //通过DatabaseMetaData可以获得JDBC连接的参数信息
+    System.out.println(databaseMetaData.getURL());
+    System.out.println(databaseMetaData.getDriverName());
+    System.out.println(databaseMetaData.getUserName());
+    
+    //获得某张表的主键信息
+    ResultSet rs = databaseMetaData.getPrimaryKeys(null, null, &quot;account&quot;);
+    while(rs.next()){
+        //获得表名
+        System.out.println(rs.getString(&quot;TABLE_NAME&quot;));
+        //获得列名
+        System.out.println(rs.getString(4));
+    }
+}</code></code></pre>
+<p>都是一些十分简单的API，没有什么可说的，自己看看API文档应该就能明白。</p>
+<p><strong>接下来是第二个内容，参数元数据(ParameterMataData)</strong>，可以获得预编译sql语句中？的信息。<br />
+通过PreparedStatement调用getParameterMataData()得到。<br />
+演示一下。<br />
+编写测试代码</p>
+<pre><code><code>@Test
+public void demo2() throws SQLException{
+    Connection conn = JDBCUtils.getConnection();
+    String sql = &quot;select * from account where name = ?&quot;;
+    PreparedStatement stmt = conn.prepareStatement(sql);
+    //通过ParameterMataData获得？的相关信息
+    ParameterMetaData parameterMetaData = stmt.getParameterMetaData();
+    //获得参数个数
+    int count = parameterMetaData.getParameterCount();
+    System.out.println(count);
+    //获得参数类型    该方法并不是所有的数据库都支持 MySQL不支持
+    int type = parameterMetaData.getParameterType(1);
+    System.out.println(type);
+}</code></code></pre>
+<p>其中的getParameterType()方法并不是所有的数据库都支持，而恰好MySQL数据就不支持该方法。那如何让该方法在MySQL数据库被支持呢？可以在配置Url的时候在后面加上<code>?generateSimpleParameterMetadata=true</code>，然后运行测试代码，该方法返回的值是12，通过查看源码，得知12代表的是数据库中的varchar类型。</p>
+<pre><code><code>/**
+ * &lt;P&gt;The constant in the Java programming language, sometimes referred
+ * to as a type code, that identifies the generic SQL type
+ * &lt;code&gt;VARCHAR&lt;/code&gt;.
+ */
+  public final static int VARCHAR         =  12;</code></code></pre>
+<p>但是，请注意了，其实不管你的预编译sql语句的参数是什么类型，在MySQL数据库用该方法查询得到的数据类型永远都会是12，也就是varchar类型。</p>
+<p><strong>接下来是第三个元数据，叫做结果集元数据(ResultSetMetaData)</strong><br />
+编写测试代码</p>
+<pre><code><code>@Test
+public void demo3() throws SQLException{
+    //测试结果集元数据ResultSetMetaData
+    Connection conn = JDBCUtils.getConnection();
+    String sql = &quot;select * from account&quot;;
+    PreparedStatement stmt = conn.prepareStatement(sql);
+    ResultSet rs = stmt.executeQuery();
+    //获得结果集元数据
+    ResultSetMetaData resultSetMetaData = rs.getMetaData();
+    //获得列数
+    int count = resultSetMetaData.getColumnCount();
+    //打印数据表的第一行
+    for(int i = 1;i &lt;= count;i++){
+        System.out.print(resultSetMetaData.getColumnName(i) + &quot;\t&quot;);
+    }
+    System.out.println();
+    
+    //打印每列类型
+    for(int i = 1;i &lt;= count;i++){
+        System.out.print(resultSetMetaData.getColumnTypeName(i) + &quot;\t&quot;);
+    }
+    
+    System.out.println();
+    
+    //打印表数据
+    while(rs.next()){
+        for(int i = 1;i &lt;= count;i++){
+            System.out.print(rs.getObject(i) + &quot;\t&quot;);
+        }
+        System.out.println();
+    }
+}</code></code></pre>
+<p>有了元数据的基础之后，我们就可以自己来编写JDBC框架了。<br />
+先创建一个张表，并初始化数据</p>
+<pre class="sql"><code>create table account(
+    id int primary key not null auto_increment,
+    name varchar(40),
+    money double
+);
+
+insert into account values(null,&#39;aaa&#39;,1000);
+insert into account values(null,&#39;bbb&#39;,1000);
+insert into account values(null,&#39;ccc&#39;,1000);</code></code></pre>
+<p>现在就来为该表编写DAO程序。<br />
+新建com.wang.domain包，然后在该包下创建实体类Account。</p>
+<pre><code><code>
+/**
+ * 属性和列对应
+ * @author Administrator
+ *
+ */
+public class Account {
+    private int id;
+    private String name;
+    private double money;
+
+    public int getId() {
+        return id;
+    }
+
+    public void setId(int id) {
+        this.id = id;
+    }
+
+    public String getName() {
+        return name;
+    }
+
+    public void setName(String name) {
+        this.name = name;
+    }
+
+    public double getMoney() {
+        return money;
+    }
+
+    public void setMoney(double money) {
+        this.money = money;
+    }
+}
+
+</code></code></pre>
+<p>然后新建com.wang.dao包，在该包下创建类AccountDao。</p>
+<pre><code><code>/**
+ * 插入一个账户的数据
+ * @param account
+ */
+public void insertAccount(Account account){
+    Connection conn = null;
+    PreparedStatement stmt = null;
+    
+    try {
+        conn = JDBCUtils.getConnection();
+        String sql = &quot;insert into account values(null,?,?)&quot;;
+        
+        stmt = conn.prepareStatement(sql);
+        //设置参数
+        stmt.setString(1, account.getName());
+        stmt.setDouble(2, account.getMoney());
+        
+        stmt.executeUpdate();
+    } catch (SQLException e) {
+        e.printStackTrace();
+    }finally{
+        JDBCUtils.release(stmt, conn);
+    }
+}</code></code></pre>
+<p>编写测试代码，调用执行</p>
+<pre><code><code>public static void main(String[] args) {
+        Account account = new Account();
+        account.setName(&quot;ddd&quot;);
+        account.setMoney(1000);
+        new AccountDao().insertAccount(account);
+}</code></code></pre>
+<p>查询数据库，数据被成功添加到数据库。<br />
+<img src="./images/JDBC框架0.png" alt="在这里插入图片描述" /><br />
+更新和删除的方法和插入类似，不作过多赘述。</p>
+<p>假设这个时候有很多的数据库表，那我们都要给每一个数据库表编写相对应的方法，会发现，重复代码非常的多，怎么样能够简化它呢？我们应该抽取通用的方法代码。<br />
+新建包com.wang.framework，在该包下新建类JDBCFramework。</p>
+<pre><code><code>
+/**
+ * 自定义的JDBC框架
+ * @author Administrator
+ *
+ */
+public class JDBCFramework {
+    
+    /**
+     * 通用的insert，update和delete方法
+     * @param sql   预编译需要的sql
+     * @param args  根据sql中的？准备的参数
+     */
+    public static void update(String sql,Object... args){
+        Connection conn = null;
+        PreparedStatement stmt = null;
+        
+        try {
+            conn = JDBCUtils.getConnection();
+            stmt = conn.prepareStatement(sql);
+            
+            //设置参数      根据？设置参数
+            ParameterMetaData parameterMetaData = stmt.getParameterMetaData();
+            //获得参数个数
+            int count = parameterMetaData.getParameterCount();
+            for(int i = 1;i &lt;= count;i++){
+                stmt.setObject(i, args[i - 1]);
+            }
+            stmt.executeUpdate();
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }finally{
+            JDBCUtils.release(stmt, conn);
+        }
+    }
+}
+</code></code></pre>
+<p>然后回到类AccountDao中，编写一个删除的方法。</p>
+<pre><code><code>public void deleteAccount(Account account) {
+        String sql = &quot;delete from account where id = ?&quot;;
+        JDBCFramework.update(sql, account.getId());
+}</code></code></pre>
+<p>因为现在有了自己编写好的框架，所以实现一个删除方法是非常简单的。<br />
+编写测试代码</p>
+<pre><code><code>public static void main(String[] args) {
+    Account account = new Account();
+    account.setId(3);
+    new AccountDao().deleteAccount(account);
+}</code></code></pre>
+<p>运行测试代码<br />
+<img src="./images/JDBC框架1.png" alt="在这里插入图片描述" /><br />
+id为3的用户数据被成功删除。<br />
+插入、修改方法和删除类似。但是该框架无法用于查询，因为没有查询所对应的结果集。<br />
+我们来抽取一个查询方法，用于数据库表的通用查询。<br />
+在com.wang.framework包下新建接口MyResultSetHandler。</p>
+<pre><code><code>public interface MyResultSetHandler {
+    
+    /**
+     * 将结果集中的数据封装成对象
+     * @param rs
+     * @return
+     */
+    public Object handle(ResultSet rs);
+}
+</code></code></pre>
+<p>在JDBCFramework类中添加方法。</p>
+<pre><code><code>/**
+ * 通用的查询方法
+ */
+public static Object query(String sql,MyResultSetHandler handler,Object... args){
+    Object obj = null;
+    
+    Connection conn = null;
+    PreparedStatement stmt = null;
+    ResultSet rs = null;
+    
+    try {
+        conn = JDBCUtils.getConnection();
+        stmt = conn.prepareStatement(sql);
+        
+        //设置参数
+        ParameterMetaData parameterMetaData = stmt.getParameterMetaData();
+        int count = parameterMetaData.getParameterCount();
+        for(int i = 1;i &lt;= count;i++){
+            stmt.setObject(i, args[i - 1]);
+        }
+        rs = stmt.executeQuery();
+        obj = handler.handle(rs);
+    } catch (SQLException e) {
+        e.printStackTrace();
+    }finally{
+        JDBCUtils.release(rs, stmt, conn);
+    }
+    
+    return obj;
+}</code></code></pre>
+<p>这样查询框架就写好了，当调用者调用该方法时需要自己实现接口，完成查询。</p>
+<pre><code><code>
+    public Account findById(int id){
+        //使用自定义框架查询
+        String sql = &quot;select * from account where id = ?&quot;;
+        MyResultSetHandler handler = new MyResultSetHandler() {
+            
+            public Object handle(ResultSet rs) {
+                try {
+                    if(rs.next()){
+                        Account account = new Account();
+                        account.setId(rs.getInt(&quot;id&quot;));
+                        account.setName(rs.getString(&quot;name&quot;));
+                        account.setMoney(rs.getDouble(&quot;money&quot;));
+                    }
+                } catch (SQLException e) {
+                    e.printStackTrace();
+                }
+                return null;
+            }
+        };
+        return (Account) JDBCFramework.query(sql, handler, id);
+    }
+</code></code></pre>
+<p>编写测试代码。</p>
+<pre><code><code>    public static void main(String[] args){
+        Account account = new AccountDao().findById(1);
+        System.out.println(account.getName());
+    }</code></code></pre>
+<p>运行测试代码，成功查询到表数据。</p>
+<p>会发现，要想实现查询，调用者就必须实现接口，接下来我们利用泛型和反射帮助调用者实现接口。</p>
+<p>这块内容有点复杂，就直接贴代码了。<br />
+修改MyResultSetHandler接口</p>
+<pre><code><code>public interface MyResultSetHandler&lt;T&gt; {
+    
+    /**
+     * 将结果集中的数据封装成对象
+     * @param rs
+     * @return
+     */
+    public T handle(ResultSet rs);
+}</code></code></pre>
+<p>新建类MyBeanHandler</p>
+<pre><code><code>
+    public class MyBeanHandler&lt;T&gt; implements MyResultSetHandler&lt;T&gt;{
+
+    private Class&lt;T&gt; domainClass;
+
+    public MyBeanHandler(Class&lt;T&gt; domainClass){
+        this.domainClass = domainClass;
+    }
+    
+    public T handle(ResultSet rs) {
+        try{
+            //获得结果集元数据
+            ResultSetMetaData resultSetMetaData = rs.getMetaData();
+            int count =resultSetMetaData.getColumnCount();
+            
+            BeanInfo beanInfo = Introspector.getBeanInfo(domainClass);
+            PropertyDescriptor[] propertyDescriptors = beanInfo.getPropertyDescriptors();
+            if(rs.next()){
+                //获得实例
+                T t = domainClass.newInstance() ;
+                for(int i = 1;i &lt;= count;i++){
+                    String columnName = resultSetMetaData.getColumnName(i);
+                    //获得列名      需要去查找匹配属性
+                    for(PropertyDescriptor descriptor : propertyDescriptors){
+                        if(columnName.equals(descriptor.getName())){
+                            //列名存在一个同名的属性
+                            //将列的值存入属性
+                            Method method = descriptor.getWriteMethod();
+                            method.invoke(t,rs.getObject(columnName));
+                        }
+                    }
+                }
+                return t;
+            }
+        }catch (Exception e) {
+            e.printStackTrace();
+        }
+        return null;
+    }
+}
+</code></code></pre>
+<p>修改类JDBCFramework的查询方法</p>
+<pre><code><code>
+/**
+ * 通用的查询方法
+ */
+    public static &lt;T&gt;T query(String sql,MyResultSetHandler&lt;T&gt; handler,Object... args){
+        T obj = null;
+        
+        Connection conn = null;
+        PreparedStatement stmt = null;
+        ResultSet rs = null;
+        
+        try {
+            conn = JDBCUtils.getConnection();
+            stmt = conn.prepareStatement(sql);
+            
+            //设置参数
+            ParameterMetaData parameterMetaData = stmt.getParameterMetaData();
+            int count = parameterMetaData.getParameterCount();
+            for(int i = 1;i &lt;= count;i++){
+                stmt.setObject(i, args[i - 1]);
+            }
+            rs = stmt.executeQuery();
+            obj = handler.handle(rs);
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }finally{
+            JDBCUtils.release(rs, stmt, conn);
+        }
+        
+        return obj;
+    }</code></code></pre>
+<p>在AccountD类中修改查询方法</p>
+<pre><code><code>public Account findById(int id){
+        String sql = &quot;select * from account where id = ?&quot;;
+        return JDBCFramework.query(sql, new MyBeanHandler&lt;Account&gt;(Account.class),id);
+}</code></code></pre>
+<p>重新运行测试代码，查询成功。</p>
+
+
+</div><hr><script charset='utf-8' src='../../js/sming.js'></script></body></html>

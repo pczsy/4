@@ -1,0 +1,48 @@
+<html><head><meta charset='utf-8'><meta name='viewport' content='width=device-width, initial-scale=1'>
+<meta name='applicable-device' content='pc'><meta name='keywords' content='电脑,电脑讲解,电脑技术,编程,电脑故障维修SpringIOC中的注解配置' />
+<script src='../../highlight/highlight.pack.js'></script>
+<link rel='stylesheet' type='text/css' href='../../highlight/styles/monokai.css'/>
+
+<link rel='stylesheet' href='../../fenxiang/dist/css/share.min.css'>
+<script src='../../fenxiang/src/js/social-share.js'></script>
+<script src='../../fenxiang/src/js/qrcode.js'></script>
+
+</head><body><script>hljs.initHighlightingOnLoad();</script><script>
+var system ={};  
+var p = navigator.platform;       
+system.win = p.indexOf('Win') == 0;  
+system.mac = p.indexOf('Mac') == 0;  
+system.x11 = (p == 'X11') || (p.indexOf('Linux') == 0);     
+if(system.win||system.mac||system.xll){
+document.write("<link href='../css/3.css' rel='stylesheet' type='text/css'>");}else{ document.write("<link href='../css/3wap.css' rel='stylesheet' type='text/css'>");}</script><script src='../../js/3.js'></script><div class='div2'><div class='heading_nav'><ul><div><li><a href='../../index.html'>首页</a></li>
+</div><div onclick='hidden1()' >分享</div>
+</ul></div></div>
+<div id='heading_nav2'> 
+<li class='row' >
+<div class='social-share' data-mode='prepend'><a href='javascript:' class='social-share-icon icon-heart'></a></div></li></div><script charset='utf-8' src='../../3/js/hengfu.js'></script><script charset='utf-8' src='../../3/js/hengfu2.js'></script><hr><div class='div1'><div class='biaoti'><center>SpringIOC中的注解配置</center></div><div class='banquan'>原文出处:本文由博客园博主Magic_Li提供。<br/>
+原文连接:https://www.cnblogs.com/Magic-Li/p/11770215.html</div><br>
+    <p><br /><span style="font-size: 15px;"><strong>Spring中的注解是个好东西，可以简化我们的操作，但是使用了注解又会在一定的程度上增加程序的耦合度，xml中的配置写在了类中</strong></span><br /><span style="font-size: 15px;"><strong>虽然简化了开发过程，但是或多或少的违背了开闭原则。所以在开发过程中要先明确，那些配置是要经常改动的，那些配置是不会经常改动的。</strong></span></p>
+<p><span style="font-size: 15px;"><strong>ioc中的annotation配置</strong></span></p>
+<p><span style="color: #ff6600; font-size: 15px;"><strong>	@Autowired(自动注入byType&rarr;byName)</strong></span><br /><span style="font-size: 15px;">	1) @Autowired使用后需要在xml文件加入以下配置才能生效: &lt;context:annotation-config/&gt;</span></p>
+<p><span style="font-size: 15px;">	2) @Autowired注解可以写在成员变量、setter方法、构造器函数上面</span><br />	<br /><span style="font-size: 15px;">	3) @Autowired默认按照byType匹配的方式进行注入,如果没有一个bean的类型是匹配的则会抛异常,如果有多个bean的类型都匹配成功了,那么再按byName方式进行选择</span><br />	<br /><span style="font-size: 15px;">	4) @Autowired如果最终匹配不成功(注意一定是一个都没有找到的情况)则会抛出异常,但是如果设置为 @Autowired(required=false),则最终匹配不成功没有不会抛出异常。</span><br />	<br /><span style="font-size: 15px;">	5) @Autowired可以结合@Qualifier("beanName")来使用,则可以达到byName的效果</span></p>
+<p>&nbsp;</p>
+<p><span style="color: #ff6600; font-size: 15px;"><strong>	@Resource(自动注入<strong>byName</strong>&rarr;byType)</strong></span><br /><span style="font-size: 15px;">	1) @Resource使用后需要在xml文件加入以下配置才能生效:&lt;context:annotation-config/&gt;</span></p>
+<p><span style="font-size: 15px;">	2) @Resource的作用和@Autowired差不多,只不过 @Resource是默认先用byName,如果找不到合适的就再用byType来注入</span></p>
+<p><span style="font-size: 15px;">	3) @Resource有俩个属性,name和type,使用name属性则表示要byName匹配,使用type属性则表示要byType匹配</span></p>
+<p><br /><span style="color: #ff6600; font-size: 15px;">	<strong>@PostConstruct和@PreDestroy</strong></span><br /><span style="font-size: 15px;">	1) 标注了@PostConstruct注解的方法将在类实例化后调用</span><br /><span style="font-size: 15px;">	2) 标注了@PreDestroy注解的方法将在类销毁之前调用</span></p>
+<p>&nbsp;</p>
+<p><span style="color: #ff6600; font-size: 15px;">	<strong>@Component</strong></span><br /><span style="font-size: 15px;">	1) @Component注解可以直接定义bean,而无需在xml定义。但是若两种定义同时存在,xml中的定义会覆盖类中注解的Bean定义</span></p>
+<p><span style="font-size: 15px;">	2) @Component注解直接写在类上面即可</span></p>
+<p><span style="font-size: 15px;">	3) @Component有一个可选的参数,用于指定bean的名称</span><br /><span style="font-size: 15px;">		@Component("boss")</span><br /><span style="font-size: 15px;">		public class Boss{}</span></p>
+<p><span style="font-size: 15px;">	4) @Component如果不指定参数,则bean的名称为当前类的类名小写</span><br /><span style="font-size: 15px;">		//和上面例子的相关相同</span><br /><span style="font-size: 15px;">		@Component</span><br /><span style="font-size: 15px;">		public class Boss{}</span></p>
+<p><span style="font-size: 15px;">	5) @Component使用之后需要在xml文件配置一个标签</span><br /><span style="font-size: 15px;">		&lt;context:component-scan/&gt;</span></p>
+<p><span style="font-size: 15px;">	6) &lt;context:component-scan base-package="com.briup.ioc.annotation" /&gt; </span><br /><span style="font-size: 15px;">		表示spring检查指定包下的java类,看它们是否使用了 @Component注解</span></p>
+<p><span style="font-size: 15px;">	7) @Component定义的bean默认情况下都是单例模式的,如果要让这个bean变为非单例,可以再结合这个@Scope注解来达到目标@Scope("prototype")</span></p>
+<p><br /><span style="font-size: 15px;">	@Component是Spring中所有bean组件的通用形式, @Repository @Service @Controller 则是 @Component的细化</span><br /><span style="font-size: 15px;">	用来表示更具体的用例,分别对应了持久化层、服务层和表现层。</span><br /><span style="font-size: 15px;">	但是至少到现在为止这个四种注解的实质区别很小(甚至几乎没有),都是把当前类注册为spring容器中的一个bean</span></p>
+<p><br /><span style="font-size: 15px; color: #ff0000;">	注意:</span><br /><span style="font-size: 15px;">	1.component-scan标签默认情况下自动扫描指定路径下的包(含所有子包)</span></p>
+<p><span style="font-size: 15px;">	2.component-scan标签将带有@Component @Repository @Service @Controller注解的类自动注册到spring容器中</span></p>
+<p><span style="font-size: 15px;">	3.component-scan标签对标记了</span><br /><span style="font-size: 15px;">	@Required @Autowired @PostConstruct @PreDestroy @Resource @WebServiceRef @EJB  </span><br /><span style="font-size: 15px;">	@PersistenceContext @PersistenceUnit</span><br /><span style="font-size: 15px;">	等注解的类进行对应的操作,将这些类都作为Component进行注册</span><br />	<br /><span style="font-size: 15px;">	4.component-scan标签包含了annotation-config标签的作用</span></p>
+<p><span style="font-size: 15px; color: #ff0000;">	5.使用注解后注意：生成的对象中的基本类型的属性没有初始化值</span></p>
+<p><span style="font-size: 15px;">&nbsp;</span></p>
+
+</div><hr><script charset='utf-8' src='../../js/sming.js'></script></body></html>

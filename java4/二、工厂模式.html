@@ -1,0 +1,146 @@
+<html><head><meta charset='utf-8'><meta name='viewport' content='width=device-width, initial-scale=1'>
+<meta name='applicable-device' content='pc'><meta name='keywords' content='电脑,电脑讲解,电脑技术,编程,电脑故障维修二、工厂模式' />
+<script src='../../highlight/highlight.pack.js'></script>
+<link rel='stylesheet' type='text/css' href='../../highlight/styles/monokai.css'/>
+
+<link rel='stylesheet' href='../../fenxiang/dist/css/share.min.css'>
+<script src='../../fenxiang/src/js/social-share.js'></script>
+<script src='../../fenxiang/src/js/qrcode.js'></script>
+
+</head><body><script>hljs.initHighlightingOnLoad();</script><script>
+var system ={};  
+var p = navigator.platform;       
+system.win = p.indexOf('Win') == 0;  
+system.mac = p.indexOf('Mac') == 0;  
+system.x11 = (p == 'X11') || (p.indexOf('Linux') == 0);     
+if(system.win||system.mac||system.xll){
+document.write("<link href='../css/3.css' rel='stylesheet' type='text/css'>");}else{ document.write("<link href='../css/3wap.css' rel='stylesheet' type='text/css'>");}</script><script src='../../js/3.js'></script><div class='div2'><div class='heading_nav'><ul><div><li><a href='../../index.html'>首页</a></li>
+</div><div onclick='hidden1()' >分享</div>
+</ul></div></div>
+<div id='heading_nav2'> 
+<li class='row' >
+<div class='social-share' data-mode='prepend'><a href='javascript:' class='social-share-icon icon-heart'></a></div></li></div><script charset='utf-8' src='../../3/js/hengfu.js'></script><script charset='utf-8' src='../../3/js/hengfu2.js'></script><hr><div class='div1'><div class='biaoti'><center>二、工厂模式</center></div><div class='banquan'>原文出处:本文由博客园博主ねぇ提供。<br/>
+原文连接:https://www.cnblogs.com/lee0527/p/11874287.html</div><br>
+    <h2 id="工厂模式">工厂模式</h2>
+<h3 id="前言">前言</h3>
+<p>工厂模式又称为创建模式，它是建对象的一种最佳方式。工厂模式的本质就是用工厂方法代替new操作创建一种实例化对象的方式。</p>
+<p>在之前，如果我们想实例化一个对象Simple，一般会想到的方法就是通过构造器来创建Simple simple = new Simple(参数)。但是，如果创建simple实例时所做的初始化工作不是像赋值这样简单的事，可能是很长一段代码,那么每当你需要创建simple这个对象的时候，你都需要写这一段很长的代码。这样我们代码的耦合性就会非常高。所以我们就需要将创建实例的工作和使用使用实例的工作分开，工厂模式会使用工厂方法将创建实例的工作封装起来。这样我们在需要调用对象的时候就不需要关心那些复杂的实例化问题。</p>
+<h3 id="简单工厂模式">简单工厂模式</h3>
+<p>简单工厂模式中有抽象产品类：用来定义具体产品的共有属性，工厂类则负责生产具体产品。</p>
+<p>假设我们需要生产不同品牌的手机</p>
+<p>那么我们可以先来定义一个Phone接口</p>
+<pre><code><code>public interface Phone {
+    String getBrand();
+}</code></code></pre>
+<p>然后来创建两个手机品牌：Apple和Huawei</p>
+<pre><code><code>public class Apple implements Phone {
+    public String getBrand() {
+        return &quot;apple&quot;;
+    }
+}</code></code></pre>
+<pre><code><code>public class Huawei implements Phone {
+    public String getBrand() {
+        return &quot;huawei&quot;;
+    }
+}</code></code></pre>
+<p>定义一个工厂来生产手机</p>
+<pre><code><code>public class SimpleFactory {
+    public static Phone getPhone(String PhoneName){
+        if (&quot;apple&quot;.equals(PhoneName)){
+            return new Apple();
+        }else if (&quot;Huawei&quot;.equals(PhoneName)){
+            return new Huawei();
+        }
+        return null;
+    }
+}</code></code></pre>
+<p><strong>小结：</strong></p>
+<p>从简单工厂中我们可以使用一个静态方法将对象的创建和使用分离开。我们只需要调用方法传递参数就可以获得我们需要的对象。</p>
+<p>但我们会发现简单工厂模式存在一系列问题：</p>
+<ul>
+<li>工厂类集中了所有实例（产品）的创建逻辑，一旦这个工厂不能正常工作，整个系统都会受到影响；</li>
+<li>违背“开放 - 关闭原则”，一旦添加新产品就不得不修改工厂类的逻辑，这样就会造成工厂逻辑过于复杂。</li>
+<li>简单工厂模式由于使用了静态工厂方法，静态方法不能被继承和重写，会造成工厂角色无法形成基于继承的等级结构。</li>
+</ul>
+<p>为了解决上述的问题，我们又使用了一种新的设计模式：工厂方法模式。</p>
+<h3 id="工厂方法模式">工厂方法模式</h3>
+<p>工厂方法模式，又称工厂模式、多态工厂模式和虚拟构造器模式，通过定义工厂父类负责定义创建对象的公共接口，而子类则负责生成具体的对象。</p>
+<p>将类的实例化（具体产品的创建）延迟到工厂类的子类（具体工厂）中完成，即由子类来决定应该实例化（创建）哪一个类。</p>
+<p>下面我们将上面简单工厂模式中生产手机的例子修改为使用工厂方法模式</p>
+<p>创建<strong>抽象工厂类</strong>，定义具体工厂的公共接口</p>
+<pre><code><code>public abstract class PhoneFactory {
+    Phone getPhone();
+}</code></code></pre>
+<p>创建<strong>具体工厂类</strong>（继承抽象工厂类），定义创建对应具体产品实例的方法</p>
+<pre><code><code>public class AppleFactory extends PhoneFactory {
+    public Phone getPhone() {
+        return new Apple();
+    }
+}
+
+public class HuaweiFactory extends PhoneFactory {
+    public Phone getPhone() {
+        return new Huawei();
+    }
+}</code></code></pre>
+<p>外界通过调用具体工厂类的方法，从而生产出不同手机</p>
+<p><strong>小结：</strong></p>
+<p>优点</p>
+<ul>
+<li>更符合开-闭原则，即新增一种产品时，只需要增加相应的具体产品类和相应的工厂子类即可；</li>
+<li>符合单一职责原则，每个具体工厂类只负责创建对应的产品；</li>
+<li>不使用静态工厂方法，可以形成基于继承的等级结构；</li>
+</ul>
+<p>缺点</p>
+<ul>
+<li><p>添加新产品时，除了增加新产品类外，还要提供与之对应的具体工厂类，系统类的个数将成对增加，在一定程度上增加了系统的复杂度；同时，有更多的类需要编译和运行，会给系统带来一些额外的开销；</p></li>
+<li><p>虽然保证了工厂方法内的对修改关闭，但对于使用工厂方法的类，如果要更换另外一种产品，仍然需要修改实例化的具体工厂类；</p></li>
+</ul>
+<h3 id="抽象工厂模式">抽象工厂模式</h3>
+<p>抽象工厂是所有形态的工厂模式中最为抽象和最具一般性的一种形态。抽象工厂是指当有多个抽象角色时使用的一种工厂模式。抽象工厂模式可以向客户端提供一个接口，使客户端在不必指定产品的具体情况下，创建多个产品族中的产品对象。</p>
+<p>抽象工厂模式相对于工厂方法模式来说，就是工厂方法模式是针对一个产品系列的，而抽象工厂模式是针对多个产品系列的，即工厂方法模式是一个产品系列一个工厂类，而抽象工厂模式是多个产品系列一个工厂类。</p>
+<p>假设我们有两个产品接口Phone和Computer，每一种产品都支持多种系列，比如Apple和Huawei系列。这样每个系列的产品分别是Iphone、Huawei、MacBook、MateBook。为了可以在运行时刻创建一个系列的产品族，我们可以为每个系列的产品族创建一个工厂 AppleFactory和 HuaweiFactory。每个工厂都有两个方法 getPhone 和 getComputer 并返回对应的产品，可以将这两个方法抽象成一个接口 AbstractFactory 。这样在运行时刻我们可以选择创建需要的产品系列。</p>
+<p>具体代码：</p>
+<p>AbstractFactory：</p>
+<pre><code><code>public abstract class AbstractFactory {
+    public abstract Phone getPhone();
+
+    public abstract Computer getComputer();
+}</code></code></pre>
+<p>AppleFactory：</p>
+<pre><code><code>public class AppleFactory extends AbstractFactory {
+    public Phone getPhone() {
+        return new Iphone();
+    }
+
+    public Computer getComputer() {
+        return new MacBook();
+    }
+}</code></code></pre>
+<p>HuaweiFactory：</p>
+<pre><code><code>public class HuaweiFactory extends AbstractFactory {
+    public Phone getPhone() {
+        return new Huawei();
+    }
+
+    public Computer getComputer() {
+        return new MateBook();
+    }
+}</code></code></pre>
+<p><strong>小结：</strong></p>
+<p>优点</p>
+<ul>
+<li>新增一种产品类时，只需要增加相应的具体产品类和相应的工厂子类即可；</li>
+<li>不使用静态工厂方法，可以形成基于继承的等级结构</li>
+<li>更符合开-闭原则，新增一种产品类时，只需要增加相应的具体产品类和相应的工厂子类即可</li>
+<li>符合单一职责原则，每个具体工厂类只负责创建对应的产品</li>
+</ul>
+<p>最后总结一下工厂方法模式和抽象工厂模式的区别：</p>
+<ul>
+<li>工厂方法模式利用继承，抽象工厂模式利用组合</li>
+<li>工厂方法模式产生一类对象，抽象工厂模式产生一族对象</li>
+<li>工厂方法模式利用子类创造对象，抽象工厂模式利用接口的实现创造对象</li>
+</ul>
+
+
+</div><hr><script charset='utf-8' src='../../js/sming.js'></script></body></html>

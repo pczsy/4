@@ -1,0 +1,91 @@
+<html><head><meta charset='utf-8'><meta name='viewport' content='width=device-width, initial-scale=1'>
+<meta name='applicable-device' content='pc'><meta name='keywords' content='电脑,电脑讲解,电脑技术,编程,电脑故障维修在Docker中跑Hadoop与镜像制作' />
+<script src='../../highlight/highlight.pack.js'></script>
+<link rel='stylesheet' type='text/css' href='../../highlight/styles/monokai.css'/>
+
+<link rel='stylesheet' href='../../fenxiang/dist/css/share.min.css'>
+<script src='../../fenxiang/src/js/social-share.js'></script>
+<script src='../../fenxiang/src/js/qrcode.js'></script>
+
+</head><body><script>hljs.initHighlightingOnLoad();</script><script>
+var system ={};  
+var p = navigator.platform;       
+system.win = p.indexOf('Win') == 0;  
+system.mac = p.indexOf('Mac') == 0;  
+system.x11 = (p == 'X11') || (p.indexOf('Linux') == 0);     
+if(system.win||system.mac||system.xll){
+document.write("<link href='../css/3.css' rel='stylesheet' type='text/css'>");}else{ document.write("<link href='../css/3wap.css' rel='stylesheet' type='text/css'>");}</script><script src='../../js/3.js'></script><div class='div2'><div class='heading_nav'><ul><div><li><a href='../../index.html'>首页</a></li>
+</div><div onclick='hidden1()' >分享</div>
+</ul></div></div>
+<div id='heading_nav2'> 
+<li class='row' >
+<div class='social-share' data-mode='prepend'><a href='javascript:' class='social-share-icon icon-heart'></a></div></li></div><script charset='utf-8' src='../../3/js/hengfu.js'></script><script charset='utf-8' src='../../3/js/hengfu2.js'></script><hr><div class='div1'><div class='biaoti'><center>在Docker中跑Hadoop与镜像制作</center></div><div class='banquan'>原文出处:本文由博客园博主AiFly提供。<br/>
+原文连接:https://www.cnblogs.com/softlin/p/11924731.html</div><br>
+    <p>  重复造轮子，这里使用重新打包生成一个基于Docker的Hadoop镜像；<br />
+  Hadoop集群依赖的软件分别为：jdk、ssh等，所以只要这两项还有Hadoop相关打包进镜像中去即可；</p>
+<p><img src="./images/在Docker中跑Hadoop与镜像制作0.png" alt="集群架构" /></p>
+<h2 id="配置文件准备">配置文件准备</h2>
+<p>1、Hadoop相关配置文件：core-site.xml、hdfs-site.xml、mapred-site.xml、yarn-site.xml、slaves、hadoop-env.sh<br />
+2、ssh配置文件：ssh_config<br />
+3、Hadoop集群启动文件：start-hadoop.sh</p>
+<h2 id="制作镜像">制作镜像</h2>
+<p><strong>1、安装依赖</strong></p>
+<pre><code><code>RUN apt-get update &amp;&amp; \
+  apt-get install -y openssh-server openjdk-8-jdk wget</code></code></pre>
+<p><strong>2、下载Hadoop包</strong></p>
+<pre><code><code>RUN wget http://mirror.bit.edu.cn/apache/hadoop/common/hadoop-2.10.0/hadoop-2.10.0.tar.gz &amp;&amp; \
+tar -xzvf hadoop-2.10.0.tar.gz &amp;&amp; \
+mv hadoop-2.10.0 /usr/local/hadoop &amp;&amp; \
+rm hadoop-2.10.0.tar.gz &amp;&amp; \
+rm /usr/local/hadoop/share/doc -rf</code></code></pre>
+<p><strong>3、配置环境变量</strong></p>
+<pre><code><code>ENV JAVA_HOME=/usr/lib/jvm/java-8-openjdk-amd64 
+ENV HADOOP_HOME=/usr/local/hadoop 
+ENV PATH=$PATH:/usr/local/hadoop/bin:/usr/local/hadoop/sbin</code></code></pre>
+<p><strong>4、生成SSH key，用于节点免密登录</strong></p>
+<pre><code><code>RUN ssh-keygen -t rsa -f ~/.ssh/id_rsa -P &#39;&#39; &amp;&amp; \
+cat ~/.ssh/id_rsa.pub &gt;&gt; ~/.ssh/authorized_keys</code></code></pre>
+<p><strong>5、创建Hadoop相关目录、复制相关配置文件、相关文件添加执行权限，最后格式化namenode节点，各个节点启动时，启动ssh服务；</strong></p>
+<pre><code><code>RUN mkdir -p ~/hdfs/namenode &amp;&amp; \ 
+mkdir -p ~/hdfs/datanode &amp;&amp; \
+mkdir $HADOOP_HOME/logs
+
+COPY config/* /tmp/
+
+#复制ssh、hadoop配置相关
+RUN mv /tmp/ssh_config ~/.ssh/config &amp;&amp; \
+mv /tmp/hadoop-env.sh /usr/local/hadoop/etc/hadoop/hadoop-env.sh &amp;&amp; \
+mv /tmp/hdfs-site.xml $HADOOP_HOME/etc/hadoop/hdfs-site.xml &amp;&amp; \ 
+mv /tmp/core-site.xml $HADOOP_HOME/etc/hadoop/core-site.xml &amp;&amp; \
+mv /tmp/mapred-site.xml $HADOOP_HOME/etc/hadoop/mapred-site.xml &amp;&amp; \
+mv /tmp/yarn-site.xml $HADOOP_HOME/etc/hadoop/yarn-site.xml &amp;&amp; \
+mv /tmp/slaves $HADOOP_HOME/etc/hadoop/slaves &amp;&amp; \
+mv /tmp/start-hadoop.sh ~/start-hadoop.sh &amp;&amp; \
+mv /tmp/run-wordcount.sh ~/run-wordcount.sh
+
+#添加执行权限
+RUN chmod +x ~/start-hadoop.sh &amp;&amp; \
+chmod +x ~/run-wordcount.sh &amp;&amp; \
+chmod +x $HADOOP_HOME/sbin/start-dfs.sh &amp;&amp; \
+chmod +x $HADOOP_HOME/sbin/start-yarn.sh 
+
+# format namenode
+RUN /usr/local/hadoop/bin/hdfs namenode -format</code></code></pre>
+<p><img src="./images/在Docker中跑Hadoop与镜像制作1.png" alt="生成镜像" /><br />
+<img src="./images/在Docker中跑Hadoop与镜像制作2.png" alt="查看镜像" /></p>
+<h1 id="在docker中跑hadoop集群">在Docker中跑Hadoop集群</h1>
+<p>  通过上面的Dockerfile生成了镜像后，这里即可使用上面所生成的镜像搭建Hadoop集群；这里启动一个master、两个slave节点；</p>
+<p><strong>添加桥接网络:</strong></p>
+<pre><code><code>docker network create --driver=bridge solinx-hadoop</code></code></pre>
+<p><strong>启动Master节点：</strong></p>
+<pre><code><code>docker run -itd --net=solinx-hadoop -p 10070:50070 -p 8088:8088 --name solinx-hadoop-master --hostname solinx-hadoop-master solinx/hadoop:0.1</code></code></pre>
+<p><strong>启动Slave1节点：</strong></p>
+<pre><code><code>docker run -itd --net=solinx-hadoop --name solinx-hadoop-slave1 --hostname solinx-hadoop-slave1 solinx/hadoop:0.1</code></code></pre>
+<p><strong>启动Slave2节点：</strong></p>
+<pre><code><code>docker run -itd --net=solinx-hadoop --name solinx-hadoop-slave2 --hostname solinx-hadoop-slave1 solinx/hadoop:0.1</code></code></pre>
+<p>进入Master节点，执行启动Hadoop集群脚本即可:</p>
+<p><img src="./images/在Docker中跑Hadoop与镜像制作3.png" alt="启动Hadoop集群" /></p>
+<p><img src="./images/在Docker中跑Hadoop与镜像制作4.png" alt="查看HDFS" /></p>
+
+
+</div><hr><script charset='utf-8' src='../../js/sming.js'></script></body></html>

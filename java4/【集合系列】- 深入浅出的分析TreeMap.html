@@ -1,0 +1,377 @@
+<html><head><meta charset='utf-8'><meta name='viewport' content='width=device-width, initial-scale=1'>
+<meta name='applicable-device' content='pc'><meta name='keywords' content='电脑,电脑讲解,电脑技术,编程,电脑故障维修【集合系列】- 深入浅出的分析TreeMap' />
+<script src='../../highlight/highlight.pack.js'></script>
+<link rel='stylesheet' type='text/css' href='../../highlight/styles/monokai.css'/>
+
+<link rel='stylesheet' href='../../fenxiang/dist/css/share.min.css'>
+<script src='../../fenxiang/src/js/social-share.js'></script>
+<script src='../../fenxiang/src/js/qrcode.js'></script>
+
+</head><body><script>hljs.initHighlightingOnLoad();</script><script>
+var system ={};  
+var p = navigator.platform;       
+system.win = p.indexOf('Win') == 0;  
+system.mac = p.indexOf('Mac') == 0;  
+system.x11 = (p == 'X11') || (p.indexOf('Linux') == 0);     
+if(system.win||system.mac||system.xll){
+document.write("<link href='../css/3.css' rel='stylesheet' type='text/css'>");}else{ document.write("<link href='../css/3wap.css' rel='stylesheet' type='text/css'>");}</script><script src='../../js/3.js'></script><div class='div2'><div class='heading_nav'><ul><div><li><a href='../../index.html'>首页</a></li>
+</div><div onclick='hidden1()' >分享</div>
+</ul></div></div>
+<div id='heading_nav2'> 
+<li class='row' >
+<div class='social-share' data-mode='prepend'><a href='javascript:' class='social-share-icon icon-heart'></a></div></li></div><script charset='utf-8' src='../../3/js/hengfu.js'></script><script charset='utf-8' src='../../3/js/hengfu2.js'></script><hr><div class='div1'><div class='biaoti'><center>【集合系列】- 深入浅出的分析TreeMap</center></div><div class='banquan'>原文出处:本文由博客园博主炸鸡可乐提供。<br/>
+原文连接:https://www.cnblogs.com/dxflqm/p/11911068.html</div><br>
+    <h3 id="一摘要">一、摘要</h3>
+<p>在集合系列的第一章，咱们了解到，Map的实现类有HashMap、LinkedHashMap、TreeMap、IdentityHashMap、WeakHashMap、Hashtable、Properties等等。</p>
+<p><img src="./images/【集合系列】- 深入浅出的分析TreeMap0.png" /></p>
+<p>本文主要从数据结构和算法层面，探讨TreeMap的实现。</p>
+<h3 id="二简介">二、简介</h3>
+<blockquote>
+<p>Java TreeMap实现了SortedMap接口，也就是说会按照key的大小顺序对Map中的元素进行排序，key大小的评判可以通过其本身的自然顺序（natural ordering），也可以通过构造时传入的比较器（Comparator）。</p>
+</blockquote>
+<p>TreeMap底层通过红黑树（Red-Black tree）实现，所以要了解TreeMap就必须对红黑树有一定的了解，在《集合系列》文章中，如果你已经读过红黑树的讲解，其实本文要讲解的TreeMap，跟其大同小异。</p>
+<p>红黑树又称红-黑二叉树，它首先是一颗二叉树，它具有二叉树所有的特性。同时红黑树更是一颗自平衡的排序二叉树。</p>
+<p><img src="./images/【集合系列】- 深入浅出的分析TreeMap1.png" /></p>
+<p>对于一棵有效的红黑树二叉树，主要有以下规则：</p>
+<ul>
+<li><strong>1、每个节点要么是红色，要么是黑色，但根节点永远是黑色的；</strong></li>
+<li><strong>2、每个红色节点的两个子节点一定都是黑色；</strong></li>
+<li><strong>3、红色节点不能连续（也即是，红色节点的孩子和父亲都不能是红色）；</strong></li>
+<li><strong>4、从任一节点到其子树中每个叶子节点的路径都包含相同数量的黑色节点；</strong></li>
+<li><strong>5、所有的叶节点都是是黑色的（注意这里说叶子节点其实是上图中的 NIL 节点）；</strong></li>
+</ul>
+<p>这些约束强制了红黑树的关键性质：从根到叶子的最长的可能路径不多于最短的可能路径的两倍长。结果是这棵树大致上是平衡的。因为操作比如插入、删除和查找某个值的最坏情况时间都要求与树的高度成比例，这个在高度上的理论上限允许红黑树在最坏情况下都是高效的，而不同于普通的二叉查找树。所以红黑树它是复杂而高效的，其检索效率O(log n)。下图为一颗典型的红黑二叉树。</p>
+<p><img src="./images/【集合系列】- 深入浅出的分析TreeMap2.png" /></p>
+<p>在树的结构发生改变时（插入或者删除操作），往往会破坏上述条件3或条件4，需要通过调整使得查找树重新满足红黑树的条件。</p>
+<p><strong>调整方式主要有：左旋、右旋和颜色转换！</strong></p>
+<h4 id="左旋">2.1、左旋</h4>
+<p>左旋的过程是将x的右子树绕x逆时针旋转，使得x的右子树成为x的父亲，同时修改相关节点的引用。旋转之后，二叉查找树的属性仍然满足。</p>
+<p><img src="./images/【集合系列】- 深入浅出的分析TreeMap3.png" /></p>
+<h4 id="右旋">2.2、右旋</h4>
+<p>右旋的过程是将x的左子树绕x顺时针旋转，使得x的左子树成为x的父亲，同时修改相关节点的引用。旋转之后，二叉查找树的属性仍然满足。</p>
+<p><img src="./images/【集合系列】- 深入浅出的分析TreeMap4.png" /></p>
+<h4 id="颜色转换">2.3、颜色转换</h4>
+<p>颜色转换的过程是将红色节点转换为黑色节点，或者将黑色节点转换为红色节点，以满足红黑树二叉树的规则！</p>
+<p><img src="./images/【集合系列】- 深入浅出的分析TreeMap5.png" /></p>
+<h3 id="三常用方法介绍">三、常用方法介绍</h3>
+<h4 id="get方法">3.1、get方法</h4>
+<p>get方法根据指定的key值返回对应的value，该方法调用了<code>getEntry(Object key)</code>得到相应的entry，然后返回<code>entry.value</code>。</p>
+<p>算法思想是根据key的自然顺序（或者比较器顺序）对二叉查找树进行查找，直到找到满足<code>k.compareTo(p.key) == 0</code>的<code>entry</code>。</p>
+<p>源码如下：</p>
+<pre><code><code>final Entry&lt;K,V&gt; getEntry(Object key) {
+        //如果传入比较器，通过getEntryUsingComparator方法获取元素
+        if (comparator != null)
+            return getEntryUsingComparator(key);
+        //不允许key值为null
+        if (key == null)
+            throw new NullPointerException();
+        //使用元素的自然顺序
+            Comparable&lt;? super K&gt; k = (Comparable&lt;? super K&gt;) key;
+        Entry&lt;K,V&gt; p = root;
+        while (p != null) {
+            int cmp = k.compareTo(p.key);
+            if (cmp &lt; 0)
+                //向左找
+                p = p.left;
+            else if (cmp &gt; 0)
+                //向右找
+                p = p.right;
+            else
+                return p;
+        }
+        return null;
+}</code></code></pre>
+<p>如果传入比较器，通过getEntryUsingComparator方法获取元素</p>
+<pre><code><code>final Entry&lt;K,V&gt; getEntryUsingComparator(Object key) {
+            K k = (K) key;
+        Comparator&lt;? super K&gt; cpr = comparator;
+        if (cpr != null) {
+            Entry&lt;K,V&gt; p = root;
+            while (p != null) {
+                //通过比较器顺序，获取元素
+                int cmp = cpr.compare(k, p.key);
+                if (cmp &lt; 0)
+                    p = p.left;
+                else if (cmp &gt; 0)
+                    p = p.right;
+                else
+                    return p;
+            }
+        }
+        return null;
+}</code></code></pre>
+<p>测试用例：</p>
+<pre><code><code>public static void main(String[] args) {
+        Map initMap = new TreeMap();
+        initMap.put(&quot;4&quot;, &quot;d&quot;);
+        initMap.put(&quot;3&quot;, &quot;c&quot;);
+        initMap.put(&quot;1&quot;, &quot;a&quot;);
+        initMap.put(&quot;2&quot;, &quot;b&quot;);
+        //默认自然排序，key为升序
+        System.out.println(&quot;默认 排序结果:&quot; + initMap.toString());
+
+        //自定义排序，在TreeMap初始化阶段传入Comparator 内部对象
+        Map comparatorMap = new TreeMap&lt;String, String&gt;(new Comparator&lt;String&gt;() {
+
+            @Override
+            public int compare(String o1, String o2){
+                //根据key比较大小，采用倒叙，以大到小排序
+                return o2.compareTo(o1);
+            }
+        });
+        comparatorMap.put(&quot;4&quot;, &quot;d&quot;);
+        comparatorMap.put(&quot;3&quot;, &quot;c&quot;);
+        comparatorMap.put(&quot;1&quot;, &quot;a&quot;);
+        comparatorMap.put(&quot;2&quot;, &quot;b&quot;);
+
+        System.out.println(&quot;自定义 排序结果:&quot; + comparatorMap.toString());
+}</code></code></pre>
+<p>输出结果：</p>
+<pre><code><code>默认 排序结果:{1=a, 2=b, 3=c, 4=d}
+自定义 排序结果:{4=d, 3=c, 2=b, 1=a}</code></code></pre>
+<h4 id="put方法">3.2、put方法</h4>
+<p>put方法是将指定的key, value对添加到map里。该方法首先会对map做一次查找，看是否包含该元组，如果已经包含则直接返回，查找过程类似于getEntry()方法；如果没有找到则会在红黑树中插入新的entry，如果插入之后破坏了红黑树的约束，还需要进行调整（旋转，改变某些节点的颜色）。</p>
+<p>源码如下：</p>
+<pre><code><code>public V put(K key, V value) {
+        Entry&lt;K,V&gt; t = root;
+        //如果红黑树根部为空，直接插入
+        if (t == null) {
+            compare(key, key); // type (and possibly null) check
+
+            root = new Entry&lt;&gt;(key, value, null);
+            size = 1;
+            modCount++;
+            return null;
+        }
+        int cmp;
+        Entry&lt;K,V&gt; parent;
+        // split comparator and comparable paths
+        Comparator&lt;? super K&gt; cpr = comparator;
+        //如果比较器，通过比较器顺序，找到插入位置
+        if (cpr != null) {
+            do {
+                parent = t;
+                cmp = cpr.compare(key, t.key);
+                if (cmp &lt; 0)
+                    t = t.left;
+                else if (cmp &gt; 0)
+                    t = t.right;
+                else
+                    return t.setValue(value);
+            } while (t != null);
+        }
+        else {
+            //通过自然顺序，找到插入位置
+            if (key == null)
+                throw new NullPointerException();
+                Comparable&lt;? super K&gt; k = (Comparable&lt;? super K&gt;) key;
+            do {
+                parent = t;
+                cmp = k.compareTo(t.key);
+                if (cmp &lt; 0)
+                    t = t.left;
+                else if (cmp &gt; 0)
+                    t = t.right;
+                else
+                    return t.setValue(value);
+            } while (t != null);
+        }
+        //创建并插入新的entry
+        Entry&lt;K,V&gt; e = new Entry&lt;&gt;(key, value, parent);
+        if (cmp &lt; 0)
+            parent.left = e;
+        else
+            parent.right = e;
+        //红黑树调整函数
+        fixAfterInsertion(e);
+        size++;
+        modCount++;
+        return null;
+}</code></code></pre>
+<p>红黑树调整函数<code>fixAfterInsertion(Entry&lt;K,V&gt; x)</code></p>
+<pre><code><code>private void fixAfterInsertion(Entry&lt;K,V&gt; x) {
+    x.color = RED;
+    while (x != null &amp;&amp; x != root &amp;&amp; x.parent.color == RED) {
+        //判断x是否在树的左边，还是右边
+        if (parentOf(x) == leftOf(parentOf(parentOf(x)))) {
+            Entry&lt;K,V&gt; y = rightOf(parentOf(parentOf(x)));
+            //如果x的父亲的父亲的右子树是红色，违反了红色节点不能连续
+            if (colorOf(y) == RED) {
+                //进行颜色调整，以满足红色节点不能连续规则
+                setColor(parentOf(x), BLACK);
+                setColor(y, BLACK); 
+                setColor(parentOf(parentOf(x)), RED);
+                x = parentOf(parentOf(x));
+            } else {
+                //如果x的父亲的右子树等于自己，那么需要进行左旋转
+                if (x == rightOf(parentOf(x))) {
+                    x = parentOf(x);
+                    rotateLeft(x);
+                }
+                setColor(parentOf(x), BLACK);  
+                setColor(parentOf(parentOf(x)), RED);
+                rotateRight(parentOf(parentOf(x)));
+            }
+        } else {
+            //跟上面的流程正好相反
+            //获取x的父亲的父亲的左子树节点
+            Entry&lt;K,V&gt; y = leftOf(parentOf(parentOf(x)));
+            //如果y是红色节点，违反了红色节点不能连续
+            if (colorOf(y) == RED) {
+                //进行颜色转换
+                setColor(parentOf(x), BLACK);
+                setColor(y, BLACK);
+                setColor(parentOf(parentOf(x)), RED);
+                x = parentOf(parentOf(x));
+            } else {
+                //如果x的父亲的左子树等于自己，那么需要进行右旋转
+                if (x == leftOf(parentOf(x))) {
+                    x = parentOf(x);
+                    rotateRight(x);
+                }
+                setColor(parentOf(x), BLACK);
+                setColor(parentOf(parentOf(x)), RED);
+                rotateLeft(parentOf(parentOf(x)));
+            }
+        }
+    }
+    //根节点一定为黑色
+    root.color = BLACK;
+}</code></code></pre>
+<p>上述代码的插入流程：</p>
+<ul>
+<li><strong>1、首先在红黑树上找到合适的位置；</strong></li>
+<li><strong>2、然后创建新的entry并插入；</strong></li>
+<li><strong>3、通过函数fixAfterInsertion()，对某些节点进行旋转、改变某些节点的颜色，进行调整；</strong></li>
+</ul>
+<p><strong>调整图解：</strong></p>
+<p><img src="./images/【集合系列】- 深入浅出的分析TreeMap6.png" /></p>
+<h4 id="remove方法">3.3、remove方法</h4>
+<p>remove的作用是删除key值对应的entry，该方法首先通过上文中提到的<code>getEntry(Object key)</code>方法找到 key 值对应的 entry，然后调用<code>deleteEntry(Entry&lt;K,V&gt; entry)</code>删除对应的 entry。由于删除操作会改变红黑树的结构，有可能破坏红黑树的约束，因此有可能要进行调整。</p>
+<p>源码如下：</p>
+<pre><code><code>public V remove(Object key) {
+        Entry&lt;K,V&gt; p = getEntry(key);
+        if (p == null)
+            return null;
+
+        V oldValue = p.value;
+        deleteEntry(p);
+        return oldValue;
+}</code></code></pre>
+<p>删除函数 deleteEntry()</p>
+<pre><code><code>private void deleteEntry(Entry&lt;K,V&gt; p) {
+    modCount++;
+    size--;
+    if (p.left != null &amp;&amp; p.right != null) {// 删除点p的左右子树都非空。
+        Entry&lt;K,V&gt; s = successor(p);// 后继
+        p.key = s.key;
+        p.value = s.value;
+        p = s;
+    }
+    Entry&lt;K,V&gt; replacement = (p.left != null ? p.left : p.right);
+    if (replacement != null) {// 删除点p只有一棵子树非空。
+        replacement.parent = p.parent;
+        if (p.parent == null)
+            root = replacement;
+        else if (p == p.parent.left)
+            p.parent.left  = replacement;
+        else
+            p.parent.right = replacement;
+        p.left = p.right = p.parent = null;
+        if (p.color == BLACK)
+            fixAfterDeletion(replacement);// 调整
+    } else if (p.parent == null) {
+        root = null;
+    } else { //删除点p的左右子树都为空
+        if (p.color == BLACK)
+            fixAfterDeletion(p);// 调整
+        if (p.parent != null) {
+            if (p == p.parent.left)
+                p.parent.left = null;
+            else if (p == p.parent.right)
+                p.parent.right = null;
+            p.parent = null;
+        }
+    }
+}</code></code></pre>
+<p>删除后调整函数fixAfterDeletion()的具体代码如下：</p>
+<pre><code><code>private void fixAfterDeletion(Entry&lt;K,V&gt; x) {
+    while (x != root &amp;&amp; colorOf(x) == BLACK) {
+        //判断当前删除的元素，是在x父亲的左边还是右边
+        if (x == leftOf(parentOf(x))) {
+            Entry&lt;K,V&gt; sib = rightOf(parentOf(x));
+            //判断x的父亲的右子树，是红色还是黑色节点
+            if (colorOf(sib) == RED) {
+                //进行颜色转换
+                setColor(sib, BLACK);
+                setColor(parentOf(x), RED);
+                rotateLeft(parentOf(x));
+                sib = rightOf(parentOf(x));
+            }
+            //x的父亲的右子树的左边是黑色节点，右边也是黑色节点
+            if (colorOf(leftOf(sib))  == BLACK &amp;&amp;
+                colorOf(rightOf(sib)) == BLACK) {
+                //设置x的父亲的右子树为红色节点，将x的父亲赋值给x
+                setColor(sib, RED);
+                x = parentOf(x);
+            } else {
+                //x的父亲的右子树的左边是红色节点，右边也是黑色节点
+                if (colorOf(rightOf(sib)) == BLACK) {
+                    //x的父亲的右子树的左边进行颜色调整，右旋调整
+                    setColor(leftOf(sib), BLACK);
+                    setColor(sib, RED);
+                    rotateRight(sib);
+                    sib = rightOf(parentOf(x));
+                }
+                //对x进行左旋，颜色调整
+                setColor(sib, colorOf(parentOf(x)));
+                setColor(parentOf(x), BLACK);
+                setColor(rightOf(sib), BLACK);
+                rotateLeft(parentOf(x));
+                x = root;
+            }
+        } else { // 跟前四种情况对称
+            Entry&lt;K,V&gt; sib = leftOf(parentOf(x));
+            if (colorOf(sib) == RED) {
+                setColor(sib, BLACK);
+                setColor(parentOf(x), RED);
+                rotateRight(parentOf(x));
+                sib = leftOf(parentOf(x));
+            }
+            if (colorOf(rightOf(sib)) == BLACK &amp;&amp;
+                colorOf(leftOf(sib)) == BLACK) {
+                setColor(sib, RED);
+                x = parentOf(x);
+            } else {
+                if (colorOf(leftOf(sib)) == BLACK) {
+                    setColor(rightOf(sib), BLACK);
+                    setColor(sib, RED);
+                    rotateLeft(sib);
+                    sib = leftOf(parentOf(x));
+                }
+                setColor(sib, colorOf(parentOf(x)));
+                setColor(parentOf(x), BLACK);
+                setColor(leftOf(sib), BLACK);
+                rotateRight(parentOf(x));
+                x = root;
+            }
+        }
+    }
+    setColor(x, BLACK);
+}</code></code></pre>
+<p>上述代码的删除流程：</p>
+<ul>
+<li><strong>1、首先在红黑树上找到合适的位置；</strong></li>
+<li><strong>2、然后删除entry；</strong></li>
+<li><strong>3、通过函数fixAfterDeletion()，对某些节点进行旋转、改变某些节点的颜色，进行调整；</strong></li>
+</ul>
+<h3 id="四总结">四、总结</h3>
+<p>TreeMap 默认是按键值的升序排序，如果需要自定义排序，可以通过<code>new Comparator</code>构造参数，重写<code>compare</code>方法，进行自定义比较。</p>
+<p>以上，主要是对 java 集合中的 TreeMap 做了写讲解，如果有理解不当之处，欢迎指正。</p>
+<h3 id="五参考">五、参考</h3>
+<p>1、JDK1.7&amp;JDK1.8 源码<br />
+2、<a href="https://www.cnblogs.com/chenssy/p/3746600.html">博客园 - chenssy - TreeMap分析</a><br />
+2、<a href="https://zhuanlan.zhihu.com/p/24795143?refer=dreawer">知乎 - CarpenterLee - TreeMap讲解</a></p>
+
+
+</div><hr><script charset='utf-8' src='../../js/sming.js'></script></body></html>

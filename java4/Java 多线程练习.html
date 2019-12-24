@@ -1,0 +1,230 @@
+<html><head><meta charset='utf-8'><meta name='viewport' content='width=device-width, initial-scale=1'>
+<meta name='applicable-device' content='pc'><meta name='keywords' content='电脑,电脑讲解,电脑技术,编程,电脑故障维修Java 多线程练习' />
+<script src='../../highlight/highlight.pack.js'></script>
+<link rel='stylesheet' type='text/css' href='../../highlight/styles/monokai.css'/>
+
+<link rel='stylesheet' href='../../fenxiang/dist/css/share.min.css'>
+<script src='../../fenxiang/src/js/social-share.js'></script>
+<script src='../../fenxiang/src/js/qrcode.js'></script>
+
+</head><body><script>hljs.initHighlightingOnLoad();</script><script>
+var system ={};  
+var p = navigator.platform;       
+system.win = p.indexOf('Win') == 0;  
+system.mac = p.indexOf('Mac') == 0;  
+system.x11 = (p == 'X11') || (p.indexOf('Linux') == 0);     
+if(system.win||system.mac||system.xll){
+document.write("<link href='../css/3.css' rel='stylesheet' type='text/css'>");}else{ document.write("<link href='../css/3wap.css' rel='stylesheet' type='text/css'>");}</script><script src='../../js/3.js'></script><div class='div2'><div class='heading_nav'><ul><div><li><a href='../../index.html'>首页</a></li>
+</div><div onclick='hidden1()' >分享</div>
+</ul></div></div>
+<div id='heading_nav2'> 
+<li class='row' >
+<div class='social-share' data-mode='prepend'><a href='javascript:' class='social-share-icon icon-heart'></a></div></li></div><script charset='utf-8' src='../../3/js/hengfu.js'></script><script charset='utf-8' src='../../3/js/hengfu2.js'></script><hr><div class='div1'><div class='biaoti'><center>Java 多线程练习</center></div><div class='banquan'>原文出处:本文由博客园博主HelloLLLLL提供。<br/>
+原文连接:https://www.cnblogs.com/HelloQLQ/p/11622162.html</div><br>
+    <src><span style="font-family: 'Microsoft YaHei'; font-size: 18px;"><strong>题目：</strong></span><span style="font-family: 'Microsoft YaHei';">某公司组织年会,会议入场时有两个入口,在入场时每位员工都能获取一张双色球彩票,假设公司有100个员工,利用多线程模拟年会入场过程,</span>
+<src><span style="font-family: 'Microsoft YaHei';">并分别统计每个入口入场的人数,以及每个员工拿到的彩票的号码。线程运行后打印格式如下：</span>
+<src><span style="font-family: 'Microsoft YaHei';">编号为: 2 的员工 从后门 入场! 拿到的双色球彩票号码是: [17, 24, 29, 30, 31, 32, 07]</span>
+<src><span style="font-family: 'Microsoft YaHei';">编号为: 1 的员工 从后门 入场! 拿到的双色球彩票号码是: [06, 11, 14, 22, 29, 32, 15]</span>
+<src><span style="font-family: 'Microsoft YaHei';">//.....</span>
+<src><span style="font-family: 'Microsoft YaHei';">从后门入场的员工总共: 13 位员工</span>
+<src><span style="font-family: 'Microsoft YaHei';">从前门入场的员工总共: 87 位员工</span>
+<src>&nbsp;
+<src>
+<src><span style="font-size: 18px;"><strong><span style="font-family: 'Microsoft YaHei';">分析：</span></strong></span><span style="font-family: 'Microsoft YaHei';">两个入口对应两个线程，获取彩票的方法覆写Runnable接口的run方法实现，我把这个实现了Runnable接口的类称作Paper类，里面用id字段记录员工编号，并提供get，set方法。设置第3个线程来作为随机控制100个员工进出哪个入口，因为是员工进入了入口，入口才相应彩票方法，所以我用了等待唤醒机制(<strong>这里要注意，这个等待唤醒机制必须要在同步块中，还要用同一把锁。)</strong></span>
+<src>&nbsp;
+<src><strong><strong><span style="font-family: 'Microsoft YaHei'; font-size: 18px;">代码：</span></strong></strong>
+<src class="cnblogs_code">
+<pre><code><span style="color: #0000ff;">class</span> Paper <span style="color: #0000ff;">implements</span><span style="color: #000000;"> Runnable {
+
+    </span><span style="color: #0000ff;">boolean</span> bFlag = <span style="color: #0000ff;">false</span><span style="color: #000000;">;
+
+    </span><span style="color: #0000ff;">private</span> <span style="color: #0000ff;">int</span><span style="color: #000000;"> id;
+
+    </span><span style="color: #0000ff;">public</span> <span style="color: #0000ff;">void</span> setId(<span style="color: #0000ff;">int</span><span style="color: #000000;"> id) {
+
+        </span><span style="color: #0000ff;">this</span>.id =<span style="color: #000000;"> id;
+    }
+
+    </span><span style="color: #0000ff;">public</span> <span style="color: #0000ff;">int</span><span style="color: #000000;"> getId() {
+        </span><span style="color: #0000ff;">return</span> <span style="color: #0000ff;">this</span><span style="color: #000000;">.id;
+    }
+
+    </span><span style="color: #0000ff;">public</span><span style="color: #000000;"> String position;
+
+    </span><span style="color: #0000ff;">private</span> List&lt;String&gt; listPosCount = <span style="color: #0000ff;">new</span> ArrayList&lt;String&gt;<span style="color: #000000;">();
+
+    </span><span style="color: #0000ff;">private</span> HashMap&lt;Integer, <span style="color: #0000ff;">int</span>[]&gt; dic = <span style="color: #0000ff;">new</span> HashMap&lt;Integer, <span style="color: #0000ff;">int</span>[]&gt;<span style="color: #000000;">();
+
+    </span><span style="color: #0000ff;">private</span> List&lt;Integer&gt; myList = <span style="color: #0000ff;">new</span> ArrayList&lt;Integer&gt;<span style="color: #000000;">();
+
+    </span><span style="color: #0000ff;">private</span> <span style="color: #0000ff;">int</span>[] getNumbers(<span style="color: #0000ff;">int</span><span style="color: #000000;"> size) {
+
+        </span><span style="color: #0000ff;">int</span> numbers[] = <span style="color: #0000ff;">new</span> <span style="color: #0000ff;">int</span><span style="color: #000000;">[size];
+
+        </span><span style="color: #0000ff;">for</span> (<span style="color: #0000ff;">int</span> i = 0; i &lt;<span style="color: #000000;"> size;) {
+
+            </span><span style="color: #0000ff;">boolean</span> flag = <span style="color: #0000ff;">false</span><span style="color: #000000;">;
+
+            numbers[i] </span>= (<span style="color: #0000ff;">int</span>) (Math.random() * 100<span style="color: #000000;">);
+
+            </span><span style="color: #0000ff;">for</span> (<span style="color: #0000ff;">int</span> j = 0; j &lt; i; j++<span style="color: #000000;">) {
+
+                </span><span style="color: #0000ff;">if</span> (numbers[j] ==<span style="color: #000000;"> numbers[i]) {
+
+                    flag </span>= <span style="color: #0000ff;">true</span><span style="color: #000000;">;
+
+                    </span><span style="color: #0000ff;">break</span><span style="color: #000000;">;
+
+                }
+            }
+
+            </span><span style="color: #0000ff;">if</span> (flag == <span style="color: #0000ff;">true</span><span style="color: #000000;">) {
+
+                </span><span style="color: #0000ff;">continue</span><span style="color: #000000;">;
+            }
+
+            i</span>++<span style="color: #000000;">;
+        }
+        </span><span style="color: #0000ff;">return</span><span style="color: #000000;"> numbers;
+    }
+
+    @Override
+    </span><span style="color: #0000ff;">public</span> <span style="color: #0000ff;">void</span><span style="color: #000000;"> run() {
+        </span><span style="color: #0000ff;">synchronized</span> (<span style="color: #0000ff;">this</span><span style="color: #000000;">) {
+            </span><span style="color: #0000ff;">while</span> (myList.size() &lt; 100<span style="color: #000000;">) {
+
+                </span><span style="color: #0000ff;">while</span> (!<span style="color: #000000;">bFlag) {
+
+                    </span><span style="color: #0000ff;">try</span><span style="color: #000000;"> {
+
+                        </span><span style="color: #0000ff;">this</span><span style="color: #000000;">.wait();
+
+                    } </span><span style="color: #0000ff;">catch</span><span style="color: #000000;"> (InterruptedException e) {
+
+                        e.printStackTrace();
+                    }
+                }        
+            
+                </span><span style="color: #0000ff;">this</span>.bFlag = <span style="color: #0000ff;">false</span><span style="color: #000000;">;
+                
+                </span><span style="color: #0000ff;">if</span> (!<span style="color: #000000;">myList.contains(id)) {
+
+                    myList.add(id);
+                    </span><span style="color: #0000ff;">if</span> (position == "qian门" || position == "后门"<span style="color: #000000;">)
+                        listPosCount.add(position);
+
+                    </span><span style="color: #0000ff;">int</span> nums[] = getNumbers(7<span style="color: #000000;">);
+
+                    dic.put(id, nums);
+
+                    System.out
+                            .println(</span>"编号为: " + id + " 的员工 从" + position + " 入场! 拿到的双色球彩票号码是:" +<span style="color: #000000;"> Arrays.toString(nums));
+
+                } </span><span style="color: #0000ff;">else</span><span style="color: #000000;"> {
+
+                    
+                }
+                </span><span style="color: #0000ff;">this</span><span style="color: #000000;">.notifyAll();
+            }
+
+            </span><span style="color: #0000ff;">int</span> a = 0, b = 0<span style="color: #000000;">;
+            </span><span style="color: #0000ff;">for</span><span style="color: #000000;"> (String str : listPosCount) {
+
+                </span><span style="color: #0000ff;">if</span> (str == "后门"<span style="color: #000000;">)
+                    a</span>++<span style="color: #000000;">;
+                </span><span style="color: #0000ff;">if</span> (str == "qian门"<span style="color: #000000;">)
+                    b</span>++<span style="color: #000000;">;
+
+            }
+            System.out.println(</span>"从后门入场的员工总共:" + a + " 位员工"<span style="color: #000000;">);
+            System.out.println(</span>"从后门入场的员工总共:" + b + " 位员工"<span style="color: #000000;">);
+
+        }
+    }
+}</span></code></pre>
+
+<src><span style="font-family: 'Microsoft YaHei';">//--------------------------------------------------------------------------------</span>
+<src><span style="font-family: 'Microsoft YaHei';">//测试main函数</span>
+<src>
+<src class="cnblogs_Highlighter">
+<pre class="brush:java;gutter:true;">public class ThreadLearn2 {
+
+	public static void main(String[] args) {
+
+		Paper p = new Paper();
+
+		Thread th1 = new Thread(p);
+		Thread th2 = new Thread(p);
+
+		Runnable run1 = new Runnable() {
+
+			@Override
+			public void run() {
+				synchronized (p) {
+					
+				
+					List&lt;Integer&gt; list = new ArrayList&lt;Integer&gt;();
+
+					while (list.size() &lt; 100) {
+						int i = (int) (Math.random() * 100);
+
+						if (list.indexOf(i) == -1) {
+
+							p.setId(i);
+
+							list.add(i);
+
+							p.bFlag = true;
+
+							int num = (int) (Math.random() * 100) % 2;
+
+							if (num == 1) {
+
+								p.position = "后门";
+							} else {
+								p.position = "qian门";
+
+							}
+							p.notifyAll();
+							
+							while (p.bFlag) {
+
+								try {
+
+									p.wait();
+
+								} catch (InterruptedException e) {
+
+									e.printStackTrace();
+								}
+							}
+
+						}
+
+					}
+
+				}
+			}
+
+		};
+
+		Thread th3 = new Thread(run1);
+
+		th1.start();
+		th2.start();
+		th3.start();
+
+	}
+
+}
+</code></pre>
+
+<src><strong><span style="font-family: 'Microsoft YaHei'; font-size: 18px;"><img src="./images/Java 多线程练习0.png" alt="" /><br /></span></strong>
+<p>　　</p>
+
+
+
+<src><span style="font-family: 'Microsoft YaHei';">&nbsp;</span>
+<src>&nbsp;
+
+</div><hr><script charset='utf-8' src='../../js/sming.js'></script></body></html>

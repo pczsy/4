@@ -1,0 +1,120 @@
+<html><head><meta charset='utf-8'><meta name='viewport' content='width=device-width, initial-scale=1'>
+<meta name='applicable-device' content='pc'><meta name='keywords' content='电脑,电脑讲解,电脑技术,编程,电脑故障维修侠梦说pinpoint--左侧服务地图调用量和WasOn过滤' />
+<script src='../../highlight/highlight.pack.js'></script>
+<link rel='stylesheet' type='text/css' href='../../highlight/styles/monokai.css'/>
+
+<link rel='stylesheet' href='../../fenxiang/dist/css/share.min.css'>
+<script src='../../fenxiang/src/js/social-share.js'></script>
+<script src='../../fenxiang/src/js/qrcode.js'></script>
+
+</head><body><script>hljs.initHighlightingOnLoad();</script><script>
+var system ={};  
+var p = navigator.platform;       
+system.win = p.indexOf('Win') == 0;  
+system.mac = p.indexOf('Mac') == 0;  
+system.x11 = (p == 'X11') || (p.indexOf('Linux') == 0);     
+if(system.win||system.mac||system.xll){
+document.write("<link href='../css/3.css' rel='stylesheet' type='text/css'>");}else{ document.write("<link href='../css/3wap.css' rel='stylesheet' type='text/css'>");}</script><script src='../../js/3.js'></script><div class='div2'><div class='heading_nav'><ul><div><li><a href='../../index.html'>首页</a></li>
+</div><div onclick='hidden1()' >分享</div>
+</ul></div></div>
+<div id='heading_nav2'> 
+<li class='row' >
+<div class='social-share' data-mode='prepend'><a href='javascript:' class='social-share-icon icon-heart'></a></div></li></div><script charset='utf-8' src='../../3/js/hengfu.js'></script><script charset='utf-8' src='../../3/js/hengfu2.js'></script><hr><div class='div1'><div class='biaoti'><center>侠梦说pinpoint--左侧服务地图调用量和WasOn过滤</center></div><div class='banquan'>原文出处:本文由博客园博主独行侠梦提供。<br/>
+原文连接:https://www.cnblogs.com/hyq0823/p/11992178.html</div><br>
+    <h4 id="前言">前言</h4>
+<ul>
+<li><p>这篇文章主要是从pinpoint-web界面入手，我们的目标是弄清楚两个问题：</p>
+<ul>
+<li>1、 pinpoint左侧服务地图上的调用量数据是怎么查询的？</li>
+<li>2、界面查询条件WasOnly是什么意思？</li>
+</ul></li>
+</ul>
+<h4 id="左侧服务地图调用量来源">左侧服务地图调用量来源</h4>
+<pre><code><code>    从下图可以看出，A显示被USER调用299次,线上数值代表着调用量。</code></code></pre>
+<p><img src="./images/侠梦说pinpoint--左侧服务地图调用量和WasOn过滤0.png" alt="file" /></p>
+<p>我们F12跟踪一下接口地址：</p>
+<pre><code><code>http://webip:port/getServerMapDataV2.pinpoint?applicationName=A
+&amp;from=1575337980000&amp;to=1575338040000
+&amp;callerRange=1&amp;calleeRange=1
+&amp;bidirectional=false&amp;wasOnly=false
+&amp;serviceTypeName=SPRING_BOOT
+&amp;_=1575337947426</code></code></pre>
+<p>web上显示的数据，都是从hbase查询出来的，所以跟踪后端pinpoint-web工程源代码，我们可以定位到hbase的一张表：ApplicationMapStatisticsCallee_Ver2。</p>
+<h4 id="调用者caller和被调用者callee">调用者（caller）和被调用者callee</h4>
+<h5 id="rowkey生成规则">rowKey生成规则</h5>
+<ul>
+<li>细节可以跟踪源代码了解</li>
+</ul>
+<pre><code><code>rowKey生成规则：
+ApplicationMapStatisticsUtils.makeRowKey(...);
+Qualify列名生成规则：
+ApplicationMapStatisticsUtils.makeColumnName(...);</code></code></pre>
+<p>我们都知道，界面查询的时候可以选择Inboud和outboud，并且最大显示4X4的关系图，<br />
+所以在pinpoint设计的时候，就选择存储双向关系：（目的就是构造界面左侧的服务地图）。比如：</p>
+<p>TOMCAT ===》调用 MYSQL则对调用者生成如下消息：</p>
+<pre><code><code>emeroad-app (TOMCAT) -&gt; MySQL_DB_ID (MYSQL)[10.25.141.69:3306]</code></code></pre>
+<p>而对被调用者MYSQL生成：</p>
+<pre><code><code> MySQL (MYSQL) &lt;- emeroad-app (TOMCAT)[localhost:8080]</code></code></pre>
+<h5 id="hbase存储">hbase存储</h5>
+<p><img src="./images/侠梦说pinpoint--左侧服务地图调用量和WasOn过滤1.png" alt="file" /></p>
+<p>hbase存储结构如上图所示，因为都是二进制，所以列1，其实也是byte,而不是固定的字符名。</p>
+<p>#### 什么时候存储这个双向关系？</p>
+<ul>
+<li><p>知道数据的底层存储结构了，下面，我们继续来跟踪，它是如何存进来的，我们搜索一下引用，发现，有5个地方调用了这个存储的api。<br />
+<img src="./images/侠梦说pinpoint--左侧服务地图调用量和WasOn过滤2.png" alt="file" /></p></li>
+<li><p>简单明了，那我们就逐个击破把！</p></li>
+</ul>
+<p>①SpanChunkHandler中</p>
+<ul>
+<li><p>在chunk的结构中，要求有spanEventList这个数据，（因为调用量 和它内部的EVENTBo 条数 是1：1），并且需要满足isRecordStatistics记录条件。</p></li>
+<li><p>当满足这两个条件时，就会生成 A-&gt;B, B&lt;--A, 两个关系，使其左侧服务地图调用量+1。<br />
+其他位置逻辑类似，篇幅原因，这里不再细说。</p></li>
+<li><p>②　SpanHandler,112行</p></li>
+<li><p>③　SpanHandler,117行</p></li>
+<li><p>④　SpanHandler,127行</p></li>
+<li><p>⑤　SpanHandler,189行</p></li>
+</ul>
+<p>#### wasOnly的含义</p>
+<ul>
+<li>还是通过上述的接口，我们可以跟踪到，请求的参数，被封装到了一个这些参数都被封装到了SearchOption这个类。</li>
+</ul>
+<pre><code><code>private final int callerSearchDepth;
+private final int calleeSearchDepth;
+private final LinkSelectorType linkSelectorType;
+private final boolean wasOnly;</code></code></pre>
+<p>怎么去看呢？这里提供一种思路，可能不适合所有人，大家参考一下。</p>
+<p>从定义的变量，去理解它的含义，然后去“猜”。</p>
+<p>callerSearchDepth: 调用者查询深度。<br />
+calleeSearchDepth：被调用者搜索深度。</p>
+<p>除了wasOnly 和linkSelectorType不知道具体含义，上面两个应该就是用来控制搜索深度的。那我们继续跟踪代码：<br />
+这里通过判断是否是Was，新建了一个处理器。也就是说具体使用方法应该是在这个:<br />
+callerLinkDataMapProcessor 类中。</p>
+<pre><code><code>if (searchOption.isWasOnly()) {
+    callerLinkDataMapProcessor = new WasOnlyProcessor();
+}</code></code></pre>
+<p>看到这个类的accept方法相信大家，应该会有所敏感，这应该是用来判断过滤条件的.<br />
+<img src="./images/侠梦说pinpoint--左侧服务地图调用量和WasOn过滤3.png" alt="file" /></p>
+<ul>
+<li><p>从代码中可以看出，这里和Application有关，通过getServiceType<br />
+的两个方法来判断是否过滤。</p></li>
+<li><p>有了这两个方法，就好办了，我们直接找它的实现就行了。<br />
+根据依赖关系，我们定位到了ServiceTypeFactory这个工厂类、DefaultServiceType及ServiceTypeProperty，具体查找方式可以通过观察这几个类了解，关系如下：</p></li>
+</ul>
+<p><img src="./images/侠梦说pinpoint--左侧服务地图调用量和WasOn过滤4.png" alt="file" /></p>
+<h4 id="结论">结论</h4>
+<ul>
+<li><p>粗略的理解：WAS ONLY会过滤类似于数据库、或者是位置的节点，让界面展示清楚一些。</p></li>
+<li><p>用程序思维理解是：它会过滤掉serviceType为Unknown或者是Terminal的节点，具体哪些节点会有这两个属性呢，我想大家可以去自行研究研究。</p></li>
+<li>我这里贴一个Unknown的，这个只有一个类型。</li>
+</ul>
+<pre><code><code>// Callee node that agent hasn&#39;t been installed
+ServiceType UNKNOWN = of(1, &quot;UNKNOWN&quot;, RECORD_STATISTICS);</code></code></pre>
+<ul>
+<li><p>研究的时候，贴的图文太多，我整理了word，这里就不再多叙述了，有需要的小伙伴，可以加我，我发给你。欢迎关注侠梦的开发笔记</p>
+<blockquote>
+<p>欢迎来公众号【侠梦的开发笔记】 一起交流进步</p>
+</blockquote></li>
+</ul>
+
+
+</div><hr><script charset='utf-8' src='../../js/sming.js'></script></body></html>

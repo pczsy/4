@@ -1,0 +1,166 @@
+<html><head><meta charset='utf-8'><meta name='viewport' content='width=device-width, initial-scale=1'>
+<meta name='applicable-device' content='pc'><meta name='keywords' content='电脑,电脑讲解,电脑技术,编程,电脑故障维修java使用poi(XSSFWorkbook)读取excel(.xlsx)文件' />
+<script src='../../highlight/highlight.pack.js'></script>
+<link rel='stylesheet' type='text/css' href='../../highlight/styles/monokai.css'/>
+
+<link rel='stylesheet' href='../../fenxiang/dist/css/share.min.css'>
+<script src='../../fenxiang/src/js/social-share.js'></script>
+<script src='../../fenxiang/src/js/qrcode.js'></script>
+
+</head><body><script>hljs.initHighlightingOnLoad();</script><script>
+var system ={};  
+var p = navigator.platform;       
+system.win = p.indexOf('Win') == 0;  
+system.mac = p.indexOf('Mac') == 0;  
+system.x11 = (p == 'X11') || (p.indexOf('Linux') == 0);     
+if(system.win||system.mac||system.xll){
+document.write("<link href='../css/3.css' rel='stylesheet' type='text/css'>");}else{ document.write("<link href='../css/3wap.css' rel='stylesheet' type='text/css'>");}</script><script src='../../js/3.js'></script><div class='div2'><div class='heading_nav'><ul><div><li><a href='../../index.html'>首页</a></li>
+</div><div onclick='hidden1()' >分享</div>
+</ul></div></div>
+<div id='heading_nav2'> 
+<li class='row' >
+<div class='social-share' data-mode='prepend'><a href='javascript:' class='social-share-icon icon-heart'></a></div></li></div><script charset='utf-8' src='../../3/js/hengfu.js'></script><script charset='utf-8' src='../../3/js/hengfu2.js'></script><hr><div class='div1'><div class='biaoti'><center>java使用poi(XSSFWorkbook)读取excel(.xlsx)文件</center></div><div class='banquan'>原文出处:本文由博客园博主坤~~提供。<br/>
+原文连接:https://www.cnblogs.com/zjk-main/p/11434440.html</div><br>
+    <p><strong><span style="font-size: 18px;">经过一番搜索发现，java操纵excel文件常用的有jxl和poi两种方式，孰好孰坏看自己需求而定。</span></strong></p>
+<p><strong><span style="font-size: 18px;">其中最主要的区别在于</span><em><span style="color: #ff0000;"><span style="font-size: 14pt;">jxl不支持.xlsx，而poi支持.xlsx</span></span></em></strong></p>
+<p><strong><span style="font-size: 18px; font-family: arial, helvetica, sans-serif;">这里介绍的使用poi方式(XSSFWorkbook)，实际上poi提供了<span style="color: #ff0000; background-color: #ffffff;">HSSFWorkbook</span>和<span style="color: #ff0000; background-color: #ffffff;">XSSFWorkbook</span>两个实现类。区别在于<span style="color: #ff0000;">HSSFWorkbook</span>是针对<span style="color: #ff0000;">.xls</span>文件<span style="color: #ff0000;">，<span style="color: #ff0000;">XSSFWorkbook</span></span>是针对<span style="color: #ff0000;">.xslx</span>文件。</span></strong></p>
+<hr />
+<p>&nbsp;</p>
+<h2><span style="font-size: 14pt;"><strong>首先明确一下基本概念：</strong></span></h2>
+<p><span style="font-size: 18px;">　　先创建一个<strong>工作簿</strong>，一个工作簿可以有多个<strong>工作表</strong>，一个工作表可以有<strong>多个行</strong>，一个行可以有多个<strong>单元格</strong></span></p>
+<p><span style="font-size: 18px;">　　工作簿 -----------&gt;XSSFWorkbook</span></p>
+<p><span style="font-size: 18px;">　　工作表 -----------&gt;XSSFSheet</span></p>
+<p><span style="font-size: 18px;">　　行&nbsp;&nbsp;&nbsp;&nbsp; &nbsp;&nbsp; -----------&gt;XSSFRow</span></p>
+<p><span style="font-size: 18px;">　　单元格 -----------&gt;XSSFCell</span></p>
+<h2><span style="font-size: 14pt;"><strong>下图为创建的student.xlsx的内容：</strong></span></h2>
+<p><img src="./images/java使用poi(XSSFWorkbook)读取excel(.xlsx)文件0.png" alt="" width="400" /></p>
+<p>&nbsp;</p>
+<hr />
+<h3><strong><span style="font-size: 18px;">导入依赖：</span></strong></h3>
+<src class="cnblogs_code">
+<pre><code><span style="font-size: 16px;">&lt;!--poi--&gt;
+&lt;dependency&gt;
+    &lt;groupId&gt;org.apache.poi&lt;/groupId&gt;
+    &lt;artifactId&gt;poi&lt;/artifactId&gt;
+    &lt;version&gt;4.1.0&lt;/version&gt;
+&lt;/dependency&gt;
+&lt;dependency&gt;
+    &lt;groupId&gt;org.apache.poi&lt;/groupId&gt;
+    &lt;artifactId&gt;poi-ooxml&lt;/artifactId&gt;
+    &lt;version&gt;4.1.0&lt;/version&gt;
+&lt;/dependency&gt;</span></code></pre>
+
+<h3><strong><span style="font-size: 18px;">读取student.xlsx文件代码：</span></strong></h3>
+<src class="cnblogs_code">
+<pre><code><span style="font-size: 16px;"><span style="color: #008080;"> 1</span> <span style="color: #0000ff;">package</span><span style="color: #000000;"> com.zjk.testexcel;
+</span><span style="color: #008080;"> 2</span> 
+<span style="color: #008080;"> 3</span> <span style="color: #0000ff;">import</span> org.apache.poi.xssf.usermodel.*<span style="color: #000000;">;
+</span><span style="color: #008080;"> 4</span> <span style="color: #0000ff;">import</span><span style="color: #000000;"> java.io.FileInputStream;
+</span><span style="color: #008080;"> 5</span> <span style="color: #0000ff;">import</span><span style="color: #000000;"> java.io.IOException;
+</span><span style="color: #008080;"> 6</span> 
+<span style="color: #008080;"> 7</span> <span style="color: #008000;">/**</span>
+<span style="color: #008080;"> 8</span> <span style="color: #008000;"> * @Auther: zjk
+</span><span style="color: #008080;"> 9</span> <span style="color: #008000;"> * @Date: 2019/8/30
+</span><span style="color: #008080;">10</span> <span style="color: #008000;"> * @Description:
+</span><span style="color: #008080;">11</span>  <span style="color: #008000;">*/</span>
+<span style="color: #008080;">12</span> <span style="color: #0000ff;">public</span> <span style="color: #0000ff;">class</span><span style="color: #000000;"> TestExcel1 {
+</span><span style="color: #008080;">13</span>     <span style="color: #0000ff;">public</span> <span style="color: #0000ff;">static</span> <span style="color: #0000ff;">void</span><span style="color: #000000;"> main(String[] args) {
+</span><span style="color: #008080;">14</span>         <span style="color: #0000ff;">try</span><span style="color: #000000;"> {
+</span><span style="color: #008080;">15</span>             <span style="color: #008000;">//</span><span style="color: #008000;">创建工作簿</span>
+<span style="color: #008080;">16</span>             XSSFWorkbook xssfWorkbook = <span style="color: #0000ff;">new</span> XSSFWorkbook(<span style="color: #0000ff;">new</span> FileInputStream("D:\\test-excel\\student.xlsx"<span style="color: #000000;">));
+</span><span style="color: #008080;">17</span>             System.out.println("xssfWorkbook对象：" +<span style="color: #000000;"> xssfWorkbook);
+</span><span style="color: #008080;">18</span>             <span style="color: #008000;">//</span><span style="color: #008000;">读取第一个工作表(这里的下标与list一样的，从0开始取，之后的也是如此)</span>
+<span style="color: #008080;">19</span>             XSSFSheet sheet = xssfWorkbook.getSheetAt(0<span style="color: #000000;">);
+</span><span style="color: #008080;">20</span>             System.out.println("sheet对象：" +<span style="color: #000000;"> sheet);
+</span><span style="color: #008080;">21</span>             <span style="color: #008000;">//</span><span style="color: #008000;">获取第一行的数据</span>
+<span style="color: #008080;">22</span>             XSSFRow row = sheet.getRow(0<span style="color: #000000;">);
+</span><span style="color: #008080;">23</span>             System.out.println("row对象：" +<span style="color: #000000;"> row);
+</span><span style="color: #008080;">24</span>             <span style="color: #008000;">//</span><span style="color: #008000;">获取该行第一个单元格的数据</span>
+<span style="color: #008080;">25</span>             XSSFCell cell0 = row.getCell(0<span style="color: #000000;">);
+</span><span style="color: #008080;">26</span>             System.out.println("cello对象：" +<span style="color: #000000;"> cell0);
+</span><span style="color: #008080;">27</span>         } <span style="color: #0000ff;">catch</span><span style="color: #000000;"> (IOException e) {
+</span><span style="color: #008080;">28</span> <span style="color: #000000;">            e.printStackTrace();
+</span><span style="color: #008080;">29</span> <span style="color: #000000;">        }
+</span><span style="color: #008080;">30</span> <span style="color: #000000;">    }
+</span><span style="color: #008080;">31</span> }</span></code></pre>
+
+<h3><span style="font-size: 14pt;"><strong>控制台输出结果</strong>：可以发现具体到行对象时，就解析成xml文件了</span></h3>
+<src class="cnblogs_code">
+<pre><code><span style="font-size: 16px;">xssfWorkbook对象：</span><br /><span style="font-size: 16px;">　　Name: /xl/workbook.xml - Content Type: application/vnd.openxmlformats-officedocument.spreadsheetml.sheet.main+<span style="color: #000000;">xml<br />
+sheet对象：<br />　　Name: </span>/xl/worksheets/sheet1.xml - Content Type: application/vnd.openxmlformats-officedocument.spreadsheetml.worksheet+<span style="color: #000000;">xml<br />
+row对象：<br /></span>　　&lt;xml-fragment r="1" spans="1:4" xmlns:r="http://schemas.openxmlformats.org/officeDocument/2006/relationships" xmlns:xdr="http://schemas.openxmlformats.org/drawingml/2006/spreadsheetDrawing" xmlns:x14="http://schemas.microsoft.com/office/spreadsheetml/2009/9/main" xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" xmlns:etc="http://www.wps.cn/officeDocument/2017/etCustomData" xmlns:main="http://schemas.openxmlformats.org/spreadsheetml/2006/main"&gt;
+  　　&lt;main:c r="A1" t="s"&gt;
+    　　&lt;main:v&gt;0&lt;/main:v&gt;
+  　　&lt;/main:c&gt;
+  　　&lt;main:c r="B1" t="s"&gt;
+    　　&lt;main:v&gt;1&lt;/main:v&gt;
+  　　&lt;/main:c&gt;
+  　　&lt;main:c r="C1" t="s"&gt;
+    　　&lt;main:v&gt;2&lt;/main:v&gt;
+  　　&lt;/main:c&gt;
+  　　&lt;main:c r="D1" t="s"&gt;
+    &lt;main:v&gt;3&lt;/main:v&gt;
+  &lt;/main:c&gt;
+&lt;/xml-fragment&gt;<span style="color: #000000;">
+cello对象：姓名</span></span></code></pre>
+
+<hr />
+<h3><span style="font-size: 14pt;"><strong>以上可以实现了读取某行某单元格的数据，那么接下来就该读取整个表的所有数据了：</strong></span></h3>
+<src class="cnblogs_code">
+<pre><code><span style="font-size: 16px;"><span style="color: #0000ff;">package</span><span style="color: #000000;"> com.zjk.testexcel;
+
+</span><span style="color: #0000ff;">import</span><span style="color: #000000;"> org.apache.poi.xssf.usermodel.XSSFCell;
+</span><span style="color: #0000ff;">import</span><span style="color: #000000;"> org.apache.poi.xssf.usermodel.XSSFRow;
+</span><span style="color: #0000ff;">import</span><span style="color: #000000;"> org.apache.poi.xssf.usermodel.XSSFSheet;
+</span><span style="color: #0000ff;">import</span><span style="color: #000000;"> org.apache.poi.xssf.usermodel.XSSFWorkbook;
+
+</span><span style="color: #0000ff;">import</span><span style="color: #000000;"> java.io.FileInputStream;
+</span><span style="color: #0000ff;">import</span><span style="color: #000000;"> java.io.IOException;
+
+</span><span style="color: #008000;">/**</span><span style="color: #008000;">
+ * @Auther: zjk
+ * @Date: 2019/8/30
+ * @Description:
+ </span><span style="color: #008000;">*/</span>
+<span style="color: #0000ff;">public</span> <span style="color: #0000ff;">class</span><span style="color: #000000;"> TestExcel2 {
+    </span><span style="color: #0000ff;">public</span> <span style="color: #0000ff;">static</span> <span style="color: #0000ff;">void</span><span style="color: #000000;"> main(String[] args) {
+        </span><span style="color: #0000ff;">try</span><span style="color: #000000;"> {
+            </span><span style="color: #008000;">//</span><span style="color: #008000;">创建工作簿</span>
+            XSSFWorkbook xssfWorkbook = <span style="color: #0000ff;">new</span> XSSFWorkbook(<span style="color: #0000ff;">new</span> FileInputStream("D:\\test-excel\\student.xlsx"<span style="color: #000000;">));
+            System.out.println(</span>"xssfWorkbook对象：" +<span style="color: #000000;"> xssfWorkbook);
+            </span><span style="color: #008000;">//</span><span style="color: #008000;">读取第一个工作表</span>
+            XSSFSheet sheet = xssfWorkbook.getSheetAt(0<span style="color: #000000;">);
+            System.out.println(</span>"sheet对象：" +<span style="color: #000000;"> sheet);<br />　　　　　　　<span style="color: #008000;">//<span style="color: #008000;">获取最后一行的num，即总行数。<strong><span style="color: #800000;">此处从0开始计数</span></strong></span></span>
+            </span><span style="color: #0000ff;">int</span> maxRow =<span style="color: #000000;"> sheet.getLastRowNum();
+            System.out.println(</span>"总行数为：" +<span style="color: #000000;"> maxRow);
+            </span><span style="color: #0000ff;">for</span> (<span style="color: #0000ff;">int</span> row = 0; row &lt;= maxRow; row++<span style="color: #000000;">) {
+                </span><span style="color: #008000;">//</span><span style="color: #008000;">获取最后单元格num，即总单元格数 ***<strong><span style="color: #800000;">注意：此处从1开始计数</span></strong>***</span>
+                <span style="color: #0000ff;">int</span> maxRol =<span style="color: #000000;"> sheet.getRow(row).getLastCellNum();
+                System.out.println(</span>"--------第" + row + "行的数据如下--------"<span style="color: #000000;">);
+                </span><span style="color: #0000ff;">for</span> (<span style="color: #0000ff;">int</span> rol = 0; rol &lt; maxRol; rol++<span style="color: #000000;">){
+                    System.out.print(sheet.getRow(row).getCell(rol) </span>+ "  "<span style="color: #000000;">);
+                }
+                System.out.println();
+            }
+        } </span><span style="color: #0000ff;">catch</span><span style="color: #000000;"> (IOException e) {
+            e.printStackTrace();
+        }
+    }
+}</span></span></code></pre>
+
+<h3><span style="font-size: 14pt;"><strong>控制台输出：</strong></span></h3>
+<src class="cnblogs_code">
+<pre><code><span style="font-size: 14px;"><span style="font-size: 16px;">xssfWorkbook对象：Name: /xl/workbook.xml - Content Type: application/vnd.openxmlformats-officedocument.spreadsheetml.sheet.main+<span style="color: #000000;">xml
+sheet对象：Name: </span>/xl/worksheets/sheet1.xml - Content Type: application/vnd.openxmlformats-officedocument.spreadsheetml.worksheet+<span style="color: #000000;">xml
+总行数为：</span>2
+--------第0行的数据如下--------<span style="color: #000000;">
+姓名  学号  班级  入学日期  
+</span>--------第1行的数据如下--------<span style="color: #000000;">
+张三  </span>2.0190001E7  三班  01-八月-2019  
+--------第2行的数据如下--------<span style="color: #000000;">
+李四  </span>2.0190002E7  三班  01-八月-2019 </span> </span></code></pre>
+
+<pre><code><span style="font-size: 18px;"><strong><span style="color: #ff0000;">注意：2.0190001E7 = 2.0190001 * 10<sup>7 </sup>= 20190001</span></strong></span></code></pre>
+<p>&nbsp;</p>
+
+</div><hr><script charset='utf-8' src='../../js/sming.js'></script></body></html>

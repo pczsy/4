@@ -1,0 +1,378 @@
+<html><head><meta charset='utf-8'><meta name='viewport' content='width=device-width, initial-scale=1'>
+<meta name='applicable-device' content='pc'><meta name='keywords' content='电脑,电脑讲解,电脑技术,编程,电脑故障维修微服务架构案例(04)：中间件集成，公共服务封装' />
+<script src='../../highlight/highlight.pack.js'></script>
+<link rel='stylesheet' type='text/css' href='../../highlight/styles/monokai.css'/>
+
+<link rel='stylesheet' href='../../fenxiang/dist/css/share.min.css'>
+<script src='../../fenxiang/src/js/social-share.js'></script>
+<script src='../../fenxiang/src/js/qrcode.js'></script>
+
+</head><body><script>hljs.initHighlightingOnLoad();</script><script>
+var system ={};  
+var p = navigator.platform;       
+system.win = p.indexOf('Win') == 0;  
+system.mac = p.indexOf('Mac') == 0;  
+system.x11 = (p == 'X11') || (p.indexOf('Linux') == 0);     
+if(system.win||system.mac||system.xll){
+document.write("<link href='../css/3.css' rel='stylesheet' type='text/css'>");}else{ document.write("<link href='../css/3wap.css' rel='stylesheet' type='text/css'>");}</script><script src='../../js/3.js'></script><div class='div2'><div class='heading_nav'><ul><div><li><a href='../../index.html'>首页</a></li>
+</div><div onclick='hidden1()' >分享</div>
+</ul></div></div>
+<div id='heading_nav2'> 
+<li class='row' >
+<div class='social-share' data-mode='prepend'><a href='javascript:' class='social-share-icon icon-heart'></a></div></li></div><script charset='utf-8' src='../../3/js/hengfu.js'></script><script charset='utf-8' src='../../3/js/hengfu2.js'></script><hr><div class='div1'><div class='biaoti'><center>微服务架构案例(04)：中间件集成，公共服务封装</center></div><div class='banquan'>原文出处:本文由博客园博主知了一笑提供。<br/>
+原文连接:https://www.cnblogs.com/cicada-smile/p/11795531.html</div><br>
+    <p>本文源码：<a href="https://github.com/cicadasmile/husky-spring-cloud">GitHub·点这里</a> || <a href="https://gitee.com/cicadasmile/husky-spring-cloud">GitEE·点这里</a></p>
+<p><code>更新进度(共6节)：</code></p>
+<blockquote>
+<p><a href="https://mp.weixin.qq.com/s?__biz=MzU4Njg0MzYwNw==&amp;mid=2247484173&amp;idx=1&amp;sn=0adceb6d5261aa1d59908043ff690423&amp;chksm=fdf457b5ca83dea3203e5901771ba1cb49ce05db5b700c21536111f2e251373a484da123f0c2&amp;token=1855594949&amp;lang=zh_CN#rd">01：项目技术选型简介，架构图解说明</a></p>
+</blockquote>
+<blockquote>
+<p><a href="https://mp.weixin.qq.com/s?__biz=MzU4Njg0MzYwNw==&amp;mid=2247484192&amp;idx=1&amp;sn=9327cb5595c3eea1f78f777f37892d18&amp;chksm=fdf45798ca83de8eb4b05b344fcb87ea763d5ba1d880536fc9b422e03033ad7d66217fe6e59e&amp;token=1717420822&amp;lang=zh_CN#rd">02：业务架构设计，系统分层管理</a></p>
+</blockquote>
+<blockquote>
+<p><a href="https://mp.weixin.qq.com/s?__biz=MzU4Njg0MzYwNw==&amp;mid=2247484199&amp;idx=1&amp;sn=40838d2d9e9c50c35112f03795c4224a&amp;chksm=fdf4579fca83de89ddde900f2b95c4aa1e02edd96d68dd6fb0eef04e314a4214a9e99d9ca1e4&amp;token=1717420822&amp;lang=zh_CN#rd">03：数据库选型，业务数据设计规划</a></p>
+</blockquote>
+<blockquote>
+<p>04：中间件集成，公共服务管理</p>
+</blockquote>
+<h1 id="一中间件简介">一、中间件简介</h1>
+<blockquote>
+<p>中间件是基础软件的一类， 属于复用性极高的软件。处于操作系统软件与应用程序的之间。是一种独立的系统软件，也可以是公共的服务程序，分布式架构系统借助中间件，可以在不同的技术之间共享资源，或者不同的服务直接传递信息。中间件位操作系统之上，管理计算机资源和网络通讯。是连接两个独立应用程序或独立系统的软件，例如：</p>
+</blockquote>
+<ol>
+<li>消息队列中间件，在两个服务之间进行异步的消息传递;</li>
+<li>数据缓存中间件，缓存整合系统的热点数据，提高程序的响应速度；</li>
+<li>Nginx中间件，提供负载均衡，服务代理，等功能；</li>
+</ol>
+<h1 id="二公共服务简介">二、公共服务简介</h1>
+<p>公共服务，顾名思义就是系统内通用的服务，例如用户身份验证，消息发送，监控预警，网关服务等。</p>
+<p><img src="./images/微服务架构案例(04)：中间件集成，公共服务封装0.png" /></p>
+<p>该案例的中间件和公共服务，都是基于<code>Feign</code>接口统一的方式提供服务。</p>
+<h1 id="三中间件集成">三、中间件集成</h1>
+<h2 id="消息中间件">1、消息中间件</h2>
+<ul>
+<li><code>RocketMq</code>简介</li>
+</ul>
+<p><code>RocketMq</code> 是一款分布式、队列模型的消息中间件，有两个核心角色：消息生产者和消息消费者。作为高并发系统的核心组件之一，能够帮助业务系统解构提高系统稳定性。</p>
+<ul>
+<li>应用流程</li>
+</ul>
+<ol>
+<li>消息生产者</li>
+</ol>
+<pre><code><code>@Component
+public class MsgSendService {
+    @Resource
+    private ProducerConfig producerConfig ;
+    public void sendMsg (MsgWrap msgWrap) {
+        producerConfig.sendMsg(msgWrap.getGroup(),msgWrap.getTopic(),
+                               msgWrap.getTag(),msgWrap.getContent());
+    }
+}</code></code></pre>
+<ol>
+<li>消息消费者</li>
+</ol>
+<pre><code><code>@Component
+@Consumer(group = MsgRoute.husky_group_1,
+          topic = MsgRoute.husky_topic_1 ,
+          tag = MsgRoute.husky_tag_1)
+public class UserSearchListener implements MsgReadService {
+    @Resource
+    private BookEsAnalyFeign bookEsAnalyFeign ;
+    @Override
+    public void readMsg(String msg) throws Exception {
+        LOGGER.info(&quot;【用户搜索消息监听 Msg】：{}&quot;,msg) ;
+        // 转发请求数据分析服务
+        bookEsAnalyFeign.sendBookEsMsg(msg);
+    }
+}</code></code></pre>
+<ol>
+<li>提供<code>Feign</code>接口</li>
+</ol>
+<pre><code><code>@RestController
+public class UserSearchController implements UserSearchFeign {
+    @Resource
+    private SendMsgService sendMsgService ;
+    @Override
+    public void sendBookSearch(String msgContent) {
+        MsgWrap msgWrap = new MsgWrap() ;
+        msgWrap.setContent(msgContent);
+        msgWrap.setGroup(MsgRoute.husky_group_1);
+        msgWrap.setTopic(MsgRoute.husky_topic_1);
+        msgWrap.setTag(MsgRoute.husky_tag_1);
+        sendMsgService.sendMsg(msgWrap);
+    }
+}</code></code></pre>
+<h2 id="缓存中间件">2、缓存中间件</h2>
+<ul>
+<li><code>Redis</code>简介</li>
+</ul>
+<p><code>Redis</code> 是一个基于内存的高性能<code>key-value</code>数据库。对高并发系统提供各种场景的支撑：热点数据缓存，计数器，流量削峰等。</p>
+<ul>
+<li>应用流程</li>
+</ul>
+<ol>
+<li>封装操作方法</li>
+</ol>
+<pre><code><code>@Service
+public class RedisServiceImpl implements RedisService {
+    @Resource
+    private RedisTemplate&lt;Object,Object&gt; redisTemplate ;
+    @Override
+    public boolean set(Object key, Object value) {
+        boolean redisFlag = true ;
+        try {
+            redisTemplate.opsForValue().set(key,value);
+        } catch (Exception e){
+            redisFlag = false ;
+            e.printStackTrace();
+        }
+        return redisFlag ;
+    }
+    @Override
+    public boolean set(Object key,Object value, long expire) {
+        boolean redisFlag = true ;
+        try {
+            redisTemplate.opsForValue().set(key,value,expire,TimeUnit.SECONDS);
+        } catch (Exception e){
+            redisFlag = false ;
+            e.printStackTrace();
+        }
+        return redisFlag ;
+    }
+    @Override
+    public String get(Object key) {
+        String value = null ;
+        try {
+            value = String.valueOf(redisTemplate.opsForValue().get(key)) ;
+        } catch (Exception e){
+            e.printStackTrace();
+        }
+        return value ;
+    }
+}</code></code></pre>
+<ol>
+<li>提供<code>Feign</code>服务</li>
+</ol>
+<pre><code><code>@RestController
+public class RedisController implements RedisFeign {
+    @Resource
+    private RedisService redisService ;
+    @Override
+    public boolean set (String key, String value) {
+        return redisService.set(key,value) ;
+    }
+    @Override
+    public boolean setTimeOut (String key, String value,long expire){
+        return redisService.set(key,value,expire) ;
+    }
+    @Override
+    public String get (String key) {
+        return redisService.get(key) ;
+    }
+}</code></code></pre>
+<h2 id="搜素中间件">3、搜素中间件</h2>
+<ul>
+<li><code>ES</code>搜索简介</li>
+</ul>
+<p><code>ElasticSearch</code>是一个基于Lucene的搜索服务器。它提供了一个分布式多用户能力的全文搜索引擎，基于<code>RESTful</code>的 web接口。是当前流行的企业级搜索引擎。</p>
+<ul>
+<li>应用流程</li>
+</ul>
+<ol>
+<li>封装操作方法</li>
+</ol>
+<pre><code><code>@Service
+public class BookInfoEsServiceImpl implements BookInfoEsService {
+    @Resource
+    private BookInfoRepository bookInfoRepository ;
+    @Override
+    public void batchSave(List&lt;EsBookInfo&gt; bookInfoList) {
+        bookInfoRepository.saveAll(bookInfoList) ;
+    }
+    @Override
+    public List&lt;EsBookInfo&gt; queryList() {
+        Iterable&lt;EsBookInfo&gt; bookInfoIterable = bookInfoRepository.findAll() ;
+        List&lt;EsBookInfo&gt; esBookInfoList = Lists.newArrayList(bookInfoIterable) ;
+        if (esBookInfoList == null){
+            esBookInfoList = new ArrayList&lt;&gt;() ;
+        }
+        return esBookInfoList;
+    }
+    @Override
+    public List&lt;EsBookInfo&gt; getByKeyWord(String keyWord) {
+        QueryStringQueryBuilder builder = new QueryStringQueryBuilder(keyWord);
+        Iterable&lt;EsBookInfo&gt; bookInfoIterable = bookInfoRepository.search(builder) ;
+        List&lt;EsBookInfo&gt; esBookInfoList = Lists.newArrayList(bookInfoIterable) ;
+        if (esBookInfoList == null){
+            esBookInfoList = new ArrayList&lt;&gt;() ;
+        }
+        return esBookInfoList ;
+    }
+}</code></code></pre>
+<ol>
+<li>提供<code>Feign</code>服务</li>
+</ol>
+<pre><code><code>@RestController
+public class BookInfoEsController implements BookInfoEsFeign {
+    @Resource
+    private BookInfoEsService bookInfoEsService ;
+    @Override
+    public void batchSave(List&lt;EsBookInfo&gt; bookInfoList) {
+        bookInfoEsService.batchSave(bookInfoList);
+    }
+    @Override
+    public List&lt;EsBookInfo&gt; queryList() {
+        return bookInfoEsService.queryList();
+    }
+    @Override
+    public List&lt;EsBookInfo&gt; getByKeyWord(String keyWord) {
+        return bookInfoEsService.getByKeyWord(keyWord);
+    }
+}</code></code></pre>
+<h2 id="定时器中间件">4、定时器中间件</h2>
+<ul>
+<li><code>Quartz</code> 简介</li>
+</ul>
+<p><code>Quartz</code>是由<code>Java</code>编写的开源任务调度的框架，通过触发器设置作业定时运行规则，控制任务的执行时间。其中<code>quartz</code>集群通过故障切换和负载平衡的功能，能给调度器带来高可用性和伸缩性。</p>
+<ul>
+<li>应用流程</li>
+</ul>
+<pre><code><code>@Component(&quot;SendMsgJob&quot;)
+public class SendMsgJob implements TaskJobService {
+    @Resource
+    private SendEmailFeign sendEmailFeign ;
+    @Override
+    public void run(String param) {
+        String nowDate = TimeUtil.formatDate(new Date(),TimeUtil.FORMAT_01) ;
+        LOGGER.info(&quot;SendMsgJob Execute Time：{}&quot;,nowDate);
+        sendEmailFeign.sendEmail(&quot;&quot;,&quot;定时邮件通知&quot;,&quot;&quot;+nowDate);
+    }
+}</code></code></pre>
+<h1 id="四公共服务管理">四、公共服务管理</h1>
+<h2 id="token服务">1、Token服务</h2>
+<ul>
+<li><code>Token</code>服务简介</li>
+</ul>
+<p>通过一个公共的<code>Token</code>管理服务，对访问系统的用户身份做管理：身份令牌创建，校验，刷新等。</p>
+<ul>
+<li>应用流程</li>
+</ul>
+<ol>
+<li>封装操作方法</li>
+</ol>
+<pre><code><code>@Service
+public class UserTokenServiceImpl implements UserTokenService {
+    @Resource
+    private UserBaseMapper userBaseMapper ;
+    @Resource
+    private RedisFeign redisFeign ;
+    @Override
+    public String getToken(String userName, String passWord) throws Exception {
+        UserBaseExample example = new UserBaseExample() ;
+        example.createCriteria().andUserNameEqualTo(userName) ;
+        UserBase userBase = selectByExample(example) ;
+        if (userBase != null){
+            String secrete = userBase.getPassWord() ;
+            if (secrete.equals(passWord)) {
+                // 返回 Token
+                String value = userBase.getId().toString() ;
+                String publicKeyStr = RsaCryptUtil.getKey(RsaCryptUtil.PUB_KEY) ;
+                String token = RsaCryptUtil.encrypt(RsaCryptUtil.createPublicKey(publicKeyStr),value.getBytes()) ;
+                String key = RedisUtil.formatUserTokenKey(userBase.getId()) ;
+                redisFeign.setTimeOut(key,token, Constant.USER_TOKEN_EXPIRE) ;
+                return token ;
+            }
+        }
+        return null;
+    }
+    @Override
+    public Integer verifyToken(String token) throws Exception {
+        String privateKeyStr = RsaCryptUtil.getKey(RsaCryptUtil.PRI_KEY) ;
+        String userId = RsaCryptUtil.decrypt(RsaCryptUtil.createPrivateKey(privateKeyStr),
+                             RsaCryptUtil.parseBase64Binary(token));
+        return Integer.parseInt(userId) ;
+    }
+    @Override
+    public boolean refreshToken(String token) throws Exception {
+        Integer userId = verifyToken(token) ;
+        if (userId &gt; 0 ){
+            String key = RedisUtil.formatUserTokenKey(userId) ;
+            // 判断Token 是否过期
+            String cacheToken = redisFeign.get(key) ;
+            if (StringUtils.isEmpty(cacheToken)){
+                return false ;
+            }
+            redisFeign.setTimeOut(key,token, Constant.USER_TOKEN_EXPIRE) ;
+            return true ;
+        }
+        return false ;
+    }
+}</code></code></pre>
+<ol>
+<li>提供<code>Feign</code>服务</li>
+</ol>
+<pre><code><code>@FeignClient(&quot;MOPSZ-BASIS-TOKEN&quot;)
+public interface UserTokenFeign {
+    /**
+     * 获取 TOKEN
+     */
+    @PostMapping(&quot;/token/getToken&quot;)
+    RespObject getToken (@RequestParam(&quot;userName&quot;) String userName,
+                         @RequestParam(&quot;passWord&quot;) String passWord) ;
+    /**
+     * 验证 TOKEN
+     */
+    @PostMapping(&quot;/token/verifyToken&quot;)
+    RespObject verifyToken (@RequestParam(&quot;token&quot;) String token) ;
+    /**
+     * 刷新 TOKEN
+     */
+    @PostMapping(&quot;/token/refreshToken&quot;)
+    boolean refreshToken (@RequestParam(&quot;token&quot;) String token) ;
+}</code></code></pre>
+<h2 id="消息服务">2、消息服务</h2>
+<ul>
+<li><code>Msg</code>服务简介</li>
+</ul>
+<p>在一个复杂的系统中，消息通知是一个必备模块，一般封装方式主要从下面两个方式入手，消息类型：用户消息，系统消息等，消息接收方式：邮件，短信，应用端等。</p>
+<ul>
+<li>应用流程</li>
+</ul>
+<ol>
+<li>封装邮件发送</li>
+</ol>
+<pre><code><code>@Service
+public class SendEmailServiceImpl implements SendEmailService {
+    @Override
+    public void sendEmail(String receive, String title, String msg) {
+        try {
+            EmailUtil.sendEmail01(receive,title,msg);
+        } catch (Exception e){
+            e.printStackTrace() ;
+            LOGGER.info(&quot;邮件发送失败：{}&quot;,e.getMessage());
+        }
+    }
+}</code></code></pre>
+<ol>
+<li>提供<code>Feign</code>服务</li>
+</ol>
+<pre><code><code>@FeignClient(&quot;MOPSZ-BASIS-MSGBOX&quot;)
+public interface SendEmailFeign {
+    /**
+     * 发送Email
+     */
+    @PostMapping(&quot;/msgBox/sendEmail&quot;)
+    void sendEmail (@RequestParam(&quot;receive&quot;) String receive,
+                      @RequestParam(&quot;title&quot;) String title,
+                      @RequestParam(&quot;msg&quot;) String msg) ;
+}</code></code></pre>
+<h1 id="五源代码地址">五、源代码地址</h1>
+<pre><code><code>GitHub·地址
+https://github.com/cicadasmile/husky-spring-cloud
+GitEE·地址
+https://gitee.com/cicadasmile/husky-spring-cloud</code></code></pre>
+<p><img src="./images/微服务架构案例(04)：中间件集成，公共服务封装1.png" /></p>
+
+
+</div><hr><script charset='utf-8' src='../../js/sming.js'></script></body></html>

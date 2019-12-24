@@ -1,0 +1,64 @@
+<html><head><meta charset='utf-8'><meta name='viewport' content='width=device-width, initial-scale=1'>
+<meta name='applicable-device' content='pc'><meta name='keywords' content='电脑,电脑讲解,电脑技术,编程,电脑故障维修java多线程' />
+<script src='../../highlight/highlight.pack.js'></script>
+<link rel='stylesheet' type='text/css' href='../../highlight/styles/monokai.css'/>
+
+<link rel='stylesheet' href='../../fenxiang/dist/css/share.min.css'>
+<script src='../../fenxiang/src/js/social-share.js'></script>
+<script src='../../fenxiang/src/js/qrcode.js'></script>
+
+</head><body><script>hljs.initHighlightingOnLoad();</script><script>
+var system ={};  
+var p = navigator.platform;       
+system.win = p.indexOf('Win') == 0;  
+system.mac = p.indexOf('Mac') == 0;  
+system.x11 = (p == 'X11') || (p.indexOf('Linux') == 0);     
+if(system.win||system.mac||system.xll){
+document.write("<link href='../css/3.css' rel='stylesheet' type='text/css'>");}else{ document.write("<link href='../css/3wap.css' rel='stylesheet' type='text/css'>");}</script><script src='../../js/3.js'></script><div class='div2'><div class='heading_nav'><ul><div><li><a href='../../index.html'>首页</a></li>
+</div><div onclick='hidden1()' >分享</div>
+</ul></div></div>
+<div id='heading_nav2'> 
+<li class='row' >
+<div class='social-share' data-mode='prepend'><a href='javascript:' class='social-share-icon icon-heart'></a></div></li></div><script charset='utf-8' src='../../3/js/hengfu.js'></script><script charset='utf-8' src='../../3/js/hengfu2.js'></script><hr><div class='div1'><div class='biaoti'><center>java多线程</center></div><div class='banquan'>原文出处:本文由博客园博主东东w提供。<br/>
+原文连接:https://www.cnblogs.com/renxixao/p/11479138.html</div><br>
+    <h1>多线程概述</h1>
+<p>先来了解几个概念</p>
+<p>进程：<br />&nbsp;&nbsp; 　　正在运行的程序，是系统进行资源分配和调用的独立单位<br />　　&nbsp;&nbsp; 每一个进程都有它自己的内存空间和系统资源<br />线程：<br />　　&nbsp; 进程中的单个顺序控制流 是一条执行路径<br />&nbsp; &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; 一个进程如果只有一条执行路径 则称为单线程程序<br />　　&nbsp; 一个进程如果有多条执行路径 则称为多线程程序</p>
+<p>并行和并发<br />　　前者是逻辑上同时发生 指在某一个时间内同时运行多个程序<br />　　后者是物理上同时发生 指在某一个时间点同时运行多个程序</p>
+<p>&nbsp;</p>
+<h1>线程的创建与启动</h1>
+<h2>继承Thread类创建线程</h2>
+<p>定义Thread的子类 重写run方法 run方法体就代表了线程需要完成的任务 start方法用来启动线程</p>
+<src class="cnblogs_code">
+<pre><code><span style="color: #0000ff;">public</span> <span style="color: #0000ff;">class</span><span style="color: #000000;"> MyThread extends Thread {
+
+    @Override
+    </span><span style="color: #0000ff;">public</span> <span style="color: #0000ff;">void</span><span style="color: #000000;"> run() {
+        </span><span style="color: #0000ff;">for</span> (<span style="color: #0000ff;">int</span> x = <span style="color: #800080;">0</span>; x &lt; <span style="color: #800080;">200</span>; x++<span style="color: #000000;">) {
+            System.</span><span style="color: #0000ff;">out</span>.println(getName()+<span style="color: #000000;">x);
+        }
+    }
+
+    </span><span style="color: #0000ff;">public</span> <span style="color: #0000ff;">static</span> <span style="color: #0000ff;">void</span><span style="color: #000000;"> main(String[] args) {
+        MyThread my1 </span>= <span style="color: #0000ff;">new</span><span style="color: #000000;"> MyThread();
+        MyThread my2 </span>= <span style="color: #0000ff;">new</span><span style="color: #000000;"> MyThread();
+
+        my1.start();
+        my2.start();
+    }
+}</span></code></pre>
+
+<p>&nbsp;</p>
+<p>返回当前正在执行的线程对象&nbsp; public static Thread currentThread()</p>
+<p>获取线程对象的名称&nbsp;&nbsp;&nbsp; public final String getName()<br />设置线程对象的名称 &nbsp;&nbsp; public final void setName(String name)</p>
+<h3>&nbsp;</h3>
+<h3>实现Runnable接口创建线程</h3>
+<p>定义Runnable接口的实现类 重写该接口的run方法&nbsp; </p>
+<p>创建Runnable的实现类对象 兵役此实例作为Thread的target来创建Thread对象&nbsp; 该对象才是真正的线程对象</p>
+<src class="cnblogs_code">
+<pre><code>FristThread ft = <span style="color: #0000ff;">new</span><span style="color: #000000;"> FristThread();
+</span><span style="color: #0000ff;">new</span> Thread(ft);</code></pre>
+
+<p>Runnable对象仅仅作为Thread对学校的target Runnable实现类里包含的run()方法仅作为线程执行体 实际的线程对象Thread实例</p>
+
+</div><hr><script charset='utf-8' src='../../js/sming.js'></script></body></html>

@@ -1,0 +1,693 @@
+<html><head><meta charset='utf-8'><meta name='viewport' content='width=device-width, initial-scale=1'>
+<meta name='applicable-device' content='pc'><meta name='keywords' content='电脑,电脑讲解,电脑技术,编程,电脑故障维修Java深入学习（1）：多线程' />
+<script src='../../highlight/highlight.pack.js'></script>
+<link rel='stylesheet' type='text/css' href='../../highlight/styles/monokai.css'/>
+
+<link rel='stylesheet' href='../../fenxiang/dist/css/share.min.css'>
+<script src='../../fenxiang/src/js/social-share.js'></script>
+<script src='../../fenxiang/src/js/qrcode.js'></script>
+
+</head><body><script>hljs.initHighlightingOnLoad();</script><script>
+var system ={};  
+var p = navigator.platform;       
+system.win = p.indexOf('Win') == 0;  
+system.mac = p.indexOf('Mac') == 0;  
+system.x11 = (p == 'X11') || (p.indexOf('Linux') == 0);     
+if(system.win||system.mac||system.xll){
+document.write("<link href='../css/3.css' rel='stylesheet' type='text/css'>");}else{ document.write("<link href='../css/3wap.css' rel='stylesheet' type='text/css'>");}</script><script src='../../js/3.js'></script><div class='div2'><div class='heading_nav'><ul><div><li><a href='../../index.html'>首页</a></li>
+</div><div onclick='hidden1()' >分享</div>
+</ul></div></div>
+<div id='heading_nav2'> 
+<li class='row' >
+<div class='social-share' data-mode='prepend'><a href='javascript:' class='social-share-icon icon-heart'></a></div></li></div><script charset='utf-8' src='../../3/js/hengfu.js'></script><script charset='utf-8' src='../../3/js/hengfu2.js'></script><hr><div class='div1'><div class='biaoti'><center>Java深入学习（1）：多线程</center></div><div class='banquan'>原文出处:本文由博客园博主一清提供。<br/>
+原文连接:https://www.cnblogs.com/xuyiqing/p/11619561.html</div><br>
+    <p><strong>多线程目的：在同一时刻有多条不同路径执行程序，提高程序运行效率</strong></p>
+<p><strong>多线程应用：数据库连接池，多线程文件下载等</strong></p>
+<p>&nbsp;</p>
+<p><span style="color: #ff0000;">注意：在文件下载中使用多线程，无法提高速度</span></p>
+<p><span style="color: #ff0000;">在一个进程中，一定会有主线程</span></p>
+<p>&nbsp;</p>
+<p><strong><span style="font-size: 14pt;">从基础开始，多线程的使用方式：</span></strong></p>
+<p>1.继承Thread类：（不推荐）</p>
+<src class="cnblogs_code">
+<pre><code><span style="color: #0000ff;">public</span> <span style="color: #0000ff;">class</span> ThreadDemo <span style="color: #0000ff;">extends</span><span style="color: #000000;"> Thread {
+    @Override
+    </span><span style="color: #0000ff;">public</span> <span style="color: #0000ff;">void</span><span style="color: #000000;"> run() {
+        </span><span style="color: #008000;">//</span><span style="color: #008000;">写入线程执行的代码</span>
+<span style="color: #000000;">    }
+
+    </span><span style="color: #0000ff;">public</span> <span style="color: #0000ff;">static</span> <span style="color: #0000ff;">void</span><span style="color: #000000;"> main(String[] args) {
+        ThreadDemo threadDemo </span>= <span style="color: #0000ff;">new</span><span style="color: #000000;"> ThreadDemo();
+        threadDemo.start();
+    }
+}</span></code></pre>
+
+<p>注意：threadDemo调用的是start方法；如果调用了run方法，本质上还是单线程<br /><br /></p>
+<p>2.实现Runnable接口：</p>
+<src class="cnblogs_code">
+<pre><code><span style="color: #0000ff;">public</span> <span style="color: #0000ff;">class</span> ThreadDemo <span style="color: #0000ff;">implements</span><span style="color: #000000;"> Runnable {
+    @Override
+    </span><span style="color: #0000ff;">public</span> <span style="color: #0000ff;">void</span><span style="color: #000000;"> run() {
+        </span><span style="color: #008000;">//</span><span style="color: #008000;">写入线程执行的代码</span>
+        System.out.println("demo"<span style="color: #000000;">);
+    }
+
+    </span><span style="color: #0000ff;">public</span> <span style="color: #0000ff;">static</span> <span style="color: #0000ff;">void</span><span style="color: #000000;"> main(String[] args) {
+        ThreadDemo threadDemo </span>= <span style="color: #0000ff;">new</span><span style="color: #000000;"> ThreadDemo();
+        </span><span style="color: #0000ff;">new</span><span style="color: #000000;"> Thread(threadDemo).start();
+    }
+}</span></code></pre>
+
+<p>&nbsp;</p>
+<p>3.匿名内部类</p>
+<src class="cnblogs_code">
+<pre><code><span style="color: #0000ff;">public</span> <span style="color: #0000ff;">class</span><span style="color: #000000;"> ThreadDemo {
+    </span><span style="color: #0000ff;">public</span> <span style="color: #0000ff;">static</span> <span style="color: #0000ff;">void</span><span style="color: #000000;"> main(String[] args) {
+        </span><span style="color: #0000ff;">new</span><span style="color: #000000;"> Thread() {
+            @Override
+            </span><span style="color: #0000ff;">public</span> <span style="color: #0000ff;">void</span><span style="color: #000000;"> run() {
+                </span><span style="color: #008000;">//</span><span style="color: #008000;">写入线程执行的代码</span>
+<span style="color: #000000;">            }
+        }.start();
+    }
+}</span></code></pre>
+
+<p>Java8可以简写为这样</p>
+<src class="cnblogs_code">
+<pre><code><span style="color: #0000ff;">public</span> <span style="color: #0000ff;">class</span><span style="color: #000000;"> ThreadDemo {
+    </span><span style="color: #0000ff;">public</span> <span style="color: #0000ff;">static</span> <span style="color: #0000ff;">void</span><span style="color: #000000;"> main(String[] args) {
+        </span><span style="color: #0000ff;">new</span> Thread(() -&gt;<span style="color: #000000;"> {
+            </span><span style="color: #008000;">//</span><span style="color: #008000;">写入线程执行的代码</span>
+<span style="color: #000000;">        }).start();
+    }
+}</span></code></pre>
+
+<p>&nbsp;</p>
+<p><strong><span style="font-size: 14pt;">多线程的状态：</span></strong></p>
+<p>1.新建状态：调用start方法之前</p>
+<p>2.就绪状态：调用start方法，等待CPU分配执行权</p>
+<p>3.运行状态：执行run方法中的代码</p>
+<p>4.死亡状态：run方法执行完毕</p>
+<p>5.阻塞状态：调用wait或sleep方法，线程变为阻塞状态，阻塞状态可以直接变成就绪状态</p>
+<p>&nbsp;</p>
+<p><strong><span style="font-size: 14pt;">守护线程：</span></strong></p>
+<p>在Java程序中，有主线程和GC线程（用于回收垃圾），主线程死亡后，GC线程也会死亡，同时销毁</p>
+<p>这种和主线程一起销毁的线程就是守护线程</p>
+<p>非守护线程：线程的状态和主线程无关</p>
+<p>用户线程：以上的三种方式创建的都是用户现场，由主线程创建，也是非守护线程</p>
+<p>&nbsp;</p>
+<p>示例：</p>
+<src class="cnblogs_code">
+<pre><code><span style="color: #0000ff;">public</span> <span style="color: #0000ff;">class</span><span style="color: #000000;"> ThreadDemo {
+    </span><span style="color: #0000ff;">public</span> <span style="color: #0000ff;">static</span> <span style="color: #0000ff;">void</span><span style="color: #000000;"> main(String[] args) {
+        </span><span style="color: #0000ff;">new</span> Thread(() -&gt;<span style="color: #000000;"> {
+            </span><span style="color: #0000ff;">for</span> (<span style="color: #0000ff;">int</span> i = 0; i &lt; 30; i++<span style="color: #000000;">) {
+                </span><span style="color: #0000ff;">try</span><span style="color: #000000;"> {
+                    Thread.sleep(</span>300<span style="color: #000000;">);
+                    System.out.println(</span>"子线程i:" +<span style="color: #000000;"> i);
+                } </span><span style="color: #0000ff;">catch</span><span style="color: #000000;"> (InterruptedException e) {
+                    e.printStackTrace();
+                }
+            }
+        }).start();
+        </span><span style="color: #0000ff;">for</span> (<span style="color: #0000ff;">int</span> i = 0; i &lt; 5; i++<span style="color: #000000;">) {
+            System.out.println(</span>"主线程i:" +<span style="color: #000000;"> i);
+        }
+        System.out.println(</span>"主线程执行完毕"<span style="color: #000000;">);
+    }
+}</span></code></pre>
+
+<p>观察输出发现：打印主线程执行完毕之后，还在继续打印子线程执行信息</p>
+<p>&nbsp;</p>
+<p>只需要对子线程进行设置，即可变成守护线程：</p>
+<src class="cnblogs_code">
+<pre><code><span style="color: #0000ff;">public</span> <span style="color: #0000ff;">class</span><span style="color: #000000;"> ThreadDemo {
+    </span><span style="color: #0000ff;">public</span> <span style="color: #0000ff;">static</span> <span style="color: #0000ff;">void</span><span style="color: #000000;"> main(String[] args) {
+        Thread thread </span>= <span style="color: #0000ff;">new</span> Thread(() -&gt;<span style="color: #000000;"> {
+            </span><span style="color: #0000ff;">for</span> (<span style="color: #0000ff;">int</span> i = 0; i &lt; 1000; i++<span style="color: #000000;">) {
+                System.out.println(</span>"子线程i:" +<span style="color: #000000;"> i);
+            }
+        });
+        thread.setDaemon(</span><span style="color: #0000ff;">true</span><span style="color: #000000;">);
+        thread.start();
+        </span><span style="color: #0000ff;">for</span> (<span style="color: #0000ff;">int</span> i = 0; i &lt; 10; i++<span style="color: #000000;">) {
+            System.out.println(</span>"主线程i:" +<span style="color: #000000;"> i);
+        }
+        System.out.println(</span>"主线程执行完毕"<span style="color: #000000;">);
+    }
+}</span></code></pre>
+
+<p>观察输出发现：子线程还未打印到999，程序已经结束</p>
+<p>&nbsp;</p>
+<p><strong><span style="font-size: 14pt;">join方法：</span></strong></p>
+<p>A线程调用了B线程的join方法，那么A等待B执行完毕之后再执行（A释放CPU执行权）</p>
+<p>&nbsp;</p>
+<p>示例：主线程让子线程执行完毕再执行</p>
+<src class="cnblogs_code">
+<pre><code><span style="color: #0000ff;">public</span> <span style="color: #0000ff;">class</span><span style="color: #000000;"> ThreadDemo {
+    </span><span style="color: #0000ff;">public</span> <span style="color: #0000ff;">static</span> <span style="color: #0000ff;">void</span> main(String[] args) <span style="color: #0000ff;">throws</span><span style="color: #000000;"> InterruptedException {
+        Thread thread </span>= <span style="color: #0000ff;">new</span> Thread(() -&gt;<span style="color: #000000;"> {
+            </span><span style="color: #0000ff;">for</span> (<span style="color: #0000ff;">int</span> i = 0; i &lt; 60; i++<span style="color: #000000;">) {
+                System.out.println(</span>"子线程i:" +<span style="color: #000000;"> i);
+            }
+        });
+        thread.start();
+        thread.join();
+        </span><span style="color: #0000ff;">for</span> (<span style="color: #0000ff;">int</span> i = 0; i &lt; 10; i++<span style="color: #000000;">) {
+            System.out.println(</span>"主线程i:" +<span style="color: #000000;"> i);
+        }
+        System.out.println(</span>"主线程执行完毕"<span style="color: #000000;">);
+    }
+}</span></code></pre>
+
+<p>观察输出发现：子线程打印完59，才开始主线程的打印</p>
+<p>&nbsp;</p>
+<p><strong><span style="font-size: 14pt;">线程安全问题：</span></strong></p>
+<p>当多个线程共享同一个全局变量，做写的操作时候，会发生线程安全问题</p>
+<p>&nbsp;</p>
+<p>模拟线程安全问题：车站卖票经典案例</p>
+<src class="cnblogs_code">
+<pre><code><span style="color: #0000ff;">public</span> <span style="color: #0000ff;">class</span> ThreadDemo <span style="color: #0000ff;">implements</span><span style="color: #000000;"> Runnable {
+    </span><span style="color: #008000;">//</span><span style="color: #008000;">一共有一百张票</span>
+    <span style="color: #0000ff;">private</span> <span style="color: #0000ff;">int</span> count = 100<span style="color: #000000;">;
+
+    @Override
+    </span><span style="color: #0000ff;">public</span> <span style="color: #0000ff;">void</span><span style="color: #000000;"> run() {
+        </span><span style="color: #0000ff;">while</span> (count &gt; 0<span style="color: #000000;">) {
+            </span><span style="color: #0000ff;">try</span><span style="color: #000000;"> {
+                Thread.sleep(</span>100<span style="color: #000000;">);
+                sale();
+            } </span><span style="color: #0000ff;">catch</span><span style="color: #000000;"> (InterruptedException e) {
+                e.printStackTrace();
+            }
+        }
+    }
+
+    </span><span style="color: #0000ff;">private</span> <span style="color: #0000ff;">void</span><span style="color: #000000;"> sale() {
+        </span><span style="color: #0000ff;">if</span> (count &gt; 0<span style="color: #000000;">) {
+            System.out.println(Thread.currentThread().getName() </span>+ "出售第" + (100 - count + 1) + "张票"<span style="color: #000000;">);
+            count</span>--<span style="color: #000000;">;
+        }
+    }
+
+    </span><span style="color: #0000ff;">public</span> <span style="color: #0000ff;">static</span> <span style="color: #0000ff;">void</span><span style="color: #000000;"> main(String[] args) {
+        ThreadDemo threadDemo </span>= <span style="color: #0000ff;">new</span><span style="color: #000000;"> ThreadDemo();
+        Thread t1 </span>= <span style="color: #0000ff;">new</span> Thread(threadDemo, "窗口1"<span style="color: #000000;">);
+        Thread t2 </span>= <span style="color: #0000ff;">new</span> Thread(threadDemo, "窗口2"<span style="color: #000000;">);
+        t1.start();
+        t2.start();
+    }
+}</span></code></pre>
+
+<p>观察输出发现：很多票重复出售</p>
+<p>&nbsp;</p>
+<p><strong><span style="font-size: 14pt;">线程安全问题解决：</span></strong></p>
+<p>1.在sale方法上使用synchronized关键字</p>
+<p>原理：当线程进入该方法时候会自动获取锁，一旦某线程获取了锁，其他线程就会等待，等到执行完毕该线程代码，释放锁</p>
+<p>缺点：降低程序效率，每次执行该方法都需要进行判断</p>
+<src class="cnblogs_code">
+<pre><code>    <span style="color: #0000ff;">private</span> <span style="color: #0000ff;">synchronized</span> <span style="color: #0000ff;">void</span><span style="color: #000000;"> sale() {
+        </span><span style="color: #0000ff;">if</span> (count &gt; 0<span style="color: #000000;">) {
+            System.out.println(Thread.currentThread().getName() </span>+ "出售第" + (100 - count + 1) + "张票"<span style="color: #000000;">);
+            count</span>--<span style="color: #000000;">;
+        }
+    }</span></code></pre>
+
+<p>&nbsp;</p>
+<p>2.使用同步代码块</p>
+<src class="cnblogs_code">
+<pre><code><span style="color: #0000ff;">public</span> <span style="color: #0000ff;">class</span> ThreadDemo <span style="color: #0000ff;">implements</span><span style="color: #000000;"> Runnable {
+    </span><span style="color: #008000;">//</span><span style="color: #008000;">一共有一百张票</span>
+    <span style="color: #0000ff;">private</span> <span style="color: #0000ff;">int</span> count = 100<span style="color: #000000;">;
+
+    </span><span style="color: #0000ff;">private</span> <span style="color: #0000ff;">final</span> Object object = <span style="color: #0000ff;">new</span><span style="color: #000000;"> Object();
+
+    @Override
+    </span><span style="color: #0000ff;">public</span> <span style="color: #0000ff;">void</span><span style="color: #000000;"> run() {
+        </span><span style="color: #0000ff;">while</span> (count &gt; 0<span style="color: #000000;">) {
+            </span><span style="color: #0000ff;">try</span><span style="color: #000000;"> {
+                Thread.sleep(</span>100<span style="color: #000000;">);
+                sale();
+            } </span><span style="color: #0000ff;">catch</span><span style="color: #000000;"> (InterruptedException e) {
+                e.printStackTrace();
+            }
+        }
+    }
+
+    </span><span style="color: #0000ff;">private</span> <span style="color: #0000ff;">void</span><span style="color: #000000;"> sale() {
+        </span><span style="color: #0000ff;">synchronized</span><span style="color: #000000;"> (object) {
+            </span><span style="color: #0000ff;">if</span> (count &gt; 0<span style="color: #000000;">) {
+                System.out.println(Thread.currentThread().getName() </span>+ "出售第" + (100 - count + 1) + "张票"<span style="color: #000000;">);
+                count</span>--<span style="color: #000000;">;
+            }
+        }
+    }
+
+    </span><span style="color: #0000ff;">public</span> <span style="color: #0000ff;">static</span> <span style="color: #0000ff;">void</span><span style="color: #000000;"> main(String[] args) {
+        ThreadDemo threadDemo </span>= <span style="color: #0000ff;">new</span><span style="color: #000000;"> ThreadDemo();
+        Thread t1 </span>= <span style="color: #0000ff;">new</span> Thread(threadDemo, "窗口1"<span style="color: #000000;">);
+        Thread t2 </span>= <span style="color: #0000ff;">new</span> Thread(threadDemo, "窗口2"<span style="color: #000000;">);
+        t1.start();
+        t2.start();
+    }
+}</span></code></pre>
+
+<p>观察输出：问题解决</p>
+<p>&nbsp;</p>
+<p>注意：如果写成这样还是存在问题</p>
+<src class="cnblogs_code">
+<pre><code>    <span style="color: #0000ff;">public</span> <span style="color: #0000ff;">static</span> <span style="color: #0000ff;">void</span><span style="color: #000000;"> main(String[] args) {
+        ThreadDemo threadDemo1 </span>= <span style="color: #0000ff;">new</span><span style="color: #000000;"> ThreadDemo();
+        ThreadDemo threadDemo2 </span>= <span style="color: #0000ff;">new</span><span style="color: #000000;"> ThreadDemo();
+        Thread t1 </span>= <span style="color: #0000ff;">new</span> Thread(threadDemo1, "窗口1"<span style="color: #000000;">);
+        Thread t2 </span>= <span style="color: #0000ff;">new</span> Thread(threadDemo2, "窗口2"<span style="color: #000000;">);
+        t1.start();
+        t2.start();
+    }</span></code></pre>
+
+<p>&nbsp;</p>
+<p>这时候需要给全局变量加上static关键字：共享同一个锁</p>
+<src class="cnblogs_code">
+<pre><code>    <span style="color: #0000ff;">private</span> <span style="color: #0000ff;">static</span> <span style="color: #0000ff;">int</span> count = 100<span style="color: #000000;">;
+
+    </span><span style="color: #0000ff;">private</span> <span style="color: #0000ff;">static</span> <span style="color: #0000ff;">final</span> Object object = <span style="color: #0000ff;">new</span> Object();</code></pre>
+
+<p>观察输出：问题解决</p>
+<p>&nbsp;</p>
+<p><strong><span style="font-size: 14pt;">多线程死锁问题：</span></strong></p>
+<p>产生场景：初学者喜欢每个地方都加入synchronized，于是synchronized中嵌套synchronized，容易产生死锁</p>
+<p>产生原因：A线程拿到了锁2，现在需要拿锁1；B线程拿了锁1，现在需要拿锁2；A线程拿不到锁1就不会释放锁2；B线程拿不到锁2就不会释放锁1</p>
+<p>&nbsp;</p>
+<p><strong><span style="font-size: 14pt;">ThreadLocal类：</span></strong></p>
+<p>什么是ThreadLocal：给每一个线程提供局部变量</p>
+<p>原理：底层是一个Map集合，获取当前线程，然后调用Map的put和get方法实现</p>
+<p>初始化：</p>
+<src class="cnblogs_code">
+<pre><code>    <span style="color: #0000ff;">public</span> <span style="color: #0000ff;">static</span> ThreadLocal&lt;Integer&gt; threadLocal = ThreadLocal.withInitial(() -&gt; 0);</code></pre>
+
+<p>获取：</p>
+<src class="cnblogs_code">
+<pre><code>        threadLocal.get();</code></pre>
+
+<p>设置：</p>
+<src class="cnblogs_code">
+<pre><code>        threadLocal.set(count);</code></pre>
+
+<p>&nbsp;</p>
+<p><strong><span style="font-size: 14pt;">多线程特性：</span></strong></p>
+<p>1.原子性</p>
+<p>2.可见性</p>
+<p>3.有序性</p>
+<p>&nbsp;</p>
+<p><strong><span style="font-size: 14pt;">Java内存模型（JMM）：</span></strong></p>
+<p>JMM决定一个线程对共享变量的写入时，能够另一个线程是否可见</p>
+<p>主内存：共享存储的变量</p>
+<p>本地内存：共享变量的副本</p>
+<p>&nbsp;</p>
+<p>线程安全问题根本原理：共享变量存放于主内存中，每一个线程都有本地内存。比如我在主内存中存入count=100，那么两个本地内存都存放了count=100副本。这时候两个线程同时操作共享变量count-1，首先两个线程要现在本地内存进行count-1操作，然后刷新到主内存。于是，出现了线程安全问题！</p>
+<p>&nbsp;</p>
+<p><strong><span style="font-size: 14pt;">Volatile关键字：</span></strong></p>
+<p>一个示例：</p>
+<src class="cnblogs_code">
+<pre><code><span style="color: #0000ff;">class</span> ThreadTest <span style="color: #0000ff;">extends</span><span style="color: #000000;"> Thread {
+    </span><span style="color: #0000ff;">public</span> <span style="color: #0000ff;">boolean</span> flag = <span style="color: #0000ff;">true</span><span style="color: #000000;">;
+
+    @Override
+    </span><span style="color: #0000ff;">public</span> <span style="color: #0000ff;">void</span><span style="color: #000000;"> run() {
+        System.out.println(</span>"线程开始"<span style="color: #000000;">);
+        </span><span style="color: #0000ff;">while</span><span style="color: #000000;"> (flag) {
+
+        }
+        System.out.println(</span>"线程结束"<span style="color: #000000;">);
+    }
+
+    </span><span style="color: #0000ff;">public</span> <span style="color: #0000ff;">void</span> setRunning(<span style="color: #0000ff;">boolean</span><span style="color: #000000;"> flag) {
+        </span><span style="color: #0000ff;">this</span>.flag =<span style="color: #000000;"> flag;
+    }
+}
+
+</span><span style="color: #0000ff;">public</span> <span style="color: #0000ff;">class</span><span style="color: #000000;"> ThreadDemo {
+    </span><span style="color: #0000ff;">public</span> <span style="color: #0000ff;">static</span> <span style="color: #0000ff;">void</span> main(String[] args) <span style="color: #0000ff;">throws</span><span style="color: #000000;"> InterruptedException {
+        ThreadTest threadTest </span>= <span style="color: #0000ff;">new</span><span style="color: #000000;"> ThreadTest();
+        threadTest.start();
+        Thread.sleep(</span>3000<span style="color: #000000;">);
+        threadTest.setRunning(</span><span style="color: #0000ff;">false</span><span style="color: #000000;">);
+        System.out.println(</span>"flag改为false"<span style="color: #000000;">);
+        Thread.sleep(</span>3000<span style="color: #000000;">);
+        System.out.println(</span>"flag:" +<span style="color: #000000;"> threadTest.flag);
+    }
+}</span></code></pre>
+
+<p>打印如下：</p>
+<src class="cnblogs_code">
+<pre><code><span style="color: #000000;">线程开始
+flag改为false
+flag:</span><span style="color: #0000ff;">false</span></code></pre>
+
+<p>然后程序卡死</p>
+<p>&nbsp;</p>
+<p>为什么已经把flag改为false，子线程还是走入了while循环</p>
+<p>因为：主线程把flag改了，还没有刷入主内存，子线程一直在读本地内存中的变量</p>
+<p>&nbsp;</p>
+<p>解决：只需要加入volatile关键字</p>
+<p>作用：将修改的值立即更新到主内存，保证其他线程对该变量的可见</p>
+<src class="cnblogs_code">
+<pre><code>    <span style="color: #0000ff;">public</span> <span style="color: #0000ff;">volatile</span> <span style="color: #0000ff;">boolean</span> flag = <span style="color: #0000ff;">true</span>;</code></pre>
+
+<p>打印如下：</p>
+<src class="cnblogs_code">
+<pre><code><span style="color: #000000;">线程开始
+flag改为false
+线程结束
+flag:</span><span style="color: #0000ff;">false</span>&nbsp;</code></pre>
+
+<p>注意：volatile只能保证可见性，不能保证线程安全</p>
+<p>&nbsp;</p>
+<p>使用场景：观察主流框架，可以发现只要是全局共享的变量，都加入了volatile关键字</p>
+<p>&nbsp;</p>
+<p><strong><span style="font-size: 14pt;">Synchronized与Volatile关键字区别：</span></strong></p>
+<p>Volatile保证可见性，不能保证原子性，也就是不能保证线程安全，禁止重排序</p>
+<p>Synchronized既可以保证原子性，也可以保证线程安全，不禁止重排序</p>
+<p>&nbsp;</p>
+<p><strong><span style="font-size: 14pt;">重排序：</span></strong></p>
+<p>概念：CPU会对代码实现优化，不会对有依赖关系性做重排序</p>
+<p>什么是依赖关系：</p>
+<src class="cnblogs_code">
+<pre><code>            <span style="color: #0000ff;">int</span> a = 1<span style="color: #000000;">;
+            </span><span style="color: #0000ff;">int</span> b = 2<span style="color: #000000;">;
+            </span><span style="color: #0000ff;">int</span> c = a + b;</code></pre>
+
+<p>c依赖a，b。c和a，b都有关系。c一定在a，b之后执行，而a，b执行顺序不一定</p>
+<p>所以在代码执行时候，可能先执行的是int b = 2而不是int a = 1</p>
+<p>但是在这里执行的结果不会发生改变</p>
+<p>&nbsp;</p>
+<p>注意：一般只会在多线程中遇到重排序问题</p>
+<p>重排序问题的解决：加入volatile关键字&nbsp;</p>
+<p>&nbsp;</p>
+<p><strong><span style="font-size: 14pt;">线程之间的通信：</span></strong></p>
+<p>多个线程在处理同一个资源，但是线程的任务却不相同，通过一定的手段使各个线程能有效地利用资源，</p>
+<p>这种手段即：等待唤醒机制，又称作线程之间的通信</p>
+<p>涉及到的方法：wait()，notify()</p>
+<p>&nbsp;</p>
+<p>示例：</p>
+<p>两个线程一个输入，一个输出</p>
+<src class="cnblogs_code">
+<pre><code><span style="color: #0000ff;">package</span><span style="color: #000000;"> demo;
+
+</span><span style="color: #0000ff;">public</span> <span style="color: #0000ff;">class</span><span style="color: #000000;"> Resource {
+    </span><span style="color: #0000ff;">public</span><span style="color: #000000;"> String name;
+    </span><span style="color: #0000ff;">public</span><span style="color: #000000;"> String sex;
+}</span></code></pre>
+
+<p>输入线程：</p>
+<src class="cnblogs_code">
+<pre><code><span style="color: #0000ff;">package</span><span style="color: #000000;"> demo;
+
+</span><span style="color: #0000ff;">public</span> <span style="color: #0000ff;">class</span> Input <span style="color: #0000ff;">implements</span><span style="color: #000000;"> Runnable {
+    </span><span style="color: #0000ff;">private</span> Resource r = <span style="color: #0000ff;">new</span><span style="color: #000000;"> Resource();
+
+    </span><span style="color: #0000ff;">public</span> <span style="color: #0000ff;">void</span><span style="color: #000000;"> run() {
+        </span><span style="color: #0000ff;">int</span> i = 0<span style="color: #000000;">;
+        </span><span style="color: #0000ff;">while</span> (<span style="color: #0000ff;">true</span><span style="color: #000000;">) {
+            </span><span style="color: #0000ff;">if</span> (i % 2 == 0<span style="color: #000000;">) {
+                r.name </span>= "张三"<span style="color: #000000;">;
+                r.sex </span>= "男"<span style="color: #000000;">;
+            } </span><span style="color: #0000ff;">else</span><span style="color: #000000;"> {
+                r.name </span>= "李四"<span style="color: #000000;">;
+                r.sex </span>= "女"<span style="color: #000000;">;
+            }
+            i</span>++<span style="color: #000000;">;
+        }
+    }
+
+}</span></code></pre>
+
+<p>输出线程：</p>
+<src class="cnblogs_code">
+<pre><code><span style="color: #0000ff;">package</span><span style="color: #000000;"> demo;
+
+</span><span style="color: #0000ff;">public</span> <span style="color: #0000ff;">class</span> Output <span style="color: #0000ff;">implements</span><span style="color: #000000;"> Runnable {
+    </span><span style="color: #0000ff;">private</span> Resource r = <span style="color: #0000ff;">new</span><span style="color: #000000;"> Resource();
+    </span><span style="color: #0000ff;">public</span> <span style="color: #0000ff;">void</span><span style="color: #000000;"> run(){
+        </span><span style="color: #0000ff;">while</span> (<span style="color: #0000ff;">true</span><span style="color: #000000;">) {
+            System.out.println(r.name</span>+"..."+<span style="color: #000000;">r.sex);
+        }
+    }
+}</span></code></pre>
+
+<p>测试类：</p>
+<src class="cnblogs_code">
+<pre><code><span style="color: #0000ff;">package</span><span style="color: #000000;"> demo;
+
+</span><span style="color: #0000ff;">public</span> <span style="color: #0000ff;">class</span><span style="color: #000000;"> ThreadDemo {
+    </span><span style="color: #0000ff;">public</span> <span style="color: #0000ff;">static</span> <span style="color: #0000ff;">void</span><span style="color: #000000;"> main(String[] args) {
+        Input in </span>= <span style="color: #0000ff;">new</span><span style="color: #000000;"> Input();
+        Output out </span>= <span style="color: #0000ff;">new</span><span style="color: #000000;"> Output();
+        Thread tin </span>= <span style="color: #0000ff;">new</span><span style="color: #000000;"> Thread(in);
+        Thread tout </span>= <span style="color: #0000ff;">new</span><span style="color: #000000;"> Thread(out);
+        
+        tin.start();
+        tout.start();
+    }
+}</span></code></pre>
+
+<p>&nbsp;</p>
+<p>运行后却发现输出的都是null...null</p>
+<p>因为输入线程和输出线程中创建的Resource对象使不同的</p>
+<p>&nbsp;</p>
+<p>解决null问题：</p>
+<src class="cnblogs_code">
+<pre><code><span style="color: #0000ff;">package</span><span style="color: #000000;"> demo;
+
+</span><span style="color: #0000ff;">public</span> <span style="color: #0000ff;">class</span> Input <span style="color: #0000ff;">implements</span><span style="color: #000000;"> Runnable {
+    </span><span style="color: #0000ff;">private</span><span style="color: #000000;"> Resource r;
+    
+    </span><span style="color: #0000ff;">public</span><span style="color: #000000;"> Input(Resource r){
+        </span><span style="color: #0000ff;">this</span>.r =<span style="color: #000000;"> r;
+    }
+
+    </span><span style="color: #0000ff;">public</span> <span style="color: #0000ff;">void</span><span style="color: #000000;"> run() {
+        </span><span style="color: #0000ff;">int</span> i = 0<span style="color: #000000;">;
+        </span><span style="color: #0000ff;">while</span> (<span style="color: #0000ff;">true</span><span style="color: #000000;">) {
+            </span><span style="color: #0000ff;">if</span> (i % 2 == 0<span style="color: #000000;">) {
+                r.name </span>= "张三"<span style="color: #000000;">;
+                r.sex </span>= "男"<span style="color: #000000;">;
+            } </span><span style="color: #0000ff;">else</span><span style="color: #000000;"> {
+                r.name </span>= "李四"<span style="color: #000000;">;
+                r.sex </span>= "女"<span style="color: #000000;">;
+            }
+            i</span>++<span style="color: #000000;">;
+        }
+    }
+
+}</span></code></pre>
+
+<src class="cnblogs_code">
+<pre><code><span style="color: #0000ff;">package</span><span style="color: #000000;"> demo;
+
+</span><span style="color: #0000ff;">public</span> <span style="color: #0000ff;">class</span> Output <span style="color: #0000ff;">implements</span><span style="color: #000000;"> Runnable {
+    </span><span style="color: #0000ff;">private</span><span style="color: #000000;"> Resource r;
+    
+    </span><span style="color: #0000ff;">public</span><span style="color: #000000;"> Output(Resource r){
+        </span><span style="color: #0000ff;">this</span>.r =<span style="color: #000000;"> r;
+    }
+    
+    </span><span style="color: #0000ff;">public</span> <span style="color: #0000ff;">void</span><span style="color: #000000;"> run(){
+        </span><span style="color: #0000ff;">while</span> (<span style="color: #0000ff;">true</span><span style="color: #000000;">) {
+            System.out.println(r.name</span>+"..."+<span style="color: #000000;">r.sex);
+        }
+    }
+}</span></code></pre>
+
+<src class="cnblogs_code">
+<pre><code><span style="color: #0000ff;">package</span><span style="color: #000000;"> demo;
+
+</span><span style="color: #0000ff;">public</span> <span style="color: #0000ff;">class</span><span style="color: #000000;"> ThreadDemo {
+    </span><span style="color: #0000ff;">public</span> <span style="color: #0000ff;">static</span> <span style="color: #0000ff;">void</span><span style="color: #000000;"> main(String[] args) {
+        
+        Resource r </span>= <span style="color: #0000ff;">new</span><span style="color: #000000;"> Resource();
+        
+        Input in </span>= <span style="color: #0000ff;">new</span><span style="color: #000000;"> Input(r);
+        Output out </span>= <span style="color: #0000ff;">new</span><span style="color: #000000;"> Output(r);
+        Thread tin </span>= <span style="color: #0000ff;">new</span><span style="color: #000000;"> Thread(in);
+        Thread tout </span>= <span style="color: #0000ff;">new</span><span style="color: #000000;"> Thread(out);
+        
+        tin.start();
+        tout.start();
+    }
+}</span></code></pre>
+
+<p>&nbsp;</p>
+<p>运行后又发现了另一个问题：</p>
+<p>输出中含有：张三...女或者李四...男，性别出错</p>
+<p>发生原因：</p>
+<p>赋值完张三和男后，继续赋值李四和女，这时候还未还得及赋值女，就进入了输出线程，这时候就会输出李四...男</p>
+<p>&nbsp;</p>
+<p>于是想到加上同步：</p>
+<src class="cnblogs_code">
+<pre><code>    <span style="color: #0000ff;">public</span> <span style="color: #0000ff;">void</span><span style="color: #000000;"> run() {
+        </span><span style="color: #0000ff;">int</span> i = 0<span style="color: #000000;">;
+        </span><span style="color: #0000ff;">while</span> (<span style="color: #0000ff;">true</span><span style="color: #000000;">) {
+            </span><span style="color: #0000ff;">synchronized</span> (<span style="color: #0000ff;">this</span><span style="color: #000000;">) {
+                </span><span style="color: #0000ff;">if</span> (i % 2 == 0<span style="color: #000000;">) {
+                    r.name </span>= "张三"<span style="color: #000000;">;
+                    r.sex </span>= "男"<span style="color: #000000;">;
+                } </span><span style="color: #0000ff;">else</span><span style="color: #000000;"> {
+                    r.name </span>= "李四"<span style="color: #000000;">;
+                    r.sex </span>= "女"<span style="color: #000000;">;
+                }
+                i</span>++<span style="color: #000000;">;
+            }
+        }
+    }</span></code></pre>
+
+<src class="cnblogs_code">
+<pre><code>    <span style="color: #0000ff;">public</span> <span style="color: #0000ff;">void</span><span style="color: #000000;"> run() {
+        </span><span style="color: #0000ff;">while</span> (<span style="color: #0000ff;">true</span><span style="color: #000000;">) {
+            </span><span style="color: #0000ff;">synchronized</span> (<span style="color: #0000ff;">this</span><span style="color: #000000;">) {
+                System.out.println(r.name </span>+ "..." +<span style="color: #000000;"> r.sex);
+            }
+        }
+    }</span></code></pre>
+
+<p>&nbsp;</p>
+<p>然而问题并没有解决：</p>
+<p>原因：</p>
+<p>这里的同步失去了作用，用到的不是一个锁</p>
+<p>&nbsp;</p>
+<p>解决办法：</p>
+<p>使用一个共同的锁即可</p>
+<src class="cnblogs_code">
+<pre><code><span style="color: #0000ff;">public</span> <span style="color: #0000ff;">void</span><span style="color: #000000;"> run() {
+        </span><span style="color: #0000ff;">int</span> i = 0<span style="color: #000000;">;
+        </span><span style="color: #0000ff;">while</span> (<span style="color: #0000ff;">true</span><span style="color: #000000;">) {
+            </span><span style="color: #0000ff;">synchronized</span><span style="color: #000000;"> (r) {
+                </span><span style="color: #0000ff;">if</span> (i % 2 == 0<span style="color: #000000;">) {
+                    r.name </span>= "张三"<span style="color: #000000;">;
+                    r.sex </span>= "男"<span style="color: #000000;">;
+                } </span><span style="color: #0000ff;">else</span><span style="color: #000000;"> {
+                    r.name </span>= "李四"<span style="color: #000000;">;
+                    r.sex </span>= "女"<span style="color: #000000;">;
+                }
+                i</span>++<span style="color: #000000;">;
+            }
+        }
+    }</span></code></pre>
+
+<src class="cnblogs_code">
+<pre><code>    <span style="color: #0000ff;">public</span> <span style="color: #0000ff;">void</span><span style="color: #000000;"> run() {
+        </span><span style="color: #0000ff;">while</span> (<span style="color: #0000ff;">true</span><span style="color: #000000;">) {
+            </span><span style="color: #0000ff;">synchronized</span><span style="color: #000000;"> (r) {
+                System.out.println(r.name </span>+ "..." +<span style="color: #000000;"> r.sex);
+            }
+        }
+    }</span></code></pre>
+
+<p>这时候就是正常的输出了</p>
+<p>&nbsp;但是还是存在一个问题，我们希望的是张三和李四交错出现，一个张三一个李四，现在依然是随机出现的，大片的张三或李四</p>
+<p>&nbsp;</p>
+<p>&nbsp;</p>
+<p>解决办法：</p>
+<p>先让input线程赋值，然后让output线程输出，并且让输入线程等待，不允许再赋值李四，等待输出张三结束后，再允许李四赋值，依次下去</p>
+<p>输入线程也需要同样的方式，输出完后要等待</p>
+<p>这时候就需要用到等待唤醒机制：</p>
+<p>输入：赋值后，执行方法wait()永远等待</p>
+<p>输出：打印后，再输出等待之前，唤醒输入notify()，自己再wait()永远等待</p>
+<p>输入：被唤醒后，重新赋值，必须notify()唤醒输出的线程，自己再wait()等待</p>
+<p>依次循环下去</p>
+<p>&nbsp;</p>
+<p>代码实现：</p>
+<src class="cnblogs_code">
+<pre><code><span style="color: #0000ff;">package</span><span style="color: #000000;"> demo;
+
+</span><span style="color: #0000ff;">public</span> <span style="color: #0000ff;">class</span><span style="color: #000000;"> Resource {
+    </span><span style="color: #0000ff;">public</span><span style="color: #000000;"> String name;
+    </span><span style="color: #0000ff;">public</span><span style="color: #000000;"> String sex;
+    </span><span style="color: #0000ff;">public</span> <span style="color: #0000ff;">boolean</span> flag = <span style="color: #0000ff;">false</span><span style="color: #000000;">;
+}</span></code></pre>
+
+<src class="cnblogs_code">
+<pre><code><span style="color: #0000ff;">package</span><span style="color: #000000;"> demo;
+
+</span><span style="color: #0000ff;">public</span> <span style="color: #0000ff;">class</span> Input <span style="color: #0000ff;">implements</span><span style="color: #000000;"> Runnable {
+    </span><span style="color: #0000ff;">private</span><span style="color: #000000;"> Resource r;
+
+    </span><span style="color: #0000ff;">public</span><span style="color: #000000;"> Input(Resource r) {
+        </span><span style="color: #0000ff;">this</span>.r =<span style="color: #000000;"> r;
+    }
+
+    </span><span style="color: #0000ff;">public</span> <span style="color: #0000ff;">void</span><span style="color: #000000;"> run() {
+        </span><span style="color: #0000ff;">int</span> i = 0<span style="color: #000000;">;
+        </span><span style="color: #0000ff;">while</span> (<span style="color: #0000ff;">true</span><span style="color: #000000;">) {
+            </span><span style="color: #0000ff;">synchronized</span><span style="color: #000000;"> (r) {
+                </span><span style="color: #0000ff;">if</span><span style="color: #000000;"> (r.flag) {
+                    </span><span style="color: #0000ff;">try</span><span style="color: #000000;"> {
+                        r.wait();
+                    } </span><span style="color: #0000ff;">catch</span><span style="color: #000000;"> (Exception e) {
+                    }
+                }
+                </span><span style="color: #0000ff;">if</span> (i % 2 == 0<span style="color: #000000;">) {
+                    r.name </span>= "张三"<span style="color: #000000;">;
+                    r.sex </span>= "男"<span style="color: #000000;">;
+                } </span><span style="color: #0000ff;">else</span><span style="color: #000000;"> {
+                    r.name </span>= "李四"<span style="color: #000000;">;
+                    r.sex </span>= "女"<span style="color: #000000;">;
+                }
+                r.flag </span>= <span style="color: #0000ff;">true</span><span style="color: #000000;">;
+                r.notify();
+            }
+            i</span>++<span style="color: #000000;">;
+        }
+    }
+}</span></code></pre>
+
+<src class="cnblogs_code">
+<pre><code><span style="color: #0000ff;">package</span><span style="color: #000000;"> demo;
+
+</span><span style="color: #0000ff;">public</span> <span style="color: #0000ff;">class</span> Output <span style="color: #0000ff;">implements</span><span style="color: #000000;"> Runnable {
+    </span><span style="color: #0000ff;">private</span><span style="color: #000000;"> Resource r;
+
+    </span><span style="color: #0000ff;">public</span><span style="color: #000000;"> Output(Resource r) {
+        </span><span style="color: #0000ff;">this</span>.r =<span style="color: #000000;"> r;
+    }
+
+    </span><span style="color: #0000ff;">public</span> <span style="color: #0000ff;">void</span><span style="color: #000000;"> run() {
+        </span><span style="color: #0000ff;">while</span> (<span style="color: #0000ff;">true</span><span style="color: #000000;">) {
+            </span><span style="color: #0000ff;">synchronized</span><span style="color: #000000;"> (r) {
+                </span><span style="color: #0000ff;">if</span> (!<span style="color: #000000;">r.flag) {
+                    </span><span style="color: #0000ff;">try</span><span style="color: #000000;"> {
+                        r.wait();
+                    } </span><span style="color: #0000ff;">catch</span><span style="color: #000000;"> (Exception e) {
+                    }
+                }
+                System.out.println(r.name </span>+ "..." +<span style="color: #000000;"> r.sex);
+                r.flag </span>= <span style="color: #0000ff;">false</span><span style="color: #000000;">;
+                r.notify();
+            }
+        }
+    }
+}</span></code></pre>
+
+<src class="cnblogs_code">
+<pre><code><span style="color: #0000ff;">package</span><span style="color: #000000;"> demo;
+
+</span><span style="color: #0000ff;">public</span> <span style="color: #0000ff;">class</span><span style="color: #000000;"> ThreadDemo {
+    </span><span style="color: #0000ff;">public</span> <span style="color: #0000ff;">static</span> <span style="color: #0000ff;">void</span><span style="color: #000000;"> main(String[] args) {
+
+        Resource r </span>= <span style="color: #0000ff;">new</span><span style="color: #000000;"> Resource();
+
+        Input in </span>= <span style="color: #0000ff;">new</span><span style="color: #000000;"> Input(r);
+        Output out </span>= <span style="color: #0000ff;">new</span><span style="color: #000000;"> Output(r);
+        Thread tin </span>= <span style="color: #0000ff;">new</span><span style="color: #000000;"> Thread(in);
+        Thread tout </span>= <span style="color: #0000ff;">new</span><span style="color: #000000;"> Thread(out);
+
+        tin.start();
+        tout.start();
+    }
+}</span></code></pre>
+
+<p>这时候就是张三李四交错输出了</p>
+<p>完成</p>
+<p>&nbsp;</p>
+
+</div><hr><script charset='utf-8' src='../../js/sming.js'></script></body></html>

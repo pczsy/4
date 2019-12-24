@@ -1,0 +1,55 @@
+<html><head><meta charset='utf-8'><meta name='viewport' content='width=device-width, initial-scale=1'>
+<meta name='applicable-device' content='pc'><meta name='keywords' content='电脑,电脑讲解,电脑技术,编程,电脑故障维修RabbitMQ和Kafka对比' />
+<script src='../../highlight/highlight.pack.js'></script>
+<link rel='stylesheet' type='text/css' href='../../highlight/styles/monokai.css'/>
+
+<link rel='stylesheet' href='../../fenxiang/dist/css/share.min.css'>
+<script src='../../fenxiang/src/js/social-share.js'></script>
+<script src='../../fenxiang/src/js/qrcode.js'></script>
+
+</head><body><script>hljs.initHighlightingOnLoad();</script><script>
+var system ={};  
+var p = navigator.platform;       
+system.win = p.indexOf('Win') == 0;  
+system.mac = p.indexOf('Mac') == 0;  
+system.x11 = (p == 'X11') || (p.indexOf('Linux') == 0);     
+if(system.win||system.mac||system.xll){
+document.write("<link href='../css/3.css' rel='stylesheet' type='text/css'>");}else{ document.write("<link href='../css/3wap.css' rel='stylesheet' type='text/css'>");}</script><script src='../../js/3.js'></script><div class='div2'><div class='heading_nav'><ul><div><li><a href='../../index.html'>首页</a></li>
+</div><div onclick='hidden1()' >分享</div>
+</ul></div></div>
+<div id='heading_nav2'> 
+<li class='row' >
+<div class='social-share' data-mode='prepend'><a href='javascript:' class='social-share-icon icon-heart'></a></div></li></div><script charset='utf-8' src='../../3/js/hengfu.js'></script><script charset='utf-8' src='../../3/js/hengfu2.js'></script><hr><div class='div1'><div class='biaoti'><center>RabbitMQ和Kafka对比</center></div><div class='banquan'>原文出处:本文由博客园博主陈晨辰提供。<br/>
+原文连接:https://www.cnblogs.com/chen-chen-chen/p/11619734.html</div><br>
+    <h1># 前言</h1>
+<p>开源社区有好多优秀的队列中间件，比如RabbitMQ和Kafka，每个队列都貌似有其特性，在进行工程选择时，往往眼花缭乱，不知所措。对于RabbitMQ和Kafka，到底应该选哪个？</p>
+<p>&nbsp;</p>
+<h1># RabbitMQ架构</h1>
+<h2>## 概念</h2>
+<p>RabbitMQ是一个分布式系统</p>
+<p>**broker**：每个节点运行的服务程序，功能为维护该节点的队列的增删以及转发队列操作请求。</p>
+<p>**master queue**：每个队列都分为一个主队列和若干个镜像队列。</p>
+<p>**mirror queue**：镜像队列，作为master queue的备份。在master queue所在节点挂掉之后，系统把mirror queue提升为master queue，负责处理客户端队列操作请求。注意，mirror queue只做镜像，设计目的不是为了承担客户端读写压力。</p>
+<p><img src="./images/RabbitMQ和Kafka对比0.png" alt="" width="428" height="407" /></p>
+<p>如上图所示，集群中有两个节点，每个节点上有一个broker，每个broker负责本机上队列的维护，并且borker之间可以互相通信。集群中有两个队列A和B，每个队列都分为master queue和mirror queue（备份）。那么队列上的生产消费怎么实现的呢？</p>
+<p>&nbsp;</p>
+<h2>## 队列消费</h2>
+<p><img src="./images/RabbitMQ和Kafka对比1.png" alt="" width="425" height="525" /></p>
+<p>如上图有两个consumer消费队列A，这两个consumer连在了集群的不同机器上。RabbitMQ集群中的任何一个节点都拥有集群上所有队列的元信息，所以连接到集群中的任何一个节点都可以，主要区别在于有的consumer连在master queue所在节点，有的连在非master queue节点上。 因为mirror queue要和master queue保持一致，故需要同步机制，正因为一致性的限制，导致所有的读写操作都必须都操作在master queue上（想想，为啥读也要从master queue中读？和数据库读写分离是不一样的。），然后由master节点同步操作到mirror queue所在的节点。即使consumer连接到了非master queue节点，该consumer的操作也会被路由到master queue所在的节点上，这样才能进行消费。</p>
+<p>&nbsp;</p>
+<h2>## 队列生产</h2>
+<p><img src="./images/RabbitMQ和Kafka对比2.png" alt="" width="390" height="510" /></p>
+<p>原理和消费一样，如果连接到非 master queue 节点，则路由过去。</p>
+<p>**不足** 由于master queue单节点，导致性能瓶颈，吞吐量受限。虽然为了提高性能，内部使用了Erlang这个语言实现，但是终究摆脱不了架构设计上的致命缺陷。</p>
+<p>&nbsp;</p>
+<h1># Kafka</h1>
+<p>说实话，Kafka我觉得就是看到了RabbitMQ这个缺陷才设计出的一个改进版，改进的点就是：把一个队列的单一master变成多个master，即一台机器扛不住qps，那么我就用多台机器扛qps，把一个队列的流量均匀分散在多台机器上不就可以了么？注意，多个master之间的数据没有交集，即一条消息要么发送到这个master queue，要么发送到另外一个master queue。 这里面的每个master queue 在Kafka中叫做Partition，即一个分片。一个队列有多个主分片，每个主分片又有若干副分片做备份，同步机制类似于RabbitMQ。</p>
+<p><img src="./images/RabbitMQ和Kafka对比3.png" alt="" width="758" height="543" /></p>
+<p>如上图，我们省略了不同的queue，假设集群上只有一个queue（Kafka中叫Topic）。每个生产者随机把消息发送到主分片上，之后主分片再同步给副分片。</p>
+<p><img src="./images/RabbitMQ和Kafka对比4.png" alt="" width="800" height="411" /></p>
+<p>队列读取的时候虚拟出一个Group的概念，一个Topic内部的消息，只会路由到同Group内的一个consumer上，同一个Group中的consumer消费的消息是不一样的；Group之间共享一个Topic，看起来就是一个队列的多个拷贝。所以，为了达到多个Group共享一个Topic数据，Kafka并不会像RabbitMQ那样消息消费完毕立马删除，而是必须在后台配置保存日期，即只保存最近一段时间的消息，超过这个时间的消息就会从磁盘删除，这样就保证了在一个时间段内，Topic数据对所有Group可见（这个特性使得Kafka非常适合做一个公司的数据总线）。队列读同样是读主分片，并且为了优化性能，消费者与主分片有一一的对应关系，如果消费者数目大于分片数，则存在某些消费者得不到消息。 由此可见，Kafka绝对是为了高吞吐量设计的，比如设置分片数为100，那么就有100台机器去扛一个Topic的流量，当然比RabbitMQ的单机性能好。</p>
+<p>&nbsp;</p>
+<h1># 总结</h1>
+<p>本文只做了Kafka和RabbitMQ的对比，但是开源队列岂止这两个，ZeroMQ，RocketMQ，JMQ等等，时间有限也就没有细看，故不在本文比较范围之内。 所以，别再被这些五花八门的队列迷惑了，从架构上找出关键差别，并结合自己的实际需求（比如本文就只单单从吞吐量一个需求来考察）轻轻松松搞定选型。最后总结如下： 吞吐量较低：Kafka和RabbitMQ都可以。 吞吐量高：Kafka。 本文内容参考自RabbitMQ和KafKa官方文档，所以真要搞懂一个中间件的原理最好去看官方文档，文档里面有详细的设计方案，我们可以自己进行设计方案的对比，从而找出符合自己实际情况的中间件。 转自：https://www.cnblogs.com/haolujun/p/9632835.html</p>
+
+</div><hr><script charset='utf-8' src='../../js/sming.js'></script></body></html>

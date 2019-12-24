@@ -1,0 +1,478 @@
+<html><head><meta charset='utf-8'><meta name='viewport' content='width=device-width, initial-scale=1'>
+<meta name='applicable-device' content='pc'><meta name='keywords' content='电脑,电脑讲解,电脑技术,编程,电脑故障维修死磕 java同步系列之zookeeper分布式锁' />
+<script src='../../highlight/highlight.pack.js'></script>
+<link rel='stylesheet' type='text/css' href='../../highlight/styles/monokai.css'/>
+
+<link rel='stylesheet' href='../../fenxiang/dist/css/share.min.css'>
+<script src='../../fenxiang/src/js/social-share.js'></script>
+<script src='../../fenxiang/src/js/qrcode.js'></script>
+
+</head><body><script>hljs.initHighlightingOnLoad();</script><script>
+var system ={};  
+var p = navigator.platform;       
+system.win = p.indexOf('Win') == 0;  
+system.mac = p.indexOf('Mac') == 0;  
+system.x11 = (p == 'X11') || (p.indexOf('Linux') == 0);     
+if(system.win||system.mac||system.xll){
+document.write("<link href='../css/3.css' rel='stylesheet' type='text/css'>");}else{ document.write("<link href='../css/3wap.css' rel='stylesheet' type='text/css'>");}</script><script src='../../js/3.js'></script><div class='div2'><div class='heading_nav'><ul><div><li><a href='../../index.html'>首页</a></li>
+</div><div onclick='hidden1()' >分享</div>
+</ul></div></div>
+<div id='heading_nav2'> 
+<li class='row' >
+<div class='social-share' data-mode='prepend'><a href='javascript:' class='social-share-icon icon-heart'></a></div></li></div><script charset='utf-8' src='../../3/js/hengfu.js'></script><script charset='utf-8' src='../../3/js/hengfu2.js'></script><hr><div class='div1'><div class='biaoti'><center>死磕 java同步系列之zookeeper分布式锁</center></div><div class='banquan'>原文出处:本文由博客园博主彤哥读源码提供。<br/>
+原文连接:https://www.cnblogs.com/tong-yuan/p/11619006.html</div><br>
+    <h2 id="问题">问题</h2>
+<p>（1）zookeeper如何实现分布式锁？</p>
+<p>（2）zookeeper分布式锁有哪些优点？</p>
+<p>（3）zookeeper分布式锁有哪些缺点？</p>
+<h2 id="简介">简介</h2>
+<p>zooKeeper是一个分布式的，开放源码的分布式应用程序协调服务，它可以为分布式应用提供一致性服务，它是Hadoop和Hbase的重要组件，同时也可以作为配置中心、注册中心运用在微服务体系中。</p>
+<p>本章我们将介绍zookeeper如何实现分布式锁运用在分布式系统中。</p>
+<h2 id="基础知识">基础知识</h2>
+<h3 id="什么是znode">什么是znode？</h3>
+<p>zooKeeper操作和维护的为一个个数据节点，称为 znode，采用类似文件系统的层级树状结构进行管理，如果 znode 节点包含数据则存储为字节数组（byte array）。</p>
+<p>而且，同一个节点多个客户同时创建【本篇文章由公众号“彤哥读源码”原创】，只有一个客户端会成功，其它客户端创建时将失败。</p>
+<p><img src="./images/死磕 java同步系列之zookeeper分布式锁0.png" alt="zooKeeper" /></p>
+<h3 id="节点类型">节点类型</h3>
+<p>znode 共有四种类型：</p>
+<ul>
+<li><p>持久（无序）</p></li>
+<li><p>持久有序</p></li>
+<li><p>临时（无序）</p></li>
+<li><p>临时有序</p></li>
+</ul>
+<p>其中，持久节点如果不手动删除会一直存在，临时节点当客户端session失效就会自动删除节点。</p>
+<h3 id="什么是watcher">什么是watcher？</h3>
+<p>watcher（事件监听器），是zookeeper中的一个很重要的特性。</p>
+<p>zookeeper允许用户在指定节点上注册一些watcher，并且在一些特定事件触发的时候，zooKeeper服务端会将事件通知到感兴趣的客户端上去，该机制是Zookeeper实现分布式协调服务的<strong>重要特性</strong>。</p>
+<table>
+<thead>
+<tr class="header">
+<th>KeeperState</th>
+<th>EventType</th>
+<th>触发条件</th>
+<th>说明</th>
+<th>操作</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>SyncConnected（3）</td>
+<td>None（-1）</td>
+<td>客户端与服务端成功建立连接</td>
+<td>此时客户端和服务器处于连接状态</td>
+<td>-</td>
+</tr>
+<tr class="even">
+<td>同上</td>
+<td>NodeCreated（1）</td>
+<td>Watcher监听的对应数据节点被创建</td>
+<td>同上</td>
+<td>Create</td>
+</tr>
+<tr class="odd">
+<td>同上</td>
+<td>NodeDeleted（2）</td>
+<td>Watcher监听的对应数据节点被删除</td>
+<td>同上</td>
+<td>Delete/znode</td>
+</tr>
+<tr class="even">
+<td>同上</td>
+<td>NodeDataChanged（3）</td>
+<td>Watcher监听的对应数据节点的数据内容发生变更</td>
+<td>同上</td>
+<td>setDate/znode</td>
+</tr>
+<tr class="odd">
+<td>同上</td>
+<td>NodeChildChanged（4）</td>
+<td>Wather监听的对应数据节点的子节点列表发生变更</td>
+<td>同上</td>
+<td>Create/child</td>
+</tr>
+<tr class="even">
+<td>Disconnected（0）</td>
+<td>None（-1）</td>
+<td>客户端与ZooKeeper服务器断开连接</td>
+<td>此时客户端和服务器处于断开连接状态</td>
+<td>-</td>
+</tr>
+<tr class="odd">
+<td>Expired（-112）</td>
+<td>None（-1）</td>
+<td>会话超时</td>
+<td>此时客户端会话失效，通常同时也会受到SessionExpiredException异常</td>
+<td>-</td>
+</tr>
+<tr class="even">
+<td>AuthFailed（4）</td>
+<td>None（-1）</td>
+<td>通常有两种情况，1：使用错误的schema进行权限检查 2：SASL权限检查失败</td>
+<td>通常同时也会收到AuthFailedException异常</td>
+<td>-</td>
+</tr>
+</tbody>
+</table>
+<h2 id="原理解析">原理解析</h2>
+<h3 id="方案一">方案一</h3>
+<p>既然，同一个节点只能创建一次，那么，加锁时检测节点是否存在，不存在则创建之，存在或者创建失败则监听这个节点的删除事件，这样，当释放锁的时候监听的客户端再次竞争去创建这个节点，成功的则获取到锁，不成功的则再次监听该节点。</p>
+<p><img src="./images/死磕 java同步系列之zookeeper分布式锁1.png" alt="zooKeeper" /></p>
+<p>比如，有三个客户端client1、client2、client3同时获取/locker/user_1这把锁，它们将按照如下步骤运行：</p>
+<p>（1）三者同时尝试创建/locker/user_1节点；</p>
+<p>（2）client1创建成功，它获取到锁；</p>
+<p>（3）client2和client3创建失败，它们监听/locker/user_1的删除事件；</p>
+<p>（4）client1执行锁内业务逻辑；</p>
+<p>（5）client1释放锁，删除节点/locker/user_1；</p>
+<p>（6）client2和client3都捕获到节点/locker/user_1被删除的事件，二者皆被唤醒；</p>
+<p>（7）client2和client3同时去创建/locker/user_1节点；</p>
+<p>（8）回到第二步，依次类推【本篇文章由公众号“彤哥读源码”原创】；</p>
+<p>不过，这种方案有个很严重的弊端——惊群效应。</p>
+<p>如果并发量很高，多个客户端同时监听同一个节点，释放锁时同时唤醒这么多个客户端，然后再竞争，最后还是只有一个能获取到锁，其它客户端又要沉睡，这些客户端的唤醒没有任何意义，极大地浪费系统资源，那么有没有更好的方案呢？答案是当然有，请看方案二。</p>
+<h3 id="方案二">方案二</h3>
+<p>为了解决方案一中的惊群效应，我们可以使用有序子节点的形式来实现分布式锁，而且为了规避客户端获取锁后突然断线的风险，我们有必要使用临时有序节点。</p>
+<p><img src="./images/死磕 java同步系列之zookeeper分布式锁2.png" alt="zooKeeper" /></p>
+<p>比如，有三个客户端client1、client2、client3同时获取/locker/user_1这把锁，它们将按照如下步骤运行：</p>
+<p>（1）三者同时在/locker/user_1/下面创建临时有序子节点；</p>
+<p>（2）三者皆创建成功，分别为/locker/user_1/0000000001、/locker/user_1/0000000003、/locker/user_1/0000000002；</p>
+<p>（3）检查自己创建的节点是不是子节点中最小的；</p>
+<p>（4）client1发现自己是最小的节点，它获取到锁；</p>
+<p>（5）client2和client3发现自己不是最小的节点，它们无法获取到锁；</p>
+<p>（6）client2创建的节点为/locker/user_1/0000000003，它监听其上一个节点/locker/user_1/0000000002的删除事件；</p>
+<p>（7）client3创建的节点为/locker/user_1/0000000002，它监听其上一个节点/locker/user_1/0000000001的删除事件；</p>
+<p>（8）client1执行锁内业务逻辑；</p>
+<p>（9）client1释放锁，删除节点/locker/user_1/0000000001；</p>
+<p>（10）client3监听到节点/locker/user_1/0000000001的删除事件，被唤醒；</p>
+<p>（11）client3再次检查自己是不是最小的节点，发现是，则获取到锁；</p>
+<p>（12）client3执行锁内业务逻辑【本篇文章由公众号“彤哥读源码”原创】；</p>
+<p>（13）client3释放锁，删除节点/locker/user_1/0000000002；</p>
+<p>（14）client2监听到节点/locker/user_1/0000000002的删除事件，被唤醒；</p>
+<p>（15）client2执行锁内业务逻辑；</p>
+<p>（16）client2释放锁，删除节点/locker/user_1/0000000003；</p>
+<p>（17）client2检查/locker/user_1/下是否还有子节点，没有了则删除/locker/user_1节点；</p>
+<p>（18）流程结束；</p>
+<p>这种方案相对于方案一来说，每次释放锁时只唤醒一个客户端，减少了线程唤醒的代价，提高了效率。</p>
+<h2 id="zookeeper原生api实现">zookeeper原生API实现</h2>
+<h3 id="pom文件">pom文件</h3>
+<p>pom中引入以下jar包：</p>
+<pre><code><code>&lt;dependency&gt;
+    &lt;groupId&gt;org.apache.zookeeper&lt;/groupId&gt;
+    &lt;artifactId&gt;zookeeper&lt;/artifactId&gt;
+    &lt;version&gt;3.5.5&lt;/version&gt;
+&lt;/dependency&gt;</code></code></pre>
+<h3 id="locker接口">Locker接口</h3>
+<p>定义一个Locker接口，与上一章mysql分布式锁使用同一个接口。</p>
+<pre class="java"><code>public interface Locker {
+    void lock(String key, Runnable command);
+}</code></code></pre>
+<h3 id="zookeeper分布式锁实现">zookeeper分布式锁实现</h3>
+<p>这里通过内部类ZkLockerWatcher处理zookeeper的相关操作，需要注意以下几点：</p>
+<p>（1）zk连接建立完毕之前不要进行相关操作，否则会报ConnectionLoss异常，这里通过LockSupport.park();阻塞连接线程并在监听线程中唤醒处理；</p>
+<p>（2）客户端线程与监听线程不是同一个线程，所以可以通过LockSupport.park();及LockSupport.unpark(thread);来处理；</p>
+<p>（3）中间很多步骤不是原子的（坑），所以需要再次检测，详见代码中注释；</p>
+<pre class="java"><code>@Slf4j
+@Component
+public class ZkLocker implements Locker {
+    @Override
+    public void lock(String key, Runnable command) {
+        ZkLockerWatcher watcher = ZkLockerWatcher.conn(key);
+        try {
+            if (watcher.getLock()) {
+                command.run();
+            }
+        } finally {
+            watcher.releaseLock();
+        }
+    }
+
+    private static class ZkLockerWatcher implements Watcher {
+        public static final String connAddr = &quot;127.0.0.1:2181&quot;;
+        public static final int timeout = 6000;
+        public static final String LOCKER_ROOT = &quot;/locker&quot;;
+
+        ZooKeeper zooKeeper;
+        String parentLockPath;
+        String childLockPath;
+        Thread thread;
+
+        public static ZkLockerWatcher conn(String key) {
+            ZkLockerWatcher watcher = new ZkLockerWatcher();
+            try {
+                ZooKeeper zooKeeper = watcher.zooKeeper = new ZooKeeper(connAddr, timeout, watcher);
+                watcher.thread = Thread.currentThread();
+                // 阻塞等待连接建立完毕
+                LockSupport.park();
+                // 根节点如果不存在，就创建一个（并发问题，如果两个线程同时检测不存在，两个同时去创建必须有一个会失败）
+                if (zooKeeper.exists(LOCKER_ROOT, false) == null) {
+                    try {
+                        zooKeeper.create(LOCKER_ROOT, &quot;&quot;.getBytes(), ZooDefs.Ids.OPEN_ACL_UNSAFE, CreateMode.PERSISTENT);
+                    } catch (KeeperException e) {
+                        // 如果节点已存在，则创建失败，这里捕获异常，并不阻挡程序正常运行
+                        log.info(&quot;创建节点 {} 失败&quot;, LOCKER_ROOT);
+                    }
+                }
+                // 当前加锁的节点是否存在
+                watcher.parentLockPath = LOCKER_ROOT + &quot;/&quot; + key;
+                if (zooKeeper.exists(watcher.parentLockPath, false) == null) {
+                    try {
+                        zooKeeper.create(watcher.parentLockPath, &quot;&quot;.getBytes(), ZooDefs.Ids.OPEN_ACL_UNSAFE, CreateMode.PERSISTENT);
+                    } catch (KeeperException e) {
+                        // 如果节点已存在，则创建失败，这里捕获异常，并不阻挡程序正常运行
+                        log.info(&quot;创建节点 {} 失败&quot;, watcher.parentLockPath);
+                    }
+                }
+
+            } catch (Exception e) {
+                log.error(&quot;conn to zk error&quot;, e);
+                throw new RuntimeException(&quot;conn to zk error&quot;);
+            }
+            return watcher;
+        }
+
+        public boolean getLock() {
+            try {
+                // 创建子节点【本篇文章由公众号“彤哥读源码”原创】
+                this.childLockPath = zooKeeper.create(parentLockPath + &quot;/&quot;, &quot;&quot;.getBytes(), ZooDefs.Ids.OPEN_ACL_UNSAFE, CreateMode.EPHEMERAL_SEQUENTIAL);
+                // 检查自己是不是最小的节点，是则获取成功，不是则监听上一个节点
+                return getLockOrWatchLast();
+            } catch (Exception e) {
+                log.error(&quot;get lock error&quot;, e);
+                throw new RuntimeException(&quot;get lock error&quot;);
+            } finally {
+//                System.out.println(&quot;getLock: &quot; + childLockPath);
+            }
+        }
+
+        public void releaseLock() {
+            try {
+                if (childLockPath != null) {
+                    // 释放锁，删除节点
+                    zooKeeper.delete(childLockPath, -1);
+                }
+                // 最后一个释放的删除锁节点
+                List&lt;String&gt; children = zooKeeper.getChildren(parentLockPath, false);
+                if (children.isEmpty()) {
+                    try {
+                        zooKeeper.delete(parentLockPath, -1);
+                    } catch (KeeperException e) {
+                        // 如果删除之前又新加了一个子节点，会删除失败
+                        log.info(&quot;删除节点 {} 失败&quot;, parentLockPath);
+                    }
+                }
+                // 关闭zk连接
+                if (zooKeeper != null) {
+                    zooKeeper.close();
+                }
+            } catch (Exception e) {
+                log.error(&quot;release lock error&quot;, e);
+                throw new RuntimeException(&quot;release lock error&quot;);
+            } finally {
+//                System.out.println(&quot;releaseLock: &quot; + childLockPath);
+            }
+        }
+
+        private boolean getLockOrWatchLast() throws KeeperException, InterruptedException {
+            List&lt;String&gt; children = zooKeeper.getChildren(parentLockPath, false);
+            // 必须要排序一下，这里取出来的顺序可能是乱的
+            Collections.sort(children);
+            // 如果当前节点是第一个子节点，则获取锁成功
+            if ((parentLockPath + &quot;/&quot; + children.get(0)).equals(childLockPath)) {
+                return true;
+            }
+
+            // 如果不是第一个子节点，就监听前一个节点
+            String last = &quot;&quot;;
+            for (String child : children) {
+                if ((parentLockPath + &quot;/&quot; + child).equals(childLockPath)) {
+                    break;
+                }
+                last = child;
+            }
+
+            if (zooKeeper.exists(parentLockPath + &quot;/&quot; + last, true) != null) {
+                this.thread = Thread.currentThread();
+                // 阻塞当前线程
+                LockSupport.park();
+                // 唤醒之后重新检测自己是不是最小的节点，因为有可能上一个节点断线了
+                return getLockOrWatchLast();
+            } else {
+                // 如果上一个节点不存在，说明还没来得及监听就释放了，重新检查一次
+                return getLockOrWatchLast();
+            }
+        }
+
+        @Override
+        public void process(WatchedEvent event) {
+            if (this.thread != null) {
+                // 唤醒阻塞的线程（这是在监听线程，跟获取锁的线程不是同一个线程）
+                LockSupport.unpark(this.thread);
+                this.thread = null;
+            }
+        }
+    }
+}</code></code></pre>
+<h3 id="测试代码">测试代码</h3>
+<p>我们这里起两批线程，一批获取user_1这个锁，一批获取user_2这个锁。</p>
+<pre class="java"><code>@RunWith(SpringRunner.class)
+@SpringBootTest(classes = Application.class)
+public class ZkLockerTest {
+
+    @Autowired
+    private Locker locker;
+
+    @Test
+    public void testZkLocker() throws IOException {
+        for (int i = 0; i &lt; 1000; i++) {
+            new Thread(()-&gt;{
+                locker.lock(&quot;user_1&quot;, ()-&gt; {
+                    try {
+                        System.out.println(String.format(&quot;user_1 time: %d, threadName: %s&quot;, System.currentTimeMillis(), Thread.currentThread().getName()));
+                        Thread.sleep(500);
+                    } catch (InterruptedException e) {
+                        e.printStackTrace();
+                    }
+                });
+            }, &quot;Thread-&quot;+i).start();
+        }
+        for (int i = 1000; i &lt; 2000; i++) {
+            new Thread(()-&gt;{
+                locker.lock(&quot;user_2&quot;, ()-&gt; {
+                    try {
+                        System.out.println(String.format(&quot;user_2 time: %d, threadName: %s&quot;, System.currentTimeMillis(), Thread.currentThread().getName()));
+                        Thread.sleep(500);
+                    } catch (InterruptedException e) {
+                        e.printStackTrace();
+                    }
+                });
+            }, &quot;Thread-&quot;+i).start();
+        }
+
+        System.in.read();
+    }
+}</code></code></pre>
+<p>运行结果：</p>
+<p>可以看到稳定在500ms左右打印两个锁的结果。</p>
+<pre><code><code>user_1 time: 1568973299578, threadName: Thread-10
+user_2 time: 1568973299579, threadName: Thread-1780
+user_1 time: 1568973300091, threadName: Thread-887
+user_2 time: 1568973300091, threadName: Thread-1542
+user_1 time: 1568973300594, threadName: Thread-882
+user_2 time: 1568973300594, threadName: Thread-1539
+user_2 time: 1568973301098, threadName: Thread-1592
+user_1 time: 1568973301098, threadName: Thread-799
+user_1 time: 1568973301601, threadName: Thread-444
+user_2 time: 1568973301601, threadName: Thread-1096
+user_1 time: 1568973302104, threadName: Thread-908
+user_2 time: 1568973302104, threadName: Thread-1574
+user_2 time: 1568973302607, threadName: Thread-1515
+user_1 time: 1568973302607, threadName: Thread-80
+user_1 time: 1568973303110, threadName: Thread-274
+user_2 time: 1568973303110, threadName: Thread-1774
+user_1 time: 1568973303615, threadName: Thread-324
+user_2 time: 1568973303615, threadName: Thread-1621</code></code></pre>
+<h2 id="curator实现">curator实现</h2>
+<p>上面的原生API实现更易于理解zookeeper实现分布式锁的逻辑，但是难免保证没有什么问题，比如不是重入锁，不支持读写锁等。</p>
+<p>下面我们一起看看现有的轮子curator是怎么实现的。</p>
+<h3 id="pom文件-1">pom文件</h3>
+<p>pom文件中引入以下jar包：</p>
+<pre><code><code>&lt;dependency&gt;
+    &lt;groupId&gt;org.apache.curator&lt;/groupId&gt;
+    &lt;artifactId&gt;curator-recipes&lt;/artifactId&gt;
+    &lt;version&gt;4.0.0&lt;/version&gt;
+&lt;/dependency&gt;
+&lt;dependency&gt;
+    &lt;groupId&gt;org.apache.curator&lt;/groupId&gt;
+    &lt;artifactId&gt;curator-framework&lt;/artifactId&gt;
+    &lt;version&gt;4.0.0&lt;/version&gt;
+&lt;/dependency&gt;</code></code></pre>
+<h3 id="代码实现">代码实现</h3>
+<p>下面是互斥锁的一种实现方案：</p>
+<pre class="java"><code>@Component
+@Slf4j
+public class ZkCuratorLocker implements Locker {
+    public static final String connAddr = &quot;127.0.0.1:2181&quot;;
+    public static final int timeout = 6000;
+    public static final String LOCKER_ROOT = &quot;/locker&quot;;
+
+    private CuratorFramework cf;
+
+    @PostConstruct
+    public void init() {
+        this.cf = CuratorFrameworkFactory.builder()
+                .connectString(connAddr)
+                .sessionTimeoutMs(timeout)
+                .retryPolicy(new ExponentialBackoffRetry(1000, 3))
+                .build();
+
+        cf.start();
+    }
+
+    @Override
+    public void lock(String key, Runnable command) {
+        String path = LOCKER_ROOT + &quot;/&quot; + key;
+        InterProcessLock lock = new InterProcessMutex(cf, path);
+        try {
+            // 【本篇文章由公众号“彤哥读源码”原创】
+            lock.acquire();
+            command.run();
+        } catch (Exception e) {
+            log.error(&quot;get lock error&quot;, e);
+            throw new RuntimeException(&quot;get lock error&quot;, e);
+        } finally {
+            try {
+                lock.release();
+            } catch (Exception e) {
+                log.error(&quot;release lock error&quot;, e);
+                throw new RuntimeException(&quot;release lock error&quot;, e);
+            }
+        }
+    }
+}</code></code></pre>
+<p>除了互斥锁，curator还提供了读写锁、多重锁、信号量等实现方式，而且他们是可重入的锁。</p>
+<h2 id="总结">总结</h2>
+<p>（1）zookeeper中的节点有四种类型：持久、持久有序、临时、临时有序；</p>
+<p>（2）zookeeper提供了一种非常重要的特性——监听机制，它可以用来监听节点的变化；</p>
+<p>（3）zookeeper分布式锁是基于 临时有序节点 + 监听机制 实现的；</p>
+<p>（4）zookeeper分布式锁加锁时在锁路径下创建临时有序节点；</p>
+<p>（5）如果自己是第一个节点，则获得锁；</p>
+<p>（6）如果自己不是第一个节点，则监听前一个节点，并阻塞当前线程；</p>
+<p>（7）当监听到前一个节点的删除事件时，唤醒当前节点的线程，并再次检查自己是不是第一个节点；</p>
+<p>（8）使用临时有序节点而不是持久有序节点是为了让客户端无故断线时能够自动释放锁；</p>
+<h2 id="彩蛋">彩蛋</h2>
+<p><strong>zookeeper分布式锁有哪些优点？</strong></p>
+<p>答：1）zookeeper本身可以集群部署，相对于mysql的单点更可靠；</p>
+<p>2）不会占用mysql的连接数，不会增加mysql的压力；</p>
+<p>3）使用监听机制，减少线程上下文切换的次数；</p>
+<p>4）客户端断线能够自动释放锁，非常安全；</p>
+<p>5）有现有的轮子curator可以使用；</p>
+<p>6）curator实现方式是可重入的，对现有代码改造成本小；</p>
+<p><strong>zookeeper分布式锁有哪些缺点？</strong></p>
+<p>答：1）加锁会频繁地“写”zookeeper，增加zookeeper的压力；</p>
+<p>2）写zookeeper的时候会在集群进行同步，节点数越多，同步越慢，获取锁的过程越慢；</p>
+<p>3）需要另外依赖zookeeper，而大部分服务是不会使用zookeeper的，增加了系统的复杂性；</p>
+<p>4）相对于redis分布式锁，性能要稍微略差一些；</p>
+<h2 id="推荐阅读">推荐阅读</h2>
+<p>1、<a href="https://mp.weixin.qq.com/s/gdQpO7kqnWT41gFd4vXTlQ">死磕 java同步系列之开篇</a></p>
+<p>2、<a href="https://mp.weixin.qq.com/s/0s-u-MysppIaIHVrshp9fA">死磕 java魔法类之Unsafe解析</a></p>
+<p>3、<a href="https://mp.weixin.qq.com/s/jownTN--npu3o8B4c3sbeA">死磕 java同步系列之JMM（Java Memory Model）</a></p>
+<p>4、<a href="https://mp.weixin.qq.com/s/TROZ4BhcDImwHvhAl_I_6w">死磕 java同步系列之volatile解析</a></p>
+<p>5、<a href="https://mp.weixin.qq.com/s/RT7VreIh9PU03HhE3WSLjg">死磕 java同步系列之synchronized解析</a></p>
+<p>6、<a href="https://mp.weixin.qq.com/s/1RU5jh7UcXGtKlae8tusVA">死磕 java同步系列之自己动手写一个锁Lock</a></p>
+<p>7、<a href="https://mp.weixin.qq.com/s/nAqgec8GscULz6DkkYFINg">死磕 java同步系列之AQS起篇</a></p>
+<p>8、<a href="https://mp.weixin.qq.com/s/52Ib23kbmqqkWAZtlZF-zA">死磕 java同步系列之ReentrantLock源码解析（一）——公平锁、非公平锁</a></p>
+<p>9、<a href="https://mp.weixin.qq.com/s/iipAVWynBUZazhSvBwMB5g">死磕 java同步系列之ReentrantLock源码解析（二）——条件锁</a></p>
+<p>10、<a href="https://mp.weixin.qq.com/s/o8ZFXDoKhj237SsrqGeJPQ">死磕 java同步系列之ReentrantLock VS synchronized</a></p>
+<p>11、<a href="https://mp.weixin.qq.com/s/aOQwZ0S8at-64xIXo8fLfA">死磕 java同步系列之ReentrantReadWriteLock源码解析</a></p>
+<p>12、<a href="https://mp.weixin.qq.com/s/ft0_PU7Tgz7920yKy-xisQ">死磕 java同步系列之Semaphore源码解析</a></p>
+<p>13、<a href="https://mp.weixin.qq.com/s/QHFXKVybKz_iwgC8reGfPQ">死磕 java同步系列之CountDownLatch源码解析</a></p>
+<p>14、<a href="https://mp.weixin.qq.com/s/QHFXKVybKz_iwgC8reGfPQ">死磕 java同步系列之AQS终篇</a></p>
+<p>15、<a href="https://mp.weixin.qq.com/s/6RaFax0ivM6UoDdo5qhtwQ">死磕 java同步系列之StampedLock源码解析</a></p>
+<p>16、<a href="https://mp.weixin.qq.com/s/liFpAAwzQF1PECWYUBVpCg">死磕 java同步系列之CyclicBarrier源码解析</a></p>
+<p>17、<a href="https://mp.weixin.qq.com/s/DytOAfQ9lSUcfHPxfgbZUw">死磕 java同步系列之Phaser源码解析</a></p>
+<p>18、<a href="https://mp.weixin.qq.com/s/Au-_hN-FcL30bIYQbLfZEQ">死磕 java同步系列之mysql分布式锁</a></p>
+<hr />
+<p>欢迎关注我的公众号“彤哥读源码”，查看更多源码系列文章, 与彤哥一起畅游源码的海洋。</p>
+<p><img src="./images/死磕 java同步系列之zookeeper分布式锁3.png" alt="qrcode" /></p>
+
+
+</div><hr><script charset='utf-8' src='../../js/sming.js'></script></body></html>

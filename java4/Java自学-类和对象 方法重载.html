@@ -1,0 +1,125 @@
+<html><head><meta charset='utf-8'><meta name='viewport' content='width=device-width, initial-scale=1'>
+<meta name='applicable-device' content='pc'><meta name='keywords' content='电脑,电脑讲解,电脑技术,编程,电脑故障维修Java自学-类和对象 方法重载' />
+<script src='../../highlight/highlight.pack.js'></script>
+<link rel='stylesheet' type='text/css' href='../../highlight/styles/monokai.css'/>
+
+<link rel='stylesheet' href='../../fenxiang/dist/css/share.min.css'>
+<script src='../../fenxiang/src/js/social-share.js'></script>
+<script src='../../fenxiang/src/js/qrcode.js'></script>
+
+</head><body><script>hljs.initHighlightingOnLoad();</script><script>
+var system ={};  
+var p = navigator.platform;       
+system.win = p.indexOf('Win') == 0;  
+system.mac = p.indexOf('Mac') == 0;  
+system.x11 = (p == 'X11') || (p.indexOf('Linux') == 0);     
+if(system.win||system.mac||system.xll){
+document.write("<link href='../css/3.css' rel='stylesheet' type='text/css'>");}else{ document.write("<link href='../css/3wap.css' rel='stylesheet' type='text/css'>");}</script><script src='../../js/3.js'></script><div class='div2'><div class='heading_nav'><ul><div><li><a href='../../index.html'>首页</a></li>
+</div><div onclick='hidden1()' >分享</div>
+</ul></div></div>
+<div id='heading_nav2'> 
+<li class='row' >
+<div class='social-share' data-mode='prepend'><a href='javascript:' class='social-share-icon icon-heart'></a></div></li></div><script charset='utf-8' src='../../3/js/hengfu.js'></script><script charset='utf-8' src='../../3/js/hengfu2.js'></script><hr><div class='div1'><div class='biaoti'><center>Java自学-类和对象 方法重载</center></div><div class='banquan'>原文出处:本文由博客园博主半米高峰提供。<br/>
+原文连接:https://www.cnblogs.com/jeddzd/p/11422686.html</div><br>
+    <h2 id="什么是java-方法重载">什么是Java 方法重载</h2>
+<p>方法的重载指的是方法名一样，但是参数类型不一样</p>
+<p>步骤 1 : <strong>attack方法的重载</strong></p>
+<p>有一种英雄，叫做物理攻击英雄 ADHero<br />
+为ADHero 提供三种方法</p>
+<pre><code><code>public void attack()
+public void attack(Hero h1)
+public void attack(Hero h1, Hero h2)</code></code></pre>
+<p>方法名是一样的，但是参数类型不一样<br />
+在调用方法attack的时候，会根据传递的参数类型以及数量，自动调用对应的方法<br />
+<img src="./images/Java自学-类和对象 方法重载0.png" alt="attack方法的重载" /></p>
+<pre><code><code>public class ADHero extends Hero {
+    public void attack() {
+        System.out.println(name + &quot; 进行了一次攻击 ，但是不确定打中谁了&quot;);
+    }
+ 
+    public void attack(Hero h1) {
+        System.out.println(name + &quot;对&quot; + h1.name + &quot;进行了一次攻击 &quot;);
+    }
+ 
+    public void attack(Hero h1, Hero h2) {
+        System.out.println(name + &quot;同时对&quot; + h1.name + &quot;和&quot; + h2.name + &quot;进行了攻击 &quot;);
+    }
+ 
+    public static void main(String[] args) {
+        ADHero bh = new ADHero();
+        bh.name = &quot;赏金猎人&quot;;
+ 
+        Hero h1 = new Hero();
+        h1.name = &quot;盖伦&quot;;
+        Hero h2 = new Hero();
+        h2.name = &quot;提莫&quot;;
+ 
+        bh.attack(h1);
+        bh.attack(h1, h2);
+    }
+ 
+}</code></code></pre>
+<p>步骤 2 : <strong>可变数量的参数</strong></p>
+<p>如果要攻击更多的英雄，就需要设计更多的方法，这样类会显得很累赘，像这样：</p>
+<pre><code><code>public void attack(Hero h1)
+public void attack(Hero h1,Hero h2)
+public void attack(Hero h1,Hero h2,Hero 3)</code></code></pre>
+<p>这时，可以采用可变数量的参数<br />
+<strong>只需要设计一个方法</strong><br />
+public void attack(Hero ...heros)<br />
+即可代表上述所有的方法了<br />
+在方法里，使用操作数组的方式处理参数heros即可</p>
+<pre><code><code>public class ADHero extends Hero {
+ 
+    public void attack() {
+        System.out.println(name + &quot; 进行了一次攻击 ，但是不确定打中谁了&quot;);
+    }
+ 
+    // 可变数量的参数
+    public void attack(Hero... heros) {
+        for (int i = 0; i &lt; heros.length; i++) {
+            System.out.println(name + &quot; 攻击了 &quot; + heros[i].name);
+ 
+        }
+    }
+ 
+    public static void main(String[] args) {
+        ADHero bh = new ADHero();
+        bh.name = &quot;赏金猎人&quot;;
+ 
+        Hero h1 = new Hero();
+        h1.name = &quot;盖伦&quot;;
+        Hero h2 = new Hero();
+        h2.name = &quot;提莫&quot;;
+ 
+        bh.attack(h1);
+        bh.attack(h1, h2);
+ 
+    }
+ 
+}</code></code></pre>
+<p><strong>练习</strong>： <a href="http://how2j.cn/k/class-object/class-object-overload/291.html?p=43278">治疗</a><br />
+(设计一个类Support (辅助英雄)继承Hero，提供一个heal(治疗)方法<br />
+对Support的heal方法进行重载<br />
+heal()<br />
+heal(Hero h) //为指定的英雄加血<br />
+heal(Hero h, int hp) //为指定的英雄加了hp的血)</p>
+<p><strong>答案</strong>：</p>
+<pre><code><code>public class Support extends Hero {
+ 
+    public void heal() {
+        System.out.println(&quot;对自己进行治疗&quot;);
+    }
+ 
+    public void heal(Hero hero) {
+        System.out.println(&quot;给英雄 &quot; + hero + &quot; 加血&quot;);
+    }
+ 
+    public void heal(Hero hero, int hp) {
+        System.out.println(&quot;给英雄 &quot; + hero + &quot; 加了 &quot; + hp + &quot;点血&quot;);
+    }
+     
+}</code></code></pre>
+
+
+</div><hr><script charset='utf-8' src='../../js/sming.js'></script></body></html>

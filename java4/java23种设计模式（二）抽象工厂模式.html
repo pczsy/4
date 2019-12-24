@@ -1,0 +1,123 @@
+<html><head><meta charset='utf-8'><meta name='viewport' content='width=device-width, initial-scale=1'>
+<meta name='applicable-device' content='pc'><meta name='keywords' content='电脑,电脑讲解,电脑技术,编程,电脑故障维修java23种设计模式（二）抽象工厂模式' />
+<script src='../../highlight/highlight.pack.js'></script>
+<link rel='stylesheet' type='text/css' href='../../highlight/styles/monokai.css'/>
+
+<link rel='stylesheet' href='../../fenxiang/dist/css/share.min.css'>
+<script src='../../fenxiang/src/js/social-share.js'></script>
+<script src='../../fenxiang/src/js/qrcode.js'></script>
+
+</head><body><script>hljs.initHighlightingOnLoad();</script><script>
+var system ={};  
+var p = navigator.platform;       
+system.win = p.indexOf('Win') == 0;  
+system.mac = p.indexOf('Mac') == 0;  
+system.x11 = (p == 'X11') || (p.indexOf('Linux') == 0);     
+if(system.win||system.mac||system.xll){
+document.write("<link href='../css/3.css' rel='stylesheet' type='text/css'>");}else{ document.write("<link href='../css/3wap.css' rel='stylesheet' type='text/css'>");}</script><script src='../../js/3.js'></script><div class='div2'><div class='heading_nav'><ul><div><li><a href='../../index.html'>首页</a></li>
+</div><div onclick='hidden1()' >分享</div>
+</ul></div></div>
+<div id='heading_nav2'> 
+<li class='row' >
+<div class='social-share' data-mode='prepend'><a href='javascript:' class='social-share-icon icon-heart'></a></div></li></div><script charset='utf-8' src='../../3/js/hengfu.js'></script><script charset='utf-8' src='../../3/js/hengfu2.js'></script><hr><div class='div1'><div class='biaoti'><center>java23种设计模式（二）抽象工厂模式</center></div><div class='banquan'>原文出处:本文由博客园博主执偕提供。<br/>
+原文连接:https://www.cnblogs.com/zhixie/p/11711441.html</div><br>
+    <p>我们接着上一章的工厂方法模式继续学习一下抽象工厂模式。<br />
+<strong>抽象工厂模式：在工厂模式中，如果有多个产品，则就是抽象工厂模式。</strong><br />
+<strong>例子：</strong><br />
+有一个工厂开了两个子公司，专门用来生产电脑配件键盘和鼠标，一个是联想工厂则生产联想的产品，另一个是宏碁工厂则生产宏碁的产品。<br />
+代码如下：<br />
+1、工厂接口（可以生产鼠标和键盘）</p>
+<pre><code><code>public interface Factory {
+     // 生产鼠标
+    Mouse createMouse();
+
+    // 生产键盘
+    KeyBoard createKeyBoard();
+}</code></code></pre>
+<p>2、联想工厂（生产联想鼠标和键盘）</p>
+<pre><code><code>public class LenovoFactory implements Factory {
+    @Override
+    public Mouse createMouse() {
+        return new LenovoMouse();
+    }
+
+    @Override
+    public KeyBoard createKeyBoard() {
+        return new LenovoKeyBoard();
+    }
+}</code></code></pre>
+<p>3、宏碁工厂（生产宏碁鼠标和键盘）</p>
+<pre><code><code>public class AcerFactory implements Factory {
+    @Override
+    public Mouse createMouse() {
+        return new AcerMouse();
+    }
+
+    @Override
+    public KeyBoard createKeyBoard() {
+        return new AcerKeyBoard();
+    }
+}</code></code></pre>
+<p>4、键盘接口</p>
+<pre><code><code>public interface KeyBoard {
+
+    void getName();
+}</code></code></pre>
+<p>5、联想键盘实现类</p>
+<pre><code><code>public class LenovoKeyBoard implements KeyBoard {
+    @Override
+    public void getName() {
+        System.out.println(&quot;这个是联想键盘&quot;);
+    }
+}</code></code></pre>
+<p>6、宏碁键盘实现类</p>
+<pre><code><code>public class AcerKeyBoard implements KeyBoard {
+    @Override
+    public void getName() {
+        System.out.println(&quot;这个是宏碁键盘&quot;);
+    }
+}</code></code></pre>
+<p>7、鼠标接口</p>
+<pre><code><code>public interface Mouse {
+
+    void getName();
+}</code></code></pre>
+<p>8、联想鼠标接口</p>
+<pre><code><code>public class LenovoMouse implements Mouse {
+    @Override
+    public void getName() {
+        System.out.println(&quot;这个是联想鼠标&quot;);
+    }
+}</code></code></pre>
+<p>9、宏碁鼠标接口</p>
+<pre><code><code>public class AcerMouse implements Mouse {
+    @Override
+    public void getName() {
+        System.out.println(&quot;这个是宏碁鼠标&quot;);
+    }
+}</code></code></pre>
+<p>10、客户端（可以在联想工厂买联想鼠标和键盘，也可以在宏碁工厂买宏碁生产的鼠标和键盘）</p>
+<pre><code><code>@SpringBootTest
+class FactoryApplicationTests {
+    @Test
+    void abstractF(){
+
+        LenovoFactory lenovoFactory = new LenovoFactory();
+        lenovoFactory.createKeyBoard().getName();
+        lenovoFactory.createMouse().getName();
+
+        AcerFactory acerFactory = new AcerFactory();
+        acerFactory.createKeyBoard().getName();
+        acerFactory.createMouse().getName();
+    }
+}</code></code></pre>
+<p><strong>总结：</strong><br />
+（1）增加xx工厂：创建xx工厂，继承工厂接口，然后创建xx鼠标继承鼠标接口，创建xx键盘继承键盘接口即可。<br />
+（2）增加音响产品：首先创建音响接口，然后分别创建联想音响和宏碁音响实现类实现音响接口。然后再工厂接口中增加创建音响的方法，在联想工厂和宏碁工厂分别实现自家音响的创建。</p>
+<blockquote>
+<p>如果文章对您有帮助，请记得点赞关注哟~<br />
+欢迎大家关注我的公众号<情系IT>，每日技术推送文章供大家学习参考。</p>
+</blockquote>
+
+
+</div><hr><script charset='utf-8' src='../../js/sming.js'></script></body></html>

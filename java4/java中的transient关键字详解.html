@@ -1,0 +1,448 @@
+<html><head><meta charset='utf-8'><meta name='viewport' content='width=device-width, initial-scale=1'>
+<meta name='applicable-device' content='pc'><meta name='keywords' content='电脑,电脑讲解,电脑技术,编程,电脑故障维修java中的transient关键字详解' />
+<script src='../../highlight/highlight.pack.js'></script>
+<link rel='stylesheet' type='text/css' href='../../highlight/styles/monokai.css'/>
+
+<link rel='stylesheet' href='../../fenxiang/dist/css/share.min.css'>
+<script src='../../fenxiang/src/js/social-share.js'></script>
+<script src='../../fenxiang/src/js/qrcode.js'></script>
+
+</head><body><script>hljs.initHighlightingOnLoad();</script><script>
+var system ={};  
+var p = navigator.platform;       
+system.win = p.indexOf('Win') == 0;  
+system.mac = p.indexOf('Mac') == 0;  
+system.x11 = (p == 'X11') || (p.indexOf('Linux') == 0);     
+if(system.win||system.mac||system.xll){
+document.write("<link href='../css/3.css' rel='stylesheet' type='text/css'>");}else{ document.write("<link href='../css/3wap.css' rel='stylesheet' type='text/css'>");}</script><script src='../../js/3.js'></script><div class='div2'><div class='heading_nav'><ul><div><li><a href='../../index.html'>首页</a></li>
+</div><div onclick='hidden1()' >分享</div>
+</ul></div></div>
+<div id='heading_nav2'> 
+<li class='row' >
+<div class='social-share' data-mode='prepend'><a href='javascript:' class='social-share-icon icon-heart'></a></div></li></div><script charset='utf-8' src='../../3/js/hengfu.js'></script><script charset='utf-8' src='../../3/js/hengfu2.js'></script><hr><div class='div1'><div class='biaoti'><center>java中的transient关键字详解</center></div><div class='banquan'>原文出处:本文由博客园博主宜春提供。<br/>
+原文连接:https://www.cnblogs.com/yichunguo/p/11923126.html</div><br>
+    <src class="toc">
+    <p class="toc-title">目录</p>
+    <src class="toc-list">
+        <ul>
+        <li><a href="#何谓序列化">1、何谓序列化？</a></li>
+        <li><a href="#为何要序列化">2、为何要序列化？</a></li>
+        <li><a href="#序列化与transient的使用">3、序列化与transient的使用</a></li>
+        <li><a href="#java类中serialversionuid作用">4、java类中serialVersionUID作用</a></li>
+        <li><a href="#transient关键字小结">5、transient关键字小结</a></li>
+        </ul>
+    
+
+<p><strong>前言</strong><br />
+说实话学了一段时间java的朋友对于<code>transient</code>这个关键字依旧很陌生基本没怎么用过，但是<code>transient</code>关键字在java中却起到了不可或缺的地位！如果要说讲到，我觉得最可能出现的地方是IO流中对象流（也叫序列化流）的时候会讲到！</p>
+<p>相信很多人都是直到自己碰到才会关心这个关键字，记得博主第一次碰到<code>transient</code>关键字是在阅读JDK源码的时候。在学习java的过程中<code>transient</code>关键字少见的原因其实离不开它的作用：<code>transient</code>关键字的主要作用就是让某些<font color=red><strong>被transient关键字修饰的成员属性变量不被序列化</strong></font>。实际上也正是因此，在学习过程中很少用得上序列化操作，一般都是在实际开发中！至于序列化，相信有很多小白童鞋一直迷迷糊糊或者没有具体的概念，这都不是事，下面博主会很清楚的让你记住啥是序列化，保证你这辈子忘不了（貌似有点夸张，有点装b，感觉要被打）</p>
+<p>@</p>
+<h2 id="何谓序列化">1、何谓序列化？</h2>
+<p>说起序列化，随之而来的另一个概念就是反序列化，小白童鞋不要慌，记住了序列化就相当于记住了反序列化，因为反序列化就是序列化反过来，所以博主建议只记住序列化概念即可，省的搞晕自己。</p>
+<p>专业术语定义的序列化：</p>
+<blockquote>
+<p>Java提供了一种对象序列化的机制。用一个字节序列可以表示一个对象，该字节序列包含该对象的数据、对象的类型和对象中存储的属性等信息。字节序列写出到文件之后，相当于文件中持久保存了一个对象的信息。反之，该字节序列还可以从文件中读取回来，重构对象，对它进行反序列化。对象的数据、对象的类型和对象中存储的数据信息，都可以用来在内存中创建对象。</p>
+</blockquote>
+<p>宜春的术语定义序列化：</p>
+<blockquote>
+<p><font color=red>序列化： <strong>字节 ——&gt; 对象</strong></font></p>
+</blockquote>
+<p>其实，我总结的就是上面的结论，如果不理解，直接参照专业术语的定义，理解之后就记住我的话就行了，记不住，请打死我（我踢m简直就是个天才）</p>
+<p>图理解序列化：<br />
+<img src="./images/java中的transient关键字详解0.png" alt="在这里插入图片描述" /><br />
+啥？你不懂啥是字节？其实，我在一篇IO流的文章里就已经介绍了序列化，放心，绝对特别详细~光看文章名字就知道了~</p>
+<p><a href="https://blog.csdn.net/qq_44543508/article/details/102831084">史上最骚最全最详细的IO流教程，小白都能看懂！</a></p>
+<h2 id="为何要序列化">2、为何要序列化？</h2>
+<p>从上一节提到序列化的概念，知道概念之后，我们就必须要知道 为何要序列化了。</p>
+<p>讲为何要序列化原因之前，博主我举个栗子：</p>
+<blockquote>
+<p>就像你去街上买菜，一般操作都是用塑料袋给包装起来，直到回家要做菜的时候就把菜给拿出来。而这一系列操作就像极了序列化和反序列化！</p>
+</blockquote>
+<p>Java中对象的序列化指的是将对象转换成以字节序列的形式来表示，这些字节序列包含了对象的数据和信息，一个序列化后的对象<font color=red> <strong>可以被写到数据库或文件中</strong></font>，也可用于<font color=red> <strong>网络传输</strong></font>，一般当我们使用<font color=red> <strong>缓存cache</strong></font>（内存空间不够有可能会本地存储到硬盘）或<font color=red> <strong>远程调用rpc</strong></font>（网络传输）的时候，经常需要让我们的实体类实现<code>Serializable</code>接口，目的就是为了让其可序列化。</p>
+<ul>
+<li>在开发过程中<strong>要使用transient</strong>关键字修饰的栗子：</li>
+</ul>
+<blockquote>
+<p><font color=red> <strong>如果一个用户有一些密码等信息，为了安全起见，不希望在网络操作中被传输，这些信息对应的变量就可以加上transient关键字。</strong></font>换句话说，这个字段的生命周期仅存于调用者的内存中而不会写到磁盘里持久化。</p>
+</blockquote>
+<ul>
+<li>在开发过程中<strong>不需要transient</strong>关键字修饰的栗子：</li>
+</ul>
+<blockquote>
+<p>1、类中的字段值可以根据其它字段推导出来。<br />
+2、看具体业务需求，哪些字段不想被序列化；</p>
+</blockquote>
+<p>不知道各位有木有想过为什么要不被序列化呢？其实主要是为了节省存储空间。优化程序！</p>
+<blockquote>
+<p>PS：记得之前看<code>HashMap</code>源码的时候，发现有个字段是用<code>transient</code>修饰的，我觉得还是有道理的，确实没必要对这个modCount字段进行序列化，因为没有意义，modCount主要用于判断HashMap是否被修改（像put、remove操作的时候，<code>modCount</code>都会自增），对于这种变量，一开始可以为任何值，0当然也是可以（new出来、反序列化出来、或者克隆clone出来的时候都是为0的），没必要持久化其值。</p>
+</blockquote>
+<p>当然，序列化后的最终目的是为了反序列化，恢复成原先的Java对象，要不然序列化后干嘛呢，就像买菜一样，用塑料袋包裹最后还是为了方便安全到家再去掉塑料袋，所以序列化后的字节序列都是可以恢复成Java对象的，这个过程就是反序列化。</p>
+<h2 id="序列化与transient的使用">3、序列化与transient的使用</h2>
+<p>　1、<font color=red><strong>需要做序列化的对象的类，必须实现序列化接口：Java.lang.Serializable 接口</strong></font>（一个标志接口，没有任何抽象方法），Java 中大多数类都实现了该接口，比如：<code>String</code>，<code>Integer</code>类等，不实现此接口的类将不会使任何状态序列化或反序列化，会抛<code>NotSerializableException</code>异常 。</p>
+<p>　　2、底层会判断，如果当前对象是 <code>Serializable</code> 的实例，才允许做序列化，Java对象 <code>instanceof Serializable</code> 来判断。</p>
+<p>　　3、<font color=red><strong>在 Java 中使用对象流<code>ObjectOutputStream</code>来完成序列化以及<code>ObjectInputStream</code>流反序列化</strong></font>　　　</p>
+<ol>
+<li><p>==ObjectOutputStream:通过 writeObject()方法做序列化操作==　</p></li>
+<li><p>==ObjectInputStream:通过 readObject() 方法做反序列化操作==</p></li>
+</ol>
+<p>4、该类的所有属性必须是可序列化的。如果有一个属性不需要可序列化的，则该属性必须注明是瞬态的，使用<code>transient</code> 关键字修饰。<br />
+<img src="./images/java中的transient关键字详解1.png" alt="在这里插入图片描述" /><br />
+由于字节嘛所以肯定要涉及流的操作，也就是对象流也叫序列化流ObjectOutputstream，下面进行多种情况分析序列化的操作代码！</p>
+<blockquote>
+<p>在这里，我真的强烈建议看宜春博客的读者朋友，请试着去敲，切记一眼带过或者复制过去运行就完事了，特别是小白童鞋，相信我！你一定会有不一样的收获。千万不要觉得浪费时间，有时候慢就是快，宜春亲身体会！</p>
+</blockquote>
+<h4 id="没有实现serializable接口进行序列化情况">3.1、没有实现Serializable接口进行序列化情况</h4>
+<pre><code><code>package TransientTest;
+import java.io.*;
+
+class UserInfo {  //================================注意这里没有实现Serializable接口
+    private String name;
+    private transient String password;
+
+    public UserInfo(String name,String psw) {
+        this.name = name;
+        this.password=psw;
+    }
+
+    @Override
+    public String toString() {
+        return &quot;UserInfo{&quot; +
+                &quot;name=&#39;&quot; + name + &#39;\&#39;&#39; +
+                &quot;, password=&#39;&quot; + password + &#39;\&#39;&#39; +
+                &#39;}&#39;;
+    }
+}
+
+public class TransientDemo {
+    public static void main(String[] args) {
+
+        UserInfo userInfo=new UserInfo(&quot;老王&quot;,&quot;123&quot;);
+        System.out.println(&quot;序列化之前信息：&quot;+userInfo);
+
+        try {
+            ObjectOutputStream output=new ObjectOutputStream(new FileOutputStream(&quot;userinfo.txt&quot;));
+            output.writeObject(new UserInfo(&quot;老王&quot;,&quot;123&quot;));
+            output.close();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+}</code></code></pre>
+<p>运行结果<br />
+<img src="./images/java中的transient关键字详解2.png" alt="在这里插入图片描述" /></p>
+<h4 id="实现serializable接口序列化情况">3.2、实现Serializable接口序列化情况</h4>
+<p>当我们加上实现Serializable接口再运行会发现，项目中出现的<code>userinfo.txt</code>文件内容是这样的:<br />
+<img src="./images/java中的transient关键字详解3.png" alt="在这里插入图片描述" /><br />
+其实这都不是重点，重点是序列化操作成功了！</p>
+<h4 id="普通序列化情况">3.3、普通序列化情况</h4>
+<pre><code><code>package TransientTest;
+import java.io.*;
+
+class UserInfo implements Serializable{  //第一步实现Serializable接口
+    private String name;
+    private String password;//都是普通属性==============================
+
+    public UserInfo(String name,String psw) {
+        this.name = name;
+        this.password=psw;
+    }
+
+    @Override
+    public String toString() {
+        return &quot;UserInfo{&quot; +
+                &quot;name=&#39;&quot; + name + &#39;\&#39;&#39; +
+                &quot;, password=&#39;&quot; + password + &#39;\&#39;&#39; +
+                &#39;}&#39;;
+    }
+}
+
+public class TransientDemo {
+    public static void main(String[] args) throws ClassNotFoundException {
+
+        UserInfo userInfo=new UserInfo(&quot;程序员老王&quot;,&quot;123&quot;);
+        System.out.println(&quot;序列化之前信息：&quot;+userInfo);
+
+        try {
+            ObjectOutputStream output=new ObjectOutputStream(new FileOutputStream(&quot;userinfo.txt&quot;)); //第二步开始序列化操作
+            output.writeObject(new UserInfo(&quot;程序员老王&quot;,&quot;123&quot;));
+            output.close();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+
+        try {
+            ObjectInputStream input=new ObjectInputStream(new FileInputStream(&quot;userinfo.txt&quot;));//第三步开始反序列化操作
+            Object o = input.readObject();//ObjectInputStream的readObject方法会抛出ClassNotFoundException
+            System.out.println(&quot;序列化之后信息：&quot;+o);
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+}</code></code></pre>
+<p>运行结果：</p>
+<pre><code><code>序列化之前信息：UserInfo{name=&#39;程序员老王&#39;, password=&#39;123&#39;}
+序列化之后信息：UserInfo{name=&#39;程序员老王&#39;, password=&#39;123&#39;}</code></code></pre>
+<h4 id="transient序列化情况">3.4、transient序列化情况</h4>
+<pre><code><code>package TransientTest;
+import java.io.*;
+
+class UserInfo implements Serializable{  //第一步实现Serializable接口
+    private String name;
+    private transient String password; //特别注意：属性由transient关键字修饰===========
+
+    public UserInfo(String name,String psw) {
+        this.name = name;
+        this.password=psw;
+    }
+
+    @Override
+    public String toString() {
+        return &quot;UserInfo{&quot; +
+                &quot;name=&#39;&quot; + name + &#39;\&#39;&#39; +
+                &quot;, password=&#39;&quot; + password + &#39;\&#39;&#39; +
+                &#39;}&#39;;
+    }
+}
+
+public class TransientDemo {
+    public static void main(String[] args) throws ClassNotFoundException {
+
+        UserInfo userInfo=new UserInfo(&quot;程序员老王&quot;,&quot;123&quot;);
+        System.out.println(&quot;序列化之前信息：&quot;+userInfo);
+
+        try {
+            ObjectOutputStream output=new ObjectOutputStream(new FileOutputStream(&quot;userinfo.txt&quot;)); //第二步开始序列化操作
+            output.writeObject(new UserInfo(&quot;程序员老王&quot;,&quot;123&quot;));
+            output.close();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+
+        try {
+            ObjectInputStream input=new ObjectInputStream(new FileInputStream(&quot;userinfo.txt&quot;));//第三步开始反序列化操作
+            Object o = input.readObject();//ObjectInputStream的readObject方法会抛出ClassNotFoundException
+            System.out.println(&quot;序列化之后信息：&quot;+o);
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+}</code></code></pre>
+<p>运行结果：</p>
+<pre><code><code>序列化之前信息：UserInfo{name=&#39;程序员老王&#39;, password=&#39;123&#39;}
+序列化之后信息：UserInfo{name=&#39;程序员老王&#39;, password=&#39;null&#39;}</code></code></pre>
+<p>特别注意结果，添加transient修饰的属性值为默认值<code>null</code>！如果被transient修饰的属性为int类型，那它被序列化之后值一定是0，当然各位可以去试试，这能说明什么呢？说明被标记为<code>transient</code>的属性在对象被序列化的时候不会被保存(或者说变量不会持久化)</p>
+<h4 id="static序列化情况">3.5、static序列化情况</h4>
+<pre><code><code>package TransientTest;
+import java.io.*;
+
+class UserInfo implements Serializable{  //第一步实现Serializable接口
+    private String name;
+    private static String password; //特别注意：属性由static关键字修饰==============
+
+    public UserInfo(String name, String psw) {
+        this.name = name;
+        this.password=psw;
+    }
+
+    @Override
+    public String toString() {
+        return &quot;UserInfo{&quot; +
+                &quot;name=&#39;&quot; + name + &#39;\&#39;&#39; +
+                &quot;, password=&#39;&quot; + password + &#39;\&#39;&#39; +
+                &#39;}&#39;;
+    }
+}
+
+public class TransientDemo {
+    public static void main(String[] args) throws ClassNotFoundException {
+
+        UserInfo userInfo=new UserInfo(&quot;程序员老王&quot;,&quot;123&quot;);
+        System.out.println(&quot;序列化之前信息：&quot;+userInfo);
+
+        try {
+            ObjectOutputStream output=new ObjectOutputStream(new FileOutputStream(&quot;userinfo.txt&quot;)); //第二步开始序列化操作
+            output.writeObject(new UserInfo(&quot;程序员老王&quot;,&quot;123&quot;));
+            output.close();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+
+        try {
+            ObjectInputStream input=new ObjectInputStream(new FileInputStream(&quot;userinfo.txt&quot;));//第三步开始反序列化操作
+            Object o = input.readObject();//ObjectInputStream的readObject方法会抛出ClassNotFoundException
+            System.out.println(&quot;序列化之后信息：&quot;+o);
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+}</code></code></pre>
+<p>运行结果：</p>
+<pre><code><code>序列化之前信息：UserInfo{name=&#39;程序员老王&#39;, password=&#39;123&#39;}
+序列化之后信息：UserInfo{name=&#39;程序员老王&#39;, password=&#39;123&#39;}</code></code></pre>
+<p>这个时候，你就会错误的认为static修饰的也被序列化了，其实不然，实际上这里很容易被搞晕！明明取出<code>null</code>（默认值）就可以说明不会被序列化，这里明明没有变成默认值，为何还要说<code>static</code>不会被序列化呢？</p>
+<p><font color=red> <strong>实际上，反序列化后类中static型变量name的值实际上是当前JVM中对应static变量的值，这个值是JVM中的并不是反序列化得出的。</strong></font>也就是说被static修饰的变量并没有参与序列化！但是咱也不能口说无凭啊，是的，那我们就来看两个程序对比一下就明白了！</p>
+<p>第一个程序：这是一个没有被static修饰的name属性程序：</p>
+<pre><code><code>package Thread;
+import java.io.FileInputStream;
+import java.io.FileOutputStream;
+import java.io.ObjectInputStream;
+import java.io.ObjectOutputStream;
+import java.io.Serializable;
+
+class UserInfo implements Serializable {
+    private String name;
+    private transient String psw;
+
+    public UserInfo(String name, String psw) {
+        this.name = name;
+        this.psw = psw;
+    }
+
+    public  String getName() {
+        return name;
+    }
+
+    public  void setName(String name) {
+        this.name = name;
+    }
+
+    public String getPsw() {
+        return psw;
+    }
+
+    public void setPsw(String psw) {
+        this.psw = psw;
+    }
+
+    public String toString() {
+        return &quot;name=&quot; + name + &quot;, psw=&quot; + psw;
+    }
+}
+public class TestTransient {
+    public static void main(String[] args) {
+        UserInfo userInfo = new UserInfo(&quot;程序员老过&quot;, &quot;456&quot;);
+        System.out.println(userInfo);
+        try {
+            // 序列化，被设置为transient的属性没有被序列化
+            ObjectOutputStream o = new ObjectOutputStream(new FileOutputStream(&quot;UserInfo.txt&quot;));
+            o.writeObject(userInfo);
+            o.close();
+        } catch (Exception e) {
+            // TODO: handle exception
+            e.printStackTrace();
+        }
+        try {
+            //在反序列化之前改变name的值 =================================注意这里的代码
+            userInfo.setName(&quot;程序员老改&quot;);
+            // 重新读取内容
+            ObjectInputStream in = new ObjectInputStream(new FileInputStream(&quot;UserInfo.txt&quot;));
+            UserInfo readUserInfo = (UserInfo) in.readObject();
+            //读取后psw的内容为null
+            System.out.println(readUserInfo.toString());
+        } catch (Exception e) {
+            // TODO: handle exception
+            e.printStackTrace();
+        }
+    }
+}</code></code></pre>
+<p>运行结果：</p>
+<pre><code><code>name=程序员老过, psw=456
+name=程序员老过, psw=null</code></code></pre>
+<p>从程序运行结果中可以看出，在反序列化之前试着改变name的值为程序员老改，结果是没有成功的！</p>
+<p>第二个程序：这是一个被static修饰的name属性程序：</p>
+<pre><code><code>package Thread;
+import java.io.FileInputStream;
+import java.io.FileOutputStream;
+import java.io.ObjectInputStream;
+import java.io.ObjectOutputStream;
+import java.io.Serializable;
+
+class UserInfo implements Serializable {
+    private static final long serialVersionUID = 996890129747019948L;
+    private static String name;
+    private transient String psw;
+
+    public UserInfo(String name, String psw) {
+        this.name = name;
+        this.psw = psw;
+    }
+
+    public  String getName() {
+        return name;
+    }
+
+    public  void setName(String name) {
+        this.name = name;
+    }
+
+    public String getPsw() {
+        return psw;
+    }
+
+    public void setPsw(String psw) {
+        this.psw = psw;
+    }
+
+    public String toString() {
+        return &quot;name=&quot; + name + &quot;, psw=&quot; + psw;
+    }
+}
+public class TestTransient {
+    public static void main(String[] args) {
+        UserInfo userInfo = new UserInfo(&quot;程序员老过&quot;, &quot;456&quot;);
+        System.out.println(userInfo);
+        try {
+            // 序列化，被设置为transient的属性没有被序列化
+            ObjectOutputStream o = new ObjectOutputStream(new FileOutputStream(&quot;UserInfo.txt&quot;));
+            o.writeObject(userInfo);
+            o.close();
+        } catch (Exception e) {
+            // TODO: handle exception
+            e.printStackTrace();
+        }
+        try {
+            //在反序列化之前改变name的值
+            userInfo.setName(&quot;程序员老改&quot;);
+            // 重新读取内容
+            ObjectInputStream in = new ObjectInputStream(new FileInputStream(&quot;UserInfo.txt&quot;));
+            UserInfo readUserInfo = (UserInfo) in.readObject();
+            //读取后psw的内容为null
+            System.out.println(readUserInfo.toString());
+        } catch (Exception e) {
+            // TODO: handle exception
+            e.printStackTrace();
+        }
+    }
+}</code></code></pre>
+<p>运行结果：</p>
+<pre><code><code>name=程序员老过, psw=456
+name=程序员老改, psw=null</code></code></pre>
+<p>从程序运行结果中可以看出，在反序列化之前试着改变name的值为程序员老改，结果是成功的！现在对比一下两个程序是不是就很清晰了？</p>
+<p>static关键字修饰的成员属性优于非静态成员属性加载到内存中，同时静态也优于对象进入到内存中，被static修饰的成员变量不能被序列化，序列化的都是对象，静态变量不是对象状态的一部分，因此它不参与序列化。所以将静态变量声明为transient变量是没有用处的。因此，反序列化后类中static型变量name的值实际上是当前JVM中对应static变量的值，这个值是JVM中的并不是反序列化得出的。</p>
+<p>如果对static关键字还是不太清楚理解的童鞋可以参考这篇文章，应该算是不错的：<a href="https://blog.csdn.net/qq_44543508/article/details/102736466">深入理解static关键字</a></p>
+<h4 id="final序列化情况">3.6、final序列化情况</h4>
+<p>对于final关键字来讲，final变量将直接通过值参与序列化，至于代码程序我就不再贴出来了，大家可以试着用final修饰验证一下！</p>
+<p>主要注意的是final 和transient可以同时修饰同一个变量，结果也是一样的，对transient没有影响，这里主要提一下，希望各位以后在开发中遇到这些情况不会满头雾水！</p>
+<h2 id="java类中serialversionuid作用">4、java类中serialVersionUID作用</h2>
+<p>既然提到了transient关键字就不得不提到序列化，既然提到了序列化，就不得不提到<code>serialVersionUID</code>了，它是啥呢？基本上有序列化就会存在这个serialVersionUID。<br />
+<img src="./images/java中的transient关键字详解4.png" alt="在这里插入图片描述" /><br />
+<code>serialVersionUID</code>适用于Java的序列化机制。简单来说，Java的序列化机制是通过判断类的<code>serialVersionUID</code>来验证版本一致性的。在进行反序列化时，JVM会把传来的字节流中的<code>serialVersionUID</code>与本地相应实体类的<code>serialVersionUID</code>进行比较，如果相同就认为是一致的，可以进行反序列化，否则就会出现序列化版本不一致的异常，即是<code>InvalidCastException</code>，在开发中有时候可写可不写，建议最好还是写上比较好。</p>
+<h2 id="transient关键字小结">5、transient关键字小结</h2>
+<blockquote>
+<p>1、变量被transient修饰，变量将不会被序列化<br />
+2、transient关键字只能修饰变量，而不能修饰方法和类。<br />
+3、被static关键字修饰的变量不参与序列化，一个静态static变量不管是否被transient修饰，均不能被序列化。<br />
+4、final变量值参与序列化，final transient同时修饰变量，final不会影响transient，一样不会参与序列化</p>
+</blockquote>
+<p>第二点需要注意的是：本地变量是不能被transient关键字修饰的。变量如果是用户自定义类变量，则该类需要实现Serializable接口</p>
+<p>第三点需要注意的是：反序列化后类中static型变量的值实际上是当前JVM中对应static变量的值，这个值是JVM中的并不是反序列化得出的。</p>
+<p><strong>结语：</strong><font color=red><strong>被transient关键字修饰导致不被序列化，其优点是可以节省存储空间。优化程序！随之而来的是会导致被transient修饰的字段会重新计算，初始化！</strong></font></p>
+<p><strong>如果本文对你有一点点帮助，那么请点个赞呗，谢谢~</strong></p>
+<blockquote>
+<p><strong>若有不足或者不正之处，欢迎指正批评，感激不尽！如果有疑问欢迎留言，绝对第一时间回复！</strong></p>
+</blockquote>
+<p>最后，欢迎各位关注宜春的公众号，一起探讨技术，向往技术，追求技术，说好了来了就是盆友喔...</p>
+<p><img src="./images/java中的transient关键字详解5.png" alt="在这里插入图片描述" /><br />
+　　</p>
+
+</div><hr><script charset='utf-8' src='../../js/sming.js'></script></body></html>

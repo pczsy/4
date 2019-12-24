@@ -1,0 +1,310 @@
+<html><head><meta charset='utf-8'><meta name='viewport' content='width=device-width, initial-scale=1'>
+<meta name='applicable-device' content='pc'><meta name='keywords' content='电脑,电脑讲解,电脑技术,编程,电脑故障维修[springboot 开发单体web shop] 4. Swagger生成Javadoc' />
+<script src='../../highlight/highlight.pack.js'></script>
+<link rel='stylesheet' type='text/css' href='../../highlight/styles/monokai.css'/>
+
+<link rel='stylesheet' href='../../fenxiang/dist/css/share.min.css'>
+<script src='../../fenxiang/src/js/social-share.js'></script>
+<script src='../../fenxiang/src/js/qrcode.js'></script>
+
+</head><body><script>hljs.initHighlightingOnLoad();</script><script>
+var system ={};  
+var p = navigator.platform;       
+system.win = p.indexOf('Win') == 0;  
+system.mac = p.indexOf('Mac') == 0;  
+system.x11 = (p == 'X11') || (p.indexOf('Linux') == 0);     
+if(system.win||system.mac||system.xll){
+document.write("<link href='../css/3.css' rel='stylesheet' type='text/css'>");}else{ document.write("<link href='../css/3wap.css' rel='stylesheet' type='text/css'>");}</script><script src='../../js/3.js'></script><div class='div2'><div class='heading_nav'><ul><div><li><a href='../../index.html'>首页</a></li>
+</div><div onclick='hidden1()' >分享</div>
+</ul></div></div>
+<div id='heading_nav2'> 
+<li class='row' >
+<div class='social-share' data-mode='prepend'><a href='javascript:' class='social-share-icon icon-heart'></a></div></li></div><script charset='utf-8' src='../../3/js/hengfu.js'></script><script charset='utf-8' src='../../3/js/hengfu2.js'></script><hr><div class='div1'><div class='biaoti'><center>[springboot 开发单体web shop] 4. Swagger生成Javadoc</center></div><div class='banquan'>原文出处:本文由博客园博主IsaacZhang提供。<br/>
+原文连接:https://www.cnblogs.com/zhangpan1244/p/11817436.html</div><br>
+    <src class="toc">
+    <p class="toc-title">目录</p>
+    <src class="toc-list">
+        <ul>
+        <li><a href="#swagger生成javadoc">Swagger生成JavaDoc</a><ul>
+        <li><a href="#什么是swagger">什么是Swagger</a></li>
+        <li><a href="#集成swagger">集成Swagger</a><ul>
+        <li><a href="#添加依赖">添加依赖</a></li>
+        <li><a href="#启用功能">启用功能</a></li>
+        <li><a href="#配置基础信息">配置基础信息</a></li>
+        <li><a href="#阶段效果一">阶段效果一</a></li>
+        <li><a href="#完善说明信息">完善说明信息</a></li>
+        </ul></li>
+        <li><a href="#集成更好用的ui界面">集成更好用的UI界面</a><ul>
+        <li><a href="#集成依赖">集成依赖</a></li>
+        <li><a href="#预览效果">预览效果</a></li>
+        </ul></li>
+        <li><a href="#生成离线文档">生成离线文档</a><ul>
+        <li><a href="#开源项目swagger2markup">开源项目swagger2markup</a></li>
+        <li><a href="#使用maven插件生成asciidoc文档">使用MAVEN插件生成AsciiDoc文档</a></li>
+        <li><a href="#使用maven插件生成html">使用MAVEN插件生成HTML</a></li>
+        </ul></li>
+        <li><a href="#下节预告">下节预告</a></li>
+        </ul></li>
+        </ul>
+    
+
+<h1 id="swagger生成javadoc">Swagger生成JavaDoc</h1>
+<hr />
+<p>在日常的工作中，特别是现在前后端分离模式之下，接口的提供造成了我们前后端开发人员的沟通<br />
+成本大量提升，因为沟通不到位，不及时而造成的[撕币]事件都成了日常工作。特别是很多的开发人员<br />
+不擅长沟通，造成的结果就会让自己特别的痛苦，也让合作人员<code>恨</code>的牙根痒痒。<br />
+为了结束战火蔓延，同时为了提升开发人员的满意度，<code>Swagger</code>应运而生。</p>
+<h2 id="什么是swagger">什么是Swagger</h2>
+<hr />
+<blockquote>
+<p>Swagger for Everyone<br />
+Simplify API development for users, teams, and enterprises with the Swagger open source and professional toolset.<br />
+Swagger open source and pro tools have helped millions of API developers, teams, and organizations deliver great APIs.</p>
+</blockquote>
+<p>简言之就是指使用工具集简化用户、团队和企业的API开发。</p>
+<ul>
+<li><a href="https://swagger.io/">官方传送门</a><br />
+</li>
+<li><a href="https://github.com/swagger-api">源码传送门</a></li>
+<li><a href="https://github.com/swagger-api/swagger-ui">Swagger-UI传送门</a></li>
+<li><a href="https://github.com/SpringForAll/spring-boot-starter-swagger">扩展组件swagger-spring-boot-starter传送门</a></li>
+<li><a href="https://github.com/xiaoymin/swagger-bootstrap-ui">扩展UI组件swagger-bootstrap-ui传送门</a></li>
+</ul>
+<h2 id="集成swagger">集成Swagger</h2>
+<hr />
+<p>系统中我选择使用的是<code>swagger-spring-boot-starter</code>。</p>
+<blockquote>
+<p>该项目主要利用Spring Boot的自动化配置特性来实现快速的将swagger2引入spring boot应用来生成API文档，简化原生使用swagger2的整合代码。<br />
+看得出来，我在教大家使用的都是在偷懒哦，这可不是什么好现象。。。</p>
+</blockquote>
+<h3 id="添加依赖">添加依赖</h3>
+<pre><code><code>        &lt;!--整合Swagger2--&gt;
+        &lt;dependency&gt;
+            &lt;groupId&gt;com.spring4all&lt;/groupId&gt;
+            &lt;artifactId&gt;swagger-spring-boot-starter&lt;/artifactId&gt;
+            &lt;version&gt;1.9.0.RELEASE&lt;/version&gt;
+        &lt;/dependency&gt;</code></code></pre>
+<p>点击版本号进入<code>swagger-spring-boot-starter/1.9.0.RELEASE/swagger-spring-boot-starter-1.9.0.RELEASE.pom</code>，可以看到它依赖的版本信息。</p>
+<pre><code><code>    &lt;properties&gt;
+        &lt;project.build.sourceEncoding&gt;UTF-8&lt;/project.build.sourceEncoding&gt;
+        &lt;version.java&gt;1.8&lt;/version.java&gt;
+        &lt;version.swagger&gt;2.9.2&lt;/version.swagger&gt;
+        &lt;version.spring-boot&gt;1.5.10.RELEASE&lt;/version.spring-boot&gt;
+        &lt;version.lombok&gt;1.18.6&lt;/version.lombok&gt;
+    &lt;/properties&gt;</code></code></pre>
+<h3 id="启用功能">启用功能</h3>
+<p>在我们的启动类<code>ApiApplication</code>上增加@EnableSwagger2Doc注解</p>
+<pre class="java"><code>@SpringBootApplication
+@MapperScan(basePackages = &quot;com.liferunner.mapper&quot;)
+@ComponentScan(basePackages = {&quot;com.liferunner&quot;, &quot;org.n3r.idworker&quot;})
+@EnableSwagger2Doc //启动Swagger
+public class ApiApplication {
+
+    public static void main(String[] args) {
+        new SpringApplicationBuilder()
+                .sources(ApiApplication.class)
+                .run(args);
+    }
+
+    @Autowired
+    private CORSConfig corsConfig;
+
+    /**
+     * 注册跨域配置信息
+     *
+     * @return {@link CorsFilter}
+     */
+    @Bean
+    public CorsFilter corsFilter() {
+        val corsConfiguration = new CorsConfiguration();
+        corsConfiguration.addAllowedOrigin(this.corsConfig.getAllowOrigin());
+        corsConfiguration.addAllowedMethod(this.corsConfig.getAllowedMethod());
+        corsConfiguration.addAllowedHeader(this.corsConfig.getAllowedHeader());
+        corsConfiguration.setAllowCredentials(this.corsConfig.getAllowCredentials());
+
+        val urlBasedCorsConfigurationSource = new UrlBasedCorsConfigurationSource();
+        urlBasedCorsConfigurationSource.registerCorsConfiguration(&quot;/**&quot;, corsConfiguration);
+
+        return new CorsFilter(urlBasedCorsConfigurationSource);
+    }
+}</code></code></pre>
+<h3 id="配置基础信息">配置基础信息</h3>
+<p>可以通过<code>properties</code>文件和<code>yml/yaml</code>文件配置。</p>
+<pre class="yaml"><code># 配置swagger2
+swagger:
+  enabled: true #是否启用swagger，默认：true
+  title: 实战电商api平台
+  description: provide 电商 API
+  version: 1.0.0.RC
+  license: Apache License, Version 2.0
+  license-url: https://www.apache.org/licenses/LICENSE-2.0.html
+  terms-of-service-url: http://www.life-runner.com
+  contact:
+    email: magicianisaac@gmail.com
+    name: Isaac-Zhang
+    url: http://www.life-runner.com
+  base-package: com.liferunner
+  base-path: /**</code></code></pre>
+<h3 id="阶段效果一">阶段效果一</h3>
+<p>运行我们的api项目，在浏览器输入：<code>http://localhost:8088/swagger-ui.html</code>,可以看到如下：<br />
+<img src="./images/[springboot 开发单体web shop] 4. Swagger生成Javadoc0.png" alt="阶段效果1" /><br />
+可以看到，我们在<code>yml</code>文件中配置的信息，展示在了页面的顶部，点击<code>用户管理</code>:<br />
+<img src="./images/[springboot 开发单体web shop] 4. Swagger生成Javadoc1.png" alt="用户管理" /><br />
+从上图可以看出，我们的<code>/users/create</code>接口展出出来，并且要传入的参数，请求类型等等信息都已经展示在上图中。<br />
+但是，要传递的参数是什么意思，都是我们的字段信息，我们要如何让它更友好的展示给调用方呢？让我们继续<br />
+完善我们的文档信息：</p>
+<h3 id="完善说明信息">完善说明信息</h3>
+<p>在我们创建用户的时候，需要传递一个<code>com.liferunner.dto.UserRequestDTO</code>对象，这个对象的属性如下：</p>
+<pre class="java"><code>@RestController
+@RequestMapping(value = &quot;/users&quot;)
+@Slf4j
+@Api(tags = &quot;用户管理&quot;)
+public class UserController {
+
+    @Autowired
+    private IUserService userService;
+
+    @ApiOperation(value = &quot;用户详情&quot;, notes = &quot;查询用户&quot;)
+    @ApiIgnore
+    @GetMapping(&quot;/get/{id}&quot;)
+    //@GetMapping(&quot;/{id}&quot;) 如果这里设置位这样，每次请求swagger都会进到这里，是一个bug
+    public String getUser(@PathVariable Integer id) {
+        return &quot;hello, life.&quot;;
+    }
+
+    @ApiOperation(value = &quot;创建用户&quot;, notes = &quot;用户注册接口&quot;)
+    @PostMapping(&quot;/create&quot;)
+    public JsonResponse createUser(@RequestBody UserRequestDTO userRequestDTO) {
+        //...
+    }
+}</code></code></pre>
+<hr />
+<pre class="java"><code>@Data
+@AllArgsConstructor
+@NoArgsConstructor
+@Builder
+@ApiModel(value = &quot;创建用户DTO&quot;, description = &quot;用户注册需要的参数对象&quot;)
+public class UserRequestDTO {
+    @ApiModelProperty(value = &quot;用户名&quot;, notes = &quot;username&quot;, example = &quot;isaaczhang&quot;, required = true)
+    private String username;
+    @ApiModelProperty(value = &quot;注册密码&quot;, notes = &quot;password&quot;, example = &quot;12345678&quot;, required = true)
+    private String password;
+    @ApiModelProperty(value = &quot;确认密码&quot;, notes = &quot;confimPassword&quot;, example = &quot;12345678&quot;, required = true)
+    private String confirmPassword;
+}</code></code></pre>
+<p>可以看到，我们有很多通过<code>@Apixxx</code>开头的注解说明，这个就是Swagger提供给我们用以说明字段和文档说明的注解。</p>
+<ul>
+<li><code>@Api</code> 表示对外提供API</li>
+<li><code>@ApiIgnore</code> 表示不对外展示，可用于类和方法</li>
+<li><code>@ApiOperation</code> 就是指的某一个API下面的CURD动作</li>
+<li><code>@ApiResponses</code> 描述操作可能出现的异常情况</li>
+<li><code>@ApiParam</code> 描述传递的单参数信息</li>
+<li><code>@ApiModel</code> 用来描述java object的属性说明</li>
+<li><code>@ApiModelProperty</code> 描述object 字段说明<br />
+所有的使用，都可以进入到相关的注解的具体class去查看所有的属性信息，都比较简单，这里就不做具体描述了。想要查看更多的属性说明，<br />
+大家可以进入：<a href="http://docs.swagger.io/swagger-core/apidocs/index.html">Swagger属性说明传送门</a>。</li>
+</ul>
+<p>配置完之后，重启应用，刷新UI页面：<br />
+<img src="./images/[springboot 开发单体web shop] 4. Swagger生成Javadoc2.png" alt="阶段效果二" /><br />
+上图中红框圈定的都是我们重新配置的说明信息，足够简单明了吧～</p>
+<h2 id="集成更好用的ui界面">集成更好用的UI界面</h2>
+<p>针对于API说明来说，我们上述的信息已经足够优秀了，可是做技术，我们应该追求的是更加极致的地步，上述的UI界面在我们提供大批量<br />
+用户接口的时候，友好型就有那么一丢丢的欠缺了，现在给大家再介绍一款更好用的开源<code>Swagger UI</code>，有请<a href="https://github.com/xiaoymin/swagger-bootstrap-ui">swagger-bootstrap-ui</a>。<br />
+<img src="./images/[springboot 开发单体web shop] 4. Swagger生成Javadoc3.png" alt="UI2" /><br />
+我们从上图可以看到，这个UI的Star数目已经超过1.1K了，这就证明它已经很优秀了，我们接下来解开它的庐山真面目吧。</p>
+<h3 id="集成依赖">集成依赖</h3>
+<p>只需要在我们的<code>expensive-shop\pom.xml</code>中加入以下依赖代码：</p>
+<pre><code><code>        &lt;!--一种新的swagger ui--&gt;
+        &lt;dependency&gt;
+            &lt;groupId&gt;com.github.xiaoymin&lt;/groupId&gt;
+            &lt;artifactId&gt;swagger-bootstrap-ui&lt;/artifactId&gt;
+            &lt;version&gt;1.6&lt;/version&gt;
+        &lt;/dependency&gt;</code></code></pre>
+<h3 id="预览效果">预览效果</h3>
+<p>添加完依赖后，只需要重启我们的应用，然后访问<code>http://localhost:8088/doc.html</code>,效果如下：<br />
+<img src="./images/[springboot 开发单体web shop] 4. Swagger生成Javadoc4.png" alt="阶段效果3" /><br />
+点击创建用户：<br />
+<img src="./images/[springboot 开发单体web shop] 4. Swagger生成Javadoc5.png" alt="阶段效果4" /><br />
+上述的效果是不是更符合我们的审美了～<br />
+到此为止，我们使用<code>Swagger</code>来动态生成API的效果已经全部演示完了，但是如果某一天我们要和一个不能连接查看我们网站的客户进行集成的时候，我们怎么办呢？<br />
+还是要手写一份文档给他们吗？ 那我们不就一样很痛苦吗！！！<br />
+作为程序员，我们是绝对不能允许这种情况发生的！<br />
+那就让我们继续看下去。</p>
+<h2 id="生成离线文档">生成离线文档</h2>
+<p>为了不让我们做痛苦的工作，我们既然已经在代码中添加了那么多的说明信息，是否有一种方式可以帮助我们来生成一份离线的文档呢？答案是肯定的。</p>
+<h3 id="开源项目swagger2markup">开源项目swagger2markup</h3>
+<blockquote>
+<p>A Swagger to AsciiDoc or Markdown converter to simplify the generation of an up-to-date RESTful API documentation by combining documentation that’s been hand-written with auto-generated API documentation.</p>
+</blockquote>
+<p><a href="https://github.com/Swagger2Markup/swagger2markup">源码传送门</a><br />
+<a href="http://swagger2markup.github.io/swagger2markup/1.3.3/">documents传送门</a></p>
+<blockquote>
+<p>Swagger2Markup它主要是用来将Swagger自动生成的文档转换成几种流行的格式以便离线使用<br />
+格式：AsciiDoc、HTML、Markdown、Confluence</p>
+</blockquote>
+<h3 id="使用maven插件生成asciidoc文档">使用MAVEN插件生成AsciiDoc文档</h3>
+<p>在<code>mscx-shop-api\pom.xml</code>中加入以下依赖代码：</p>
+<pre><code><code>&lt;build&gt;
+        &lt;plugins&gt;
+            &lt;!--生成 AsciiDoc 文档(swagger2markup)--&gt;
+            &lt;plugin&gt;
+                &lt;groupId&gt;io.github.swagger2markup&lt;/groupId&gt;
+                &lt;artifactId&gt;swagger2markup-maven-plugin&lt;/artifactId&gt;
+                &lt;version&gt;1.3.3&lt;/version&gt;
+                &lt;configuration&gt;
+                    &lt;!--这里是要启动我们的项目，然后抓取api-docs的返回结果--&gt;
+                    &lt;swaggerInput&gt;http://localhost:8088/v2/api-docs&lt;/swaggerInput&gt;
+                    &lt;outputDir&gt;src/docs/asciidoc/generated-doc&lt;/outputDir&gt;
+                    &lt;config&gt;
+                        &lt;swagger2markup.markupLanguage&gt;ASCIIDOC&lt;/swagger2markup.markupLanguage&gt;
+                    &lt;/config&gt;
+                &lt;/configuration&gt;
+            &lt;/plugin&gt;
+        &lt;/plugins&gt;
+    &lt;/build&gt;</code></code></pre>
+<ul>
+<li><code>&lt;swaggerInput&gt;http://localhost:8088/v2/api-docs&lt;/swaggerInput&gt;</code> 是为了获取我们的<code>api JSON</code>数据，如下图：<br />
+<img src="./images/[springboot 开发单体web shop] 4. Swagger生成Javadoc6.png" alt="API-JSON" /></li>
+<li><code>&lt;outputDir&gt;src/docs/asciidoc/generated-doc&lt;/outputDir&gt;</code> 设置我们要生成的目录地址</li>
+</ul>
+<p>执行命令:</p>
+<pre class="shell"><code>expensive-shop\mscx-shop-api&gt;mvn swagger2markup:convertSwagger2markup</code></code></pre>
+<p>要是大家觉得命令太长了，也可以点击<code>IDEA =&gt; Maven =&gt; mscx-shop-api =&gt; Plugins =&gt; swagger2markup =&gt; swagger2markup:convertSwagger2markup</code>就可以执行啦，如下图：<br />
+<img src="./images/[springboot 开发单体web shop] 4. Swagger生成Javadoc7.png" alt="swagger2markup" /><br />
+生成结果如下：<br />
+<img src="./images/[springboot 开发单体web shop] 4. Swagger生成Javadoc8.png" alt="asciidoc" /><br />
+adoc文件生成好了，那么我们使用它来生成html吧</p>
+<h3 id="使用maven插件生成html">使用MAVEN插件生成HTML</h3>
+<p>在<code>mscx-shop-api\pom.xml</code>中加入以下依赖代码：</p>
+<pre><code><code>            &lt;!--生成 HTML 文档--&gt;
+            &lt;plugin&gt;
+                &lt;groupId&gt;org.asciidoctor&lt;/groupId&gt;
+                &lt;artifactId&gt;asciidoctor-maven-plugin&lt;/artifactId&gt;
+                &lt;version&gt;1.5.6&lt;/version&gt;
+                &lt;configuration&gt;
+                    &lt;sourceDirectory&gt;src/docs/asciidoc/generated-doc&lt;/sourceDirectory&gt;
+                    &lt;outputDirectory&gt;src/docs/asciidoc/html&lt;/outputDirectory&gt;
+                    &lt;backend&gt;html&lt;/backend&gt;
+                    &lt;sourceHighlighter&gt;coderay&lt;/sourceHighlighter&gt;
+                    &lt;attributes&gt;
+                        &lt;toc&gt;left&lt;/toc&gt;
+                    &lt;/attributes&gt;
+                &lt;/configuration&gt;
+            &lt;/plugin&gt;</code></code></pre>
+<ul>
+<li><code>&lt;sourceDirectory&gt;src/docs/asciidoc/generated-doc&lt;/sourceDirectory&gt;</code> 源文件目录指定为我们上一节生成的adoc</li>
+<li><code>&lt;outputDirectory&gt;src/docs/asciidoc/html&lt;/outputDirectory&gt;</code> 指定输出目录</li>
+</ul>
+<p>执行生成命令：</p>
+<pre class="shell"><code>\expensive-shop\mscx-shop-api&gt;mvn asciidoctor:process-asciidoc</code></code></pre>
+<p>生成结果如下：<br />
+<img src="./images/[springboot 开发单体web shop] 4. Swagger生成Javadoc9.png" alt="result html" /><br />
+打开<code>overview.html</code>,如下：<br />
+<img src="./images/[springboot 开发单体web shop] 4. Swagger生成Javadoc10.png" alt="html" /></p>
+<p>至此，我们的文档就已经全部生成了！</p>
+<h2 id="下节预告">下节预告</h2>
+<hr />
+<p>下一节我们将继续开发我们的用户登录以及首页信息的部分展示，在过程中使用到的任何开发组件，我都会通过专门的一节来进行介绍的，兄弟们末慌！</p>
+<p>gogogo！</p>
+
+</div><hr><script charset='utf-8' src='../../js/sming.js'></script></body></html>

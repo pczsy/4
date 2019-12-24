@@ -1,0 +1,143 @@
+<html><head><meta charset='utf-8'><meta name='viewport' content='width=device-width, initial-scale=1'>
+<meta name='applicable-device' content='pc'><meta name='keywords' content='电脑,电脑讲解,电脑技术,编程,电脑故障维修这些Mysql常用命令你是否还记得？' />
+<script src='../../highlight/highlight.pack.js'></script>
+<link rel='stylesheet' type='text/css' href='../../highlight/styles/monokai.css'/>
+
+<link rel='stylesheet' href='../../fenxiang/dist/css/share.min.css'>
+<script src='../../fenxiang/src/js/social-share.js'></script>
+<script src='../../fenxiang/src/js/qrcode.js'></script>
+
+</head><body><script>hljs.initHighlightingOnLoad();</script><script>
+var system ={};  
+var p = navigator.platform;       
+system.win = p.indexOf('Win') == 0;  
+system.mac = p.indexOf('Mac') == 0;  
+system.x11 = (p == 'X11') || (p.indexOf('Linux') == 0);     
+if(system.win||system.mac||system.xll){
+document.write("<link href='../css/3.css' rel='stylesheet' type='text/css'>");}else{ document.write("<link href='../css/3wap.css' rel='stylesheet' type='text/css'>");}</script><script src='../../js/3.js'></script><div class='div2'><div class='heading_nav'><ul><div><li><a href='../../index.html'>首页</a></li>
+</div><div onclick='hidden1()' >分享</div>
+</ul></div></div>
+<div id='heading_nav2'> 
+<li class='row' >
+<div class='social-share' data-mode='prepend'><a href='javascript:' class='social-share-icon icon-heart'></a></div></li></div><script charset='utf-8' src='../../3/js/hengfu.js'></script><script charset='utf-8' src='../../3/js/hengfu2.js'></script><hr><div class='div1'><div class='biaoti'><center>这些Mysql常用命令你是否还记得？</center></div><div class='banquan'>原文出处:本文由博客园博主独行侠梦提供。<br/>
+原文连接:https://www.cnblogs.com/hyq0823/p/11588188.html</div><br>
+    <h5 id="前言">前言</h5>
+<p>记录mysql常用命令操作</p>
+<h5 id="基础操作">基础操作</h5>
+<ul>
+<li>命令行登录mysql</li>
+</ul>
+<pre><code><code> mysql -u用户名 -p用户密码</code></code></pre>
+<ul>
+<li>为表增加创建时间和更新时间</li>
+</ul>
+<pre><code><code>ALTER TABLE order_info_tbl ADD COLUMN create_time TIMESTAMP DEFAULT CURRENT_TIMESTAMP COMMENT &#39;创建时间&#39;;
+
+ALTER TABLE order_info_tbl ADD COLUMN update_time TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT &#39;更新时间&#39;
+</code></code></pre>
+<h6 id="修改密码">修改密码</h6>
+<ul>
+<li>普通</li>
+</ul>
+<pre><code><code>update user set password=password(&quot;root1234&quot;) where user=&quot;root&quot;;</code></code></pre>
+<ul>
+<li>带插件</li>
+</ul>
+<pre><code><code>ALTER USER &#39;root&#39;@&#39;%&#39; IDENTIFIED WITH mysql_native_password BY &#39;&#39;root;
+</code></code></pre>
+<h5 id="表分区">表分区</h5>
+<ul>
+<li>数据按照31个省份分区</li>
+</ul>
+<pre><code><code>ALTER TABLE tache_stat_tbl_20190120 PARTITION BY HASH(province) PARTITIONS 31</code></code></pre>
+<h5 id="表索引执行计划">表、索引、执行计划</h5>
+<ul>
+<li>表空间的情况查看(指定数据库)</li>
+</ul>
+<pre><code><code>select TABLE_NAME, concat(truncate(data_length/1024/1024,2),&#39; MB&#39;) as data_size,
+concat(truncate(index_length/1024/1024,2),&#39; MB&#39;) as index_size
+from information_schema.tables
+# where TABLE_SCHEMA = &#39;yourdb&#39;
+group by TABLE_NAME
+order by data_length desc;</code></code></pre>
+<ul>
+<li>索引的建立</li>
+</ul>
+<p>尽量避免廉价的建立索引，可以先根据数据区分度来判断，是否有必要建立索引。</p>
+<pre><code><code>select count(distinct 将要建立索引的字段) / count(*)</code></code></pre>
+<ul>
+<li>执行计划的extra的几种类型解读</li>
+</ul>
+<p>Using index<br />
+表示使用了覆盖索引（Covering Index）</p>
+<p>Using where<br />
+Using where的作用提示了用where来过滤结果集。</p>
+<p>Using temporary<br />
+说明MySQL需要使用临时表来存储结果集，常见于排序和分组查询</p>
+<p>Using filesort<br />
+MySQL中无法利用索引完成的排序操作称为“文件排序”</p>
+<h5 id="常用维护操作">常用维护操作</h5>
+<ul>
+<li>查询执行时间超过2分钟的线程，然后拼接成 kill 语句</li>
+</ul>
+<pre><code><code>select concat(&#39;kill &#39;, id, &#39;;&#39;) from information_schema.processlist where command != &#39;Sleep&#39; and time &gt; 2*60 order by time desc </code></code></pre>
+<ul>
+<li>为用户授予所有权限</li>
+</ul>
+<pre><code><code>GRANT ALL PRIVILEGES ON *.* TO &#39;YourUserName&#39;@&#39;%&#39; IDENTIFIED BY &quot;YourPassword&quot;;</code></code></pre>
+<h5 id="数据导入导出">数据导入导出</h5>
+<ul>
+<li>导出包括系统库在内的所有数据库数据</li>
+</ul>
+<pre><code><code>mysqldump -uroot -proot --all-databases &gt;/all.sql</code></code></pre>
+<ul>
+<li>只导出表结构，不导出数据</li>
+</ul>
+<pre><code><code>mysqldump -uroot -proot --no-data --databases db1 &gt; /table_with_no_data.sql</code></code></pre>
+<ul>
+<li>跨服务器导出导入数据,目标数据库必须存在，否则会报错</li>
+</ul>
+<pre><code><code>mysqldump --host=h1 -uroot -proot --databases db1 |mysql --host=h2 -uroot -proot db2</code></code></pre>
+<ul>
+<li>导出数据时报mysql.sock错的几种解决方案</li>
+</ul>
+<p>默认情况下，连接协议为socket，如遇到下述错误，可以尝试更换协议。</p>
+<pre><code><code>mysqldump: Got error: 2002: &quot;Can&#39;t connect to local MySQL server through socket 
+&#39;/var/lib/mysql/mysql.sock&#39;</code></code></pre>
+<p>方案一：重启数据库会重新创建mysql.sock。<br />
+方案二：若暂时无法重启数据库，可以通过TCP协议连接数据库。<br />
+--protocol=name     The protocol to use for connection (tcp, socket, pipe,memory).<br />
+样例语句：</p>
+<pre><code><code>mysqldump -h127.0.0.1  -uroot -proot --protocol=TCP --database db1 
+--tables  conf_area_tbl  conf_app_tbl &gt; 1.sql</code></code></pre>
+<ul>
+<li>导出存储过程和自定义函数</li>
+</ul>
+<pre><code><code>mysqldump  -uroot -p --host=localhost --all-databases --routines</code></code></pre>
+<ul>
+<li>终端执行sql，将结果输出到文件</li>
+</ul>
+<pre><code><code>mysql -uroot -e &#39;select * from cb_mon.t_book limit 10&#39; &gt; mytest.txt</code></code></pre>
+<ul>
+<li>使用存储过程批量生成数据</li>
+</ul>
+<pre><code><code>DROP PROCEDURE if exists test_insert ;
+DELIMITER ;;
+CREATE PROCEDURE test_insert ()
+BEGIN
+
+DECLARE i INT DEFAULT 1;# can not be 0
+WHILE i&lt;1000
+DO
+
+insert into SS_BOOK values (i, CONCAT(&quot;00000&quot;,i) , CONCAT(&#39;book&#39;,i), 1, CONCAT(&#39;book_description&#39;,i));
+
+SET i=i+1;
+END WHILE ;
+commit;
+END;;
+CALL test_insert();
+</code></code></pre>
+
+
+</div><hr><script charset='utf-8' src='../../js/sming.js'></script></body></html>

@@ -1,0 +1,337 @@
+<html><head><meta charset='utf-8'><meta name='viewport' content='width=device-width, initial-scale=1'>
+<meta name='applicable-device' content='pc'><meta name='keywords' content='电脑,电脑讲解,电脑技术,编程,电脑故障维修自己动手撸一个LinkedList' />
+<script src='../../highlight/highlight.pack.js'></script>
+<link rel='stylesheet' type='text/css' href='../../highlight/styles/monokai.css'/>
+
+<link rel='stylesheet' href='../../fenxiang/dist/css/share.min.css'>
+<script src='../../fenxiang/src/js/social-share.js'></script>
+<script src='../../fenxiang/src/js/qrcode.js'></script>
+
+</head><body><script>hljs.initHighlightingOnLoad();</script><script>
+var system ={};  
+var p = navigator.platform;       
+system.win = p.indexOf('Win') == 0;  
+system.mac = p.indexOf('Mac') == 0;  
+system.x11 = (p == 'X11') || (p.indexOf('Linux') == 0);     
+if(system.win||system.mac||system.xll){
+document.write("<link href='../css/3.css' rel='stylesheet' type='text/css'>");}else{ document.write("<link href='../css/3wap.css' rel='stylesheet' type='text/css'>");}</script><script src='../../js/3.js'></script><div class='div2'><div class='heading_nav'><ul><div><li><a href='../../index.html'>首页</a></li>
+</div><div onclick='hidden1()' >分享</div>
+</ul></div></div>
+<div id='heading_nav2'> 
+<li class='row' >
+<div class='social-share' data-mode='prepend'><a href='javascript:' class='social-share-icon icon-heart'></a></div></li></div><script charset='utf-8' src='../../3/js/hengfu.js'></script><script charset='utf-8' src='../../3/js/hengfu2.js'></script><hr><div class='div1'><div class='biaoti'><center>自己动手撸一个LinkedList</center></div><div class='banquan'>原文出处:本文由博客园博主街角de男孩提供。<br/>
+原文连接:https://www.cnblogs.com/q964024886/p/11694670.html</div><br>
+    <h2 class="md-end-block md-heading"><span class="md-plain md-expand">自己动手撸一个LinkedList</span></h2>
+<h4 class="md-end-block md-heading"><span class="md-plain">1. 原理</span></h4>
+<p class="md-end-block md-p"><span class="md-tab"> <span class="md-plain">LinkedList是基于双链表的动态数组，数据添加删除效率高，只需要改变指针指向即可，但是访问数据的平均效率低，需要对链表进行遍历。因此，LinkedList善于进行一些插入、删除操作，不利于进行检索操作。LinkedList和ArrayList这两个list在我们代码里会经常用到，因此，小编自定义实现LinkedList的简易版--MyLinkedList。</span></span></p>
+<h4 class="md-end-block md-heading"><span class="md-plain">2. public API</span></h4>
+<blockquote>
+<pre><code><span><span class="cm-variable-3">void <span class="cm-def">clear() &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; <span class="cm-operator">--&gt; <span class="cm-variable">置空<br /><span><span class="cm-variable-3">boolean <span class="cm-def">isEmpty() &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;<span class="cm-operator">--&gt; <span class="cm-variable">判空<br /><span><span class="cm-variable-3">int <span class="cm-def">size() &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; <span class="cm-operator">--&gt; <span class="cm-variable">返回链表的长度<br /><span><span class="cm-variable">AnyType <span class="cm-def">get(<span class="cm-variable-3">int <span class="cm-variable">idx) &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; <span class="cm-operator">--&gt; <span class="cm-variable">根据索引检索元素<br /><span><span class="cm-variable">AnyType <span class="cm-def">set(<span class="cm-variable-3">int <span class="cm-variable">idx) &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; <span class="cm-operator">--&gt; <span class="cm-variable">根据索引跟新元素<br /><span><span class="cm-variable-3">boolean <span class="cm-def">add(<span class="cm-variable">AnyType <span class="cm-variable">x) &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; <span class="cm-operator">--&gt; <span class="cm-variable">添加元素x<br /><span><span class="cm-variable-3">boolean <span class="cm-def">add(<span class="cm-variable">AnyType <span class="cm-variable">x，int <span class="cm-variable">idx) &nbsp;<span class="cm-operator">--&gt; <span class="cm-variable">根据索引添加元素x<br /><span><span class="cm-variable">AnyType <span class="cm-def">remove(<span class="cm-variable-3">int <span class="cm-variable">idx) &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;<span class="cm-operator">--&gt; <span class="cm-variable">根据索引删除元素x<br /><span><span class="cm-variable-3">String <span class="cm-def">toString() &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;<span class="cm-operator">--&gt; <span class="cm-variable">打印链表</span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></code></pre>
+</blockquote>
+<h4 class="md-end-block md-heading"><span class="md-plain">3. 图解核心操作</span></h4>
+<ul class="ul-list" data-mark="-">
+<li class="md-list-item md-focus-container">
+<p class="md-end-block md-p md-focus"><span class="md-plain md-expand">一个节点Node类的数据结构</span></p>
+<p class="md-end-block md-p"><span class="md-image md-img-loaded" data-src="E:%5C%E8%AE%B0%E5%BD%95%5C%E7%94%A8%E5%8F%8C%E9%93%BE%E8%A1%A8%E5%AE%9E%E7%8E%B0MyLinkedList%5C001.png"><img src="./images/自己动手撸一个LinkedList0.png" alt="" /></span></p>
+</li>
+</ul>
+<ul class="ul-list" data-mark="-">
+<li class="md-list-item">
+<p class="md-end-block md-p"><span class="md-plain">doClear( ) 方法，初始化一个双链表，先定义一个头结点beginMarker，然后定义一个尾结点endMarker，前驱指向头结点，最后头结点的后继指向尾结点。</span></p>
+<p class="md-end-block md-p"><span class="md-image md-img-loaded" data-src="E:%5C%E8%AE%B0%E5%BD%95%5C%E7%94%A8%E5%8F%8C%E9%93%BE%E8%A1%A8%E5%AE%9E%E7%8E%B0MyLinkedList%5C002.png"><img src="./images/自己动手撸一个LinkedList1.png" alt="" /></span></p>
+</li>
+</ul>
+<ul class="ul-list" data-mark="-">
+<li class="md-list-item">
+<p class="md-end-block md-p"><span class="md-plain">添加元素，先定义一个被添加元素x的节点，使它前驱指向被插入位置的前一个，后继指向被插入位置的节点，这是第一步，然后将被插入的前一个节点的next指向此节点，被插入位置的节点的prev指向此节点。</span></p>
+<p class="md-end-block md-p"><span class="md-image md-img-loaded" data-src="E:%5C%E8%AE%B0%E5%BD%95%5C%E7%94%A8%E5%8F%8C%E9%93%BE%E8%A1%A8%E5%AE%9E%E7%8E%B0MyLinkedList%5C003.png"><img src="./images/自己动手撸一个LinkedList2.png" alt="" /></span></p>
+<pre><code><span><span class="cm-variable">Node<span class="cm-operator">&lt;<span class="cm-variable">AnyType<span class="cm-operator">&gt; <span class="cm-variable">newNode <span class="cm-operator">= <span class="cm-keyword">new <span class="cm-variable">Node<span class="cm-operator">&lt;&gt;(<span class="cm-variable">x, <span class="cm-variable">p.<span class="cm-variable">prev, <span class="cm-variable">p);<span class="cm-tab">   <span class="cm-tab">    <span class="cm-comment">// ①②<br /><span><span class="cm-variable">newNode.<span class="cm-variable">prev.<span class="cm-variable">next <span class="cm-operator">= <span class="cm-variable">newNode;<span class="cm-tab">    <span class="cm-tab">    <span class="cm-tab">    <span class="cm-tab">    <span class="cm-tab">    <span class="cm-tab">    <span class="cm-tab">    <span class="cm-comment">// ③<br /><span><span class="cm-variable">p.<span class="cm-variable">prev <span class="cm-operator">= <span class="cm-variable">newNode;<span class="cm-tab">   <span class="cm-tab">    <span class="cm-tab">    <span class="cm-tab">    <span class="cm-tab">    <span class="cm-tab">    <span class="cm-tab">    <span class="cm-tab">    <span class="cm-tab">    <span class="cm-tab">    <span class="cm-comment">// ④</span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></code></pre>
+<p class="md-end-block md-p"><span class="md-plain">当然，第三步和第四步可以合并：</span></p>
+<pre><code><span><span class="cm-variable">Node<span class="cm-operator">&lt;<span class="cm-variable">AnyType<span class="cm-operator">&gt; <span class="cm-variable">newNode <span class="cm-operator">= <span class="cm-keyword">new <span class="cm-variable">Node<span class="cm-operator">&lt;&gt;(<span class="cm-variable">x, <span class="cm-variable">p.<span class="cm-variable">prev, <span class="cm-variable">p);<span class="cm-tab">   <span class="cm-tab">    <span class="cm-comment">// ①②<br /><span><span class="cm-variable">p.<span class="cm-variable">prev <span class="cm-operator">= <span class="cm-variable">p.<span class="cm-variable">prev.<span class="cm-variable">next <span class="cm-operator">= <span class="cm-variable">newNode;<span class="cm-tab"> <span class="cm-tab">    <span class="cm-tab">    <span class="cm-tab">    <span class="cm-tab">    <span class="cm-tab">    <span class="cm-tab">    <span class="cm-comment">// ③④</span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></code></pre>
+<p class="md-end-block md-p"><span class="md-plain">没想到以上4步全可以合并为：</span></p>
+<pre><code><span><span class="cm-variable">p.<span class="cm-variable">prev <span class="cm-operator">= <span class="cm-variable">p.<span class="cm-variable">prev.<span class="cm-variable">next <span class="cm-operator">= <span class="cm-keyword">new <span class="cm-variable">Node<span class="cm-operator">&lt;&gt;(<span class="cm-variable">x, <span class="cm-variable">p.<span class="cm-variable">prev, <span class="cm-variable">p);<span class="cm-tab">    <span class="cm-tab">    <span class="cm-comment">// ①②③④</span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></code></pre>
+<p class="md-end-block md-p"><span class="md-tab"> <span><strong><span class="md-plain">精辟！</span></strong></span></span></p>
+</li>
+</ul>
+<ul class="ul-list" data-mark="-">
+<li class="md-list-item">
+<p class="md-end-block md-p"><span class="md-plain">删除元素，根据索引找到对应的节点p，将p的后继的prev指向p的前驱，将p的前驱的next指向p的后继。</span></p>
+<p class="md-end-block md-p"><span class="md-image md-img-loaded" data-src="E:%5C%E8%AE%B0%E5%BD%95%5C%E7%94%A8%E5%8F%8C%E9%93%BE%E8%A1%A8%E5%AE%9E%E7%8E%B0MyLinkedList%5C004.png"><img src="./images/自己动手撸一个LinkedList3.png" alt="" /></span></p>
+<pre><code><span><span class="cm-variable">p.<span class="cm-variable">next.<span class="cm-variable">prev <span class="cm-operator">= <span class="cm-variable">p.<span class="cm-variable">prev;<br /><span><span class="cm-variable">p.<span class="cm-variable">prev.<span class="cm-variable">next <span class="cm-operator">= <span class="cm-variable">p.<span class="cm-variable">next;</span></span></span></span></span></span></span></span></span></span></span></span></span></span></code></pre>
+</li>
+</ul>
+<ul class="ul-list" data-mark="-">
+<li class="md-list-item">
+<p class="md-end-block md-p"><span class="md-plain">检索节点getNode，LinkedList可以很快很方便地插入和删除元素，但是对于检索元素则就慢了，我们可以将索引分为前半部分和后半部分，如果索引在前半部分，我们就向后的方向遍历该链表；同样的道理，如果索引在后半部分，我们就从终端开始往回走，向前遍历该链表，这样可以提高一下检索速度吧。</span></p>
+<pre><code><span><span class="cm-comment">// 从头结点开始向后找<br /><span><span class="cm-keyword">if (<span class="cm-variable">idx <span class="cm-operator">&lt; <span class="cm-variable">size() <span class="cm-operator">/ <span class="cm-number">2) {<br /><span><span class="cm-tab">    <span class="cm-variable">p <span class="cm-operator">= <span class="cm-variable">beginMarker.<span class="cm-variable">next;<br /><span><span class="cm-tab">    <span class="cm-keyword">for (<span class="cm-variable-3">int <span class="cm-variable">i <span class="cm-operator">= <span class="cm-number">0; <span class="cm-variable">i <span class="cm-operator">&lt; <span class="cm-variable">idx; <span class="cm-variable">i<span class="cm-operator">++) {<br /><span><span class="cm-tab">    <span class="cm-tab">    <span class="cm-variable">p <span class="cm-operator">= <span class="cm-variable">p.<span class="cm-variable">next;<br /><span><span class="cm-tab">    }<br /><span>}<br /><span><span class="cm-comment">// 从尾节点开始向前找<br /><span><span class="cm-keyword">else {<br /><span><span class="cm-tab">    <span class="cm-variable">p <span class="cm-operator">= <span class="cm-variable">endMarker;<br /><span> &nbsp; &nbsp;<span class="cm-keyword">for (<span class="cm-variable-3">int <span class="cm-variable">i <span class="cm-operator">= <span class="cm-variable">size(); <span class="cm-variable">i <span class="cm-operator">&gt; <span class="cm-variable">idx; <span class="cm-variable">i<span class="cm-operator">--) {<br /><span> &nbsp;  <span class="cm-tab">    <span class="cm-variable">p <span class="cm-operator">= <span class="cm-variable">p.<span class="cm-variable">prev;<br /><span> &nbsp;  }<br /><span>}</span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></code></pre>
+</li>
+</ul>
+<h4 class="md-end-block md-heading"><span class="md-plain">4. MyLinkedList代码实现</span></h4>
+<src class="cnblogs_code">
+<pre><code><span style="color: #008080;">  1</span> <span style="color: #0000ff;">package</span><span style="color: #000000;"> com.hx.list;
+</span><span style="color: #008080;">  2</span> 
+<span style="color: #008080;">  3</span> <span style="color: #008000;">/**</span>
+<span style="color: #008080;">  4</span> <span style="color: #008000;"> * </span><span style="color: #808080;">@author</span><span style="color: #008000;">: wenhx
+</span><span style="color: #008080;">  5</span> <span style="color: #008000;"> * @date: Created in 2019/10/17 16:11
+</span><span style="color: #008080;">  6</span> <span style="color: #008000;"> * @description: 用双链表实现MyLinkedList
+</span><span style="color: #008080;">  7</span>  <span style="color: #008000;">*/</span>
+<span style="color: #008080;">  8</span> <span style="color: #0000ff;">public</span> <span style="color: #0000ff;">class</span> MyLinkedList&lt;AnyType&gt; <span style="color: #0000ff;">implements</span> Iterable&lt;AnyType&gt;<span style="color: #000000;"> {
+</span><span style="color: #008080;">  9</span> 
+<span style="color: #008080;"> 10</span> 
+<span style="color: #008080;"> 11</span>     <span style="color: #0000ff;">private</span> <span style="color: #0000ff;">int</span><span style="color: #000000;"> theSize;
+</span><span style="color: #008080;"> 12</span>     <span style="color: #0000ff;">private</span> <span style="color: #0000ff;">int</span> modCount = 0<span style="color: #000000;">;
+</span><span style="color: #008080;"> 13</span>     <span style="color: #0000ff;">private</span> Node&lt;AnyType&gt;<span style="color: #000000;"> beginMarker;
+</span><span style="color: #008080;"> 14</span>     <span style="color: #0000ff;">private</span> Node&lt;AnyType&gt;<span style="color: #000000;"> endMarker;
+</span><span style="color: #008080;"> 15</span> 
+<span style="color: #008080;"> 16</span>     <span style="color: #008000;">/**</span>
+<span style="color: #008080;"> 17</span> <span style="color: #008000;">     * 内部类，定义链表的节点
+</span><span style="color: #008080;"> 18</span>      <span style="color: #008000;">*/</span>
+<span style="color: #008080;"> 19</span>     <span style="color: #0000ff;">private</span> <span style="color: #0000ff;">static</span> <span style="color: #0000ff;">class</span> Node&lt;AnyType&gt;<span style="color: #000000;"> {
+</span><span style="color: #008080;"> 20</span> 
+<span style="color: #008080;"> 21</span>         <span style="color: #0000ff;">public</span><span style="color: #000000;"> AnyType data;
+</span><span style="color: #008080;"> 22</span>         <span style="color: #0000ff;">public</span> Node&lt;AnyType&gt;<span style="color: #000000;"> prev;
+</span><span style="color: #008080;"> 23</span>         <span style="color: #0000ff;">public</span> Node&lt;AnyType&gt;<span style="color: #000000;"> next;
+</span><span style="color: #008080;"> 24</span> 
+<span style="color: #008080;"> 25</span>         <span style="color: #0000ff;">public</span> Node(AnyType d, Node&lt;AnyType&gt; p, Node&lt;AnyType&gt;<span style="color: #000000;"> n) {
+</span><span style="color: #008080;"> 26</span>             data =<span style="color: #000000;"> d;
+</span><span style="color: #008080;"> 27</span>             prev =<span style="color: #000000;"> p;
+</span><span style="color: #008080;"> 28</span>             next =<span style="color: #000000;"> n;
+</span><span style="color: #008080;"> 29</span> <span style="color: #000000;">        }
+</span><span style="color: #008080;"> 30</span> <span style="color: #000000;">    }
+</span><span style="color: #008080;"> 31</span> 
+<span style="color: #008080;"> 32</span>     <span style="color: #008000;">/**</span>
+<span style="color: #008080;"> 33</span> <span style="color: #008000;">     * 构造器
+</span><span style="color: #008080;"> 34</span>      <span style="color: #008000;">*/</span>
+<span style="color: #008080;"> 35</span>     <span style="color: #0000ff;">public</span><span style="color: #000000;"> MyLinkedList() {
+</span><span style="color: #008080;"> 36</span> <span style="color: #000000;">        doClear();
+</span><span style="color: #008080;"> 37</span> <span style="color: #000000;">    }
+</span><span style="color: #008080;"> 38</span> 
+<span style="color: #008080;"> 39</span>     <span style="color: #008000;">/**</span>
+<span style="color: #008080;"> 40</span> <span style="color: #008000;">     * 判空
+</span><span style="color: #008080;"> 41</span>      <span style="color: #008000;">*/</span>
+<span style="color: #008080;"> 42</span>     <span style="color: #0000ff;">public</span> <span style="color: #0000ff;">boolean</span><span style="color: #000000;"> isEmpty() {
+</span><span style="color: #008080;"> 43</span>         <span style="color: #0000ff;">return</span> size() == 0<span style="color: #000000;">;
+</span><span style="color: #008080;"> 44</span> <span style="color: #000000;">    }
+</span><span style="color: #008080;"> 45</span> 
+<span style="color: #008080;"> 46</span>     <span style="color: #008000;">/**</span>
+<span style="color: #008080;"> 47</span> <span style="color: #008000;">     * 清空
+</span><span style="color: #008080;"> 48</span>      <span style="color: #008000;">*/</span>
+<span style="color: #008080;"> 49</span>     <span style="color: #0000ff;">public</span> <span style="color: #0000ff;">void</span><span style="color: #000000;"> clear() {
+</span><span style="color: #008080;"> 50</span> <span style="color: #000000;">        doClear();
+</span><span style="color: #008080;"> 51</span> <span style="color: #000000;">    }
+</span><span style="color: #008080;"> 52</span> 
+<span style="color: #008080;"> 53</span> 
+<span style="color: #008080;"> 54</span>     <span style="color: #008000;">/**</span>
+<span style="color: #008080;"> 55</span> <span style="color: #008000;">     * 返回链表的长度
+</span><span style="color: #008080;"> 56</span>      <span style="color: #008000;">*/</span>
+<span style="color: #008080;"> 57</span>     <span style="color: #0000ff;">public</span> <span style="color: #0000ff;">int</span><span style="color: #000000;"> size() {
+</span><span style="color: #008080;"> 58</span>         <span style="color: #0000ff;">return</span><span style="color: #000000;"> theSize;
+</span><span style="color: #008080;"> 59</span> <span style="color: #000000;">    }
+</span><span style="color: #008080;"> 60</span> 
+<span style="color: #008080;"> 61</span>     <span style="color: #008000;">/**</span>
+<span style="color: #008080;"> 62</span> <span style="color: #008000;">     * 根据索引检索元素
+</span><span style="color: #008080;"> 63</span>      <span style="color: #008000;">*/</span>
+<span style="color: #008080;"> 64</span>     <span style="color: #0000ff;">public</span> AnyType get(<span style="color: #0000ff;">int</span><span style="color: #000000;"> idx) {
+</span><span style="color: #008080;"> 65</span>         <span style="color: #0000ff;">return</span><span style="color: #000000;"> getNode(idx).data;
+</span><span style="color: #008080;"> 66</span> <span style="color: #000000;">    }
+</span><span style="color: #008080;"> 67</span> 
+<span style="color: #008080;"> 68</span>     <span style="color: #008000;">/**</span>
+<span style="color: #008080;"> 69</span> <span style="color: #008000;">     * 根据索引跟新元素
+</span><span style="color: #008080;"> 70</span>      <span style="color: #008000;">*/</span>
+<span style="color: #008080;"> 71</span>     <span style="color: #0000ff;">public</span> AnyType set(<span style="color: #0000ff;">int</span><span style="color: #000000;"> idx, AnyType newVal) {
+</span><span style="color: #008080;"> 72</span>         Node&lt;AnyType&gt; p =<span style="color: #000000;"> getNode(idx);
+</span><span style="color: #008080;"> 73</span>         AnyType oldVal =<span style="color: #000000;"> p.data;
+</span><span style="color: #008080;"> 74</span>         p.data =<span style="color: #000000;"> newVal;
+</span><span style="color: #008080;"> 75</span>         <span style="color: #0000ff;">return</span><span style="color: #000000;"> oldVal;
+</span><span style="color: #008080;"> 76</span> <span style="color: #000000;">    }
+</span><span style="color: #008080;"> 77</span> 
+<span style="color: #008080;"> 78</span>     <span style="color: #008000;">/**</span>
+<span style="color: #008080;"> 79</span> <span style="color: #008000;">     * 添加元素x
+</span><span style="color: #008080;"> 80</span>      <span style="color: #008000;">*/</span>
+<span style="color: #008080;"> 81</span>     <span style="color: #0000ff;">public</span> <span style="color: #0000ff;">boolean</span><span style="color: #000000;"> add(AnyType x) {
+</span><span style="color: #008080;"> 82</span> <span style="color: #000000;">        add(size(), x);
+</span><span style="color: #008080;"> 83</span>         <span style="color: #0000ff;">return</span> <span style="color: #0000ff;">true</span><span style="color: #000000;">;
+</span><span style="color: #008080;"> 84</span> <span style="color: #000000;">    }
+</span><span style="color: #008080;"> 85</span> 
+<span style="color: #008080;"> 86</span>     <span style="color: #008000;">/**</span>
+<span style="color: #008080;"> 87</span> <span style="color: #008000;">     * 根据索引添加元素
+</span><span style="color: #008080;"> 88</span>      <span style="color: #008000;">*/</span>
+<span style="color: #008080;"> 89</span>     <span style="color: #0000ff;">public</span> <span style="color: #0000ff;">void</span> add(<span style="color: #0000ff;">int</span><span style="color: #000000;"> idx, AnyType x) {
+</span><span style="color: #008080;"> 90</span>         addBefore(getNode(idx, 0<span style="color: #000000;">, size()), x);
+</span><span style="color: #008080;"> 91</span> <span style="color: #000000;">    }
+</span><span style="color: #008080;"> 92</span> 
+<span style="color: #008080;"> 93</span>     <span style="color: #008000;">/**</span>
+<span style="color: #008080;"> 94</span> <span style="color: #008000;">     * 根据索引删除元素
+</span><span style="color: #008080;"> 95</span>      <span style="color: #008000;">*/</span>
+<span style="color: #008080;"> 96</span>     <span style="color: #0000ff;">public</span> AnyType remove(<span style="color: #0000ff;">int</span><span style="color: #000000;"> idx) {
+</span><span style="color: #008080;"> 97</span>         <span style="color: #0000ff;">return</span><span style="color: #000000;"> remove(getNode(idx));
+</span><span style="color: #008080;"> 98</span> <span style="color: #000000;">    }
+</span><span style="color: #008080;"> 99</span> 
+<span style="color: #008080;">100</span>     <span style="color: #008000;">/**</span>
+<span style="color: #008080;">101</span> <span style="color: #008000;">     * 打印链表
+</span><span style="color: #008080;">102</span>      <span style="color: #008000;">*/</span>
+<span style="color: #008080;">103</span>     <span style="color: #0000ff;">public</span><span style="color: #000000;"> String toString() {
+</span><span style="color: #008080;">104</span>         StringBuilder sb = <span style="color: #0000ff;">new</span> StringBuilder("[ "<span style="color: #000000;">);
+</span><span style="color: #008080;">105</span> 
+<span style="color: #008080;">106</span>         <span style="color: #0000ff;">for</span> (AnyType x : <span style="color: #0000ff;">this</span><span style="color: #000000;">) {
+</span><span style="color: #008080;">107</span>             sb.append(x + " "<span style="color: #000000;">);
+</span><span style="color: #008080;">108</span> <span style="color: #000000;">        }
+</span><span style="color: #008080;">109</span>         sb.append("]"<span style="color: #000000;">);
+</span><span style="color: #008080;">110</span> 
+<span style="color: #008080;">111</span>         <span style="color: #0000ff;">return</span> <span style="color: #0000ff;">new</span><span style="color: #000000;"> String(sb);
+</span><span style="color: #008080;">112</span> <span style="color: #000000;">    }
+</span><span style="color: #008080;">113</span> 
+<span style="color: #008080;">114</span>     <span style="color: #008000;">/**</span>
+<span style="color: #008080;">115</span> <span style="color: #008000;">     * 清空链表（实现）
+</span><span style="color: #008080;">116</span>      <span style="color: #008000;">*/</span>
+<span style="color: #008080;">117</span>     <span style="color: #0000ff;">private</span> <span style="color: #0000ff;">void</span><span style="color: #000000;"> doClear() {
+</span><span style="color: #008080;">118</span>         beginMarker = <span style="color: #0000ff;">new</span> Node&lt;&gt;(<span style="color: #0000ff;">null</span>, <span style="color: #0000ff;">null</span>, <span style="color: #0000ff;">null</span><span style="color: #000000;">);
+</span><span style="color: #008080;">119</span>         endMarker = <span style="color: #0000ff;">new</span> Node&lt;&gt;(<span style="color: #0000ff;">null</span>, beginMarker, <span style="color: #0000ff;">null</span><span style="color: #000000;">);
+</span><span style="color: #008080;">120</span>         beginMarker.next =<span style="color: #000000;"> endMarker;
+</span><span style="color: #008080;">121</span>         theSize = 0<span style="color: #000000;">;
+</span><span style="color: #008080;">122</span>         modCount++<span style="color: #000000;">;
+</span><span style="color: #008080;">123</span> <span style="color: #000000;">    }
+</span><span style="color: #008080;">124</span> 
+<span style="color: #008080;">125</span>     <span style="color: #008000;">/**</span>
+<span style="color: #008080;">126</span> <span style="color: #008000;">     * 根据索引检索节点
+</span><span style="color: #008080;">127</span>      <span style="color: #008000;">*/</span>
+<span style="color: #008080;">128</span>     <span style="color: #0000ff;">private</span> Node&lt;AnyType&gt; getNode(<span style="color: #0000ff;">int</span><span style="color: #000000;"> idx) {
+</span><span style="color: #008080;">129</span>         <span style="color: #0000ff;">return</span> getNode(idx, 0, size() - 1<span style="color: #000000;">);
+</span><span style="color: #008080;">130</span> <span style="color: #000000;">    }
+</span><span style="color: #008080;">131</span> 
+<span style="color: #008080;">132</span>     <span style="color: #008000;">/**</span>
+<span style="color: #008080;">133</span> <span style="color: #008000;">     * 检索节点
+</span><span style="color: #008080;">134</span>      <span style="color: #008000;">*/</span>
+<span style="color: #008080;">135</span>     <span style="color: #0000ff;">private</span> Node&lt;AnyType&gt; getNode(<span style="color: #0000ff;">int</span> idx, <span style="color: #0000ff;">int</span> lower, <span style="color: #0000ff;">int</span><span style="color: #000000;"> upper) {
+</span><span style="color: #008080;">136</span>         Node&lt;AnyType&gt;<span style="color: #000000;"> p;
+</span><span style="color: #008080;">137</span> 
+<span style="color: #008080;">138</span>         <span style="color: #0000ff;">if</span> (idx &lt; lower || idx &gt;<span style="color: #000000;"> upper) {
+</span><span style="color: #008080;">139</span>             <span style="color: #0000ff;">throw</span> <span style="color: #0000ff;">new</span> IndexOutOfBoundsException("getNode index: " + idx + "; size: " +<span style="color: #000000;"> size());
+</span><span style="color: #008080;">140</span> <span style="color: #000000;">        }
+</span><span style="color: #008080;">141</span> 
+<span style="color: #008080;">142</span>         <span style="color: #0000ff;">if</span> (idx &lt; size() / 2<span style="color: #000000;">) {
+</span><span style="color: #008080;">143</span>             p =<span style="color: #000000;"> beginMarker.next;
+</span><span style="color: #008080;">144</span>             <span style="color: #0000ff;">for</span> (<span style="color: #0000ff;">int</span> i = 0; i &lt; idx; i++<span style="color: #000000;">) {
+</span><span style="color: #008080;">145</span>                 p =<span style="color: #000000;"> p.next;
+</span><span style="color: #008080;">146</span> <span style="color: #000000;">            }
+</span><span style="color: #008080;">147</span>         } <span style="color: #0000ff;">else</span><span style="color: #000000;"> {
+</span><span style="color: #008080;">148</span>             p =<span style="color: #000000;"> endMarker;
+</span><span style="color: #008080;">149</span>             <span style="color: #0000ff;">for</span> (<span style="color: #0000ff;">int</span> i = size(); i &gt; idx; i--<span style="color: #000000;">) {
+</span><span style="color: #008080;">150</span>                 p =<span style="color: #000000;"> p.prev;
+</span><span style="color: #008080;">151</span> <span style="color: #000000;">            }
+</span><span style="color: #008080;">152</span> <span style="color: #000000;">        }
+</span><span style="color: #008080;">153</span> 
+<span style="color: #008080;">154</span>         <span style="color: #0000ff;">return</span><span style="color: #000000;"> p;
+</span><span style="color: #008080;">155</span> <span style="color: #000000;">    }
+</span><span style="color: #008080;">156</span> 
+<span style="color: #008080;">157</span>     <span style="color: #008000;">/**</span>
+<span style="color: #008080;">158</span> <span style="color: #008000;">     * 插入节点
+</span><span style="color: #008080;">159</span>      <span style="color: #008000;">*/</span>
+<span style="color: #008080;">160</span>     <span style="color: #0000ff;">private</span> <span style="color: #0000ff;">void</span> addBefore(Node&lt;AnyType&gt;<span style="color: #000000;"> p, AnyType x) {
+</span><span style="color: #008080;">161</span>         Node&lt;AnyType&gt; newNode = <span style="color: #0000ff;">new</span> Node&lt;&gt;<span style="color: #000000;">(x, p.prev, p);
+</span><span style="color: #008080;">162</span>         newNode.prev.next =<span style="color: #000000;"> newNode;
+</span><span style="color: #008080;">163</span>         p.prev =<span style="color: #000000;"> newNode;
+</span><span style="color: #008080;">164</span>         theSize++<span style="color: #000000;">;
+</span><span style="color: #008080;">165</span>         modCount++<span style="color: #000000;">;
+</span><span style="color: #008080;">166</span> <span style="color: #000000;">    }
+</span><span style="color: #008080;">167</span> 
+<span style="color: #008080;">168</span>     <span style="color: #008000;">/**</span>
+<span style="color: #008080;">169</span> <span style="color: #008000;">     * 删除节点p
+</span><span style="color: #008080;">170</span>      <span style="color: #008000;">*/</span>
+<span style="color: #008080;">171</span>     <span style="color: #0000ff;">private</span> AnyType remove(Node&lt;AnyType&gt;<span style="color: #000000;"> p) {
+</span><span style="color: #008080;">172</span>         p.next.prev =<span style="color: #000000;"> p.prev;
+</span><span style="color: #008080;">173</span>         p.prev.next =<span style="color: #000000;"> p.next;
+</span><span style="color: #008080;">174</span>         theSize--<span style="color: #000000;">;
+</span><span style="color: #008080;">175</span>         modCount++<span style="color: #000000;">;
+</span><span style="color: #008080;">176</span> 
+<span style="color: #008080;">177</span>         <span style="color: #0000ff;">return</span><span style="color: #000000;"> p.data;
+</span><span style="color: #008080;">178</span> <span style="color: #000000;">    }
+</span><span style="color: #008080;">179</span> 
+<span style="color: #008080;">180</span> 
+<span style="color: #008080;">181</span>     <span style="color: #008000;">/**</span>
+<span style="color: #008080;">182</span> <span style="color: #008000;">     * 返回一个迭代器对象，用于遍历链表
+</span><span style="color: #008080;">183</span>      <span style="color: #008000;">*/</span>
+<span style="color: #008080;">184</span>     <span style="color: #0000ff;">public</span> java.util.Iterator&lt;AnyType&gt;<span style="color: #000000;"> iterator() {
+</span><span style="color: #008080;">185</span>         <span style="color: #0000ff;">return</span> <span style="color: #0000ff;">new</span><span style="color: #000000;"> LinkedListIterator();
+</span><span style="color: #008080;">186</span> <span style="color: #000000;">    }
+</span><span style="color: #008080;">187</span> 
+<span style="color: #008080;">188</span>     <span style="color: #008000;">/**</span>
+<span style="color: #008080;">189</span> <span style="color: #008000;">     * LinkedListIterator迭代器的实现
+</span><span style="color: #008080;">190</span>      <span style="color: #008000;">*/</span>
+<span style="color: #008080;">191</span>     <span style="color: #0000ff;">private</span> <span style="color: #0000ff;">class</span> LinkedListIterator <span style="color: #0000ff;">implements</span> java.util.Iterator&lt;AnyType&gt;<span style="color: #000000;"> {
+</span><span style="color: #008080;">192</span> 
+<span style="color: #008080;">193</span>         <span style="color: #0000ff;">private</span> Node&lt;AnyType&gt; current =<span style="color: #000000;"> beginMarker.next;
+</span><span style="color: #008080;">194</span>         <span style="color: #0000ff;">private</span> <span style="color: #0000ff;">int</span> expectedModCount =<span style="color: #000000;"> modCount;
+</span><span style="color: #008080;">195</span>         <span style="color: #0000ff;">private</span> <span style="color: #0000ff;">boolean</span> okToRemove = <span style="color: #0000ff;">false</span><span style="color: #000000;">;
+</span><span style="color: #008080;">196</span> 
+<span style="color: #008080;">197</span>         <span style="color: #0000ff;">public</span> <span style="color: #0000ff;">boolean</span><span style="color: #000000;"> hasNext() {
+</span><span style="color: #008080;">198</span>             <span style="color: #0000ff;">return</span> current !=<span style="color: #000000;"> endMarker;
+</span><span style="color: #008080;">199</span> <span style="color: #000000;">        }
+</span><span style="color: #008080;">200</span> 
+<span style="color: #008080;">201</span>         <span style="color: #0000ff;">public</span><span style="color: #000000;"> AnyType next() {
+</span><span style="color: #008080;">202</span>             <span style="color: #0000ff;">if</span> (modCount !=<span style="color: #000000;"> expectedModCount) {
+</span><span style="color: #008080;">203</span>                 <span style="color: #0000ff;">throw</span> <span style="color: #0000ff;">new</span><span style="color: #000000;"> java.util.ConcurrentModificationException();
+</span><span style="color: #008080;">204</span> <span style="color: #000000;">            }
+</span><span style="color: #008080;">205</span>             <span style="color: #0000ff;">if</span> (!<span style="color: #000000;">hasNext()) {
+</span><span style="color: #008080;">206</span>                 <span style="color: #0000ff;">throw</span> <span style="color: #0000ff;">new</span><span style="color: #000000;"> java.util.NoSuchElementException();
+</span><span style="color: #008080;">207</span> <span style="color: #000000;">            }
+</span><span style="color: #008080;">208</span> 
+<span style="color: #008080;">209</span>             AnyType nextItem =<span style="color: #000000;"> current.data;
+</span><span style="color: #008080;">210</span>             current =<span style="color: #000000;"> current.next;
+</span><span style="color: #008080;">211</span>             okToRemove = <span style="color: #0000ff;">true</span><span style="color: #000000;">;
+</span><span style="color: #008080;">212</span>             <span style="color: #0000ff;">return</span><span style="color: #000000;"> nextItem;
+</span><span style="color: #008080;">213</span> <span style="color: #000000;">        }
+</span><span style="color: #008080;">214</span> 
+<span style="color: #008080;">215</span>         <span style="color: #0000ff;">public</span> <span style="color: #0000ff;">void</span><span style="color: #000000;"> remove() {
+</span><span style="color: #008080;">216</span>             <span style="color: #0000ff;">if</span> (modCount !=<span style="color: #000000;"> expectedModCount) {
+</span><span style="color: #008080;">217</span>                 <span style="color: #0000ff;">throw</span> <span style="color: #0000ff;">new</span><span style="color: #000000;"> java.util.ConcurrentModificationException();
+</span><span style="color: #008080;">218</span> <span style="color: #000000;">            }
+</span><span style="color: #008080;">219</span>             <span style="color: #0000ff;">if</span> (!<span style="color: #000000;">okToRemove) {
+</span><span style="color: #008080;">220</span>                 <span style="color: #0000ff;">throw</span> <span style="color: #0000ff;">new</span><span style="color: #000000;"> IllegalStateException();
+</span><span style="color: #008080;">221</span> <span style="color: #000000;">            }
+</span><span style="color: #008080;">222</span> 
+<span style="color: #008080;">223</span>             MyLinkedList.<span style="color: #0000ff;">this</span><span style="color: #000000;">.remove(current.prev);
+</span><span style="color: #008080;">224</span>             expectedModCount++<span style="color: #000000;">;
+</span><span style="color: #008080;">225</span>             okToRemove = <span style="color: #0000ff;">false</span><span style="color: #000000;">;
+</span><span style="color: #008080;">226</span> <span style="color: #000000;">        }
+</span><span style="color: #008080;">227</span> <span style="color: #000000;">    }
+</span><span style="color: #008080;">228</span> 
+<span style="color: #008080;">229</span> 
+<span style="color: #008080;">230</span>     <span style="color: #008000;">/**</span>
+<span style="color: #008080;">231</span> <span style="color: #008000;">     * 主方法：用来测试MyLinkedList
+</span><span style="color: #008080;">232</span>      <span style="color: #008000;">*/</span>
+<span style="color: #008080;">233</span>     <span style="color: #0000ff;">public</span> <span style="color: #0000ff;">static</span> <span style="color: #0000ff;">void</span><span style="color: #000000;"> main(String[] args) {
+</span><span style="color: #008080;">234</span>         MyLinkedList&lt;Integer&gt; myLinkedList = <span style="color: #0000ff;">new</span> MyLinkedList&lt;&gt;<span style="color: #000000;">();
+</span><span style="color: #008080;">235</span> 
+<span style="color: #008080;">236</span>         <span style="color: #0000ff;">for</span> (<span style="color: #0000ff;">int</span> i = 0; i &lt; 10; i++<span style="color: #000000;">) {
+</span><span style="color: #008080;">237</span> <span style="color: #000000;">            myLinkedList.add(i);
+</span><span style="color: #008080;">238</span> <span style="color: #000000;">        }
+</span><span style="color: #008080;">239</span>         <span style="color: #0000ff;">for</span> (<span style="color: #0000ff;">int</span> i = 20; i &lt; 30; i++<span style="color: #000000;">) {
+</span><span style="color: #008080;">240</span>             myLinkedList.add(0<span style="color: #000000;">, i);
+</span><span style="color: #008080;">241</span> <span style="color: #000000;">        }
+</span><span style="color: #008080;">242</span> 
+<span style="color: #008080;">243</span> <span style="color: #000000;">        System.out.println(myLinkedList.toString());
+</span><span style="color: #008080;">244</span>         System.out.println("----------"<span style="color: #000000;">);
+</span><span style="color: #008080;">245</span>         myLinkedList.remove(0<span style="color: #000000;">);
+</span><span style="color: #008080;">246</span>         myLinkedList.remove(myLinkedList.size() - 1<span style="color: #000000;">);
+</span><span style="color: #008080;">247</span> <span style="color: #000000;">        System.out.println(myLinkedList);
+</span><span style="color: #008080;">248</span>         System.out.println("----------"<span style="color: #000000;">);
+</span><span style="color: #008080;">249</span>         java.util.Iterator&lt;Integer&gt; itr =<span style="color: #000000;"> myLinkedList.iterator();
+</span><span style="color: #008080;">250</span>         <span style="color: #0000ff;">while</span><span style="color: #000000;"> (itr.hasNext()) {
+</span><span style="color: #008080;">251</span> <span style="color: #000000;">            itr.next();
+</span><span style="color: #008080;">252</span> <span style="color: #000000;">            itr.remove();
+</span><span style="color: #008080;">253</span> <span style="color: #000000;">            System.out.println(myLinkedList);
+</span><span style="color: #008080;">254</span> <span style="color: #000000;">        }
+</span><span style="color: #008080;">255</span> <span style="color: #000000;">    }
+</span><span style="color: #008080;">256</span> }</code></pre>
+
+<p>&nbsp;</p>
+<p class="md-end-block md-p"><span class="md-plain">完成，撒花，一个迷你版的LinkedList就写好啦，下次有空再写一个迷你版的ArrayList...</span></p>
+<blockquote>
+<p class="md-end-block md-p"><span class="md-plain">后记：</span></p>
+<p class="md-end-block md-p"><span class="md-plain">若有不当之处，可向小编反馈，一起交流学习，共同进步。</span></p>
+<p class="md-end-block md-p"><span class="md-plain">个人博客地址：<span class="md-link"><a href="https://www.cnblogs.com/q964024886/">https://www.cnblogs.com/q964024886/</a></span></span></p>
+<p class="md-end-block md-p"><span class="md-plain">GitHub地址：<span class="md-link md-expand"><a href="https://github.com/wenhaixiong">https://github.com/wenhaixiong</a></span></span></p>
+</blockquote>
+
+</div><hr><script charset='utf-8' src='../../js/sming.js'></script></body></html>

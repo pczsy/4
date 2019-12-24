@@ -1,0 +1,135 @@
+<html><head><meta charset='utf-8'><meta name='viewport' content='width=device-width, initial-scale=1'>
+<meta name='applicable-device' content='pc'><meta name='keywords' content='电脑,电脑讲解,电脑技术,编程,电脑故障维修Java开发笔记（一百四十八）通过JDBC查询数据记录' />
+<script src='../../highlight/highlight.pack.js'></script>
+<link rel='stylesheet' type='text/css' href='../../highlight/styles/monokai.css'/>
+
+<link rel='stylesheet' href='../../fenxiang/dist/css/share.min.css'>
+<script src='../../fenxiang/src/js/social-share.js'></script>
+<script src='../../fenxiang/src/js/qrcode.js'></script>
+
+</head><body><script>hljs.initHighlightingOnLoad();</script><script>
+var system ={};  
+var p = navigator.platform;       
+system.win = p.indexOf('Win') == 0;  
+system.mac = p.indexOf('Mac') == 0;  
+system.x11 = (p == 'X11') || (p.indexOf('Linux') == 0);     
+if(system.win||system.mac||system.xll){
+document.write("<link href='../css/3.css' rel='stylesheet' type='text/css'>");}else{ document.write("<link href='../css/3wap.css' rel='stylesheet' type='text/css'>");}</script><script src='../../js/3.js'></script><div class='div2'><div class='heading_nav'><ul><div><li><a href='../../index.html'>首页</a></li>
+</div><div onclick='hidden1()' >分享</div>
+</ul></div></div>
+<div id='heading_nav2'> 
+<li class='row' >
+<div class='social-share' data-mode='prepend'><a href='javascript:' class='social-share-icon icon-heart'></a></div></li></div><script charset='utf-8' src='../../3/js/hengfu.js'></script><script charset='utf-8' src='../../3/js/hengfu2.js'></script><hr><div class='div1'><div class='biaoti'><center>Java开发笔记（一百四十八）通过JDBC查询数据记录</center></div><div class='banquan'>原文出处:本文由博客园博主pinlantu提供。<br/>
+原文连接:https://www.cnblogs.com/pinlantu/p/11494099.html</div><br>
+    <p>前面介绍了通过JDBC如何管理数据库，当时提到Statement专门提供了executeQuery方法用于查询操作，为什么查询操作这么特殊呢？这是因为其它语句跑完一次就了事了，顶多像insert、update、delete再返回受影响的记录数量，但select命令跟它们不一样，查询语句可能会返回多条记录，每条记录又包含多个字段。似此多条记录多个字段的情景，返回值无论定义为哪种类型都不太好办，故而干脆给个单独的executeQuery方法，该方法的返回值也设置成专属的ResultSet类型，表示查询方法返回了一个结果集，详细的记录结果请到结果集中遍历获得。<br />据此可将记录查询的操作过程分成以下四个步骤：<br />1、获取数据库连接：该步骤调用DriverManager类的getConnection方法获得连接对象。<br />2、创建该连接的执行报告：该步骤调用Connection对象的createStatement方法获得执行报告。<br />3、命令报告执行查询语句：该步骤调用报告对象的executeQuery方法来执行查询语句，并返回查询记录的结果集。<br />4、循环遍历结果集里面的所有记录：通常该步骤需调用结果集对象的next方法不断往后遍历，也就是将结果集的指示游标一步一步向后移动。在遍历过程当中，可能要调用结果集对象的其它方法进一步操作，ResultSet的常见方法分成三类，说明如下：<br />1、移动游标<br />该类方法可将当前游标移动到指定位置，主要包括下列方法：<br />next：将游标移到后一条记录。该方法返回true表示尚未移到末尾，返回false表示已经移到末尾。<br />absolute：将游标移到第几条记录，如果参数为负数则表示倒数的第几条。<br />first：将游标移到第一条记录。<br />last：将游标移到最后一条记录。<br />previous：将游标移到前一条记录。<br />beforeFirst：将游标移到第一条记录之前。<br />afterLast：将游标移到最后一条记录之后。<br />2、判断游标位置<br />该类方法可判断当前游标是否处于某个位置，主要包括下列方法：<br />isFirst：游标是否指向第一条记录。<br />isLast：游标是否指向最后一条记录。<br />isBeforeFirst：游标是否在第一条记录之前。<br />isAfterLast：游标是否在最后一条记录之后。<br />3、从当前游标获取数据<br />该类方法可从当前游标指向的记录中获取字段值，当方法参数为整型时，表示获取指定序号的字段值；当方法参数为字符串时，表示获取指定名称的字段值。相关的获取方法罗列如下：<br />getInt：获取指定序号或者指定名称的字段整型值。<br />getLong：获取指定序号或者指定名称的字段长整值。<br />getFloat：获取指定序号或者指定名称的字段浮点值。<br />getDouble：获取指定序号或者指定名称的字段双精度值。<br />getString：获取指定序号或者指定名称的字段字符串值。<br />getDate：获取指定序号或者指定名称的字段日期值。</p>
+<p>接下来举几个具体应用的例子，首先要从teacher表中查询所有记录，则依次连接数据库、创建连接的报告、执行查询语句，再循环遍历结果集获取每条记录的字段信息。这一连串的查询代码示例如下：</p>
+<src class="cnblogs_Highlighter">
+<pre><code>	// 查询所有记录（默认排序）
+	private static void showAllRecord() {
+		String sql = "select * from teacher";
+		// 连接数据库、创建连接的报告、执行查询语句
+		try (Connection conn = DriverManager.getConnection(dbUrl, dbUserName, dbPassword);
+				Statement stmt = conn.createStatement();
+				ResultSet rs = stmt.executeQuery(sql)) {
+			while (rs.next()) { // 循环遍历结果集里面的所有记录
+				int gonghao = rs.getInt("gonghao"); // 获取指定字段的整型值
+				String name = rs.getString("name"); // 获取指定字段的字符串值
+				Date birthday = rs.getDate("birthday"); // 获取指定字段的日期值
+				int sex = rs.getInt("sex"); // 获取指定字段的整型值
+				String course = rs.getString("course"); // 获取指定字段的字符串值
+				String desc = String.format("工号为%d，姓名为%s，出生日期为%s，性别为%s，任教课程为%s。", 
+						gonghao, name, getFormatDate(birthday), sex==0 ? "男性" : "女性", course);
+				System.out.println("当前教师信息为："+desc);
+			}
+		} catch (SQLException e) {
+			e.printStackTrace();
+		}
+	}
+</code></pre>
+
+<p>&nbsp;</p>
+<p>注意MySQL未提供将日期转成字符串的to_char函数，因而只能先取到Date类型的字段值，再将其通过Java代码转为字符串。日期类型转换为字符串类型的方法代码如下所示：</p>
+<src class="cnblogs_Highlighter">
+<pre><code>	// 获取指定格式的日期字符串
+	public static String getFormatDate(Date date) {
+		// 创建一个日期格式化的工具
+		SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd");
+		// 将当前日期时间按照指定格式输出格式化后的日期时间字符串
+		return sdf.format(date);
+	}
+</code></pre>
+
+<p>&nbsp;</p>
+<p>接着运行上面的查询方法showAllRecord，观察到日志窗口完整输出了如下的五条记录信息。</p>
+<src class="cnblogs_Highlighter">
+<pre><code>当前教师信息为：工号为1，姓名为张老师，出生日期为1983-03-03，性别为女性，任教课程为语文。
+当前教师信息为：工号为2，姓名为李老师，出生日期为1984-04-04，性别为男性，任教课程为数学。
+当前教师信息为：工号为3，姓名为王老师，出生日期为1985-05-05，性别为女性，任教课程为英语。
+当前教师信息为：工号为4，姓名为赵老师，出生日期为1986-06-06，性别为男性，任教课程为物理。
+当前教师信息为：工号为5，姓名为刘老师，出生日期为1987-07-07，性别为女性，任教课程为化学。
+</code></pre>
+
+<p>然后在原语句增加排序条件，让所有记录按照生日字段降序排列，则修改后的查询代码如下所示：</p>
+<src class="cnblogs_Highlighter">
+<pre><code>	// 查询所有记录（按照生日倒序）
+	private static void showAllRecordByBirthday() {
+		String sql = "select * from teacher order by birthday desc";
+		// 连接数据库、创建连接的报告、执行查询语句
+		try (Connection conn = DriverManager.getConnection(dbUrl, dbUserName, dbPassword);
+				Statement stmt = conn.createStatement();
+				ResultSet rs = stmt.executeQuery(sql)) {
+			while (rs.next()) { // 循环遍历结果集里面的所有记录
+				int gonghao = rs.getInt("gonghao"); // 获取指定字段的整型值
+				String name = rs.getString("name"); // 获取指定字段的字符串值
+				Date birthday = rs.getDate("birthday"); // 获取指定字段的日期值
+				int sex = rs.getInt("sex"); // 获取指定字段的整型值
+				String course = rs.getString("course"); // 获取指定字段的字符串值
+				String desc = String.format("工号为%d，姓名为%s，出生日期为%s，性别为%s，任教课程为%s。", 
+						gonghao, name, getFormatDate(birthday), sex==0 ? "男性" : "女性", course);
+				System.out.println("当前教师信息为："+desc);
+			}
+		} catch (SQLException e) {
+			e.printStackTrace();
+		}
+	}
+</code></pre>
+
+<p>&nbsp;</p>
+<p>增加了showAllRecordByBirthday方法之后，再次运行测试程序，从日志窗口可见这次的记录结果以生日字段降序显示了。</p>
+<src class="cnblogs_Highlighter">
+<pre><code>当前教师信息为：工号为5，姓名为刘老师，出生日期为1987-07-07，性别为女性，任教课程为化学。
+当前教师信息为：工号为4，姓名为赵老师，出生日期为1986-06-06，性别为男性，任教课程为物理。
+当前教师信息为：工号为3，姓名为王老师，出生日期为1985-05-05，性别为女性，任教课程为英语。
+当前教师信息为：工号为2，姓名为李老师，出生日期为1984-04-04，性别为男性，任教课程为数学。
+当前教师信息为：工号为1，姓名为张老师，出生日期为1983-03-03，性别为女性，任教课程为语文。
+</code></pre>
+
+<p>排序条件仅仅调整返回记录的顺序，然而分组条件就不一样了。因为分组条件存在统计操作，像count、sum、max这些函数只返回运算结果，但从结果集中取数据有赖于字段名称，所以需要在统计函数之后加个别名，相当于该函数的运算结果暂存于该别名变量。比如表达式&ldquo;count(sex) count&rdquo;说的就是计数结果以count命名，游标从count字段获取到的即为计数值。下面是对teacher表按照性别字段分组统计的查询代码例子：</p>
+<src class="cnblogs_Highlighter">
+<pre><code>	// 查询性别分组。注意要给count之类的函数结果分配别名
+	private static void showRecordGroupBySex() {
+		String sql = "select sex,count(sex) count from teacher group by sex order by sex asc";
+		// 连接数据库、创建连接的报告、执行查询语句
+		try (Connection conn = DriverManager.getConnection(dbUrl, dbUserName, dbPassword);
+				Statement stmt = conn.createStatement();
+				ResultSet rs = stmt.executeQuery(sql)) {
+			while (rs.next()) { // 循环遍历结果集里面的所有记录
+				int sex = rs.getInt("sex"); // 获取指定字段的整型值
+				int count = rs.getInt("count"); // 获取指定字段的整型值
+				String desc = String.format("%s老师有%d位；", sex==0 ? "男" : "女", count);
+				System.out.print(desc);
+			}
+		} catch (SQLException e) {
+			e.printStackTrace();
+		}
+	}
+</code></pre>
+
+<p>&nbsp;</p>
+<p>运行包含showRecordGroupBySex方法的测试程序，果然正确输出了预期的统计日志如下所示。</p>
+<src class="cnblogs_Highlighter">
+<pre><code>男老师有2位；女老师有3位；　　</code></pre>
+
+<p><br /><em id="__mceDel"><br /></em>更多Java技术文章参见《<a href="https://www.cnblogs.com/pinlantu/p/9941789.html" target="_blank">Java开发笔记（序）章节目录</a>》</p>
+
+</div><hr><script charset='utf-8' src='../../js/sming.js'></script></body></html>

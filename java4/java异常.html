@@ -1,0 +1,87 @@
+<html><head><meta charset='utf-8'><meta name='viewport' content='width=device-width, initial-scale=1'>
+<meta name='applicable-device' content='pc'><meta name='keywords' content='电脑,电脑讲解,电脑技术,编程,电脑故障维修java异常' />
+<script src='../../highlight/highlight.pack.js'></script>
+<link rel='stylesheet' type='text/css' href='../../highlight/styles/monokai.css'/>
+
+<link rel='stylesheet' href='../../fenxiang/dist/css/share.min.css'>
+<script src='../../fenxiang/src/js/social-share.js'></script>
+<script src='../../fenxiang/src/js/qrcode.js'></script>
+
+</head><body><script>hljs.initHighlightingOnLoad();</script><script>
+var system ={};  
+var p = navigator.platform;       
+system.win = p.indexOf('Win') == 0;  
+system.mac = p.indexOf('Mac') == 0;  
+system.x11 = (p == 'X11') || (p.indexOf('Linux') == 0);     
+if(system.win||system.mac||system.xll){
+document.write("<link href='../css/3.css' rel='stylesheet' type='text/css'>");}else{ document.write("<link href='../css/3wap.css' rel='stylesheet' type='text/css'>");}</script><script src='../../js/3.js'></script><div class='div2'><div class='heading_nav'><ul><div><li><a href='../../index.html'>首页</a></li>
+</div><div onclick='hidden1()' >分享</div>
+</ul></div></div>
+<div id='heading_nav2'> 
+<li class='row' >
+<div class='social-share' data-mode='prepend'><a href='javascript:' class='social-share-icon icon-heart'></a></div></li></div><script charset='utf-8' src='../../3/js/hengfu.js'></script><script charset='utf-8' src='../../3/js/hengfu2.js'></script><hr><div class='div1'><div class='biaoti'><center>java异常</center></div><div class='banquan'>原文出处:本文由博客园博主PrideAssassin提供。<br/>
+原文连接:https://www.cnblogs.com/PrideAssassin/p/11425932.html</div><br>
+    <p><span style="font-family: 楷体; font-size: 18px;">1.异常类大致结构:</span></p>
+<p style="text-align: left;"><span style="background-color: #ffffff; font-family: 楷体;"><img src="./images/java异常0.png" alt="" /></span></p>
+<p><span style="font-family: 楷体; font-size: 18px;">2.Throwable是所有异常类的超类.</span></p>
+<p><span style="font-family: 楷体; font-size: 18px;">3.当程序可能出现错误(异常)的时候应该使用,使用关键捕获异常进行处理.</span></p>
+<p><span style="font-family: 楷体; font-size: 18px;">4.捕获异常结构如下:</span></p>
+<!--<p><span style="font-family: 楷体; font-size: 18px;">&nbsp;</span></p>-->
+<src class="cnblogs_code">
+<pre><code><span style="color: #008080;"> 1</span> <span style="color: #0000ff;">public</span> <span style="color: #0000ff;">void</span><span style="color: #000000;"> test() {
+</span><span style="color: #008080;"> 2</span>     <span style="color: #0000ff;">int</span> num1 = 10<span style="color: #000000;">;
+</span><span style="color: #008080;"> 3</span>     <span style="color: #0000ff;">int</span> num2 = 0<span style="color: #000000;">;
+</span><span style="color: #008080;"> 4</span>     <span style="color: #0000ff;">try</span><span style="color: #000000;"> {
+</span><span style="color: #008080;"> 5</span>    　　 System.out.println(num1 / num2);           　　　　　　　　　　　　　　　　  <span style="color: #008000;">//</span><span style="color: #008000;"> try可能出现错误的语句块</span>
+<span style="color: #008080;"> 6</span>     } <span style="color: #0000ff;">catch</span> (Exception e) {                        　　　　　　　　　　　　　　　　 <span style="color: #008000;">//</span><span style="color: #008000;"> 异常类型 并实例化一个异常类型e,用来对出现的异常进行说明</span>
+<span style="color: #008080;"> 7</span>        e.printStackTrace();                     　　　　　　 　　　　　　  　　　　 <span style="color: #008000;">//</span><span style="color: #008000;"> 如果出现错误执行catch里面内容,否则跳过catch语句块</span>
+<span style="color: #008080;"> 8</span>     } <span style="color: #0000ff;">finally</span><span style="color: #000000;"> {
+</span><span style="color: #008080;"> 9</span>         System.out.println("永远都会被执行,(system.exit)特殊情况除外,");　　　　　　 <span style="color: #008000;">//</span><span style="color: #008000;"> 无论是否出现异常都会执行finally语句块</span>
+<span style="color: #008080;">10</span> <span style="color: #000000;">    }
+</span><span style="color: #008080;">11 </span>}            </code></pre>
+
+<p><span style="font-family: 楷体; font-size: 18px;">5.有的函数声明定义的时候直接抛出了异常,name在调用的时候就需要捕获异常或者继续抛出异常.</span></p>
+<src class="cnblogs_code">
+<pre><code><span style="color: #008080;"> 1</span>     <span style="color: #0000ff;">public</span> <span style="color: #0000ff;">static</span> <span style="color: #0000ff;">void</span><span style="color: #000000;"> main(String[] args) {
+</span><span style="color: #008080;"> 2</span>         <span style="color: #0000ff;">try</span><span style="color: #000000;"> {
+</span><span style="color: #008080;"> 3</span> <span style="color: #000000;">            test();　　　　　　　　　　　　　//调用这个方法就必须捕获异常或者继续抛出异常　　　
+</span><span style="color: #008080;"> 4</span>         } <span style="color: #0000ff;">catch</span><span style="color: #000000;"> (Exception e) {
+</span><span style="color: #008080;"> 5</span> <span style="color: #000000;">            e.printStackTrace();
+</span><span style="color: #008080;"> 6</span> <span style="color: #000000;">        }
+</span><span style="color: #008080;"> 7</span> <span style="color: #000000;">    }
+</span><span style="color: #008080;"> 8</span>     
+<span style="color: #008080;"> 9</span>     <span style="color: #008000;">//方法定义的时候抛出了异常
+</span><span style="color: #008080;">10</span>     <span style="color: #0000ff;">public</span> <span style="color: #0000ff;">static</span> <span style="color: #0000ff;">void</span> test() <span style="color: #0000ff;">throws</span><span style="color: #000000;"> Exception {
+</span><span style="color: #008080;">11</span>         <span style="color: #0000ff;">int</span> num1 = 10<span style="color: #000000;">;
+</span><span style="color: #008080;">12</span>         <span style="color: #0000ff;">int</span> num2 = 0<span style="color: #000000;">;
+</span><span style="color: #008080;">13</span>         System.out.println(num1 / num2);             
+<span style="color: #008080;">14</span>     }</code></pre>
+
+<p><span style="font-family: 楷体; font-size: 18px;">&nbsp;6.自定义异常类,必须继承一个异常的父类:</span></p>
+<src class="cnblogs_code">
+<pre><code><span style="color: #0000ff;">public</span> <span style="color: #0000ff;">class</span> ExceptionTest <span style="color: #0000ff;">extends</span><span style="color: #000000;"> Exception{
+    @Override        </span><span style="color: #008000;">//</span><span style="color: #008000;">这个是注解,表示这是重写的方法</span>
+    <span style="color: #0000ff;">public</span> <span style="color: #0000ff;">void</span><span style="color: #000000;"> printStackTrace() {
+        System.out.println(</span>"自己定义的异常类"<span style="color: #000000;">);
+        System.out.println(</span>"尝试一下如果程序没有出现异常,强制抛出这个自定义异常,可不可以捕获"<span style="color: #000000;">);
+    }   
+}</span></code></pre>
+
+<p><span style="font-family: 楷体; font-size: 18px;">7.尝试使用(捕获)自定义的异常类</span></p>
+<src class="cnblogs_code">
+<pre><code><span style="color: #0000ff;">public</span> <span style="color: #0000ff;">class</span><span style="color: #000000;"> Main {
+    </span><span style="color: #0000ff;">public</span> <span style="color: #0000ff;">static</span> <span style="color: #0000ff;">void</span><span style="color: #000000;"> main(String[] args) {
+        </span><span style="color: #0000ff;">try</span><span style="color: #000000;"> {
+            test();                    </span><span style="color: #008000;">//</span><span style="color: #008000;">调用这个方法尝试捕获自定义异常</span>
+        } <span style="color: #0000ff;">catch</span><span style="color: #000000;"> (ExceptionTest e) {
+            e.printStackTrace();    </span><span style="color: #008000;">//</span><span style="color: #008000;">自定义的异常类重写了printStackTrace这个方法</span>
+<span style="color: #000000;">        }
+    }
+    　</span><span style="color: #008000;">//</span><span style="color: #008000;">继续往上抛出异常</span>
+    <span style="color: #0000ff;">public</span> <span style="color: #0000ff;">static</span> <span style="color: #0000ff;">void</span> test() <span style="color: #0000ff;">throws</span><span style="color: #000000;"> ExceptionTest{
+        </span><span style="color: #0000ff;">throw</span> <span style="color: #0000ff;">new</span> ExceptionTest(); <span style="color: #008000;">//</span><span style="color: #008000;">强制产生一个自定义的异常并往上抛</span>
+<span style="color: #000000;">    }   
+}</span></code></pre>
+
+
+</div><hr><script charset='utf-8' src='../../js/sming.js'></script></body></html>

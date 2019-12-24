@@ -1,0 +1,124 @@
+<html><head><meta charset='utf-8'><meta name='viewport' content='width=device-width, initial-scale=1'>
+<meta name='applicable-device' content='pc'><meta name='keywords' content='电脑,电脑讲解,电脑技术,编程,电脑故障维修搭建一个简单的微服务' />
+<script src='../../highlight/highlight.pack.js'></script>
+<link rel='stylesheet' type='text/css' href='../../highlight/styles/monokai.css'/>
+
+<link rel='stylesheet' href='../../fenxiang/dist/css/share.min.css'>
+<script src='../../fenxiang/src/js/social-share.js'></script>
+<script src='../../fenxiang/src/js/qrcode.js'></script>
+
+</head><body><script>hljs.initHighlightingOnLoad();</script><script>
+var system ={};  
+var p = navigator.platform;       
+system.win = p.indexOf('Win') == 0;  
+system.mac = p.indexOf('Mac') == 0;  
+system.x11 = (p == 'X11') || (p.indexOf('Linux') == 0);     
+if(system.win||system.mac||system.xll){
+document.write("<link href='../css/3.css' rel='stylesheet' type='text/css'>");}else{ document.write("<link href='../css/3wap.css' rel='stylesheet' type='text/css'>");}</script><script src='../../js/3.js'></script><div class='div2'><div class='heading_nav'><ul><div><li><a href='../../index.html'>首页</a></li>
+</div><div onclick='hidden1()' >分享</div>
+</ul></div></div>
+<div id='heading_nav2'> 
+<li class='row' >
+<div class='social-share' data-mode='prepend'><a href='javascript:' class='social-share-icon icon-heart'></a></div></li></div><script charset='utf-8' src='../../3/js/hengfu.js'></script><script charset='utf-8' src='../../3/js/hengfu2.js'></script><hr><div class='div1'><div class='biaoti'><center>搭建一个简单的微服务</center></div><div class='banquan'>原文出处:本文由博客园博主阳光下De泡沫提供。<br/>
+原文连接:https://www.cnblogs.com/walytong/p/wfwdemo.html</div><br>
+    <p><span style="font-family: 幼圆; font-size: 14pt;">刚刚开始写微服务，这篇博客就纪念我第一个微服务吧。</span></p>
+<p><span style="font-size: 16px;">1.新建工程</span></p>
+<p><span style="font-size: 16px;">首先要搭建一个微服务环境，我用的是开发环境IDEA，详细步骤如下：</span></p>
+<p><span style="font-size: 16px;">①打开IDEA </span></p>
+<p><span style="font-size: 16px;">&nbsp;　　File-&gt;New-&gt;Project&nbsp; 选择Spring lnitializr 然后点击next。</span></p>
+<p><span style="font-size: 14pt;"><img style="vertical-align: middle;" src="./images/搭建一个简单的微服务0.png" alt="" width="600" height="316" /></span></p>
+<p>&nbsp;</p>
+<p>&nbsp;</p>
+<p><span style="font-size: 14pt;">　　<span style="font-size: 16px;">填写包名和项目名字，自己随便写，然后next。</span></span></p>
+<p>&nbsp;</p>
+<p><span style="font-size: 14pt;"><span style="font-size: 14pt;"><img src="./images/搭建一个简单的微服务1.png" alt="" width="599" height="316" /></span></span></p>
+<p>&nbsp;</p>
+<p>&nbsp;</p>
+<p><span style="font-size: 16px;">　　进入选库环节，也就是选择自己需要的Maven依赖，项目建好后，这些依赖在pom中自动生成，不用我们去手动添加了，我们项目比较简单，加几个基本库就行了，点击next。</span></p>
+<p><span style="font-size: 18px;"><img src="./images/搭建一个简单的微服务2.png" alt="" width="599" height="316" /></span></p>
+<p>&nbsp;</p>
+<p><span style="font-size: 18px;"></span></p>
+<p>&nbsp;</p>
+<p><span style="font-size: 18px;">&nbsp;</span></p>
+<p>&nbsp;</p>
+<p>&nbsp;</p>
+<p><span style="font-size: 16px;">　　最后点击Finish，一个微服务项目搭建就算初步完成了。</span></p>
+<p><span style="font-size: 16px;">&nbsp;2、注册到注册中心</span></p>
+<p><span style="font-size: 16px;">微服务当然要注册到注册中心啦，不然就不是微服务了。我用的注册中心是Nacos，是阿里开源的，当下比较流行。（如果不懂Nacos的，建议先学一些Nacos）</span></p>
+<p><span style="font-size: 16px;">先启动Nacos，在本地打开Nacos，localhost：8848/nacos，会出现登录界面，账号密码都是nacos</span></p>
+<p><span style="font-size: 18px;"><img src="./images/搭建一个简单的微服务3.png" alt="" /></span></p>
+<p>&nbsp;</p>
+<p>&nbsp;</p>
+<p>&nbsp;<img src="./images/搭建一个简单的微服务4.png" alt="" width="204" height="200" /></p>
+<p>&nbsp;</p>
+<p>&nbsp;</p>
+<p><span style="font-size: 16px;">&nbsp;登录进去之后</span></p>
+<p><span style="font-size: 18px;"><img src="./images/搭建一个简单的微服务5.png" alt="" width="683" height="316" /></span></p>
+<p>&nbsp;</p>
+<p>&nbsp;</p>
+<p><span style="font-size: 16px;">&nbsp;选择服务列表，可以看到我们的注册进来的微服务，如果微服务启动了，就是三个1，没启动后面就是0.</span></p>
+<p><span style="font-size: 16px;">接下来，我说一下如何注册微服务。</span></p>
+<p><span style="font-size: 16px;">把resources下的application.properties删了，在同样的位置间一个application.yml文件</span></p>
+<p><span style="font-size: 18px;"><img src="./images/搭建一个简单的微服务6.png" alt="" /> <img src="./images/搭建一个简单的微服务7.png" alt="" /></span></p>
+<p>&nbsp;</p>
+<p>&nbsp;</p>
+<p><span style="font-size: 16px;">&nbsp;打开application.yml ，写上下面这段代码</span></p>
+<p>&nbsp;</p>
+<src class="cnblogs_Highlighter">
+<pre><code>server:
+  port: 8080
+spring:
+  application:
+    name: nacos123
+  cloud:
+    nacos:
+      discovery:
+        server-addr: localhost:8848
+</code></pre>
+
+<p>&nbsp;</p>
+<p><span style="font-size: 16px;">&nbsp;在pom中添加nacos的依赖</span></p>
+<p><span style="font-size: 16px;">下面这段代码添加到<span style="color: #e8bf6a;">&lt;dependencies&gt;</span><span style="color: #e8bf6a;">&lt;/dependencies&gt;之间</span></span></p>
+<p>&nbsp;</p>
+<src class="cnblogs_code">
+<pre><code>        &lt;dependency&gt;
+            &lt;groupId&gt;org.springframework.cloud&lt;/groupId&gt;
+            &lt;artifactId&gt;spring-cloud-starter-alibaba-nacos-discovery&lt;/artifactId&gt;
+        &lt;/dependency&gt;</code></pre>
+
+<p>&nbsp;</p>
+<p><span style="font-size: 16px;">下面这段添加到<span style="color: #e8bf6a;">&lt;project</span>&gt;<span style="color: #e8bf6a;">&lt;/project&gt;之间</span></span></p>
+<p>&nbsp;</p>
+<src class="cnblogs_code">
+<pre><code>    &lt;dependencyManagement&gt;
+        &lt;dependencies&gt;
+            &lt;dependency&gt;
+                &lt;groupId&gt;org.springframework.cloud&lt;/groupId&gt;
+                &lt;artifactId&gt;spring-cloud-alibaba-dependencies&lt;/artifactId&gt;
+                &lt;version&gt;0.9.0.RELEASE&lt;/version&gt;
+                &lt;type&gt;pom&lt;/type&gt;
+                &lt;scope&gt;<span style="color: #0000ff;">import</span>&lt;/scope&gt;
+            &lt;/dependency&gt;
+
+            &lt;dependency&gt;
+                &lt;groupId&gt;org.springframework.cloud&lt;/groupId&gt;
+                &lt;artifactId&gt;spring-cloud-dependencies&lt;/artifactId&gt;
+                &lt;version&gt;Greenwich.SR2&lt;/version&gt;
+                &lt;type&gt;pom&lt;/type&gt;
+                &lt;scope&gt;<span style="color: #0000ff;">import</span>&lt;/scope&gt;
+            &lt;/dependency&gt;
+        &lt;/dependencies&gt;
+    &lt;/dependencyManagement&gt;</code></pre>
+
+<p>&nbsp;</p>
+<p><span style="font-size: 18px;">这样运行主类就可以注册到nacos上了，一个基本的微服务就做好了。</span></p>
+<p><span style="font-size: 18px;">有什么问题可以留言交流，大家一起讨论哈！</span></p>
+<p>&nbsp;</p>
+<p><span style="font-size: 18px;">&nbsp;</span></p>
+<p>&nbsp;</p>
+<p>&nbsp;</p>
+<p>&nbsp;</p>
+<p><span style="font-size: 18px;">&nbsp;</span></p>
+<p>&nbsp;</p>
+
+</div><hr><script charset='utf-8' src='../../js/sming.js'></script></body></html>

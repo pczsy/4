@@ -1,0 +1,195 @@
+<html><head><meta charset='utf-8'><meta name='viewport' content='width=device-width, initial-scale=1'>
+<meta name='applicable-device' content='pc'><meta name='keywords' content='电脑,电脑讲解,电脑技术,编程,电脑故障维修利用SpringBoot+Logback手写一个简单的链路追踪' />
+<script src='../../highlight/highlight.pack.js'></script>
+<link rel='stylesheet' type='text/css' href='../../highlight/styles/monokai.css'/>
+
+<link rel='stylesheet' href='../../fenxiang/dist/css/share.min.css'>
+<script src='../../fenxiang/src/js/social-share.js'></script>
+<script src='../../fenxiang/src/js/qrcode.js'></script>
+
+</head><body><script>hljs.initHighlightingOnLoad();</script><script>
+var system ={};  
+var p = navigator.platform;       
+system.win = p.indexOf('Win') == 0;  
+system.mac = p.indexOf('Mac') == 0;  
+system.x11 = (p == 'X11') || (p.indexOf('Linux') == 0);     
+if(system.win||system.mac||system.xll){
+document.write("<link href='../css/3.css' rel='stylesheet' type='text/css'>");}else{ document.write("<link href='../css/3wap.css' rel='stylesheet' type='text/css'>");}</script><script src='../../js/3.js'></script><div class='div2'><div class='heading_nav'><ul><div><li><a href='../../index.html'>首页</a></li>
+</div><div onclick='hidden1()' >分享</div>
+</ul></div></div>
+<div id='heading_nav2'> 
+<li class='row' >
+<div class='social-share' data-mode='prepend'><a href='javascript:' class='social-share-icon icon-heart'></a></div></li></div><script charset='utf-8' src='../../3/js/hengfu.js'></script><script charset='utf-8' src='../../3/js/hengfu2.js'></script><hr><div class='div1'><div class='biaoti'><center>利用SpringBoot+Logback手写一个简单的链路追踪</center></div><div class='banquan'>原文出处:本文由博客园博主Java碎碎念提供。<br/>
+原文连接:https://www.cnblogs.com/haha12/p/11770526.html</div><br>
+    <src class="toc">
+    <p class="toc-title">目录</p>
+    <src class="toc-list">
+        <ul>
+        <li><a href="#一实现原理">一、实现原理</a></li>
+        <li><a href="#二代码实战">二、代码实战</a></li>
+        <li><a href="#三测试">三、测试</a></li>
+        </ul>
+    
+
+<blockquote>
+<p>最近线上排查问题时候，发现请求太多导致日志错综复杂，没办法把用户在一次或多次请求的日志关联在一起，所以就利用SpringBoot+Logback手写了一个简单的链路追踪，下面详细介绍下。</p>
+</blockquote>
+<h3 id="一实现原理">一、实现原理</h3>
+<p>Spring Boot默认使用LogBack日志系统，并且已经引入了相关的jar包，所以我们无需任何配置便可以使用LogBack打印日志。</p>
+<p>MDC（Mapped Diagnostic Context，映射调试上下文）是log4j和logback提供的一种方便在多线程条件下记录日志的功能。</p>
+<p>实现思路是在一个请求开始时，将请求相关的上下文信息（例如客户ID、客户的IP地址、sessionId、请求参数等）添加到MDC，然后配置好logback-spring.xml，则Logback组件将会在每条日志中打印出存放到MDC的信息，从而实现一个ID贯穿用户的所有操作。</p>
+<h3 id="二代码实战">二、代码实战</h3>
+<p>新建一个spring boot项目spring-boot-log，按照下面步骤操作。</p>
+<ol>
+<li>新建日志拦截器</li>
+</ol>
+<p>日志拦截器在请求开始获取用户的sessionId，当然也可以生成一个UUID，生成后存放到MDC中。<br />
+SessionInterceptor代码如下：</p>
+<pre><code><code>/**
+ * 日志拦截器
+ * @Author: Java碎碎念
+ *
+ */
+public class SessionInterceptor extends HandlerInterceptorAdapter {
+    /**
+     * 会话ID
+     */
+    private final static String SESSION_KEY = &quot;sessionId&quot;;
+
+
+    @Override
+    public void postHandle(HttpServletRequest arg0, HttpServletResponse arg1,
+                           Object arg2, ModelAndView arg3) throws Exception {
+    }
+
+    @Override
+    public boolean preHandle(HttpServletRequest request,
+                             HttpServletResponse response, Object handler) throws Exception {
+
+//        String token = UUID.randomUUID().toString().replaceAll(&quot;-&quot;,&quot;&quot;);
+        //本例测试使用sessionId，也可以使用UUID等
+        String token = request.getSession().getId();
+        MDC.put(SESSION_KEY, token);
+        return true;
+    }
+
+    @Override
+    public void afterCompletion(HttpServletRequest arg0,
+                                HttpServletResponse arg1, Object arg2, Exception arg3)
+            throws Exception {
+        // 删除
+        MDC.remove(SESSION_KEY);
+    }
+}</code></code></pre>
+<ol>
+<li>新建配置类</li>
+</ol>
+<p>新建InterceptorConfig，注册刚才的日志拦截器。</p>
+<p>InterceptorConfig代码如下：</p>
+<pre><code><code>@Configuration
+public class InterceptorConfig implements WebMvcConfigurer {
+
+    @Bean
+    public SessionInterceptor getSessionInterceptor() {
+        return new SessionInterceptor();
+    }
+
+    @Override
+    public void addInterceptors(InterceptorRegistry registry) {
+        registry.addInterceptor(getSessionInterceptor()).addPathPatterns(&quot;/*&quot;);
+    }
+}</code></code></pre>
+<ol>
+<li>修改logback-spring.xml</li>
+</ol>
+<p>配置logback-spring.xml，获取日志拦截器添加的sessionId并打印到日志中，配置文件中获取方式如下：</p>
+<pre><code><code>%X{sessionId}</code></code></pre>
+<p>本例中打印sessionId到控制台和文件，完整配置如下：</p>
+<pre><code><code>&lt;?xml version=&quot;1.0&quot; encoding=&quot;UTF-8&quot;?&gt;
+&lt;configuration&gt;
+    &lt;property name=&quot;log.base&quot; value=&quot;./log/logback&quot;/&gt;
+    &lt;appender name=&quot;stdout&quot; class=&quot;ch.qos.logback.core.ConsoleAppender&quot;&gt;
+        &lt;encoder&gt;
+            &lt;pattern&gt; %date [%thread] [%X{sessionId}] %-5level %logger{80} - %msg%n
+            &lt;/pattern&gt;
+        &lt;/encoder&gt;
+    &lt;/appender&gt;
+
+    &lt;appender name=&quot;logfile&quot;
+              class=&quot;ch.qos.logback.core.rolling.RollingFileAppender&quot;&gt;
+        &lt;File&gt;${log.base}.log&lt;/File&gt;
+        &lt;rollingPolicy class=&quot;ch.qos.logback.core.rolling.TimeBasedRollingPolicy&quot;&gt;
+            &lt;FileNamePattern&gt;${log.base}.%d{yyyy -MM-dd}.log.zip&lt;/FileNamePattern&gt;
+        &lt;/rollingPolicy&gt;
+        &lt;encoder&gt;
+            &lt;pattern&gt; %date [%thread] [%X{sessionId}]  %-5level %logger{80} - %msg%n
+            &lt;/pattern&gt;
+        &lt;/encoder&gt;
+    &lt;/appender&gt;
+    &lt;logger name=&quot;com.sample&quot; level=&quot;TRACE&quot;/&gt;
+    &lt;root&gt;
+        &lt;level value=&quot;INFO&quot;/&gt;
+        &lt;appender-ref ref=&quot;stdout&quot;/&gt;
+        &lt;appender-ref ref=&quot;logfile&quot;/&gt;
+    &lt;/root&gt;
+&lt;/configuration&gt;</code></code></pre>
+<ol>
+<li>添加controller</li>
+</ol>
+<p>新建TestLogController，打印日志。</p>
+<p>代码如下：</p>
+<pre><code><code>@RestController
+public class TestLogController {
+
+    Logger log = LoggerFactory.getLogger(getClass());
+
+    /**
+     * 测试登录
+     */
+    @RequestMapping(value = &quot;/testLogin&quot;)
+    public String testLogin() {
+        log.info(&quot;用户登录成功！&quot;);
+        return &quot;ok&quot;;
+    }
+
+    /**
+     * 测试下单
+     */
+    @RequestMapping(value = &quot;/testNewOrder&quot;)
+    public String testNewOrder() {
+        log.info(&quot;用户创建了订单！&quot;);
+        log.info(&quot;请求完成，返回ok！&quot;);
+        return &quot;ok&quot;;
+    }
+
+    /**
+     * 测试购买
+     */
+    @RequestMapping(value = &quot;/testPay&quot;)
+    public String testPay() {
+        log.info(&quot;用户付款！&quot;);
+        return &quot;ok&quot;;
+    }
+}</code></code></pre>
+<h3 id="三测试">三、测试</h3>
+<p>打开浏览器连续访问接口testLogin、testNewOrder和testPay，模拟用户登录、下单、付款操作，控制台和文件中打印的日志中已经包含了sessonId信息，打印的结果如下：</p>
+<pre><code><code>[http-nio-8888-exec-1] [CB8E7DB250A31F2BE6C05B30633B9A95] INFO  com.example.springbootlog.controller.TestLogController - 用户登录成功！
+[http-nio-8888-exec-2] [CB8E7DB250A31F2BE6C05B30633B9A95] INFO  com.example.springbootlog.controller.TestLogController - 用户创建了订单！
+[http-nio-8888-exec-2] [CB8E7DB250A31F2BE6C05B30633B9A95] INFO  com.example.springbootlog.controller.TestLogController - 请求完成，返回ok！
+[http-nio-8888-exec-3] [CB8E7DB250A31F2BE6C05B30633B9A95] INFO  com.example.springbootlog.controller.TestLogController - 用户付款！</code></code></pre>
+<p>到此SpringBoot+Logback手写一个简单的链路追踪功能已经全部实现，有问题欢迎留言沟通哦！</p>
+<p>完整源码地址： <span style="color: blue; ">https://github.com/suisui2019/springboot-study</span></p>
+<p><strong>推荐阅读</strong></p>
+<p><a href="https://mp.weixin.qq.com/s/ikyLQu3bqzk_OyejE4tGRQ">1.SpringBoot中如何优雅的读取yml配置文件？</a><br />
+<a href="https://mp.weixin.qq.com/s/mjCNtTTyGkieERKPP84fVg">2.SpringBoot中如何灵活的实现接口数据的加解密功能？</a><br />
+<a href="https://mp.weixin.qq.com/s/REFo0hRqlVjntz-FEWRGnw">3.SpringBoot中神奇的@Enable*注解？</a><br />
+<a href="https://mp.weixin.qq.com/s/mBG8GGpNMcaz1PzhEqi0WA">4.Java中Integer.parseInt和Integer.valueOf，你还傻傻分不清吗？</a><br />
+<a href="https://mp.weixin.qq.com/s/0WvJ2LZr6DO03DOU6xPXrA">5.SpringCloud系列-整合Hystrix的两种方式</a></p>
+<hr />
+<blockquote>
+<p>限时领取免费Java相关资料，涵盖了Java、Redis、MongoDB、MySQL、Zookeeper、Spring Cloud、Dubbo/Kafka、Hadoop、Hbase、Flink等高并发分布式、大数据、机器学习等技术。<br />
+关注下方公众号即可免费领取：</p>
+</blockquote>
+<p><img src="./images/利用SpringBoot+Logback手写一个简单的链路追踪0.png" alt="Java碎碎念公众号" /></p>
+
+</div><hr><script charset='utf-8' src='../../js/sming.js'></script></body></html>

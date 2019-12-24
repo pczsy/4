@@ -1,0 +1,109 @@
+<html><head><meta charset='utf-8'><meta name='viewport' content='width=device-width, initial-scale=1'>
+<meta name='applicable-device' content='pc'><meta name='keywords' content='电脑,电脑讲解,电脑技术,编程,电脑故障维修Java序列化与反序列化三连问：是什么？为什么要？如何做？' />
+<script src='../../highlight/highlight.pack.js'></script>
+<link rel='stylesheet' type='text/css' href='../../highlight/styles/monokai.css'/>
+
+<link rel='stylesheet' href='../../fenxiang/dist/css/share.min.css'>
+<script src='../../fenxiang/src/js/social-share.js'></script>
+<script src='../../fenxiang/src/js/qrcode.js'></script>
+
+</head><body><script>hljs.initHighlightingOnLoad();</script><script>
+var system ={};  
+var p = navigator.platform;       
+system.win = p.indexOf('Win') == 0;  
+system.mac = p.indexOf('Mac') == 0;  
+system.x11 = (p == 'X11') || (p.indexOf('Linux') == 0);     
+if(system.win||system.mac||system.xll){
+document.write("<link href='../css/3.css' rel='stylesheet' type='text/css'>");}else{ document.write("<link href='../css/3wap.css' rel='stylesheet' type='text/css'>");}</script><script src='../../js/3.js'></script><div class='div2'><div class='heading_nav'><ul><div><li><a href='../../index.html'>首页</a></li>
+</div><div onclick='hidden1()' >分享</div>
+</ul></div></div>
+<div id='heading_nav2'> 
+<li class='row' >
+<div class='social-share' data-mode='prepend'><a href='javascript:' class='social-share-icon icon-heart'></a></div></li></div><script charset='utf-8' src='../../3/js/hengfu.js'></script><script charset='utf-8' src='../../3/js/hengfu2.js'></script><hr><div class='div1'><div class='biaoti'><center>Java序列化与反序列化三连问：是什么？为什么要？如何做？</center></div><div class='banquan'>原文出处:本文由博客园博主Java知音*提供。<br/>
+原文连接:https://www.cnblogs.com/javazhiyin/p/11841374.html</div><br>
+    <h2>Java序列化与反序列化是什么？</h2>
+<p>Java序列化是指把Java对象转换为字节序列的过程，而Java反序列化是指把字节序列恢复为Java对象的过程：</p>
+<ul class="list-paddingleft-2">
+<li>
+<p><strong>序列化：</strong>对象序列化的最主要的用处就是在传递和保存对象的时候，保证对象的完整性和可传递性。序列化是把对象转换成有序字节流，以便在网络上传输或者保存在本地文件中。核心作用是对象状态的保存与重建。</p>
+</li>
+<li>
+<p><strong>反序列化：</strong>客户端从文件中或网络上获得序列化后的对象字节流，根据字节流中所保存的对象状态及描述信息，通过反序列化重建对象。</p>
+</li>
+</ul>
+<h2>为什么需要序列化与反序列化？</h2>
+<p>为什么要序列化，那就是说一下序列化的好处喽，序列化有什么什么优点，所以我们要序列化。</p>
+<p><strong>一：对象序列化可以实现分布式对象。</strong></p>
+<p>主要应用例如：RMI(即远程调用Remote Method Invocation)要利用对象序列化运行远程主机上的服务，就像在本地机上运行对象时一样。</p>
+<p><strong>二：java对象序列化不仅保留一个对象的数据，而且递归保存对象引用的每个对象的数据。</strong></p>
+<p>可以将整个对象层次写入字节流中，可以保存在文件中或在网络连接上传递。利用对象序列化可以进行对象的"深复制"，即复制对象本身及引用的对象本身。序列化一个对象可能得到整个对象序列。</p>
+<p><strong>三：序列化可以将内存中的类写入文件或数据库中。</strong></p>
+<p>比如：将某个类序列化后存为文件，下次读取时只需将文件中的数据反序列化就可以将原先的类还原到内存中。也可以将类序列化为流数据进行传输。</p>
+<p>总的来说就是将一个已经实例化的类转成文件存储，下次需要实例化的时候只要反序列化即可将类实例化到内存中并保留序列化时类中的所有变量和状态。</p>
+<p><strong>四：对象、文件、数据，有许多不同的格式，很难统一传输和保存。</strong></p>
+<p>序列化以后就都是字节流了，无论原来是什么东西，都能变成一样的东西，就可以进行通用的格式传输或保存，传输结束以后，要再次使用，就进行反序列化还原，这样对象还是对象，文件还是文件。</p>
+<h2>如何实现Java序列化与反序列化</h2>
+<p>首先我们要把准备要序列化类，实现 Serializabel接口</p>
+<p>例如：我们要Person类里的name和age都序列化</p>
+<src class="cnblogs_code">
+<pre><code><span style="color: #000000;">import java.io.Serializable;
+
+
+</span><span style="color: #0000ff;">public</span> <span style="color: #0000ff;">class</span> Person implements Serializable { <span style="color: #008000;">//</span><span style="color: #008000;">本类可以序列化</span>
+
+    <span style="color: #0000ff;">private</span><span style="color: #000000;"> String name;
+    </span><span style="color: #0000ff;">private</span> <span style="color: #0000ff;">int</span><span style="color: #000000;"> age;
+
+    </span><span style="color: #0000ff;">public</span> Person(String name, <span style="color: #0000ff;">int</span><span style="color: #000000;"> age) {
+        </span><span style="color: #0000ff;">this</span>.name =<span style="color: #000000;"> name;
+        </span><span style="color: #0000ff;">this</span>.age =<span style="color: #000000;"> age;
+    }
+
+    </span><span style="color: #0000ff;">public</span><span style="color: #000000;"> String toString() {
+        </span><span style="color: #0000ff;">return</span> <span style="color: #800000;">"</span><span style="color: #800000;">姓名：</span><span style="color: #800000;">"</span> + <span style="color: #0000ff;">this</span>.name + <span style="color: #800000;">"</span><span style="color: #800000;">，年龄</span><span style="color: #800000;">"</span> + <span style="color: #0000ff;">this</span><span style="color: #000000;">.age;
+    }
+}</span></code></pre>
+
+<p>&nbsp;</p>
+<p>然后：我们将name和age序列化（也就是把这2个对象转为二进制，理解为&ldquo;打碎&rdquo;）</p>
+<src class="cnblogs_code">
+<pre><code><span style="color: #000000;">package org.lxh.SerDemo;
+
+import java.io.File;
+import java.io.FileOutputStream;
+import java.io.ObjectOutputStream;
+
+
+</span><span style="color: #0000ff;">public</span> <span style="color: #0000ff;">class</span> ObjectOutputStreamDemo { <span style="color: #008000;">//</span><span style="color: #008000;">序列化</span>
+    <span style="color: #0000ff;">public</span> <span style="color: #0000ff;">static</span> <span style="color: #0000ff;">void</span><span style="color: #000000;"> main(String[] args) throws Exception {
+        </span><span style="color: #008000;">//</span><span style="color: #008000;">序列化后生成指定文件路径</span>
+        File file = <span style="color: #0000ff;">new</span> File(<span style="color: #800000;">"</span><span style="color: #800000;">D:</span><span style="color: #800000;">"</span> + File.separator + <span style="color: #800000;">"</span><span style="color: #800000;">person.ser</span><span style="color: #800000;">"</span><span style="color: #000000;">);
+        ObjectOutputStream oos </span>= <span style="color: #0000ff;">null</span><span style="color: #000000;">;
+        </span><span style="color: #008000;">//</span><span style="color: #008000;">装饰流（流）</span>
+        oos = <span style="color: #0000ff;">new</span> ObjectOutputStream(<span style="color: #0000ff;">new</span><span style="color: #000000;"> FileOutputStream(file));
+
+        </span><span style="color: #008000;">//</span><span style="color: #008000;">实例化类</span>
+        Person per = <span style="color: #0000ff;">new</span> Person(<span style="color: #800000;">"</span><span style="color: #800000;">张三</span><span style="color: #800000;">"</span>, <span style="color: #800080;">30</span><span style="color: #000000;">);
+        oos.writeObject(per); </span><span style="color: #008000;">//</span><span style="color: #008000;">把类对象序列化</span>
+<span style="color: #000000;">        oos.close();
+    }
+}</span></code></pre>
+
+<p>&nbsp;</p>
+<p>一个很简单的示例，<strong>文章以应答面试提问为主，更深了解序列化与反序列化，需要你上网多参考资料。</strong></p>
+<p>比如：</p>
+<blockquote>
+<p>《Java对象的序列化（Serialization）和反序列化详解》<br /><a href="https://blog.csdn.net/yaomingyang/article/details/79321939" target="_blank">https://blog.csdn.net/yaomingyang/article/details/79321939</a></p>
+
+</blockquote>
+<blockquote>
+<p>《Java 序列化的高级认识》<br /><a href="https://www.ibm.com/developerworks/cn/java/j-lo-serial/" target="_blank">https://www.ibm.com/developerworks/cn/java/j-lo-serial/</a></p>
+
+</blockquote>
+<p>好了，学起来！</p>
+<p><strong>最近三期</strong></p>
+<p><a href="https://www.javazhiyin.com/go?url=http://mp.weixin.qq.com/s?__biz=MzIyNDU2ODA4OQ==&amp;mid=2247483974&amp;idx=1&amp;sn=5273717a1b9023ba1d4eae896130186b&amp;chksm=e80db430df7a3d26a3cb132e22e64a8746a6d364d85997f2337fe91abdb6a46878239f776dd3&amp;scene=21#wechat_redirect" rel="nofollow" target="_blank">【15期】谈谈这几个常见的多线程面试题</a></p>
+<p><a href="https://www.javazhiyin.com/go?url=http://mp.weixin.qq.com/s?__biz=MzIyNDU2ODA4OQ==&amp;mid=2247483988&amp;idx=1&amp;sn=974160d56e1b779312317113f88e10da&amp;chksm=e80db422df7a3d34be1a58370f7f3d9e37108a22fe39a473cbf315050bef16d7b5dcaa21b67b&amp;scene=21#wechat_redirect" rel="nofollow" target="_blank">【16期】你能谈谈HashMap怎样解决hash冲突吗</a></p>
+<p><a href="https://www.javazhiyin.com/go?url=http://mp.weixin.qq.com/s?__biz=MzIyNDU2ODA4OQ==&amp;mid=2247483993&amp;idx=1&amp;sn=eaa8d4614ff2afaf502e1fbb6c7c1320&amp;chksm=e80db42fdf7a3d39a2748c14ba10e209ef46b2579f5747643333e036451d241ef121d617e65c&amp;scene=21#wechat_redirect" rel="nofollow" target="_blank">【17期】什么情况用ArrayList or LinkedList呢?</a></p>
+
+</div><hr><script charset='utf-8' src='../../js/sming.js'></script></body></html>

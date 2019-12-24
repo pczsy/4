@@ -1,0 +1,234 @@
+<html><head><meta charset='utf-8'><meta name='viewport' content='width=device-width, initial-scale=1'>
+<meta name='applicable-device' content='pc'><meta name='keywords' content='电脑,电脑讲解,电脑技术,编程,电脑故障维修SpringBoot发送邮件' />
+<script src='../../highlight/highlight.pack.js'></script>
+<link rel='stylesheet' type='text/css' href='../../highlight/styles/monokai.css'/>
+
+<link rel='stylesheet' href='../../fenxiang/dist/css/share.min.css'>
+<script src='../../fenxiang/src/js/social-share.js'></script>
+<script src='../../fenxiang/src/js/qrcode.js'></script>
+
+</head><body><script>hljs.initHighlightingOnLoad();</script><script>
+var system ={};  
+var p = navigator.platform;       
+system.win = p.indexOf('Win') == 0;  
+system.mac = p.indexOf('Mac') == 0;  
+system.x11 = (p == 'X11') || (p.indexOf('Linux') == 0);     
+if(system.win||system.mac||system.xll){
+document.write("<link href='../css/3.css' rel='stylesheet' type='text/css'>");}else{ document.write("<link href='../css/3wap.css' rel='stylesheet' type='text/css'>");}</script><script src='../../js/3.js'></script><div class='div2'><div class='heading_nav'><ul><div><li><a href='../../index.html'>首页</a></li>
+</div><div onclick='hidden1()' >分享</div>
+</ul></div></div>
+<div id='heading_nav2'> 
+<li class='row' >
+<div class='social-share' data-mode='prepend'><a href='javascript:' class='social-share-icon icon-heart'></a></div></li></div><script charset='utf-8' src='../../3/js/hengfu.js'></script><script charset='utf-8' src='../../3/js/hengfu2.js'></script><hr><div class='div1'><div class='biaoti'><center>SpringBoot发送邮件</center></div><div class='banquan'>原文出处:本文由博客园博主Coder小明提供。<br/>
+原文连接:https://www.cnblogs.com/coderxx/p/11514466.html</div><br>
+    <blockquote>
+<p>在小明经历的多个项目开发中，总会遇到<strong>消息通知</strong>的场景，比如某个广告主提交一个表单，我们要通知提醒运营人员及时查看。</p>
+</blockquote>
+<p>消息通知的形式也有很多，比如：短信、邮件、app推送等，本文主要给大家描述一下<strong>邮件</strong>通知的形式，因为邮件相比较其他通知渠道更方便实用（免费），除了简单文本邮件（已经满足大多数情形），本文还会重点说一下集成<strong>Thymeleaf</strong>模版引擎，使用<strong>HTML</strong>的形式发送邮件，尽管<strong>HTML</strong>内容不是标准化的消息格式，但是许多邮件客户端至少支持标记语言的子集，这种方式相比较纯文本展现形式更加友好。</p>
+<h2 id="准备">准备</h2>
+<p>一个普通再也普通不了的SpringBoot项目</p>
+<h2 id="简单文本发送">简单文本发送</h2>
+<p>还是那句老话，在SpringBoot看来一切都是这么便捷。它已经集成邮件发送所必需的库模块，我们只需将以下依赖添加到<code>pom.xml</code>即可。</p>
+<pre><code><code>&lt;!-- https://mvnrepository.com/artifact/org.springframework.boot/spring-boot-starter-mail --&gt;
+&lt;dependency&gt;
+    &lt;groupId&gt;org.springframework.boot&lt;/groupId&gt;
+    &lt;artifactId&gt;spring-boot-starter-mail&lt;/artifactId&gt;
+&lt;/dependency&gt;</code></code></pre>
+<h3 id="邮箱服务结构"><strong>邮箱服务结构</strong></h3>
+<p>Spring框架中用于Java邮件支持的接口和类组织如下：</p>
+<ol>
+<li><p><strong>MailSender interface</strong>：发送简单基础电子邮件的顶级接口；</p></li>
+<li><strong>JavaMailSender interface</strong>：是<code>MailSender</code>的子接口。它支持MIME消息，并且主要与<code>MimeMessageHelper</code>类一起用于创建<code>MimeMessage</code>。建议在此接口实现类<code>JavaMailSenderImpl</code>中使用<code>MimeMessagePreparator</code>机制；</li>
+<li><strong>JavaMailSenderImpl class</strong>：实现了<code>JavaMailSender</code> 的接口，它支持<code>MimeMessage</code>和<code>SimpleMailMessage</code>；</li>
+<li><strong>SimpleMailMessage class</strong>：用于创建简单的邮件消息，包括from，to，cc，subject和text字段；</li>
+<li><strong>MimeMessagePreparator interface</strong>：提供一个回调接口，用于编写MIME消息；</li>
+<li><p><strong>MimeMessageHelper class</strong>：用于创建MIME消息的帮助类。它为HTML布局中的图像，典型邮件附件和文本内容提供支持。</p></li>
+</ol>
+<p>在以下部分中，我将向大家展示如何使用这些接口和类：</p>
+<h3 id="配置文件">配置文件</h3>
+<p>下面举例163邮箱（最常用的）：</p>
+<pre><code><code>spring:
+  mail:
+    host: smtp.163.com # 发件服务器
+    username: coderxm@163.com # 账号
+    password: xxxx # 密码（163需要授权第三方登录密码，请查看设置-客户端授权码密码开通）
+    port: 465
+    protocol: smtp
+    default-encoding: utf-8
+    # 下面这些配置大家不用深究，主要用于配置ssl
+    properties:
+      mail:
+        imap:
+          ssl:
+            socketFactory:
+              fallback: false
+        smtp:
+          auth: true
+          ssl:
+            enable: true
+            socketFactory:
+              class: com.fintech.modules.base.util.mail.MailSSLSocketFactory
+          starttls:
+            enable: true
+            required: true
+      test-connection: false</code></code></pre>
+<h3 id="代码">代码</h3>
+<h4 id="service层">service层</h4>
+<p>按照常见的代码结构，我们先定义一个发送邮件的<strong>接口</strong>，负责创建和发送新的邮件消息。</p>
+<pre><code><code>public interface EmailService {
+    /**
+     * 发送简单文本内容
+     * @param to 发件人
+     * @param subject 主题
+     * @param text 内容
+     */
+    void sendSimpleMessage(String to,
+                           String subject,
+                           String text);
+}</code></code></pre>
+<p>我们可以将一些常用的配置添加到yml配置文件当中</p>
+<pre><code><code># 邮件配置
+xiaoming:
+  email:
+    subject: &quot;程序员小明&quot;
+    from: &quot;coderxm@163.com&quot;
+    to: &quot;xiaohong@163.com&quot;
+    # 抄送人：类型定义为数组，可以配置多个
+    cc:
+      - &quot;xiaogang@163.com&quot;</code></code></pre>
+<p>然后再通过注解注入到一个实体类中，这样很优雅，随用随取：</p>
+<pre class="java"><code>@Configuration
+@ConfigurationProperties(prefix = &quot;xiaoming.email&quot;)
+@Data
+public class EmailConfig {
+    private String subject;
+    private String from;
+    private String to;
+    private String[] cc;
+}</code></code></pre>
+<p>我们再定义一个类去实现这个接口：</p>
+<pre class="java"><code>@Slf4j
+@Service
+public class EmailServiceImpl implements EmailService {
+    @Autowired
+    public JavaMailSender emailSender;
+    @Autowired
+    private EmailConfig emailConfig;
+
+    @Override
+    public void sendSimpleMessage(String to, String subject, String text) {
+        try {
+            SimpleMailMessage message = new SimpleMailMessage();
+            message.setTo(to);
+            message.setFrom(&quot;coderxm@163.com&quot;);
+            message.setSubject(subject);
+            message.setText(text);
+            emailSender.send(message);
+        } catch (MailException exception) {
+            log.error(ExceptionUtil.stacktraceToString(exception));
+        }
+    }
+}</code></code></pre>
+<h3 id="测试">测试</h3>
+<p>我们做一个简单的测试：简单的邮件是否能够发送成功。</p>
+<pre class="java"><code>@RunWith(SpringRunner.class)
+@SpringBootTest
+public class EmailTest {
+    @Autowired
+    private EmailService emailService;
+    @Test
+    public void testSimple(){
+        emailService.sendSimpleMessage(&quot;ligang@163.com&quot;,&quot;XX篮球&quot;,&quot;你好，我想让周琦代言！&quot;);
+    }
+}</code></code></pre>
+<h3 id="使用html作为模版发送邮件">使用html作为模版发送邮件</h3>
+<p>正在洋洋得意（准备划水）的时候，我们的产品突然对我说，“用简单的文本发送邮件也太简陋了吧，显示不出来我们的产品档次”，然后给我了一个样式，让我以这种形式发送，好啊，什么都难不倒小明。我连忙找到我们的前端，（假装低三下四地）让她帮忙排一个页面给我（这个工作我实在不想做，一是懒，二是人家前端肯定比我专业啊），为了保密，我简化一下，大概是这样的：</p>
+<pre><code><code>&lt;!DOCTYPE html&gt;
+&lt;html lang=&quot;en&quot; xmlns=&quot;http://www.w3.org/1999/xhtml&quot; xmlns:th=&quot;http://www.thymeleaf.org&quot;&gt;
+&lt;head&gt;&lt;/head&gt;
+&lt;body&gt;
+    姓 名：&lt;span th:text=&quot;${userName}&quot;&gt;&lt;/span&gt;
+    性 别：&lt;span th:text=&quot;${gender}&quot;&gt;&lt;/span&gt;
+&lt;/body&gt;
+&lt;/html&gt;</code></code></pre>
+<p>其实样式很好看的，但是这都不是重点，我们就以此作为模版举个例子，语法使用的都是thymeleaf，在此处就不再赘述，如果有想了解的可以去官网找。</p>
+<h4 id="增加thymeleaf-dependency">增加Thymeleaf dependency</h4>
+<pre><code><code>&lt;dependency&gt;
+    &lt;groupId&gt;org.springframework.boot&lt;/groupId&gt;
+    &lt;artifactId&gt;spring-boot-starter-thymeleaf&lt;/artifactId&gt;
+&lt;/dependency&gt;</code></code></pre>
+<h4 id="service层-1">service层</h4>
+<p>创建另一个服务类，它主要通过读取html模版封装数据准备邮件内容，在我们之前的示例中，这是一个简单的文本消息。</p>
+<pre><code><code>@Service
+public class MailContentBuilder {
+    @Autowired
+    private TemplateEngine templateEngine;
+
+    @Autowired
+    public MailContentBuilder(TemplateEngine templateEngine) {
+        this.templateEngine = templateEngine;
+    }
+
+    public String build(Map&lt;String, Object&gt; message) {
+        Context context = new Context();
+        context.setVariables(message);
+        return templateEngine.process(&quot;email&quot;, context);
+    }
+}</code></code></pre>
+<p>在<code>EmailService</code>增加接口:</p>
+<pre><code><code>public interface EmailService {
+    /**
+     * 发送简单文本内容
+     * @param to 发件人
+     * @param subject 主题
+     * @param text 内容
+     */
+    void sendSimpleMessage(String to,
+                           String subject,
+                           String text);
+
+    /**
+     * 传递多个变量，用于动态更换页面模版内容
+     * @param emailInfoMap
+     */
+    void prepareAndSend(Map&lt;String,Object&gt; emailInfoMap);
+}</code></code></pre>
+<p>在<code>EmailServiceImpl</code>增加发送html形式邮件的实现方法：</p>
+<pre><code><code>@Override
+public void prepareAndSend(Map&lt;String,Object&gt; emailInfoMap) {
+    MimeMessagePreparator messagePreparator = mimeMessage -&gt; {
+        MimeMessageHelper messageHelper = new MimeMessageHelper(mimeMessage);
+        messageHelper.setFrom(emailConfig.getFrom());
+        messageHelper.setTo(emailConfig.getTo());
+        messageHelper.setCc(emailConfig.getCc());
+        messageHelper.setSubject(emailConfig.getSubject());
+//            messageHelper.setText(message);
+        String content = mailContentBuilder.build(info);
+        messageHelper.setText(content,true);
+    };
+    try {
+        emailSender.send(messagePreparator);
+    } catch (MailException e) {
+        // runtime exception; compiler will not force you to handle it
+    }
+}</code></code></pre>
+<h4 id="测试-1">测试</h4>
+<pre><code><code>@RunWith(SpringRunner.class)
+@SpringBootTest
+public class EmailTest {
+    @Autowired
+    private EmailService emailService;
+  
+    @Test
+    public void testHtml(){
+        HashMap&lt;String, Object&gt; map = new HashMap&lt;&gt;();
+        map.put(&quot;userName&quot;,&quot;程序员小明&quot;);
+        map.put(&quot;gender&quot;,&quot;男&quot;);
+        emailService.prepareAndSend(map);
+    }
+}</code></code></pre>
+<p>整个Springboot发送邮件的场景已经复盘结束，大家如果有用到的速速体验吧！<br />
+<em>欢迎关注微信公众号”程序员小明”，获取更多资源。</em></p>
+
+
+</div><hr><script charset='utf-8' src='../../js/sming.js'></script></body></html>

@@ -1,0 +1,293 @@
+<html><head><meta charset='utf-8'><meta name='viewport' content='width=device-width, initial-scale=1'>
+<meta name='applicable-device' content='pc'><meta name='keywords' content='电脑,电脑讲解,电脑技术,编程,电脑故障维修四、springBoot 优雅的创建定时任务' />
+<script src='../../highlight/highlight.pack.js'></script>
+<link rel='stylesheet' type='text/css' href='../../highlight/styles/monokai.css'/>
+
+<link rel='stylesheet' href='../../fenxiang/dist/css/share.min.css'>
+<script src='../../fenxiang/src/js/social-share.js'></script>
+<script src='../../fenxiang/src/js/qrcode.js'></script>
+
+</head><body><script>hljs.initHighlightingOnLoad();</script><script>
+var system ={};  
+var p = navigator.platform;       
+system.win = p.indexOf('Win') == 0;  
+system.mac = p.indexOf('Mac') == 0;  
+system.x11 = (p == 'X11') || (p.indexOf('Linux') == 0);     
+if(system.win||system.mac||system.xll){
+document.write("<link href='../css/3.css' rel='stylesheet' type='text/css'>");}else{ document.write("<link href='../css/3wap.css' rel='stylesheet' type='text/css'>");}</script><script src='../../js/3.js'></script><div class='div2'><div class='heading_nav'><ul><div><li><a href='../../index.html'>首页</a></li>
+</div><div onclick='hidden1()' >分享</div>
+</ul></div></div>
+<div id='heading_nav2'> 
+<li class='row' >
+<div class='social-share' data-mode='prepend'><a href='javascript:' class='social-share-icon icon-heart'></a></div></li></div><script charset='utf-8' src='../../3/js/hengfu.js'></script><script charset='utf-8' src='../../3/js/hengfu2.js'></script><hr><div class='div1'><div class='biaoti'><center>四、springBoot 优雅的创建定时任务</center></div><div class='banquan'>原文出处:本文由博客园博主quellanan提供。<br/>
+原文连接:https://www.cnblogs.com/quellanan/p/11592442.html</div><br>
+    <h1 id="前言">前言</h1>
+<p>好几天没写了，工作有点忙，最近工作刚好做一个定时任务统计的，所以就将springboot 如何创建定时任务整理了一下。<br />
+总的来说，springboot创建定时任务是非常简单的，不用像spring 或者springmvc 需要在xml 文件中配置，在项目启动的时候加载。spring boot 使用注解的方式就可以完全支持定时任务。<br />
+不过基础注解的话，可能有的需求定时任务的时间会经常变动，注解就不好修改，每次都得重新编译，所以想将定时时间存在数据库，然后项目读取数据库执行定时任务，所以就有了基于接口的定时任务。下面就分基于注解和基于接口详细讲解。</p>
+<h1 id="基于注解">基于注解</h1>
+<p>pom.xml 文件不用修改，我们原本的项目就支持，其实定时器是springboot框架自带的，不用引入什么依赖。我们直接创建一个autotask 包，创建一个AutoTask类。</p>
+<pre><code><code>@EnableScheduling
+@Component
+@Slf4j
+public class AutoTask {
+    @Scheduled(cron=&quot;*/6 * * * * ?&quot;)
+    private void process(){
+        log.info(&quot;autoTask &quot;);
+    }
+}</code></code></pre>
+<p>这样一个定时器就创建啦，在项目启动后，会每隔6s 打印“autoTask”的日志。是不是很简单。主要用到的两个注解就是@EnableScheduling 和 @Scheduled。<br />
+注解@EnableScheduling 就是开启定时任务的。哪个类的中的方法想要定期执行，就在这个类上加入这个注解。当然这个这个注解也可以加在启动类上。加在启动类上表示项目中所有的类都可以创建定时任务。<br />
+<img src="./images/四、springBoot 优雅的创建定时任务0.png" alt="file" /></p>
+<p>@Scheduled 注解就是我们常见的定时器啦，后面的cron 就是定时任务表达式。在方法上注解，表示这个方法定期执行。<br />
+<img src="./images/四、springBoot 优雅的创建定时任务1.png" alt="file" /><br />
+不过@Scheduled 可以进行两种配置，我们熟悉的cron ,还有一种是fixedRate。比如fixedRate=6000 表示方法每6秒钟执行一次。<br />
+我们来启动项目看一下，可以看到两个方法都在定期执行。<br />
+<img src="./images/四、springBoot 优雅的创建定时任务2.png" alt="file" /></p>
+<h1 id="基于接口">基于接口</h1>
+<p>上面可以看到springboot 基于注解是非常方便的。但是对于频繁变动或者一个项目中有很多的定时器那就不方便管理了。所以统一将定时器信息存放在数据库中。</p>
+<pre><code><code>
+DROP TABLE IF EXISTS `scheduled`;
+CREATE TABLE `scheduled`  (
+  `cron_id` varchar(30) NOT NULL PRIMARY KEY,
+  `cron_name` varchar(30) NULL,
+  `cron` varchar(30) NOT NULL
+);
+INSERT INTO `scheduled` VALUES (&#39;1&#39;,&#39;定时器任务一&#39;,&#39;0/6 * * * * ?&#39;);</code></code></pre>
+<p><img src="./images/四、springBoot 优雅的创建定时任务3.png" alt="file" /></p>
+<p>在dao 层mapper1包下创建一个CronMapper接口，很简单的就获取cron</p>
+<pre><code><code>public interface CronMapper {
+
+    @Select(&quot;select cron from scheduled where cron_id = #{id}&quot;)
+    public String getCron(int id);
+}</code></code></pre>
+<p><img src="./images/四、springBoot 优雅的创建定时任务4.png" alt="file" /></p>
+<p>这里我们就不写service 层了。直接在autotask 包下创建一个AutoTaskFromDB类</p>
+<pre><code><code>@Slf4j
+@Component
+public class AutoTaskFromDB implements SchedulingConfigurer {
+
+    @Autowired
+    protected CronMapper cronMapper;
+
+    @Override
+    public void configureTasks(ScheduledTaskRegistrar scheduledTaskRegistrar) {
+
+        scheduledTaskRegistrar.addTriggerTask(() -&gt; process(),
+                triggerContext -&gt; {
+                    String cron = cronMapper.getCron(1);
+                    if (cron.isEmpty()) {
+                       log.info(&quot;cron 为空&quot;);
+                    }
+                    return new CronTrigger(cron).nextExecutionTime(triggerContext);
+                }
+        );
+    }
+
+    private  void process(){
+        log.info(&quot;formDB &quot;);
+    }
+}</code></code></pre>
+<p>可以看到也很简单，就是实现SchedulingConfigurer 这个吧接口，addTriggerTask（）是添加一个定时器。<br />
+process（）方法是我们需要定时执行的方法体。<br />
+CronTrigger(cron).nextExecutionTime(triggerContext) 就是从数据库读取的cron 创建定时器。</p>
+<p>这个类我没有加上@EnableScheduling 注解，因为我在启动类上加上了，如果你们启动类上没有加，这里记得加上。</p>
+<p>测试一下;下图可以看到三个定时任务都执行了，fromDB 是从数据库读取的。<br />
+<img src="./images/四、springBoot 优雅的创建定时任务5.png" alt="file" /></p>
+<h1 id="cron">cron</h1>
+<p>cron 用法网上有很多，也没有什么讲的这里就附带记录下</p>
+<h2 id="结构">结构</h2>
+<p>cron表达式是一个字符串，分为6或7个域，每两个域之间用空格分隔，<br />
+其语法格式为：&quot;秒域 分域 时域 日域 月域 周域 年域&quot;</p>
+<h2 id="取值范围">取值范围</h2>
+<table>
+<thead>
+<tr class="header">
+<th>域名</th>
+<th>可取值</th>
+<th>可取符号（仅列部分常用）</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>秒域</td>
+<td>0~59的整数</td>
+<td>* - , /</td>
+</tr>
+<tr class="even">
+<td>分域</td>
+<td>0~59的整数</td>
+<td>* - , /</td>
+</tr>
+<tr class="odd">
+<td>时域</td>
+<td>0~23的整数</td>
+<td>* - , /</td>
+</tr>
+<tr class="even">
+<td>日域</td>
+<td>1~31的整数</td>
+<td>* - , / ? L</td>
+</tr>
+<tr class="odd">
+<td>月域</td>
+<td>1~12的整数或JAN~DEC</td>
+<td>* - , /</td>
+</tr>
+<tr class="even">
+<td>周域</td>
+<td>1~7的整数或SUN~SAT</td>
+<td>* - , / ? L #</td>
+</tr>
+<tr class="odd">
+<td>年域</td>
+<td>1970~2099的整数</td>
+<td>* - , /</td>
+</tr>
+</tbody>
+</table>
+<h2 id="常例">常例</h2>
+<table>
+<thead>
+<tr class="header">
+<th>表达式</th>
+<th>意义</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>每隔5秒钟执行一次</td>
+<td>*/5 * * * * ?</td>
+</tr>
+<tr class="even">
+<td>每隔1分钟执行一次</td>
+<td>0 * /1 * * * ?</td>
+</tr>
+<tr class="odd">
+<td>每天1点执行一次</td>
+<td>　　　　0 0 1 * * ?</td>
+</tr>
+<tr class="even">
+<td>每天23点55分执行一次 　</td>
+<td>　　　0 55 23 * * ？</td>
+</tr>
+<tr class="odd">
+<td>每月最后一天23点执行一次</td>
+<td>　　　　0 0 23 L * ？</td>
+</tr>
+<tr class="even">
+<td>每周六8点执行一次</td>
+<td>　　　　0 0 8 ? * L</td>
+</tr>
+<tr class="odd">
+<td>每月最后一个周五，每隔2小时执行一次 　</td>
+<td>　　　0 0 */2 ? * 6L</td>
+</tr>
+<tr class="even">
+<td>每月的第三个星期五上午10:15执行一次</td>
+<td>　　　　0 15 10 ? * 5#3</td>
+</tr>
+<tr class="odd">
+<td>在每天下午2点到下午2:05期间的每1分钟执行</td>
+<td>　　　　0 0-5 14 * * ?</td>
+</tr>
+<tr class="even">
+<td>表示周一到周五每天上午10:15执行 　</td>
+<td>　　　0 15 10 ? * 2-6</td>
+</tr>
+<tr class="odd">
+<td>每个月的最后一个星期五上午10:15执行</td>
+<td>　　　　0 15 10 ? * 6L</td>
+</tr>
+<tr class="even">
+<td>每天上午10点，下午2点，4点执行一次</td>
+<td>　　　　0 0 10,14,16 * * ?</td>
+</tr>
+<tr class="odd">
+<td>朝九晚五工作时间内每半小时执行一次</td>
+<td>　　　　0 0/30 9-17 * * ?</td>
+</tr>
+<tr class="even">
+<td>每个星期三中午12点执行一次 　</td>
+<td>　　　0 0 12 ? * 4</td>
+</tr>
+<tr class="odd">
+<td>每年三月的星期三的下午2:10和2:44各执行一次</td>
+<td>　　　 0 10,44 14 ? 3 4　</td>
+</tr>
+<tr class="even">
+<td>每月的第三个星期五上午10:15执行一次</td>
+<td>　　　　0 15 10 ? * 6#3</td>
+</tr>
+<tr class="odd">
+<td>每月一日凌晨2点30执行一次</td>
+<td>　　　　0 30 2 1 * ?</td>
+</tr>
+<tr class="even">
+<td>每分钟的第10秒与第20秒都会执行</td>
+<td>　　　　10,20 * * * * ?</td>
+</tr>
+<tr class="odd">
+<td>每月的第2个星期的周5，凌晨执行</td>
+<td>　　　　0 0 0 ? * 6#2</td>
+</tr>
+</tbody>
+</table>
+<h1 id="番外">番外</h1>
+<p>本来这个知识点不应该放在这里讲的，但是不多，顺带写了，刚好也能做定时器。我们项目中往往有一些需求需要在项目启动的时候就执行，那这个我们怎么实现了。其实spring boot 使用起来也非常简单，只用实现 ApplicationRunner 就好了。<br />
+我们在autotask 包下创建一个AutoTaskFromSpringRunner类</p>
+<pre><code><code>@Slf4j
+@Component
+public class AutoTaskFromSpringRunner implements ApplicationRunner {
+
+    @Override
+    public void run(ApplicationArguments args) throws Exception {
+        process();
+    }
+
+    private void process(){
+        log.info(&quot; run ApplicationArguments&quot;);
+    }
+}
+</code></code></pre>
+<p>启动项目看一下，可以发现这个会在项目启动后执行，但是只会执行一次。</p>
+<p><img src="./images/四、springBoot 优雅的创建定时任务6.png" alt="file" /><br />
+那这个怎么用来做定时器呢？当然是结合线程来做啦，但是这个方法其实不建议，b毕竟线程很容易出问题，但是提供一种思路：</p>
+<pre><code><code>@Slf4j
+@Component
+public class AutoTaskFromSpringRunner implements ApplicationRunner {
+
+    @Override
+    public void run(ApplicationArguments args) throws Exception {
+        process();
+        new Thread(() -&gt; {
+            while (true) {
+                process2();
+                try {
+                    Thread.sleep(6000);
+                } catch (InterruptedException e) {
+                    log.error(&quot;{}&quot;,e);
+                }
+            }
+        }).start();
+    }
+    private void process(){
+        log.info(&quot; run ApplicationArguments&quot;);
+    }
+    private void process2(){
+        log.info(&quot;线程定时器&quot;);
+    }
+}
+</code></code></pre>
+<p>启动项目看下，发现也是可以起到定时器的作用的。<br />
+<img src="./images/四、springBoot 优雅的创建定时任务7.png" alt="file" /></p>
+<p>好了，就说这么多啦，今天项目的代码也同步到github 上啦。<br />
+github地址：https://github.com/QuellanAn/zlflovemm</p>
+<p>后续加油♡</p>
+<p>欢迎大家关注个人公众号 &quot;程序员爱酸奶&quot;</p>
+<p>分享各种学习资料，包含java，linux，大数据等。资料包含视频文档以及源码，同时分享本人及投递的优质技术博文。</p>
+<p>如果大家喜欢记得关注和分享哟❤<br />
+<img src="./images/四、springBoot 优雅的创建定时任务8.png" alt="file" /></p>
+
+
+</div><hr><script charset='utf-8' src='../../js/sming.js'></script></body></html>

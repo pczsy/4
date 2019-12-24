@@ -1,0 +1,145 @@
+<html><head><meta charset='utf-8'><meta name='viewport' content='width=device-width, initial-scale=1'>
+<meta name='applicable-device' content='pc'><meta name='keywords' content='电脑,电脑讲解,电脑技术,编程,电脑故障维修Java调用WebService方法总结(6)--XFire调用WebService' />
+<script src='../../highlight/highlight.pack.js'></script>
+<link rel='stylesheet' type='text/css' href='../../highlight/styles/monokai.css'/>
+
+<link rel='stylesheet' href='../../fenxiang/dist/css/share.min.css'>
+<script src='../../fenxiang/src/js/social-share.js'></script>
+<script src='../../fenxiang/src/js/qrcode.js'></script>
+
+</head><body><script>hljs.initHighlightingOnLoad();</script><script>
+var system ={};  
+var p = navigator.platform;       
+system.win = p.indexOf('Win') == 0;  
+system.mac = p.indexOf('Mac') == 0;  
+system.x11 = (p == 'X11') || (p.indexOf('Linux') == 0);     
+if(system.win||system.mac||system.xll){
+document.write("<link href='../css/3.css' rel='stylesheet' type='text/css'>");}else{ document.write("<link href='../css/3wap.css' rel='stylesheet' type='text/css'>");}</script><script src='../../js/3.js'></script><div class='div2'><div class='heading_nav'><ul><div><li><a href='../../index.html'>首页</a></li>
+</div><div onclick='hidden1()' >分享</div>
+</ul></div></div>
+<div id='heading_nav2'> 
+<li class='row' >
+<div class='social-share' data-mode='prepend'><a href='javascript:' class='social-share-icon icon-heart'></a></div></li></div><script charset='utf-8' src='../../3/js/hengfu.js'></script><script charset='utf-8' src='../../3/js/hengfu2.js'></script><hr><div class='div1'><div class='biaoti'><center>Java调用WebService方法总结(6)--XFire调用WebService</center></div><div class='banquan'>原文出处:本文由博客园博主咏吟提供。<br/>
+原文连接:https://www.cnblogs.com/wuyongyin/p/11880664.html</div><br>
+    <p>XFire是codeHaus组织提供的一个WebService开源框架，目前已被Apache的CXF所取代，已很少有人用了，这里简单记录下其调用WebService使用方法。官网现已不提供下载，可以到maven仓库下载，下载地址：https://search.maven.org/artifact/org.codehaus.xfire/xfire-distribution/1.2.6/jar。文中demo所使用到的软件版本：Java&nbsp;1.8.0_191、Xfire 1.2.6。</p>
+<h2>1、准备</h2>
+<p>参考<a class="entry" href="https://www.cnblogs.com/wuyongyin/p/11850585.html" target="_blank">Java调用WebService方法总结(1)--准备工作</a></p>
+<h2>2、调用</h2>
+<h3>2.1、Client方式</h3>
+<src class="cnblogs_code">
+<pre><code><span style="color: #0000ff;">public</span> <span style="color: #0000ff;">static</span> <span style="color: #0000ff;">void</span><span style="color: #000000;"> client(String param) {
+    </span><span style="color: #0000ff;">try</span><span style="color: #000000;"> {
+        Client client </span>= <span style="color: #0000ff;">new</span> Client(<span style="color: #0000ff;">new</span> URL("http://www.webxml.com.cn/WebServices/TraditionalSimplifiedWebService.asmx?wsdl"<span style="color: #000000;">));
+        Object[] results </span>= client.invoke("toTraditionalChinese", <span style="color: #0000ff;">new</span><span style="color: #000000;"> Object[]{param});
+        System.out.println(results[</span>0<span style="color: #000000;">]);
+    } </span><span style="color: #0000ff;">catch</span><span style="color: #000000;"> (Exception e) {
+        e.printStackTrace();
+    }
+}</span></code></pre>
+
+<p>如果服务端是用JAX-WS发布的，需指定RPC方式(接口类上增加<span style="font-family: 'Courier New'; font-size: 12px; white-space: pre-wrap;">@SOAPBinding(style = SOAPBinding.Style.RPC)</span>)；调用本地的服务：</p>
+<src class="cnblogs_code">
+<pre><code><span style="color: #008000;">/**</span><span style="color: #008000;">
+ * JAX-WS发布的服务端需指定RPC方式
+ * </span><span style="color: #808080;">@param</span><span style="color: #008000;"> param
+ </span><span style="color: #008000;">*/</span>
+<span style="color: #0000ff;">public</span> <span style="color: #0000ff;">static</span> <span style="color: #0000ff;">void</span><span style="color: #000000;"> client2(String param) {
+    </span><span style="color: #0000ff;">try</span><span style="color: #000000;"> {
+        Client client </span>= <span style="color: #0000ff;">new</span> Client(<span style="color: #0000ff;">new</span> URL("http://10.40.103.48:9006/zsywservice/TestService?wsdl"<span style="color: #000000;">));
+        Object[] results </span>= client.invoke("hello", <span style="color: #0000ff;">new</span><span style="color: #000000;"> Object[]{param});
+        System.out.println(results[</span>0<span style="color: #000000;">]);
+    } </span><span style="color: #0000ff;">catch</span><span style="color: #000000;"> (Exception e) {
+        e.printStackTrace();
+    }
+}</span></code></pre>
+
+<h3>2.2、ServiceFactory方式</h3>
+<p>这种方式需要把接口类拷贝到客户端。测试时调用本地服务时<strong>参数传不进去，总是null</strong>；不知为何；有了解的朋友请指正。</p>
+<src class="cnblogs_code">
+<pre><code><span style="color: #008000;">/**</span><span style="color: #008000;">
+ * 调用本地服务时参数传不进去,总是null
+ * </span><span style="color: #808080;">@param</span><span style="color: #008000;"> param
+ </span><span style="color: #008000;">*/</span>
+<span style="color: #0000ff;">public</span> <span style="color: #0000ff;">static</span> <span style="color: #0000ff;">void</span><span style="color: #000000;"> factory(String param) {
+    </span><span style="color: #0000ff;">try</span><span style="color: #000000;"> {
+        Service serviceModel </span>= <span style="color: #0000ff;">new</span> ObjectServiceFactory().create(ITestService.<span style="color: #0000ff;">class</span>, <span style="color: #0000ff;">null</span>, "http://ws.zsyw.inspur.com/", <span style="color: #0000ff;">null</span><span style="color: #000000;">);
+        XFireProxyFactory factory </span>= <span style="color: #0000ff;">new</span><span style="color: #000000;"> XFireProxyFactory();
+        ITestService testService </span>= (ITestService) factory.create(serviceModel, "http://10.40.103.48:9006/zsywservice/TestService?wsdl"<span style="color: #000000;">);
+        String result </span>=<span style="color: #000000;"> testService.hello(param);
+        System.out.println(result);
+    } </span><span style="color: #0000ff;">catch</span><span style="color: #000000;"> (Exception e) {
+        e.printStackTrace();
+    }
+}</span></code></pre>
+
+<h3>2.3、完整代码</h3>
+<src class="cnblogs_code" onclick="cnblogs_code_show('46bb0fae-3ccd-45f7-a156-b6c60c61e6e1')"><img id="code_img_closed_46bb0fae-3ccd-45f7-a156-b6c60c61e6e1" class="code_img_closed" src="./images/Java调用WebService方法总结(6)--XFire调用WebService0.png" alt="" /><img id="code_img_opened_46bb0fae-3ccd-45f7-a156-b6c60c61e6e1" class="code_img_opened" style="display: none;" onclick="cnblogs_code_hide('46bb0fae-3ccd-45f7-a156-b6c60c61e6e1',event)" src="./images/Java调用WebService方法总结(6)--XFire调用WebService1.png" alt="" />
+<src id="cnblogs_code_open_46bb0fae-3ccd-45f7-a156-b6c60c61e6e1" class="cnblogs_code_hide">
+<pre><code><span style="color: #0000ff;">package</span><span style="color: #000000;"> com.inspur.ws;
+
+</span><span style="color: #0000ff;">import</span><span style="color: #000000;"> java.net.URL;
+
+</span><span style="color: #0000ff;">import</span><span style="color: #000000;"> org.codehaus.xfire.client.Client;
+</span><span style="color: #0000ff;">import</span><span style="color: #000000;"> org.codehaus.xfire.client.XFireProxyFactory;
+</span><span style="color: #0000ff;">import</span><span style="color: #000000;"> org.codehaus.xfire.service.Service;
+</span><span style="color: #0000ff;">import</span><span style="color: #000000;"> org.codehaus.xfire.service.binding.ObjectServiceFactory;
+
+</span><span style="color: #0000ff;">import</span><span style="color: #000000;"> com.inspur.zsyw.ws.ITestService;
+
+</span><span style="color: #008000;">/**</span><span style="color: #008000;">
+ * 
+ * xfire调用WebService
+ *
+ </span><span style="color: #008000;">*/</span>
+<span style="color: #0000ff;">public</span> <span style="color: #0000ff;">class</span><span style="color: #000000;"> Xfire {
+    </span><span style="color: #0000ff;">public</span> <span style="color: #0000ff;">static</span> <span style="color: #0000ff;">void</span><span style="color: #000000;"> client(String param) {
+        </span><span style="color: #0000ff;">try</span><span style="color: #000000;"> {
+            Client client </span>= <span style="color: #0000ff;">new</span> Client(<span style="color: #0000ff;">new</span> URL("http://www.webxml.com.cn/WebServices/TraditionalSimplifiedWebService.asmx?wsdl"<span style="color: #000000;">));
+            Object[] results </span>= client.invoke("toTraditionalChinese", <span style="color: #0000ff;">new</span><span style="color: #000000;"> Object[]{param});
+            System.out.println(results[</span>0<span style="color: #000000;">]);
+        } </span><span style="color: #0000ff;">catch</span><span style="color: #000000;"> (Exception e) {
+            e.printStackTrace();
+        }
+    }
+    
+    </span><span style="color: #008000;">/**</span><span style="color: #008000;">
+     * JAX-WS发布的服务端需指定rpc方式
+     * </span><span style="color: #808080;">@param</span><span style="color: #008000;"> param
+     </span><span style="color: #008000;">*/</span>
+    <span style="color: #0000ff;">public</span> <span style="color: #0000ff;">static</span> <span style="color: #0000ff;">void</span><span style="color: #000000;"> client2(String param) {
+        </span><span style="color: #0000ff;">try</span><span style="color: #000000;"> {
+            Client client </span>= <span style="color: #0000ff;">new</span> Client(<span style="color: #0000ff;">new</span> URL("http://10.40.103.48:9006/zsywservice/TestService?wsdl"<span style="color: #000000;">));
+            Object[] results </span>= client.invoke("hello", <span style="color: #0000ff;">new</span><span style="color: #000000;"> Object[]{param});
+            System.out.println(results[</span>0<span style="color: #000000;">]);
+        } </span><span style="color: #0000ff;">catch</span><span style="color: #000000;"> (Exception e) {
+            e.printStackTrace();
+        }
+    }
+    
+    </span><span style="color: #008000;">/**</span><span style="color: #008000;">
+     * 调用本地服务时参数传不进去，总是null
+     * </span><span style="color: #808080;">@param</span><span style="color: #008000;"> param
+     </span><span style="color: #008000;">*/</span>
+    <span style="color: #0000ff;">public</span> <span style="color: #0000ff;">static</span> <span style="color: #0000ff;">void</span><span style="color: #000000;"> factory(String param) {
+        </span><span style="color: #0000ff;">try</span><span style="color: #000000;"> {
+            Service serviceModel </span>= <span style="color: #0000ff;">new</span> ObjectServiceFactory().create(ITestService.<span style="color: #0000ff;">class</span>, <span style="color: #0000ff;">null</span>, "http://ws.zsyw.inspur.com/", <span style="color: #0000ff;">null</span><span style="color: #000000;">);
+            XFireProxyFactory factory </span>= <span style="color: #0000ff;">new</span><span style="color: #000000;"> XFireProxyFactory();
+            ITestService testService </span>= (ITestService) factory.create(serviceModel, "http://10.40.103.48:9006/zsywservice/TestService?wsdl"<span style="color: #000000;">);
+            String result </span>=<span style="color: #000000;"> testService.hello(param);
+            System.out.println(result);
+        } </span><span style="color: #0000ff;">catch</span><span style="color: #000000;"> (Exception e) {
+            e.printStackTrace();
+        }
+    }
+
+    </span><span style="color: #0000ff;">public</span> <span style="color: #0000ff;">static</span> <span style="color: #0000ff;">void</span><span style="color: #000000;"> main(String[] args) {
+        client(</span>"大学"<span style="color: #000000;">);
+        client2(</span>"大学"<span style="color: #000000;">);
+        factory(</span>"大学");<span style="color: #008000;">//</span><span style="color: #008000;">hello,null</span>
+<span style="color: #000000;">    }
+}</span></code></pre>
+
+<span class="cnblogs_code_collapse">View Code</span>
+<p>&nbsp;</p>
+
+</div><hr><script charset='utf-8' src='../../js/sming.js'></script></body></html>

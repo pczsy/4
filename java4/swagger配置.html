@@ -1,0 +1,146 @@
+<html><head><meta charset='utf-8'><meta name='viewport' content='width=device-width, initial-scale=1'>
+<meta name='applicable-device' content='pc'><meta name='keywords' content='电脑,电脑讲解,电脑技术,编程,电脑故障维修swagger配置' />
+<script src='../../highlight/highlight.pack.js'></script>
+<link rel='stylesheet' type='text/css' href='../../highlight/styles/monokai.css'/>
+
+<link rel='stylesheet' href='../../fenxiang/dist/css/share.min.css'>
+<script src='../../fenxiang/src/js/social-share.js'></script>
+<script src='../../fenxiang/src/js/qrcode.js'></script>
+
+</head><body><script>hljs.initHighlightingOnLoad();</script><script>
+var system ={};  
+var p = navigator.platform;       
+system.win = p.indexOf('Win') == 0;  
+system.mac = p.indexOf('Mac') == 0;  
+system.x11 = (p == 'X11') || (p.indexOf('Linux') == 0);     
+if(system.win||system.mac||system.xll){
+document.write("<link href='../css/3.css' rel='stylesheet' type='text/css'>");}else{ document.write("<link href='../css/3wap.css' rel='stylesheet' type='text/css'>");}</script><script src='../../js/3.js'></script><div class='div2'><div class='heading_nav'><ul><div><li><a href='../../index.html'>首页</a></li>
+</div><div onclick='hidden1()' >分享</div>
+</ul></div></div>
+<div id='heading_nav2'> 
+<li class='row' >
+<div class='social-share' data-mode='prepend'><a href='javascript:' class='social-share-icon icon-heart'></a></div></li></div><script charset='utf-8' src='../../3/js/hengfu.js'></script><script charset='utf-8' src='../../3/js/hengfu2.js'></script><hr><div class='div1'><div class='biaoti'><center>swagger配置</center></div><div class='banquan'>原文出处:本文由博客园博主南瓜不难提供。<br/>
+原文连接:https://www.cnblogs.com/interflow/p/11760322.html</div><br>
+    <h1 style="text-align: left;">Swagger作用：</h1>
+<p style="text-align: left;">自动生成javaAPI，避免开发过程中接口文档更新不及时。</p>
+<h3 style="text-align: left;">Swagger 一.导入依赖：</h3>
+<p style="text-align: left;">导入依赖</p>
+<table style="height: 201px; float: left; width: 342px;" border="0">
+<tbody>
+<tr>
+<td style="text-align: left;">
+<pre><code>&lt;!--swagger包--&gt;<br />&lt;dependency&gt;<br />    &lt;groupId&gt;io.springfox&lt;/groupId&gt;<br />    &lt;artifactId&gt;springfox-swagger2&lt;/artifactId&gt;<br />    &lt;version&gt;2.2.2&lt;/version&gt;<br />&lt;/dependency&gt;<br />&lt;dependency&gt;<br />    &lt;groupId&gt;io.springfox&lt;/groupId&gt;<br />    &lt;artifactId&gt;springfox-swagger-ui&lt;/artifactId&gt;<br />    &lt;version&gt;2.2.2&lt;/version&gt;<br />&lt;/dependency&gt;<br />&lt;!--swagger包结束--&gt;</code></pre>
+</td>
+</tr>
+</tbody>
+</table>
+<p style="text-align: left;">&nbsp;</p>
+<p style="text-align: left;">&nbsp;</p>
+<p style="text-align: left;">&nbsp;</p>
+<p style="text-align: left;">&nbsp;</p>
+<p style="text-align: left;">&nbsp;</p>
+<p style="text-align: left;">&nbsp;</p>
+<p style="text-align: left;">&nbsp;</p>
+<h3 style="text-align: left;">Swagger 二.Swagger首页的配置：</h3>
+<p style="text-align: left;">创建一个SwaggerConfig类，通过@Configuration托管给spring，然后通过@EnableSwagger2 注解开启Swagger，Config类大部分都是固定的，没什么改变的需要：</p>
+<p style="text-align: left;">代码：</p>
+<table style="float: left;" border="0">
+<tbody>
+<tr>
+<td>
+<pre><code>package com.zy100.config;<br /><br />import org.springframework.context.annotation.Bean;<br />import org.springframework.context.annotation.Configuration;<br />import springfox.documentation.builders.ApiInfoBuilder;<br />import springfox.documentation.builders.PathSelectors;<br />import springfox.documentation.builders.RequestHandlerSelectors;<br />import springfox.documentation.service.ApiInfo;<br />import springfox.documentation.spi.DocumentationType;<br />import springfox.documentation.spring.web.plugins.Docket;<br />import springfox.documentation.swagger2.annotations.EnableSwagger2;<br /><br />/**<br /> * @author 赵振宇<br /> * @date 2019/10/29 0029<br /> * @time 14:51<br /> * @desc Swagger配置类，该类里面的应该是固定的，主要用来设置文档的主题信息，比如文档的大标题，副标题，公司名<br /> * 等<br /> */<br />@Configuration//托管spring<br />@EnableSwagger2//开启swagger功能<br />public class SwaggerConfig {<br />    /**<br />     * 创建API应用<br />     * apiInfo() 增加API相关信息<br />     * 通过select()函数返回一个ApiSelectorBuilder实例,用来控制哪些接口暴露给Swagger来展现，<br />     * 本例采用指定扫描的包路径来定义指定要建立API的目录。<br />     *<br />     * @return<br />     */<br />    @Bean<br />    public Docket createRestApi(){<br />        //版本类型是swagger2<br />        return new Docket(DocumentationType.SWAGGER_2)<br />                //通过调用自定义方法apiInfo，获得文档的主要信息<br />                .apiInfo(apiInfo())<br />                .select()<br />                .apis(RequestHandlerSelectors.basePackage("com.zy100.controller"))//扫描该包下面的API注解<br />                .paths(PathSelectors.any())<br />                .build();<br />    }<br />    /**<br />     * 创建该API的基本信息（这些基本信息会展现在文档页面中）<br />     * 访问地址：http://项目实际地址/swagger-ui.html<br />     * @return<br />     */<br />    private ApiInfo apiInfo() {<br />        return new ApiInfoBuilder()<br />                .title("使用Swagger2 构建RESTful APIS - zy") //接口管理文档首页显示<br />                .description("zy - Swagger使用演示")//API的描述<br />                .termsOfServiceUrl("www.footmark.top")//网站url等<br />                .version("1.0")<br />                .build();<br />    }<br />}</code></pre>
+</td>
+</tr>
+</tbody>
+</table>
+<p style="text-align: left;">&nbsp;</p>
+<p style="text-align: left;">&nbsp;</p>
+<p style="text-align: left;">&nbsp;</p>
+<p style="text-align: left;">&nbsp;</p>
+<p style="text-align: left;">&nbsp;</p>
+<p style="text-align: left;">&nbsp;</p>
+<p style="text-align: left;">&nbsp;</p>
+<p style="text-align: left;">&nbsp;</p>
+<p style="text-align: left;">&nbsp;</p>
+<p style="text-align: left;">&nbsp;</p>
+<p style="text-align: left;">&nbsp;</p>
+<p style="text-align: left;">&nbsp;</p>
+<p style="text-align: left;">&nbsp;</p>
+<p style="text-align: left;">&nbsp;</p>
+<p style="text-align: left;">&nbsp;</p>
+<p style="text-align: left;">&nbsp;</p>
+<p style="text-align: left;">&nbsp;</p>
+<p style="text-align: left;">&nbsp;</p>
+<p style="text-align: left;">&nbsp;</p>
+<p style="text-align: left;">&nbsp;</p>
+<p style="text-align: left;">&nbsp;</p>
+<p style="text-align: left;">&nbsp;</p>
+<p style="text-align: left;">&nbsp;</p>
+<p style="text-align: left;">&nbsp;</p>
+<p style="text-align: left;">&nbsp;</p>
+<p style="text-align: left;">&nbsp;</p>
+<p style="text-align: left;">&nbsp;</p>
+<p style="text-align: left;">&nbsp;</p>
+<h3 style="text-align: left;">Swagger 三.Swagger的Controller示例</h3>
+<p style="text-align: left;">在需要生成接口文档的Controller中加上@API注解，类中需要生成接口的方法上加上@ApiOperation注解：</p>
+<p style="text-align: left;">代码：</p>
+<table style="float: left;" border="0">
+<tbody>
+<tr>
+<td>
+<pre><code>package com.zy100.controller;<br /><br />import io.swagger.annotations.Api;<br />import io.swagger.annotations.ApiImplicitParam;<br />import io.swagger.annotations.ApiImplicitParams;<br />import io.swagger.annotations.ApiOperation;<br />import org.springframework.web.bind.annotation.*;<br /><br />import java.util.Date;<br />import java.util.HashMap;<br />import java.util.Map;<br /><br />/**<br /> * @author 赵振宇<br /> * @date 2019/10/29 0029<br /> * @time 15:00<br /> * @desc 配合swagger创建一个Controller，演示方便不再创建service层<br /> */<br />@RestController<br />@Api("用户模块API文档")//注解api说明该类需要生成api文档<br />public class UserController {<br />    /**<br />     * 该类中<br />     * @param map 类似于一个user对象<br />     * key就是对象的属性<br />     * value就是对象的属性值<br />     *   ------------------------<br />     * 属性 id name birthday<br />     * @return<br />     *<br />     */<br />    //正常业务整添加是对象，前台传JSON对象，在此使用map代替<br />    @PostMapping("/user")//如果使用swagger自动生成接口文档，一定要加上请求类型，不然会导致swagger把所有请求都会生成一下<br />    @ApiOperation("添加用户")<br />    @ApiImplicitParams({<br />            @ApiImplicitParam(name = "map",//参数名字<br />                    value = "这是一个添加的对象",//参数的描述<br />                    required = true,//是否必须传参数，true是<br />                    paramType = "body")//参数类型 body代表json<br />    })<br />    public Map add(@RequestBody Map map){<br />        return map;<br />    }<br />    //根据id删除数据。<br />    @DeleteMapping("/user/{id}")<br />    @ApiOperation("删除用户")//API中说明的该类的作用<br />    @ApiImplicitParams({<br />            @ApiImplicitParam(name = "id",//参数名字<br />                    value = "用户id",//参数的描述<br />                    required = true,//是否必须传参数，true是<br />                    paramType = "path",//参数类型 path代表路径参数<br />                    dataType = "int")//参数类型 int<br />    })<br />    public String deltete(@PathVariable int id){<br />        return "{code:200,msg:删除"+id+"成功}";<br />    }<br />    //根据传入的对象信息进行更新<br />    @PutMapping("/user")<br />    @ApiOperation("更新用户")//API中说明的该类的作用<br />    @ApiImplicitParams({<br />            @ApiImplicitParam(name = "map",//参数名字<br />                    value = "更新的用户",//参数的描述<br />                    required = true,//是否必须传参数，true是<br />                    paramType = "body",//参数类型 body<br />                    dataType = "map")//参数类型 int<br />    })<br />    public Map update(@RequestBody Map map){<br />        return map;<br />    }<br />    @GetMapping("/user/{id}")<br />    @ApiOperation("查询永不用户")//API中说明的该类的作用<br />    @ApiImplicitParams({<br />            @ApiImplicitParam(name = "id",//参数名字<br />                    value = "查询的用户id",//参数的描述<br />                    required = true,//是否必须传参数，true是<br />                    paramType = "path",//参数类型 body<br />                    dataType = "int")//参数类型 int<br />    })<br />    public Map getOne(@PathVariable int id){<br />        Map&lt;String,Object&gt; map = new HashMap&lt;&gt;();<br />        map.put("id",id);<br />        map.put("name","张三");<br />        map.put("birthday",new Date());<br />        return map;<br />    }<br />}</code></pre>
+</td>
+</tr>
+</tbody>
+</table>
+<p style="text-align: left;">&nbsp;</p>
+<p style="text-align: left;">&nbsp;</p>
+<p style="text-align: left;">&nbsp;</p>
+<p style="text-align: left;">&nbsp;</p>
+<p style="text-align: left;">&nbsp;</p>
+<p style="text-align: left;">&nbsp;</p>
+<p style="text-align: left;">&nbsp;</p>
+<p style="text-align: left;">&nbsp;</p>
+<p style="text-align: left;">&nbsp;</p>
+<p style="text-align: left;">&nbsp;</p>
+<p style="text-align: left;">&nbsp;</p>
+<p style="text-align: left;">&nbsp;</p>
+<p style="text-align: left;">&nbsp;</p>
+<p style="text-align: left;">&nbsp;</p>
+<p style="text-align: left;">&nbsp;</p>
+<p style="text-align: left;">&nbsp;</p>
+<p style="text-align: left;">&nbsp;</p>
+<p style="text-align: left;">&nbsp;</p>
+<p style="text-align: left;">&nbsp;</p>
+<p style="text-align: left;">&nbsp;</p>
+<p style="text-align: left;">&nbsp;</p>
+<p style="text-align: left;">&nbsp;</p>
+<p style="text-align: left;">&nbsp;</p>
+<p style="text-align: left;">&nbsp;</p>
+<p style="text-align: left;">&nbsp;</p>
+<p style="text-align: left;">&nbsp;</p>
+<p style="text-align: left;">&nbsp;</p>
+<p style="text-align: left;">&nbsp;</p>
+<p style="text-align: left;">&nbsp;</p>
+<p style="text-align: left;">&nbsp;</p>
+<p style="text-align: left;">&nbsp;</p>
+<p style="text-align: left;">&nbsp;</p>
+<p style="text-align: left;">&nbsp;</p>
+<p style="text-align: left;">&nbsp;</p>
+<p style="text-align: left;">&nbsp;</p>
+<p style="text-align: left;">&nbsp;</p>
+<p style="text-align: left;">&nbsp;</p>
+<p style="text-align: left;">&nbsp;</p>
+<p style="text-align: left;">&nbsp;</p>
+<p style="text-align: left;">&nbsp;</p>
+<p style="text-align: left;">&nbsp;</p>
+<p style="text-align: left;">&nbsp;</p>
+<p style="text-align: left;">&nbsp;</p>
+<p style="text-align: left;">&nbsp;</p>
+<h3 style="text-align: left;">Swagger 四.测试</h3>
+<p>运行启动类主方法，访问：http://localhost:8080/swagger-ui.html&nbsp;</p>
+<p>可以看到效果</p>
+<p><img src="./images/swagger配置0.png" alt="" /></p>
+<p>&nbsp;</p>
+
+</div><hr><script charset='utf-8' src='../../js/sming.js'></script></body></html>

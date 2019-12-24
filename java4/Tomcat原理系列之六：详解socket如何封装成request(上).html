@@ -1,0 +1,94 @@
+<html><head><meta charset='utf-8'><meta name='viewport' content='width=device-width, initial-scale=1'>
+<meta name='applicable-device' content='pc'><meta name='keywords' content='电脑,电脑讲解,电脑技术,编程,电脑故障维修Tomcat原理系列之六：详解socket如何封装成request(上)' />
+<script src='../../highlight/highlight.pack.js'></script>
+<link rel='stylesheet' type='text/css' href='../../highlight/styles/monokai.css'/>
+
+<link rel='stylesheet' href='../../fenxiang/dist/css/share.min.css'>
+<script src='../../fenxiang/src/js/social-share.js'></script>
+<script src='../../fenxiang/src/js/qrcode.js'></script>
+
+</head><body><script>hljs.initHighlightingOnLoad();</script><script>
+var system ={};  
+var p = navigator.platform;       
+system.win = p.indexOf('Win') == 0;  
+system.mac = p.indexOf('Mac') == 0;  
+system.x11 = (p == 'X11') || (p.indexOf('Linux') == 0);     
+if(system.win||system.mac||system.xll){
+document.write("<link href='../css/3.css' rel='stylesheet' type='text/css'>");}else{ document.write("<link href='../css/3wap.css' rel='stylesheet' type='text/css'>");}</script><script src='../../js/3.js'></script><div class='div2'><div class='heading_nav'><ul><div><li><a href='../../index.html'>首页</a></li>
+</div><div onclick='hidden1()' >分享</div>
+</ul></div></div>
+<div id='heading_nav2'> 
+<li class='row' >
+<div class='social-share' data-mode='prepend'><a href='javascript:' class='social-share-icon icon-heart'></a></div></li></div><script charset='utf-8' src='../../3/js/hengfu.js'></script><script charset='utf-8' src='../../3/js/hengfu2.js'></script><hr><div class='div1'><div class='biaoti'><center>Tomcat原理系列之六：详解socket如何封装成request(上)</center></div><div class='banquan'>原文出处:本文由博客园博主三人行{必有我师}提供。<br/>
+原文连接:https://www.cnblogs.com/smallstudent/p/11512798.html</div><br>
+    <src class="toc">
+    <p class="toc-title">目录</p>
+    <src class="toc-list">
+        <ul>
+        <li><a href="#参与者">参与者</a></li>
+        <li><a href="#总结">总结</a></li>
+        </ul>
+    
+
+<p>@(详解socket如何封装成request)</p>
+<blockquote>
+<p>看源码虽然不能马上提升你的编码水平。但能让你更好的理解编程。</p>
+</blockquote>
+<blockquote>
+<p>因为我们tomcat多是以NIO形式处理请求，所以本系列讲的都是NIO类型请求的处理相关组件。</p>
+</blockquote>
+<p><strong>在讲解过程之前，把相关概念理解是非常关键的</strong>。</p>
+<h3 id="参与者">参与者</h3>
+<blockquote>
+<p>tomcat中Connector是负责处理请求的。</p>
+</blockquote>
+<h4 id="协议处理protocolhandler">协议处理ProtocolHandler</h4>
+<p>Connector使用ProtocolHandler处理器来处理请求。不同的ProtocolHandler代表不同连接类型。</p>
+<p>ProtocolHandler处理器可以用看作是<strong>协议处理统筹者</strong>，通过管理其他工作组件实现对请求的处理。ProtocolHandler 包含了三个非常重要的组件：</p>
+<ul>
+<li><p>Endpoint: 负责接受，处理socket网络连接</p></li>
+<li><p>Processor： 负责将从Endpoint接受的socket连接根据协议类型封装成request</p></li>
+<li><p>Adapter:负责将封装好的Request交给Container进行处理。</p></li>
+</ul>
+<h4 id="socket的封装">Socket的封装</h4>
+<ul>
+<li><p>NioChannel： SocketChannel的基础包装类，在EndPonit中使用。</p></li>
+<li><p>SocketWrapper:socket的包装类，用于携带(NioChannel)socket进行传递。</p></li>
+</ul>
+<p>区别:NioChannel是基本包装,SocketWrapper是对NioChannel的进一步包装.</p>
+<h4 id="多种buffer">多种buffer</h4>
+<ul>
+<li><strong>套接字输入流InputStream</strong>:属于jdk中的io包。充当操作系统从底层读取socket字节的通道</li>
+<li><strong>SokcetBuffer</strong>即ByteBuffer。位于java.nio包下，NIO层面的buffer。Tomcat在创建此类Buffer时默认的大小时8*1024,也就是8K</li>
+<li><strong>InputBuffer接口(内部缓冲区)</strong>：coyote包下， 用于Tomcat内部的Request缓冲区。套接字输入缓冲装置，即提供一种缓冲的模式从socket中读取字节流。通过查看源码我感觉他也是一个工具接口,更加偏向于一个工具.列如:实现类Http11InputBuffer,具有提供解析请求头与转义功能.</li>
+<li><strong>InputBuffer类</strong>：connector包下。用于Servlet规范的Request内部的缓冲区</li>
+<li><strong>MessageBytes消息字节</strong>:tomcat在接受socket传入的字节之后并不会马上进行编码转换，而是保持byte[]数组，在用到的地方再进行转换。MessageBytes正是byte[]的抽象</li>
+<li><strong>子节块操作工具ByteChunk</strong>: 首先他是一个工具，一个操作缓冲的工具。其次有两个内部接口：ByteInputChannel和ByteOutputChannel读写数据。还有一个Chartset对象方便编码。所以他是一个提供了编码功能，操作缓存的工具。</li>
+</ul>
+<h4 id="两对requestresponse">两对request,response</h4>
+<p>tomcat中存在两组request，respone</p>
+<ul>
+<li>org.apache.coyote包下的:<br />
+属于Tomcat内部对请求的一个定义，final类型的类不对开发者开放。主要功能就是封装socket解析http协议的header内容。</li>
+<li>org.apache.catalina.connector包下的：<br />
+属于对servlet规范的实现。也是我们开发常见的request对象。</li>
+</ul>
+<p>所以tomcat中会有一个涉及request与request的转换过程，这些过程都放到后续讲，此篇只讲解组件概念。</p>
+<blockquote>
+<p>Tomcat内部使用Apache Coyote库来处理网络I/O的。Connector包多是用于Serlvet规范。</p>
+</blockquote>
+<h4 id="多种处理器">多种处理器</h4>
+<p>tomcat内部很多都命名为处理器。这里讲讲提几个讲讲区别：</p>
+<ul>
+<li>ProtocolHandler处理器：统筹或者管理级别的处理器。Connector把请求处理的工作交给ProtocolHandler去处理。剩下的是ProtocolHandler统筹。由此看出他是一个管理界别的处理器</li>
+<li><p>ConnectionHandler：连接处理器，.内部维护Processor的map用于重用SocketProcessor. 把创建Processor的工作交给ProtocolHandler去做.</p>
+<p>SocketProcessor处理器调用ConnectionHandler.process()将socket请求内容传入Processor.process()进行处理.</p>
+由此可见ConnectionHandler具有承上启下的作用.</li>
+<li>SocketBufferHandler：socketBuffer处理器。包含两个SocketBuffer，用于socket读写的缓冲。</li>
+<li>SocketProcessor： socket处理器，针对socket的处理器。本身是一个worker,将socket内容交给Processor处理</li>
+<li><p>(Processor)Http11Processor： HTTP协议1.1是目前使用最多的一个HTTP协议版本。从此处理器的名字我们也可以看出，他就是针对此协议的处理。<strong>此处理器是将socket转为请求的主要组件，他从socket将HTTP协议的内容解析出来，不过在tomcat中他只负责了对http请求行，请求头的解析；请求体的解析延迟到了servlet中去解析了</strong>。 Http11Processor 由ConnectionHandler 创建，tomcat 对关键的类都实现了重用，以减少频繁创建和销毁的开销，会从recycledProcessors 里pop出来</p></li>
+</ul>
+<h3 id="总结">总结</h3>
+<p>掌握了这些相关组件的概念后。下章讲解socket如何变成request。</p>
+
+</div><hr><script charset='utf-8' src='../../js/sming.js'></script></body></html>

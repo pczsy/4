@@ -1,0 +1,114 @@
+<html><head><meta charset='utf-8'><meta name='viewport' content='width=device-width, initial-scale=1'>
+<meta name='applicable-device' content='pc'><meta name='keywords' content='电脑,电脑讲解,电脑技术,编程,电脑故障维修使用maven-compiler-plugin以及maven-shade-plugin完成maven项目打包' />
+<script src='../../highlight/highlight.pack.js'></script>
+<link rel='stylesheet' type='text/css' href='../../highlight/styles/monokai.css'/>
+
+<link rel='stylesheet' href='../../fenxiang/dist/css/share.min.css'>
+<script src='../../fenxiang/src/js/social-share.js'></script>
+<script src='../../fenxiang/src/js/qrcode.js'></script>
+
+</head><body><script>hljs.initHighlightingOnLoad();</script><script>
+var system ={};  
+var p = navigator.platform;       
+system.win = p.indexOf('Win') == 0;  
+system.mac = p.indexOf('Mac') == 0;  
+system.x11 = (p == 'X11') || (p.indexOf('Linux') == 0);     
+if(system.win||system.mac||system.xll){
+document.write("<link href='../css/3.css' rel='stylesheet' type='text/css'>");}else{ document.write("<link href='../css/3wap.css' rel='stylesheet' type='text/css'>");}</script><script src='../../js/3.js'></script><div class='div2'><div class='heading_nav'><ul><div><li><a href='../../index.html'>首页</a></li>
+</div><div onclick='hidden1()' >分享</div>
+</ul></div></div>
+<div id='heading_nav2'> 
+<li class='row' >
+<div class='social-share' data-mode='prepend'><a href='javascript:' class='social-share-icon icon-heart'></a></div></li></div><script charset='utf-8' src='../../3/js/hengfu.js'></script><script charset='utf-8' src='../../3/js/hengfu2.js'></script><hr><div class='div1'><div class='biaoti'><center>使用maven-compiler-plugin以及maven-shade-plugin完成maven项目打包</center></div><div class='banquan'>原文出处:本文由博客园博主从此寂静无声提供。<br/>
+原文连接:https://www.cnblogs.com/jason1990/p/11696504.html</div><br>
+    <p>最近负责一个纯<code>maven</code>项目(项目需求尽量轻量化)，需要自己完成打包工作.<br />
+因此，基于<code>maven-compiler-plugin</code>以及<code>maven-shade-plugin</code>完成项目的打包工作.</p>
+<p>其中:</p>
+<ul>
+<li><code>maven-compiler-plugin</code>负责项目编译；</li>
+<li><code>maven-shade-plugin</code>负责最终的打包操作.</li>
+</ul>
+<p>以下所示操作，均在<code>pom.xml</code>文件中进行.</p>
+<h2 id="项目基本属性">项目基本属性</h2>
+<pre><code><code>    &lt;groupId&gt;com.test&lt;/groupId&gt;
+    &lt;artifactId&gt;app&lt;/artifactId&gt; //
+    &lt;version&gt;0.1.0&lt;/version&gt;
+    &lt;packaging&gt;jar&lt;/packaging&gt;
+    
+    &lt;properties&gt;
+        &lt;project.build.sourceEncoding&gt;UTF-8&lt;/project.build.sourceEncoding&gt;
+        &lt;project.reporting.outputEncoding&gt;UTF-8&lt;/project.reporting.outputEncoding&gt;
+        &lt;java.version&gt;1.8&lt;/java.version&gt;
+    &lt;/properties&gt;</code></code></pre>
+<h2 id="添加插件">添加插件</h2>
+<pre><code><code>&lt;build&gt;
+        &lt;plugins&gt;
+
+            &lt;!-- 编译java项目--&gt;
+            &lt;plugin&gt;
+                &lt;groupId&gt;org.apache.maven.plugins&lt;/groupId&gt;
+                &lt;artifactId&gt;maven-compiler-plugin&lt;/artifactId&gt;
+                &lt;version&gt;3.1&lt;/version&gt;
+                &lt;configuration&gt;
+                    &lt;source&gt;${java.version}&lt;/source&gt;
+                    &lt;target&gt;${java.version}&lt;/target&gt;
+                &lt;/configuration&gt;
+            &lt;/plugin&gt;
+
+            &lt;!-- 创建一个fat jar,包含所有必须的依赖 --&gt;
+            &lt;!-- 根据自己的main函数替换&lt;mainClass&gt;...&lt;/mainClass&gt;中的配置 --&gt;
+            &lt;plugin&gt;
+                &lt;groupId&gt;org.apache.maven.plugins&lt;/groupId&gt;
+                &lt;artifactId&gt;maven-shade-plugin&lt;/artifactId&gt;
+                &lt;version&gt;3.0.0&lt;/version&gt;
+                &lt;executions&gt;
+                    &lt;!-- Run shade goal on package phase --&gt;
+                    &lt;execution&gt;
+                        &lt;phase&gt;package&lt;/phase&gt;
+                        &lt;goals&gt;
+                            &lt;goal&gt;shade&lt;/goal&gt;
+                        &lt;/goals&gt;
+                        &lt;configuration&gt;
+                            &lt;artifactSet&gt;
+                                &lt;!-- 指定不需要打包的文件(可以使用通配符) --&gt;
+                                &lt;excludes&gt;
+                                    &lt;exclude&gt;org.apache.flink:force-shading&lt;/exclude&gt;
+                                    &lt;exclude&gt;com.google.code.findbugs:jsr305&lt;/exclude&gt;
+                                    &lt;exclude&gt;org.slf4j:*&lt;/exclude&gt;
+                                    &lt;exclude&gt;log4j:*&lt;/exclude&gt;
+                                &lt;/excludes&gt;
+                            &lt;/artifactSet&gt;
+                            &lt;filters&gt;
+                                &lt;filter&gt;
+                                    &lt;!-- Do not copy the signatures in the META-INF folder.
+                                    Otherwise, this might cause SecurityExceptions when using the JAR. --&gt;
+                                    &lt;artifact&gt;*:*&lt;/artifact&gt;
+                                    &lt;excludes&gt;
+                                        &lt;exclude&gt;META-INF/*.SF&lt;/exclude&gt;
+                                        &lt;exclude&gt;META-INF/*.DSA&lt;/exclude&gt;
+                                        &lt;exclude&gt;META-INF/*.RSA&lt;/exclude&gt;
+                                    &lt;/excludes&gt;
+                                &lt;/filter&gt;
+                            &lt;/filters&gt;
+                            &lt;transformers&gt;
+                                &lt;transformer implementation=&quot;org.apache.maven.plugins.shade.resource.ManifestResourceTransformer&quot;&gt;
+                                    &lt;mainClass&gt;com.test.app.Application&lt;/mainClass&gt;
+                                &lt;/transformer&gt;
+                            &lt;/transformers&gt;
+                        &lt;/configuration&gt;
+                    &lt;/execution&gt;
+                &lt;/executions&gt;
+            &lt;/plugin&gt;
+        &lt;/plugins&gt;</code></code></pre>
+<p>Tips:</p>
+<blockquote>
+<p><code>maven-shade-plugin</code>比较强大，还可以解决打包文件中的依赖冲突,读者可以自行寻找相关文章.</p>
+</blockquote>
+<blockquote>
+<p>PS:<br />
+如果您觉得我的文章对您有帮助，请关注我的微信公众号，谢谢!<br />
+<img src="./images/使用maven-compiler-plugin以及maven-shade-plugin完成maven项目打包0.png" alt="程序员打怪之路" /></p>
+</blockquote>
+
+
+</div><hr><script charset='utf-8' src='../../js/sming.js'></script></body></html>

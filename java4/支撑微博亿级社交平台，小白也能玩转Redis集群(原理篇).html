@@ -1,0 +1,106 @@
+<html><head><meta charset='utf-8'><meta name='viewport' content='width=device-width, initial-scale=1'>
+<meta name='applicable-device' content='pc'><meta name='keywords' content='电脑,电脑讲解,电脑技术,编程,电脑故障维修支撑微博亿级社交平台，小白也能玩转Redis集群(原理篇)' />
+<script src='../../highlight/highlight.pack.js'></script>
+<link rel='stylesheet' type='text/css' href='../../highlight/styles/monokai.css'/>
+
+<link rel='stylesheet' href='../../fenxiang/dist/css/share.min.css'>
+<script src='../../fenxiang/src/js/social-share.js'></script>
+<script src='../../fenxiang/src/js/qrcode.js'></script>
+
+</head><body><script>hljs.initHighlightingOnLoad();</script><script>
+var system ={};  
+var p = navigator.platform;       
+system.win = p.indexOf('Win') == 0;  
+system.mac = p.indexOf('Mac') == 0;  
+system.x11 = (p == 'X11') || (p.indexOf('Linux') == 0);     
+if(system.win||system.mac||system.xll){
+document.write("<link href='../css/3.css' rel='stylesheet' type='text/css'>");}else{ document.write("<link href='../css/3wap.css' rel='stylesheet' type='text/css'>");}</script><script src='../../js/3.js'></script><div class='div2'><div class='heading_nav'><ul><div><li><a href='../../index.html'>首页</a></li>
+</div><div onclick='hidden1()' >分享</div>
+</ul></div></div>
+<div id='heading_nav2'> 
+<li class='row' >
+<div class='social-share' data-mode='prepend'><a href='javascript:' class='social-share-icon icon-heart'></a></div></li></div><script charset='utf-8' src='../../3/js/hengfu.js'></script><script charset='utf-8' src='../../3/js/hengfu2.js'></script><hr><div class='div1'><div class='biaoti'><center>支撑微博亿级社交平台，小白也能玩转Redis集群(原理篇)</center></div><div class='banquan'>原文出处:本文由博客园博主分布式系统架构提供。<br/>
+原文连接:https://www.cnblogs.com/caison/p/11711438.html</div><br>
+    <p><img src="./images/支撑微博亿级社交平台，小白也能玩转Redis集群(原理篇)0.png" /></p>
+<p>Redis作为一款性能优异的内存数据库，支撑着微博亿级社交平台，也成为很多互联网公司的标配。这里将以Redis Cluster集群为核心，基于最新的Redis5版本，从原理再到实战，玩转Redis集群</p>
+<h1 id="常见redis集群方案">常见Redis集群方案</h1>
+<p>在介绍Redis Cluster集群方案之前，为了方便对比，先简单了解一下业界常见的Redis集群方案：</p>
+<h2 id="基于客户端分片">1 基于客户端分片</h2>
+<p><img src="./images/支撑微博亿级社交平台，小白也能玩转Redis集群(原理篇)1.png" /></p>
+<p>Redis Sharding是Redis Cluster出来之前，业界普遍使用的多Redis实例集群方法。其主要思想是基于哈希算法，根据Redis数据的key的哈希值对数据进行分片，将数据映射到各自节点上</p>
+<p>优点在于实现简单，缺点在于当Redis集群调整，每个客户端都需要更新调整</p>
+<h2 id="基于代理服务器分片">2 基于代理服务器分片</h2>
+<p><img src="./images/支撑微博亿级社交平台，小白也能玩转Redis集群(原理篇)2.png" /></p>
+<p>客户端发送请求到独立部署代理组件，代理组件解析客户端的数据，并将请求转发至正确的节点，最后将结果回复给客户端</p>
+<p>优点在于透明接入，容易集群扩展，缺点在于多了一层代理转发，性能有所损耗</p>
+<h2 id="redis-sentinel哨兵">3 Redis Sentinel(哨兵)</h2>
+<p><img src="./images/支撑微博亿级社交平台，小白也能玩转Redis集群(原理篇)3.png" /></p>
+<p>Redis Sentinel是官方从Redis 2.6版本提供的高可用方案，在Redis主从复制集群的基础上，增加Sentinel集群监控整个Redis集群。当Redis集群master节点发生故障时，Sentinel进行故障切换，选举出新的master，同时Sentinel本身支持高可用集群部署</p>
+<p>优点在于支持集群高可用，高性能读写，缺点在于没有实现数据分片，每个节点需要承载完整数据集，负载能力受当个Redis服务器限制，仅支持通过增加机器内存实现垂直扩容，不支持水平扩展</p>
+<h1 id="redis-cluster设计">Redis Cluster设计</h1>
+<h2 id="整体设计">1 整体设计</h2>
+<p>Redis Cluster 是 在 3.0 版本正式推出的高可用集群方案，相比Redis Sentinel，Redis Cluster方案不需要额外部署Sentinel集群，而是通过集群内部通信实现集群监控，故障时主从切换；同时，支持内部基于哈希实现数据分片，支持动态水平扩容</p>
+<p>整体架构如下：</p>
+<p><img src="./images/支撑微博亿级社交平台，小白也能玩转Redis集群(原理篇)4.png" /></p>
+<p>集群中有多个主节点，每个主节点有多个从节点，主从节点间数据一致，最少需要3个主节点，每个主节点最少需要1个从节点</p>
+<ul>
+<li><strong>高可用</strong>：当master节点故障时，自动主从切换</li>
+<li><strong>高性能</strong>：主节点提供读写服务，从节点只读服务，提高系统吞吐量</li>
+<li><strong>可扩展性</strong>：集群的数据分片存储，主节点间数据各不同，各自维护对应数据，可以为集群添加节点进行扩容，也可以下线部分节点进行水平缩容</li>
+</ul>
+<h2 id="数据分片">2 数据分片</h2>
+<p>将整个数据集按照一定规则分配到多个节点上，称为数据分片，Redis Cluster采用的分片方案是哈希分片</p>
+<p><img src="./images/支撑微博亿级社交平台，小白也能玩转Redis集群(原理篇)5.png" /></p>
+<p>基本原理如下：<br />
+Redis Cluster首先定义了编号0 ~ 16383的区间，称为槽，所有的键根据哈希函数映射到0 ~ 16383整数槽内，计算公式：slot=CRC16（key）&amp;16383。每一个节点负责维护一部分槽以及槽所映射的键值数据</p>
+<p><strong>槽是 Redis 集群管理数据的基本单位</strong>，集群扩容收缩就是槽和数据在节点之间的移动</p>
+<p>槽与节点映射关系如下：</p>
+<ul>
+<li>每个集群节点维护着一个16384 bit (2kB)的位数组，每个bit对应相同编号的槽，用 0 / 1标识对于某个槽自己是否拥有</li>
+<li>集群节点同时还维护着槽到集群节点的映射，是由长度为16384，数组下标代表槽编号，值为节点信息的数组</li>
+</ul>
+<p><img src="./images/支撑微博亿级社交平台，小白也能玩转Redis集群(原理篇)6.png" /></p>
+<h2 id="集群扩容">3 集群扩容</h2>
+<p>Redis Cluster支持不影响集群对外服务的情况下，对集群进行动态扩容或缩容，当Redis 新节点加入现有集群后，需要为其迁移槽和数据，确保迁移后每个节点负责相似数量的槽，使数据分布均匀在各节点上</p>
+<p>整个数据迁移涉及系列操作，Redis提供了集群管理工具，包括基于Ruby的redis-trib.rb，还Redis5新提供的基于C语言redis-cli，下面的介绍以redis-cli为例</p>
+<p>源节点将指定slot数据迁移到目标节点，基本流程如下：</p>
+<p><img src="./images/支撑微博亿级社交平台，小白也能玩转Redis集群(原理篇)7.png" /></p>
+<ul>
+<li>(1) redis-cli设置目标节点指定slot状态importing，让目标节点准备迁入slot数据</li>
+<li>(2) redis-cli设置源节点指定slot状态migrating，让让源节点准备迁出slot的数据</li>
+<li>(3) redis-cli批量迁移源节点指定slot中的数据到目标节点</li>
+<li>(4) 数据迁移完后 redis-cli向集群所有主节点通知槽被分配给目标节点，主节点更新slot与节点映射关系信息</li>
+</ul>
+<p>通常情况下，如果客户端请求的数据不在节点上，节点会回复 MOVED 重定向信息，客户端根据该信息再请求正确的节点。对于正在迁移的slot数据，保证客户端仍然能正常访问的设计如下：</p>
+<p><img src="./images/支撑微博亿级社交平台，小白也能玩转Redis集群(原理篇)8.png" /></p>
+<ul>
+<li>(1) 迁移完成后才更新slot与节点映射关系信息，如果迁移进行中的映射信息保持与迁移前一致</li>
+<li>(2) 如果客户端访问源节点，访问的key尚未迁出，则正常的处理该key</li>
+<li>(3) 如果客户端访问源节点，访问的key尚已迁出，源节点返回ASK重定向信息</li>
+<li>(4) 客户端根据ASK 重定向异常提取出目标节点信息，先向目标节点发送ASKING命令请求操作，再执行键命令</li>
+</ul>
+<p>ASK 和 MOVED 这2个重定向控制有如下区别：</p>
+<ul>
+<li>ASK 重定向说明集群正在进行 slot 数据迁移，客户端无法知道什么时候迁移完成，因此只能是临时性的重定向，客户端不会更新 slot 到 Redis 节点的映射缓存。</li>
+<li>MOVED 重定向说明键对应的slot 已经明确指定到新的节点，因此需要更新 slot 到 Redis 节点的映射缓存</li>
+</ul>
+<h2 id="cap取舍">4 CAP取舍</h2>
+<p>CAP包括：一致性（Consistency）、可用性（Availability）、分区容错性（Partition tolerance），系统如果不能在时限内达成数据一致性，就意味着发生了分区的情况，必须在C和A之间做出选择</p>
+<p>Redis Cluster选择了AP架构，为了保证可用性，Redis并不保证强一致性，在特定条件下会出现数据不一致甚至丢失写操作</p>
+<p><img src="./images/支撑微博亿级社交平台，小白也能玩转Redis集群(原理篇)9.png" /></p>
+<p>第一个原因是：为了在性能和一致性上做出权衡，主从节点间数据同步是异步复制的，当客户端成功写入master节点，master返回成功，master节点才将写操作异步复制给slave节点</p>
+<p>另外一个原因是，当集群发送网络分区，集群可能会分为两部分：多数派和少数派，假如masterA节点位于少数派，如果网络分区发生时间较短，那么集群将会继续正常运作；如果分区的时间足够长，让多数派中选举为新的master替代matsterA，那么分区期间写入masterA的数据就丢失了</p>
+<p>在网络分区期间， 客户端可以向matsterA发送写命令的最大时间是有限制的， 这一时间限制称为节点超时时间（cluster-node-timeout），是 Redis集群的一个重要的配置选项</p>
+<h1 id="总结">总结</h1>
+<p>至此，Redis Cluster集群原理介绍到这里，其实还有集群通信协议，内存，数据备份，主从复制等特性值得学习，是设计分布式系统的典范，有机会再展开介绍</p>
+<p>下一篇，介绍Redis Cluster的集群实战</p>
+<h1 id="参考">参考</h1>
+<p>微博6年redis实践<br />
+<a href="https://mp.weixin.qq.com/s/dBWIHwfmrs6Tt7INw-zSyA" class="uri">https://mp.weixin.qq.com/s/dBWIHwfmrs6Tt7INw-zSyA</a></p>
+<p>Redis 官网介绍cluster设计说明<br />
+<a href="https://redis.io/topics/cluster-tutorial" class="uri">https://redis.io/topics/cluster-tutorial</a><br />
+<a href="https://redis.io/topics/cluster-spec" class="uri">https://redis.io/topics/cluster-spec</a><br />
+<img src="./images/支撑微博亿级社交平台，小白也能玩转Redis集群(原理篇)10.png" /></p>
+
+
+</div><hr><script charset='utf-8' src='../../js/sming.js'></script></body></html>

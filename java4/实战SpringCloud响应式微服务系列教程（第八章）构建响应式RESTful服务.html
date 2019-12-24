@@ -1,0 +1,148 @@
+<html><head><meta charset='utf-8'><meta name='viewport' content='width=device-width, initial-scale=1'>
+<meta name='applicable-device' content='pc'><meta name='keywords' content='电脑,电脑讲解,电脑技术,编程,电脑故障维修实战SpringCloud响应式微服务系列教程（第八章）构建响应式RESTful服务' />
+<script src='../../highlight/highlight.pack.js'></script>
+<link rel='stylesheet' type='text/css' href='../../highlight/styles/monokai.css'/>
+
+<link rel='stylesheet' href='../../fenxiang/dist/css/share.min.css'>
+<script src='../../fenxiang/src/js/social-share.js'></script>
+<script src='../../fenxiang/src/js/qrcode.js'></script>
+
+</head><body><script>hljs.initHighlightingOnLoad();</script><script>
+var system ={};  
+var p = navigator.platform;       
+system.win = p.indexOf('Win') == 0;  
+system.mac = p.indexOf('Mac') == 0;  
+system.x11 = (p == 'X11') || (p.indexOf('Linux') == 0);     
+if(system.win||system.mac||system.xll){
+document.write("<link href='../css/3.css' rel='stylesheet' type='text/css'>");}else{ document.write("<link href='../css/3wap.css' rel='stylesheet' type='text/css'>");}</script><script src='../../js/3.js'></script><div class='div2'><div class='heading_nav'><ul><div><li><a href='../../index.html'>首页</a></li>
+</div><div onclick='hidden1()' >分享</div>
+</ul></div></div>
+<div id='heading_nav2'> 
+<li class='row' >
+<div class='social-share' data-mode='prepend'><a href='javascript:' class='social-share-icon icon-heart'></a></div></li></div><script charset='utf-8' src='../../3/js/hengfu.js'></script><script charset='utf-8' src='../../3/js/hengfu2.js'></script><hr><div class='div1'><div class='biaoti'><center>实战SpringCloud响应式微服务系列教程（第八章）构建响应式RESTful服务</center></div><div class='banquan'>原文出处:本文由博客园博主Java知音*提供。<br/>
+原文连接:https://www.cnblogs.com/javazhiyin/p/11763482.html</div><br>
+    <p>本文为实战SpringCloud响应式微服务系列教程第八章，讲解构建响应式RESTful服务。建议没有之前基础的童鞋，先看之前的章节，章节目录放在文末。</p>
+<h2>1.使用springboot2.1.4构建RESTful风格服务</h2>
+<p>Springboot的设计是用来简化Spring应用程序的初始搭建和开发过程，为了实现这种简化效果，Springboot继承了众多第三方库，并大量使用约定优于配置的设计理念，通过特定的方式使得开发人员不再需要定义繁杂而且多余的配置内容。</p>
+<h3>1.1基于Springboot的第一个RESTful服务</h3>
+<p>微服务架构推崇采用RESTful风格实现服务之间的交互。关于RESTful，很多开发人员在知识体系上的一些误解和不足。我们先对RESTful风格做一个简单的介绍，然后详细阐述使用SpringBoot构建单个RESTful服务的过程。</p>
+<p><strong>（1）RESTful风格简介</strong></p>
+<p>REST提出了一组建构约束条件和原则，满足这些约束条件和原则的设计风格就是RESTful。</p>
+<p>现实世界中的事物都可以被认为一种资源，我们可以根据这些约束条件和原则设计以资源为中心的服务。<strong>REST中最重要的一条原则就是客户端和服务器之间的交互无状态性。</strong></p>
+<p>从客户端到服务器的每个请求都必须包含理解该请求所必需的信息，无状态请求可以由任何可用服务实现响应，十分适合微服务架构的运行环境。所以RESTful代表的实际上是一种风格，而不是一种设计和架构模式，更不是一种具体的技术体系。</p>
+<p>关于RESTful另一个比较容易忽视的核心概念是HATEOAS（Hypermedia as the Engine of Application State,基于超媒体的应用状态引擎）。要解释HATEOAS的概念，先要解释<strong>什么是超媒体。</strong></p>
+<p>我们已经知道什么是超链接以及什么是超文本，其中超文本的特有优势是拥有超链接。如果把超链接映入到多媒体中，就得到了超媒体。因此关键要素还是超链接。使用过超媒体作为应用引擎状态，意思就是应用引擎的状态变更由客户端访问不同的超媒体资源来驱动。</p>
+<p>使用HATEOAS表现服务请求响应的风格如下，可以看到这里多了_links属性，其中有一个self.href链接指向当前user资源。</p>
+<src class="cnblogs_code">
+<pre><code>GET http:<span style="color: #008000;">//</span><span style="color: #008000;">api.example.com/users/tianyalan</span>
+Content-type:application/<span style="color: #000000;">json
+{
+   _links:{
+      self:{
+         href:</span>"/users/tianyalan"<span style="color: #000000;">
+       }
+   }
+  </span>"id":"tianyalan"<span style="color: #000000;">,
+   </span>"name":"tianyalan"<span style="color: #000000;">,
+   </span>"email":"tianyalan@email.com"<span style="color: #000000;">
+}</span></code></pre>
+
+<p>&nbsp;</p>
+<p>HATEOAS在spring boot和spring cloud中应用也非常广泛，例如springboot提供了应用监控组件Actuator,通过Actuator可以获取springboot应用程序当前的运行状态，我们将在后续章节中详细介绍Actuator组件。</p>
+<p>Actuator组件对外暴露的也是一些http端点，访问这些端点返回的数据跟常见的RESTful风格有所不同，这就是HATEOAS风格，所以可以参考相关资料进一步了解。</p>
+<p><strong>（2）引入spring-boot-starter-web工程</strong></p>
+<p>spring boot提供了一系列starter工程来简化各组件之间的依赖关系。</p>
+<p>例如在springboot中开发基于RESTful风格的端点时，通常会引入spring-boot-starter-web这个工程，而打开这个工程会发现里面实际上只定义了如下所示的一些pom依赖，其中包括所有我们能够预见到的组件，例如非常经典的spring-web，spring-webmvc组件，可以看到spring-boot-starter-web还是基于这两个组件构建web请求响应流程的。</p>
+<p>另外还包含了基于JSON序列化和反序列化的jackson-databind组件，以及启动内置tomcat服务器的spring-boot-starter-tomcat组件。</p>
+<blockquote>
+<ul class="list-paddingleft-2">
+<li>org.springframework.boot:spring-boot-starter</li>
+<li>org.springframework.boot:spring-boot-starter-tomcat</li>
+<li>org.springframework.boot:spring-boot-starter-validation</li>
+<li>org.springframework.boot:spring-web</li>
+<li>org.springframework.boot:spring-webmvc</li>
+<li>org.fasterxml.jackson.core:jackson-databind</li>
+</ul>
+</blockquote>
+<p>引入spring-boot-starter-web就像引入一个普通的maven依赖一样，代码如下：</p>
+<src class="cnblogs_code">
+<pre><code>&lt;dependency&gt;
+    &lt;groupId&gt;org.springframework.boot&lt;/groupId&gt;
+    &lt;artifactId&gt;spring-boot-starter-web&lt;/artifactId&gt;
+&lt;/dependency&gt;</code></pre>
+
+<p>&nbsp;</p>
+<p>一旦spring-boot-starter-web组件引入完毕，我们就可以充分利用springboot的自动装配机制开发单个服务。</p>
+<p><strong>（3）Application类</strong></p>
+<p>使用springboot的首要条件是构建一个Application启动类。代码如下：</p>
+<src class="cnblogs_code">
+<pre><code><span style="color: #000000;">@SpringBootApplication
+</span><span style="color: #0000ff;">public</span> <span style="color: #0000ff;">class</span><span style="color: #000000;"> SoulApplication {
+    </span><span style="color: #0000ff;">public</span> <span style="color: #0000ff;">static</span> <span style="color: #0000ff;">void</span><span style="color: #000000;"> main(String[] args) {
+        SpringApplication.run(SoulApplication.</span><span style="color: #0000ff;">class</span><span style="color: #000000;">, args);
+    }
+}</span></code></pre>
+
+<p>&nbsp;</p>
+<p>结构比较固化。</p>
+<p>显然以上代码关键的是<code>@SpringBootApplication</code>注解。springboot使用<code>@SpringBootApplication</code>注解来告诉spring容器具备该注解的类是整个spring容器中所有javaBean对象的入口，而具备该注解的类在springboot中就是Application类。</p>
+<p>在上面代码中，SoulApplication类就是整个容器的Application类。</p>
+<p>@SpringBootApplication注解在指定Application类的同时，还会自动扫描与当前类同级以及子包下的<code>@Component</code>、<code>@Service</code>、<code>@Repository</code>、<code>@Controller</code>、<code>@Entity</code>等注解，并把这些注解对应的类转换为Bean对象全部加载到Spring容器中管理起来。</p>
+<p><code>@SpringBootApplication</code>注解的定义如下，我们可以看到该注解实际上由三个注解组合而成，分别是<code>@Configuration</code>、<code>@EnableAutoConfigguration</code>和<code>@ComponentScan</code>。</p>
+<src class="cnblogs_code">
+<pre><code><span style="color: #000000;">@Target(ElementType.TYPE)
+@Retenation(RetentionPolicy.PUNTIME)
+@Documented
+@Inherited
+@Configuration
+@EnableAutoConfigguration
+@ComponentScan
+</span><span style="color: #0000ff;">public</span> @<span style="color: #0000ff;">interface</span> SpringBootApplication</code></pre>
+
+<p>&nbsp;</p>
+<p>在Spring 中<code>@Configuration</code>比较常见，提供javaConfig配置类实现。而<code>@ComponentScan</code>则扫描<code>@Component</code>等注解，帮相关的javaBean定义批量加载到IOC容器中。<code>@EnableAutoConfigguration</code>最终会使用JDK提供的SPI机制来实现类的动态加载。</p>
+<p>关于<code>@EnableAutoConfigguration</code>注解更多的可以参考相关的资料。</p>
+<p>我们还注意到在上面的代码示例中包含一个main函数并执行了ApplicationContext对象，我们可以根据需求对该ApplicationContext对象做响应处理。</p>
+<p><strong>（4）Controller类</strong></p>
+<p>Application类提供了Springboot程序的入口，相当于应用程序拥有了最基本的骨架。接下来我们就可以添加各种业务相关的访问入口，表现在RESTful风格上也就是一系列的Controller类所代表的的HTTP端点。</p>
+<p>这里的Controller和springMvc的Controller在概念上是一致的。最简单的Controller如下：</p>
+<src class="cnblogs_code">
+<pre><code><span style="color: #000000;">@RestController
+</span><span style="color: #0000ff;">public</span> <span style="color: #0000ff;">class</span><span style="color: #000000;"> HelloController{
+     @GetMapping(</span>"/"<span style="color: #000000;">)
+     </span><span style="color: #0000ff;">public</span><span style="color: #000000;"> String index(){
+          </span><span style="color: #0000ff;">return</span> "Hello Spring Boot"<span style="color: #000000;">;
+     }
+}</span></code></pre>
+
+<p>&nbsp;</p>
+<p>以上代码包含了<code>@RestController</code>和<code>@GetMapping("/")</code>两个注解。我们知道在springMvc中包含了<code>@Controller</code>注解用来表示当前类是一个servlet。</p>
+<p>而<code>@RestController</code>继承了<code>@Controller</code>，它告诉Springboot这是一个基于RESTful风格的HTTP端点，并会自动使用JSON实现HTTP请求和响应的序列化和反序列化操作。至于<code>@GetMapper</code>类似<code>@RequestMapping</code>，指定请求方式为GET。这里不做多余介绍。</p>
+<p>以下代码展示了一个典型的Controller，在Controller中通过静态的业务代码完成了根据商品编号，获取商品信息的业务流程。</p>
+<p>这里用到了两层Mapping注解，在服务层级定义了服务的版本和路径，分别为v1和products;而在操作级别有定义了HTTP请求方法的具体路径及参数信息。</p>
+<src class="cnblogs_code">
+<pre><code><span style="color: #000000;">@RestController
+@RequestMapping(</span>"/v1/products"<span style="color: #000000;">)
+</span><span style="color: #0000ff;">public</span> <span style="color: #0000ff;">class</span><span style="color: #000000;"> Productontroller{
+     @GetMapping(</span>"/{productCode}"<span style="color: #000000;">)
+     </span><span style="color: #0000ff;">public</span><span style="color: #000000;"> Product getProduct(@PathVariable String productCode){
+          Product product </span>= <span style="color: #0000ff;">new</span><span style="color: #000000;"> Product();
+          product .setId(</span>1L<span style="color: #000000;">);
+   product .setPrice(100F);
+   product .setProductCode(</span>"product001"<span style="color: #000000;">);
+   product .setProductName(</span>"product"<span style="color: #000000;">);
+   </span><span style="color: #0000ff;">return</span><span style="color: #000000;"> product;
+     }
+}</span></code></pre>
+
+<p>&nbsp;</p>
+<h3>系列章节目录</h3>
+<p><a href="http://mp.weixin.qq.com/s?__biz=MzI4Njc5NjM1NQ==&amp;mid=2247489088&amp;idx=1&amp;sn=68f56dc89abbdad803b16f91e20e385c&amp;chksm=ebd6296cdca1a07aee0a76554f19c1e3b0df8a0357a9ade96cc22c656cf0f92ddf79b32eb339&amp;scene=21#wechat_redirect" target="_blank" data-itemshowtype="0" data-linktype="2">实战SpringCloud响应式微服务系列教程（第一章）</a></p>
+<p><a href="http://mp.weixin.qq.com/s?__biz=MzI4Njc5NjM1NQ==&amp;mid=2247489157&amp;idx=2&amp;sn=b473396d3b11a040508a9cc70f22c163&amp;chksm=ebd629a9dca1a0bf77edbe7cbce108e43371707b30dae0699eeac75464325b4122d820817b30&amp;scene=21#wechat_redirect" target="_blank" data-itemshowtype="0" data-linktype="2">实战SpringCloud响应式微服务系列教程（第二章）</a></p>
+<p><a href="http://mp.weixin.qq.com/s?__biz=MzI4Njc5NjM1NQ==&amp;mid=2247489407&amp;idx=2&amp;sn=48e31d4d54cd0bd7a31a77d322400df4&amp;chksm=ebd62853dca1a145a5477f24b1396c6895160493dac0e0e3a038bebd25cdf434a8cc9c091d85&amp;scene=21#wechat_redirect" target="_blank" data-itemshowtype="0" data-linktype="2">实战SpringCloud响应式微服务系列教程（第三章）</a></p>
+<p><a href="http://mp.weixin.qq.com/s?__biz=MzI4Njc5NjM1NQ==&amp;mid=2247489450&amp;idx=2&amp;sn=dd7ed3a0764b4a86caaa9e1de022dc7a&amp;chksm=ebd62886dca1a1903da1cd75ab9ef631eb5b9f58c9f316da615be1b0b139349476b54b7bf70c&amp;scene=21#wechat_redirect" target="_blank" data-itemshowtype="0" data-linktype="2">实战SpringCloud响应式微服务系列教程（第四章）</a></p>
+<p><a href="http://mp.weixin.qq.com/s?__biz=MzI4Njc5NjM1NQ==&amp;mid=2247489638&amp;idx=2&amp;sn=c43488a38ce0bd4534ceebf52b185e5e&amp;chksm=ebd6274adca1ae5cb770826c30f5c88c394e96fee9dda5010f87017463fad6cd18cc1a5c33b6&amp;scene=21#wechat_redirect" target="_blank" data-itemshowtype="0" data-linktype="2">实战SpringCloud响应式微服务系列教程（第五章）</a></p>
+<p><a href="http://mp.weixin.qq.com/s?__biz=MzI4Njc5NjM1NQ==&amp;mid=2247489831&amp;idx=2&amp;sn=7b8635e0b3627388dad7703579bad3b0&amp;chksm=ebd6260bdca1af1d242dc20f160f96dda5595fa416dd5d5a6c7f37d96ab26c5273b671d98125&amp;scene=21#wechat_redirect" target="_blank" data-itemshowtype="0" data-linktype="2">实战SpringCloud响应式微服务系列教程（第六章）</a></p>
+<p><a href="http://mp.weixin.qq.com/s?__biz=MzI4Njc5NjM1NQ==&amp;mid=2247489962&amp;idx=2&amp;sn=9ea324e5b94a16f91498843c0f0c004d&amp;chksm=ebd62686dca1af903949b46549f7d7cf0caf81a13a47234afee1be0bc3931c85cc770e21e29d&amp;scene=21#wechat_redirect" target="_blank" data-itemshowtype="0" data-linktype="2">实战SpringCloud响应式微服务系列教程（第七章）</a><a href="https://www.javazhiyin.com/go?url=http://mp.weixin.qq.com/s?__biz=MzI4Njc5NjM1NQ==&amp;mid=2247489088&amp;idx=1&amp;sn=68f56dc89abbdad803b16f91e20e385c&amp;chksm=ebd6296cdca1a07aee0a76554f19c1e3b0df8a0357a9ade96cc22c656cf0f92ddf79b32eb339&amp;scene=21#wechat_redirect" rel="noopener" target="_blank"><br /></a></p>
+
+</div><hr><script charset='utf-8' src='../../js/sming.js'></script></body></html>

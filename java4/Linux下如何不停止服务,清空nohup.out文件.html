@@ -1,0 +1,42 @@
+<html><head><meta charset='utf-8'><meta name='viewport' content='width=device-width, initial-scale=1'>
+<meta name='applicable-device' content='pc'><meta name='keywords' content='电脑,电脑讲解,电脑技术,编程,电脑故障维修Linux下如何不停止服务,清空nohup.out文件' />
+<script src='../../highlight/highlight.pack.js'></script>
+<link rel='stylesheet' type='text/css' href='../../highlight/styles/monokai.css'/>
+
+<link rel='stylesheet' href='../../fenxiang/dist/css/share.min.css'>
+<script src='../../fenxiang/src/js/social-share.js'></script>
+<script src='../../fenxiang/src/js/qrcode.js'></script>
+
+</head><body><script>hljs.initHighlightingOnLoad();</script><script>
+var system ={};  
+var p = navigator.platform;       
+system.win = p.indexOf('Win') == 0;  
+system.mac = p.indexOf('Mac') == 0;  
+system.x11 = (p == 'X11') || (p.indexOf('Linux') == 0);     
+if(system.win||system.mac||system.xll){
+document.write("<link href='../css/3.css' rel='stylesheet' type='text/css'>");}else{ document.write("<link href='../css/3wap.css' rel='stylesheet' type='text/css'>");}</script><script src='../../js/3.js'></script><div class='div2'><div class='heading_nav'><ul><div><li><a href='../../index.html'>首页</a></li>
+</div><div onclick='hidden1()' >分享</div>
+</ul></div></div>
+<div id='heading_nav2'> 
+<li class='row' >
+<div class='social-share' data-mode='prepend'><a href='javascript:' class='social-share-icon icon-heart'></a></div></li></div><script charset='utf-8' src='../../3/js/hengfu.js'></script><script charset='utf-8' src='../../3/js/hengfu2.js'></script><hr><div class='div1'><div class='biaoti'><center>Linux下如何不停止服务,清空nohup.out文件</center></div><div class='banquan'>原文出处:本文由博客园博主落叶的博客提供。<br/>
+原文连接:https://www.cnblogs.com/wangyayun/p/11724397.html</div><br>
+    <p>最近发现有不少人在百度这个问题，当初如易我也是初学者，随便从网上搜了一下，就转过来了，不过为了避免搜索结果同质化，为大家提供更翔实的参考，我将nohup.out相关知识整理汇总如下：<br />1.nohup.out的由来及作用<br />用途：LINUX命令用法，不挂断地运行命令。<br />语法：nohup Command [ Arg &hellip; ] [　&amp; ]<br />描述：<a title="Linux" href="http://www.itxm.cn" target="_blank">nohup </a>命令运行由 Command 参数和任何相关的 Arg 参数指定的命令，忽略所有挂断（SIGHUP）信号。在注销后使用 nohup 命令运行后台中的程序。要运行后台中的 nohup 命令，添加 &amp; （ 表示&ldquo;and&rdquo;的符号）到命令的尾部。<br />例子： nohup ./startWeblogic.sh &amp; 意思是即使退出ssh界面，命令仍然在后台执行，并且打印过程日志到nohup.out,当然也可以将nohup.out的输出转向到其他文件，高级应用请参考扩展阅读。<br />2.nohup.out的查看方式与方法<br />实际使用过程中，往往人们为了省心(嗯，没错，就是懒），经常没有给nohup.out进行重定向输出，也没有按日期分割文件，会造成这个文件特别巨大，达到2G或者3G，这个使用想查看文件，搜索出错内容就比较痛苦了。一般有两种方式<br />1.linux本机查看：使用tail 命令，查看最新的日志，或滚动监控日志打印。<br />例如命令 tail -1000 nohup.out (查看最后1000行日志文本）　tail -ｆ nohup.out（监控日志打印）<br />2.ftp下载到windown主机查看：一般小的log文件都没有问题，但是过G的，一般的文本文档查看就显得无力了。推荐使用UltraEdit进行打开。<br />3.nohup.out维护管理方法（清空nohup.out)<br />如上文所述出现了超大号的文件简直是令人讨厌的事情，而且nohup.out会一直一直自己增长下去，如果你的服务器硬盘不给力的话，很容易把应用也挂掉（硬盘没空间 ，啥都玩不转），但是又不能一味的直接删。因为直接删除，可能会造成应用无法打印后续的错误日志，该问题常见于weblogic服务器，jboss服务器等这些大型中间件，这个在生产环境上要尤为注意。<br />因此就有了我们不停止服务直接，清空nohup.out文件的方法。<br />两个可以不用停止<a title="WEB" href="http://www.itxm.cn" target="_blank">WEB</a>服务就可以清空nohup.out的命令。<br />第一种：</p>
+<src class="cnblogs_Highlighter">
+<pre><code>cp /dev/null nohup.out</code></pre>
+
+<p>第二种：</p>
+<src class="cnblogs_Highlighter">
+<pre><code>cat /dev/null &gt; nohup.out</code></pre>
+
+<p>两个我都用过，不用担心网上所说的性能问题，通常2/3 个G的文件都是1-2秒执行完毕<br />4.扩展阅读<br />1.nohup的重定向，一劳永逸解决nohup.out文件过大的问题<br />以下是定义日志打印级别，除了高于级别2的告警信息记录到log文件外，其余直接不记录<br />只输出错误信息到日志文件</p>
+<src class="cnblogs_Highlighter">
+<pre><code>nohup ./program &gt;/dev/null 2&gt;log &amp;</code></pre>
+
+<p>什么信息也不要</p>
+<src class="cnblogs_Highlighter">
+<pre><code>nohup ./program &gt;/dev/null 2&gt;&amp;1 &amp;</code></pre>
+
+<p>2.Linux的3中重定向<br />0:表示标准输入<br />1:标准输出,在一般使用时，默认的是标准输出<br />2:标准错误信息输出<br />可以用来指定需要重定向的标准输入或输出。例如，将某个程序的错误信息输出到log文件中：./program 2&gt;log。这样标准输出还是在屏幕上，但是错误信息会输出到log文件中。另外，也可以实现0，1，2之间的重定向。2&gt;&amp;1：将错误信息重定向到标准输出。<br />3.关于/dev/null文件<br />Linux下还有一个特殊的文件/dev/null，它就像一个无底洞，所有重定向到它的信息都会消失得无影无踪。这一点非常有用，当我们不需要回显程序的所有信息时，就可以将输出重定向到/dev/null。</p>
+
+</div><hr><script charset='utf-8' src='../../js/sming.js'></script></body></html>

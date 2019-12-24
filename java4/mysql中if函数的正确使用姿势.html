@@ -1,0 +1,77 @@
+<html><head><meta charset='utf-8'><meta name='viewport' content='width=device-width, initial-scale=1'>
+<meta name='applicable-device' content='pc'><meta name='keywords' content='电脑,电脑讲解,电脑技术,编程,电脑故障维修mysql中if函数的正确使用姿势' />
+<script src='../../highlight/highlight.pack.js'></script>
+<link rel='stylesheet' type='text/css' href='../../highlight/styles/monokai.css'/>
+
+<link rel='stylesheet' href='../../fenxiang/dist/css/share.min.css'>
+<script src='../../fenxiang/src/js/social-share.js'></script>
+<script src='../../fenxiang/src/js/qrcode.js'></script>
+
+</head><body><script>hljs.initHighlightingOnLoad();</script><script>
+var system ={};  
+var p = navigator.platform;       
+system.win = p.indexOf('Win') == 0;  
+system.mac = p.indexOf('Mac') == 0;  
+system.x11 = (p == 'X11') || (p.indexOf('Linux') == 0);     
+if(system.win||system.mac||system.xll){
+document.write("<link href='../css/3.css' rel='stylesheet' type='text/css'>");}else{ document.write("<link href='../css/3wap.css' rel='stylesheet' type='text/css'>");}</script><script src='../../js/3.js'></script><div class='div2'><div class='heading_nav'><ul><div><li><a href='../../index.html'>首页</a></li>
+</div><div onclick='hidden1()' >分享</div>
+</ul></div></div>
+<div id='heading_nav2'> 
+<li class='row' >
+<div class='social-share' data-mode='prepend'><a href='javascript:' class='social-share-icon icon-heart'></a></div></li></div><script charset='utf-8' src='../../3/js/hengfu.js'></script><script charset='utf-8' src='../../3/js/hengfu2.js'></script><hr><div class='div1'><div class='biaoti'><center>mysql中if函数的正确使用姿势</center></div><div class='banquan'>原文出处:本文由博客园博主执偕提供。<br/>
+原文连接:https://www.cnblogs.com/zhixie/p/11790290.html</div><br>
+    <p>——为了今天要写的内容，运行了将近7个小时的程序，在数据库中存储了1千万条数据。——<br />
+今天要说的是mysql数据库的IF()函数的一个实例。<br />
+具体场景如下,<br />
+先看看表结构：</p>
+<pre><code><code>CREATE TABLE `message` (
+  `id` varchar(30) NOT NULL,
+  `title` varchar(30) DEFAULT NULL,
+  `content` text,
+  `send_time` datetime DEFAULT NULL,
+  `type` int(1) DEFAULT NULL COMMENT &#39;1:系统通知，2：投诉建议&#39;,
+  `status` int(1) DEFAULT NULL COMMENT &#39;0：待发送，1：成功,2：失败&#39;,
+  PRIMARY KEY (`id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8;</code></code></pre>
+<p><strong>具体要求是：分别统计系统通知和投诉建议两种消息的总条数、成功条数和失败条数。</strong></p>
+<p>遇到这样的问题，我们一般的思路就是用type分组，分别查询系统通知和投诉建议的总条数，然后用两个子查询来统计成功条数和失败条数。sql如下：</p>
+<pre><code><code>SELECT
+  COUNT(1)    total,
+  m.type,
+  (SELECT
+     COUNT(1)
+   FROM message ms
+   WHERE ms.status = 1
+       AND m.type = ms.type)    successtotal,
+  (SELECT
+     COUNT(1)
+   FROM message mf
+   WHERE mf.status = 1
+       AND m.type = mf.type)    failtotal
+FROM message m
+GROUP BY m.type</code></code></pre>
+<p>我们看看运行时间，统计1千万条数据大概需要<strong>6分18秒</strong>。<br />
+那么有没有更简单，更快的统计方式呢，当然是有的，就是我们今天主要讲的if()函数。</p>
+<h2 id="基本语法">基本语法</h2>
+<p>IF(expr1,expr2,expr3)，如果expr1的值为true，则返回expr2的值，如果expr1的值为false，则返回expr3的值。就是一个简单的三目表达式。</p>
+<h2 id="如何做">如何做</h2>
+<p>说说思路，假如我们统计成功条数，我们可以这样写if(status=1,1,0)，这样如果status==1，则返回1，否则返回0。然后我们通过SUM()函数将成功条数相加即可。</p>
+<h2 id="实现方式">实现方式</h2>
+<p>sql语句如下：</p>
+<pre><code><code>SELECT
+  COUNT(1)    total,
+  m.type,
+  SUM(IF(m.status = 1,1,0))    successtotal,
+  SUM(IF(m.status != 1,1,0))    failtotal
+FROM message m
+GROUP BY m.type;</code></code></pre>
+<p>看着是不是比上面的子查询简洁多了，我们来看看运行时间，只有<strong>1分30秒</strong>。是不是快多了。<br />
+那么，今天你学会了吗？</p>
+<blockquote>
+<p>如果文章对您有帮助，请记得点赞关注哟~<br />
+欢迎大家关注我的公众号<情系IT>，每日技术推送文章供大家学习参考。</p>
+</blockquote>
+
+
+</div><hr><script charset='utf-8' src='../../js/sming.js'></script></body></html>

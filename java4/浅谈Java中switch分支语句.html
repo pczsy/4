@@ -1,0 +1,101 @@
+<html><head><meta charset='utf-8'><meta name='viewport' content='width=device-width, initial-scale=1'>
+<meta name='applicable-device' content='pc'><meta name='keywords' content='电脑,电脑讲解,电脑技术,编程,电脑故障维修浅谈Java中switch分支语句' />
+<script src='../../highlight/highlight.pack.js'></script>
+<link rel='stylesheet' type='text/css' href='../../highlight/styles/monokai.css'/>
+
+<link rel='stylesheet' href='../../fenxiang/dist/css/share.min.css'>
+<script src='../../fenxiang/src/js/social-share.js'></script>
+<script src='../../fenxiang/src/js/qrcode.js'></script>
+
+</head><body><script>hljs.initHighlightingOnLoad();</script><script>
+var system ={};  
+var p = navigator.platform;       
+system.win = p.indexOf('Win') == 0;  
+system.mac = p.indexOf('Mac') == 0;  
+system.x11 = (p == 'X11') || (p.indexOf('Linux') == 0);     
+if(system.win||system.mac||system.xll){
+document.write("<link href='../css/3.css' rel='stylesheet' type='text/css'>");}else{ document.write("<link href='../css/3wap.css' rel='stylesheet' type='text/css'>");}</script><script src='../../js/3.js'></script><div class='div2'><div class='heading_nav'><ul><div><li><a href='../../index.html'>首页</a></li>
+</div><div onclick='hidden1()' >分享</div>
+</ul></div></div>
+<div id='heading_nav2'> 
+<li class='row' >
+<div class='social-share' data-mode='prepend'><a href='javascript:' class='social-share-icon icon-heart'></a></div></li></div><script charset='utf-8' src='../../3/js/hengfu.js'></script><script charset='utf-8' src='../../3/js/hengfu2.js'></script><hr><div class='div1'><div class='biaoti'><center>浅谈Java中switch分支语句</center></div><div class='banquan'>原文出处:本文由博客园博主冰湖一角提供。<br/>
+原文连接:https://www.cnblogs.com/bingyimeiling/p/11544720.html</div><br>
+    <p>在程序中遇到多分支选择的时候，想必大家都喜欢用if...else if...else...语句，尤其是初学者，因为在了解switch语句之前，我也是只会用if...else语句。那么现在看完这篇随笔的介绍后，你们又有了另外一种选择，使用switch语句可以增强代码的可能性，当然switch也不是随随便便就能用的，它也有语法规则的约束，请看下面的阐述。</p>
+<p>一、switch简介和语法</p>
+<p>switch语句用于多分支选择，由一个控制表达式和多个case标签组成。switch语句后面的控制表达式的数据类型只能是byte、short、char、int、String和枚举类型，不能是其它类型。</p>
+<p>switch语句往往需要在case标签后紧跟一个代码块，case标签作为这个代码块的标识。</p>
+<p>switch语句的语法如下：</p>
+<src class="cnblogs_code">
+<pre><code><span style="color: #0000ff;">switch</span><span style="color: #000000;">(expr){
+    </span><span style="color: #0000ff;">case</span><span style="color: #000000;"> condition1{
+        </span><span style="color: #008000;">//</span><span style="color: #008000;">代码块...</span>
+        <span style="color: #0000ff;">break</span><span style="color: #000000;">;
+    }
+    </span><span style="color: #0000ff;">case</span><span style="color: #000000;"> condition2{
+        </span><span style="color: #008000;">//</span><span style="color: #008000;">代码块...</span>
+        <span style="color: #0000ff;">break</span><span style="color: #000000;">;
+    }
+    ...
+    </span><span style="color: #0000ff;">case</span><span style="color: #000000;"> conditionN{
+        </span><span style="color: #008000;">//</span><span style="color: #008000;">代码块...</span>
+        <span style="color: #0000ff;">break</span><span style="color: #000000;">;
+    }
+    dafault:{
+        </span><span style="color: #008000;">//</span><span style="color: #008000;">代码块...</span>
+<span style="color: #000000;">    }
+}</span></code></pre>
+
+<p>这种分支语句的执行是先对expr求值，然后依次匹配每个case标签后的condition值，遇到匹配的值即执行对应的代码块，如果condition的值没有与expr表达式的值相等，则执行default标签后的代码块。</p>
+<p>二、switch语句和if语句的区别</p>
+<p>switch语句和if语句都可用于分支条件的选择，但switch后面的控制表达式只能是byte、short、char、int、String和枚举类型，不能是boolean类型，if后面的控制表达式是boolean类型；switch语句中各个case标签后代码块的开始点和结束点非常清晰，因此完全可以省略case后代码块的花括号。</p>
+<p>三、switch的使用及注意事项</p>
+<p>为了更清晰的认识switch，下面通过一段程序来示范switch的用法：</p>
+<src class="cnblogs_code">
+<pre><code><span style="color: #0000ff;">public</span> <span style="color: #0000ff;">class</span><span style="color: #000000;"> TestSwitch {
+
+    </span><span style="color: #0000ff;">public</span> <span style="color: #0000ff;">static</span> <span style="color: #0000ff;">void</span><span style="color: #000000;"> main(String[] args) {
+        </span><span style="color: #008000;">//</span><span style="color: #008000;">声明变量languageType</span>
+        String languageType = "Java"<span style="color: #000000;">;
+        </span><span style="color: #008000;">//</span><span style="color: #008000;">执行switch语句</span>
+        <span style="color: #0000ff;">switch</span><span style="color: #000000;"> (languageType) {
+        </span><span style="color: #0000ff;">case</span> "C"<span style="color: #000000;">:
+            System.out.println(</span>"C语言"<span style="color: #000000;">);
+            </span><span style="color: #0000ff;">break</span><span style="color: #000000;">;
+        </span><span style="color: #0000ff;">case</span> "Java"<span style="color: #000000;">:
+            System.out.println(</span>"Java语言"<span style="color: #000000;">);
+            </span><span style="color: #0000ff;">break</span><span style="color: #000000;">;    
+        </span><span style="color: #0000ff;">case</span> "C++"<span style="color: #000000;">:
+            System.out.println(</span>"C++语言"<span style="color: #000000;">);
+            </span><span style="color: #0000ff;">break</span><span style="color: #000000;">;
+        </span><span style="color: #0000ff;">case</span> "Python"<span style="color: #000000;">:
+            System.out.println(</span>"Python语言"<span style="color: #000000;">);
+            </span><span style="color: #0000ff;">break</span><span style="color: #000000;">;
+        </span><span style="color: #0000ff;">default</span><span style="color: #000000;">:
+            System.out.println(</span>"语言类型输入错误"<span style="color: #000000;">);</span><span style="color: #000000;">
+        }
+
+    }
+
+}</span></code></pre>
+
+<p>运行上面的程序输出：Java语言。</p>
+<p>因为定义的变量（switch后面的控制表达式）"languageType" 与"Java"匹配。</p>
+<p>如果把上面程序中的每个case标签里的break语句去掉，将会发生什么样的结果呢？那么我先把每个break语句注释掉，运行结果如下：</p>
+<src class="cnblogs_code">
+<pre><code><span style="color: #000000;">Java语言
+C</span>++<span style="color: #000000;">语言
+Python语言
+语言类型输入错误</span></code></pre>
+
+<p>输出结果是不是很奇怪！这正是switch语句的运行流程决定的，只要进入switch语句的入口，程序会一直运行下去，直到遇到break语句，如果省略了break语句，那么匹配case值后的所有情况（包括default）都会被执行。</p>
+<p>所以，使用switch语句时，有两个值得注意的地方：</p>
+<p>1）switch后面的控制表达式只能是byte、short、char、int、String和枚举类型；</p>
+<p>2）如果省略了case后的代码块break，将会引入一个陷阱。</p>
+<p>&nbsp;</p>
+<p><strong>关注微信公众号【Java典籍】，收看更多Java技术干货！关注即送java全套资料一份</strong></p>
+<p><strong>　　&nbsp;<strong>▼微信扫一扫下图&darr;&darr;&darr;二维码关注</strong></strong></p>
+<p>　<img src="./images/浅谈Java中switch分支语句0.png" alt="" width="151" height="151" /></p>
+<p>&nbsp;</p>
+
+</div><hr><script charset='utf-8' src='../../js/sming.js'></script></body></html>

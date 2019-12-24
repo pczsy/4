@@ -1,0 +1,591 @@
+<html><head><meta charset='utf-8'><meta name='viewport' content='width=device-width, initial-scale=1'>
+<meta name='applicable-device' content='pc'><meta name='keywords' content='电脑,电脑讲解,电脑技术,编程,电脑故障维修Spring+SpringMVC+MyBatis整合' />
+<script src='../../highlight/highlight.pack.js'></script>
+<link rel='stylesheet' type='text/css' href='../../highlight/styles/monokai.css'/>
+
+<link rel='stylesheet' href='../../fenxiang/dist/css/share.min.css'>
+<script src='../../fenxiang/src/js/social-share.js'></script>
+<script src='../../fenxiang/src/js/qrcode.js'></script>
+
+</head><body><script>hljs.initHighlightingOnLoad();</script><script>
+var system ={};  
+var p = navigator.platform;       
+system.win = p.indexOf('Win') == 0;  
+system.mac = p.indexOf('Mac') == 0;  
+system.x11 = (p == 'X11') || (p.indexOf('Linux') == 0);     
+if(system.win||system.mac||system.xll){
+document.write("<link href='../css/3.css' rel='stylesheet' type='text/css'>");}else{ document.write("<link href='../css/3wap.css' rel='stylesheet' type='text/css'>");}</script><script src='../../js/3.js'></script><div class='div2'><div class='heading_nav'><ul><div><li><a href='../../index.html'>首页</a></li>
+</div><div onclick='hidden1()' >分享</div>
+</ul></div></div>
+<div id='heading_nav2'> 
+<li class='row' >
+<div class='social-share' data-mode='prepend'><a href='javascript:' class='social-share-icon icon-heart'></a></div></li></div><script charset='utf-8' src='../../3/js/hengfu.js'></script><script charset='utf-8' src='../../3/js/hengfu2.js'></script><hr><div class='div1'><div class='biaoti'><center>Spring+SpringMVC+MyBatis整合</center></div><div class='banquan'>原文出处:本文由博客园博主Dcl_Snow提供。<br/>
+原文连接:https://www.cnblogs.com/Dcl-Snow/p/11947130.html</div><br>
+    <p><strong><font size="4">概述</font></strong><br>
+前文记录了Spring MVC的常用功能和MyBatis的基本用法。在实际的项目开发中，需要进行整合，从而使用Spring的依赖注入来减少代码的耦合，使用Spring MVC处理请求并作出响应，使用MyBatis完成数据库操作。<br><strong><font size="4">
+数据准备</font></strong><br>
+在前文创建的mybatis数据库中删除表tb_user重新创建该表，同时新建一张表tb_book，表设计和测试数据如下：<br>
+<a href="https://img2018.cnblogs.com/blog/526027/201911/526027-20191128100006040-596781918.png"><img width="695" height="324" title="整合01" style="border: 0px currentcolor; border-image: none; margin-right: auto; margin-left: auto; float: none; display: block; background-image: none;" alt="整合01" src="./images/Spring+SpringMVC+MyBatis整合0.png" border="0"></a><a href="https://img2018.cnblogs.com/blog/526027/201911/526027-20191128100006767-720415415.png"><img width="573" height="177" title="整合02" style="border: 0px currentcolor; border-image: none; margin-right: auto; margin-left: auto; float: none; display: block; background-image: none;" alt="整合02" src="./images/Spring+SpringMVC+MyBatis整合1.png" border="0"></a><a href="https://img2018.cnblogs.com/blog/526027/201911/526027-20191128100007813-910039887.png"><img width="704" height="356" title="整合03" style="border: 0px currentcolor; border-image: none; margin-right: auto; margin-left: auto; float: none; display: block; background-image: none;" alt="整合03" src="./images/Spring+SpringMVC+MyBatis整合2.png" border="0"></a><a href="https://img2018.cnblogs.com/blog/526027/201911/526027-20191128100008849-493159874.png"><img width="952" height="250" title="整合04" style="border: 0px currentcolor; border-image: none; margin-right: auto; margin-left: auto; float: none; display: block; background-image: none;" alt="整合04" src="./images/Spring+SpringMVC+MyBatis整合3.png" border="0"></a><br><strong><font size="4">
+创建/配置项目</font></strong><br>
+创建项目的步骤此处不再赘述，与SpringMVC创建相同（前文链接<a href="https://www.cnblogs.com/Dcl-Snow/p/11444751.html">https://www.cnblogs.com/Dcl-Snow/p/11444751.html</a>）。<br>
+项目目录结构如图：<br>
+<a href="https://img2018.cnblogs.com/blog/526027/201911/526027-20191128100009658-463398409.png"><img width="397" height="506" title="整合05" style="border: 0px currentcolor; border-image: none; margin-right: auto; margin-left: auto; float: none; display: block; background-image: none;" alt="整合05" src="./images/Spring+SpringMVC+MyBatis整合4.png" border="0"></a><br>
+打开项目的pom文件，添加Spring、Spring MVC、Mybatis和连接MySQL数据库的包依赖：<br>
+<src class="cnblogs_code"><pre><code><span style="color: rgb(0, 128, 128);">  1</span> &lt;?xml version="<span style="color: rgb(139, 0, 0);">1.0</span>" encoding="<span style="color: rgb(139, 0, 0);">UTF-8</span>"?&gt;
+<span style="color: rgb(0, 128, 128);">  2</span> 
+<span style="color: rgb(0, 128, 128);">  3</span> &lt;project xmlns="<span style="color: rgb(139, 0, 0);">http://maven.apache.org/POM/4.0.0</span>" xmlns:xsi="<span style="color: rgb(139, 0, 0);">http://www.w3.org/2001/XMLSchema-instance</span>"
+<span style="color: rgb(0, 128, 128);">  4</span>           xsi:schemaLocation="<span style="color: rgb(139, 0, 0);">http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd</span>"&gt;
+<span style="color: rgb(0, 128, 128);">  5</span>     &lt;modelVersion&gt;4.0.0&lt;/modelVersion&gt;
+<span style="color: rgb(0, 128, 128);">  6</span> 
+<span style="color: rgb(0, 128, 128);">  7</span>     &lt;groupId&gt;com.snow&lt;/groupId&gt;
+<span style="color: rgb(0, 128, 128);">  8</span>     &lt;artifactId&gt;ssmbookproject&lt;/artifactId&gt;
+<span style="color: rgb(0, 128, 128);">  9</span>     &lt;version&gt;1.0-SNAPSHOT&lt;/version&gt;
+<span style="color: rgb(0, 128, 128);"> 10</span>     &lt;packaging&gt;war&lt;/packaging&gt;
+<span style="color: rgb(0, 128, 128);"> 11</span> 
+<span style="color: rgb(0, 128, 128);"> 12</span>     &lt;name&gt;ssmbookproject Maven Webapp&lt;/name&gt;
+<span style="color: rgb(0, 128, 128);"> 13</span>     &lt;!-- FIXME change it to the project's website --&gt;
+<span style="color: rgb(0, 128, 128);"> 14</span>     &lt;url&gt;http:<span style="color: rgb(0, 128, 0);">//www.example.com&lt;/url&gt;</span>
+<span style="color: rgb(0, 128, 128);"> 15</span> 
+<span style="color: rgb(0, 128, 128);"> 16</span>     &lt;properties&gt;
+<span style="color: rgb(0, 128, 128);"> 17</span>         &lt;project.build.sourceEncoding&gt;UTF-8&lt;/project.build.sourceEncoding&gt;
+<span style="color: rgb(0, 128, 128);"> 18</span>         &lt;maven.compiler.source&gt;1.7&lt;/maven.compiler.source&gt;
+<span style="color: rgb(0, 128, 128);"> 19</span>         &lt;maven.compiler.target&gt;1.7&lt;/maven.compiler.target&gt;
+<span style="color: rgb(0, 128, 128);"> 20</span>         &lt;!-- spring版本号 --&gt;
+<span style="color: rgb(0, 128, 128);"> 21</span>         &lt;spring.version&gt;4.3.10.RELEASE&lt;/spring.version&gt;
+<span style="color: rgb(0, 128, 128);"> 22</span>         &lt;!-- mybatis版本号 --&gt;
+<span style="color: rgb(0, 128, 128);"> 23</span>         &lt;mybatis.version&gt;3.4.6&lt;/mybatis.version&gt;
+<span style="color: rgb(0, 128, 128);"> 24</span>      &lt;/properties&gt;
+<span style="color: rgb(0, 128, 128);"> 25</span> 
+<span style="color: rgb(0, 128, 128);"> 26</span>     &lt;dependencies&gt;
+<span style="color: rgb(0, 128, 128);"> 27</span>         &lt;dependency&gt;
+<span style="color: rgb(0, 128, 128);"> 28</span>             &lt;groupId&gt;junit&lt;/groupId&gt;
+<span style="color: rgb(0, 128, 128);"> 29</span>             &lt;artifactId&gt;junit&lt;/artifactId&gt;
+<span style="color: rgb(0, 128, 128);"> 30</span>             &lt;version&gt;4.11&lt;/version&gt;
+<span style="color: rgb(0, 128, 128);"> 31</span>             &lt;scope&gt;test&lt;/scope&gt;
+<span style="color: rgb(0, 128, 128);"> 32</span>         &lt;/dependency&gt;
+<span style="color: rgb(0, 128, 128);"> 33</span>         &lt;!-- 数据库 --&gt;
+<span style="color: rgb(0, 128, 128);"> 34</span>         &lt;dependency&gt;
+<span style="color: rgb(0, 128, 128);"> 35</span>             &lt;groupId&gt;mysql&lt;/groupId&gt;
+<span style="color: rgb(0, 128, 128);"> 36</span>             &lt;artifactId&gt;mysql-connector-java&lt;/artifactId&gt;
+<span style="color: rgb(0, 128, 128);"> 37</span>             &lt;version&gt;5.1.37&lt;/version&gt;
+<span style="color: rgb(0, 128, 128);"> 38</span>             &lt;scope&gt;runtime&lt;/scope&gt;
+<span style="color: rgb(0, 128, 128);"> 39</span>         &lt;/dependency&gt;
+<span style="color: rgb(0, 128, 128);"> 40</span>         &lt;dependency&gt;
+<span style="color: rgb(0, 128, 128);"> 41</span>             &lt;!--jdbc连接池--&gt;
+<span style="color: rgb(0, 128, 128);"> 42</span>             &lt;groupId&gt;c3p0&lt;/groupId&gt;
+<span style="color: rgb(0, 128, 128);"> 43</span>             &lt;artifactId&gt;c3p0&lt;/artifactId&gt;
+<span style="color: rgb(0, 128, 128);"> 44</span>             &lt;version&gt;0.9.1.2&lt;/version&gt;
+<span style="color: rgb(0, 128, 128);"> 45</span>         &lt;/dependency&gt;
+<span style="color: rgb(0, 128, 128);"> 46</span>         &lt;!-- DAO: MyBatis --&gt;
+<span style="color: rgb(0, 128, 128);"> 47</span>         &lt;dependency&gt;
+<span style="color: rgb(0, 128, 128);"> 48</span>             &lt;groupId&gt;org.mybatis&lt;/groupId&gt;
+<span style="color: rgb(0, 128, 128);"> 49</span>             &lt;artifactId&gt;mybatis&lt;/artifactId&gt;
+<span style="color: rgb(0, 128, 128);"> 50</span>             &lt;version&gt;3.3.0&lt;/version&gt;
+<span style="color: rgb(0, 128, 128);"> 51</span>         &lt;/dependency&gt;
+<span style="color: rgb(0, 128, 128);"> 52</span>         &lt;dependency&gt;
+<span style="color: rgb(0, 128, 128);"> 53</span>             &lt;groupId&gt;org.mybatis&lt;/groupId&gt;
+<span style="color: rgb(0, 128, 128);"> 54</span>             &lt;artifactId&gt;mybatis-spring&lt;/artifactId&gt;
+<span style="color: rgb(0, 128, 128);"> 55</span>             &lt;version&gt;1.2.3&lt;/version&gt;
+<span style="color: rgb(0, 128, 128);"> 56</span>         &lt;/dependency&gt;
+<span style="color: rgb(0, 128, 128);"> 57</span>         &lt;!-- Servlet web --&gt;
+<span style="color: rgb(0, 128, 128);"> 58</span>         &lt;dependency&gt;
+<span style="color: rgb(0, 128, 128);"> 59</span>             &lt;groupId&gt;taglibs&lt;/groupId&gt;
+<span style="color: rgb(0, 128, 128);"> 60</span>             &lt;artifactId&gt;standard&lt;/artifactId&gt;
+<span style="color: rgb(0, 128, 128);"> 61</span>             &lt;version&gt;1.1.2&lt;/version&gt;
+<span style="color: rgb(0, 128, 128);"> 62</span>         &lt;/dependency&gt;
+<span style="color: rgb(0, 128, 128);"> 63</span>         &lt;dependency&gt;
+<span style="color: rgb(0, 128, 128);"> 64</span>             &lt;groupId&gt;jstl&lt;/groupId&gt;
+<span style="color: rgb(0, 128, 128);"> 65</span>             &lt;artifactId&gt;jstl&lt;/artifactId&gt;
+<span style="color: rgb(0, 128, 128);"> 66</span>             &lt;version&gt;1.2&lt;/version&gt;
+<span style="color: rgb(0, 128, 128);"> 67</span>         &lt;/dependency&gt;
+<span style="color: rgb(0, 128, 128);"> 68</span>         &lt;!--Gson--&gt;
+<span style="color: rgb(0, 128, 128);"> 69</span>         &lt;dependency&gt;
+<span style="color: rgb(0, 128, 128);"> 70</span>             &lt;groupId&gt;com.google.code.gson&lt;/groupId&gt;
+<span style="color: rgb(0, 128, 128);"> 71</span>             &lt;artifactId&gt;gson&lt;/artifactId&gt;
+<span style="color: rgb(0, 128, 128);"> 72</span>             &lt;version&gt;2.8.2&lt;/version&gt;
+<span style="color: rgb(0, 128, 128);"> 73</span>         &lt;/dependency&gt;
+<span style="color: rgb(0, 128, 128);"> 74</span>         &lt;dependency&gt;
+<span style="color: rgb(0, 128, 128);"> 75</span>             &lt;groupId&gt;javax.servlet&lt;/groupId&gt;
+<span style="color: rgb(0, 128, 128);"> 76</span>             &lt;artifactId&gt;javax.servlet-api&lt;/artifactId&gt;
+<span style="color: rgb(0, 128, 128);"> 77</span>             &lt;version&gt;3.1.0&lt;/version&gt;
+<span style="color: rgb(0, 128, 128);"> 78</span>         &lt;/dependency&gt;
+<span style="color: rgb(0, 128, 128);"> 79</span>         &lt;dependency&gt;
+<span style="color: rgb(0, 128, 128);"> 80</span>             &lt;groupId&gt;org.springframework&lt;/groupId&gt;
+<span style="color: rgb(0, 128, 128);"> 81</span>             &lt;artifactId&gt;spring-core&lt;/artifactId&gt;
+<span style="color: rgb(0, 128, 128);"> 82</span>             &lt;version&gt;${spring.version}&lt;/version&gt;
+<span style="color: rgb(0, 128, 128);"> 83</span>         &lt;/dependency&gt;
+<span style="color: rgb(0, 128, 128);"> 84</span>         &lt;dependency&gt;
+<span style="color: rgb(0, 128, 128);"> 85</span>             &lt;groupId&gt;org.springframework&lt;/groupId&gt;
+<span style="color: rgb(0, 128, 128);"> 86</span>             &lt;artifactId&gt;spring-beans&lt;/artifactId&gt;
+<span style="color: rgb(0, 128, 128);"> 87</span>             &lt;version&gt;${spring.version}&lt;/version&gt;
+<span style="color: rgb(0, 128, 128);"> 88</span>         &lt;/dependency&gt;
+<span style="color: rgb(0, 128, 128);"> 89</span>         &lt;dependency&gt;
+<span style="color: rgb(0, 128, 128);"> 90</span>             &lt;groupId&gt;org.springframework&lt;/groupId&gt;
+<span style="color: rgb(0, 128, 128);"> 91</span>             &lt;artifactId&gt;spring-context&lt;/artifactId&gt;
+<span style="color: rgb(0, 128, 128);"> 92</span>             &lt;version&gt;${spring.version}&lt;/version&gt;
+<span style="color: rgb(0, 128, 128);"> 93</span>         &lt;/dependency&gt;
+<span style="color: rgb(0, 128, 128);"> 94</span>         &lt;dependency&gt;
+<span style="color: rgb(0, 128, 128);"> 95</span>             &lt;groupId&gt;org.springframework&lt;/groupId&gt;
+<span style="color: rgb(0, 128, 128);"> 96</span>             &lt;artifactId&gt;spring-jdbc&lt;/artifactId&gt;
+<span style="color: rgb(0, 128, 128);"> 97</span>             &lt;version&gt;${spring.version}&lt;/version&gt;
+<span style="color: rgb(0, 128, 128);"> 98</span>         &lt;/dependency&gt;
+<span style="color: rgb(0, 128, 128);"> 99</span>         &lt;dependency&gt;
+<span style="color: rgb(0, 128, 128);">100</span>             &lt;groupId&gt;org.springframework&lt;/groupId&gt;
+<span style="color: rgb(0, 128, 128);">101</span>             &lt;artifactId&gt;spring-tx&lt;/artifactId&gt;
+<span style="color: rgb(0, 128, 128);">102</span>             &lt;version&gt;${spring.version}&lt;/version&gt;
+<span style="color: rgb(0, 128, 128);">103</span>         &lt;/dependency&gt;
+<span style="color: rgb(0, 128, 128);">104</span>         &lt;dependency&gt;
+<span style="color: rgb(0, 128, 128);">105</span>             &lt;groupId&gt;org.springframework&lt;/groupId&gt;
+<span style="color: rgb(0, 128, 128);">106</span>             &lt;artifactId&gt;spring-web&lt;/artifactId&gt;
+<span style="color: rgb(0, 128, 128);">107</span>             &lt;version&gt;${spring.version}&lt;/version&gt;
+<span style="color: rgb(0, 128, 128);">108</span>         &lt;/dependency&gt;
+<span style="color: rgb(0, 128, 128);">109</span>         &lt;dependency&gt;
+<span style="color: rgb(0, 128, 128);">110</span>             &lt;groupId&gt;org.springframework&lt;/groupId&gt;
+<span style="color: rgb(0, 128, 128);">111</span>             &lt;artifactId&gt;spring-webmvc&lt;/artifactId&gt;
+<span style="color: rgb(0, 128, 128);">112</span>             &lt;version&gt;${spring.version}&lt;/version&gt;
+<span style="color: rgb(0, 128, 128);">113</span>         &lt;/dependency&gt;
+<span style="color: rgb(0, 128, 128);">114</span>         &lt;dependency&gt;
+<span style="color: rgb(0, 128, 128);">115</span>             &lt;groupId&gt;org.springframework&lt;/groupId&gt;
+<span style="color: rgb(0, 128, 128);">116</span>             &lt;artifactId&gt;spring-test&lt;/artifactId&gt;
+<span style="color: rgb(0, 128, 128);">117</span>             &lt;version&gt;${spring.version}&lt;/version&gt;
+<span style="color: rgb(0, 128, 128);">118</span>         &lt;/dependency&gt;
+<span style="color: rgb(0, 128, 128);">119</span>         &lt;dependency&gt;
+<span style="color: rgb(0, 128, 128);">120</span>             &lt;groupId&gt;org.projectlombok&lt;/groupId&gt;
+<span style="color: rgb(0, 128, 128);">121</span>             &lt;artifactId&gt;lombok&lt;/artifactId&gt;
+<span style="color: rgb(0, 128, 128);">122</span>             &lt;version&gt;1.16.22&lt;/version&gt;
+<span style="color: rgb(0, 128, 128);">123</span>         &lt;/dependency&gt;
+<span style="color: rgb(0, 128, 128);">124</span>     &lt;/dependencies&gt;
+<span style="color: rgb(0, 128, 128);">125</span> 
+<span style="color: rgb(0, 128, 128);">126</span>     &lt;build&gt;
+<span style="color: rgb(0, 128, 128);">127</span>         &lt;finalName&gt;bookproj&lt;/finalName&gt;
+<span style="color: rgb(0, 128, 128);">128</span>         &lt;pluginManagement&gt;&lt;!-- lock down plugins versions to avoid using Maven defaults (may be moved to parent pom) --&gt;
+<span style="color: rgb(0, 128, 128);">129</span>             &lt;plugins&gt;
+<span style="color: rgb(0, 128, 128);">130</span>                 &lt;plugin&gt;
+<span style="color: rgb(0, 128, 128);">131</span>                     &lt;artifactId&gt;maven-clean-plugin&lt;/artifactId&gt;
+<span style="color: rgb(0, 128, 128);">132</span>                     &lt;version&gt;3.1.0&lt;/version&gt;
+<span style="color: rgb(0, 128, 128);">133</span>                 &lt;/plugin&gt;
+<span style="color: rgb(0, 128, 128);">134</span>                 &lt;!-- see http:<span style="color: rgb(0, 128, 0);">//maven.apache.org/ref/current/maven-core/default-bindings.html#Plugin_bindings_for_war_packaging --&gt;</span>
+<span style="color: rgb(0, 128, 128);">135</span>                 &lt;plugin&gt;
+<span style="color: rgb(0, 128, 128);">136</span>                     &lt;artifactId&gt;maven-resources-plugin&lt;/artifactId&gt;
+<span style="color: rgb(0, 128, 128);">137</span>                     &lt;version&gt;3.0.2&lt;/version&gt;
+<span style="color: rgb(0, 128, 128);">138</span>                 &lt;/plugin&gt;
+<span style="color: rgb(0, 128, 128);">139</span>                 &lt;plugin&gt;
+<span style="color: rgb(0, 128, 128);">140</span>                     &lt;artifactId&gt;maven-compiler-plugin&lt;/artifactId&gt;
+<span style="color: rgb(0, 128, 128);">141</span>                     &lt;version&gt;3.8.0&lt;/version&gt;
+<span style="color: rgb(0, 128, 128);">142</span>                 &lt;/plugin&gt;
+<span style="color: rgb(0, 128, 128);">143</span>                 &lt;plugin&gt;
+<span style="color: rgb(0, 128, 128);">144</span>                     &lt;artifactId&gt;maven-surefire-plugin&lt;/artifactId&gt;
+<span style="color: rgb(0, 128, 128);">145</span>                     &lt;version&gt;2.22.1&lt;/version&gt;
+<span style="color: rgb(0, 128, 128);">146</span>                 &lt;/plugin&gt;
+<span style="color: rgb(0, 128, 128);">147</span>                 &lt;plugin&gt;
+<span style="color: rgb(0, 128, 128);">148</span>                     &lt;artifactId&gt;maven-war-plugin&lt;/artifactId&gt;
+<span style="color: rgb(0, 128, 128);">149</span>                     &lt;version&gt;3.2.2&lt;/version&gt;
+<span style="color: rgb(0, 128, 128);">150</span>                 &lt;/plugin&gt;
+<span style="color: rgb(0, 128, 128);">151</span>                 &lt;plugin&gt;
+<span style="color: rgb(0, 128, 128);">152</span>                     &lt;artifactId&gt;maven-install-plugin&lt;/artifactId&gt;
+<span style="color: rgb(0, 128, 128);">153</span>                     &lt;version&gt;2.5.2&lt;/version&gt;
+<span style="color: rgb(0, 128, 128);">154</span>                 &lt;/plugin&gt;
+<span style="color: rgb(0, 128, 128);">155</span>                 &lt;plugin&gt;
+<span style="color: rgb(0, 128, 128);">156</span>                     &lt;artifactId&gt;maven-deploy-plugin&lt;/artifactId&gt;
+<span style="color: rgb(0, 128, 128);">157</span>                     &lt;version&gt;2.8.2&lt;/version&gt;
+<span style="color: rgb(0, 128, 128);">158</span>                 &lt;/plugin&gt;
+<span style="color: rgb(0, 128, 128);">159</span>             &lt;/plugins&gt;
+<span style="color: rgb(0, 128, 128);">160</span>         &lt;/pluginManagement&gt;
+<span style="color: rgb(0, 128, 128);">161</span>     &lt;/build&gt;
+<span style="color: rgb(0, 128, 128);">162</span> &lt;/project&gt;</code></pre><p><br>
+在项目的resources目录下创建jdbc.properties文件，编写如下内容：<br>
+<src class="cnblogs_code"><pre><code><span style="color: rgb(0, 128, 128);">  1</span> jdbc.driver=com.mysql.jdbc.Driver
+<span style="color: rgb(0, 128, 128);">  2</span> jdbc.url=jdbc:mysql:<span style="color: rgb(0, 128, 0);">//localhost:3306/mybatis?useUnicode=true&amp;characterEncoding=utf8</span>
+<span style="color: rgb(0, 128, 128);">  3</span> jdbc.username=root
+<span style="color: rgb(0, 128, 128);">  4</span> #“****”是mysql数据库密码
+<span style="color: rgb(0, 128, 128);">  5</span> jdbc.password=****
+<span style="color: rgb(0, 128, 128);">  6</span> #最大连接数
+<span style="color: rgb(0, 128, 128);">  7</span> maxPoolSize=20
+<span style="color: rgb(0, 128, 128);">  8</span> #最小连接数
+<span style="color: rgb(0, 128, 128);">  9</span> minPoolSize=10
+<span style="color: rgb(0, 128, 128);"> 10</span> #连接超时时间
+<span style="color: rgb(0, 128, 128);"> 11</span> checkoutTimeout=60000
+<span style="color: rgb(0, 128, 128);"> 12</span> #失败重连次数
+<span style="color: rgb(0, 128, 128);"> 13</span> acquireRetryAttempts=3</code></pre><br>
+在项目的resources目录下创建applicationContext.xml文件，编写如下内容：<br>
+<src class="cnblogs_code"><pre><code><span style="color: rgb(0, 128, 128);">  1</span> &lt;?xml version="<span style="color: rgb(139, 0, 0);">1.0</span>" encoding="<span style="color: rgb(139, 0, 0);">UTF-8</span>"?&gt;
+<span style="color: rgb(0, 128, 128);">  2</span> &lt;beans xmlns="<span style="color: rgb(139, 0, 0);">http://www.springframework.org/schema/beans</span>"
+<span style="color: rgb(0, 128, 128);">  3</span>        xmlns:xsi="<span style="color: rgb(139, 0, 0);">http://www.w3.org/2001/XMLSchema-instance</span>"
+<span style="color: rgb(0, 128, 128);">  4</span>        xmlns:context="<span style="color: rgb(139, 0, 0);">http://www.springframework.org/schema/context</span>"
+<span style="color: rgb(0, 128, 128);">  5</span>        xsi:schemaLocation="<span style="color: rgb(139, 0, 0);">http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context.xsd http://www.springframework.org/schema/tx http://www.springframework.org/schema/tx/springtx.xsd</span>"&gt;
+<span style="color: rgb(0, 128, 128);">  6</span> 
+<span style="color: rgb(0, 128, 128);">  7</span>     &lt;!--配合MyBatis--&gt;
+<span style="color: rgb(0, 128, 128);">  8</span>     &lt;!--数据库配置文件--&gt;
+<span style="color: rgb(0, 128, 128);">  9</span>     &lt;context:property-placeholder location="<span style="color: rgb(139, 0, 0);">classpath:jdbc.properties</span>"/&gt;
+<span style="color: rgb(0, 128, 128);"> 10</span>     &lt;!--数据库连接池--&gt;
+<span style="color: rgb(0, 128, 128);"> 11</span>     &lt;bean id="<span style="color: rgb(139, 0, 0);">dataSource</span>" <span style="color: rgb(0, 0, 255);">class</span>="<span style="color: rgb(139, 0, 0);">com.mchange.v2.c3p0.ComboPooledDataSource</span>"&gt;
+<span style="color: rgb(0, 128, 128);"> 12</span>         &lt;!--配置连接池属性--&gt;
+<span style="color: rgb(0, 128, 128);"> 13</span>         &lt;property name="<span style="color: rgb(139, 0, 0);">driverClass</span>" value="<span style="color: rgb(139, 0, 0);">${jdbc.driver}</span>"/&gt;
+<span style="color: rgb(0, 128, 128);"> 14</span>         &lt;property name="<span style="color: rgb(139, 0, 0);">jdbcUrl</span>" value="<span style="color: rgb(139, 0, 0);">${jdbc.url}</span>"/&gt;
+<span style="color: rgb(0, 128, 128);"> 15</span>         &lt;property name="<span style="color: rgb(139, 0, 0);">user</span>" value="<span style="color: rgb(139, 0, 0);">${jdbc.username}</span>"/&gt;
+<span style="color: rgb(0, 128, 128);"> 16</span>         &lt;property name="<span style="color: rgb(139, 0, 0);">password</span>" value="<span style="color: rgb(139, 0, 0);">${jdbc.password}</span>"/&gt;
+<span style="color: rgb(0, 128, 128);"> 17</span>         &lt;property name="<span style="color: rgb(139, 0, 0);">maxPoolSize</span>" value="<span style="color: rgb(139, 0, 0);">${maxPoolSize}</span>"/&gt;
+<span style="color: rgb(0, 128, 128);"> 18</span>         &lt;property name="<span style="color: rgb(139, 0, 0);">minPoolSize</span>" value="<span style="color: rgb(139, 0, 0);">${minPoolSize}</span>"/&gt;
+<span style="color: rgb(0, 128, 128);"> 19</span>         &lt;property name="<span style="color: rgb(139, 0, 0);">autoCommitOnClose</span>" value="<span style="color: rgb(139, 0, 0);">false</span>"/&gt;
+<span style="color: rgb(0, 128, 128);"> 20</span>         &lt;property name="<span style="color: rgb(139, 0, 0);">checkoutTimeout</span>" value="<span style="color: rgb(139, 0, 0);">${checkoutTimeout}</span>"/&gt;
+<span style="color: rgb(0, 128, 128);"> 21</span>         &lt;property name="<span style="color: rgb(139, 0, 0);">acquireRetryAttempts</span>" value="<span style="color: rgb(139, 0, 0);">${acquireRetryAttempts}</span>"/&gt;
+<span style="color: rgb(0, 128, 128);"> 22</span>     &lt;/bean&gt;
+<span style="color: rgb(0, 128, 128);"> 23</span>     &lt;!-- 配置 SqlSessionFactory 对象--&gt;
+<span style="color: rgb(0, 128, 128);"> 24</span>     &lt;bean id="<span style="color: rgb(139, 0, 0);">sqlSessionFactory</span>" <span style="color: rgb(0, 0, 255);">class</span>="<span style="color: rgb(139, 0, 0);">org.mybatis.spring.SqlSessionFactoryBean</span>"&gt;
+<span style="color: rgb(0, 128, 128);"> 25</span>         &lt;!--注入数据库连接池--&gt;
+<span style="color: rgb(0, 128, 128);"> 26</span>         &lt;property name="<span style="color: rgb(139, 0, 0);">dataSource</span>" ref="<span style="color: rgb(139, 0, 0);">dataSource</span>"/&gt;
+<span style="color: rgb(0, 128, 128);"> 27</span>         &lt;!--  MyBaties 配置⽂件 --&gt;
+<span style="color: rgb(0, 128, 128);"> 28</span>         &lt;property name="<span style="color: rgb(139, 0, 0);">configLocation</span>" value="<span style="color: rgb(139, 0, 0);">classpath:mybatis-config.xml</span>"/&gt;
+<span style="color: rgb(0, 128, 128);"> 29</span>         &lt;!-- 扫描mapper 需要的 xml ⽂件 --&gt;
+<span style="color: rgb(0, 128, 128);"> 30</span>         &lt;property name="<span style="color: rgb(139, 0, 0);">mapperLocations</span>" value="<span style="color: rgb(139, 0, 0);">classpath:mapper/*.xml</span>"/&gt;
+<span style="color: rgb(0, 128, 128);"> 31</span>     &lt;/bean&gt;
+<span style="color: rgb(0, 128, 128);"> 32</span>     &lt;!-- 配置扫描 mapper 接⼝包， 动态实现 mapper 接⼝， 注⼊到 Spring 容器中 --&gt;
+<span style="color: rgb(0, 128, 128);"> 33</span>     &lt;bean <span style="color: rgb(0, 0, 255);">class</span>="<span style="color: rgb(139, 0, 0);">org.mybatis.spring.mapper.MapperScannerConfigurer</span>"&gt;
+<span style="color: rgb(0, 128, 128);"> 34</span>         &lt;!-- 注⼊ sqlSessionFactory --&gt;
+<span style="color: rgb(0, 128, 128);"> 35</span>         &lt;property name="<span style="color: rgb(139, 0, 0);">sqlSessionFactoryBeanName</span>" value="<span style="color: rgb(139, 0, 0);">sqlSessionFactory</span>"/&gt;
+<span style="color: rgb(0, 128, 128);"> 36</span>         &lt;!-- 给出需要扫描 mapper 接⼝包 --&gt;
+<span style="color: rgb(0, 128, 128);"> 37</span>         &lt;property name="<span style="color: rgb(139, 0, 0);">basePackage</span>" value="<span style="color: rgb(139, 0, 0);">com.snow.mapper</span>"/&gt;
+<span style="color: rgb(0, 128, 128);"> 38</span>     &lt;/bean&gt;
+<span style="color: rgb(0, 128, 128);"> 39</span>     &lt;!--spring-service--&gt;
+<span style="color: rgb(0, 128, 128);"> 40</span>     &lt;!-- 扫描 service 包下所有使⽤注解的类型 --&gt;
+<span style="color: rgb(0, 128, 128);"> 41</span>     &lt;context:component-scan base-<span style="color: rgb(0, 0, 255);">package</span>="<span style="color: rgb(139, 0, 0);">com.snow.service</span>"/&gt;
+<span style="color: rgb(0, 128, 128);"> 42</span>     &lt;!-- 配置事务管理器 --&gt;
+<span style="color: rgb(0, 128, 128);"> 43</span>     &lt;bean id="<span style="color: rgb(139, 0, 0);">transactionManager</span>"
+<span style="color: rgb(0, 128, 128);"> 44</span>           <span style="color: rgb(0, 0, 255);">class</span>="<span style="color: rgb(139, 0, 0);">org.springframework.jdbc.datasource.DataSourceTransactionManager</span>"&gt;
+<span style="color: rgb(0, 128, 128);"> 45</span>         &lt;!-- 注⼊数据库连接池 --&gt;
+<span style="color: rgb(0, 128, 128);"> 46</span>         &lt;property name="<span style="color: rgb(139, 0, 0);">dataSource</span>" ref="<span style="color: rgb(139, 0, 0);">dataSource</span>"/&gt;
+<span style="color: rgb(0, 128, 128);"> 47</span>     &lt;/bean&gt;
+<span style="color: rgb(0, 128, 128);"> 48</span> &lt;/beans&gt;</code></pre><p><br>
+在项目的resources目录下创建springmvc-sevlet.xml文件，编写如下内容：<br>
+<src class="cnblogs_code"><pre><code><span style="color: rgb(0, 128, 128);">  1</span> &lt;?xml version="<span style="color: rgb(139, 0, 0);">1.0</span>" encoding="<span style="color: rgb(139, 0, 0);">UTF-8</span>"?&gt;
+<span style="color: rgb(0, 128, 128);">  2</span> &lt;beans xmlns="<span style="color: rgb(139, 0, 0);">http://www.springframework.org/schema/beans</span>"
+<span style="color: rgb(0, 128, 128);">  3</span>        xmlns:xsi="<span style="color: rgb(139, 0, 0);">http://www.w3.org/2001/XMLSchema-instance</span>"
+<span style="color: rgb(0, 128, 128);">  4</span>        xmlns:p="<span style="color: rgb(139, 0, 0);">http://www.springframework.org/schema/p</span>"
+<span style="color: rgb(0, 128, 128);">  5</span>        xmlns:context="<span style="color: rgb(139, 0, 0);">http://www.springframework.org/schema/context</span>"
+<span style="color: rgb(0, 128, 128);">  6</span>        xmlns:mvc="<span style="color: rgb(139, 0, 0);">http://www.springframework.org/schema/mvc</span>"
+<span style="color: rgb(0, 128, 128);">  7</span>        xsi:schemaLocation="<span style="color: rgb(139, 0, 0);">http://www.springframework.org/schema/beans</span>
+<span style="color: rgb(0, 128, 128);">  8</span>        http:<span style="color: rgb(0, 128, 0);">//www.springframework.org/schema/beans/spring-beans.xsd</span>
+<span style="color: rgb(0, 128, 128);">  9</span>        http:<span style="color: rgb(0, 128, 0);">//www.springframework.org/schema/mvc</span>
+<span style="color: rgb(0, 128, 128);"> 10</span>        http:<span style="color: rgb(0, 128, 0);">//www.springframework.org/schema/mvc/spring-mvc-4.0.xsd</span>
+<span style="color: rgb(0, 128, 128);"> 11</span>        http:<span style="color: rgb(0, 128, 0);">//www.springframework.org/schema/context</span>
+<span style="color: rgb(0, 128, 128);"> 12</span>        http:<span style="color: rgb(0, 128, 0);">//www.springframework.org/schema/context/spring-context.xsd"&gt;</span>
+<span style="color: rgb(0, 128, 128);"> 13</span> 
+<span style="color: rgb(0, 128, 128);"> 14</span>     &lt;!--spring可以自动扫描base-package设置的包或子包下的java类，如果扫描到有spring相关注解的类，则注册为spring的bean--&gt;
+<span style="color: rgb(0, 128, 128);"> 15</span>     &lt;context:component-scan base-<span style="color: rgb(0, 0, 255);">package</span>="<span style="color: rgb(139, 0, 0);">com.snow.controller</span>"/&gt;
+<span style="color: rgb(0, 128, 128);"> 16</span>     &lt;!-- 配置注解驱动 --&gt;
+<span style="color: rgb(0, 128, 128);"> 17</span>     &lt;mvc:annotation-driven/&gt;
+<span style="color: rgb(0, 128, 128);"> 18</span>     &lt;!-- 视图解析器 --&gt;
+<span style="color: rgb(0, 128, 128);"> 19</span>     &lt;bean <span style="color: rgb(0, 0, 255);">class</span>="<span style="color: rgb(139, 0, 0);">org.springframework.web.servlet.view.InternalResourceViewResolver</span>"&gt;
+<span style="color: rgb(0, 128, 128);"> 20</span>         &lt;!--前缀--&gt;
+<span style="color: rgb(0, 128, 128);"> 21</span>         &lt;property name="<span style="color: rgb(139, 0, 0);">prefix</span>" value="<span style="color: rgb(139, 0, 0);">/WEB-INF/views/</span>"/&gt;
+<span style="color: rgb(0, 128, 128);"> 22</span>         &lt;!--后缀--&gt;
+<span style="color: rgb(0, 128, 128);"> 23</span>         &lt;property name="<span style="color: rgb(139, 0, 0);">suffix</span>" value="<span style="color: rgb(139, 0, 0);">.jsp</span>"/&gt;
+<span style="color: rgb(0, 128, 128);"> 24</span>     &lt;/bean&gt;
+<span style="color: rgb(0, 128, 128);"> 25</span>     &lt;!--静态资源默认servlet配置：1、加⼊对静态资源js、gif、png的处理；2、允许使⽤"<span style="color: rgb(139, 0, 0);">/</span>"做整体映射--&gt;
+<span style="color: rgb(0, 128, 128);"> 26</span>     &lt;mvc:<span style="color: rgb(0, 0, 255);">default</span>-servlet-handler/&gt;
+<span style="color: rgb(0, 128, 128);"> 27</span> &lt;/beans&gt;</code></pre><p><br>
+在项目的web.xml文件中编写如下内容：<br>
+<src class="cnblogs_code"><pre><code><span style="color: rgb(0, 128, 128);">  1</span> &lt;!DOCTYPE web-app PUBLIC
+<span style="color: rgb(0, 128, 128);">  2</span>          "<span style="color: rgb(139, 0, 0);">-//Sun Microsystems, Inc.//DTD Web Application 2.3//EN</span>"
+<span style="color: rgb(0, 128, 128);">  3</span>          "<span style="color: rgb(139, 0, 0);">http://java.sun.com/dtd/web-app_2_3.dtd</span>" &gt;
+<span style="color: rgb(0, 128, 128);">  4</span> &lt;web-app&gt;
+<span style="color: rgb(0, 128, 128);">  5</span>     &lt;display-name&gt;ssmbookproject&lt;/display-name&gt;
+<span style="color: rgb(0, 128, 128);">  6</span>     &lt;welcome-file-list&gt;
+<span style="color: rgb(0, 128, 128);">  7</span>         &lt;welcome-file&gt;login.jsp&lt;/welcome-file&gt;
+<span style="color: rgb(0, 128, 128);">  8</span>     &lt;/welcome-file-list&gt;
+<span style="color: rgb(0, 128, 128);">  9</span>     &lt;!--Spring MVC 配置并添加监听--&gt;
+<span style="color: rgb(0, 128, 128);"> 10</span>     &lt;context-param&gt;
+<span style="color: rgb(0, 128, 128);"> 11</span>         &lt;param-name&gt;contextConfigLocation&lt;/param-name&gt;
+<span style="color: rgb(0, 128, 128);"> 12</span>         &lt;param-value&gt;classpath:applicationContext.xml&lt;/param-value&gt;
+<span style="color: rgb(0, 128, 128);"> 13</span>     &lt;/context-param&gt;
+<span style="color: rgb(0, 128, 128);"> 14</span>     &lt;!-- 字符过滤器 传值乱码--&gt;
+<span style="color: rgb(0, 128, 128);"> 15</span>     &lt;filter&gt;
+<span style="color: rgb(0, 128, 128);"> 16</span>         &lt;filter-name&gt;encodingFilter&lt;/filter-name&gt;
+<span style="color: rgb(0, 128, 128);"> 17</span>         &lt;filter-<span style="color: rgb(0, 0, 255);">class</span>&gt;org.springframework.web.filter.CharacterEncodingFilter&lt;/filter-<span style="color: rgb(0, 0, 255);">class</span>&gt;
+<span style="color: rgb(0, 128, 128);"> 18</span>         &lt;init-param&gt;
+<span style="color: rgb(0, 128, 128);"> 19</span>             &lt;param-name&gt;encoding&lt;/param-name&gt;
+<span style="color: rgb(0, 128, 128);"> 20</span>             &lt;param-value&gt;UTF-8&lt;/param-value&gt;
+<span style="color: rgb(0, 128, 128);"> 21</span>         &lt;/init-param&gt;
+<span style="color: rgb(0, 128, 128);"> 22</span>     &lt;/filter&gt;
+<span style="color: rgb(0, 128, 128);"> 23</span>     &lt;filter-mapping&gt;
+<span style="color: rgb(0, 128, 128);"> 24</span>         &lt;filter-name&gt;encodingFilter&lt;/filter-name&gt;
+<span style="color: rgb(0, 128, 128);"> 25</span>         &lt;url-pattern&gt;<span style="color: rgb(0, 128, 0);">/*&lt;/url-pattern&gt;
+<span style="color: rgb(0, 128, 128);"> 26</span>     &lt;/filter-mapping&gt;
+<span style="color: rgb(0, 128, 128);"> 27</span>     &lt;listener&gt;
+<span style="color: rgb(0, 128, 128);"> 28</span>         &lt;listener-class&gt;org.springframework.web.context.ContextLoaderListener&lt;/listener-class&gt;
+<span style="color: rgb(0, 128, 128);"> 29</span>     &lt;/listener&gt;
+<span style="color: rgb(0, 128, 128);"> 30</span>     &lt;!--配置前端控制器 进行请求分发 DispatcherServlet本质也是一个Servlet --&gt;
+<span style="color: rgb(0, 128, 128);"> 31</span>     &lt;servlet&gt;
+<span style="color: rgb(0, 128, 128);"> 32</span>         &lt;!--名字可以自定义--&gt;
+<span style="color: rgb(0, 128, 128);"> 33</span>         &lt;servlet-name&gt;SpringMVC&lt;/servlet-name&gt;
+<span style="color: rgb(0, 128, 128);"> 34</span>         &lt;servlet-class&gt;org.springframework.web.servlet.DispatcherServlet&lt;/servlet-class&gt;
+<span style="color: rgb(0, 128, 128);"> 35</span>         &lt;init-param&gt;
+<span style="color: rgb(0, 128, 128);"> 36</span>             &lt;param-name&gt;contextConfigLocation&lt;/param-name&gt;
+<span style="color: rgb(0, 128, 128);"> 37</span>             &lt;param-value&gt;classpath:springmvc-sevlet.xml&lt;/param-value&gt;
+<span style="color: rgb(0, 128, 128);"> 38</span>         &lt;/init-param&gt;
+<span style="color: rgb(0, 128, 128);"> 39</span>         &lt;!--标记容器启动的时候就启动这个servlet--&gt;
+<span style="color: rgb(0, 128, 128);"> 40</span>         &lt;load-on-startup&gt;1&lt;/load-on-startup&gt;
+<span style="color: rgb(0, 128, 128);"> 41</span>     &lt;/servlet&gt;
+<span style="color: rgb(0, 128, 128);"> 42</span>     &lt;servlet-mapping&gt;
+<span style="color: rgb(0, 128, 128);"> 43</span>         &lt;servlet-name&gt;SpringMVC&lt;/servlet-name&gt;
+<span style="color: rgb(0, 128, 128);"> 44</span>         &lt;!--拦截所有--&gt;
+<span style="color: rgb(0, 128, 128);"> 45</span>         &lt;url-pattern&gt;/&lt;/url-pattern&gt;
+<span style="color: rgb(0, 128, 128);"> 46</span>     &lt;/servlet-mapping&gt;
+<span style="color: rgb(0, 128, 128);"> 47</span> &lt;/web-app&gt;</span></code></pre><br><strong><font size="4">
+程序开发</font></strong><br><font size="3"><strong>
+编写POJO</strong></font><br>
+在com.snow.domain包中创建User.java类文件，编写如下程序：<br>
+<src class="cnblogs_code"><pre><code><span style="color: rgb(0, 128, 128);">  1</span> @Data
+<span style="color: rgb(0, 128, 128);">  2</span> <span style="color: rgb(0, 0, 255);">public</span> <span style="color: rgb(0, 0, 255);">class</span> User <span style="color: rgb(0, 0, 255);">implements</span> Serializable {
+<span style="color: rgb(0, 128, 128);">  3</span>     <span style="color: rgb(0, 0, 255);">private</span> Integer id;
+<span style="color: rgb(0, 128, 128);">  4</span>     <span style="color: rgb(0, 0, 255);">private</span> String loginname;
+<span style="color: rgb(0, 128, 128);">  5</span>     <span style="color: rgb(0, 0, 255);">private</span> String password;
+<span style="color: rgb(0, 128, 128);">  6</span>     <span style="color: rgb(0, 0, 255);">private</span> String username;
+<span style="color: rgb(0, 128, 128);">  7</span>     <span style="color: rgb(0, 0, 255);">private</span> String phone;
+<span style="color: rgb(0, 128, 128);">  8</span>     <span style="color: rgb(0, 0, 255);">private</span> String address;
+<span style="color: rgb(0, 128, 128);">  9</span> }</code></pre><br>
+再创建Book.java类文件，编写如下程序：<br>
+<src class="cnblogs_code"><pre><code><span style="color: rgb(0, 128, 128);">  1</span> @Data
+<span style="color: rgb(0, 128, 128);">  2</span> <span style="color: rgb(0, 0, 255);">public</span> <span style="color: rgb(0, 0, 255);">class</span> Book <span style="color: rgb(0, 0, 255);">implements</span> Serializable {
+<span style="color: rgb(0, 128, 128);">  3</span>     <span style="color: rgb(0, 0, 255);">private</span> Integer id;
+<span style="color: rgb(0, 128, 128);">  4</span>     <span style="color: rgb(0, 0, 255);">private</span> String name;
+<span style="color: rgb(0, 128, 128);">  5</span>     <span style="color: rgb(0, 0, 255);">private</span> String author;
+<span style="color: rgb(0, 128, 128);">  6</span>     <span style="color: rgb(0, 0, 255);">private</span> String publication;
+<span style="color: rgb(0, 128, 128);">  7</span>     <span style="color: rgb(0, 0, 255);">private</span> Date publicationdate;
+<span style="color: rgb(0, 128, 128);">  8</span>     <span style="color: rgb(0, 0, 255);">private</span> Double price;
+<span style="color: rgb(0, 128, 128);">  9</span>     <span style="color: rgb(0, 0, 255);">private</span> String image;
+<span style="color: rgb(0, 128, 128);"> 10</span>     <span style="color: rgb(0, 0, 255);">private</span> String remark;
+<span style="color: rgb(0, 128, 128);"> 11</span> }</code></pre><br><strong><font size="3">
+编写mapper接口</font></strong><br>
+在com.snow.mapper包中创建UserMapper.java接口文件，编写如下程序：<br>
+<src class="cnblogs_code"><pre><code><span style="color: rgb(0, 128, 128);">  1</span> <span style="color: rgb(0, 0, 255);">public</span> <span style="color: rgb(0, 0, 255);">interface</span> UserMapper {
+<span style="color: rgb(0, 128, 128);">  2</span>     User findWithLoginnameAndPassword(@Param("<span style="color: rgb(139, 0, 0);">loginname</span>") String loginname, @Param("<span style="color: rgb(139, 0, 0);">password</span>") String password);
+<span style="color: rgb(0, 128, 128);">  3</span> }</code></pre><br>
+再创建BookMapper.java接口文件，编写如下程序：<br>
+<src class="cnblogs_code"><pre><code><span style="color: rgb(0, 128, 128);">  1</span> <span style="color: rgb(0, 0, 255);">public</span> <span style="color: rgb(0, 0, 255);">interface</span> BookMapper {
+<span style="color: rgb(0, 128, 128);">  2</span>     List&lt;Book&gt; findAll();
+<span style="color: rgb(0, 128, 128);">  3</span> }</code></pre><br><strong><font size="3">
+编写Service和ServiceImpl</font></strong><br>
+在com.snow.service包中创建UserService.java接口文件，编写如下程序：<br>
+<src class="cnblogs_code"><pre><code><span style="color: rgb(0, 128, 128);">  1</span> <span style="color: rgb(0, 0, 255);">public</span> <span style="color: rgb(0, 0, 255);">interface</span> UserService {
+<span style="color: rgb(0, 128, 128);">  2</span>     User login(String loginname, String password);
+<span style="color: rgb(0, 128, 128);">  3</span> }</code></pre><br>
+再创建BookService.java接口文件，编写如下程序：<br>
+<src class="cnblogs_code"><pre><code><span style="color: rgb(0, 128, 128);">  1</span> <span style="color: rgb(0, 0, 255);">public</span> <span style="color: rgb(0, 0, 255);">interface</span> BookService {
+<span style="color: rgb(0, 128, 128);">  2</span>     List&lt;Book&gt; getAll();
+<span style="color: rgb(0, 128, 128);">  3</span> }</code></pre><br>
+在com.snow.service.impl包中创建UserServiceImpl.java类文件，编写如下程序：<br>
+<src class="cnblogs_code"><pre><code><span style="color: rgb(0, 128, 128);">  1</span> @Service
+<span style="color: rgb(0, 128, 128);">  2</span> <span style="color: rgb(0, 0, 255);">public</span> <span style="color: rgb(0, 0, 255);">class</span> UserServiceImpl <span style="color: rgb(0, 0, 255);">implements</span> UserService {
+<span style="color: rgb(0, 128, 128);">  3</span>     @Autowired
+<span style="color: rgb(0, 128, 128);">  4</span>     <span style="color: rgb(0, 0, 255);">private</span> UserMapper userMapper;
+<span style="color: rgb(0, 128, 128);">  5</span> 
+<span style="color: rgb(0, 128, 128);">  6</span>     @Override
+<span style="color: rgb(0, 128, 128);">  7</span>     <span style="color: rgb(0, 0, 255);">public</span> User login(String loginname, String password){
+<span style="color: rgb(0, 128, 128);">  8</span>         <span style="color: rgb(0, 0, 255);">return</span> userMapper.findWithLoginnameAndPassword(loginname,password);
+<span style="color: rgb(0, 128, 128);">  9</span>     }
+<span style="color: rgb(0, 128, 128);"> 10</span> }
+</code></pre><p><br>
+再创建BookServiceImpl.java类文件，编写如下程序：<br>
+<src class="cnblogs_code"><pre><code><span style="color: rgb(0, 128, 128);">  1</span> @Service
+<span style="color: rgb(0, 128, 128);">  2</span> <span style="color: rgb(0, 0, 255);">public</span> <span style="color: rgb(0, 0, 255);">class</span> BookServiceImpl <span style="color: rgb(0, 0, 255);">implements</span> BookService {
+<span style="color: rgb(0, 128, 128);">  3</span>     @Autowired
+<span style="color: rgb(0, 128, 128);">  4</span>     <span style="color: rgb(0, 0, 255);">private</span> BookMapper bookMapper;
+<span style="color: rgb(0, 128, 128);">  5</span>     @Override
+<span style="color: rgb(0, 128, 128);">  6</span>     <span style="color: rgb(0, 0, 255);">public</span> List&lt;Book&gt; getAll(){
+<span style="color: rgb(0, 128, 128);">  7</span>         <span style="color: rgb(0, 0, 255);">return</span> bookMapper.findAll();
+<span style="color: rgb(0, 128, 128);">  8</span>     }
+<span style="color: rgb(0, 128, 128);">  9</span> }</code></pre><br><font size="3"><strong>
+编写Controller</strong></font><br>
+在com.snow.controller包中创建UserController.java类文件，编写如下程序：<br>
+<src class="cnblogs_code"><pre><code><span style="color: rgb(0, 128, 128);">  1</span> @Controller
+<span style="color: rgb(0, 128, 128);">  2</span> <span style="color: rgb(0, 0, 255);">public</span> <span style="color: rgb(0, 0, 255);">class</span> UserController {
+<span style="color: rgb(0, 128, 128);">  3</span>     @Autowired
+<span style="color: rgb(0, 128, 128);">  4</span>     <span style="color: rgb(0, 0, 255);">private</span> UserService userService;
+<span style="color: rgb(0, 128, 128);">  5</span> 
+<span style="color: rgb(0, 128, 128);">  6</span>     @RequestMapping(value = "<span style="color: rgb(139, 0, 0);">/login</span>")
+<span style="color: rgb(0, 128, 128);">  7</span>     <span style="color: rgb(0, 0, 255);">public</span> ModelAndView login(String loginname, String password, ModelAndView modelAndView, HttpSession httpSession) {
+<span style="color: rgb(0, 128, 128);">  8</span>         User user = userService.login(loginname, password);
+<span style="color: rgb(0, 128, 128);">  9</span>         <span style="color: rgb(0, 0, 255);">if</span> (user != <span style="color: rgb(0, 0, 255);">null</span>) {
+<span style="color: rgb(0, 128, 128);"> 10</span>             httpSession.setAttribute("<span style="color: rgb(139, 0, 0);">user</span>", user);
+<span style="color: rgb(0, 128, 128);"> 11</span>             modelAndView.setView(<span style="color: rgb(0, 0, 255);">new</span> RedirectView("<span style="color: rgb(139, 0, 0);">main</span>"));
+<span style="color: rgb(0, 128, 128);"> 12</span>        } <span style="color: rgb(0, 0, 255);">else</span> {
+<span style="color: rgb(0, 128, 128);"> 13</span>             modelAndView.setViewName("<span style="color: rgb(139, 0, 0);">error</span>");
+<span style="color: rgb(0, 128, 128);"> 14</span>        }
+<span style="color: rgb(0, 128, 128);"> 15</span>         <span style="color: rgb(0, 0, 255);">return</span> modelAndView;
+<span style="color: rgb(0, 128, 128);"> 16</span>     }
+<span style="color: rgb(0, 128, 128);"> 17</span> }
+</code></pre><p><br>
+再创建BookController.java类文件，编写如下程序：<br>
+<src class="cnblogs_code"><pre><code><span style="color: rgb(0, 128, 128);">  1</span> @Controller
+<span style="color: rgb(0, 128, 128);">  2</span> <span style="color: rgb(0, 0, 255);">public</span> <span style="color: rgb(0, 0, 255);">class</span> BookController {
+<span style="color: rgb(0, 128, 128);">  3</span> 
+<span style="color: rgb(0, 128, 128);">  4</span>     @Autowired
+<span style="color: rgb(0, 128, 128);">  5</span>     <span style="color: rgb(0, 0, 255);">private</span> BookService bookService;
+<span style="color: rgb(0, 128, 128);">  6</span> 
+<span style="color: rgb(0, 128, 128);">  7</span>     @RequestMapping(value = "<span style="color: rgb(139, 0, 0);">/main</span>")
+<span style="color: rgb(0, 128, 128);">  8</span>     <span style="color: rgb(0, 0, 255);">public</span> String main(Model model) {
+<span style="color: rgb(0, 128, 128);">  9</span>         List&lt;Book&gt; bookList = bookService.getAll();
+<span style="color: rgb(0, 128, 128);"> 10</span>         model.addAttribute("<span style="color: rgb(139, 0, 0);">bookList</span>", bookList);
+<span style="color: rgb(0, 128, 128);"> 11</span>         <span style="color: rgb(0, 0, 255);">return</span> "<span style="color: rgb(139, 0, 0);">main</span>";
+<span style="color: rgb(0, 128, 128);"> 12</span>     }
+<span style="color: rgb(0, 128, 128);"> 13</span> }
+</code></pre><p><br><font size="3"><strong>
+编写映射文件</strong></font><br>
+在项目的resources目录下创建mapper目录，在目录中创建UserMapper.xml，编写如下内容：<br>
+<src class="cnblogs_code"><pre><code><span style="color: rgb(0, 128, 128);">  1</span> &lt;?xml version="<span style="color: rgb(139, 0, 0);">1.0</span>" encoding="<span style="color: rgb(139, 0, 0);">UTF-8</span>" ?&gt;
+<span style="color: rgb(0, 128, 128);">  2</span> &lt;!DOCTYPE mapper PUBLIC "<span style="color: rgb(139, 0, 0);">-//mybatis.org//DTD Mapper 3.0//EN</span>" "<span style="color: rgb(139, 0, 0);">http://mybatis.org/dtd/mybatis-3-mapper.dtd</span>" &gt;
+<span style="color: rgb(0, 128, 128);">  3</span> &lt;mapper namespace="<span style="color: rgb(139, 0, 0);">com.snow.mapper.UserMapper</span>"&gt;
+<span style="color: rgb(0, 128, 128);">  4</span>     &lt;resultMap id="<span style="color: rgb(139, 0, 0);">BaseResultMap</span>" type="<span style="color: rgb(139, 0, 0);">com.snow.domain.User</span>"&gt;
+<span style="color: rgb(0, 128, 128);">  5</span>         &lt;id column="<span style="color: rgb(139, 0, 0);">id</span>" property="<span style="color: rgb(139, 0, 0);">id</span>" jdbcType="<span style="color: rgb(139, 0, 0);">INTEGER</span>"/&gt;
+<span style="color: rgb(0, 128, 128);">  6</span>         &lt;result column="<span style="color: rgb(139, 0, 0);">loginname</span>" property="<span style="color: rgb(139, 0, 0);">loginname</span>" jdbcType="<span style="color: rgb(139, 0, 0);">VARCHAR</span>"/&gt;
+<span style="color: rgb(0, 128, 128);">  7</span>         &lt;result column="<span style="color: rgb(139, 0, 0);">password</span>" property="<span style="color: rgb(139, 0, 0);">password</span>" jdbcType="<span style="color: rgb(139, 0, 0);">VARCHAR</span>"/&gt;
+<span style="color: rgb(0, 128, 128);">  8</span>         &lt;result column="<span style="color: rgb(139, 0, 0);">username</span>" property="<span style="color: rgb(139, 0, 0);">username</span>" jdbcType="<span style="color: rgb(139, 0, 0);">VARCHAR</span>"/&gt;
+<span style="color: rgb(0, 128, 128);">  9</span>         &lt;result column="<span style="color: rgb(139, 0, 0);">phone</span>" property="<span style="color: rgb(139, 0, 0);">phone</span>" jdbcType="<span style="color: rgb(139, 0, 0);">VARCHAR</span>"/&gt;
+<span style="color: rgb(0, 128, 128);"> 10</span>         &lt;result column="<span style="color: rgb(139, 0, 0);">address</span>" property="<span style="color: rgb(139, 0, 0);">address</span>" jdbcType="<span style="color: rgb(139, 0, 0);">VARCHAR</span>"/&gt;
+<span style="color: rgb(0, 128, 128);"> 11</span>     &lt;/resultMap&gt;
+<span style="color: rgb(0, 128, 128);"> 12</span>     &lt;sql id="<span style="color: rgb(139, 0, 0);">Base_Column_List</span>"&gt;
+<span style="color: rgb(0, 128, 128);"> 13</span>     id, loginname, password, username, phone, address
+<span style="color: rgb(0, 128, 128);"> 14</span>     &lt;/sql&gt;
+<span style="color: rgb(0, 128, 128);"> 15</span>     &lt;select id="<span style="color: rgb(139, 0, 0);">findWithLoginnameAndPassword</span>" resultMap="<span style="color: rgb(139, 0, 0);">BaseResultMap</span>" parameterType="<span style="color: rgb(139, 0, 0);">java.lang.String</span>"&gt;
+<span style="color: rgb(0, 128, 128);"> 16</span>         select
+<span style="color: rgb(0, 128, 128);"> 17</span>         &lt;include refid="<span style="color: rgb(139, 0, 0);">Base_Column_List</span>"/&gt;
+<span style="color: rgb(0, 128, 128);"> 18</span>         from tb_user
+<span style="color: rgb(0, 128, 128);"> 19</span>         where loginname = #{loginname,jdbcType=VARCHAR}
+<span style="color: rgb(0, 128, 128);"> 20</span>         and password = #{password,jdbcType=VARCHAR}
+<span style="color: rgb(0, 128, 128);"> 21</span>     &lt;/select&gt;
+<span style="color: rgb(0, 128, 128);"> 22</span> &lt;/mapper&gt;</code></pre><br>
+再创建BookMapper.xml，编写如下内容：<br>
+<src class="cnblogs_code"><pre><code><span style="color: rgb(0, 128, 128);">  1</span> &lt;?xml version="<span style="color: rgb(139, 0, 0);">1.0</span>" encoding="<span style="color: rgb(139, 0, 0);">UTF-8</span>" ?&gt;
+<span style="color: rgb(0, 128, 128);">  2</span> &lt;!DOCTYPE mapper PUBLIC "<span style="color: rgb(139, 0, 0);">-//mybatis.org//DTD Mapper 3.0//EN</span>" "<span style="color: rgb(139, 0, 0);">http://mybatis.org/dtd/mybatis-3-mapper.dtd</span>" &gt;
+<span style="color: rgb(0, 128, 128);">  3</span> &lt;mapper namespace="<span style="color: rgb(139, 0, 0);">com.snow.mapper.BookMapper</span>"&gt;
+<span style="color: rgb(0, 128, 128);">  4</span>     &lt;resultMap id="<span style="color: rgb(139, 0, 0);">BaseResultMap</span>" type="<span style="color: rgb(139, 0, 0);">com.snow.domain.Book</span>"&gt;
+<span style="color: rgb(0, 128, 128);">  5</span>         &lt;id column="<span style="color: rgb(139, 0, 0);">id</span>" property="<span style="color: rgb(139, 0, 0);">id</span>" jdbcType="<span style="color: rgb(139, 0, 0);">INTEGER</span>"/&gt;
+<span style="color: rgb(0, 128, 128);">  6</span>         &lt;result column="<span style="color: rgb(139, 0, 0);">name</span>" property="<span style="color: rgb(139, 0, 0);">name</span>" jdbcType="<span style="color: rgb(139, 0, 0);">VARCHAR</span>"/&gt;
+<span style="color: rgb(0, 128, 128);">  7</span>         &lt;result column="<span style="color: rgb(139, 0, 0);">author</span>" property="<span style="color: rgb(139, 0, 0);">author</span>" jdbcType="<span style="color: rgb(139, 0, 0);">VARCHAR</span>"/&gt;
+<span style="color: rgb(0, 128, 128);">  8</span>         &lt;result column="<span style="color: rgb(139, 0, 0);">publicationdate</span>" property="<span style="color: rgb(139, 0, 0);">publicationdate</span>" jdbcType="<span style="color: rgb(139, 0, 0);">DATE</span>"/&gt;
+<span style="color: rgb(0, 128, 128);">  9</span>         &lt;result column="<span style="color: rgb(139, 0, 0);">publication</span>" property="<span style="color: rgb(139, 0, 0);">publication</span>" jdbcType="<span style="color: rgb(139, 0, 0);">VARCHAR</span>"/&gt;
+<span style="color: rgb(0, 128, 128);"> 10</span>         &lt;result column="<span style="color: rgb(139, 0, 0);">price</span>" property="<span style="color: rgb(139, 0, 0);">price</span>" jdbcType="<span style="color: rgb(139, 0, 0);">DOUBLE</span>"/&gt;
+<span style="color: rgb(0, 128, 128);"> 11</span>         &lt;result column="<span style="color: rgb(139, 0, 0);">image</span>" property="<span style="color: rgb(139, 0, 0);">image</span>" jdbcType="<span style="color: rgb(139, 0, 0);">VARCHAR</span>"/&gt;
+<span style="color: rgb(0, 128, 128);"> 12</span>         &lt;result column="<span style="color: rgb(139, 0, 0);">remark</span>" property="<span style="color: rgb(139, 0, 0);">remark</span>" jdbcType="<span style="color: rgb(139, 0, 0);">VARCHAR</span>"/&gt;
+<span style="color: rgb(0, 128, 128);"> 13</span>     &lt;/resultMap&gt;
+<span style="color: rgb(0, 128, 128);"> 14</span>     &lt;sql id="<span style="color: rgb(139, 0, 0);">Base_Column_List</span>"&gt;
+<span style="color: rgb(0, 128, 128);"> 15</span>     id, name, author, publicationdate, publication, price, image, remark
+<span style="color: rgb(0, 128, 128);"> 16</span>     &lt;/sql&gt;
+<span style="color: rgb(0, 128, 128);"> 17</span>     &lt;select id="<span style="color: rgb(139, 0, 0);">findAll</span>" resultMap="<span style="color: rgb(139, 0, 0);">BaseResultMap</span>" parameterType="<span style="color: rgb(139, 0, 0);">com.snow.domain.Book</span>"&gt;
+<span style="color: rgb(0, 128, 128);"> 18</span>         select
+<span style="color: rgb(0, 128, 128);"> 19</span>         &lt;include refid="<span style="color: rgb(139, 0, 0);">Base_Column_List</span>"/&gt;
+<span style="color: rgb(0, 128, 128);"> 20</span>         from tb_book
+<span style="color: rgb(0, 128, 128);"> 21</span>     &lt;/select&gt;
+<span style="color: rgb(0, 128, 128);"> 22</span>  &lt;/mapper&gt;</code></pre><br><font size="3"><strong>
+编写页面</strong></font><br>
+在项目的webapp目录下创建images目录，将数据库中书的封面图和页面的背景图放在该目录下：<br>
+<a href="https://img2018.cnblogs.com/blog/526027/201911/526027-20191128100010555-323566171.png"><img width="406" height="506" title="整合06" style="border: 0px currentcolor; border-image: none; margin-right: auto; margin-left: auto; float: none; display: block; background-image: none;" alt="整合06" src="./images/Spring+SpringMVC+MyBatis整合5.png" border="0"></a><br>
+在项目的webapp目录下，创建base.css文件，编写如下程序：<br>
+<src class="cnblogs_code"><pre><code><span style="color: rgb(0, 128, 128);">  1</span> body{
+<span style="color: rgb(0, 128, 128);">  2</span>     background-image: url(images/backImage.jpg);
+<span style="color: rgb(0, 128, 128);">  3</span>     background-size:cover;
+<span style="color: rgb(0, 128, 128);">  4</span> }</code></pre><br>
+在项目的webapp目录下，创建login.jsp文件，编写如下程序：<br>
+<src class="cnblogs_code"><pre><code><span style="color: rgb(0, 128, 128);">  1</span> &lt;%--
+<span style="color: rgb(0, 128, 128);">  2</span>   Created by IntelliJ IDEA.
+<span style="color: rgb(0, 128, 128);">  3</span>   User: Dcl_Snow
+<span style="color: rgb(0, 128, 128);">  4</span>   Date: 2019/10/25
+<span style="color: rgb(0, 128, 128);">  5</span>   Time: 10:00
+<span style="color: rgb(0, 128, 128);">  6</span>   To change <span style="color: rgb(0, 0, 255);">this</span> template use File | Settings | File Templates.
+<span style="color: rgb(0, 128, 128);">  7</span> --%&gt;
+<span style="color: rgb(0, 128, 128);">  8</span> &lt;%@ page contentType="<span style="color: rgb(139, 0, 0);">text/html;charset=UTF-8</span>" language="<span style="color: rgb(139, 0, 0);">java</span>" %&gt;
+<span style="color: rgb(0, 128, 128);">  9</span> &lt;html&gt;
+<span style="color: rgb(0, 128, 128);"> 10</span> &lt;head&gt;
+<span style="color: rgb(0, 128, 128);"> 11</span>     &lt;title&gt;登录页面&lt;/title&gt;
+<span style="color: rgb(0, 128, 128);"> 12</span>     &lt;link rel="<span style="color: rgb(139, 0, 0);">stylesheet</span>" type="<span style="color: rgb(139, 0, 0);">text/css</span>" href="<span style="color: rgb(139, 0, 0);">base.css</span>"/&gt;
+<span style="color: rgb(0, 128, 128);"> 13</span> &lt;/head&gt;
+<span style="color: rgb(0, 128, 128);"> 14</span> &lt;body&gt;
+<span style="color: rgb(0, 128, 128);"> 15</span> &lt;center&gt;
+<span style="color: rgb(0, 128, 128);"> 16</span>     &lt;h3&gt;登录页面&lt;/h3&gt;
+<span style="color: rgb(0, 128, 128);"> 17</span>     &lt;form action="<span style="color: rgb(139, 0, 0);">login</span>" method="<span style="color: rgb(139, 0, 0);">post</span>"&gt;
+<span style="color: rgb(0, 128, 128);"> 18</span>         &lt;table&gt;
+<span style="color: rgb(0, 128, 128);"> 19</span>             &lt;tr&gt;
+<span style="color: rgb(0, 128, 128);"> 20</span>                 &lt;td&gt;&lt;label&gt;登录名：&lt;/label&gt;&lt;/td&gt;
+<span style="color: rgb(0, 128, 128);"> 21</span>                 &lt;td&gt;&lt;input type="<span style="color: rgb(139, 0, 0);">text</span>" id="<span style="color: rgb(139, 0, 0);">loginname</span>" name="<span style="color: rgb(139, 0, 0);">loginname</span>"&gt;&lt;/td&gt;
+<span style="color: rgb(0, 128, 128);"> 22</span>             &lt;/tr&gt;
+<span style="color: rgb(0, 128, 128);"> 23</span>             &lt;tr&gt;
+<span style="color: rgb(0, 128, 128);"> 24</span>                 &lt;td&gt;&lt;label&gt;密&amp;nbsp;&amp;nbsp;&amp;nbsp;&amp;nbsp;码：&lt;/label&gt;&lt;/td&gt;
+<span style="color: rgb(0, 128, 128);"> 25</span>                 &lt;td&gt;&lt;input type="<span style="color: rgb(139, 0, 0);">password</span>" id="<span style="color: rgb(139, 0, 0);">password</span>" name="<span style="color: rgb(139, 0, 0);">password</span>"&gt;&lt;/td&gt;
+<span style="color: rgb(0, 128, 128);"> 26</span>             &lt;/tr&gt;
+<span style="color: rgb(0, 128, 128);"> 27</span>             &lt;tr&gt;
+<span style="color: rgb(0, 128, 128);"> 28</span>                 &lt;td&gt;&lt;input type="<span style="color: rgb(139, 0, 0);">submit</span>" value="<span style="color: rgb(139, 0, 0);">登录</span>"&gt;&lt;/td&gt;
+<span style="color: rgb(0, 128, 128);"> 29</span>             &lt;/tr&gt;
+<span style="color: rgb(0, 128, 128);"> 30</span>         &lt;/table&gt;
+<span style="color: rgb(0, 128, 128);"> 31</span>     &lt;/form&gt;
+<span style="color: rgb(0, 128, 128);"> 32</span> &lt;/center&gt;
+<span style="color: rgb(0, 128, 128);"> 33</span> &lt;/body&gt;
+<span style="color: rgb(0, 128, 128);"> 34</span> &lt;/html&gt;</code></pre><br>
+在项目的WEB-INF目录下，创建views目录，在该目录下创建main.jsp文件，编写如下程序：<br>
+<src class="cnblogs_code"><pre><code><span style="color: rgb(0, 128, 128);">  1</span> &lt;%@ taglib prefix="<span style="color: rgb(139, 0, 0);">C</span>" uri="<span style="color: rgb(139, 0, 0);">http://java.sun.com/jsp/jstl/core</span>" %&gt;
+<span style="color: rgb(0, 128, 128);">  2</span> &lt;%--
+<span style="color: rgb(0, 128, 128);">  3</span>   Created by IntelliJ IDEA.
+<span style="color: rgb(0, 128, 128);">  4</span>   User: Dcl_Snow
+<span style="color: rgb(0, 128, 128);">  5</span>   Date: 2019/10/25
+<span style="color: rgb(0, 128, 128);">  6</span>   Time: 10:00
+<span style="color: rgb(0, 128, 128);">  7</span>   To change <span style="color: rgb(0, 0, 255);">this</span> template use File | Settings | File Templates.
+<span style="color: rgb(0, 128, 128);">  8</span> --%&gt;
+<span style="color: rgb(0, 128, 128);">  9</span> &lt;%@ page isELIgnored="<span style="color: rgb(139, 0, 0);">false</span>" %&gt;
+<span style="color: rgb(0, 128, 128);"> 10</span> &lt;%@ page contentType="<span style="color: rgb(139, 0, 0);">text/html;charset=UTF-8</span>" language="<span style="color: rgb(139, 0, 0);">java</span>" %&gt;
+<span style="color: rgb(0, 128, 128);"> 11</span> &lt;html&gt;
+<span style="color: rgb(0, 128, 128);"> 12</span> &lt;head&gt;
+<span style="color: rgb(0, 128, 128);"> 13</span>     &lt;title&gt;首页&lt;/title&gt;
+<span style="color: rgb(0, 128, 128);"> 14</span>     &lt;link rel="<span style="color: rgb(139, 0, 0);">stylesheet</span>" type="<span style="color: rgb(139, 0, 0);">text/css</span>" href="<span style="color: rgb(139, 0, 0);">base.css</span>"/&gt;
+<span style="color: rgb(0, 128, 128);"> 15</span> &lt;/head&gt;
+<span style="color: rgb(0, 128, 128);"> 16</span> &lt;body&gt;
+<span style="color: rgb(0, 128, 128);"> 17</span> &lt;center&gt;
+<span style="color: rgb(0, 128, 128);"> 18</span>     欢迎[${sessionScope.user.username}]
+<span style="color: rgb(0, 128, 128);"> 19</span>     &lt;table border="<span style="color: rgb(139, 0, 0);">1</span>"&gt;
+<span style="color: rgb(0, 128, 128);"> 20</span>         &lt;tr&gt;
+<span style="color: rgb(0, 128, 128);"> 21</span>             &lt;th&gt;书名&lt;/th&gt;
+<span style="color: rgb(0, 128, 128);"> 22</span>             &lt;th&gt;封面&lt;/th&gt;
+<span style="color: rgb(0, 128, 128);"> 23</span>             &lt;th&gt;作者&lt;/th&gt;
+<span style="color: rgb(0, 128, 128);"> 24</span>             &lt;th&gt;价格&lt;/th&gt;
+<span style="color: rgb(0, 128, 128);"> 25</span>         &lt;/tr&gt;
+<span style="color: rgb(0, 128, 128);"> 26</span>         &lt;C:forEach items="<span style="color: rgb(139, 0, 0);">${requestScope.bookList}</span>" var="<span style="color: rgb(139, 0, 0);">book</span>"&gt;
+<span style="color: rgb(0, 128, 128);"> 27</span>             &lt;tr&gt;
+<span style="color: rgb(0, 128, 128);"> 28</span>                 &lt;td&gt;${book.name}&lt;/td&gt;
+<span style="color: rgb(0, 128, 128);"> 29</span>                 &lt;td&gt;&lt;img src="<span style="color: rgb(139, 0, 0);">images/${book.image}</span>" height="<span style="color: rgb(139, 0, 0);">200</span>"&gt;&lt;/td&gt;
+<span style="color: rgb(0, 128, 128);"> 30</span>                 &lt;td&gt;${book.author}&lt;/td&gt;
+<span style="color: rgb(0, 128, 128);"> 31</span>                 &lt;td&gt;${book.price}&lt;/td&gt;
+<span style="color: rgb(0, 128, 128);"> 32</span>             &lt;/tr&gt;
+<span style="color: rgb(0, 128, 128);"> 33</span>         &lt;/C:forEach&gt;
+<span style="color: rgb(0, 128, 128);"> 34</span>     &lt;/table&gt;
+<span style="color: rgb(0, 128, 128);"> 35</span> &lt;/center&gt;
+<span style="color: rgb(0, 128, 128);"> 36</span> &lt;/body&gt;
+<span style="color: rgb(0, 128, 128);"> 37</span> &lt;/html&gt;</code></pre><br>
+再创建error.jsp文件，编写如下程序：<br>
+<src class="cnblogs_code"><pre><code><span style="color: rgb(0, 128, 128);">  1</span> &lt;%--
+<span style="color: rgb(0, 128, 128);">  2</span>   Created by IntelliJ IDEA.
+<span style="color: rgb(0, 128, 128);">  3</span>   User: Dcl_Snow
+<span style="color: rgb(0, 128, 128);">  4</span>   Date: 2019/10/25
+<span style="color: rgb(0, 128, 128);">  5</span>   Time: 10:00
+<span style="color: rgb(0, 128, 128);">  6</span>   To change <span style="color: rgb(0, 0, 255);">this</span> template use File | Settings | File Templates.
+<span style="color: rgb(0, 128, 128);">  7</span> --%&gt;
+<span style="color: rgb(0, 128, 128);">  8</span> &lt;%@ page contentType="<span style="color: rgb(139, 0, 0);">text/html;charset=UTF-8</span>" language="<span style="color: rgb(139, 0, 0);">java</span>" %&gt;
+<span style="color: rgb(0, 128, 128);">  9</span> &lt;html&gt;
+<span style="color: rgb(0, 128, 128);"> 10</span> &lt;head&gt;
+<span style="color: rgb(0, 128, 128);"> 11</span>     &lt;title&gt;错误页面&lt;/title&gt;
+<span style="color: rgb(0, 128, 128);"> 12</span>     &lt;link rel="<span style="color: rgb(139, 0, 0);">stylesheet</span>" type="<span style="color: rgb(139, 0, 0);">text/css</span>" href="<span style="color: rgb(139, 0, 0);">base.css</span>"/&gt;
+<span style="color: rgb(0, 128, 128);"> 13</span> &lt;/head&gt;
+<span style="color: rgb(0, 128, 128);"> 14</span> &lt;body&gt;
+<span style="color: rgb(0, 128, 128);"> 15</span> &lt;center&gt;
+<span style="color: rgb(0, 128, 128);"> 16</span>     &lt;h1&gt;&lt;font color="<span style="color: rgb(139, 0, 0);">red</span>"&gt;用户名或密码错误！&lt;/font&gt;&lt;/h1&gt;
+<span style="color: rgb(0, 128, 128);"> 17</span> &lt;/center&gt;
+<span style="color: rgb(0, 128, 128);"> 18</span> &lt;/body&gt;
+<span style="color: rgb(0, 128, 128);"> 19</span> &lt;/html&gt;</code></pre><br><strong><font size="3">
+配置Tomcat</font></strong><br>
+为项目配置Tomcat后，启动，浏览器访问：<a href="http://localhost:8080/">http://localhost:8080/</a>)。<br>
+登录页面：<br>
+<a href="https://img2018.cnblogs.com/blog/526027/201911/526027-20191128100011438-1758469421.png"><img width="981" height="467" title="整合07" style="border: 0px currentcolor; border-image: none; margin-right: auto; margin-left: auto; float: none; display: block; background-image: none;" alt="整合07" src="./images/Spring+SpringMVC+MyBatis整合6.png" border="0"></a><br>
+输入错误的用户名或密码：<br>
+<a href="https://img2018.cnblogs.com/blog/526027/201911/526027-20191128100014925-1144594396.png"><img width="981" height="469" title="整合08" style="border: 0px currentcolor; border-image: none; margin-right: auto; margin-left: auto; float: none; display: block; background-image: none;" alt="整合08" src="./images/Spring+SpringMVC+MyBatis整合7.png" border="0"></a><br>
+输入正确的用户名和密码：<br>
+<a href="https://img2018.cnblogs.com/blog/526027/201911/526027-20191128100016638-1597686572.png"><img width="981" height="465" title="整合09" style="border: 0px currentcolor; border-image: none; margin-right: auto; margin-left: auto; float: none; display: block; background-image: none;" alt="整合09" src="./images/Spring+SpringMVC+MyBatis整合8.png" border="0"></a>
+
+</div><hr><script charset='utf-8' src='../../js/sming.js'></script></body></html>

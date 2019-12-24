@@ -1,0 +1,236 @@
+<html><head><meta charset='utf-8'><meta name='viewport' content='width=device-width, initial-scale=1'>
+<meta name='applicable-device' content='pc'><meta name='keywords' content='电脑,电脑讲解,电脑技术,编程,电脑故障维修Log4j2源码分析系列：（一）配置加载' />
+<script src='../../highlight/highlight.pack.js'></script>
+<link rel='stylesheet' type='text/css' href='../../highlight/styles/monokai.css'/>
+
+<link rel='stylesheet' href='../../fenxiang/dist/css/share.min.css'>
+<script src='../../fenxiang/src/js/social-share.js'></script>
+<script src='../../fenxiang/src/js/qrcode.js'></script>
+
+</head><body><script>hljs.initHighlightingOnLoad();</script><script>
+var system ={};  
+var p = navigator.platform;       
+system.win = p.indexOf('Win') == 0;  
+system.mac = p.indexOf('Mac') == 0;  
+system.x11 = (p == 'X11') || (p.indexOf('Linux') == 0);     
+if(system.win||system.mac||system.xll){
+document.write("<link href='../css/3.css' rel='stylesheet' type='text/css'>");}else{ document.write("<link href='../css/3wap.css' rel='stylesheet' type='text/css'>");}</script><script src='../../js/3.js'></script><div class='div2'><div class='heading_nav'><ul><div><li><a href='../../index.html'>首页</a></li>
+</div><div onclick='hidden1()' >分享</div>
+</ul></div></div>
+<div id='heading_nav2'> 
+<li class='row' >
+<div class='social-share' data-mode='prepend'><a href='javascript:' class='social-share-icon icon-heart'></a></div></li></div><script charset='utf-8' src='../../3/js/hengfu.js'></script><script charset='utf-8' src='../../3/js/hengfu2.js'></script><hr><div class='div1'><div class='biaoti'><center>Log4j2源码分析系列：（一）配置加载</center></div><div class='banquan'>原文出处:本文由博客园博主xiaoxi666提供。<br/>
+原文连接:https://www.cnblogs.com/xiaoxi666/p/11426259.html</div><br>
+    <src class="markdown-here-wrapper" data-md-url="https://i.cnblogs.com/EditPosts.aspx?opt=1">
+<h2>前言</h2>
+<p>在实际开发项目中，日志永远是一个绕不开的话题。本系列文章试图以slf4j和log4j2日志体系为例，从源码角度分析日志工作原理。</p>
+<p>学习日志框架，首先要熟悉各类日志框架，这里推荐几篇文章，就不再赘述了。</p>
+<blockquote>
+<p><a href="https://www.cnblogs.com/rjzheng/p/10042911.html">https://www.cnblogs.com/rjzheng/p/10042911.html</a></p>
+<p><a href="https://www.cnblogs.com/chanshuyi/p/something_about_java_log_framework.html">https://www.cnblogs.com/chanshuyi/p/something_about_java_log_framework.html</a></p>
+<p><a href="https://blog.csdn.net/xktxoo/article/details/76359299">https://blog.csdn.net/xktxoo/article/details/76359299</a></p>
+<p><a href="https://stackify.com/compare-java-logging-frameworks/">https://stackify.com/compare-java-logging-frameworks/</a></p>
+</blockquote>
+<p>对于log4j2，配置文件有几类：properties、xml、json/jsn以及yaml/yml，平常我们用xml居多。</p>
+<p>一般情况下，我们会创建log4j2.xml放到项目的/resources文件夹下。大部分使用maven管理依赖的项目也可能分环境配置，不同环境读取不同的log4j2文件，这时它一般在/profiles/${env}/文件夹下。</p>
+<p>大多数人，应该是&ldquo;借鉴&rdquo;其他项目，把配置复制过来，再修修补补。然而你是否思考过：</p>
+<ol>
+<li>为什么要写这个配置文件？不写的话会出什么问题？</li>
+<li>这个配置文件的命名有什么规定吗？为什么我们平时见到的都是log4j2.xml，而不是其他名字？</li>
+<li>这个配置文件是如何被加载的？</li>
+</ol>
+<p>回答以上问题，就是本文的初衷。</p>
+<h2>提示</h2>
+<p>1. 本文会用调试的方法，以log4j2配置加载过程为主线，描述其工作流程；影响不大的旁枝细节会忽略，有兴趣的读者可自行查阅源码。</p>
+<p>2. 多图预警！用电脑查看效果更佳。</p>
+<p>3. 尽量动手操作，以加深理解。</p>
+<p>&nbsp;</p>
+<h2 id="-">环境准备</h2>
+<p>阅读源码前，请确保引入了slf4j和log4j2依赖包，以及适配包。以maven为例，本文示例程序引入了：</p>
+<blockquote>
+<pre><code><code class="hljs language-xml"><span class="hljs-comment">        &lt;!-- slf4j --&gt;
+        <span class="hljs-tag">&lt;<span class="hljs-title">dependency&gt;
+            <span class="hljs-tag">&lt;<span class="hljs-title">groupId&gt;org.slf4j<span class="hljs-tag">&lt;/<span class="hljs-title">groupId&gt;
+            <span class="hljs-tag">&lt;<span class="hljs-title">artifactId&gt;slf4j-api<span class="hljs-tag">&lt;/<span class="hljs-title">artifactId&gt;
+            <span class="hljs-tag">&lt;<span class="hljs-title">version&gt;1.7.21<span class="hljs-tag">&lt;/<span class="hljs-title">version&gt;
+        <span class="hljs-tag">&lt;/<span class="hljs-title">dependency&gt;
+
+        <span class="hljs-comment">&lt;!-- bridge --&gt;
+        <span class="hljs-tag">&lt;<span class="hljs-title">dependency&gt;
+            <span class="hljs-tag">&lt;<span class="hljs-title">groupId&gt;org.apache.logging.log4j<span class="hljs-tag">&lt;/<span class="hljs-title">groupId&gt;
+            <span class="hljs-tag">&lt;<span class="hljs-title">artifactId&gt;log4j-slf4j-impl<span class="hljs-tag">&lt;/<span class="hljs-title">artifactId&gt;
+            <span class="hljs-tag">&lt;<span class="hljs-title">version&gt;2.7<span class="hljs-tag">&lt;/<span class="hljs-title">version&gt;
+        <span class="hljs-tag">&lt;/<span class="hljs-title">dependency&gt;
+
+        <span class="hljs-comment">&lt;!-- log4j2 --&gt;
+        <span class="hljs-tag">&lt;<span class="hljs-title">dependency&gt;
+            <span class="hljs-tag">&lt;<span class="hljs-title">groupId&gt;org.apache.logging.log4j<span class="hljs-tag">&lt;/<span class="hljs-title">groupId&gt;
+            <span class="hljs-tag">&lt;<span class="hljs-title">artifactId&gt;log4j-core<span class="hljs-tag">&lt;/<span class="hljs-title">artifactId&gt;
+            <span class="hljs-tag">&lt;<span class="hljs-title">version&gt;2.7<span class="hljs-tag">&lt;/<span class="hljs-title">version&gt;
+        <span class="hljs-tag">&lt;/<span class="hljs-title">dependency&gt;
+        <span class="hljs-tag">&lt;<span class="hljs-title">dependency&gt;
+            <span class="hljs-tag">&lt;<span class="hljs-title">groupId&gt;org.apache.logging.log4j<span class="hljs-tag">&lt;/<span class="hljs-title">groupId&gt;
+            <span class="hljs-tag">&lt;<span class="hljs-title">artifactId&gt;log4j-api<span class="hljs-tag">&lt;/<span class="hljs-title">artifactId&gt;
+            <span class="hljs-tag">&lt;<span class="hljs-title">version&gt;2.7<span class="hljs-tag">&lt;/<span class="hljs-title">version&gt;
+        <span class="hljs-tag">&lt;/<span class="hljs-title">dependency&gt;</span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></code></code></pre>
+</blockquote>
+<h2 id="-">源码</h2>
+<p>首先，我们新建一个java文件，打断点开始调试。</p>
+<p><img id="图1" src="./images/Log4j2源码分析系列：（一）配置加载0.png" alt="" width="1149" height="359" /></p>
+<p>进入getLogger方法。可以看到，在LoggerFactory获取具体的Logger工厂。</p>
+<p><img src="./images/Log4j2源码分析系列：（一）配置加载1.png" alt="" width="951" height="390" /></p>
+<p>进入getILoggerFactory方法。</p>
+<p><img src="./images/Log4j2源码分析系列：（一）配置加载2.png" alt="" width="953" height="578" /></p>
+<p>这里的一堆逻辑先不要管，我们最终会进入418行。</p>
+<p><img src="./images/Log4j2源码分析系列：（一）配置加载3.png" alt="" width="953" height="551" /></p>
+<p>接下来进入真正的日志绑定环节。由于我们只引入了log4j2，这里会直接找到它，继而绑定。StaticLoggerBinder就在log4j2的包中。</p>
+<p><img src="./images/Log4j2源码分析系列：（一）配置加载4.png" alt="" width="951" height="534" /></p>
+<p>程序走到61行，可以看到这里使用饿汉方式实现了单例。41行实例化StaticLoggerBinder，会跳到53行，我们进去看看细节。</p>
+<p><img src="./images/Log4j2源码分析系列：（一）配置加载5.png" alt="" width="950" height="457" /></p>
+<p>可以看出Log4jLoggerFactory继承了AbstractLoggerAdapter这个抽象的日志适配器。这个抽象适配器中定义了若干方法，别急，马上会提及。</p>
+<p>回到LoggerFactory，通过方法getLoggerFactory，我们会得到刚刚创建出来的Log4jLoggerFactory：</p>
+<p><img src="./images/Log4j2源码分析系列：（一）配置加载6.png" alt="" width="1183" height="484" /></p>
+<p>接下来，我们进入log4j2的getLogger环节。</p>
+<p><img src="./images/Log4j2源码分析系列：（一）配置加载7.png" alt="" width="1006" height="463" /></p>
+<p>可以看到getLogger是个接口方法，并且有3个实现。</p>
+<p>还记得我们刚才获取到的Log4jLoggerFactory吗？AbstractLoggerAdapter是它的父类，由此我们会走到AbstractLoggerAdapter的getLogger中。</p>
+<p><img src="./images/Log4j2源码分析系列：（一）配置加载8.png" alt="" width="996" height="476" /></p>
+<p>getContext是AbstractLoggerAdapter的抽象方法，因此，我们下一步会走到Log4jLoggerFactory的getContext方法中。</p>
+<p><img src="./images/Log4j2源码分析系列：（一）配置加载9.png" alt="" width="1227" height="451" /></p>
+<p>这里用反射定位到我们的日志（anchor中文译为"锚"，可以理解为类似文件句柄一类的东西），这里得出的anchor为""，因此会进入后面的语句。</p>
+<p><img src="./images/Log4j2源码分析系列：（一）配置加载10.png" alt="" width="1177" height="488" /></p>
+<p>最终，我们会拿到一个AppClassLoader，LogManager会利用这个类加载器获取上下文。</p>
+<p>进入getContext看看：</p>
+<p><img src="./images/Log4j2源码分析系列：（一）配置加载11.png" alt="" width="1550" height="517" /></p>
+<p>请注意：这里的factory是Log4jContextFactory，它是在LogManager中的静态代码块中初始化的，具体细节后面会补充。</p>
+<p>现在，我们先进入getContext看看：</p>
+<p><img src="./images/Log4j2源码分析系列：（一）配置加载12.png" alt="" width="1346" height="723" /></p>
+<p>这里的getContext是ContextSelector接口中的方法，下一步会进入ClassLoaderContextSelector中的getContext中。至于slector是怎么初始化的，我们放在后面一起说。</p>
+<p><img src="./images/Log4j2源码分析系列：（一）配置加载13.png" alt="" width="1246" height="769" /></p>
+<p>下面几步都是上下文相关操作，不再贴出，最终会回到这里：</p>
+<p><img src="./images/Log4j2源码分析系列：（一）配置加载14.png" alt="" width="1917" height="1036" /></p>
+<p>然后走到152行的ctx.start方法，进去看下：</p>
+<p><img src="./images/Log4j2源码分析系列：（一）配置加载15.png" alt="" width="2319" height="1304" /></p>
+<p>到现在，终于要开始加载配置了！！！</p>
+<p>接下来几步比较直观，贴图示意：</p>
+<p><img src="./images/Log4j2源码分析系列：（一）配置加载16.png" alt="" width="1336" height="572" /></p>
+<p><img src="./images/Log4j2源码分析系列：（一）配置加载17.png" alt="" width="1739" height="771" /></p>
+<p>在这里，先创建ConfigurationFactory的实例，然后获取配置。至于ConfigurationFactory的实例创建，这里不再说明，可自行查看。</p>
+<p>接下来，进入getConfiguration方法：</p>
+<p><img src="./images/Log4j2源码分析系列：（一）配置加载18.png" alt="" width="1461" height="817" /></p>
+<p>进入该方法：</p>
+<p><img src="./images/Log4j2源码分析系列：（一）配置加载19.png" alt="" width="1209" height="626" /></p>
+<p>请注意，这里的getFactories已经很明显地告诉我们，这里有4个工厂（均继承自ConfigurationFactory&nbsp;），分别处理前文提到的四类配置文件类型：properties、xml、json/jsn以及yaml/yml。调用factory.getSupportedTypes()方法即可获取到各类后缀。以xml为例：</p>
+<p><img src="./images/Log4j2源码分析系列：（一）配置加载20.png" alt="" width="1175" height="676" /></p>
+<p>其他类型文件同理。</p>
+<p>好了，回到加载配置的方法，可以看到426行代码判断是否支持所有文件类型。其实最终的核心代码是453~467行：</p>
+<p><img src="./images/Log4j2源码分析系列：（一）配置加载21.png" alt="" width="1276" height="402" /></p>
+<p>这里尝试用不同的条件获取config，如果最终config为null，就会打印error日志，告诉你没有找到配置文件。由于目前我们还没有配置，就会走到466行。</p>
+<p>&nbsp;</p>
+<p>现在，你可以在/resources路径下增加一个log4j2文件，填写一下简单配置，就会在459行得到config了。我们来看看getConfiguration的细节：</p>
+<p>&nbsp;<img src="./images/Log4j2源码分析系列：（一）配置加载22.png" alt="" width="1226" height="699" /></p>
+<p>&nbsp;可以看出，这里就是按照各种条件拼接处配置文件的名字。</p>
+<p>&nbsp;以最常见的log4j2.xml为例：</p>
+<p><img src="./images/Log4j2源码分析系列：（一）配置加载23.png" alt="" width="1266" height="660" /></p>
+<p>上图中，我们已经得到了配置文件的名字：log4j2.xml。</p>
+<p>同时可以看到，prefix为log4j2，suffix为文件后缀。</p>
+<p>其中prefix（505行）是写死在ConfigurationFactory中的：<img src="./images/Log4j2源码分析系列：（一）配置加载24.png" alt="" width="1267" height="667" /></p>
+<p>所以，我们配置时定义的文件名，需要遵循规范，而不能随意命名。&nbsp;</p>
+<p>现在有了配置文件名，就可以加载了：</p>
+<p><img src="./images/Log4j2源码分析系列：（一）配置加载25.png" alt="" width="1367" height="563" /></p>
+<p>进入方法内部：&nbsp;<img src="./images/Log4j2源码分析系列：（一）配置加载26.png" alt="" width="1413" height="776" /></p>
+<p>现在，url已经获取到了。它的值是"项目路径/target/classes/log4j2.xml"。</p>
+<p>后面的事情就是从文件加载内容（ 517行，涉及到类加载器的知识，请自行查看）。</p>
+<p>再然后，就是读取xml文件的内容啦：</p>
+<p><img src="./images/Log4j2源码分析系列：（一）配置加载27.png" alt="" width="1535" height="651" /></p>
+<p><img src="./images/Log4j2源码分析系列：（一）配置加载28.png" alt="" width="1260" height="537" /></p>
+<p>走到这里，就开始读取xml文件了。这部分内容且待下回分解。&nbsp;</p>
+<p>&nbsp;</p>
+<h3>遗留问题：LoggerManager的factory及其内部的selector是怎么初始化的？</h3>
+<p>其实，在调用LogManager.getContext(cl, false);之前，LoggerManager中的静态代码块会提前被调用，我们看一下：</p>
+<p><img src="./images/Log4j2源码分析系列：（一）配置加载29.png" alt="" width="1377" height="1276" /></p>
+<p>&nbsp;</p>
+<p>我们看89~100行代码即可：</p>
+<p><img src="./images/Log4j2源码分析系列：（一）配置加载30.png" alt="" width="1619" height="883" /></p>
+<p>进入方法ProviderUtil.getProviders()内部查看：</p>
+<p><img src="./images/Log4j2源码分析系列：（一）配置加载31.png" alt="" width="1062" height="514" /></p>
+<p><img src="./images/Log4j2源码分析系列：（一）配置加载32.png" alt="" width="1362" height="802" /></p>
+<p>可以看到provider是使用懒汉方式实现的单例（你会发现89行代码中ProviderUtil.hasProviders()方法执行时已经创建过了，因此这里直接返回。注意创建过程有个细节，后面要用到），用于确定各个factory的优先级。</p>
+<p>我们重点看91行代码内部细节：</p>
+<p><img src="./images/Log4j2源码分析系列：（一）配置加载33.png" alt="" width="1284" height="490" /></p>
+<p><img src="./images/Log4j2源码分析系列：（一）配置加载34.png" alt="" width="1382" height="613" /></p>
+<p>在96行，加载class，98行又将其转换为LoggerContextFactory的子类（也就是Log4jContextFactory）。</p>
+<p>那么问题来了，className是啥，为啥它指定了Log4jContextFactory？</p>
+<p>其实，在前面创建Provider实例时，构造器中会读取log4j-core中的配置文件，其中就包含className对应的属性：</p>
+<p><img src="./images/Log4j2源码分析系列：（一）配置加载35.png" alt="" width="1283" height="700" /></p>
+<p><img src="./images/Log4j2源码分析系列：（一）配置加载36.png" alt="" width="1125" height="532" /></p>
+<p><img src="./images/Log4j2源码分析系列：（一）配置加载37.png" alt="" width="884" height="283" /></p>
+<p><img src="./images/Log4j2源码分析系列：（一）配置加载38.png" alt="" width="1008" height="396" /></p>
+<p>就这样，得到了className：org.apache.logging.log4j.core.impl.Log4jContextFactory。</p>
+<p>接着往下走：</p>
+<p><img src="./images/Log4j2源码分析系列：（一）配置加载39.png" alt="" width="1142" height="602" /></p>
+<p>可以看到这里会用反射的方式实例化Log4jContextFactory对象，会调用Log4jContextFactory的无参构造器：</p>
+<p><img src="./images/Log4j2源码分析系列：（一）配置加载40.png" alt="" width="973" height="402" /></p>
+<p>createContextSelector方法，就会初始化selector啦：</p>
+<p><img src="./images/Log4j2源码分析系列：（一）配置加载41.png" alt="" width="1175" height="464" /></p>
+<p>后续的初始化细节就不再展开啦。</p>
+<p>最后会走到这里：</p>
+<p><img src="./images/Log4j2源码分析系列：（一）配置加载42.png" alt="" width="1275" height="679" /></p>
+<p>至此，factory创建完毕。</p>
+<p>&nbsp;</p>
+<p><span style="color: #000000;"><strong>现在，你应该可以回答文首的三个问题了吧？</strong></span></p>
+<h2>总结</h2>
+<p>本文通过调试，描述了log4j2日志配置加载的主线（忽略了很多细节，比如可以配置path等等），后续的文章将会进一步描述配置文件的解析过程。&nbsp;</p>
+<p>希望读者通过本文，能够对log4j2的配置加载过程有更为深入的理解。</p>
+<p>&nbsp;</p>
+<p>最后，作者水平有限，难免错漏，欢迎指正及交流，共同进步。</p>
+<src style="height: 0; width: 0; max-height: 0; max-width: 0; overflow: hidden; font-size: 0em; padding: 0; margin: 0;" title="MDH:PHA+TG9nNGoy5rqQ56CB5YiG5p6Q57O75YiX77ya77yI5LiA77yJ6YWN572u5Yqg6L29PC9wPjxw
+PiMjIOWJjeiogDwvcD48cD7lnKjlrp7pmYXlvIDlj5Hpobnnm67kuK3vvIzml6Xlv5fmsLjov5zm
+mK/kuIDkuKrnu5XkuI3lvIDnmoTor53popjjgILmnKzmlofku6VzbGY0auWSjGxvZzRqMuaXpeW/
+l+S9k+ezu+S4uuS+i++8jOS7jua6kOeggeinkuW6puWIhuaekOaXpeW/l+W3peS9nOWOn+eQhuOA
+gjwvcD48cD7lrabkuaDml6Xlv5fmoYbmnrbvvIzpppblhYjopoHnhp/mgonlkITnsbvml6Xlv5fm
+oYbmnrbvvIzov5nph4zmjqjojZDkuKTnr4fmlofnq6DvvIzlsLHkuI3lho3otZjov7DkuobjgII8
+L3A+PHA+Jmd0OyBodHRwczovL3d3dy5jbmJsb2dzLmNvbS9yanpoZW5nL3AvMTAwNDI5MTEuaHRt
+bDxicj4mZ3Q7PGJyPiZndDsgaHR0cHM6Ly93d3cuY25ibG9ncy5jb20vY2hhbnNodXlpL3Avc29t
+ZXRoaW5nX2Fib3V0X2phdmFfbG9nX2ZyYW1ld29yay5odG1sPC9wPjxwPuWvueS6jmxvZzRqMu+8
+jOmFjee9ruaWh+S7tuacieWHoOexu++8mnByb3BlcnRpZXPjgIF4bWzjgIFqc29uL2pzbuS7peWP
+inlhbWwveW1s77yM5bmz5bi45oiR5Lus55SoeG1s5bGF5aSa44CCPC9wPjxwPuS4gOiIrOaDheWG
+teS4i++8jOaIkeS7rOS8muWIm+W7umxvZzRqMi54bWzmlL7liLDpobnnm67nmoQvcmVzb3VyY2Vz
+5paH5Lu25aS55LiL44CC5aSn6YOo5YiG5L2/55SobWF2ZW7nrqHnkIbkvp3otZbnmoTpobnnm67k
+uZ/lj6/og73liIbnjq/looPphY3nva7vvIzkuI3lkIznjq/looPor7vlj5bkuI3lkIznmoRsb2c0
+ajLmlofku7bvvIzov5nml7blroPkuIDoiKzlnKgvcHJvZmlsZXMvJHtlbnZ9L+aWh+S7tuWkueS4
+i+OAgjwvcD48cD7kvYbmmK/kvaDmnInmsqHmnInmg7Pov4fvvJo8L3A+PHA+MS4g5Li65LuA5LmI
+6KaB5YaZ6L+Z5Liq6YWN572u5paH5Lu277yf5LiN5YaZ55qE6K+d5Lya5Ye65LuA5LmI6Zeu6aKY
+77yfPGJyPjIuIOi/meS4qumFjee9ruaWh+S7tueahOWRveWQjeacieS7gOS5iOinhOWumuWQl++8
+n+S4uuS7gOS5iOaIkeS7rOW5s+S7k+ingeWIsOeahOmDveaYr2xvZzRqMi54bWzvvIzogIzkuI3m
+mK/lhbbku5blkI3lrZfvvJ88YnI+My4g6L+Z5Liq6YWN572u5paH5Lu25piv5aaC5L2V6KKr5Yqg
+6L2955qE77yfPC9wPjxwPuWbnuetlOS7peS4iumXrumimO+8jOWwseaYr+acrOaWh+eahOWIneih
+t+OAgjwvcD48cD4jIyDnjq/looPlh4blpIc8L3A+PHA+6ZiF6K+75rqQ56CB5YmN77yM6K+356Gu
+5L+d5byV5YWl5LqGc2xmNGrku6Xlj4psb2c0ajLnm7jlhbPpgILphY3ljIXjgILku6VtYXZlbuS4
+uuS+i++8jOmcgOimgeW8leWFpe+8mjwvcD48cD5gYGB4bWw8L3A+PHA+PGJyPiAgICAgICAgJmx0
+OyEtLSBzbGY0aiAtLSZndDs8YnI+ICAgICAgICAmbHQ7ZGVwZW5kZW5jeSZndDs8YnI+ICAgICAg
+ICAgICAgJmx0O2dyb3VwSWQmZ3Q7b3JnLnNsZjRqJmx0Oy9ncm91cElkJmd0Ozxicj4gICAgICAg
+ICAgICAmbHQ7YXJ0aWZhY3RJZCZndDtzbGY0ai1hcGkmbHQ7L2FydGlmYWN0SWQmZ3Q7PGJyPiAg
+ICAgICAgICAgICZsdDt2ZXJzaW9uJmd0OzEuNy4yMSZsdDsvdmVyc2lvbiZndDs8YnI+ICAgICAg
+ICAmbHQ7L2RlcGVuZGVuY3kmZ3Q7PGJyPiAgICAgICAgPGJyPiAgICAgICAgJmx0OyEtLSBicmlk
+Z2UgLS0mZ3Q7PGJyPiAgICAgICAgJmx0O2RlcGVuZGVuY3kmZ3Q7PGJyPiAgICAgICAgICAgICZs
+dDtncm91cElkJmd0O29yZy5hcGFjaGUubG9nZ2luZy5sb2c0aiZsdDsvZ3JvdXBJZCZndDs8YnI+
+ICAgICAgICAgICAgJmx0O2FydGlmYWN0SWQmZ3Q7bG9nNGotc2xmNGotaW1wbCZsdDsvYXJ0aWZh
+Y3RJZCZndDs8YnI+ICAgICAgICAgICAgJmx0O3ZlcnNpb24mZ3Q7Mi43Jmx0Oy92ZXJzaW9uJmd0
+Ozxicj4gICAgICAgICZsdDsvZGVwZW5kZW5jeSZndDs8L3A+PHA+CQkJCSZsdDshLS0gbG9nNGoy
+IC0tJmd0Ozxicj4gICAgICAgICZsdDtkZXBlbmRlbmN5Jmd0Ozxicj4gICAgICAgICAgICAmbHQ7
+Z3JvdXBJZCZndDtvcmcuYXBhY2hlLmxvZ2dpbmcubG9nNGombHQ7L2dyb3VwSWQmZ3Q7PGJyPiAg
+ICAgICAgICAgICZsdDthcnRpZmFjdElkJmd0O2xvZzRqLWNvcmUmbHQ7L2FydGlmYWN0SWQmZ3Q7
+PGJyPiAgICAgICAgICAgICZsdDt2ZXJzaW9uJmd0OzIuNyZsdDsvdmVyc2lvbiZndDs8YnI+ICAg
+ICAgICAmbHQ7L2RlcGVuZGVuY3kmZ3Q7PGJyPiAgICAgICAgJmx0O2RlcGVuZGVuY3kmZ3Q7PGJy
+PiAgICAgICAgICAgICZsdDtncm91cElkJmd0O29yZy5hcGFjaGUubG9nZ2luZy5sb2c0aiZsdDsv
+Z3JvdXBJZCZndDs8YnI+ICAgICAgICAgICAgJmx0O2FydGlmYWN0SWQmZ3Q7bG9nNGotYXBpJmx0
+Oy9hcnRpZmFjdElkJmd0Ozxicj4gICAgICAgICAgICAmbHQ7dmVyc2lvbiZndDsyLjcmbHQ7L3Zl
+cnNpb24mZ3Q7PGJyPiAgICAgICAgJmx0Oy9kZXBlbmRlbmN5Jmd0Ozxicj5gYGA8L3A+PHA+SURF
+5oiR55So55qE5pivaWRlYe+8jOeUqOWFtuS7lklEReeahOexu+S8vOOAgjwvcD48cD4jIyDmupDn
+oIE8L3A+PHA+6aaW5YWI77yM5oiR5Lus5paw5bu65LiA5LiqamF2YeaWh+S7tu+8jOaJk+aWreeC
+ueW8gOWni+iwg+ivleOAgjwvcD48cD4mbmJzcDs8L3A+PHA+Jm5ic3A7PC9wPjxwPiZuYnNwOzwv
+cD48cD4mbmJzcDs8L3A+PHA+Jm5ic3A7PC9wPjxwPiZuYnNwOzwvcD4=">​
+
+
+</div><hr><script charset='utf-8' src='../../js/sming.js'></script></body></html>

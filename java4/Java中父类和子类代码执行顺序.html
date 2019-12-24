@@ -1,0 +1,78 @@
+<html><head><meta charset='utf-8'><meta name='viewport' content='width=device-width, initial-scale=1'>
+<meta name='applicable-device' content='pc'><meta name='keywords' content='电脑,电脑讲解,电脑技术,编程,电脑故障维修Java中父类和子类代码执行顺序' />
+<script src='../../highlight/highlight.pack.js'></script>
+<link rel='stylesheet' type='text/css' href='../../highlight/styles/monokai.css'/>
+
+<link rel='stylesheet' href='../../fenxiang/dist/css/share.min.css'>
+<script src='../../fenxiang/src/js/social-share.js'></script>
+<script src='../../fenxiang/src/js/qrcode.js'></script>
+
+</head><body><script>hljs.initHighlightingOnLoad();</script><script>
+var system ={};  
+var p = navigator.platform;       
+system.win = p.indexOf('Win') == 0;  
+system.mac = p.indexOf('Mac') == 0;  
+system.x11 = (p == 'X11') || (p.indexOf('Linux') == 0);     
+if(system.win||system.mac||system.xll){
+document.write("<link href='../css/3.css' rel='stylesheet' type='text/css'>");}else{ document.write("<link href='../css/3wap.css' rel='stylesheet' type='text/css'>");}</script><script src='../../js/3.js'></script><div class='div2'><div class='heading_nav'><ul><div><li><a href='../../index.html'>首页</a></li>
+</div><div onclick='hidden1()' >分享</div>
+</ul></div></div>
+<div id='heading_nav2'> 
+<li class='row' >
+<div class='social-share' data-mode='prepend'><a href='javascript:' class='social-share-icon icon-heart'></a></div></li></div><script charset='utf-8' src='../../3/js/hengfu.js'></script><script charset='utf-8' src='../../3/js/hengfu2.js'></script><hr><div class='div1'><div class='biaoti'><center>Java中父类和子类代码执行顺序</center></div><div class='banquan'>原文出处:本文由博客园博主donleo123提供。<br/>
+原文连接:https://www.cnblogs.com/donleo123/p/11676318.html</div><br>
+    <p><strong>执行顺序：父类静态块--&gt;子类静态块--&gt;父类非静态块--&gt;父类构造方法--&gt;子类非静态块--&gt;子类构造方法</strong></p>
+<p>当父类或子类中有多个静态方法时按在代码中的顺序执行</p>
+<src class="cnblogs_code">
+<pre><code><span style="color: #008080;"> 1</span> <span style="color: #0000ff;">package</span><span style="color: #000000;"> day1015;
+</span><span style="color: #008080;"> 2</span> 
+<span style="color: #008080;"> 3</span> <span style="color: #008000;">/**</span>
+<span style="color: #008080;"> 4</span> <span style="color: #008000;"> * </span><span style="color: #808080;">@author</span><span style="color: #008000;"> donleo
+</span><span style="color: #008080;"> 5</span> <span style="color: #008000;"> * date 2019-10-15
+</span><span style="color: #008080;"> 6</span> <span style="color: #008000;"> * code 代码执行顺序
+</span><span style="color: #008080;"> 7</span>  <span style="color: #008000;">*/</span>
+<span style="color: #008080;"> 8</span> <span style="color: #0000ff;">public</span> <span style="color: #0000ff;">class</span><span style="color: #000000;"> Father {
+</span><span style="color: #008080;"> 9</span> 
+<span style="color: #008080;">10</span>     <span style="color: #0000ff;">static</span><span style="color: #000000;"> {
+</span><span style="color: #008080;">11</span>         System.out.println("Father中静态代码块一"<span style="color: #000000;">);
+</span><span style="color: #008080;">12</span> <span style="color: #000000;">    }
+</span><span style="color: #008080;">13</span>     <span style="color: #0000ff;">static</span><span style="color: #000000;"> {
+</span><span style="color: #008080;">14</span>         System.out.println("Father中静态代码块二"<span style="color: #000000;">);
+</span><span style="color: #008080;">15</span> <span style="color: #000000;">    }
+</span><span style="color: #008080;">16</span> 
+<span style="color: #008080;">17</span>     <span style="color: #0000ff;">public</span><span style="color: #000000;"> Father(){
+</span><span style="color: #008080;">18</span>         System.out.println("Father构造方法"<span style="color: #000000;">);
+</span><span style="color: #008080;">19</span> <span style="color: #000000;">    }
+</span><span style="color: #008080;">20</span> 
+<span style="color: #008080;">21</span> <span style="color: #000000;">    {
+</span><span style="color: #008080;">22</span>         System.out.println("Father中非静态块"<span style="color: #000000;">);
+</span><span style="color: #008080;">23</span> <span style="color: #000000;">    }
+</span><span style="color: #008080;">24</span> 
+<span style="color: #008080;">25</span>     <span style="color: #0000ff;">public</span> <span style="color: #0000ff;">static</span> <span style="color: #0000ff;">void</span><span style="color: #000000;"> main(String[] args){
+</span><span style="color: #008080;">26</span>         Son son = <span style="color: #0000ff;">new</span><span style="color: #000000;"> Son();
+</span><span style="color: #008080;">27</span> <span style="color: #000000;">    }
+</span><span style="color: #008080;">28</span> <span style="color: #000000;">}
+</span><span style="color: #008080;">29</span> 
+<span style="color: #008080;">30</span> <span style="color: #008000;">//</span><span style="color: #008000;">子类继承父类</span>
+<span style="color: #008080;">31</span> <span style="color: #0000ff;">class</span> Son <span style="color: #0000ff;">extends</span><span style="color: #000000;"> Father{
+</span><span style="color: #008080;">32</span>     <span style="color: #0000ff;">static</span><span style="color: #000000;"> {
+</span><span style="color: #008080;">33</span>         System.out.println("Son中静态代码块一"<span style="color: #000000;">);
+</span><span style="color: #008080;">34</span> <span style="color: #000000;">    }
+</span><span style="color: #008080;">35</span>     <span style="color: #0000ff;">static</span><span style="color: #000000;"> {
+</span><span style="color: #008080;">36</span>         System.out.println("Son中静态代码块二"<span style="color: #000000;">);
+</span><span style="color: #008080;">37</span> <span style="color: #000000;">    }
+</span><span style="color: #008080;">38</span> 
+<span style="color: #008080;">39</span>     <span style="color: #0000ff;">public</span><span style="color: #000000;"> Son(){
+</span><span style="color: #008080;">40</span>         System.out.println("Son构造方法"<span style="color: #000000;">);
+</span><span style="color: #008080;">41</span> <span style="color: #000000;">    }
+</span><span style="color: #008080;">42</span> 
+<span style="color: #008080;">43</span> <span style="color: #000000;">    {
+</span><span style="color: #008080;">44</span>         System.out.println("Son中非静态块"<span style="color: #000000;">);
+</span><span style="color: #008080;">45</span> <span style="color: #000000;">    }
+</span><span style="color: #008080;">46</span> }</code></pre>
+
+<p>代码执行结果：</p>
+<p><img src="./images/Java中父类和子类代码执行顺序0.png" alt="" /></p>
+<p>&nbsp;</p>
+
+</div><hr><script charset='utf-8' src='../../js/sming.js'></script></body></html>

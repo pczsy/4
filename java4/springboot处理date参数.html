@@ -1,0 +1,235 @@
+<html><head><meta charset='utf-8'><meta name='viewport' content='width=device-width, initial-scale=1'>
+<meta name='applicable-device' content='pc'><meta name='keywords' content='电脑,电脑讲解,电脑技术,编程,电脑故障维修springboot处理date参数' />
+<script src='../../highlight/highlight.pack.js'></script>
+<link rel='stylesheet' type='text/css' href='../../highlight/styles/monokai.css'/>
+
+<link rel='stylesheet' href='../../fenxiang/dist/css/share.min.css'>
+<script src='../../fenxiang/src/js/social-share.js'></script>
+<script src='../../fenxiang/src/js/qrcode.js'></script>
+
+</head><body><script>hljs.initHighlightingOnLoad();</script><script>
+var system ={};  
+var p = navigator.platform;       
+system.win = p.indexOf('Win') == 0;  
+system.mac = p.indexOf('Mac') == 0;  
+system.x11 = (p == 'X11') || (p.indexOf('Linux') == 0);     
+if(system.win||system.mac||system.xll){
+document.write("<link href='../css/3.css' rel='stylesheet' type='text/css'>");}else{ document.write("<link href='../css/3wap.css' rel='stylesheet' type='text/css'>");}</script><script src='../../js/3.js'></script><div class='div2'><div class='heading_nav'><ul><div><li><a href='../../index.html'>首页</a></li>
+</div><div onclick='hidden1()' >分享</div>
+</ul></div></div>
+<div id='heading_nav2'> 
+<li class='row' >
+<div class='social-share' data-mode='prepend'><a href='javascript:' class='social-share-icon icon-heart'></a></div></li></div><script charset='utf-8' src='../../3/js/hengfu.js'></script><script charset='utf-8' src='../../3/js/hengfu2.js'></script><hr><div class='div1'><div class='biaoti'><center>springboot处理date参数</center></div><div class='banquan'>原文出处:本文由博客园博主guodaye提供。<br/>
+原文连接:https://www.cnblogs.com/guoyuchuan/p/11454529.html</div><br>
+    <p><img src="./images/springboot处理date参数0.png" alt="该图片由grebmot在Pixabay上发布" /></p>
+<h2 id="前言">前言</h2>
+<p>最近在后台开发中遇到了时间参数的坑，就单独把这个问题提出来找时间整理了一下；</p>
+<h2 id="正文">正文</h2>
+<h3 id="测试方法">测试方法</h3>
+<p>bean代码：</p>
+<pre><code><code>
+public class DateModelNoAnnotation {
+    private Integer id;
+    private Date receiveDate;
+}
+    </code></code></pre>
+<p>controller代码：</p>
+<pre><code><code>
+@RestController
+@RequestMapping(&quot;/date&quot;)
+public class DateVerifyController {
+    //    方式一
+    @PostMapping(&quot;/no&quot;)
+    public String dateUnNoAnnotation(DateModelNoAnnotation dateModelNoAnnotation){
+        System.out.println(dateModelNoAnnotation.toString());
+        return &quot;SUCCESS&quot;;
+    }
+
+//    方式二
+    @PostMapping(&quot;/has&quot;)
+    public String dateHasAnnotation(@RequestBody DateModelNoAnnotation dateModelNoAnnotation){
+        System.out.println(dateModelNoAnnotation.toString());
+        return &quot;SUCCESS&quot;;
+    }
+//    方式三
+    @GetMapping(&quot;/param&quot;)
+    public String dateParams(@RequestParam(&quot;id&quot;)Integer id, @RequestParam(&quot;receiveDate&quot;)Date receiveDate){
+        System.out.println(&quot;id=====&quot;+id);
+        System.out.println(&quot;receiveDate=====&quot;+receiveDate);
+        System.out.println(&quot;receiveDate=====&quot;+receiveDate.getTime());
+        return &quot;SUCCESS&quot;;
+    }
+//    方式四
+    @GetMapping(&quot;/no/param&quot;)
+    public String dateNoParams(Integer id,Date receiveDate){
+        System.out.println(&quot;id=====&quot;+id);
+        System.out.println(&quot;receiveDate=====&quot;+receiveDate);
+        System.out.println(&quot;receiveDate=====&quot;+receiveDate.getTime());
+        return &quot;SUCCESS&quot;;
+    }
+}
+</code></code></pre>
+<h3 id="接收参数的几种方式实验">接收参数的几种方式（实验）</h3>
+<ol>
+<li>通过bean来接收数据（表单方式）</li>
+</ol>
+<ul>
+<li>这种方式只支持&quot;yyyy/MM/dd HH:mm:ss&quot;这种格式的time参数</li>
+</ul>
+<ol>
+<li>通过bean来接收数据（json格式）</li>
+</ol>
+<ul>
+<li>这种方式只支持&quot;yyyy-MM-dd HH:mm:ss&quot;这种格式的time参数</li>
+</ul>
+<ol>
+<li>通过RequestParam注解</li>
+</ol>
+<ul>
+<li>这种方式只支持&quot;yyyy/MM/dd HH:mm:ss&quot;这种格式的time参数</li>
+</ul>
+<ol>
+<li>不通过RequestParam注解</li>
+</ol>
+<ul>
+<li>这种方式只支持&quot;yyyy/MM/dd HH:mm:ss&quot;这种格式的time参数</li>
+</ul>
+<p>以上几种接收参数的方式接收的参数格式并不统一，而且有时候web前端传入的时间参数为时间戳，还得写修改接口或者让其自己修改格式；<br />
+后端给前端统一返回json格式的数据，且时间格式为&quot;yyyy-MM-dd HH:mm:ss&quot;</p>
+<h3 id="解决方案">解决方案</h3>
+<p>开发之前统一时间接口接收的时间格式</p>
+<h4 id="一-yyyymmdd-hhmmss-格式">一 yyyy/MM/dd HH:mm:ss 格式</h4>
+<p>后端所有接口统一接收&quot;yyyy/MM/dd HH:mm:ss&quot;或&quot;yyyy/MM/dd&quot;格式时间参数</p>
+<p>第一种： 舍弃上边的方式二的接口</p>
+<p>第二种：不舍弃方拾二，在bean的时间属性上添加<code>JsonFormat</code>注解,例如：</p>
+<pre><code><code>
+    com.fasterxml.jackson.annotation.JsonFormat;
+    
+    @JsonFormat(timezone = &quot;GMT+8&quot;,pattern = &quot;yyyy/MM/dd HH:mm:ss&quot;)
+    private Date receiveDate;
+    </code></code></pre>
+<p>优势： 不舍弃方式二接口，且统一了时间格式</p>
+<p>使用该注解的弊端： 当pattern=&quot;yyyy/MM/dd&quot; 时， 只支持处理“2019/09/03&quot;格式时间参数，不支持“2019/09/03 00:00:00”，且会报错，当pattern=&quot;yyyy/MM/dd HH:mm:ss&quot;时，只支持处理“2019/09/03 00:00:00&quot;格式时间参数，其余格式均会报错；</p>
+<h4 id="二-接收所有时间格式">二 接收所有时间格式</h4>
+<ul>
+<li>yyyy-MM-dd HH:mm:ss 格式</li>
+<li>yyyy-MM-dd 格式</li>
+<li>时间戳</li>
+<li>yyyy/MM/dd HH:mm:ss 格式</li>
+<li>yyyy/MM/dd 格式</li>
+</ul>
+<h5 id="注意">注意</h5>
+<p><font color ="red">该方式不对json或xml的数据处理，比如使用<code>@RequestBody</code>注解的bean（也就是方式二）</font></p>
+<p>工具类：</p>
+<pre><code><code>
+import org.springframework.core.convert.converter.Converter;
+import org.springframework.util.StringUtils;
+import java.text.SimpleDateFormat;
+import java.util.Date;
+/**
+ * @author gyc
+ * @title: DateConverter
+ * @projectName app
+ * @date 2019/8/1914:36
+ * @description: 时间转换类
+ */
+public class CourseDateConverter implements Converter&lt;String, Date&gt; {
+    private static final String dateFormat = &quot;yyyy-MM-dd HH:mm:ss&quot;;
+    private static final String dateFormata = &quot;yyyy-MM-dd HH:mm:ss&quot;;
+    private static final String shortDateFormat = &quot;yyyy-MM-dd&quot;;
+    private static final String shortDateFormata = &quot;yyyy/MM/dd&quot;;
+    private static final String timeStampFormat = &quot;^\\d+$&quot;;
+    @Override
+    public Date convert(String value) {
+        if(StringUtils.isEmpty(value)) {
+            return null;
+        }
+        value = value.trim();
+        try {
+            if (value.contains(&quot;-&quot;)) {
+                SimpleDateFormat formatter;
+                if (value.contains(&quot;:&quot;)) {
+                    //yyyy-MM-dd HH:mm:ss 格式
+                    formatter = new SimpleDateFormat(dateFormat);
+                } else {
+                    //yyyy-MM-dd 格式
+                    formatter = new SimpleDateFormat(shortDateFormat);
+                }
+                return formatter.parse(value);
+            } else if (value.matches(timeStampFormat)) {
+                //时间戳
+                Long lDate = new Long(value);
+                return new Date(lDate);
+            }else if (value.contains(&quot;/&quot;)){
+                SimpleDateFormat formatter;
+                if (value.contains(&quot;:&quot;)) {
+//                    yyyy/MM/dd HH:mm:ss 格式
+                    formatter = new SimpleDateFormat(dateFormata);
+                } else {
+//                    yyyy/MM/dd 格式
+                    formatter = new SimpleDateFormat(shortDateFormata);
+                }
+                return formatter.parse(value);
+            }
+        } catch (Exception e) {
+            throw new RuntimeException(String.format(&quot;parser %s to Date fail&quot;, value));
+        }
+        throw new RuntimeException(String.format(&quot;parser %s to Date fail&quot;, value));
+    }
+}
+</code></code></pre>
+<h5 id="将时间转换类应用到接口上">将时间转换类应用到接口上</h5>
+<p>介绍两种方式：使用@Component + @PostConstruct或@ControllerAdvice + @InitBinder</p>
+<p>第一种方式：</p>
+<h5 id="component-postconstruct"><code>@Component</code> + <code>@PostConstruct</code></h5>
+<pre><code><code>
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.core.convert.support.GenericConversionService;
+import org.springframework.stereotype.Component;
+import org.springframework.web.bind.support.ConfigurableWebBindingInitializer;
+import org.springframework.web.servlet.mvc.method.annotation.RequestMappingHandlerAdapter;
+import javax.annotation.PostConstruct;
+
+@Component
+public class WebConfigBeans {
+  @Autowired
+  private RequestMappingHandlerAdapter handlerAdapter;
+  @PostConstruct
+  public void initEditableAvlidation() {
+    ConfigurableWebBindingInitializer initializer = (ConfigurableWebBindingInitializer)handlerAdapter.getWebBindingInitializer();
+    if(initializer.getConversionService()!=null) {
+      GenericConversionService genericConversionService = (GenericConversionService)initializer.getConversionService();
+
+      genericConversionService.addConverter(new DateConverterConfig());
+
+    }
+  }
+}
+</code></code></pre>
+<p>第二种方式：</p>
+<h5 id="controlleradvice-initbinder"><code>@ControllerAdvice</code> + <code>@InitBinder</code></h5>
+<pre><code><code>
+import com.aegis.config.converter.DateConverter;
+import com.aegis.model.bean.common.JsonResult;
+import org.springframework.core.convert.support.GenericConversionService;
+import org.springframework.http.HttpStatus;
+import org.springframework.web.bind.WebDataBinder;
+import org.springframework.web.bind.annotation.*;
+@ControllerAdvice
+public class CourseControllerHandler {
+    @InitBinder
+    public void initBinder(WebDataBinder binder) {
+        GenericConversionService genericConversionService = (GenericConversionService) binder.getConversionService();
+        if (genericConversionService != null) {
+            genericConversionService.addConverter(new CourseDateConverter());
+        }
+    }
+}
+</code></code></pre>
+<h5 id="最后">最后</h5>
+<p>我使用的最后的一种方法的第二种方式</p>
+<h2 id="总结">总结</h2>
+<p>时间参数这个坑还是有点大的，之前都是针对性的处理，只要一变化就没法了；现在这个还是可以应付基本上会出现的错误了；</p>
+
+
+</div><hr><script charset='utf-8' src='../../js/sming.js'></script></body></html>

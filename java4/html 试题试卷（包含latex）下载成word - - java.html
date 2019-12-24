@@ -1,0 +1,996 @@
+<html><head><meta charset='utf-8'><meta name='viewport' content='width=device-width, initial-scale=1'>
+<meta name='applicable-device' content='pc'><meta name='keywords' content='电脑,电脑讲解,电脑技术,编程,电脑故障维修html 试题试卷（包含latex）下载成word - - java' />
+<script src='../../highlight/highlight.pack.js'></script>
+<link rel='stylesheet' type='text/css' href='../../highlight/styles/monokai.css'/>
+
+<link rel='stylesheet' href='../../fenxiang/dist/css/share.min.css'>
+<script src='../../fenxiang/src/js/social-share.js'></script>
+<script src='../../fenxiang/src/js/qrcode.js'></script>
+
+</head><body><script>hljs.initHighlightingOnLoad();</script><script>
+var system ={};  
+var p = navigator.platform;       
+system.win = p.indexOf('Win') == 0;  
+system.mac = p.indexOf('Mac') == 0;  
+system.x11 = (p == 'X11') || (p.indexOf('Linux') == 0);     
+if(system.win||system.mac||system.xll){
+document.write("<link href='../css/3.css' rel='stylesheet' type='text/css'>");}else{ document.write("<link href='../css/3wap.css' rel='stylesheet' type='text/css'>");}</script><script src='../../js/3.js'></script><div class='div2'><div class='heading_nav'><ul><div><li><a href='../../index.html'>首页</a></li>
+</div><div onclick='hidden1()' >分享</div>
+</ul></div></div>
+<div id='heading_nav2'> 
+<li class='row' >
+<div class='social-share' data-mode='prepend'><a href='javascript:' class='social-share-icon icon-heart'></a></div></li></div><script charset='utf-8' src='../../3/js/hengfu.js'></script><script charset='utf-8' src='../../3/js/hengfu2.js'></script><hr><div class='div1'><div class='biaoti'><center>html 试题试卷（包含latex）下载成word - - java</center></div><div class='banquan'>原文出处:本文由博客园博主maoooooo提供。<br/>
+原文连接:https://www.cnblogs.com/maoyuwei/p/11637738.html</div><br>
+    <p style="text-align: center;">&nbsp;</p>
+<p style="text-align: center;"><span style="font-size: 14pt;"><strong>html 试题试卷（包含latex）下载成word</strong></span></p>
+<p style="text-align: center;">&nbsp;</p>
+<p><strong>主要目的：</strong></p>
+<ul>
+<li>分享将带latex的html格式的试题试卷以word的格式下载，并且加一些灵活的排版样式</li>
+<li>接受群众的检阅，获得反馈</li>
+<li>骗取打赏，或者github star</li>
+</ul>
+<p><strong>需求背景：</strong></p>
+<ul>
+<li>html 混有latex公式的试题组成的试卷，下载成为word格式</li>
+<li>word试卷的排版，纸张大小，字体，密封线，标题，题型，誉分栏等</li>
+<li>html 呈现的样式和word呈现的样式一致（只能大体一致，有些样式还是没做到完全一致）</li>
+</ul>
+<p><strong>方案概要：</strong></p>
+<p>&nbsp; &nbsp; &nbsp; &nbsp;主要方案：提取HTML里的题文内容 &gt;&gt; 转换为word标签样式 &gt;&gt; （制造试卷模板）将转换成word样式的题文填充到模板中 &gt;&gt; 组建word（doc 或 docx）</p>
+<ul>
+<li>制作freemark模板： 编辑好doc和docx的样板试卷，将其转化为xml格式，再转为ftl文件，并根据排版需求编写填充逻辑</li>
+<li>编写调用freemark下载程序：根据传入条件选择doc或docx模板下载</li>
+<li>解析html试题内容：用XPath分解试题内容，提取样式，将信息结构化</li>
+<li>将结构化的试题内容翻译为word标签格式：将html样式翻译为对应的word里面的标签格式，让其可以填充到freemark模板中而不违背word标签的语法规范</li>
+<li>综合以上步骤就可以将HTML格式的试卷下载为word格式的，文末会附源码</li>
+</ul>
+<p><strong>提前需要了解的知识：</strong></p>
+<ul>
+<li>freemark相关语法知识</li>
+<li>XPath相关基础知识</li>
+<li>html标签样式相关知识</li>
+<li>word标签样式相关知识</li>
+</ul>
+<p><strong>详细实现步骤：</strong></p>
+<p>&nbsp;<strong>freemark模板制作：</strong></p>
+<p style="margin-left: 30px;">1.&nbsp; 根据需求制作全样式的试卷样板（doc，docx 各一份）[例图：A3全样式模板]</p>
+<p style="margin-left: 30px;">说明：包含需求所有样式（字体，密封线，标题，题型，誉分栏等），后续在编写模板显示逻辑时可以灵活控制是否生效</p>
+<p><strong><img src="./images/html 试题试卷（包含latex）下载成word - - java0.png" alt="" /></strong></p>
+<p style="margin-left: 30px;">2.&nbsp; 将doc，docx 格式的样板转换为xml</p>
+<p style="margin-left: 30px;">doc格式的将文件另存为&nbsp; Word XML 文档（*.xml） 格式，用Notepad++等类似更具打开（NotePad++中安装XML Tools 插件，这个可以格式化xml文件，对后续的工作用处很大）[例图，折叠起来，大体结构如下]</p>
+<p><img src="./images/html 试题试卷（包含latex）下载成word - - java1.png" alt="" /></p>
+<p>&nbsp;</p>
+<p style="margin-left: 30px;">1）.word xml 结构的简单介绍（纯属个人猜想，不是官方定义，如果想了解详细的结构找正规的介绍资料）,下面只介绍我们用到的部分</p>
+<p style="margin-left: 60px;"><span style="font-size: 14pt;"><strong>&middot;</strong> </span>pkg:part:/word/_rels/document.xml.rels :用于定义header（页眉），footer（页脚），styles（样式），image（图片）等pkg：part的引用</p>
+<p style="margin-left: 60px;">说明：页眉，页脚可以定义多个，需要在word中展示的图片路径和引用在此定义</p>
+<p style="margin-left: 60px;"><span style="font-size: 14pt;"><strong>&middot;</strong>&nbsp;<span style="font-size: 14px;">pkg:part:/word/document.xml :正文部分，word中呈现的除页眉页脚以外的主要内容都在此部分（最重要的部分，后面介绍里面的格式）</span></span></p>
+<p style="margin-left: 60px;"><span style="font-size: 14pt;"><span style="font-size: 14px;"><span style="font-size: 14pt;"><strong>&middot;</strong></span>&nbsp;pkg:part:/word/footer.xml&nbsp;:页脚部分，设置试卷第几页，共几页</span></span></p>
+<p style="margin-left: 60px;"><span style="font-size: 14pt;"><strong>&middot;</strong>&nbsp;</span>pkg:part:/word/header.xml&nbsp;:页眉部分，设置试卷密封线</p>
+<p style="margin-left: 60px;"><span style="font-size: 14pt;"><strong>&middot;</strong></span>&nbsp;pkg:part:/word/styles.xml&nbsp;:样式，设置默认字体等</p>
+<p style="margin-left: 60px;"><span style="font-size: 14pt;"><strong>&middot;</strong></span>&nbsp;pkg:part:/word/media/image.png:图片内容（base64），docx中将图片放在/word/media文件夹下</p>
+<p style="margin-left: 30px;">docx 格式的样板，用解压工具解压开（不要惊讶，没写错就是解压开，docx 是一种压缩文件，它是将原本的doc的xml中的每个结构块拆开成独立文件压缩而成的）[例图：样例文件结构如下]</p>
+<p>&nbsp;<img src="./images/html 试题试卷（包含latex）下载成word - - java2.png" alt="" /></p>
+<p style="margin-left: 30px;">&nbsp;word文件夹下文件</p>
+<p>&nbsp;<img src="./images/html 试题试卷（包含latex）下载成word - - java3.png" alt="" /></p>
+<p style="margin-left: 30px;">docx的结构大致如将doc中每个pkg：part单独拆成文件，放在一定结构的文件夹下，最后压缩而成的，每块的功能和doc的相应pkg：part一样</p>
+<p style="margin-left: 30px;">docx有的[Content_Types].xml文件：定义图片类型，和其他pkg：part</p>
+<p style="margin-left: 30px;">&nbsp;正文部分：/word/document.xml 用到的标签简单介绍：</p>
+<p style="margin-left: 60px;">1&gt;段落：&lt;w:p&gt; ：段落；&lt;w:pPr&gt;：段落样式；&lt;w:r&gt;：内容部分；&lt;w:rPr&gt;：内容样式；&lt;w:t&gt;：文字内容</p>
+<src class="cnblogs_code">
+<pre><code><span style="color: #0000ff;">&lt;</span><span style="color: #800000;">w:p </span><span style="color: #ff0000;">w:rsidR</span><span style="color: #0000ff;">="004D42A0"</span><span style="color: #ff0000;"> w:rsidRDefault</span><span style="color: #0000ff;">="005F1054"</span><span style="color: #0000ff;">&gt;</span>
+    <span style="color: #0000ff;">&lt;</span><span style="color: #800000;">w:pPr</span><span style="color: #0000ff;">&gt;</span>
+        <span style="color: #0000ff;">&lt;</span><span style="color: #800000;">w:jc </span><span style="color: #ff0000;">w:val</span><span style="color: #0000ff;">="center"</span><span style="color: #0000ff;">/&gt;</span>
+        <span style="color: #0000ff;">&lt;</span><span style="color: #800000;">w:rPr</span><span style="color: #0000ff;">&gt;</span>
+            <span style="color: #0000ff;">&lt;</span><span style="color: #800000;">w:rFonts </span><span style="color: #ff0000;">w:eastAsia</span><span style="color: #0000ff;">="黑体"</span><span style="color: #0000ff;">/&gt;</span>
+            <span style="color: #0000ff;">&lt;</span><span style="color: #800000;">w:b</span><span style="color: #0000ff;">/&gt;</span>
+            <span style="color: #0000ff;">&lt;</span><span style="color: #800000;">w:sz </span><span style="color: #ff0000;">w:val</span><span style="color: #0000ff;">="30"</span><span style="color: #0000ff;">/&gt;</span>
+            <span style="color: #0000ff;">&lt;</span><span style="color: #800000;">w:szCs </span><span style="color: #ff0000;">w:val</span><span style="color: #0000ff;">="30"</span><span style="color: #0000ff;">/&gt;</span>
+        <span style="color: #0000ff;">&lt;/</span><span style="color: #800000;">w:rPr</span><span style="color: #0000ff;">&gt;</span>
+    <span style="color: #0000ff;">&lt;/</span><span style="color: #800000;">w:pPr</span><span style="color: #0000ff;">&gt;</span>
+    <span style="color: #0000ff;">&lt;</span><span style="color: #800000;">w:r </span><span style="color: #ff0000;">w:rsidRPr</span><span style="color: #0000ff;">="00771D19"</span><span style="color: #0000ff;">&gt;</span>
+        <span style="color: #0000ff;">&lt;</span><span style="color: #800000;">w:rPr</span><span style="color: #0000ff;">&gt;</span>
+            <span style="color: #0000ff;">&lt;</span><span style="color: #800000;">w:rFonts </span><span style="color: #ff0000;">w:eastAsia</span><span style="color: #0000ff;">="黑体"</span><span style="color: #ff0000;"> w:hint</span><span style="color: #0000ff;">="eastAsia"</span><span style="color: #0000ff;">/&gt;</span>
+            <span style="color: #0000ff;">&lt;</span><span style="color: #800000;">w:b</span><span style="color: #0000ff;">/&gt;</span>
+            <span style="color: #0000ff;">&lt;</span><span style="color: #800000;">w:sz </span><span style="color: #ff0000;">w:val</span><span style="color: #0000ff;">="30"</span><span style="color: #0000ff;">/&gt;</span>
+            <span style="color: #0000ff;">&lt;</span><span style="color: #800000;">w:szCs </span><span style="color: #ff0000;">w:val</span><span style="color: #0000ff;">="30"</span><span style="color: #0000ff;">/&gt;</span>
+        <span style="color: #0000ff;">&lt;/</span><span style="color: #800000;">w:rPr</span><span style="color: #0000ff;">&gt;</span>
+        <span style="color: #0000ff;">&lt;</span><span style="color: #800000;">w:t</span><span style="color: #0000ff;">&gt;</span>学年<span style="color: #0000ff;">&lt;/</span><span style="color: #800000;">w:t</span><span style="color: #0000ff;">&gt;</span>
+    <span style="color: #0000ff;">&lt;/</span><span style="color: #800000;">w:r</span><span style="color: #0000ff;">&gt;</span>
+<span style="color: #0000ff;">&lt;/</span><span style="color: #800000;">w:p</span><span style="color: #0000ff;">&gt;</span></code></pre>
+
+<p style="margin-left: 60px;">2&gt;图片：&lt;w:pict&gt;：图片标签；&lt;v:shape&gt;：图片样式；&lt;v:imagedata&gt;：引入图片（根据/word/_rels/document.xml.rels定义的图片id）</p>
+<src class="cnblogs_code">
+<pre><code>            <span style="color: #0000ff;">&lt;</span><span style="color: #800000;">w:r</span><span style="color: #0000ff;">&gt;</span>
+                <span style="color: #0000ff;">&lt;</span><span style="color: #800000;">w:pict</span><span style="color: #0000ff;">&gt;</span>
+                    <span style="color: #0000ff;">&lt;</span><span style="color: #800000;">v:shape </span><span style="color: #ff0000;">id</span><span style="color: #0000ff;">="_x0000768de9d0ea6111e98c2a28843b052b2f"</span><span style="color: #ff0000;"> type</span><span style="color: #0000ff;">="_x0000_t75"</span><span style="color: #ff0000;"> style</span><span style="color: #0000ff;">="width:85pt;height:43pt"</span><span style="color: #0000ff;">&gt;</span>
+                        <span style="color: #0000ff;">&lt;</span><span style="color: #800000;">v:imagedata </span><span style="color: #ff0000;">r:id</span><span style="color: #0000ff;">="rId768de9d0ea6111e98c2a28843b052b2f"</span><span style="color: #ff0000;"> o:title</span><span style="color: #0000ff;">="2"</span><span style="color: #0000ff;">/&gt;</span>
+                    <span style="color: #0000ff;">&lt;/</span><span style="color: #800000;">v:shape</span><span style="color: #0000ff;">&gt;</span>
+                <span style="color: #0000ff;">&lt;/</span><span style="color: #800000;">w:pict</span><span style="color: #0000ff;">&gt;</span>
+            <span style="color: #0000ff;">&lt;/</span><span style="color: #800000;">w:r</span><span style="color: #0000ff;">&gt;</span><span style="color: #0000ff;"><br /></span></code></pre>
+
+<p style="margin-left: 60px;">&nbsp;3&gt;表格：</p>
+<src class="cnblogs_code">
+<pre><code><span style="color: #0000ff;">&lt;</span><span style="color: #800000;">w:tbl</span><span style="color: #0000ff;">&gt;</span>
+    <span style="color: #0000ff;">&lt;</span><span style="color: #800000;">w:tblPr</span><span style="color: #0000ff;">&gt;</span>
+        <span style="color: #0000ff;">&lt;</span><span style="color: #800000;">w:tblW </span><span style="color: #ff0000;">w:w</span><span style="color: #0000ff;">="0"</span><span style="color: #ff0000;"> w:type</span><span style="color: #0000ff;">="auto"</span><span style="color: #0000ff;">/&gt;</span>
+        <span style="color: #0000ff;">&lt;</span><span style="color: #800000;">w:tblLook </span><span style="color: #ff0000;">w:val</span><span style="color: #0000ff;">="04A0"</span><span style="color: #ff0000;"> w:firstRow</span><span style="color: #0000ff;">="1"</span><span style="color: #ff0000;"> w:lastRow</span><span style="color: #0000ff;">="0"</span><span style="color: #ff0000;"> w:firstColumn</span><span style="color: #0000ff;">="1"</span><span style="color: #ff0000;"> w:lastColumn</span><span style="color: #0000ff;">="0"</span><span style="color: #ff0000;"> w:noHBand</span><span style="color: #0000ff;">="0"</span><span style="color: #ff0000;"> w:noVBand</span><span style="color: #0000ff;">="1"</span><span style="color: #0000ff;">/&gt;</span>
+    <span style="color: #0000ff;">&lt;/</span><span style="color: #800000;">w:tblPr</span><span style="color: #0000ff;">&gt;</span>
+    <span style="color: #0000ff;">&lt;</span><span style="color: #800000;">w:tblGrid</span><span style="color: #0000ff;">&gt;</span>
+        <span style="color: #0000ff;">&lt;</span><span style="color: #800000;">w:gridCol </span><span style="color: #ff0000;">w:w</span><span style="color: #0000ff;">="222"</span><span style="color: #0000ff;">/&gt;</span>
+        <span style="color: #0000ff;">&lt;</span><span style="color: #800000;">w:gridCol </span><span style="color: #ff0000;">w:w</span><span style="color: #0000ff;">="1376"</span><span style="color: #0000ff;">/&gt;</span>
+    <span style="color: #0000ff;">&lt;/</span><span style="color: #800000;">w:tblGrid</span><span style="color: #0000ff;">&gt;</span>
+    <span style="color: #0000ff;">&lt;</span><span style="color: #800000;">w:tr </span><span style="color: #ff0000;">w:rsidR</span><span style="color: #0000ff;">="00A93926"</span><span style="color: #ff0000;"> w:rsidTr</span><span style="color: #0000ff;">="00682485"</span><span style="color: #0000ff;">&gt;</span>
+        <span style="color: #0000ff;">&lt;</span><span style="color: #800000;">w:tc</span><span style="color: #0000ff;">&gt;</span>
+            <span style="color: #0000ff;">&lt;</span><span style="color: #800000;">w:tcPr</span><span style="color: #0000ff;">&gt;</span>
+                <span style="color: #0000ff;">&lt;</span><span style="color: #800000;">w:tcW </span><span style="color: #ff0000;">w:w</span><span style="color: #0000ff;">="0"</span><span style="color: #ff0000;"> w:type</span><span style="color: #0000ff;">="auto"</span><span style="color: #0000ff;">/&gt;</span>
+            <span style="color: #0000ff;">&lt;/</span><span style="color: #800000;">w:tcPr</span><span style="color: #0000ff;">&gt;</span>
+            <span style="color: #0000ff;">&lt;</span><span style="color: #800000;">w:p </span><span style="color: #ff0000;">w:rsidR</span><span style="color: #0000ff;">="00A93926"</span><span style="color: #ff0000;"> w:rsidRDefault</span><span style="color: #0000ff;">="00286E3F"</span><span style="color: #ff0000;"> w:rsidP</span><span style="color: #0000ff;">="00A93926"</span><span style="color: #0000ff;">/&gt;</span>
+        <span style="color: #0000ff;">&lt;/</span><span style="color: #800000;">w:tc</span><span style="color: #0000ff;">&gt;</span>
+        <span style="color: #0000ff;">&lt;</span><span style="color: #800000;">w:tc</span><span style="color: #0000ff;">&gt;</span>
+            <span style="color: #0000ff;">&lt;</span><span style="color: #800000;">w:tcPr</span><span style="color: #0000ff;">&gt;</span>
+                <span style="color: #0000ff;">&lt;</span><span style="color: #800000;">w:tcW </span><span style="color: #ff0000;">w:w</span><span style="color: #0000ff;">="0"</span><span style="color: #ff0000;"> w:type</span><span style="color: #0000ff;">="auto"</span><span style="color: #0000ff;">/&gt;</span>
+                <span style="color: #0000ff;">&lt;</span><span style="color: #800000;">w:vAlign </span><span style="color: #ff0000;">w:val</span><span style="color: #0000ff;">="center"</span><span style="color: #0000ff;">/&gt;</span>
+            <span style="color: #0000ff;">&lt;/</span><span style="color: #800000;">w:tcPr</span><span style="color: #0000ff;">&gt;</span>
+            <span style="color: #0000ff;">&lt;</span><span style="color: #800000;">w:p </span><span style="color: #ff0000;">w:rsidR</span><span style="color: #0000ff;">="00A93926"</span><span style="color: #ff0000;"> w:rsidRPr</span><span style="color: #0000ff;">="00A93926"</span><span style="color: #ff0000;"> w:rsidRDefault</span><span style="color: #0000ff;">="00BF47F0"</span><span style="color: #ff0000;"> w:rsidP</span><span style="color: #0000ff;">="00A93926"</span><span style="color: #0000ff;">&gt;</span>
+                <span style="color: #0000ff;">&lt;</span><span style="color: #800000;">w:pPr</span><span style="color: #0000ff;">&gt;</span>
+                    <span style="color: #0000ff;">&lt;</span><span style="color: #800000;">w:rPr</span><span style="color: #0000ff;">&gt;</span>
+                        <span style="color: #0000ff;">&lt;</span><span style="color: #800000;">w:b</span><span style="color: #0000ff;">/&gt;</span>
+                    <span style="color: #0000ff;">&lt;/</span><span style="color: #800000;">w:rPr</span><span style="color: #0000ff;">&gt;</span>
+                <span style="color: #0000ff;">&lt;/</span><span style="color: #800000;">w:pPr</span><span style="color: #0000ff;">&gt;</span>
+                <span style="color: #0000ff;">&lt;</span><span style="color: #800000;">w:r</span><span style="color: #0000ff;">&gt;</span>
+                    <span style="color: #0000ff;">&lt;</span><span style="color: #800000;">w:rPr</span><span style="color: #0000ff;">&gt;</span>
+                        <span style="color: #0000ff;">&lt;</span><span style="color: #800000;">w:rFonts </span><span style="color: #ff0000;">w:hint</span><span style="color: #0000ff;">="eastAsia"</span><span style="color: #0000ff;">/&gt;</span>
+                        <span style="color: #0000ff;">&lt;</span><span style="color: #800000;">w:b</span><span style="color: #0000ff;">/&gt;</span>
+                    <span style="color: #0000ff;">&lt;/</span><span style="color: #800000;">w:rPr</span><span style="color: #0000ff;">&gt;</span>
+                    <span style="color: #0000ff;">&lt;</span><span style="color: #800000;">w:t</span><span style="color: #0000ff;">&gt;</span>一、<span style="color: #0000ff;">&lt;/</span><span style="color: #800000;">w:t</span><span style="color: #0000ff;">&gt;</span>
+                <span style="color: #0000ff;">&lt;/</span><span style="color: #800000;">w:r</span><span style="color: #0000ff;">&gt;</span>
+                <span style="color: #0000ff;">&lt;</span><span style="color: #800000;">w:r</span><span style="color: #0000ff;">&gt;</span>
+                    <span style="color: #0000ff;">&lt;</span><span style="color: #800000;">w:rPr</span><span style="color: #0000ff;">&gt;</span>
+                        <span style="color: #0000ff;">&lt;</span><span style="color: #800000;">w:rFonts </span><span style="color: #ff0000;">w:hint</span><span style="color: #0000ff;">="eastAsia"</span><span style="color: #0000ff;">/&gt;</span>
+                        <span style="color: #0000ff;">&lt;</span><span style="color: #800000;">w:b</span><span style="color: #0000ff;">/&gt;</span>
+                    <span style="color: #0000ff;">&lt;/</span><span style="color: #800000;">w:rPr</span><span style="color: #0000ff;">&gt;</span>
+                    <span style="color: #0000ff;">&lt;</span><span style="color: #800000;">w:t </span><span style="color: #ff0000;">xml:space</span><span style="color: #0000ff;">="preserve"</span><span style="color: #0000ff;">&gt;</span> <span style="color: #0000ff;">&lt;/</span><span style="color: #800000;">w:t</span><span style="color: #0000ff;">&gt;</span>
+                <span style="color: #0000ff;">&lt;/</span><span style="color: #800000;">w:r</span><span style="color: #0000ff;">&gt;</span>
+                <span style="color: #0000ff;">&lt;</span><span style="color: #800000;">w:r</span><span style="color: #0000ff;">&gt;</span>
+                    <span style="color: #0000ff;">&lt;</span><span style="color: #800000;">w:rPr</span><span style="color: #0000ff;">&gt;</span>
+                        <span style="color: #0000ff;">&lt;</span><span style="color: #800000;">w:rFonts </span><span style="color: #ff0000;">w:hint</span><span style="color: #0000ff;">="eastAsia"</span><span style="color: #0000ff;">/&gt;</span>
+                        <span style="color: #0000ff;">&lt;</span><span style="color: #800000;">w:b</span><span style="color: #0000ff;">/&gt;</span>
+                    <span style="color: #0000ff;">&lt;/</span><span style="color: #800000;">w:rPr</span><span style="color: #0000ff;">&gt;</span>
+                    <span style="color: #0000ff;">&lt;</span><span style="color: #800000;">w:t</span><span style="color: #0000ff;">&gt;</span>解答题<span style="color: #0000ff;">&lt;/</span><span style="color: #800000;">w:t</span><span style="color: #0000ff;">&gt;</span>
+                <span style="color: #0000ff;">&lt;/</span><span style="color: #800000;">w:r</span><span style="color: #0000ff;">&gt;</span>
+            <span style="color: #0000ff;">&lt;/</span><span style="color: #800000;">w:p</span><span style="color: #0000ff;">&gt;</span>
+        <span style="color: #0000ff;">&lt;/</span><span style="color: #800000;">w:tc</span><span style="color: #0000ff;">&gt;</span>
+    <span style="color: #0000ff;">&lt;/</span><span style="color: #800000;">w:tr</span><span style="color: #0000ff;">&gt;</span>
+<span style="color: #0000ff;">&lt;/</span><span style="color: #800000;">w:tbl</span><span style="color: #0000ff;">&gt;</span></code></pre>
+
+<p style="margin-left: 60px;">4&gt;latex转换成的word公式：omml：</p>
+<src class="cnblogs_code">
+<pre><code><span style="color: #0000ff;">&lt;</span><span style="color: #800000;">m:oMath</span><span style="color: #0000ff;">&gt;</span>
+    <span style="color: #0000ff;">&lt;</span><span style="color: #800000;">m:f</span><span style="color: #0000ff;">&gt;</span>
+        <span style="color: #0000ff;">&lt;</span><span style="color: #800000;">m:fPr</span><span style="color: #0000ff;">&gt;</span>
+            <span style="color: #0000ff;">&lt;</span><span style="color: #800000;">m:ctrlPr</span><span style="color: #0000ff;">&gt;</span>
+                <span style="color: #0000ff;">&lt;</span><span style="color: #800000;">w:rPr</span><span style="color: #0000ff;">&gt;</span>
+                    <span style="color: #0000ff;">&lt;</span><span style="color: #800000;">w:sz </span><span style="color: #ff0000;">w:val</span><span style="color: #0000ff;">="30"</span><span style="color: #0000ff;">/&gt;</span>
+                <span style="color: #0000ff;">&lt;/</span><span style="color: #800000;">w:rPr</span><span style="color: #0000ff;">&gt;</span>
+            <span style="color: #0000ff;">&lt;/</span><span style="color: #800000;">m:ctrlPr</span><span style="color: #0000ff;">&gt;</span>
+        <span style="color: #0000ff;">&lt;/</span><span style="color: #800000;">m:fPr</span><span style="color: #0000ff;">&gt;</span>
+        <span style="color: #0000ff;">&lt;</span><span style="color: #800000;">m:num</span><span style="color: #0000ff;">&gt;</span>
+            <span style="color: #0000ff;">&lt;</span><span style="color: #800000;">m:r</span><span style="color: #0000ff;">&gt;</span>
+                <span style="color: #0000ff;">&lt;</span><span style="color: #800000;">w:rPr</span><span style="color: #0000ff;">&gt;</span>
+                    <span style="color: #0000ff;">&lt;</span><span style="color: #800000;">w:sz </span><span style="color: #ff0000;">w:val</span><span style="color: #0000ff;">="30"</span><span style="color: #0000ff;">/&gt;</span>
+                <span style="color: #0000ff;">&lt;/</span><span style="color: #800000;">w:rPr</span><span style="color: #0000ff;">&gt;</span>
+                <span style="color: #0000ff;">&lt;</span><span style="color: #800000;">m:t</span><span style="color: #0000ff;">&gt;</span>a<span style="color: #0000ff;">&lt;/</span><span style="color: #800000;">m:t</span><span style="color: #0000ff;">&gt;</span>
+            <span style="color: #0000ff;">&lt;/</span><span style="color: #800000;">m:r</span><span style="color: #0000ff;">&gt;</span>
+        <span style="color: #0000ff;">&lt;/</span><span style="color: #800000;">m:num</span><span style="color: #0000ff;">&gt;</span>
+        <span style="color: #0000ff;">&lt;</span><span style="color: #800000;">m:den</span><span style="color: #0000ff;">&gt;</span>
+            <span style="color: #0000ff;">&lt;</span><span style="color: #800000;">m:r</span><span style="color: #0000ff;">&gt;</span>
+                <span style="color: #0000ff;">&lt;</span><span style="color: #800000;">w:rPr</span><span style="color: #0000ff;">&gt;</span>
+                    <span style="color: #0000ff;">&lt;</span><span style="color: #800000;">w:sz </span><span style="color: #ff0000;">w:val</span><span style="color: #0000ff;">="30"</span><span style="color: #0000ff;">/&gt;</span>
+                <span style="color: #0000ff;">&lt;/</span><span style="color: #800000;">w:rPr</span><span style="color: #0000ff;">&gt;</span>
+                <span style="color: #0000ff;">&lt;</span><span style="color: #800000;">m:t</span><span style="color: #0000ff;">&gt;</span>sinA<span style="color: #0000ff;">&lt;/</span><span style="color: #800000;">m:t</span><span style="color: #0000ff;">&gt;</span>
+            <span style="color: #0000ff;">&lt;/</span><span style="color: #800000;">m:r</span><span style="color: #0000ff;">&gt;</span>
+        <span style="color: #0000ff;">&lt;/</span><span style="color: #800000;">m:den</span><span style="color: #0000ff;">&gt;</span>
+    <span style="color: #0000ff;">&lt;/</span><span style="color: #800000;">m:f</span><span style="color: #0000ff;">&gt;</span>
+<span style="color: #0000ff;">&lt;/</span><span style="color: #800000;">m:oMath</span><span style="color: #0000ff;">&gt;</span></code></pre>
+
+<p style="margin-left: 60px;">5&gt; 纸张大小，单双栏，页眉，页脚显示设置：</p>
+<p style="margin-left: 90px;">&lt;w:headerReference&gt;: 页眉设置&nbsp; &nbsp; &nbsp;&nbsp;w:type：可以设置单双页显示</p>
+<p style="margin-left: 90px;">&lt;w:footerReference&gt; : 页脚设置&nbsp; &nbsp; &nbsp; &nbsp;w:type：可以设置单双页显示</p>
+<p style="margin-left: 90px;">&lt;w:pgSz&gt; : 纸张宽高设置，此处可以调整A3,A4,B4,B5等样式</p>
+<p style="margin-left: 90px;">&lt;w:pgMar&gt;: 页边距等设置</p>
+<p style="margin-left: 90px;">&lt;w:cols&gt;: 单双栏设置</p>
+<p style="margin-left: 90px;">&lt;w:docGrid&gt;: 分栏线设置</p>
+<src class="cnblogs_code">
+<pre><code><span style="color: #0000ff;">&lt;</span><span style="color: #800000;">w:p </span><span style="color: #ff0000;">w:rsidR</span><span style="color: #0000ff;">="005320E8"</span><span style="color: #ff0000;"> w:rsidRDefault</span><span style="color: #0000ff;">="00286E3F"</span><span style="color: #ff0000;"> w:rsidP</span><span style="color: #0000ff;">="00B33EF9"</span><span style="color: #0000ff;">&gt;</span>
+    <span style="color: #0000ff;">&lt;</span><span style="color: #800000;">w:pPr</span><span style="color: #0000ff;">&gt;</span>
+        <span style="color: #0000ff;">&lt;</span><span style="color: #800000;">w:sectPr </span><span style="color: #ff0000;">w:rsidR</span><span style="color: #0000ff;">="005320E8"</span><span style="color: #ff0000;"> w:rsidSect</span><span style="color: #0000ff;">="007A55E5"</span><span style="color: #0000ff;">&gt;</span>
+            <span style="color: #0000ff;">&lt;</span><span style="color: #800000;">w:headerReference </span><span style="color: #ff0000;">w:type</span><span style="color: #0000ff;">="even"</span><span style="color: #ff0000;"> r:id</span><span style="color: #0000ff;">="rId9"</span><span style="color: #0000ff;">/&gt;</span>
+            <span style="color: #0000ff;">&lt;</span><span style="color: #800000;">w:headerReference </span><span style="color: #ff0000;">w:type</span><span style="color: #0000ff;">="default"</span><span style="color: #ff0000;"> r:id</span><span style="color: #0000ff;">="rId10"</span><span style="color: #0000ff;">/&gt;</span>
+            <span style="color: #0000ff;">&lt;</span><span style="color: #800000;">w:footerReference </span><span style="color: #ff0000;">w:type</span><span style="color: #0000ff;">="even"</span><span style="color: #ff0000;"> r:id</span><span style="color: #0000ff;">="rId11"</span><span style="color: #0000ff;">/&gt;</span>
+            <span style="color: #0000ff;">&lt;</span><span style="color: #800000;">w:footerReference </span><span style="color: #ff0000;">w:type</span><span style="color: #0000ff;">="default"</span><span style="color: #ff0000;"> r:id</span><span style="color: #0000ff;">="rId12"</span><span style="color: #0000ff;">/&gt;</span>
+            <span style="color: #0000ff;">&lt;</span><span style="color: #800000;">w:pgSz </span><span style="color: #ff0000;">w:w</span><span style="color: #0000ff;">="23814"</span><span style="color: #ff0000;"> w:h</span><span style="color: #0000ff;">="16840"</span><span style="color: #ff0000;"> w:orient</span><span style="color: #0000ff;">="landscape"</span><span style="color: #ff0000;"> w:code</span><span style="color: #0000ff;">="9"</span><span style="color: #0000ff;">/&gt;</span>
+            <span style="color: #0000ff;">&lt;</span><span style="color: #800000;">w:pgMar </span><span style="color: #ff0000;">w:top</span><span style="color: #0000ff;">="1134"</span><span style="color: #ff0000;"> w:right</span><span style="color: #0000ff;">="1000"</span><span style="color: #ff0000;"> w:bottom</span><span style="color: #0000ff;">="1134"</span><span style="color: #ff0000;"> w:left</span><span style="color: #0000ff;">="1000"</span><span style="color: #ff0000;"> w:header</span><span style="color: #0000ff;">="851"</span><span style="color: #ff0000;"> w:footer</span><span style="color: #0000ff;">="692"</span><span style="color: #ff0000;"> w:gutter</span><span style="color: #0000ff;">="0"</span><span style="color: #0000ff;">/&gt;</span>
+            <span style="color: #0000ff;">&lt;</span><span style="color: #800000;">w:cols </span><span style="color: #ff0000;">w:num</span><span style="color: #0000ff;">="2"</span><span style="color: #ff0000;"> w:sep</span><span style="color: #0000ff;">="1"</span><span style="color: #ff0000;"> w:space</span><span style="color: #0000ff;">="425"</span><span style="color: #0000ff;">/&gt;</span>
+            <span style="color: #0000ff;">&lt;</span><span style="color: #800000;">w:docGrid </span><span style="color: #ff0000;">w:type</span><span style="color: #0000ff;">="lines"</span><span style="color: #ff0000;"> w:linePitch</span><span style="color: #0000ff;">="312"</span><span style="color: #0000ff;">/&gt;</span>
+        <span style="color: #0000ff;">&lt;/</span><span style="color: #800000;">w:sectPr</span><span style="color: #0000ff;">&gt;</span>
+    <span style="color: #0000ff;">&lt;/</span><span style="color: #800000;">w:pPr</span><span style="color: #0000ff;">&gt;</span>
+<span style="color: #0000ff;">&lt;/</span><span style="color: #800000;">w:p</span><span style="color: #0000ff;">&gt;</span></code></pre>
+
+<p style="margin-left: 30px;">以上就是word试卷样板和word结构和标签的简单介绍，这写对于生成word很重要，涉及的内容也比较多，本人了解的也不多，是一个个试出来的，如有其它需求大家可以查文档或通过控制变量的方式，打开word编辑出自己想要的样式转成xml和原版xml对比找出不同的部分锁定样式设置的地方</p>
+<p>&nbsp;</p>
+<p style="margin-left: 30px;">2.&nbsp; 将xml样板转换为freemark的ftl模板</p>
+<p style="margin-left: 60px;">1）.doc的xml文件直接将后缀改为.ftl,并将模板中的过多信息删除（每个后期填充的图片，段落样式保持一个），做到最精简的模板，放入项目中</p>
+<p style="margin-left: 60px;">2）.docx的xml文件将 /word/document.xml 正文部分取出，如果页眉页脚样式也会有灵活变化也可以取出来做成模板，放入项目中</p>
+<p>&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;<img src="./images/html 试题试卷（包含latex）下载成word - - java4.png" alt="" /></p>
+<p style="margin-left: 30px;">3）.编写数据填充逻辑（得有一定基础的freemark语法基础）</p>
+<p style="margin-left: 60px;">doc模板的数据填充逻辑编写描述：</p>
+<p style="margin-left: 60px;">1&gt;:图片引用编写：在/word/_rels/document.xml.rels 部分，动态引入图片链接，同时图片的base64也应该引到pkg:part 里</p>
+<src class="cnblogs_code">
+<pre><code><span style="color: #0000ff;">&lt;</span><span style="color: #800000;">pkg:part </span><span style="color: #ff0000;">pkg:name</span><span style="color: #0000ff;">="/word/_rels/document.xml.rels"</span><span style="color: #ff0000;"> pkg:contentType</span><span style="color: #0000ff;">="application/vnd.openxmlformats-package.relationships+xml"</span><span style="color: #ff0000;"> pkg:padding</span><span style="color: #0000ff;">="256"</span><span style="color: #0000ff;">&gt;</span>
+    <span style="color: #0000ff;">&lt;</span><span style="color: #800000;">pkg:xmlData</span><span style="color: #0000ff;">&gt;</span>
+        <span style="color: #0000ff;">&lt;</span><span style="color: #800000;">Relationships </span><span style="color: #ff0000;">xmlns</span><span style="color: #0000ff;">="http://schemas.openxmlformats.org/package/2006/relationships"</span><span style="color: #0000ff;">&gt;</span>
+            <span style="color: #0000ff;">&lt;</span><span style="color: #800000;">Relationship </span><span style="color: #ff0000;">Id</span><span style="color: #0000ff;">="rId8"</span><span style="color: #ff0000;"> Type</span><span style="color: #0000ff;">="http://schemas.openxmlformats.org/officeDocument/2006/relationships/header"</span><span style="color: #ff0000;"> Target</span><span style="color: #0000ff;">="header2.xml"</span><span style="color: #0000ff;">/&gt;</span><span style="color: #000000;">
+             ..........
+            </span><span style="color: #0000ff;">&lt;</span><span style="color: #800000;">#list </span><span style="color: #ff0000;">relations.relationshipStr as rs</span><span style="color: #0000ff;">&gt;</span><span style="color: #000000;"> 
+                    ${rs} 
+            </span><span style="color: #0000ff;">&lt;/</span><span style="color: #800000;">#list</span><span style="color: #0000ff;">&gt;</span> 
+        <span style="color: #0000ff;">&lt;/</span><span style="color: #800000;">Relationships</span><span style="color: #0000ff;">&gt;</span>
+    <span style="color: #0000ff;">&lt;/</span><span style="color: #800000;">pkg:xmlData</span><span style="color: #0000ff;">&gt;</span>
+<span style="color: #0000ff;">&lt;/</span><span style="color: #800000;">pkg:part</span><span style="color: #0000ff;">&gt;</span></code></pre>
+
+<p style="margin-left: 90px;">2&gt;:题文内容填充：在/word/document.xml部分</p>
+<src class="cnblogs_code">
+<pre><code><span style="color: #0000ff;">&lt;</span><span style="color: #800000;">w:p </span><span style="color: #ff0000;">w:rsidR</span><span style="color: #0000ff;">="00C93DDE"</span><span style="color: #ff0000;"> w:rsidRPr</span><span style="color: #0000ff;">="00771D19"</span><span style="color: #ff0000;"> w:rsidRDefault</span><span style="color: #0000ff;">="00BF47F0"</span><span style="color: #ff0000;"> w:rsidP</span><span style="color: #0000ff;">="00C93DDE"</span><span style="color: #0000ff;">&gt;</span>
+    <span style="color: #0000ff;">&lt;</span><span style="color: #800000;">w:pPr</span><span style="color: #0000ff;">&gt;</span>
+        <span style="color: #0000ff;">&lt;</span><span style="color: #800000;">w:jc </span><span style="color: #ff0000;">w:val</span><span style="color: #0000ff;">="center"</span><span style="color: #0000ff;">/&gt;</span>
+        <span style="color: #0000ff;">&lt;</span><span style="color: #800000;">w:rPr</span><span style="color: #0000ff;">&gt;</span>
+            <span style="color: #0000ff;">&lt;</span><span style="color: #800000;">w:rFonts </span><span style="color: #ff0000;">w:eastAsia</span><span style="color: #0000ff;">="黑体"</span><span style="color: #0000ff;">/&gt;</span>
+            <span style="color: #0000ff;">&lt;</span><span style="color: #800000;">w:b</span><span style="color: #0000ff;">/&gt;</span>
+            <span style="color: #0000ff;">&lt;</span><span style="color: #800000;">w:sz </span><span style="color: #ff0000;">w:val</span><span style="color: #0000ff;">="30"</span><span style="color: #0000ff;">/&gt;</span>
+            <span style="color: #0000ff;">&lt;</span><span style="color: #800000;">w:szCs </span><span style="color: #ff0000;">w:val</span><span style="color: #0000ff;">="30"</span><span style="color: #0000ff;">/&gt;</span>
+        <span style="color: #0000ff;">&lt;/</span><span style="color: #800000;">w:rPr</span><span style="color: #0000ff;">&gt;</span>
+    <span style="color: #0000ff;">&lt;/</span><span style="color: #800000;">w:pPr</span><span style="color: #0000ff;">&gt;</span>
+    <span style="color: #0000ff;">&lt;</span><span style="color: #800000;">w:r </span><span style="color: #ff0000;">w:rsidRPr</span><span style="color: #0000ff;">="00771D19"</span><span style="color: #0000ff;">&gt;</span>
+        <span style="color: #0000ff;">&lt;</span><span style="color: #800000;">w:rPr</span><span style="color: #0000ff;">&gt;</span>
+            <span style="color: #0000ff;">&lt;</span><span style="color: #800000;">w:rFonts </span><span style="color: #ff0000;">w:eastAsia</span><span style="color: #0000ff;">="黑体"</span><span style="color: #ff0000;"> w:hint</span><span style="color: #0000ff;">="eastAsia"</span><span style="color: #0000ff;">/&gt;</span>
+            <span style="color: #0000ff;">&lt;</span><span style="color: #800000;">w:b</span><span style="color: #0000ff;">/&gt;</span>
+            <span style="color: #0000ff;">&lt;</span><span style="color: #800000;">w:sz </span><span style="color: #ff0000;">w:val</span><span style="color: #0000ff;">="30"</span><span style="color: #0000ff;">/&gt;</span>
+            <span style="color: #0000ff;">&lt;</span><span style="color: #800000;">w:szCs </span><span style="color: #ff0000;">w:val</span><span style="color: #0000ff;">="30"</span><span style="color: #0000ff;">/&gt;</span>
+        <span style="color: #0000ff;">&lt;/</span><span style="color: #800000;">w:rPr</span><span style="color: #0000ff;">&gt;</span>
+        <span style="color: #0000ff;">&lt;</span><span style="color: #800000;">w:t</span><span style="color: #0000ff;">&gt;</span>${(mainTitle.mainTitleName)!'XXXX学年度XX学校XX考试'}<span style="color: #0000ff;">&lt;/</span><span style="color: #800000;">w:t</span><span style="color: #0000ff;">&gt;</span>
+    <span style="color: #0000ff;">&lt;/</span><span style="color: #800000;">w:r</span><span style="color: #0000ff;">&gt;</span>
+<span style="color: #0000ff;">&lt;/</span><span style="color: #800000;">w:p</span><span style="color: #0000ff;">&gt;</span>
+
+<span style="color: #0000ff;">&lt;</span><span style="color: #800000;">#list </span><span style="color: #ff0000;">questionsList as qMap</span><span style="color: #0000ff;">&gt;</span>
+    <span style="color: #0000ff;">&lt;</span><span style="color: #800000;">w:p </span><span style="color: #ff0000;">w:rsidR</span><span style="color: #0000ff;">="00A81065"</span><span style="color: #ff0000;"> w:rsidRDefault</span><span style="color: #0000ff;">="00BF47F0"</span><span style="color: #ff0000;"> w:rsidP</span><span style="color: #0000ff;">="00744A41"</span><span style="color: #0000ff;">&gt;</span>
+        <span style="color: #0000ff;">&lt;</span><span style="color: #800000;">w:pPr</span><span style="color: #0000ff;">&gt;</span>
+            <span style="color: #0000ff;">&lt;</span><span style="color: #800000;">w:pStyle </span><span style="color: #ff0000;">w:val</span><span style="color: #0000ff;">="a7"</span><span style="color: #0000ff;">/&gt;</span>
+            <span style="color: #0000ff;">&lt;</span><span style="color: #800000;">w:ind </span><span style="color: #ff0000;">w:firstLineChars</span><span style="color: #0000ff;">="0"</span><span style="color: #0000ff;">/&gt;</span>
+            <span style="color: #0000ff;">&lt;</span><span style="color: #800000;">w:textAlignment </span><span style="color: #ff0000;">w:val</span><span style="color: #0000ff;">="center"</span><span style="color: #0000ff;">/&gt;</span>
+            <span style="color: #0000ff;">&lt;</span><span style="color: #800000;">w:spacing </span><span style="color: #ff0000;">w:line</span><span style="color: #0000ff;">="360"</span><span style="color: #ff0000;"> w:lineRule</span><span style="color: #0000ff;">="auto"</span><span style="color: #0000ff;">/&gt;</span>
+        <span style="color: #0000ff;">&lt;/</span><span style="color: #800000;">w:pPr</span><span style="color: #0000ff;">&gt;</span><span style="color: #000000;">
+    ${(qMap.questionContent)!""}
+    </span><span style="color: #0000ff;">&lt;/</span><span style="color: #800000;">w:p</span><span style="color: #0000ff;">&gt;</span>
+<span style="color: #0000ff;">&lt;/</span><span style="color: #800000;">#list</span><span style="color: #0000ff;">&gt;</span></code></pre>
+
+<p style="margin-left: 30px;">基本就是些if，else，循环list的操作就可以满足基本的需求，不再列举，只要找到正确样式和样式位置就可以完成</p>
+<p><strong>&nbsp; 根据freemark模板下载word程序编写：</strong></p>
+<p style="margin-left: 30px;">1.&nbsp; 引入freemarker jar包</p>
+<src class="cnblogs_code">
+<pre><code><span style="color: #0000ff;">&lt;</span><span style="color: #800000;">dependency</span><span style="color: #0000ff;">&gt;</span>
+    <span style="color: #0000ff;">&lt;</span><span style="color: #800000;">groupId</span><span style="color: #0000ff;">&gt;</span>org.freemarker<span style="color: #0000ff;">&lt;/</span><span style="color: #800000;">groupId</span><span style="color: #0000ff;">&gt;</span>
+    <span style="color: #0000ff;">&lt;</span><span style="color: #800000;">artifactId</span><span style="color: #0000ff;">&gt;</span>freemarker<span style="color: #0000ff;">&lt;/</span><span style="color: #800000;">artifactId</span><span style="color: #0000ff;">&gt;</span>
+    <span style="color: #0000ff;">&lt;</span><span style="color: #800000;">version</span><span style="color: #0000ff;">&gt;</span>2.3.26-incubating<span style="color: #0000ff;">&lt;/</span><span style="color: #800000;">version</span><span style="color: #0000ff;">&gt;</span>
+<span style="color: #0000ff;">&lt;/</span><span style="color: #800000;">dependency</span><span style="color: #0000ff;">&gt;</span></code></pre>
+
+<p style="margin-left: 30px;">2.&nbsp; 模板读取</p>
+<src class="cnblogs_code">
+<pre><code><span style="color: #0000ff;">public</span> <span style="color: #0000ff;">class</span><span style="color: #000000;"> PaperDownloadSeting {
+    </span><span style="color: #0000ff;">private</span> <span style="color: #0000ff;">static</span> Configuration configuration = <span style="color: #0000ff;">null</span><span style="color: #000000;">;
+    </span><span style="color: #0000ff;">private</span> <span style="color: #0000ff;">static</span> Map&lt;String, Template&gt; allTemplate = <span style="color: #0000ff;">null</span><span style="color: #000000;">;
+    </span><span style="color: #0000ff;">private</span> <span style="color: #0000ff;">static</span> Logger logger= LoggerFactory.getLogger(PaperDownloadSeting.<span style="color: #0000ff;">class</span><span style="color: #000000;">.getName());
+    </span><span style="color: #0000ff;">static</span><span style="color: #000000;">{
+        configuration </span>= <span style="color: #0000ff;">new</span><span style="color: #000000;"> Configuration(Configuration.VERSION_2_3_0);
+        configuration.setDefaultEncoding(</span>"UTF-8"<span style="color: #000000;">);
+        configuration.setClassForTemplateLoading(PaperDownloadSeting.</span><span style="color: #0000ff;">class</span>, "/freemarkmould/papermould/"<span style="color: #000000;">);
+        allTemplate </span>= <span style="color: #0000ff;">new</span> HashMap&lt;String,Template&gt;<span style="color: #000000;">();
+        </span><span style="color: #0000ff;">try</span><span style="color: #000000;">{
+            allTemplate.put(</span>"docmould", configuration.getTemplate("docmould.ftl"<span style="color: #000000;">));
+            allTemplate.put(</span>"docxDocumentMould", configuration.getTemplate("docxmould/document.ftl"<span style="color: #000000;">));
+            allTemplate.put(</span>"docxHeader1Mould", configuration.getTemplate("docxmould/header1.ftl"<span style="color: #000000;">));
+            allTemplate.put(</span>"docxHeader2Mould", configuration.getTemplate("docxmould/header2.ftl"<span style="color: #000000;">));
+            allTemplate.put(</span>"docxStylesMould", configuration.getTemplate("docxmould/styles.ftl"<span style="color: #000000;">));
+        }</span><span style="color: #0000ff;">catch</span><span style="color: #000000;">(IOException e){
+            e.printStackTrace();
+            </span><span style="color: #0000ff;">throw</span> <span style="color: #0000ff;">new</span><span style="color: #000000;"> RuntimeException(e);
+        }
+    }</span></code></pre>
+
+<p style="margin-left: 30px;">3.&nbsp; 数据填充，word流生成</p>
+<src class="cnblogs_code">
+<pre><code><span style="color: #008000;">    /**</span><span style="color: #008000;">
+     *@Desc: 获取word文件流，paperMap：处理成word样式的试卷信息，out：word输出流
+     </span><span style="color: #008000;">*/</span>
+    <span style="color: #0000ff;">public</span>  <span style="color: #0000ff;">static</span> <span style="color: #0000ff;">void</span> getwordFileOutPutStream(Map&lt;String, Object&gt;<span style="color: #000000;"> paperMap,String docType, OutputStream out){
+        </span><span style="color: #0000ff;">try</span><span style="color: #000000;">{
+            Writer w </span>= <span style="color: #0000ff;">new</span> OutputStreamWriter(out,"utf-8"<span style="color: #000000;">);
+            </span><span style="color: #0000ff;">if</span>(docType.equals("doc"<span style="color: #000000;">)) {
+                Template t </span>= allTemplate.get("docmould"<span style="color: #000000;">);
+                t.process(paperMap,w);<span style="color: #339966;">//freemark向模板填充数据</span>
+                w.close();
+                deleteTmpImages(paperMap.get(</span>"tempMediaPath"<span style="color: #000000;">).toString());
+            }
+            </span><span style="color: #0000ff;">if</span>(docType.equals("docx"<span style="color: #000000;">)) {
+                ZipOutputStream zipout </span>= <span style="color: #0000ff;">new</span><span style="color: #000000;"> ZipOutputStream(out);
+                zipdocx(paperMap,zipout);
+            }
+        }</span><span style="color: #0000ff;">catch</span><span style="color: #000000;">(Exception e){
+            e.printStackTrace();
+            </span><span style="color: #0000ff;">throw</span> <span style="color: #0000ff;">new</span><span style="color: #000000;"> RuntimeException(e);
+        }</span><span style="color: #0000ff;">finally</span><span style="color: #000000;"> {
+            </span><span style="color: #0000ff;">try</span><span style="color: #000000;"> {
+                out.close();
+                deleteTmpImages(paperMap.get(</span>"tempMediaPath"<span style="color: #000000;">).toString());
+            } </span><span style="color: #0000ff;">catch</span><span style="color: #000000;"> (Exception e2) {
+                e2.printStackTrace();
+            }
+        }
+    }
+
+    </span><span style="color: #008000;">/**</span><span style="color: #008000;">
+     *@Desc: docx的试卷下载，解压静态样板，用已经填充的模板替换正文，页眉，页脚，样式等样板文件，在压缩
+     </span><span style="color: #008000;">*/</span><span style="color: #000000;">
+    @SuppressWarnings(</span>"unchecked"<span style="color: #000000;">)
+    </span><span style="color: #0000ff;">public</span> <span style="color: #0000ff;">static</span> <span style="color: #0000ff;">void</span> zipdocx(Map&lt;String, Object&gt; paperMap,ZipOutputStream zipout) <span style="color: #0000ff;">throws</span><span style="color: #000000;"> IOException, TemplateException, URISyntaxException {
+        Map</span>&lt;String, Object&gt; relationsMap= JsonUtil.fromJson(JsonUtil.toJson(paperMap.get("relations")), Map.<span style="color: #0000ff;">class</span><span style="color: #000000;">);
+        List</span>&lt;String&gt; relationshipStr=JsonUtil.fromJson(JsonUtil.toJson(relationsMap.get("relationshipStr")), List.<span style="color: #0000ff;">class</span><span style="color: #000000;">);
+        Template doct </span>= allTemplate.get("docxDocumentMould");<span style="color: #008000;">//</span><span style="color: #008000;">正文模板</span>
+        Template hea1t = allTemplate.get("docxHeader1Mould");<span style="color: #008000;">//</span><span style="color: #008000;">页眉样式</span>
+        Template hea2t = allTemplate.get("docxHeader2Mould");<span style="color: #008000;">//</span><span style="color: #008000;">另一个页眉样式</span>
+        Template stylt = allTemplate.get("docxStylesMould");<span style="color: #008000;">//</span><span style="color: #008000;">全局样式模板</span>
+        Writer w = <span style="color: #0000ff;">new</span> OutputStreamWriter(zipout,"utf-8"<span style="color: #000000;">);
+        File file</span>=<span style="color: #000000;">makeDirs();
+        ZipFile zipFile </span>= <span style="color: #0000ff;">new</span><span style="color: #000000;"> ZipFile(file);
+        Enumeration</span>&lt;? <span style="color: #0000ff;">extends</span> ZipEntry&gt; zipEntrys =<span style="color: #000000;"> zipFile.entries();
+        </span><span style="color: #0000ff;">int</span> len = -1<span style="color: #000000;">;
+        </span><span style="color: #0000ff;">byte</span>[] buffer = <span style="color: #0000ff;">new</span> <span style="color: #0000ff;">byte</span>[1024<span style="color: #000000;">];
+        </span><span style="color: #0000ff;">while</span><span style="color: #000000;"> (zipEntrys.hasMoreElements()) {
+            ZipEntry next </span>=<span style="color: #000000;"> zipEntrys.nextElement();
+            zipout.putNextEntry(</span><span style="color: #0000ff;">new</span><span style="color: #000000;"> ZipEntry(next.toString()));
+            </span><span style="color: #0000ff;">if</span> ("word/document.xml"<span style="color: #000000;">.equals(next.toString())) {
+                doct.process(paperMap,w);</span><span style="color: #008000;">//</span><span style="color: #008000;">向模板填充试卷正文内容</span>
+<span style="color: #000000;">            }
+            </span><span style="color: #0000ff;">else</span> <span style="color: #0000ff;">if</span> ("word/header1.xml"<span style="color: #000000;">.equals(next.toString())) {
+                hea1t.process(paperMap,w);</span><span style="color: #008000;">//</span><span style="color: #008000;">向模板填充页眉样式</span>
+<span style="color: #000000;">            }
+            </span><span style="color: #0000ff;">else</span> <span style="color: #0000ff;">if</span> ("word/header2.xml"<span style="color: #000000;">.equals(next.toString())) {
+                hea2t.process(paperMap,w);</span><span style="color: #008000;">//</span><span style="color: #008000;">向模板填充页眉样式</span>
+<span style="color: #000000;">            }
+            </span><span style="color: #0000ff;">else</span> <span style="color: #0000ff;">if</span> ("word/styles.xml"<span style="color: #000000;">.equals(next.toString())) {
+                stylt.process(paperMap,w);</span><span style="color: #008000;">//</span><span style="color: #008000;">向模板填充全局样式</span>
+<span style="color: #000000;">            }
+            </span><span style="color: #0000ff;">else</span><span style="color: #000000;"> {
+                </span><span style="color: #008000;">//</span><span style="color: #008000;">其他文件复制进去</span>
+                InputStream is =<span style="color: #000000;"> zipFile.getInputStream(next);
+                </span><span style="color: #0000ff;">while</span> ((len = is.read(buffer)) != -1<span style="color: #000000;">) {
+                    zipout.write(buffer, </span>0<span style="color: #000000;">, len);
+                }
+                </span><span style="color: #008000;">//</span><span style="color: #008000;">向Relationships写入图片链接</span>
+                <span style="color: #0000ff;">if</span> ("word/_rels/document.xml.rels"<span style="color: #000000;">.equals(next.toString())) {
+                    </span><span style="color: #0000ff;">for</span><span style="color: #000000;">(String str:relationshipStr) {
+                        zipout.write(str.getBytes());
+                    }
+                    String endStr</span>="&lt;/Relationships&gt;"<span style="color: #000000;">;
+                    zipout.write(endStr.getBytes());
+                }
+                is.close();
+            }
+        }
+        </span><span style="color: #008000;">//</span><span style="color: #008000;">往word/media/下添加图片</span>
+        String tempMediaPath=paperMap.get("tempMediaPath"<span style="color: #000000;">).toString();
+        File imagesFile</span>=<span style="color: #0000ff;">new</span><span style="color: #000000;"> File(tempMediaPath);
+        </span><span style="color: #0000ff;">if</span>(tempMediaPath!=<span style="color: #0000ff;">null</span>&amp;&amp;tempMediaPath!=""&amp;&amp;<span style="color: #000000;">imagesFile.exists()) {
+            File[] imagesList </span>=<span style="color: #000000;"> imagesFile.listFiles();
+            </span><span style="color: #0000ff;">if</span>(imagesList.length&gt;0<span style="color: #000000;">) {
+                </span><span style="color: #0000ff;">for</span><span style="color: #000000;">(File tmpFile:imagesList) {
+                    </span><span style="color: #0000ff;">if</span><span style="color: #000000;"> (tmpFile.isFile()) {
+                        zipout.putNextEntry(</span><span style="color: #0000ff;">new</span> ZipEntry("word/media/"+<span style="color: #000000;">tmpFile.getName()));
+                        InputStream input</span>=<span style="color: #0000ff;">new</span><span style="color: #000000;"> FileInputStream(tmpFile);
+                        </span><span style="color: #0000ff;">while</span> ((len = input.read(buffer)) != -1<span style="color: #000000;">) {
+                            zipout.write(buffer, </span>0<span style="color: #000000;">, len);
+                        }
+                        input.close();
+                    }
+                    tmpFile.delete();
+                }
+            }
+        }
+        imagesFile.delete();
+        w.close();
+        zipout.close();
+        zipFile.close();
+    }
+    </span><span style="color: #008000;">/**</span><span style="color: #008000;">
+     *@Desc: 创建word图片临时文件夹，并且返回docx静态模板文件，将静态模板文件放在临时目录下（静态模板较大可以单独放在其他地方，本项目为了方便就放在resources下）
+     </span><span style="color: #008000;">*/</span>
+    <span style="color: #0000ff;">public</span> <span style="color: #0000ff;">static</span><span style="color: #000000;"> File  makeDirs() {
+        String filePath</span>=PaperDownloadSeting.<span style="color: #0000ff;">class</span>.getClassLoader().getResource("").getPath().replace("classes", "tempfile"<span style="color: #000000;">);</span><span style="color: #000000;">
+        String fileName</span>="docxmould.docx"<span style="color: #000000;">;
+        File file</span>=<span style="color: #0000ff;">new</span><span style="color: #000000;"> File(filePath, fileName);
+        </span><span style="color: #0000ff;">if</span><span style="color: #000000;">(file.exists())
+        {
+            </span><span style="color: #0000ff;">if</span>(file.length()&gt;0<span style="color: #000000;">) {
+                </span><span style="color: #0000ff;">return</span><span style="color: #000000;"> file;
+            }
+            file.delete();
+        }
+        file.getParentFile().mkdirs();
+        </span><span style="color: #0000ff;">try</span><span style="color: #000000;"> {
+            file.createNewFile();
+            OutputStream out</span>=<span style="color: #0000ff;">new</span><span style="color: #000000;"> FileOutputStream(file);
+            File modulFile </span>= ResourceUtils.getFile("classpath:freemarkmould/staticmould/docxmould.docx"<span style="color: #000000;">);
+            InputStream in</span>= <span style="color: #0000ff;">new</span><span style="color: #000000;"> FileInputStream(modulFile);
+            </span><span style="color: #0000ff;">byte</span>[] buffer = <span style="color: #0000ff;">new</span> <span style="color: #0000ff;">byte</span>[1024<span style="color: #000000;">];
+            </span><span style="color: #0000ff;">int</span> bytesToRead = -1<span style="color: #000000;">;
+            </span><span style="color: #0000ff;">while</span> ((bytesToRead = in.read(buffer)) != -1<span style="color: #000000;">) {
+                out.write(buffer, </span>0<span style="color: #000000;">, bytesToRead);
+            }
+            in.close();
+            out.flush();
+            out.close();
+        } </span><span style="color: #0000ff;">catch</span><span style="color: #000000;"> (Exception e) {
+            e.printStackTrace();
+        }
+        </span><span style="color: #0000ff;">return</span><span style="color: #000000;"> file;
+    }
+   </span><span style="color: #008000;">/**</span><span style="color: #008000;">
+    *@Desc: 删除临时图片
+    </span><span style="color: #008000;">*/</span>
+    <span style="color: #0000ff;">public</span>  <span style="color: #0000ff;">static</span> <span style="color: #0000ff;">void</span><span style="color: #000000;"> deleteTmpImages(String floderPath) {
+        File imagesFloder</span>=<span style="color: #0000ff;">new</span><span style="color: #000000;"> File(floderPath);
+        </span><span style="color: #0000ff;">if</span>(floderPath==<span style="color: #0000ff;">null</span>||floderPath.equals("")||!imagesFloder.exists()) {<span style="color: #0000ff;">return</span><span style="color: #000000;">;}
+        File[] imagesList </span>=<span style="color: #000000;"> imagesFloder.listFiles();
+        </span><span style="color: #0000ff;">if</span>(imagesList.length&lt;1) {imagesFloder.delete();<span style="color: #0000ff;">return</span><span style="color: #000000;">;}
+        </span><span style="color: #0000ff;">for</span><span style="color: #000000;">(File tmpFile:imagesList) {
+            </span><span style="color: #0000ff;">if</span><span style="color: #000000;"> (tmpFile.isFile()) {tmpFile.delete();}
+        }
+        imagesFloder.delete();
+    }</span></code></pre>
+
+<p style="margin-left: 30px;">到此我们就可以将文本的简单数据填充到模板，并下载成word了，接下来我们要做的就是将html格式的试题转换为相应的word格式，填充到模板</p>
+<p>&nbsp;</p>
+<p><strong>&nbsp; &nbsp;解析html试题内容，将其结构化：</strong></p>
+<p style="margin-left: 30px;">1.&nbsp; 引入XPath jar包</p>
+<src class="cnblogs_code">
+<pre><code><span style="color: #0000ff;">&lt;</span><span style="color: #800000;">dependency</span><span style="color: #0000ff;">&gt;</span>
+    <span style="color: #0000ff;">&lt;</span><span style="color: #800000;">groupId</span><span style="color: #0000ff;">&gt;</span>cn.wanghaomiao<span style="color: #0000ff;">&lt;/</span><span style="color: #800000;">groupId</span><span style="color: #0000ff;">&gt;</span>
+    <span style="color: #0000ff;">&lt;</span><span style="color: #800000;">artifactId</span><span style="color: #0000ff;">&gt;</span>JsoupXpath<span style="color: #0000ff;">&lt;/</span><span style="color: #800000;">artifactId</span><span style="color: #0000ff;">&gt;</span>
+    <span style="color: #0000ff;">&lt;</span><span style="color: #800000;">version</span><span style="color: #0000ff;">&gt;</span>2.2<span style="color: #0000ff;">&lt;/</span><span style="color: #800000;">version</span><span style="color: #0000ff;">&gt;</span>
+<span style="color: #0000ff;">&lt;/</span><span style="color: #800000;">dependency</span><span style="color: #0000ff;">&gt;</span></code></pre>
+
+<p style="margin-left: 30px;">2.&nbsp; 解析HTML试题内容</p>
+<src class="cnblogs_code">
+<pre><code><span style="color: #008000;">/**</span><span style="color: #008000;">
+ * @Desc: 标签节点
+ *</span><span style="color: #008000;">*/</span>
+<span style="color: #0000ff;">public</span> <span style="color: #0000ff;">class</span><span style="color: #000000;"> Node {
+    </span><span style="color: #0000ff;">private</span><span style="color: #000000;"> String nodeName;
+    </span><span style="color: #0000ff;">private</span> Integer nodeType;<span style="color: #008000;">//</span><span style="color: #008000;">1:标签节点；2:文本节点</span>
+    <span style="color: #0000ff;">private</span> Map&lt;String,String&gt;<span style="color: #000000;"> attrMap;
+    </span><span style="color: #0000ff;">private</span><span style="color: #000000;"> String nodeText;
+    </span><span style="color: #0000ff;">private</span><span style="color: #000000;"> String nodeStr;
+    </span><span style="color: #0000ff;">private</span><span style="color: #000000;"> String childStr;
+    </span><span style="color: #0000ff;">private</span><span style="color: #000000;"> String nodeParent;
+    </span><span style="color: #0000ff;">private</span>  List&lt;Node&gt;<span style="color: #000000;"> childNodeList;
+
+    </span><span style="color: #0000ff;">public</span><span style="color: #000000;"> String getNodeName() {
+        </span><span style="color: #0000ff;">return</span><span style="color: #000000;"> nodeName;
+    }
+
+    </span><span style="color: #0000ff;">public</span> <span style="color: #0000ff;">void</span><span style="color: #000000;"> setNodeName(String nodeName) {
+        </span><span style="color: #0000ff;">this</span>.nodeName =<span style="color: #000000;"> nodeName;
+    }
+
+    </span><span style="color: #0000ff;">public</span><span style="color: #000000;"> Integer getNodeType() {
+        </span><span style="color: #0000ff;">return</span><span style="color: #000000;"> nodeType;
+    }
+
+    </span><span style="color: #0000ff;">public</span> <span style="color: #0000ff;">void</span><span style="color: #000000;"> setNodeType(Integer nodeType) {
+        </span><span style="color: #0000ff;">this</span>.nodeType =<span style="color: #000000;"> nodeType;
+    }
+
+    </span><span style="color: #0000ff;">public</span> Map&lt;String, String&gt;<span style="color: #000000;"> getAttrMap() {
+        </span><span style="color: #0000ff;">return</span><span style="color: #000000;"> attrMap;
+    }
+
+    </span><span style="color: #0000ff;">public</span> <span style="color: #0000ff;">void</span> setAttrMap(Map&lt;String, String&gt;<span style="color: #000000;"> attrMap) {
+        </span><span style="color: #0000ff;">this</span>.attrMap =<span style="color: #000000;"> attrMap;
+    }
+
+    </span><span style="color: #0000ff;">public</span><span style="color: #000000;"> String getNodeText() {
+        </span><span style="color: #0000ff;">return</span><span style="color: #000000;"> nodeText;
+    }
+
+    </span><span style="color: #0000ff;">public</span> <span style="color: #0000ff;">void</span><span style="color: #000000;"> setNodeText(String nodeText) {
+       </span><span style="color: #008000;">//</span><span style="color: #008000;"> nodeText=nodeText.replaceAll("[\n\r\t]","");</span>
+        nodeText=<span style="color: #000000;">nodeText.trim();
+        </span><span style="color: #0000ff;">if</span>(nodeText==<span style="color: #0000ff;">null</span>||nodeText.equals("")) {nodeText=<span style="color: #0000ff;">null</span><span style="color: #000000;">;}
+        </span><span style="color: #0000ff;">this</span>.nodeText =<span style="color: #000000;"> nodeText;
+    }
+
+    </span><span style="color: #0000ff;">public</span><span style="color: #000000;"> String getNodeStr() {
+        </span><span style="color: #0000ff;">return</span><span style="color: #000000;"> nodeStr;
+    }
+
+    </span><span style="color: #0000ff;">public</span> <span style="color: #0000ff;">void</span><span style="color: #000000;"> setNodeStr(String nodeStr) {
+        nodeStr</span>=nodeStr.replaceAll("[\n\r\t]",""<span style="color: #000000;">);
+        </span><span style="color: #0000ff;">this</span>.nodeStr =<span style="color: #000000;"> nodeStr;
+    }
+
+    </span><span style="color: #0000ff;">public</span><span style="color: #000000;"> String getChildStr() {
+        </span><span style="color: #0000ff;">return</span><span style="color: #000000;"> childStr;
+    }
+
+    </span><span style="color: #0000ff;">public</span> <span style="color: #0000ff;">void</span><span style="color: #000000;"> setChildStr(String childStr) {
+        </span><span style="color: #0000ff;">this</span>.childStr =<span style="color: #000000;"> childStr;
+    }
+
+    </span><span style="color: #0000ff;">public</span><span style="color: #000000;"> String getNodeParent() {
+        </span><span style="color: #0000ff;">return</span><span style="color: #000000;"> nodeParent;
+    }
+
+    </span><span style="color: #0000ff;">public</span> <span style="color: #0000ff;">void</span><span style="color: #000000;"> setNodeParent(String nodeParent) {
+        </span><span style="color: #0000ff;">this</span>.nodeParent =<span style="color: #000000;"> nodeParent;
+    }
+
+    </span><span style="color: #0000ff;">public</span> List&lt;Node&gt;<span style="color: #000000;"> getChildNodeList() {
+        </span><span style="color: #0000ff;">return</span><span style="color: #000000;"> childNodeList;
+    }
+
+    </span><span style="color: #0000ff;">public</span> <span style="color: #0000ff;">void</span> setChildNodeList(List&lt;Node&gt;<span style="color: #000000;"> childNodeList) {
+        </span><span style="color: #0000ff;">this</span>.childNodeList =<span style="color: #000000;"> childNodeList;
+    }
+}</span></code></pre>
+
+<p style="margin-left: 30px;">解析html</p>
+<src class="cnblogs_code">
+<pre><code> <span style="color: #008000;">/**</span><span style="color: #008000;">
+     *@Author: maoyuwei
+     *@Date: 2019/9/7 15:29
+     *@Desc: 提取一级标签节点
+     </span><span style="color: #008000;">*/</span>
+    <span style="color: #0000ff;">public</span>  <span style="color: #0000ff;">static</span>  List&lt;Node&gt;<span style="color: #000000;"> htmlStrToNodes(String htmlStr){
+        htmlStr.replace(</span>"##",""<span style="color: #000000;">);<span style="color: #339966;">//##为提取文本的分隔符，不能出现在题文中</span>
+        JXDocument jxDocument</span>=<span style="color: #000000;">JXDocument.create(htmlStr);
+        String bodyPath </span>= "/body"<span style="color: #000000;">;
+        JXNode bodyNode</span>=<span style="color: #000000;">jxDocument.selNOne(bodyPath);
+        Node node </span>= <span style="color: #0000ff;">new</span><span style="color: #000000;"> Node();
+        node.setNodeType(</span>1<span style="color: #000000;">);
+        node.setNodeName(bodyNode.asElement().nodeName());
+        node.setChildStr(bodyNode.asElement().html());
+        List</span>&lt;Node&gt; nodes=<span style="color: #000000;">childStrToNodes(node,bodyNode);
+        </span><span style="color: #0000ff;">if</span>(nodes==<span style="color: #0000ff;">null</span>||nodes.size()&lt;1<span style="color: #000000;">) {
+            nodes</span>=<span style="color: #0000ff;">new</span> ArrayList&lt;Node&gt;<span style="color: #000000;">();
+            nodes.add(node);
+        }
+        </span><span style="color: #0000ff;">return</span><span style="color: #000000;"> nodes;
+    }
+    </span><span style="color: #008000;">/**</span><span style="color: #008000;">
+     *@Author: maoyuwei
+     *@Date: 2019/9/7 15:29
+     *@Desc:  提取当前标签下的子标签节点
+     </span><span style="color: #008000;">*/</span>
+    <span style="color: #0000ff;">public</span>  <span style="color: #0000ff;">static</span> List&lt;Node&gt;<span style="color: #000000;"> childStrToNodes(Node node,JXNode jxNode){
+        String childPath </span>= "/child::*"<span style="color: #000000;">;
+        List</span>&lt;JXNode&gt; childJXNodeList=<span style="color: #000000;">jxNode.sel(childPath);
+        </span><span style="color: #0000ff;">if</span>(childJXNodeList==<span style="color: #0000ff;">null</span>||childJXNodeList.size()&lt;1<span style="color: #000000;">){
+            </span><span style="color: #0000ff;">if</span>(node.getChildStr()!=<span style="color: #0000ff;">null</span>||!node.getChildStr().equals(""<span style="color: #000000;">)){
+                node.setNodeText(node.getChildStr().replaceAll(</span>"[\n\r\t]",""<span style="color: #000000;">));
+            }
+            </span><span style="color: #0000ff;">return</span> <span style="color: #0000ff;">null</span><span style="color: #000000;">;
+        }
+        List</span>&lt;Node&gt; tempChildNodes=<span style="color: #0000ff;">new</span> ArrayList&lt;Node&gt;<span style="color: #000000;">();
+        String currentHtmlStr</span>=<span style="color: #000000;">node.getChildStr();
+        </span><span style="color: #0000ff;">int</span> index=0<span style="color: #000000;">;
+        </span><span style="color: #0000ff;">for</span><span style="color: #000000;">(JXNode childJXNode:childJXNodeList) {
+            String childNodeStr</span>=<span style="color: #000000;">childJXNode.toString();
+            </span><span style="color: #008000;">//</span><span style="color: #008000;">标记本级文本</span>
+            <span style="color: #0000ff;">int</span> beginIndex=<span style="color: #000000;">currentHtmlStr.indexOf(childNodeStr);
+            </span><span style="color: #0000ff;">if</span>(beginIndex&lt;0) {<span style="color: #0000ff;">continue</span><span style="color: #000000;">;}
+            currentHtmlStr</span>=currentHtmlStr.substring(0,beginIndex)+"##&lt;"+index+"&gt;"+currentHtmlStr.substring(beginIndex+<span style="color: #000000;">childNodeStr.length());
+            index</span>++<span style="color: #000000;">;
+            Node childNode</span>=<span style="color: #0000ff;">new</span><span style="color: #000000;"> Node();
+            Element element</span>=<span style="color: #000000;">childJXNode.asElement();
+            childNode.setNodeName(element.nodeName());
+            childNode.setNodeStr(childJXNode.toString());
+            childNode.setNodeParent(node.getNodeName());
+            childNode.setChildStr(element.html());
+            childNode.setNodeType(</span>1<span style="color: #000000;">);
+            </span><span style="color: #008000;">//</span><span style="color: #008000;">属性逐级下沉，每个子标签都带父级的属性</span>
+            Map&lt;String,String&gt; attrMap= JsonUtil.fromJson(JsonUtil.toJson(node.getAttrMap()), Map.<span style="color: #0000ff;">class</span><span style="color: #000000;">);
+            </span><span style="color: #0000ff;">if</span> (attrMap==<span style="color: #0000ff;">null</span>) {attrMap=<span style="color: #0000ff;">new</span> HashMap&lt;String,String&gt;<span style="color: #000000;">();}<br />            if (childNode.getNodeName()!=null&amp;&amp;childNode.getNodeName().equals("tr")) {attrMap=new HashMap&lt;&gt;();}<span style="color: #339966;">//表格标签tr中不写入父级属性
+            </span></span><span style="color: #0000ff;">if</span>(element.attributes()!=<span style="color: #0000ff;">null</span><span style="color: #000000;">) {
+              </span><span style="color: #0000ff;">for</span><span style="color: #000000;">(Attribute attribute: element.attributes().asList())  {
+                  </span><span style="color: #0000ff;">if</span>(attribute.getKey().equals("style"<span style="color: #000000;">)){
+                      String style</span>=attrMap.get(attribute.getKey())==<span style="color: #0000ff;">null</span>?""<span style="color: #000000;">:attrMap.get(attribute.getKey());
+                      attrMap.put(attribute.getKey(),style</span>+" "+<span style="color: #000000;">attribute.getValue());
+                  }</span><span style="color: #0000ff;">else</span><span style="color: #000000;"> {
+                      attrMap.put(attribute.getKey(),attribute.getValue());
+                  }
+              }
+            }
+            </span><span style="color: #008000;">//</span><span style="color: #008000;">标签所带属性写入</span>
+            <span style="color: #0000ff;">if</span>(childNode.getNodeName()!=<span style="color: #0000ff;">null</span>&amp;&amp;"b i u B I U"<span style="color: #000000;">.contains(childNode.getNodeName())){
+                String style</span>=attrMap.get("style")==<span style="color: #0000ff;">null</span>?"":attrMap.get("style"<span style="color: #000000;">);
+                attrMap.put(</span>"style",style+" _"+<span style="color: #000000;">childNode.getNodeName().toLowerCase());
+            }
+            childNode.setAttrMap(attrMap);
+            childStrToNodes(childNode,childJXNode);
+            tempChildNodes.add(childNode);
+        }
+        </span><span style="color: #008000;">//</span><span style="color: #008000;">提取取本级文本，和本级标签节点按顺序存储</span>
+        String[] textList=currentHtmlStr.split("##"<span style="color: #000000;">);
+        List</span>&lt;Node&gt; childNodes=<span style="color: #0000ff;">new</span> ArrayList&lt;Node&gt;<span style="color: #000000;">();
+        </span><span style="color: #0000ff;">for</span>(<span style="color: #0000ff;">int</span> i=0;i&lt;textList.length;i++<span style="color: #000000;">){
+            String textStr</span>=<span style="color: #000000;">textList[i];
+            </span><span style="color: #0000ff;">if</span>(textStr==<span style="color: #0000ff;">null</span>||textStr.equals("")) {<span style="color: #0000ff;">continue</span><span style="color: #000000;">;}
+            String  regex</span>="(?&lt;=&lt;)[0-9]+(?=&gt;)"<span style="color: #000000;">;
+            Pattern pattern </span>=<span style="color: #000000;"> Pattern.compile(regex);
+            Matcher matcher </span>=<span style="color: #000000;"> pattern.matcher(textStr);
+            Integer position</span>=<span style="color: #0000ff;">null</span><span style="color: #000000;">;
+            </span><span style="color: #0000ff;">if</span><span style="color: #000000;">(matcher.find()) {
+                String positionStr</span>=<span style="color: #000000;">matcher.group();
+                position</span>=<span style="color: #000000;">Integer.parseInt(positionStr.toString());
+            }
+            </span><span style="color: #0000ff;">if</span>(position!=<span style="color: #0000ff;">null</span>&amp;&amp;position&lt;<span style="color: #000000;">tempChildNodes.size()){
+                childNodes.add(tempChildNodes.get(position));
+            }
+            textStr</span>=textStr.replaceAll("&lt;[0-9]+&gt;",""<span style="color: #000000;">);
+            textStr</span>=textStr.replaceAll("[\n\r\t]",""<span style="color: #000000;">);
+            </span><span style="color: #0000ff;">if</span>(textStr==<span style="color: #0000ff;">null</span>||textStr.equals("")) {<span style="color: #0000ff;">continue</span><span style="color: #000000;">;}
+            Node textNode</span>=<span style="color: #0000ff;">new</span><span style="color: #000000;"> Node();
+            textNode.setNodeType(</span>2<span style="color: #000000;">);
+            textNode.setNodeText(textStr);
+            Map</span>&lt;String,String&gt; attrMap= JsonUtil.fromJson(JsonUtil.toJson(node.getAttrMap()), Map.<span style="color: #0000ff;">class</span><span style="color: #000000;">);
+            textNode.setAttrMap(attrMap);
+            textNode.setNodeParent(node.getNodeName());
+            childNodes.add(textNode);
+        }
+        node.setChildNodeList(childNodes);
+        </span><span style="color: #0000ff;">return</span><span style="color: #000000;">  childNodes;
+    }</span></code></pre>
+
+<p style="margin-left: 30px;">&nbsp;以上代码就可以将html的题文结构化，接下来我们将这个结构化的题文翻译成word格式</p>
+<p>&nbsp;</p>
+<p><strong>&nbsp; &nbsp;将结构化的题文翻译为word格式：</strong></p>
+<p style="margin-left: 30px;">这块的代码比较多，写的也不好，就不粘了，大家可以看下我的源码看（看&nbsp; com\pdl\paperdownload\wordpapermake\htmltowordhandle 下面的类就行），简单介绍一下这块的内容：</p>
+<p style="margin-left: 30px;">1. 将结构化的题文里的每个node 解析成word的格式，得自己总结HTML样式和word样式的对应关系</p>
+<p style="margin-left: 30px;">下面简单列举几个对应样式：</p>
+<p style="margin-left: 30px;">&middot; 下面绿色部分为word段落样式设置位置；黄色部分为内容样式设置位置</p>
+<src class="cnblogs_code">
+<pre><code><span style="color: #0000ff;">&lt;</span><span style="color: #800000;">w:p </span><span style="color: #ff0000;">w:rsidR</span><span style="color: #0000ff;">="00A81065"</span><span style="color: #ff0000;"> w:rsidRDefault</span><span style="color: #0000ff;">="00BF47F0"</span><span style="color: #0000ff;">&gt;</span>
+    <span style="color: #0000ff;">&lt;</span><span style="color: #800000;">w:pPr</span><span style="color: #0000ff;">&gt;</span>
+       <span style="color: #339966;"> &lt;w:ind w:leftChars="130" w:left="273"/&gt;
+        &lt;w:textAlignment w:val="center"/&gt;
+        &lt;w:spacing w:line="360" w:lineRule="auto"/&gt;</span>
+    <span style="color: #0000ff;">&lt;/</span><span style="color: #800000;">w:pPr</span><span style="color: #0000ff;">&gt;</span>
+    <span style="color: #0000ff;">&lt;</span><span style="color: #800000;">w:r </span><span style="color: #ff0000;">w:rsidRPr</span><span style="color: #0000ff;">="00043B54"</span><span style="color: #0000ff;">&gt;</span>
+        <span style="color: #0000ff;">&lt;</span><span style="color: #800000;">w:t </span><span style="color: #ff0000;">xml:space</span><span style="color: #0000ff;">="preserve"</span><span style="color: #0000ff;">&gt;</span> 【解析】<span style="color: #0000ff;">&lt;/</span><span style="color: #800000;">w:t</span><span style="color: #0000ff;">&gt;</span>
+    <span style="color: #0000ff;">&lt;/</span><span style="color: #800000;">w:r</span><span style="color: #0000ff;">&gt;</span>
+    <span style="color: #0000ff;">&lt;</span><span style="color: #800000;">w:r</span><span style="color: #0000ff;">&gt;</span>
+        <span style="color: #0000ff;">&lt;</span><span style="color: #800000;">w:rPr</span><span style="color: #0000ff;">&gt;</span>
+      <span style="color: #ff6600;">      &lt;w:rFonts w:hint="eastAsia"/&gt;
+            &lt;w:b/&gt;</span>
+        <span style="color: #0000ff;">&lt;/</span><span style="color: #800000;">w:rPr</span><span style="color: #0000ff;">&gt;</span>
+        <span style="color: #0000ff;">&lt;</span><span style="color: #800000;">w:t</span><span style="color: #0000ff;">&gt;</span>试题分析<span style="color: #0000ff;">&lt;/</span><span style="color: #800000;">w:t</span><span style="color: #0000ff;">&gt;</span>
+    <span style="color: #0000ff;">&lt;/</span><span style="color: #800000;">w:r</span><span style="color: #0000ff;">&gt;</span>
+<span style="color: #0000ff;">&lt;/</span><span style="color: #800000;">w:p</span><span style="color: #0000ff;">&gt;</span></code></pre>
+
+<p style="margin-left: 30px;">&middot; 居中：word段落样式</p>
+<src class="cnblogs_code">
+<pre><code><span style="color: #0000ff;">&lt;</span><span style="color: #800000;">w:jc </span><span style="color: #ff0000;">w:val</span><span style="color: #0000ff;">="center"</span><span style="color: #0000ff;">/&gt;</span></code></pre>
+
+<p style="margin-left: 30px;">&nbsp;&middot; 首行缩进：word段落样式</p>
+<src class="cnblogs_code">
+<pre><code><span style="color: #0000ff;">&lt;</span><span style="color: #800000;">w:ind </span><span style="color: #ff0000;">w:firstLineChars</span><span style="color: #0000ff;">="200"</span><span style="color: #ff0000;"> w:firstLine</span><span style="color: #0000ff;">="480"</span><span style="color: #0000ff;">/&gt;</span></code></pre>
+
+<p style="margin-left: 30px;">&middot; 右对齐：word段落样式</p>
+<src class="cnblogs_code">
+<pre><code><span style="color: #0000ff;">&lt;</span><span style="color: #800000;">w:jc </span><span style="color: #ff0000;">w:val</span><span style="color: #0000ff;">="right"</span><span style="color: #0000ff;">/&gt;</span></code></pre>
+
+<p style="margin-left: 30px;">&nbsp;&middot; 加粗：内容样式</p>
+<src class="cnblogs_code">
+<pre><code><span style="color: #0000ff;">&lt;</span><span style="color: #800000;">w:b</span><span style="color: #0000ff;">/&gt;</span></code></pre>
+
+<p style="margin-left: 30px;">&middot; 斜体：内容样式</p>
+<src class="cnblogs_code">
+<pre><code><span style="color: #0000ff;">&lt;</span><span style="color: #800000;">w:i</span><span style="color: #0000ff;">/&gt;</span></code></pre>
+
+<p style="margin-left: 30px;">&middot; 下划线：内容样式</p>
+<src class="cnblogs_code">
+<pre><code><span style="color: #0000ff;">&lt;</span><span style="color: #800000;">w:u </span><span style="color: #ff0000;">w:val</span><span style="color: #0000ff;">="single"</span><span style="color: #0000ff;">/&gt;</span></code></pre>
+
+<p style="margin-left: 30px;">&middot; 允许内容中的空格显示设置（绿色部分为设置部分）</p>
+<src class="cnblogs_code">
+<pre><code><span style="color: #0000ff;">&lt;</span><span style="color: #800000;">w:r</span><span style="color: #0000ff;">&gt;</span>
+    <span style="color: #0000ff;">&lt;</span><span style="color: #800000;">w:t </span><span style="color: #339966;">xml:space="preserve"</span><span style="color: #0000ff;">&gt;</span> hello pretty girl！<span style="color: #0000ff;">&lt;/</span><span style="color: #800000;">w:t</span><span style="color: #0000ff;">&gt;</span>
+<span style="color: #0000ff;">&lt;/</span><span style="color: #800000;">w:r</span><span style="color: #0000ff;">&gt;</span></code></pre>
+
+<p style="margin-left: 30px;">&middot; 上下标 sub sup：内容样式</p>
+<src class="cnblogs_code">
+<pre><code><span style="color: #0000ff;">&lt;</span><span style="color: #800000;">w:vertAlign </span><span style="color: #ff0000;">w:val</span><span style="color: #0000ff;">="superscript"</span><span style="color: #0000ff;">/&gt;</span>
+
+<span style="color: #0000ff;">&lt;</span><span style="color: #800000;">w:vertAlign </span><span style="color: #ff0000;">w:val</span><span style="color: #0000ff;">="subscript"</span><span style="color: #0000ff;">/&gt;</span></code></pre>
+
+<p>&nbsp;</p>
+<p style="margin-left: 30px;">&nbsp;其他格式：</p>
+<p style="margin-left: 60px;">&nbsp;&middot; omml 公式放在&lt;w:p&gt;段落标签里面（关于latex转换为word公式omml的方法，可以看我的另一篇分享：<a href="https://www.cnblogs.com/maoyuwei/p/10874773.html">https://www.cnblogs.com/maoyuwei/p/10874773.html</a>）</p>
+<p style="margin-left: 60px;">&middot; 图片部分放在&lt;w:p&gt;段落标签里面</p>
+<p style="margin-left: 60px;">&nbsp; textAlignment w:val="center" 为图片行内居中</p>
+<p style="margin-left: 60px;">&nbsp; style="width:85pt;height:43pt" 设置图片宽高</p>
+<pre><code><span style="font-size: 14px;">&lt;v:imagedata r:id="rId768de9d0ea6111e98c2a28843b052b2f" 设置图片引用地址</span><br /><br /><span style="font-size: 14px;">注：doc的图片得将它的base64码，和引用定义填充到模板；docx的图片放到word\media文件夹下，并将引用定义填充到模板</span></code></pre>
+<src class="cnblogs_code">
+<pre><code><span style="color: #0000ff;">&lt;</span><span style="color: #800000;">w:p </span><span style="color: #ff0000;">w:rsidR</span><span style="color: #0000ff;">="00A81065"</span><span style="color: #ff0000;"> w:rsidRDefault</span><span style="color: #0000ff;">="00BF47F0"</span><span style="color: #ff0000;"> w:rsidP</span><span style="color: #0000ff;">="00744A41"</span><span style="color: #0000ff;">&gt;</span>
+    <span style="color: #0000ff;">&lt;</span><span style="color: #800000;">w:pPr</span><span style="color: #0000ff;">&gt;</span>
+        <span style="color: #0000ff;">&lt;</span><span style="color: #800000;">w:textAlignment </span><span style="color: #ff0000;">w:val</span><span style="color: #0000ff;">="center"</span><span style="color: #0000ff;">/&gt;</span>
+        <span style="color: #0000ff;">&lt;</span><span style="color: #800000;">w:rPr</span><span style="color: #0000ff;">&gt;</span>
+            <span style="color: #0000ff;">&lt;</span><span style="color: #800000;">w:rFonts </span><span style="color: #ff0000;">w:hint</span><span style="color: #0000ff;">="eastAsia"</span><span style="color: #0000ff;">/&gt;</span>
+        <span style="color: #0000ff;">&lt;/</span><span style="color: #800000;">w:rPr</span><span style="color: #0000ff;">&gt;</span>
+    <span style="color: #0000ff;">&lt;/</span><span style="color: #800000;">w:pPr</span><span style="color: #0000ff;">&gt;</span>
+    <span style="color: #0000ff;">&lt;</span><span style="color: #800000;">w:r</span><span style="color: #0000ff;">&gt;</span>
+        <span style="color: #0000ff;">&lt;</span><span style="color: #800000;">w:pict</span><span style="color: #0000ff;">&gt;</span>
+            <span style="color: #0000ff;">&lt;</span><span style="color: #800000;">v:shape </span><span style="color: #ff0000;">id</span><span style="color: #0000ff;">="_x0000768de9d0ea6111e98c2a28843b052b2f"</span><span style="color: #ff0000;"> type</span><span style="color: #0000ff;">="_x0000_t75"</span><span style="color: #ff0000;"> style</span><span style="color: #0000ff;">="width:85pt;height:43pt"</span><span style="color: #0000ff;">&gt;</span>
+                <span style="color: #0000ff;">&lt;</span><span style="color: #800000;">v:imagedata </span><span style="color: #ff0000;">r:id</span><span style="color: #0000ff;">="rId768de9d0ea6111e98c2a28843b052b2f"</span><span style="color: #ff0000;"> o:title</span><span style="color: #0000ff;">="2"</span><span style="color: #0000ff;">/&gt;</span>
+            <span style="color: #0000ff;">&lt;/</span><span style="color: #800000;">v:shape</span><span style="color: #0000ff;">&gt;</span>
+        <span style="color: #0000ff;">&lt;/</span><span style="color: #800000;">w:pict</span><span style="color: #0000ff;">&gt;</span>
+    <span style="color: #0000ff;">&lt;/</span><span style="color: #800000;">w:r</span><span style="color: #0000ff;">&gt;</span>
+<span style="color: #0000ff;">&lt;/</span><span style="color: #800000;">w:p</span><span style="color: #0000ff;">&gt;</span></code></pre>
+
+<p style="margin-left: 30px;">&nbsp;&middot; 表格部分放在和&lt;w:p&gt;同级</p>
+<pre><code><span style="font-size: 14px;">w:gridCol w:w="222" 列宽设置</span></code></pre>
+<pre><code><span style="font-size: 14px;">&lt;w:tr&gt; 相当于html table中的 &lt;tr&gt;</span></code></pre>
+<pre><code><span style="font-size: 14px;">&lt;w:tc&gt; 相当于html table中的 &lt;td&gt;</span><br /><span style="font-size: 14px;">注意：word合并单元格的方式和HTML不太一样，不好描述，多试试自己就能发现规律</span></code></pre>
+<src class="cnblogs_code">
+<pre><code><span style="color: #0000ff;">&lt;</span><span style="color: #800000;">w:tbl</span><span style="color: #0000ff;">&gt;</span>
+    <span style="color: #0000ff;">&lt;</span><span style="color: #800000;">w:tblPr</span><span style="color: #0000ff;">&gt;</span>
+        <span style="color: #0000ff;">&lt;</span><span style="color: #800000;">w:tblW </span><span style="color: #ff0000;">w:w</span><span style="color: #0000ff;">="0"</span><span style="color: #ff0000;"> w:type</span><span style="color: #0000ff;">="auto"</span><span style="color: #0000ff;">/&gt;</span>
+        <span style="color: #0000ff;">&lt;</span><span style="color: #800000;">w:tblLook </span><span style="color: #ff0000;">w:val</span><span style="color: #0000ff;">="04A0"</span><span style="color: #ff0000;"> w:firstRow</span><span style="color: #0000ff;">="1"</span><span style="color: #ff0000;"> w:lastRow</span><span style="color: #0000ff;">="0"</span><span style="color: #ff0000;"> w:firstColumn</span><span style="color: #0000ff;">="1"</span><span style="color: #ff0000;"> w:lastColumn</span><span style="color: #0000ff;">="0"</span><span style="color: #ff0000;"> w:noHBand</span><span style="color: #0000ff;">="0"</span><span style="color: #ff0000;"> w:noVBand</span><span style="color: #0000ff;">="1"</span><span style="color: #0000ff;">/&gt;</span>
+    <span style="color: #0000ff;">&lt;/</span><span style="color: #800000;">w:tblPr</span><span style="color: #0000ff;">&gt;</span>
+    <span style="color: #0000ff;">&lt;</span><span style="color: #800000;">w:tblGrid</span><span style="color: #0000ff;">&gt;</span>
+        <span style="color: #0000ff;">&lt;</span><span style="color: #800000;">w:gridCol </span><span style="color: #ff0000;">w:w</span><span style="color: #0000ff;">="222"</span><span style="color: #0000ff;">/&gt;</span>
+        <span style="color: #0000ff;">&lt;</span><span style="color: #800000;">w:gridCol </span><span style="color: #ff0000;">w:w</span><span style="color: #0000ff;">="1376"</span><span style="color: #0000ff;">/&gt;</span>
+    <span style="color: #0000ff;">&lt;/</span><span style="color: #800000;">w:tblGrid</span><span style="color: #0000ff;">&gt;</span>
+    <span style="color: #0000ff;">&lt;</span><span style="color: #800000;">w:tr </span><span style="color: #ff0000;">w:rsidR</span><span style="color: #0000ff;">="00A93926"</span><span style="color: #ff0000;"> w:rsidTr</span><span style="color: #0000ff;">="00682485"</span><span style="color: #0000ff;">&gt;</span>
+        <span style="color: #0000ff;">&lt;</span><span style="color: #800000;">w:tc</span><span style="color: #0000ff;">&gt;</span>
+            <span style="color: #0000ff;">&lt;</span><span style="color: #800000;">w:tcPr</span><span style="color: #0000ff;">&gt;</span>
+                <span style="color: #0000ff;">&lt;</span><span style="color: #800000;">w:tcW </span><span style="color: #ff0000;">w:w</span><span style="color: #0000ff;">="0"</span><span style="color: #ff0000;"> w:type</span><span style="color: #0000ff;">="auto"</span><span style="color: #0000ff;">/&gt;</span>
+            <span style="color: #0000ff;">&lt;/</span><span style="color: #800000;">w:tcPr</span><span style="color: #0000ff;">&gt;</span>
+            <span style="color: #0000ff;">&lt;</span><span style="color: #800000;">w:p </span><span style="color: #ff0000;">w:rsidR</span><span style="color: #0000ff;">="00A93926"</span><span style="color: #ff0000;"> w:rsidRDefault</span><span style="color: #0000ff;">="00286E3F"</span><span style="color: #ff0000;"> w:rsidP</span><span style="color: #0000ff;">="00A93926"</span><span style="color: #0000ff;">/&gt;</span>
+        <span style="color: #0000ff;">&lt;/</span><span style="color: #800000;">w:tc</span><span style="color: #0000ff;">&gt;</span>
+        <span style="color: #0000ff;">&lt;</span><span style="color: #800000;">w:tc</span><span style="color: #0000ff;">&gt;</span>
+            <span style="color: #0000ff;">&lt;</span><span style="color: #800000;">w:tcPr</span><span style="color: #0000ff;">&gt;</span>
+                <span style="color: #0000ff;">&lt;</span><span style="color: #800000;">w:tcW </span><span style="color: #ff0000;">w:w</span><span style="color: #0000ff;">="0"</span><span style="color: #ff0000;"> w:type</span><span style="color: #0000ff;">="auto"</span><span style="color: #0000ff;">/&gt;</span>
+                <span style="color: #0000ff;">&lt;</span><span style="color: #800000;">w:vAlign </span><span style="color: #ff0000;">w:val</span><span style="color: #0000ff;">="center"</span><span style="color: #0000ff;">/&gt;</span>
+            <span style="color: #0000ff;">&lt;/</span><span style="color: #800000;">w:tcPr</span><span style="color: #0000ff;">&gt;</span>
+            <span style="color: #0000ff;">&lt;</span><span style="color: #800000;">w:p </span><span style="color: #ff0000;">w:rsidR</span><span style="color: #0000ff;">="00A93926"</span><span style="color: #ff0000;"> w:rsidRPr</span><span style="color: #0000ff;">="00A93926"</span><span style="color: #ff0000;"> w:rsidRDefault</span><span style="color: #0000ff;">="00BF47F0"</span><span style="color: #ff0000;"> w:rsidP</span><span style="color: #0000ff;">="00A93926"</span><span style="color: #0000ff;">&gt;</span>
+                <span style="color: #0000ff;">&lt;</span><span style="color: #800000;">w:pPr</span><span style="color: #0000ff;">&gt;</span>
+                    <span style="color: #0000ff;">&lt;</span><span style="color: #800000;">w:rPr</span><span style="color: #0000ff;">&gt;</span>
+                        <span style="color: #0000ff;">&lt;</span><span style="color: #800000;">w:b</span><span style="color: #0000ff;">/&gt;</span>
+                    <span style="color: #0000ff;">&lt;/</span><span style="color: #800000;">w:rPr</span><span style="color: #0000ff;">&gt;</span>
+                <span style="color: #0000ff;">&lt;/</span><span style="color: #800000;">w:pPr</span><span style="color: #0000ff;">&gt;</span>
+                <span style="color: #0000ff;">&lt;</span><span style="color: #800000;">w:r</span><span style="color: #0000ff;">&gt;</span>
+                    <span style="color: #0000ff;">&lt;</span><span style="color: #800000;">w:rPr</span><span style="color: #0000ff;">&gt;</span>
+                        <span style="color: #0000ff;">&lt;</span><span style="color: #800000;">w:rFonts </span><span style="color: #ff0000;">w:hint</span><span style="color: #0000ff;">="eastAsia"</span><span style="color: #0000ff;">/&gt;</span>
+                        <span style="color: #0000ff;">&lt;</span><span style="color: #800000;">w:b</span><span style="color: #0000ff;">/&gt;</span>
+                    <span style="color: #0000ff;">&lt;/</span><span style="color: #800000;">w:rPr</span><span style="color: #0000ff;">&gt;</span>
+                    <span style="color: #0000ff;">&lt;</span><span style="color: #800000;">w:t</span><span style="color: #0000ff;">&gt;</span>一、<span style="color: #0000ff;">&lt;/</span><span style="color: #800000;">w:t</span><span style="color: #0000ff;">&gt;</span>
+                <span style="color: #0000ff;">&lt;/</span><span style="color: #800000;">w:r</span><span style="color: #0000ff;">&gt;</span>
+                <span style="color: #0000ff;">&lt;</span><span style="color: #800000;">w:r</span><span style="color: #0000ff;">&gt;</span>
+                    <span style="color: #0000ff;">&lt;</span><span style="color: #800000;">w:rPr</span><span style="color: #0000ff;">&gt;</span>
+                        <span style="color: #0000ff;">&lt;</span><span style="color: #800000;">w:rFonts </span><span style="color: #ff0000;">w:hint</span><span style="color: #0000ff;">="eastAsia"</span><span style="color: #0000ff;">/&gt;</span>
+                        <span style="color: #0000ff;">&lt;</span><span style="color: #800000;">w:b</span><span style="color: #0000ff;">/&gt;</span>
+                    <span style="color: #0000ff;">&lt;/</span><span style="color: #800000;">w:rPr</span><span style="color: #0000ff;">&gt;</span>
+                    <span style="color: #0000ff;">&lt;</span><span style="color: #800000;">w:t </span><span style="color: #ff0000;">xml:space</span><span style="color: #0000ff;">="preserve"</span><span style="color: #0000ff;">&gt;</span> <span style="color: #0000ff;">&lt;/</span><span style="color: #800000;">w:t</span><span style="color: #0000ff;">&gt;</span>
+                <span style="color: #0000ff;">&lt;/</span><span style="color: #800000;">w:r</span><span style="color: #0000ff;">&gt;</span>
+                <span style="color: #0000ff;">&lt;</span><span style="color: #800000;">w:r</span><span style="color: #0000ff;">&gt;</span>
+                    <span style="color: #0000ff;">&lt;</span><span style="color: #800000;">w:rPr</span><span style="color: #0000ff;">&gt;</span>
+                        <span style="color: #0000ff;">&lt;</span><span style="color: #800000;">w:rFonts </span><span style="color: #ff0000;">w:hint</span><span style="color: #0000ff;">="eastAsia"</span><span style="color: #0000ff;">/&gt;</span>
+                        <span style="color: #0000ff;">&lt;</span><span style="color: #800000;">w:b</span><span style="color: #0000ff;">/&gt;</span>
+                    <span style="color: #0000ff;">&lt;/</span><span style="color: #800000;">w:rPr</span><span style="color: #0000ff;">&gt;</span>
+                    <span style="color: #0000ff;">&lt;</span><span style="color: #800000;">w:t</span><span style="color: #0000ff;">&gt;</span>解答题<span style="color: #0000ff;">&lt;/</span><span style="color: #800000;">w:t</span><span style="color: #0000ff;">&gt;</span>
+                <span style="color: #0000ff;">&lt;/</span><span style="color: #800000;">w:r</span><span style="color: #0000ff;">&gt;</span>
+            <span style="color: #0000ff;">&lt;/</span><span style="color: #800000;">w:p</span><span style="color: #0000ff;">&gt;</span>
+        <span style="color: #0000ff;">&lt;/</span><span style="color: #800000;">w:tc</span><span style="color: #0000ff;">&gt;</span>
+    <span style="color: #0000ff;">&lt;/</span><span style="color: #800000;">w:tr</span><span style="color: #0000ff;">&gt;</span>
+<span style="color: #0000ff;">&lt;/</span><span style="color: #800000;">w:tbl</span><span style="color: #0000ff;">&gt;</span></code></pre>
+
+<p style="margin-left: 30px;">另外要注意的html有一些特殊字符，得提前转义，不然会导致word打不开</p>
+<src class="cnblogs_code">
+<pre><code><span style="color: #ff0000;">&amp;nbsp;</span> =&gt; <span style="color: #ff0000;">&amp;#160;</span>
+<span style="color: #ff0000;">&amp;lt;</span> =&gt; <span style="color: #ff0000;">&amp;#60;</span>
+<span style="color: #ff0000;">&amp;gt;</span> =&gt; <span style="color: #ff0000;">&amp;#62;</span>
+<span style="color: #ff0000;">&amp;amp;</span> =&gt; <span style="color: #ff0000;">&amp;#38;</span>
+<span style="color: #ff0000;">&amp;quot;</span> =&gt; <span style="color: #ff0000;">&amp;#34;</span>
+<span style="color: #ff0000;">&amp;apos;</span> =&gt; <span style="color: #ff0000;">&amp;#39;</span>
+<span style="color: #ff0000;">&amp;cent;</span> =&gt; <span style="color: #ff0000;">&amp;#162;</span>
+<span style="color: #ff0000;">&amp;pound;</span> =&gt; <span style="color: #ff0000;">&amp;#163;</span>
+<span style="color: #ff0000;">&amp;yen;</span> =&gt; <span style="color: #ff0000;">&amp;#165;</span>
+<span style="color: #ff0000;">&amp;euro;</span> =&gt; <span style="color: #ff0000;">&amp;#8364;</span>
+<span style="color: #ff0000;">&amp;sect;</span> =&gt; <span style="color: #ff0000;">&amp;#167;</span>
+<span style="color: #ff0000;">&amp;copy;</span> =&gt; <span style="color: #ff0000;">&amp;#169;</span>
+<span style="color: #ff0000;">&amp;reg;</span> =&gt; <span style="color: #ff0000;">&amp;#174;</span>
+<span style="color: #ff0000;">&amp;trade;</span> =&gt; <span style="color: #ff0000;">&amp;#8482;</span>
+<span style="color: #ff0000;">&amp;times;</span> =&gt; <span style="color: #ff0000;">&amp;#215;</span>
+<span style="color: #ff0000;">&amp;divide;</span> =&gt; <span style="color: #ff0000;">&amp;#247;</span>
+<span style="color: #ff0000;">&amp;ensp;</span> =&gt; <span style="color: #ff0000;">&amp;#160;</span>
+<span style="color: #ff0000;">&amp;emsp;</span> =&gt; <span style="color: #ff0000;">&amp;#160;</span>
+<span style="color: #ff0000;">&amp;Alpha;</span> =&gt; <span style="color: #ff0000;">&amp;#913;</span>
+<span style="color: #ff0000;">&amp;Gamma;</span> =&gt; <span style="color: #ff0000;">&amp;#915;</span>
+<span style="color: #ff0000;">&amp;Epsilon;</span> =&gt; <span style="color: #ff0000;">&amp;#917;</span>
+<span style="color: #ff0000;">&amp;Eta;</span> =&gt; <span style="color: #ff0000;">&amp;#919;</span>
+<span style="color: #ff0000;">&amp;Iota;</span> =&gt; <span style="color: #ff0000;">&amp;#921;</span>
+<span style="color: #ff0000;">&amp;Lambda;</span> =&gt; <span style="color: #ff0000;">&amp;#923;</span>
+<span style="color: #ff0000;">&amp;Nu;</span> =&gt; <span style="color: #ff0000;">&amp;#925;</span>
+<span style="color: #ff0000;">&amp;Omicron;</span> =&gt; <span style="color: #ff0000;">&amp;#927;</span>
+<span style="color: #ff0000;">&amp;Rho;</span> =&gt; <span style="color: #ff0000;">&amp;#929;</span>
+<span style="color: #ff0000;">&amp;Tau;</span> =&gt; <span style="color: #ff0000;">&amp;#932;</span>
+<span style="color: #ff0000;">&amp;Phi;</span> =&gt; <span style="color: #ff0000;">&amp;#934;</span>
+<span style="color: #ff0000;">&amp;Psi;</span> =&gt; <span style="color: #ff0000;">&amp;#936;</span>
+<span style="color: #ff0000;">&amp;alpha;</span> =&gt; <span style="color: #ff0000;">&amp;#945;</span>
+<span style="color: #ff0000;">&amp;gamma;</span> =&gt; <span style="color: #ff0000;">&amp;#947;</span>
+<span style="color: #ff0000;">&amp;epsilon;</span> =&gt; <span style="color: #ff0000;">&amp;#949;</span>
+<span style="color: #ff0000;">&amp;eta;</span> =&gt; <span style="color: #ff0000;">&amp;#951;</span>
+<span style="color: #ff0000;">&amp;iota;</span> =&gt; <span style="color: #ff0000;">&amp;#953;</span>
+<span style="color: #ff0000;">&amp;lambda;</span> =&gt; <span style="color: #ff0000;">&amp;#955;</span>
+<span style="color: #ff0000;">&amp;nu;</span> =&gt; <span style="color: #ff0000;">&amp;#957;</span>
+<span style="color: #ff0000;">&amp;omicron;</span> =&gt; <span style="color: #ff0000;">&amp;#959;</span>
+<span style="color: #ff0000;">&amp;rho;</span> =&gt; <span style="color: #ff0000;">&amp;#961;</span>
+<span style="color: #ff0000;">&amp;sigma;</span> =&gt; <span style="color: #ff0000;">&amp;#963;</span>
+<span style="color: #ff0000;">&amp;upsilon;</span> =&gt; <span style="color: #ff0000;">&amp;#965;</span>
+<span style="color: #ff0000;">&amp;chi;</span> =&gt; <span style="color: #ff0000;">&amp;#967;</span>
+<span style="color: #ff0000;">&amp;omega;</span> =&gt; <span style="color: #ff0000;">&amp;#969;</span>
+<span style="color: #ff0000;">&amp;upsih;</span> =&gt; <span style="color: #ff0000;">&amp;#978;</span>
+<span style="color: #ff0000;">&amp;bull;</span> =&gt; <span style="color: #ff0000;">&amp;#8226;</span>
+<span style="color: #ff0000;">&amp;prime;</span> =&gt; <span style="color: #ff0000;">&amp;#8242;</span>
+<span style="color: #ff0000;">&amp;oline;</span> =&gt; <span style="color: #ff0000;">&amp;#8254;</span>
+<span style="color: #ff0000;">&amp;weierp;</span> =&gt; <span style="color: #ff0000;">&amp;#8472;</span>
+<span style="color: #ff0000;">&amp;real;</span> =&gt; <span style="color: #ff0000;">&amp;#8476;</span>
+<span style="color: #ff0000;">&amp;alefsym;</span> =&gt; <span style="color: #ff0000;">&amp;#8501;</span>
+<span style="color: #ff0000;">&amp;uarr;</span> =&gt; <span style="color: #ff0000;">&amp;#8593;</span>
+<span style="color: #ff0000;">&amp;darr;</span> =&gt; <span style="color: #ff0000;">&amp;#8595;</span>
+<span style="color: #ff0000;">&amp;crarr;</span> =&gt; <span style="color: #ff0000;">&amp;#8629;</span>
+<span style="color: #ff0000;">&amp;uArr;</span> =&gt; <span style="color: #ff0000;">&amp;#8657;</span>
+<span style="color: #ff0000;">&amp;dArr;</span> =&gt; <span style="color: #ff0000;">&amp;#8659;</span>
+<span style="color: #ff0000;">&amp;forall;</span> =&gt; <span style="color: #ff0000;">&amp;#8704;</span>
+<span style="color: #ff0000;">&amp;exist;</span> =&gt; <span style="color: #ff0000;">&amp;#8707;</span>
+<span style="color: #ff0000;">&amp;nabla;</span> =&gt; <span style="color: #ff0000;">&amp;#8711;</span>
+<span style="color: #ff0000;">&amp;notin;</span> =&gt; <span style="color: #ff0000;">&amp;#8713;</span>
+<span style="color: #ff0000;">&amp;prod;</span> =&gt; <span style="color: #ff0000;">&amp;#8719;</span>
+<span style="color: #ff0000;">&amp;minus;</span> =&gt; <span style="color: #ff0000;">&amp;#8722;</span>
+<span style="color: #ff0000;">&amp;radic;</span> =&gt; <span style="color: #ff0000;">&amp;#8730;</span>
+<span style="color: #ff0000;">&amp;infin;</span> =&gt; <span style="color: #ff0000;">&amp;#8734;</span>
+<span style="color: #ff0000;">&amp;and;</span> =&gt; <span style="color: #ff0000;">&amp;#8869;</span>
+<span style="color: #ff0000;">&amp;cap;</span> =&gt; <span style="color: #ff0000;">&amp;#8745;</span>
+<span style="color: #ff0000;">&amp;int;</span> =&gt; <span style="color: #ff0000;">&amp;#8747;</span>
+<span style="color: #ff0000;">&amp;sim;</span> =&gt; <span style="color: #ff0000;">&amp;#8764;</span>
+<span style="color: #ff0000;">&amp;asymp;</span> =&gt; <span style="color: #ff0000;">&amp;#8773;</span>
+<span style="color: #ff0000;">&amp;equiv;</span> =&gt; <span style="color: #ff0000;">&amp;#8801;</span>
+<span style="color: #ff0000;">&amp;ge;</span> =&gt; <span style="color: #ff0000;">&amp;#8805;</span>
+<span style="color: #ff0000;">&amp;sup;</span> =&gt; <span style="color: #ff0000;">&amp;#8835;</span>
+<span style="color: #ff0000;">&amp;sube;</span> =&gt; <span style="color: #ff0000;">&amp;#8838;</span>
+<span style="color: #ff0000;">&amp;oplus;</span> =&gt; <span style="color: #ff0000;">&amp;#8853;</span>
+<span style="color: #ff0000;">&amp;perp;</span> =&gt; <span style="color: #ff0000;">&amp;#8869;</span>
+<span style="color: #ff0000;">&amp;lceil;</span> =&gt; <span style="color: #ff0000;">&amp;#8968;</span>
+<span style="color: #ff0000;">&amp;lfloor;</span> =&gt; <span style="color: #ff0000;">&amp;#8970;</span>
+<span style="color: #ff0000;">&amp;loz;</span> =&gt; <span style="color: #ff0000;">&amp;#9674;</span>
+<span style="color: #ff0000;">&amp;clubs;</span> =&gt; <span style="color: #ff0000;">&amp;#9827;</span>
+<span style="color: #ff0000;">&amp;diams;</span> =&gt; <span style="color: #ff0000;">&amp;#9830;</span>
+<span style="color: #ff0000;">&amp;iexcl;</span> =&gt; <span style="color: #ff0000;">&amp;#161;</span>
+<span style="color: #ff0000;">&amp;pound;</span> =&gt; <span style="color: #ff0000;">&amp;#163;</span>
+<span style="color: #ff0000;">&amp;yen;</span> =&gt; <span style="color: #ff0000;">&amp;#165;</span>
+<span style="color: #ff0000;">&amp;sect;</span> =&gt; <span style="color: #ff0000;">&amp;#167;</span>
+<span style="color: #ff0000;">&amp;copy;</span> =&gt; <span style="color: #ff0000;">&amp;#169;</span>
+<span style="color: #ff0000;">&amp;laquo;</span> =&gt; <span style="color: #ff0000;">&amp;#171;</span>
+<span style="color: #ff0000;">&amp;shy;</span> =&gt; <span style="color: #ff0000;">&amp;#173;</span>
+<span style="color: #ff0000;">&amp;macr;</span> =&gt; <span style="color: #ff0000;">&amp;#175;</span>
+<span style="color: #ff0000;">&amp;plusmn;</span> =&gt; <span style="color: #ff0000;">&amp;#177;</span>
+<span style="color: #ff0000;">&amp;sup3;</span> =&gt; <span style="color: #ff0000;">&amp;#179;</span>
+<span style="color: #ff0000;">&amp;micro;</span> =&gt; <span style="color: #ff0000;">&amp;#181;</span>
+<span style="color: #ff0000;">&amp;Beta;</span> =&gt; <span style="color: #ff0000;">&amp;#914;</span>
+<span style="color: #ff0000;">&amp;Delta;</span> =&gt; <span style="color: #ff0000;">&amp;#916;</span>
+<span style="color: #ff0000;">&amp;Zeta;</span> =&gt; <span style="color: #ff0000;">&amp;#918;</span>
+<span style="color: #ff0000;">&amp;Theta;</span> =&gt; <span style="color: #ff0000;">&amp;#920;</span>
+<span style="color: #ff0000;">&amp;Kappa;</span> =&gt; <span style="color: #ff0000;">&amp;#922;</span>
+<span style="color: #ff0000;">&amp;Mu;</span> =&gt; <span style="color: #ff0000;">&amp;#924;</span>
+<span style="color: #ff0000;">&amp;Xi;</span> =&gt; <span style="color: #ff0000;">&amp;#926;</span>
+<span style="color: #ff0000;">&amp;Pi;</span> =&gt; <span style="color: #ff0000;">&amp;#928;</span>
+<span style="color: #ff0000;">&amp;Sigma;</span> =&gt; <span style="color: #ff0000;">&amp;#931;</span>
+<span style="color: #ff0000;">&amp;Upsilon;</span> =&gt; <span style="color: #ff0000;">&amp;#933;</span>
+<span style="color: #ff0000;">&amp;Chi;</span> =&gt; <span style="color: #ff0000;">&amp;#935;</span>
+<span style="color: #ff0000;">&amp;Omega;</span> =&gt; <span style="color: #ff0000;">&amp;#937;</span>
+<span style="color: #ff0000;">&amp;beta;</span> =&gt; <span style="color: #ff0000;">&amp;#946;</span>
+<span style="color: #ff0000;">&amp;delta;</span> =&gt; <span style="color: #ff0000;">&amp;#948;</span>
+<span style="color: #ff0000;">&amp;zeta;</span> =&gt; <span style="color: #ff0000;">&amp;#950;</span>
+<span style="color: #ff0000;">&amp;theta;</span> =&gt; <span style="color: #ff0000;">&amp;#952;</span>
+<span style="color: #ff0000;">&amp;kappa;</span> =&gt; <span style="color: #ff0000;">&amp;#954;</span>
+<span style="color: #ff0000;">&amp;mu;</span> =&gt; <span style="color: #ff0000;">&amp;#956;</span>
+<span style="color: #ff0000;">&amp;xi;</span> =&gt; <span style="color: #ff0000;">&amp;#958;</span>
+<span style="color: #ff0000;">&amp;pi;</span> =&gt; <span style="color: #ff0000;">&amp;#960;</span>
+<span style="color: #ff0000;">&amp;sigmaf;</span> =&gt; <span style="color: #ff0000;">&amp;#962;</span>
+<span style="color: #ff0000;">&amp;tau;</span> =&gt; <span style="color: #ff0000;">&amp;#964;</span>
+<span style="color: #ff0000;">&amp;phi;</span> =&gt; <span style="color: #ff0000;">&amp;#966;</span>
+<span style="color: #ff0000;">&amp;psi;</span> =&gt; <span style="color: #ff0000;">&amp;#968;</span>
+<span style="color: #ff0000;">&amp;thetasym;</span> =&gt; <span style="color: #ff0000;">&amp;#977;</span>
+<span style="color: #ff0000;">&amp;piv;</span> =&gt; <span style="color: #ff0000;">&amp;#982;</span>
+<span style="color: #ff0000;">&amp;hellip;</span> =&gt; <span style="color: #ff0000;">&amp;#8230;</span>
+<span style="color: #ff0000;">&amp;Prime;</span> =&gt; <span style="color: #ff0000;">&amp;#8243;</span>
+<span style="color: #ff0000;">&amp;frasl;</span> =&gt; <span style="color: #ff0000;">&amp;#8260;</span>
+<span style="color: #ff0000;">&amp;image;</span> =&gt; <span style="color: #ff0000;">&amp;#8465;</span>
+<span style="color: #ff0000;">&amp;trade;</span> =&gt; <span style="color: #ff0000;">&amp;#8482;</span>
+<span style="color: #ff0000;">&amp;larr;</span> =&gt; <span style="color: #ff0000;">&amp;#8592;</span>
+<span style="color: #ff0000;">&amp;rarr;</span> =&gt; <span style="color: #ff0000;">&amp;#8594;</span>
+<span style="color: #ff0000;">&amp;harr;</span> =&gt; <span style="color: #ff0000;">&amp;#8596;</span>
+<span style="color: #ff0000;">&amp;lArr;</span> =&gt; <span style="color: #ff0000;">&amp;#8656;</span>
+<span style="color: #ff0000;">&amp;rArr;</span> =&gt; <span style="color: #ff0000;">&amp;#8658;</span>
+<span style="color: #ff0000;">&amp;hArr;</span> =&gt; <span style="color: #ff0000;">&amp;#8660;</span>
+<span style="color: #ff0000;">&amp;part;</span> =&gt; <span style="color: #ff0000;">&amp;#8706;</span>
+<span style="color: #ff0000;">&amp;empty;</span> =&gt; <span style="color: #ff0000;">&amp;#8709;</span>
+<span style="color: #ff0000;">&amp;isin;</span> =&gt; <span style="color: #ff0000;">&amp;#8712;</span>
+<span style="color: #ff0000;">&amp;ni;</span> =&gt; <span style="color: #ff0000;">&amp;#8715;</span>
+<span style="color: #ff0000;">&amp;sum;</span> =&gt; <span style="color: #ff0000;">&amp;#8722;</span>
+<span style="color: #ff0000;">&amp;lowast;</span> =&gt; <span style="color: #ff0000;">&amp;#8727;</span>
+<span style="color: #ff0000;">&amp;prop;</span> =&gt; <span style="color: #ff0000;">&amp;#8733;</span>
+<span style="color: #ff0000;">&amp;ang;</span> =&gt; <span style="color: #ff0000;">&amp;#8736;</span>
+<span style="color: #ff0000;">&amp;or;</span> =&gt; <span style="color: #ff0000;">&amp;#8870;</span>
+<span style="color: #ff0000;">&amp;cup;</span> =&gt; <span style="color: #ff0000;">&amp;#8746;</span>
+<span style="color: #ff0000;">&amp;there4;</span> =&gt; <span style="color: #ff0000;">&amp;#8756;</span>
+<span style="color: #ff0000;">&amp;cong;</span> =&gt; <span style="color: #ff0000;">&amp;#8773;</span>
+<span style="color: #ff0000;">&amp;ne;</span> =&gt; <span style="color: #ff0000;">&amp;#8800;</span>
+<span style="color: #ff0000;">&amp;le;</span> =&gt; <span style="color: #ff0000;">&amp;#8804;</span>
+<span style="color: #ff0000;">&amp;sub;</span> =&gt; <span style="color: #ff0000;">&amp;#8834;</span>
+<span style="color: #ff0000;">&amp;nsub;</span> =&gt; <span style="color: #ff0000;">&amp;#8836;</span>
+<span style="color: #ff0000;">&amp;supe;</span> =&gt; <span style="color: #ff0000;">&amp;#8839;</span>
+<span style="color: #ff0000;">&amp;otimes;</span> =&gt; <span style="color: #ff0000;">&amp;#8855;</span>
+<span style="color: #ff0000;">&amp;sdot;</span> =&gt; <span style="color: #ff0000;">&amp;#8901;</span>
+<span style="color: #ff0000;">&amp;rceil;</span> =&gt; <span style="color: #ff0000;">&amp;#8969;</span>
+<span style="color: #ff0000;">&amp;rfloor;</span> =&gt; <span style="color: #ff0000;">&amp;#8971;</span>
+<span style="color: #ff0000;">&amp;spades;</span> =&gt; <span style="color: #ff0000;">&amp;#9824;</span>
+<span style="color: #ff0000;">&amp;hearts;</span> =&gt; <span style="color: #ff0000;">&amp;#9829;</span>
+<span style="color: #ff0000;">&amp;nbsp;</span> =&gt; <span style="color: #ff0000;">&amp;#160;</span>
+<span style="color: #ff0000;">&amp;cent;</span> =&gt; <span style="color: #ff0000;">&amp;#162;</span>
+<span style="color: #ff0000;">&amp;curren;</span> =&gt; <span style="color: #ff0000;">&amp;#164;</span>
+<span style="color: #ff0000;">&amp;brvbar;</span> =&gt; <span style="color: #ff0000;">&amp;#166;</span>
+<span style="color: #ff0000;">&amp;uml;</span> =&gt; <span style="color: #ff0000;">&amp;#168;</span>
+<span style="color: #ff0000;">&amp;ordf;</span> =&gt; <span style="color: #ff0000;">&amp;#170;</span>
+<span style="color: #ff0000;">&amp;not;</span> =&gt; <span style="color: #ff0000;">&amp;#172;</span>
+<span style="color: #ff0000;">&amp;reg;</span> =&gt; <span style="color: #ff0000;">&amp;#174;</span>
+<span style="color: #ff0000;">&amp;deg;</span> =&gt; <span style="color: #ff0000;">&amp;#176;</span>
+<span style="color: #ff0000;">&amp;sup2;</span> =&gt; <span style="color: #ff0000;">&amp;#178;</span>
+<span style="color: #ff0000;">&amp;acute;</span> =&gt; <span style="color: #ff0000;">&amp;#180;</span>
+<span style="color: #ff0000;">&amp;middot;</span><span style="color: #000000;"> =&gt; &middot;
+</span><span style="color: #ff0000;">&amp;oslash;</span><span style="color: #000000;"> =&gt; &oslash;
+</span><span style="color: #ff0000;">&amp;aacute;</span> =&gt; &aacute;</code></pre>
+
+<p>根据以上规则，结合其他需要的规则，做html结构化题文的翻译，具体翻译代码太多不在这里展示</p>
+<p><strong><span style="color: #339966;">源码：</span>&nbsp;<a href="https://github.com/mao-yuwei/paper_download">https://github.com/mao-yuwei/paper_download</a></strong></p>
+<p><strong>注意：spring boot 的项目，启动后访问 localhost:8080 到下载样例页：<a href="http://localhost:8080/"><br /></a></strong></p>
+<p style="margin-left: 30px;"><strong>可选择试卷，下载格式，纸张大小，字号，答案样式</strong></p>
+<p><strong><img src="./images/html 试题试卷（包含latex）下载成word - - java5.png" alt="" /></strong></p>
+<p>&nbsp;</p>
+<p style="margin-left: 30px;">试卷json数据放在：resources\paperdata&nbsp;&nbsp;</p>
+<p style="margin-left: 30px;">请求方法位置：com\pdl\paperdownload\main.java</p>
+<p>&nbsp;</p>
+<p>&nbsp;</p>
+<p><strong>总结：</strong></p>
+<p style="margin-left: 30px;"><strong>整个过程就是一个 了解HTML结构，了解word结构，然后翻译，拼接出一个完整word的过程</strong></p>
+<p style="margin-left: 30px;"><strong>&nbsp; &nbsp; &nbsp; &nbsp; &nbsp;</strong></p>
+<p style="margin-left: 30px;">遇到问题： 经常有格式错误或特殊字符导致word打不开的情况，这个是一大痛点，但经过不断优化这样的情况已越来越少了</p>
+<p style="margin-left: 30px;">会用到的latex转word公式omml的另一篇分享：<a href="https://www.cnblogs.com/maoyuwei/p/10874773.html">https://www.cnblogs.com/maoyuwei/p/10874773.html</a></p>
+<p>&nbsp;</p>
+<p>&nbsp;</p>
+<p>如果以上内容对你还有一点用处或将来能用到，请走这里哦，不要太多意思意思就行了</p>
+<p><img src="./images/html 试题试卷（包含latex）下载成word - - java6.png" alt="" width="325" height="176" /></p>
+<p>&nbsp;有想法的，有问题的猿请走这里：mao_yuwei@163.com</p>
+
+</div><hr><script charset='utf-8' src='../../js/sming.js'></script></body></html>

@@ -1,0 +1,133 @@
+<html><head><meta charset='utf-8'><meta name='viewport' content='width=device-width, initial-scale=1'>
+<meta name='applicable-device' content='pc'><meta name='keywords' content='电脑,电脑讲解,电脑技术,编程,电脑故障维修SpringSecurity系列之自定义登录验证成功与失败的结果处理' />
+<script src='../../highlight/highlight.pack.js'></script>
+<link rel='stylesheet' type='text/css' href='../../highlight/styles/monokai.css'/>
+
+<link rel='stylesheet' href='../../fenxiang/dist/css/share.min.css'>
+<script src='../../fenxiang/src/js/social-share.js'></script>
+<script src='../../fenxiang/src/js/qrcode.js'></script>
+
+</head><body><script>hljs.initHighlightingOnLoad();</script><script>
+var system ={};  
+var p = navigator.platform;       
+system.win = p.indexOf('Win') == 0;  
+system.mac = p.indexOf('Mac') == 0;  
+system.x11 = (p == 'X11') || (p.indexOf('Linux') == 0);     
+if(system.win||system.mac||system.xll){
+document.write("<link href='../css/3.css' rel='stylesheet' type='text/css'>");}else{ document.write("<link href='../css/3wap.css' rel='stylesheet' type='text/css'>");}</script><script src='../../js/3.js'></script><div class='div2'><div class='heading_nav'><ul><div><li><a href='../../index.html'>首页</a></li>
+</div><div onclick='hidden1()' >分享</div>
+</ul></div></div>
+<div id='heading_nav2'> 
+<li class='row' >
+<div class='social-share' data-mode='prepend'><a href='javascript:' class='social-share-icon icon-heart'></a></div></li></div><script charset='utf-8' src='../../3/js/hengfu.js'></script><script charset='utf-8' src='../../3/js/hengfu2.js'></script><hr><div class='div1'><div class='biaoti'><center>SpringSecurity系列之自定义登录验证成功与失败的结果处理</center></div><div class='banquan'>原文出处:本文由博客园博主字母哥博客提供。<br/>
+原文连接:https://www.cnblogs.com/zimug/p/11895429.html</div><br>
+    <h2 id="一需要自定义登录结果的场景">一、需要自定义登录结果的场景</h2>
+<p>在我之前的文章中，做过登录验证流程的源码解析。其中比较重要的就是</p>
+<ul>
+<li>当我们登录成功的时候，是由AuthenticationSuccessHandler进行登录结果处理，默认跳转到defaultSuccessUrl配置的路径对应的资源页面（一般是首页index.html）。</li>
+<li>当我们登录失败的时候，是由AuthenticationfailureHandler进行登录结果处理，默认跳转到failureUrl配置的路径对应的资源页面（一般是登录页login.html）。</li>
+</ul>
+<p>但是在web应用开发过程中需求是千变万化的，有时需要我们针对登录结果做个性化处理，比如：</p>
+<ul>
+<li>我们希望不同的人登陆之后，看到不同的首页</li>
+<li>我们应用是前后端分离的，验证响应结果是JSON格式数据，而不是页面跳转</li>
+</ul>
+<p>以上的这些情况，使用Spring Security作为安全框架的时候，都需要我们使用本节学到的知识进行自定义的登录验证结果处理。</p>
+<h2 id="二自定义登陆成功的结果处理">二、自定义登陆成功的结果处理</h2>
+<p>为了满足上面的需求，我们该如何去做呢？下面一小节我们来说明一下。AuthenticationSuccessHandler接口是Security提供的认证成功处理器接口，我们只需要去实现它即可。但是通常来说，我们不会直接去实现AuthenticationSuccessHandler接口，而是继承SavedRequestAwareAuthenticationSuccessHandler 类，这个类会记住用户上一次请求的资源路径，比如：用户请求books.html，没有登陆所以被拦截到了登录页，当你万成登陆之后会自动跳转到books.html，而不是主页面。</p>
+<pre><code><code>@Component
+public class MyAuthenticationSuccessHandler 
+                        extends SavedRequestAwareAuthenticationSuccessHandler {
+
+    //在application配置文件中配置登陆的类型是JSON数据响应还是做页面响应
+    @Value(&quot;${spring.security.logintype}&quot;)
+    private String loginType;
+
+    private  static ObjectMapper objectMapper = new ObjectMapper();
+
+    @Override
+    public void onAuthenticationSuccess(HttpServletRequest request, 
+                                        HttpServletResponse response, 
+                                        Authentication authentication) 
+                                        throws ServletException, IOException {
+
+        if (loginType.equalsIgnoreCase(&quot;JSON&quot;)) {
+            response.setContentType(&quot;application/json;charset=UTF-8&quot;);
+            response.getWriter().write(objectMapper.writeValueAsString(AjaxResponse.success()));
+        } else {
+            // 会帮我们跳转到上一次请求的页面上
+            super.onAuthenticationSuccess(request, response, authentication);
+        }
+    }
+}</code></code></pre>
+<ul>
+<li>在上面的自定义登陆成功处理中，既适应JSON前后端分离的应用登录结果处理，也适用于模板页面跳转应用的登录结果处理</li>
+<li>ObjectMapper 是Spring Boot默认集成的JSON数据处理类库Jackson中的类。</li>
+<li>AjaxResponse是一个自定义的通用的JSON数据接口响应类。</li>
+</ul>
+<h2 id="三自定义登录失败的结果处理">三、自定义登录失败的结果处理</h2>
+<p>这里我们同样没有直接实现AuthenticationFailureHandler接口，而是继承SimpleUrlAuthenticationFailureHandler 类。该类中默认实现了登录验证失败的跳转逻辑，即登陆失败之后回到登录页面。我们可以利用这一点简化我们的代码。</p>
+<pre><code><code>@Component
+public class MyAuthenticationFailureHandler extends SimpleUrlAuthenticationFailureHandler {
+
+    //在application配置文件中配置登陆的类型是JSON数据响应还是做页面响应
+    @Value(&quot;${spring.security.logintype}&quot;)
+    private String loginType;
+
+    private  static ObjectMapper objectMapper = new ObjectMapper();
+
+    @Override
+    public void onAuthenticationFailure(HttpServletRequest request,
+                                        HttpServletResponse response, 
+                                        AuthenticationException exception) 
+                                        throws IOException, ServletException {
+
+        if (loginType.equalsIgnoreCase(&quot;JSON&quot;)) {
+            response.setContentType(&quot;application/json;charset=UTF-8&quot;);
+            response.getWriter().write(
+                    objectMapper.writeValueAsString(
+                            AjaxResponse.error(
+                                    new CustomException(
+                                        CustomExceptionType.USER_INPUT_ERROR,
+                                        &quot;用户名或密码存在错误，请检查后再次登录&quot;))));
+        } else {
+            response.setContentType(&quot;text/html;charset=UTF-8&quot;);
+            super.onAuthenticationFailure(request, response, exception);
+        }
+
+    }
+}</code></code></pre>
+<ul>
+<li>在上面的自定义登陆失败处理中，既适应JSON前后端分离的应用登录失败结果处理，也适用于模板页面跳转应用的登录失败结果处理</li>
+<li>登陆失败之后，将默认跳转到默认的failureUrl，即登录界面。</li>
+</ul>
+<h2 id="四配置securityconfig">四、配置SecurityConfig</h2>
+<pre><code><code>@Configuration
+public class SecurityConfig extends WebSecurityConfigurerAdapter {
+
+    @Resource
+    private MyAuthenticationSuccessHandler myAuthenticationSuccessHandler;
+
+    @Resource
+    private MyAuthenticationFailureHandler myAuthenticationFailureHandler;
+
+   @Override
+   protected void configure(HttpSecurity http) throws Exception {
+       http.csrf().disable() //禁用跨站csrf攻击防御，后面的章节会专门讲解
+           .formLogin()
+           .successHandler(myAuthenticationSuccessHandler)
+           .failureHandler(myAuthenticationFailureHandler)
+           .defaultSuccessUrl(&quot;/index&quot;)//登录认证成功后默认转跳的路径
+           .failureUrl(&quot;/login.html&quot;) //登录认证是被跳转页面
+}</code></code></pre>
+<ul>
+<li>将自定义的AuthenticationSuccessHandler和AuthenticationFailureHandler注入到Spring Security配置类中</li>
+<li>使用fromlogin模式，配置successHandler和failureHandler。</li>
+<li><p>并且配置defaultSuccessUrl和failureUrl</p>
+<h2 id="期待您的关注">期待您的关注</h2></li>
+<li>博主最近新写了一本书：<a href="http://springboot.zimug.com">《手摸手教您学习SpringBoot系列-16章97节》</a></li>
+<li><p>本文转载注明出处（必须带连接，不能只转文字）：<a href="http://www.zimug.com">字母哥博客</a>。</p></li>
+</ul>
+
+
+</div><hr><script charset='utf-8' src='../../js/sming.js'></script></body></html>

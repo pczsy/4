@@ -1,0 +1,125 @@
+<html><head><meta charset='utf-8'><meta name='viewport' content='width=device-width, initial-scale=1'>
+<meta name='applicable-device' content='pc'><meta name='keywords' content='电脑,电脑讲解,电脑技术,编程,电脑故障维修Windows下RabbitMQ 的下载、配置、Java实现生产者和消费者例子' />
+<script src='../../highlight/highlight.pack.js'></script>
+<link rel='stylesheet' type='text/css' href='../../highlight/styles/monokai.css'/>
+
+<link rel='stylesheet' href='../../fenxiang/dist/css/share.min.css'>
+<script src='../../fenxiang/src/js/social-share.js'></script>
+<script src='../../fenxiang/src/js/qrcode.js'></script>
+
+</head><body><script>hljs.initHighlightingOnLoad();</script><script>
+var system ={};  
+var p = navigator.platform;       
+system.win = p.indexOf('Win') == 0;  
+system.mac = p.indexOf('Mac') == 0;  
+system.x11 = (p == 'X11') || (p.indexOf('Linux') == 0);     
+if(system.win||system.mac||system.xll){
+document.write("<link href='../css/3.css' rel='stylesheet' type='text/css'>");}else{ document.write("<link href='../css/3wap.css' rel='stylesheet' type='text/css'>");}</script><script src='../../js/3.js'></script><div class='div2'><div class='heading_nav'><ul><div><li><a href='../../index.html'>首页</a></li>
+</div><div onclick='hidden1()' >分享</div>
+</ul></div></div>
+<div id='heading_nav2'> 
+<li class='row' >
+<div class='social-share' data-mode='prepend'><a href='javascript:' class='social-share-icon icon-heart'></a></div></li></div><script charset='utf-8' src='../../3/js/hengfu.js'></script><script charset='utf-8' src='../../3/js/hengfu2.js'></script><hr><div class='div1'><div class='biaoti'><center>Windows下RabbitMQ 的下载、配置、Java实现生产者和消费者例子</center></div><div class='banquan'>原文出处:本文由博客园博主gdjlc提供。<br/>
+原文连接:https://www.cnblogs.com/gdjlc/p/11905170.html</div><br>
+    <p>RabbitMQ是一个轻量级的消息代理中间件，支持多种消息通信协议，支持分布式部署，支持运行于多个操作系统，具有灵活、高可用等特性。RabbitMQ支持多种协议，其中最为重要的是高级消息队列协议（AMQP），它定义了&ldquo;消息客户端&rdquo;和&ldquo;消息代理中间件&rdquo;之间的通信协议，基于该协议，消息客户端与消息代理中间件可以不受开发语言、具体产品的约束。</p>
+<p>AMQP的大致模型如下图所示：</p>
+<p>&nbsp;&nbsp;<img src="./images/Windows下RabbitMQ 的下载、配置、Java实现生产者和消费者例子0.png" alt="" width="400" height="277" /></p>
+<p>生产者将消息传递给&ldquo;消息代理（RabbitMQ服务器）&rdquo;，它们之间会建立消息通道（Channel），消息由交换器（Exchange）先进行处理，再交给一个消息队列（Message Queue），最后消息队列将消息发给消息者。</p>
+<p><span style="font-size: 16px;"><strong>一、下载RabbitMQ和Erlang</strong></span></p>
+<p>Windos下RabbitMQ的当前服务器最高版本为3.8.1，下载地址：https://www.rabbitmq.com/install-windows.html</p>
+<p><img src="./images/Windows下RabbitMQ 的下载、配置、Java实现生产者和消费者例子1.png" alt="" width="604" height="87" /></p>
+<p>RabbitMQ服务器使用的是Erlang语言，因此还需要下载Erlang，当前最高版本为22.1，<br />下载地址：http://erlang.org/download/，点击里面的文件名称otp_win64_22.1.exe进行下载。</p>
+<p><span style="font-size: 16px;"><strong>二、配置</strong></span></p>
+<p><span style="color: #333399;">1、RabbitMQ安装完后会作为Windows服务启动。</span></p>
+<p><img src="./images/Windows下RabbitMQ 的下载、配置、Java实现生产者和消费者例子2.png" alt="" width="601" height="68" /></p>
+<p><span style="color: #333399;">2、开启插件管理</span></p>
+<p>cmd进入安装目录的sbin目录，输入下面命令进行安装：<br />rabbitmq-plugins enable rabbitmq_management</p>
+<p><img src="./images/Windows下RabbitMQ 的下载、配置、Java实现生产者和消费者例子3.png" alt="" width="596" height="201" /></p>
+<p>输入下面命令可以查看插件状态：<br />rabbitmq-plugins list</p>
+<p><span style="color: #333399;">3、登录Web管理界面</span></p>
+<p>第2步开启插件后，这个地址可以访问： http://localhost:15672/<br />输入默认的用户名和密码（都是guest）登录，登录后界面如下</p>
+<p><img src="./images/Windows下RabbitMQ 的下载、配置、Java实现生产者和消费者例子4.png" alt="" width="599" height="399" /></p>
+<p><span style="color: #ff0000;">备注：RabbitMQ的另一个端口5672用于客户端通信。</span></p>
+<p><span style="font-size: 16px;">三<strong>、Java实现生产者和消费者例子</strong></span></p>
+<p>对于服务器来说，消息生产者和消费者都属于客户端，它们与服务器之间通过AMQP协议进行通信。AMQP不受语言的限制，客户端可以使用不同的编程语言实现。下面用Java编写客户端。</p>
+<p>新建一个Maven项目，pom.xml 加入依赖：</p>
+<src class="cnblogs_code">
+<pre><code>        <span style="color: #0000ff;">&lt;</span><span style="color: #800000;">dependency</span><span style="color: #0000ff;">&gt;</span>
+            <span style="color: #0000ff;">&lt;</span><span style="color: #800000;">groupId</span><span style="color: #0000ff;">&gt;</span>com.rabbitmq<span style="color: #0000ff;">&lt;/</span><span style="color: #800000;">groupId</span><span style="color: #0000ff;">&gt;</span>
+            <span style="color: #0000ff;">&lt;</span><span style="color: #800000;">artifactId</span><span style="color: #0000ff;">&gt;</span>amqp-client<span style="color: #0000ff;">&lt;/</span><span style="color: #800000;">artifactId</span><span style="color: #0000ff;">&gt;</span>
+            <span style="color: #0000ff;">&lt;</span><span style="color: #800000;">version</span><span style="color: #0000ff;">&gt;</span>5.7.3<span style="color: #0000ff;">&lt;/</span><span style="color: #800000;">version</span><span style="color: #0000ff;">&gt;</span>
+        <span style="color: #0000ff;">&lt;/</span><span style="color: #800000;">dependency</span><span style="color: #0000ff;">&gt;</span></code></pre>
+
+<p><span style="color: #333399;">1、编写生产者</span></p>
+<p>新建消息生产者，向服务器发送消息。</p>
+<src class="cnblogs_code">
+<pre><code><span style="color: #0000ff;">package</span><span style="color: #000000;"> com.example.rabbittest;
+
+</span><span style="color: #0000ff;">import</span><span style="color: #000000;"> com.rabbitmq.client.Channel;
+</span><span style="color: #0000ff;">import</span><span style="color: #000000;"> com.rabbitmq.client.Connection;
+</span><span style="color: #0000ff;">import</span><span style="color: #000000;"> com.rabbitmq.client.ConnectionFactory;
+
+</span><span style="color: #0000ff;">import</span><span style="color: #000000;"> java.io.IOException;
+</span><span style="color: #0000ff;">import</span><span style="color: #000000;"> java.util.concurrent.TimeoutException;
+
+</span><span style="color: #0000ff;">public</span> <span style="color: #0000ff;">class</span><span style="color: #000000;"> Send {
+    </span><span style="color: #0000ff;">public</span> <span style="color: #0000ff;">static</span> <span style="color: #0000ff;">void</span> main(String[] args) <span style="color: #0000ff;">throws</span><span style="color: #000000;"> IOException, TimeoutException {
+        </span><span style="color: #008000;">//</span><span style="color: #008000;">创建连接</span>
+        ConnectionFactory factory = <span style="color: #0000ff;">new</span><span style="color: #000000;"> ConnectionFactory();
+        factory.setHost(</span>"localhost"<span style="color: #000000;">);
+        Connection connection </span>=<span style="color: #000000;"> factory.newConnection();
+        </span><span style="color: #008000;">//</span><span style="color: #008000;">建立通道</span>
+        Channel channel =<span style="color: #000000;"> connection.createChannel();
+        </span><span style="color: #008000;">//</span><span style="color: #008000;">声明队列</span>
+        String queueName = "hello"<span style="color: #000000;">;
+        channel.queueDeclare(queueName,</span><span style="color: #0000ff;">false</span>,<span style="color: #0000ff;">false</span>,<span style="color: #0000ff;">false</span>,<span style="color: #0000ff;">null</span><span style="color: #000000;">);
+        String message </span>= "hello world"<span style="color: #000000;">;
+        </span><span style="color: #008000;">//</span><span style="color: #008000;">消息发布</span>
+        channel.basicPublish("", queueName, <span style="color: #0000ff;">null</span><span style="color: #000000;">, message.getBytes());
+        </span><span style="color: #008000;">//</span><span style="color: #008000;">关闭通道和连接</span>
+<span style="color: #000000;">        channel.close();
+        connection.close();
+    }
+}</span></code></pre>
+
+<p>上面代码没有声明交换器，会使用默认的交换器。</p>
+<p>运行代码后，登录http://localhost:15672/，单击Queues选项卡，可以看到创建了hello队列。</p>
+<p><img src="./images/Windows下RabbitMQ 的下载、配置、Java实现生产者和消费者例子5.png" alt="" width="754" height="391" /></p>
+<p><span style="color: #333399;">2、编写消费者</span></p>
+<p>新建消息消费者（和生产者在同一个项目中），接受服务器消息。</p>
+<src class="cnblogs_code">
+<pre><code><span style="color: #0000ff;">package</span><span style="color: #000000;"> com.example.rabbittest;
+
+</span><span style="color: #0000ff;">import</span> com.rabbitmq.client.*<span style="color: #000000;">;
+
+</span><span style="color: #0000ff;">import</span><span style="color: #000000;"> java.io.IOException;
+</span><span style="color: #0000ff;">import</span><span style="color: #000000;"> java.util.concurrent.TimeoutException;
+
+</span><span style="color: #0000ff;">public</span> <span style="color: #0000ff;">class</span><span style="color: #000000;"> Receive {
+    </span><span style="color: #0000ff;">public</span> <span style="color: #0000ff;">static</span> <span style="color: #0000ff;">void</span> main(String[] args) <span style="color: #0000ff;">throws</span><span style="color: #000000;"> IOException, TimeoutException {
+        </span><span style="color: #008000;">//</span><span style="color: #008000;">创建连接</span>
+        ConnectionFactory factory = <span style="color: #0000ff;">new</span><span style="color: #000000;"> ConnectionFactory();
+        factory.setHost(</span>"localhost"<span style="color: #000000;">);
+        Connection connection </span>=<span style="color: #000000;"> factory.newConnection();
+        </span><span style="color: #008000;">//</span><span style="color: #008000;">建立通道</span>
+        Channel channel =<span style="color: #000000;"> connection.createChannel();
+        </span><span style="color: #008000;">//</span><span style="color: #008000;">声明队列</span>
+        String queueName = "hello"<span style="color: #000000;">;
+        channel.queueDeclare(queueName,</span><span style="color: #0000ff;">false</span>,<span style="color: #0000ff;">false</span>,<span style="color: #0000ff;">false</span>,<span style="color: #0000ff;">null</span><span style="color: #000000;">);
+        String message </span>= "hello world"<span style="color: #000000;">;
+        </span><span style="color: #008000;">//</span><span style="color: #008000;">消息发布</span>
+        Consumer consumer = <span style="color: #0000ff;">new</span><span style="color: #000000;"> DefaultConsumer(channel){
+            @Override
+            </span><span style="color: #0000ff;">public</span> <span style="color: #0000ff;">void</span> handleDelivery(String consumerTag, Envelope envelope, AMQP.BasicProperties properties, <span style="color: #0000ff;">byte</span>[] body) <span style="color: #0000ff;">throws</span><span style="color: #000000;"> IOException {
+                String message </span>= <span style="color: #0000ff;">new</span> String(body, "UTF-8"<span style="color: #000000;">);
+                System.out.println(</span>"接收的消息：" +<span style="color: #000000;"> message);
+            }
+        };
+        channel.basicConsume(queueName, </span><span style="color: #0000ff;">true</span><span style="color: #000000;">, consumer);
+    }
+}</span></code></pre>
+
+<p>运行代码后，打开RabbitMQ控制台，单击hello队列，可以看到有相应的消费者。</p>
+<p><img src="./images/Windows下RabbitMQ 的下载、配置、Java实现生产者和消费者例子6.png" alt="" width="760" height="607" /></p>
+
+</div><hr><script charset='utf-8' src='../../js/sming.js'></script></body></html>

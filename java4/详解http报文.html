@@ -1,0 +1,126 @@
+<html><head><meta charset='utf-8'><meta name='viewport' content='width=device-width, initial-scale=1'>
+<meta name='applicable-device' content='pc'><meta name='keywords' content='电脑,电脑讲解,电脑技术,编程,电脑故障维修详解http报文' />
+<script src='../../highlight/highlight.pack.js'></script>
+<link rel='stylesheet' type='text/css' href='../../highlight/styles/monokai.css'/>
+
+<link rel='stylesheet' href='../../fenxiang/dist/css/share.min.css'>
+<script src='../../fenxiang/src/js/social-share.js'></script>
+<script src='../../fenxiang/src/js/qrcode.js'></script>
+
+</head><body><script>hljs.initHighlightingOnLoad();</script><script>
+var system ={};  
+var p = navigator.platform;       
+system.win = p.indexOf('Win') == 0;  
+system.mac = p.indexOf('Mac') == 0;  
+system.x11 = (p == 'X11') || (p.indexOf('Linux') == 0);     
+if(system.win||system.mac||system.xll){
+document.write("<link href='../css/3.css' rel='stylesheet' type='text/css'>");}else{ document.write("<link href='../css/3wap.css' rel='stylesheet' type='text/css'>");}</script><script src='../../js/3.js'></script><div class='div2'><div class='heading_nav'><ul><div><li><a href='../../index.html'>首页</a></li>
+</div><div onclick='hidden1()' >分享</div>
+</ul></div></div>
+<div id='heading_nav2'> 
+<li class='row' >
+<div class='social-share' data-mode='prepend'><a href='javascript:' class='social-share-icon icon-heart'></a></div></li></div><script charset='utf-8' src='../../3/js/hengfu.js'></script><script charset='utf-8' src='../../3/js/hengfu2.js'></script><hr><div class='div1'><div class='biaoti'><center>详解http报文</center></div><div class='banquan'>原文出处:本文由博客园博主stoneFang提供。<br/>
+原文连接:https://www.cnblogs.com/stoneFang/p/11614253.html</div><br>
+    <h1 id="摘要">摘要</h1>
+<p>作为一个web开发者，每天都在使用者Http协议，却总是一知半解。本文参看Http RFC7230规范，梳理了http报文部分。</p>
+<h1 id="http-报文构成">http 报文构成</h1>
+<p>start-line: 起始行,描述请求或响应的基本信息<br />
+*( header-field CRLF ): 头<br />
+CRLF<br />
+[ message-body ]: 消息body，实际传输的数据</p>
+<h2 id="header">header</h2>
+<h3 id="起始行">起始行</h3>
+<p>起始行的格式就是<br />
+start-line = request-line(请求起始行）/（响应起始行）status-line</p>
+<p><img src="./images/详解http报文0.png" alt="在这里插入图片描述" /></p>
+<h3 id="header头在这里插入图片描述">header头<img src="./images/详解http报文1.png" alt="在这里插入图片描述" /></h3>
+<p>这些格式就是规则，用来解析的</p>
+<p><strong>顺序</strong><br />
+理论上头字段的key顺序是无所谓的，但是最佳实践是将控制字段放在前面，比如请求的时候Host,响应的Date，这样可以尽快发现是否需要处理。</p>
+<p><strong>重复</strong><br />
+除了<code>Set-Cookie</code>这个key，其他都不行，如果发送方发了重复的key，接收方会将它合并，值是以逗号分隔。</p>
+<p><strong>字段限制</strong><br />
+协议本身对每个头字段没有限制，但是在工程实践中的得出过一些实践，没有通用的限制，和字段具体的语义有关。整体的header大小限制没有定义标准值，有些4K，有些8K。server端检查到header头超过了限制值，处于安全考虑，不会忽略掉。而是会抛出4XX错误。</p>
+<p>只有<code>Host</code>字段是请求头中必须带的,其他无所谓。</p>
+<table>
+<thead>
+<tr class="header">
+<th>字段</th>
+<th>请求头</th>
+<th>响应头</th>
+<th>解释</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>Host</td>
+<td>1</td>
+<td>0</td>
+<td>告诉服务器应该由哪个主机处理</td>
+</tr>
+<tr class="even">
+<td>User-Agent</td>
+<td>1</td>
+<td>0</td>
+<td>标识浏览器类型，虽然已经被用烂了，不太可信，但有时候可以用来自定义类型</td>
+</tr>
+<tr class="odd">
+<td>Accept</td>
+<td>1</td>
+<td>0</td>
+<td>可以接收的body类型 mime type,比如text/html</td>
+</tr>
+<tr class="even">
+<td>Accept-Charset</td>
+<td>1</td>
+<td>0</td>
+<td>可以接收的字符集</td>
+</tr>
+<tr class="odd">
+<td>Accept-Encoding</td>
+<td>1</td>
+<td>0</td>
+<td>可以接收的编码格式</td>
+</tr>
+<tr class="even">
+<td>Accept-Language</td>
+<td>1</td>
+<td>0</td>
+<td>可以接收的多语言</td>
+</tr>
+<tr class="odd">
+<td>Content-Type</td>
+<td>1</td>
+<td>1</td>
+<td>发送的body类型mime type</td>
+</tr>
+<tr class="even">
+<td>Content-Encoding</td>
+<td>1</td>
+<td>1</td>
+<td>发送的编码</td>
+</tr>
+<tr class="odd">
+<td>Content-Language</td>
+<td>1</td>
+<td>1</td>
+<td>发送的语言</td>
+</tr>
+</tbody>
+</table>
+<p>这边有完整的分类<br />
+<a href="https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers" class="uri">https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers</a></p>
+<h2 id="body">body</h2>
+<p>header是必须有要有的，但是body就不一定要用。</p>
+<p>body就是传输的内容。因为Http是应用层协议，所以除了传输数据，还需要定义传输的数据格式。这些格式定义在header中指定。<code>Content-Length</code>请求或者响应的body长度，必须要带上这个字段，以便对方可以方便的分辨出报文的边界，也就是Body数据何时结束。如果Body太大，需要边计算边传输，不到最后计算结束是无法知道整个Body大小的，这个时候可以使用chunk传输，通过<code>Transfer-Encoding</code>指定，这两个header key是互斥的，只能指定一个，如果指定了两个，接收端优先处理<code>Transfer-Encoding</code>字段。通常body的数据比较多时，都使用chunk来传输，效率比较高。没有了length，怎么知道数据传输结束了，通过一个长度为 0的chunk，对应的分块数据没有内容，来表示body内容结束。<br />
+<img src="./images/详解http报文2.png" alt="在这里插入图片描述" /></p>
+<h1 id="jetty-干了什么">jetty 干了什么</h1>
+<p>jetty 是web容器，需要解析Http Request,发送Http Response。具体干了什么下回分析</p>
+<p><strong>关注公众号【方丈的寺院】，第一时间收到文章的更新，与方丈一起开始技术修行之路</strong><br />
+<img src="./images/详解http报文3.png" alt="在这里插入图片描述" /></p>
+<h1 id="参考">参考</h1>
+<p><a href="https://tools.ietf.org/pdf/rfc7230.pdf" class="uri">https://tools.ietf.org/pdf/rfc7230.pdf</a><br />
+<a href="https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers" class="uri">https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers</a></p>
+
+
+</div><hr><script charset='utf-8' src='../../js/sming.js'></script></body></html>

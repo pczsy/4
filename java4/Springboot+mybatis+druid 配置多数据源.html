@@ -1,0 +1,235 @@
+<html><head><meta charset='utf-8'><meta name='viewport' content='width=device-width, initial-scale=1'>
+<meta name='applicable-device' content='pc'><meta name='keywords' content='电脑,电脑讲解,电脑技术,编程,电脑故障维修Springboot+mybatis+druid 配置多数据源' />
+<script src='../../highlight/highlight.pack.js'></script>
+<link rel='stylesheet' type='text/css' href='../../highlight/styles/monokai.css'/>
+
+<link rel='stylesheet' href='../../fenxiang/dist/css/share.min.css'>
+<script src='../../fenxiang/src/js/social-share.js'></script>
+<script src='../../fenxiang/src/js/qrcode.js'></script>
+
+</head><body><script>hljs.initHighlightingOnLoad();</script><script>
+var system ={};  
+var p = navigator.platform;       
+system.win = p.indexOf('Win') == 0;  
+system.mac = p.indexOf('Mac') == 0;  
+system.x11 = (p == 'X11') || (p.indexOf('Linux') == 0);     
+if(system.win||system.mac||system.xll){
+document.write("<link href='../css/3.css' rel='stylesheet' type='text/css'>");}else{ document.write("<link href='../css/3wap.css' rel='stylesheet' type='text/css'>");}</script><script src='../../js/3.js'></script><div class='div2'><div class='heading_nav'><ul><div><li><a href='../../index.html'>首页</a></li>
+</div><div onclick='hidden1()' >分享</div>
+</ul></div></div>
+<div id='heading_nav2'> 
+<li class='row' >
+<div class='social-share' data-mode='prepend'><a href='javascript:' class='social-share-icon icon-heart'></a></div></li></div><script charset='utf-8' src='../../3/js/hengfu.js'></script><script charset='utf-8' src='../../3/js/hengfu2.js'></script><hr><div class='div1'><div class='biaoti'><center>Springboot+mybatis+druid 配置多数据源</center></div><div class='banquan'>原文出处:本文由博客园博主那只马儿提供。<br/>
+原文连接:https://www.cnblogs.com/gekh/p/11847643.html</div><br>
+    <h5><span style="font-size: 15px;">项目结构</span></h5>
+<p><span style="font-size: 15px;"><img src="./images/Springboot+mybatis+druid 配置多数据源0.png" alt="" /></span></p>
+<h5><span style="font-size: 15px;">application.yml配置文件</span></h5>
+<src class="cnblogs_code">
+<pre><code><span style="color: #000000;">spring:
+  application:
+    name: service
+  datasource:
+    primary:
+      jdbc</span>-url: jdbc:oracle:thin:@127.0.0.1:1521<span style="color: #000000;">:ORCL
+      username: gkh
+      password: </span>123456<span style="color: #000000;">
+      driver</span>-<span style="color: #0000ff;">class</span>-<span style="color: #000000;">name: oracle.jdbc.driver.OracleDriver
+      type: com.alibaba.druid.pool.DruidDataSource  #使用druid连接池
+      #url: jdbc:oracle:thin:@</span>127.0.0.1:1521<span style="color: #000000;">:ORCL
+      #type: oracle.jdbc.pool.OracleDataSource
+    secondary:
+      jdbc</span>-url: jdbc:oracle:thin:@127.0.0.1:1521<span style="color: #000000;">:ORCL
+      username: gkh
+      password: </span>123456<span style="color: #000000;">
+      driver</span>-<span style="color: #0000ff;">class</span>-<span style="color: #000000;">name: oracle.jdbc.driver.OracleDriver
+      type: com.alibaba.druid.pool.DruidDataSource #使用druid连接池</span></code></pre>
+
+<h5><span style="font-size: 15px;"><strong>主数据源配置代码</strong></span></h5>
+<src class="cnblogs_code">
+<pre><code><span style="color: #0000ff;">package</span><span style="color: #000000;"> com.gkh.springboot.datasource;
+
+</span><span style="color: #0000ff;">import</span><span style="color: #000000;"> org.apache.ibatis.session.SqlSessionFactory;
+</span><span style="color: #0000ff;">import</span><span style="color: #000000;"> org.mybatis.spring.SqlSessionFactoryBean;
+</span><span style="color: #0000ff;">import</span><span style="color: #000000;"> org.mybatis.spring.SqlSessionTemplate;
+</span><span style="color: #0000ff;">import</span><span style="color: #000000;"> org.mybatis.spring.annotation.MapperScan;
+</span><span style="color: #0000ff;">import</span><span style="color: #000000;"> org.springframework.beans.factory.annotation.Qualifier;
+</span><span style="color: #0000ff;">import</span><span style="color: #000000;"> org.springframework.boot.context.properties.ConfigurationProperties;
+</span><span style="color: #0000ff;">import</span><span style="color: #000000;"> org.springframework.boot.jdbc.DataSourceBuilder;
+</span><span style="color: #0000ff;">import</span><span style="color: #000000;"> org.springframework.context.annotation.Bean;
+</span><span style="color: #0000ff;">import</span><span style="color: #000000;"> org.springframework.context.annotation.Configuration;
+</span><span style="color: #0000ff;">import</span><span style="color: #000000;"> org.springframework.context.annotation.Primary;
+</span><span style="color: #0000ff;">import</span><span style="color: #000000;"> org.springframework.jdbc.datasource.DataSourceTransactionManager;
+
+</span><span style="color: #0000ff;">import</span><span style="color: #000000;"> javax.sql.DataSource;
+
+</span><span style="color: #008000;">/**</span><span style="color: #008000;">
+ * @Primary：指定为默认数据源，没有该注解会报错，系统找不到默认数据源
+ * @MapperScan：扫描指定包的mapper作为对应数据源，建议每个数据源都用不同的包区分
+ * @Qualifier：与@Autowired类似，用作区分如果存在多个实现类要指定要注入哪个 参数为指定Bean的name
+ </span><span style="color: #008000;">*/</span><span style="color: #000000;">
+
+@Configuration
+@MapperScan(basePackages </span>= "com.gkh.springboot.mapper.primary", sqlSessionFactoryRef = "primarySqlSessionFactory"<span style="color: #000000;">)
+</span><span style="color: #0000ff;">public</span> <span style="color: #0000ff;">class</span><span style="color: #000000;"> DataSource1Config {
+
+    </span><span style="color: #008000;">/**</span><span style="color: #008000;">
+     * 生成数据源，@Primary注解声明为默认数据源
+     * </span><span style="color: #808080;">@return</span>
+     <span style="color: #008000;">*/</span><span style="color: #000000;">
+    @Bean(name</span>="primaryDataSoure"<span style="color: #000000;">)
+    @Primary
+    @ConfigurationProperties(prefix </span>= "spring.datasource.primary"<span style="color: #000000;">)
+    </span><span style="color: #0000ff;">public</span><span style="color: #000000;"> DataSource primaryDataSource(){
+        </span><span style="color: #0000ff;">return</span><span style="color: #000000;"> DataSourceBuilder.create().build();
+    }
+
+    </span><span style="color: #008000;">/**</span><span style="color: #008000;">
+     * 创建sqlSessionFactory
+     * </span><span style="color: #808080;">@param</span><span style="color: #008000;"> datasource
+     * </span><span style="color: #808080;">@return</span><span style="color: #008000;">
+     * </span><span style="color: #808080;">@throws</span><span style="color: #008000;"> Exception
+     </span><span style="color: #008000;">*/</span><span style="color: #000000;">
+    @Bean(name </span>= "primarySqlSessionFactory"<span style="color: #000000;">)
+    @Primary
+    </span><span style="color: #0000ff;">public</span> SqlSessionFactory primarySqlSessionFactory(@Qualifier("primaryDataSoure"<span style="color: #000000;">) DataSource datasource)
+            </span><span style="color: #0000ff;">throws</span><span style="color: #000000;"> Exception{
+        SqlSessionFactoryBean bean </span>= <span style="color: #0000ff;">new</span><span style="color: #000000;"> SqlSessionFactoryBean();
+        bean.setDataSource(datasource);
+        </span><span style="color: #0000ff;">return</span><span style="color: #000000;"> bean.getObject();
+    }
+
+    </span><span style="color: #008000;">/**</span><span style="color: #008000;">
+     * 配置事务管理
+     * </span><span style="color: #808080;">@param</span><span style="color: #008000;"> datasource
+     * </span><span style="color: #808080;">@return</span>
+     <span style="color: #008000;">*/</span><span style="color: #000000;">
+    @Bean(name </span>= "primaryTransactionManager"<span style="color: #000000;">)
+    @Primary
+    </span><span style="color: #0000ff;">public</span> DataSourceTransactionManager primaryTransactionManager(@Qualifier("primaryDataSoure"<span style="color: #000000;">) DataSource datasource){
+        </span><span style="color: #0000ff;">return</span> <span style="color: #0000ff;">new</span><span style="color: #000000;"> DataSourceTransactionManager(datasource);
+    }
+
+    @Bean(name </span>= "primarySqlSessionTemplate"<span style="color: #000000;">)
+    @Primary
+    </span><span style="color: #0000ff;">public</span> SqlSessionTemplate primarySqlSessionTemplate(@Qualifier("primarySqlSessionFactory"<span style="color: #000000;">) SqlSessionFactory sqlSessionFactory){
+        </span><span style="color: #0000ff;">return</span> <span style="color: #0000ff;">new</span><span style="color: #000000;"> SqlSessionTemplate(sqlSessionFactory);
+    }
+}</span></code></pre>
+
+<p>&nbsp;</p>
+<p><span style="font-size: 15px;"><strong>第二个数据源代码</strong></span></p>
+<src class="cnblogs_code">
+<pre><code><span style="color: #0000ff;">package</span><span style="color: #000000;"> com.gkh.springboot.datasource;
+
+</span><span style="color: #0000ff;">import</span><span style="color: #000000;"> org.apache.ibatis.session.SqlSessionFactory;
+</span><span style="color: #0000ff;">import</span><span style="color: #000000;"> org.mybatis.spring.SqlSessionFactoryBean;
+</span><span style="color: #0000ff;">import</span><span style="color: #000000;"> org.mybatis.spring.SqlSessionTemplate;
+</span><span style="color: #0000ff;">import</span><span style="color: #000000;"> org.mybatis.spring.annotation.MapperScan;
+</span><span style="color: #0000ff;">import</span><span style="color: #000000;"> org.springframework.beans.factory.annotation.Qualifier;
+</span><span style="color: #0000ff;">import</span><span style="color: #000000;"> org.springframework.boot.context.properties.ConfigurationProperties;
+</span><span style="color: #0000ff;">import</span><span style="color: #000000;"> org.springframework.boot.jdbc.DataSourceBuilder;
+</span><span style="color: #0000ff;">import</span><span style="color: #000000;"> org.springframework.context.annotation.Bean;
+</span><span style="color: #0000ff;">import</span><span style="color: #000000;"> org.springframework.context.annotation.Configuration;
+</span><span style="color: #0000ff;">import</span><span style="color: #000000;"> org.springframework.jdbc.datasource.DataSourceTransactionManager;
+
+</span><span style="color: #0000ff;">import</span><span style="color: #000000;"> javax.sql.DataSource;
+
+@Configuration
+@MapperScan(basePackages </span>= "com.gkh.springboot.mapper.secondary", sqlSessionFactoryRef = "secondSqlSessionFactory"<span style="color: #000000;">)
+</span><span style="color: #0000ff;">public</span> <span style="color: #0000ff;">class</span><span style="color: #000000;"> DataSource2Config {
+
+    @Bean(name </span>= "secondDatasource"<span style="color: #000000;">)
+    @ConfigurationProperties(prefix </span>= "spring.datasource.secondary"<span style="color: #000000;">)
+    </span><span style="color: #0000ff;">public</span><span style="color: #000000;"> DataSource secondDatasource(){
+        </span><span style="color: #0000ff;">return</span><span style="color: #000000;"> DataSourceBuilder.create().build();
+    }
+
+    @Bean(name </span>= "secondSqlSessionFactory"<span style="color: #000000;">)
+    </span><span style="color: #0000ff;">public</span> SqlSessionFactory secondSqlSessionFactory(@Qualifier("secondDatasource"<span style="color: #000000;">) DataSource dataSource)
+            </span><span style="color: #0000ff;">throws</span><span style="color: #000000;"> Exception{
+        SqlSessionFactoryBean bean </span>= <span style="color: #0000ff;">new</span><span style="color: #000000;"> SqlSessionFactoryBean();
+        bean.setDataSource(dataSource);
+        </span><span style="color: #0000ff;">return</span><span style="color: #000000;"> bean.getObject();
+    }
+
+    @Bean(name </span>= "secondTransactionManager"<span style="color: #000000;">)
+    </span><span style="color: #0000ff;">public</span> DataSourceTransactionManager sourceTransactionManager(@Qualifier("secondDatasource"<span style="color: #000000;">) DataSource dataSource){
+        </span><span style="color: #0000ff;">return</span> <span style="color: #0000ff;">new</span><span style="color: #000000;"> DataSourceTransactionManager(dataSource);
+    }
+
+    @Bean(name </span>= "secondSqlSessionTemplate"<span style="color: #000000;">)
+    </span><span style="color: #0000ff;">public</span> SqlSessionTemplate secondSqlSessionTemplate(@Qualifier("secondSqlSessionFactory"<span style="color: #000000;">) SqlSessionFactory sqlSessionFactory){
+        </span><span style="color: #0000ff;">return</span> <span style="color: #0000ff;">new</span><span style="color: #000000;"> SqlSessionTemplate(sqlSessionFactory);
+    }
+}</span></code></pre>
+
+<h5><strong><span style="font-size: 15px;">Controller:</span></strong></h5>
+<h5><span style="font-size: 15px;"><strong>　　UserController</strong></span></h5>
+<src class="cnblogs_code">
+<pre><code><span style="color: #000000;">@Controller
+@RequestMapping(value </span>= "/user"<span style="color: #000000;">)
+</span><span style="color: #0000ff;">public</span> <span style="color: #0000ff;">class</span><span style="color: #000000;"> UserController {
+    @Autowired
+    </span><span style="color: #0000ff;">private</span><span style="color: #000000;"> UserService userService;
+
+    </span><span style="color: #008000;">/**</span><span style="color: #008000;">
+     * 通过主键id查询
+     * </span><span style="color: #808080;">@param</span><span style="color: #008000;"> id
+     * </span><span style="color: #808080;">@return</span>
+     <span style="color: #008000;">*/</span><span style="color: #000000;">
+    @GetMapping(value </span>= "/getUser"<span style="color: #000000;">)
+    @ResponseBody
+    </span><span style="color: #0000ff;">public</span> User getUserById(@RequestParam("id"<span style="color: #000000;">) Long id){
+        </span><span style="color: #0000ff;">return</span> <span style="color: #0000ff;">this</span><span style="color: #000000;">.userService.getUserById(id);
+    }
+}    </span></code></pre>
+
+<h5><span style="font-size: 15px;">　　</span></h5>
+<h5><span style="font-size: 15px;">　　StudentController</span></h5>
+<src class="cnblogs_code">
+<pre><code><span style="color: #000000;">@Controller
+@RequestMapping(value </span>= "/student"<span style="color: #000000;">)
+</span><span style="color: #0000ff;">public</span> <span style="color: #0000ff;">class</span><span style="color: #000000;"> StudentController {
+
+    @Autowired
+    </span><span style="color: #0000ff;">private</span><span style="color: #000000;">  StudentService studentService;
+
+    @GetMapping(value </span>= "/getStudent/{id}"<span style="color: #000000;">)
+    @ResponseBody
+    </span><span style="color: #0000ff;">public</span> Student getStudent(@PathVariable <span style="color: #0000ff;">int</span><span style="color: #000000;"> id){
+        </span><span style="color: #0000ff;">return</span><span style="color: #000000;"> studentService.selectByPrimaryKey(id);
+    }
+}</span>&nbsp;</code></pre>
+
+<h5><span style="font-size: 15px;">service</span></h5>
+<p><span style="font-size: 15px;">　　UserServiceImpl</span><span style="font-size: 15px;">　</span></p>
+<src class="cnblogs_code">
+<pre><code><span style="color: #000000;">@Service
+</span><span style="color: #0000ff;">public</span> <span style="color: #0000ff;">class</span> UserServiceImpl <span style="color: #0000ff;">implements</span><span style="color: #000000;"> UserService {
+    @Autowired
+    </span><span style="color: #0000ff;">private</span><span style="color: #000000;"> UserMapper userMapper;
+
+    @Override
+    </span><span style="color: #0000ff;">public</span><span style="color: #000000;"> User getUserById(Long id) {
+        </span><span style="color: #0000ff;">return</span> <span style="color: #0000ff;">this</span><span style="color: #000000;">.userMapper.selectByPrimaryKey(id);
+    }
+}</span></code></pre>
+
+<p>　　StudentServiceImpl</p>
+<src class="cnblogs_code">
+<pre><code><span style="color: #000000;">@Service
+</span><span style="color: #0000ff;">public</span> <span style="color: #0000ff;">class</span> StudentServiceImpl <span style="color: #0000ff;">implements</span><span style="color: #000000;"> StudentService {
+
+    @Autowired
+    StudentMapper studentMapper;
+
+    @Override
+    </span><span style="color: #0000ff;">public</span> Student selectByPrimaryKey(<span style="color: #0000ff;">int</span><span style="color: #000000;"> id) {
+        </span><span style="color: #0000ff;">return</span><span style="color: #000000;"> studentMapper.selectByPrimaryKey(id);
+    }
+}</span></code></pre>
+
+<p>&nbsp;</p>
+<p>&nbsp;</p>
+
+</div><hr><script charset='utf-8' src='../../js/sming.js'></script></body></html>

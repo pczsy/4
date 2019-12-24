@@ -1,0 +1,108 @@
+<html><head><meta charset='utf-8'><meta name='viewport' content='width=device-width, initial-scale=1'>
+<meta name='applicable-device' content='pc'><meta name='keywords' content='电脑,电脑讲解,电脑技术,编程,电脑故障维修【搞定面试官】你还在用Executors来创建线程池？会有什么问题呢？' />
+<script src='../../highlight/highlight.pack.js'></script>
+<link rel='stylesheet' type='text/css' href='../../highlight/styles/monokai.css'/>
+
+<link rel='stylesheet' href='../../fenxiang/dist/css/share.min.css'>
+<script src='../../fenxiang/src/js/social-share.js'></script>
+<script src='../../fenxiang/src/js/qrcode.js'></script>
+
+</head><body><script>hljs.initHighlightingOnLoad();</script><script>
+var system ={};  
+var p = navigator.platform;       
+system.win = p.indexOf('Win') == 0;  
+system.mac = p.indexOf('Mac') == 0;  
+system.x11 = (p == 'X11') || (p.indexOf('Linux') == 0);     
+if(system.win||system.mac||system.xll){
+document.write("<link href='../css/3.css' rel='stylesheet' type='text/css'>");}else{ document.write("<link href='../css/3wap.css' rel='stylesheet' type='text/css'>");}</script><script src='../../js/3.js'></script><div class='div2'><div class='heading_nav'><ul><div><li><a href='../../index.html'>首页</a></li>
+</div><div onclick='hidden1()' >分享</div>
+</ul></div></div>
+<div id='heading_nav2'> 
+<li class='row' >
+<div class='social-share' data-mode='prepend'><a href='javascript:' class='social-share-icon icon-heart'></a></div></li></div><script charset='utf-8' src='../../3/js/hengfu.js'></script><script charset='utf-8' src='../../3/js/hengfu2.js'></script><hr><div class='div1'><div class='biaoti'><center>【搞定面试官】你还在用Executors来创建线程池？会有什么问题呢？</center></div><div class='banquan'>原文出处:本文由博客园博主店小不二提供。<br/>
+原文连接:https://www.cnblogs.com/LoveBell/p/11979958.html</div><br>
+    <h1 id="前言">前言</h1>
+<p><a href="https://zhuanlan.zhihu.com/p/94518136">上文</a>我们介绍了JDK中的线程池框架<code>Executor</code>。我们知道，只要需要创建线程的情况下，即使是在单线程模式下，我们也要尽量使用<code>Executor</code>。即：</p>
+<pre><code><code>ExecutorService fixedThreadPool = Executors.newFixedThreadPool(1); 
+//此处不该利用Executors工具类来初始化线程池</code></code></pre>
+<p>但是，在<a href="https://kangroo.gitee.io/ajcg/#/concurrent">《阿里巴巴Java开发手册》</a>中有一条</p>
+<blockquote>
+<p>【强制】线程池不允许使用 Executors 去创建，而是通过 ThreadPoolExecutor 的方式，这样的处理方式让写的同学更加明确线程池的运行规则，规避资源耗尽的风险。</p>
+<p>Executors 返回的线程池对象的弊端如下:<br />
+FixedThreadPool 和 SingleThreadPool : 允许的请求队列长度为 Integer.MAX_VALUE，可能会堆积大量的请求，从而导致 OOM。<br />
+CachedThreadPool 和 ScheduledThreadPool : 允许的创建线程数量为 Integer.MAX_VALUE，可能会创建大量的线程，从而导致 OOM。</p>
+</blockquote>
+<p><strong>可以看到，这是一个强制性的规则，并且是不允许使用<code>Executors</code>来创建，建议使用<code>ThreadPoolExecutor</code>来创建线程池</strong>，那我们先来回顾一下<code>Executors</code>和<code>ThreadPoolExecutor</code>。</p>
+<p><img src="./images/【搞定面试官】你还在用Executors来创建线程池？会有什么问题呢？0.png" /></p>
+<p>我们可以看到<code>ThreadPoolExecutor</code>已经是<code>Executor</code>的具体实现了，而且具有较多可配参数（可配参数见下方，可仅了解，用到时再进行详细查询）。<code>Executors</code>是一个创建线程池的工具类，查看其源码的话也会发现这几种创建线程池的方法也都是通过调用ThreadPoolExecutor来实现的。</p>
+<blockquote>
+<p>ThreadPoolExecutor一共有四个构造函数，七个可配参数，分别是</p>
+<ol>
+<li>corePoolSize: 线程池中保持存活线程的数量。</li>
+<li>maximumPoolSize: 线程池中允许线程数量的最大值</li>
+<li>keepAliveTime: 表示线程没有任务执行时最多保持多久时间会终止</li>
+<li>unit: 参数keepAliveTime的时间单位</li>
+<li>workQueue: 一个阻塞队列，用来存储等待执行的任务</li>
+<li>threadFactory: 线程工厂，主要用来创建线程</li>
+<li>handler：表示当拒绝处理任务时的策略</li>
+</ol>
+</blockquote>
+<h1 id="分析">分析</h1>
+<p>那么Executors到底会导致什么问题，才会让开发手册中直接被定义为不允许了呢。首先就是一个<a href="https://zhuanlan.zhihu.com/p/32867181">血淋淋的教训</a>，直接导致线上服务不可用，已经可以算是事故了。</p>
+<h2 id="实验">实验</h2>
+<p>我们也可以现在我们本地进行一下小实验：</p>
+<pre><code><code>public class ExecutorsTesting {
+    private static ExecutorService executor = Executors.newFixedThreadPool(15);
+    public static void main(String[] args) {
+        for (int i = 0; i &lt; Integer.MAX_VALUE; i++) {
+            executor.execute(new SubThread());
+        }
+    }
+}
+
+class SubThread implements Runnable {
+    @Override
+    public void run() {
+        try {
+            Thread.sleep(10000);
+        } catch (InterruptedException e) {
+            //do nothing
+        }
+    }
+}</code></code></pre>
+<p>运行时指定JVM参数：<code>-Xmx8m -Xms8m</code>，大概几秒钟之后，会报出OOM错误：</p>
+<pre><code><code>Exception in thread &quot;main&quot; java.lang.OutOfMemoryError: GC overhead limit exceeded
+    at com.kaikeba.mybatis.ExecutorsTesting.main(ExecutorsTesting.java:10) 
+    //报错行数为上述代码中的executor.execute(new SubThread());</code></code></pre>
+<p>那么为什么会报出这个错误呢。</p>
+<h2 id="源码分析">源码分析</h2>
+<p>我们先来看一下<code>Executors</code>中的<code>FixedThreadPool</code>是如何构造的。</p>
+<pre><code><code>public static ExecutorService newFixedThreadPool(int nThreads) {
+    return new ThreadPoolExecutor(nThreads, nThreads,
+                                  0L, TimeUnit.MILLISECONDS,
+                                  new LinkedBlockingQueue&lt;Runnable&gt;());
+}</code></code></pre>
+<p>可以看到对于存储等待执行的任务，<code>FixedThreadPool</code>是通过<code>LinkedBlockingQueue</code>来实现的。而我们知道<code>LinkedBlockingQueue</code>是一个链表实现的阻塞队列，而如果不设置其容量的话，将会是一个无边界的阻塞队列，最大长度为<code>Integer.MAX_VALUE</code>。<strong>由于<code>Executors</code>中并未设置容量，所以应用可以不断向队列中添加任务，导致OOM错误</strong>。</p>
+<p>上面提到的问题主要体现在<code>newFixedThreadPool</code>和<code>newSingleThreadExecutor</code>两个工厂方法上，并不是说<code>newCachedThreadPool</code>和<code>newScheduledThreadPool</code>这两个方法就安全了，这两种方式创建的最大线程数可能是<code>Integer.MAX_VALUE</code>，而创建这么多线程，必然就有可能导致OOM。</p>
+<p><strong>如何该利用ThreadPoolExecutor来创建线程池呢？</strong></p>
+<p>我们其实可以看到<code>Executors</code>中的<code>newFixedThreadPool</code>其实也是调用<code>ThreadPoolExecutor</code>来实现的。正如手册中所说，当我们不用<code>Executors</code>默认创建线程池的方法，而直接自己手动去调用<code>ThreadPoolExecutor</code>，可以让写的同学更加明确线程池的运行规则，规避资源耗尽的风险。比如我们在<code>Executors.newFixedThreadPool</code>基础上给<code>LinkedBlockingQueue</code>加一个容量，当队列已经满了，而仍需要添加新的请求会抛出相应异常，我们可以根据异常做相应处理。</p>
+<pre><code><code>public static ExecutorService newFixedThreadPool(int nThreads) {
+    return new ThreadPoolExecutor(nThreads, nThreads,
+                                  0L, TimeUnit.MILLISECONDS,
+                                  new LinkedBlockingQueue&lt;Runnable&gt;(10)); //添加容量大小
+}</code></code></pre>
+<p>除了自己定义<code>ThreadPoolExecutor</code>外。还可以利用其它开源类库，如apache和guava等，可以有更多个性化配置。</p>
+<p>参考文章：</p>
+<p>https://www.hollischuang.com/archives/2888</p>
+<p>https://stackoverflow.com/questions/1094867/when-should-we-use-javas-thread-over-executor#answer-34373289</p>
+<p>https://blog.51cto.com/zero01/2306857</p>
+<hr />
+<blockquote>
+<p>本文由博客一文多发平台 <a href="https://openwrite.cn?from=article_bottom">OpenWrite</a> 发布！</p>
+</blockquote>
+<p>文章首发：https://zhuanlan.zhihu.com/lovebell</p>
+<p>个人公众号：技术Go</p>
+<p><strong>您的点赞与支持是作者持续更新的最大动力！</strong></p>
+
+
+</div><hr><script charset='utf-8' src='../../js/sming.js'></script></body></html>

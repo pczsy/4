@@ -1,0 +1,135 @@
+<html><head><meta charset='utf-8'><meta name='viewport' content='width=device-width, initial-scale=1'>
+<meta name='applicable-device' content='pc'><meta name='keywords' content='电脑,电脑讲解,电脑技术,编程,电脑故障维修Java入门——在Linux环境下安装JDK并配置环境变量' />
+<script src='../../highlight/highlight.pack.js'></script>
+<link rel='stylesheet' type='text/css' href='../../highlight/styles/monokai.css'/>
+
+<link rel='stylesheet' href='../../fenxiang/dist/css/share.min.css'>
+<script src='../../fenxiang/src/js/social-share.js'></script>
+<script src='../../fenxiang/src/js/qrcode.js'></script>
+
+</head><body><script>hljs.initHighlightingOnLoad();</script><script>
+var system ={};  
+var p = navigator.platform;       
+system.win = p.indexOf('Win') == 0;  
+system.mac = p.indexOf('Mac') == 0;  
+system.x11 = (p == 'X11') || (p.indexOf('Linux') == 0);     
+if(system.win||system.mac||system.xll){
+document.write("<link href='../css/3.css' rel='stylesheet' type='text/css'>");}else{ document.write("<link href='../css/3wap.css' rel='stylesheet' type='text/css'>");}</script><script src='../../js/3.js'></script><div class='div2'><div class='heading_nav'><ul><div><li><a href='../../index.html'>首页</a></li>
+</div><div onclick='hidden1()' >分享</div>
+</ul></div></div>
+<div id='heading_nav2'> 
+<li class='row' >
+<div class='social-share' data-mode='prepend'><a href='javascript:' class='social-share-icon icon-heart'></a></div></li></div><script charset='utf-8' src='../../3/js/hengfu.js'></script><script charset='utf-8' src='../../3/js/hengfu2.js'></script><hr><div class='div1'><div class='biaoti'><center>Java入门——在Linux环境下安装JDK并配置环境变量</center></div><div class='banquan'>原文出处:本文由博客园博主鲨猫提供。<br/>
+原文连接:https://www.cnblogs.com/shamao/p/11955117.html</div><br>
+    <h1>Java入门&mdash;&mdash;在Linux环境下安装JDK并配置环境变量</h1>
+<p>摘要：本文主要说明在Linux环境下JDK的安装，以及安装完成之后环境变量的配置。</p>
+<h2>使用已下载的压缩包进行安装</h2>
+<h3>下载并解压</h3>
+<p>在Java的官网上下载需要的版本：</p>
+<p>https://www.oracle.com/technetwork/java/javase/downloads/index.html</p>
+<p>因为是在Linux环境上安装，所以要下载&nbsp;<span class="cnblogs_code">.tar.gz</span>&nbsp;后缀的文件，才能在Linux系统里进行解压缩。</p>
+<p>注意下载的压缩包要和Linux系统的位数相匹配，可以通过&nbsp;<span class="cnblogs_code"><span style="color: #0000ff;">cat</span> /proc/version</span>&nbsp;命令查看系统的版本。</p>
+<p>使用工具将下载好的文件上传到装有Linux系统的电脑上。</p>
+<p>将压缩包的内容解压缩到&nbsp;<span class="cnblogs_code">/opt</span>&nbsp;目录：</p>
+<src class="cnblogs_code">
+<pre><code><span style="color: #008080;">1</span> [root@localhost opt]# <span style="color: #0000ff;">tar</span> -zxvf jdk-8u91-linux-x64.<span style="color: #0000ff;">tar</span>.gz </code></pre>
+
+<p>等待解压缩完成，至此，Java在Linux上就安装完成了。</p>
+<h3>配置环境变量</h3>
+<p>使用vim编辑器打开&nbsp;<span class="cnblogs_code">/etc</span>&nbsp;目录下的&nbsp;<span class="cnblogs_code">profile</span>&nbsp;文件，输入以下内容并保存：</p>
+<src class="cnblogs_code">
+<pre><code><span style="color: #008080;">1</span> <span style="color: #000000;">#set java environment
+</span><span style="color: #008080;">2</span> export JAVA_HOME=/opt/jdk1.<span style="color: #800080;">8</span><span style="color: #000000;">.0_91
+</span><span style="color: #008080;">3</span> export PATH=$PATH:$JAVA_HOME/<span style="color: #000000;">bin
+</span><span style="color: #008080;">4</span> export CLASSPATH=.:$JAVA_HOME/lib/dt.jar:$JAVA_HOME/lib/tools.jar</code></pre>
+
+<p>其中&nbsp;<span class="cnblogs_code">JAVA_HOME</span>&nbsp;对应的是Java的安装目录，保存之后使用命令刷新配置：</p>
+<src class="cnblogs_code">
+<pre><code><span style="color: #008080;">1</span> [root@localhost ~]# source /etc/<span style="color: #000000;">profile
+</span><span style="color: #008080;">2</span> [root@localhost ~]# </code></pre>
+
+<p>查看Java的版本：</p>
+<src class="cnblogs_code">
+<pre><code><span style="color: #008080;">1</span> [root@localhost ~]# java -<span style="color: #000000;">version
+</span><span style="color: #008080;">2</span> java version <span style="color: #800000;">"</span><span style="color: #800000;">1.8.0_91</span><span style="color: #800000;">"</span>
+<span style="color: #008080;">3</span> Java(TM) SE Runtime Environment (build <span style="color: #800080;">1.8</span>.0_91-<span style="color: #000000;">b14)
+</span><span style="color: #008080;">4</span> Java HotSpot(TM) <span style="color: #800080;">64</span>-Bit Server VM (build <span style="color: #800080;">25.91</span>-<span style="color: #000000;">b14, mixed mode)
+</span><span style="color: #008080;">5</span> [root@localhost ~]# </code></pre>
+
+<p>表示环境变量配置成功了。</p>
+<h2>使用yum命令进行安装</h2>
+<h3>选择版本并安装</h3>
+<p>使用&nbsp;<span class="cnblogs_code"><span style="color: #0000ff;">yum</span> search jdk</span>&nbsp;命令查看可用安装包：</p>
+<src class="cnblogs_code">
+<pre><code><span style="color: #008080;"> 1</span> [root@localhost opt]# <span style="color: #0000ff;">yum</span><span style="color: #000000;"> search jdk
+</span><span style="color: #008080;"> 2</span> <span style="color: #000000;">已加载插件：fastestmirror
+</span><span style="color: #008080;"> 3</span> <span style="color: #000000;">Loading mirror speeds from cached hostfile
+</span><span style="color: #008080;"> 4</span>  *<span style="color: #000000;"> base: mirrors.tuna.tsinghua.edu.cn
+</span><span style="color: #008080;"> 5</span>  *<span style="color: #000000;"> extras: mirrors.tuna.tsinghua.edu.cn
+</span><span style="color: #008080;"> 6</span>  *<span style="color: #000000;"> updates: mirrors.tuna.tsinghua.edu.cn
+</span><span style="color: #008080;"> 7</span> ============================================================ N/S matched: jdk =============================================================
+<span style="color: #008080;"> 8</span> <span style="color: #000000;">...
+</span><span style="color: #008080;"> 9</span> java-<span style="color: #800080;">1.6</span>.<span style="color: #800080;">0</span>-<span style="color: #000000;">openjdk.x86_64 : OpenJDK Runtime Environment
+</span><span style="color: #008080;">10</span> java-<span style="color: #800080;">1.6</span>.<span style="color: #800080;">0</span>-openjdk-<span style="color: #000000;">src.x86_64 : OpenJDK Source Bundle
+</span><span style="color: #008080;">11</span> java-<span style="color: #800080;">1.7</span>.<span style="color: #800080;">0</span>-<span style="color: #000000;">openjdk.x86_64 : OpenJDK Runtime Environment
+</span><span style="color: #008080;">12</span> java-<span style="color: #800080;">1.7</span>.<span style="color: #800080;">0</span>-openjdk-<span style="color: #000000;">src.x86_64 : OpenJDK Source Bundle
+</span><span style="color: #008080;">13</span> java-<span style="color: #800080;">1.8</span>.<span style="color: #800080;">0</span>-openjdk.i686 : OpenJDK Runtime Environment <span style="color: #800080;">8</span>
+<span style="color: #008080;">14</span> java-<span style="color: #800080;">1.8</span>.<span style="color: #800080;">0</span>-openjdk.x86_64 : OpenJDK Runtime Environment <span style="color: #800080;">8</span>
+<span style="color: #008080;">15</span> java-<span style="color: #800080;">1.8</span>.<span style="color: #800080;">0</span>-openjdk-src.i686 : OpenJDK Source Bundle <span style="color: #800080;">8</span>
+<span style="color: #008080;">16</span> java-<span style="color: #800080;">1.8</span>.<span style="color: #800080;">0</span>-openjdk-src.x86_64 : OpenJDK Source Bundle <span style="color: #800080;">8</span>
+<span style="color: #008080;">17</span> <span style="color: #000000;">...
+</span><span style="color: #008080;">18</span> 
+<span style="color: #008080;">19</span> <span style="color: #000000;">  名称和简介匹配 only，使用&ldquo;search all&rdquo;试试。
+</span><span style="color: #008080;">20</span> [root@localhost opt]#</code></pre>
+
+<p>选择安装包进行安装即可：</p>
+<src class="cnblogs_code">
+<pre><code><span style="color: #008080;"> 1</span> [root@localhost ~]# <span style="color: #0000ff;">yum</span> <span style="color: #0000ff;">install</span> -y java-<span style="color: #800080;">1.8</span>.<span style="color: #800080;">0</span>-<span style="color: #000000;">openjdk.x86_64
+</span><span style="color: #008080;"> 2</span> <span style="color: #000000;">已加载插件：fastestmirror
+</span><span style="color: #008080;"> 3</span> base                                                                                                               | <span style="color: #800080;">3.6</span> kB  <span style="color: #800080;">00</span>:<span style="color: #800080;">00</span>:<span style="color: #800080;">00</span>     
+<span style="color: #008080;"> 4</span> extras                                                                                                             | <span style="color: #800080;">2.9</span> kB  <span style="color: #800080;">00</span>:<span style="color: #800080;">00</span>:<span style="color: #800080;">00</span>     
+<span style="color: #008080;"> 5</span> mysql-connectors-community                                                                                         | <span style="color: #800080;">2.5</span> kB  <span style="color: #800080;">00</span>:<span style="color: #800080;">00</span>:<span style="color: #800080;">00</span>     
+<span style="color: #008080;"> 6</span> mysql-tools-community                                                                                              | <span style="color: #800080;">2.5</span> kB  <span style="color: #800080;">00</span>:<span style="color: #800080;">00</span>:<span style="color: #800080;">00</span>     
+<span style="color: #008080;"> 7</span> mysql56-community                                                                                                  | <span style="color: #800080;">2.5</span> kB  <span style="color: #800080;">00</span>:<span style="color: #800080;">00</span>:<span style="color: #800080;">00</span>     
+<span style="color: #008080;"> 8</span> updates                                                                                                            | <span style="color: #800080;">2.9</span> kB  <span style="color: #800080;">00</span>:<span style="color: #800080;">00</span>:<span style="color: #800080;">00</span>     
+<span style="color: #008080;"> 9</span> <span style="color: #000000;">Loading mirror speeds from cached hostfile
+</span><span style="color: #008080;">10</span>  *<span style="color: #000000;"> base: mirrors.tuna.tsinghua.edu.cn
+</span><span style="color: #008080;">11</span>  *<span style="color: #000000;"> extras: mirrors.zju.edu.cn
+</span><span style="color: #008080;">12</span>  *<span style="color: #000000;"> updates: mirrors.tuna.tsinghua.edu.cn
+</span><span style="color: #008080;">13</span> <span style="color: #000000;">正在解决依赖关系
+</span><span style="color: #008080;">14</span> <span style="color: #000000;">...
+</span><span style="color: #008080;">15</span> 总下载量：<span style="color: #800080;">49</span><span style="color: #000000;"> M
+</span><span style="color: #008080;">16</span> <span style="color: #000000;">Downloading packages:
+</span><span style="color: #008080;">17</span> Delta RPMs disabled because /usr/bin/<span style="color: #000000;">applydeltarpm not installed.
+</span><span style="color: #008080;">18</span> <span style="color: #000000;">...
+</span><span style="color: #008080;">19</span> 
+<span style="color: #008080;">20</span> <span style="color: #000000;">已安装:
+</span><span style="color: #008080;">21</span>   java-<span style="color: #800080;">1.8</span>.<span style="color: #800080;">0</span>-openjdk.x86_64 <span style="color: #800080;">1</span>:<span style="color: #800080;">1.8</span>.<span style="color: #800080;">0.232</span>.b09-<span style="color: #800080;">0</span><span style="color: #000000;">.el7_7                                                                                       
+</span><span style="color: #008080;">22</span> <span style="color: #000000;">...   
+</span><span style="color: #008080;">23</span> 
+<span style="color: #008080;">24</span> <span style="color: #000000;">完毕！
+</span><span style="color: #008080;">25</span> [root@localhost ~]# </code></pre>
+
+<p>不过这种方式不能选择具体的版本，也不能灵活选择安装位置，所以建议使用预先下载好的安装包进行安装。</p>
+<h3>查看安装位置</h3>
+<p>查看Java运行程序所在的目录：</p>
+<src class="cnblogs_code">
+<pre><code><span style="color: #008080;">1</span> [root@localhost ~]# <span style="color: #0000ff;">whereis</span><span style="color: #000000;"> java
+</span><span style="color: #008080;">2</span> java: /usr/bin/java /usr/lib/java /etc/java /usr/share/java /usr/share/<span style="color: #0000ff;">man</span>/man1/java.<span style="color: #800080;">1</span><span style="color: #000000;">.gz
+</span><span style="color: #008080;">3</span> [root@localhost ~]# </code></pre>
+
+<p>查看第一个&nbsp;<span class="cnblogs_code">/usr/bin/java</span>&nbsp;文件的信息：</p>
+<src class="cnblogs_code">
+<pre><code><span style="color: #008080;">1</span> [root@localhost ~]# <span style="color: #0000ff;">ls</span> -lrt /usr/bin/<span style="color: #000000;">java
+</span><span style="color: #008080;">2</span> lrwxrwxrwx. <span style="color: #800080;">1</span> root root <span style="color: #800080;">22</span> 11月 <span style="color: #800080;">24</span> <span style="color: #800080;">03</span>:<span style="color: #800080;">15</span> /usr/bin/java -&gt; /etc/alternatives/<span style="color: #000000;">java
+</span><span style="color: #008080;">3</span> [root@localhost ~]# </code></pre>
+
+<p>查看链接到的&nbsp;<span class="cnblogs_code">/etc/alternatives/java</span>&nbsp;文件的信息：</p>
+<src class="cnblogs_code">
+<pre><code><span style="color: #008080;">1</span> [root@localhost ~]# <span style="color: #0000ff;">ls</span> -lrt /etc/alternatives/<span style="color: #000000;">java
+</span><span style="color: #008080;">2</span> lrwxrwxrwx. <span style="color: #800080;">1</span> root root <span style="color: #800080;">73</span> 11月 <span style="color: #800080;">24</span> <span style="color: #800080;">03</span>:<span style="color: #800080;">15</span> /etc/alternatives/java -&gt; /usr/lib/jvm/java-<span style="color: #800080;">1.8</span>.<span style="color: #800080;">0</span>-openjdk-<span style="color: #800080;">1.8</span>.<span style="color: #800080;">0.232</span>.b09-<span style="color: #800080;">0</span>.el7_7.x86_64/jre/bin/<span style="color: #000000;">java
+</span><span style="color: #008080;">3</span> [root@localhost ~]# </code></pre>
+
+<p>发现&nbsp;<span class="cnblogs_code">/usr/lib/jvm/java-<span style="color: #800080;">1.8</span>.<span style="color: #800080;">0</span>-openjdk-<span style="color: #800080;">1.8</span>.<span style="color: #800080;">0.232</span>.b09-<span style="color: #800080;">0</span>.el7_7.x86_64/jre/bin/java</span>&nbsp;文件不再是链接文件，说明此位置就是Java的安装位置。</p>
+
+</div><hr><script charset='utf-8' src='../../js/sming.js'></script></body></html>

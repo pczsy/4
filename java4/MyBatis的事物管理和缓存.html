@@ -1,0 +1,330 @@
+<html><head><meta charset='utf-8'><meta name='viewport' content='width=device-width, initial-scale=1'>
+<meta name='applicable-device' content='pc'><meta name='keywords' content='电脑,电脑讲解,电脑技术,编程,电脑故障维修MyBatis的事物管理和缓存' />
+<script src='../../highlight/highlight.pack.js'></script>
+<link rel='stylesheet' type='text/css' href='../../highlight/styles/monokai.css'/>
+
+<link rel='stylesheet' href='../../fenxiang/dist/css/share.min.css'>
+<script src='../../fenxiang/src/js/social-share.js'></script>
+<script src='../../fenxiang/src/js/qrcode.js'></script>
+
+</head><body><script>hljs.initHighlightingOnLoad();</script><script>
+var system ={};  
+var p = navigator.platform;       
+system.win = p.indexOf('Win') == 0;  
+system.mac = p.indexOf('Mac') == 0;  
+system.x11 = (p == 'X11') || (p.indexOf('Linux') == 0);     
+if(system.win||system.mac||system.xll){
+document.write("<link href='../css/3.css' rel='stylesheet' type='text/css'>");}else{ document.write("<link href='../css/3wap.css' rel='stylesheet' type='text/css'>");}</script><script src='../../js/3.js'></script><div class='div2'><div class='heading_nav'><ul><div><li><a href='../../index.html'>首页</a></li>
+</div><div onclick='hidden1()' >分享</div>
+</ul></div></div>
+<div id='heading_nav2'> 
+<li class='row' >
+<div class='social-share' data-mode='prepend'><a href='javascript:' class='social-share-icon icon-heart'></a></div></li></div><script charset='utf-8' src='../../3/js/hengfu.js'></script><script charset='utf-8' src='../../3/js/hengfu2.js'></script><hr><div class='div1'><div class='biaoti'><center>MyBatis的事物管理和缓存</center></div><div class='banquan'>原文出处:本文由博客园博主Dcl_Snow提供。<br/>
+原文连接:https://www.cnblogs.com/Dcl-Snow/p/11934508.html</div><br>
+    <p><strong><font size="4">MyBatis的事物</font></strong><br><font size="3"><strong>
+事物的概念</strong></font><br>
+在Java语言数据库框架中，数据库的事务管理都是非常重要的。<br>
+每个业务逻辑都是由一系列数据库访问完成的，这些访问可能修改多条数据记录，这一系列修改应该是一个整体，绝对不能只修改其中的某几条数据记录。<br>
+多个数据库原子访问应该被绑定成一个整体，这就是事物。事务是一步或几步操作组成的逻辑执行单元，这些基本操作作为一个整体执行单元，它们要么全部执行，要么全部取消执行，绝对不能仅仅执行一部分。<br>
+一个用户请求对应一个业务逻辑方法，一个逻辑方法往往具有逻辑上的原子性，此时应使用事物。<br>
+例如：一个转账操作，对应修改两个账户余额，这两个账户的修改要么同时生效，要么同时取消，同时生效是转账成功，同时取消是转账失败；但不可只修改其中一个账户，那将破坏数据库的完整性。<br><strong><font size="3">
+事物的四个特性</font></strong><br>
+1.原子性：事物是应用中最小的执行单位，就如原子是自然界最小颗粒而不可以再分一样，事物是应用中不可再分的最小逻辑执行体。<br>
+2.一致性：事物的执行结果，必须使数据库从一种一致性状态，变为另一种一致性状态。当数据库只包含事物成功提交的结果时，数据库处于一致性状态。当系统运行发生中断，某个事物尚未完成而被迫中断，而该未完成的事物对数据库所做的修改已被写入数据库，此时，数据库处于不正确的状态。一致性是通过原子性来保证的。<br>
+3.隔离性：各个事物的执行互不干扰，任意一个事物的内部操作对其他并发的事物，都是隔离的。<br>
+4.持续性：持续性也被称为持久性，指事物一旦提交，对数据所做的任何改变都要记录到用就存储器中，通常是保存到物理数据库。<br><font size="3"><strong>
+Transaction接口</strong></font><br>
+对数据库事物而言，应具有：创建、提交、回滚、关闭几个动作，MyBatis的事物设计重点是org.apache.ibatis.transaction.Transaction接口，该接口源码如下：<br>
+<src class="cnblogs_code"><pre><code><span style="color: rgb(0, 128, 128);">  1</span> <span style="color: rgb(0, 0, 255);">public</span> <span style="color: rgb(0, 0, 255);">interface</span> Transaction {
+<span style="color: rgb(0, 128, 128);">  2</span>     Connection getConnection() <span style="color: rgb(0, 0, 255);">throws</span> SQLException;
+<span style="color: rgb(0, 128, 128);">  3</span> 
+<span style="color: rgb(0, 128, 128);">  4</span>     <span style="color: rgb(0, 0, 255);">void</span> commit() <span style="color: rgb(0, 0, 255);">throws</span> SQLException;
+<span style="color: rgb(0, 128, 128);">  5</span> 
+<span style="color: rgb(0, 128, 128);">  6</span>     <span style="color: rgb(0, 0, 255);">void</span> rollback() <span style="color: rgb(0, 0, 255);">throws</span> SQLException;
+<span style="color: rgb(0, 128, 128);">  7</span> 
+<span style="color: rgb(0, 128, 128);">  8</span>     <span style="color: rgb(0, 0, 255);">void</span> close() <span style="color: rgb(0, 0, 255);">throws</span> SQLException;
+<span style="color: rgb(0, 128, 128);">  9</span> 
+<span style="color: rgb(0, 128, 128);"> 10</span>     Integer getTimeout() <span style="color: rgb(0, 0, 255);">throws</span> SQLException;
+<span style="color: rgb(0, 128, 128);"> 11</span> }
+<span style="color: rgb(0, 128, 128);"> 12</span> </code></pre></p><p><br>
+Transaction接口有两个实现类：org.apache.ibatis.transaction.jdbc.JdbcTransaction和org.apache.ibatis.transaction.managed.ManagedTransaction。<br>
+所以MyBatis的事务管理有两种形式：<br>
+1.使用JDBC的事物管理机制，利用java.sql.Connection对象完成对事物的提交、回滚、关闭等操作。<br>
+2.使用MANAGED的事物管理机制，MyBatis自身不会去实现事务管理，而是让容器如WebLogic、JBOSS等来实现对事物的管理。<br>
+## 事物的创建和使用<br>
+在使用MyBatis的时候，会在MyBatis的配置文件mybatis-config.xml中定义，此处使用前文（<a href="https://www.jianshu.com/p/063a5ca8874c">https://www.jianshu.com/p/063a5ca8874c</a>）配置信息：<br>
+<src class="cnblogs_code"><pre><code><span style="color: rgb(0, 128, 128);">  1</span> &lt;environment id="<span style="color: rgb(139, 0, 0);">mysql</span>"&gt;
+<span style="color: rgb(0, 128, 128);">  2</span>     &lt;!--指定事务管理的类型，这里简单使用Java的JDBC的提交和回滚设置--&gt;
+<span style="color: rgb(0, 128, 128);">  3</span>     &lt;transactionManager type="<span style="color: rgb(139, 0, 0);">JDBC</span>"&gt;&lt;/transactionManager&gt;
+<span style="color: rgb(0, 128, 128);">  4</span>     &lt;!--dataSource 指连接源配置，POOLED是JDBC连接对象的数据源连接池的实现--&gt;
+<span style="color: rgb(0, 128, 128);">  5</span>     &lt;dataSource type="<span style="color: rgb(139, 0, 0);">POOLED</span>"&gt;
+<span style="color: rgb(0, 128, 128);">  6</span>         &lt;property name="<span style="color: rgb(139, 0, 0);">driver</span>" value="<span style="color: rgb(139, 0, 0);">com.mysql.jdbc.Driver</span>"&gt;&lt;/property&gt;
+<span style="color: rgb(0, 128, 128);">  7</span>         &lt;property name="<span style="color: rgb(139, 0, 0);">url</span>" value="<span style="color: rgb(139, 0, 0);">jdbc:mysql://127.0.0.1:3306/mybatis?useUnicode=true&amp;amp;characterEncoding=UTF-8</span>"&gt;&lt;/property&gt;
+<span style="color: rgb(0, 128, 128);">  8</span>         &lt;property name="<span style="color: rgb(139, 0, 0);">username</span>" value="<span style="color: rgb(139, 0, 0);">root</span>"&gt;&lt;/property&gt;
+<span style="color: rgb(0, 128, 128);">  9</span>         &lt;property name="<span style="color: rgb(139, 0, 0);">password</span>" value="<span style="color: rgb(139, 0, 0);">****</span>"&gt;&lt;/property&gt;
+<span style="color: rgb(0, 128, 128);"> 10</span>     &lt;/dataSource&gt;
+<span style="color: rgb(0, 128, 128);"> 11</span> &lt;/environment&gt;</code></pre><br>
+&lt;environment&gt;元素定义了连接数据库的信息，&lt;transactionManager&gt;子元素的type决定了使用什么类型的事物管理机制。<br><font size="4"><strong>
+MyBatis的缓存</strong></font><br><font size="3"><strong>
+缓存的概述</strong></font><br>
+在实际项目开发中，通常对数据库查询的性能要求很高，MyBatis提供了查询缓存来进行数据的缓存，以达到提高查询性能的要求。<br>
+MyBatis的查询缓存分为一级缓存和二级缓存：<br>
+1.一级缓存是SqlSession级别的缓存。<br>
+2.二级缓存是mapper级别的缓存，二级缓存是多个SqlSession共享的。</p>
+<p>MyBatis通过缓存机制减轻数据压力，提高数据库性能。<br><font size="3"><strong>
+一级缓存</strong></font><br>
+在操作数据库时需要构造SqlSession对象，在对象中有一个HashMap用户缓存数据。不同的SqlSession之间的缓存数据区域（HashMap）是互相不影响的。<br>
+一级缓存的作用是SqlSession范围的，当同一个SqlSession中执行两次相同的sql语句时，第一次执行完毕会将数据库中查询的数据写到缓存（内存），第二次查询时会从缓存中获取数据，不再去底层数据库查询，提高查询效率。<br><font color="#ff0000">
+注意：</font><br><font color="#ff0000">
+若SqlSession执行了DML操作（insert、update和delete），并提交到数据库，MyBatis则会清空SqlSession中的一级缓存，目的是为了保证缓存中存储的是最新的数据，避免脏读现象。</font><br><font color="#ff0000">
+当一个SqlSession结束后，该SqlSession中的一级缓存也就不存在了。</font><br><font color="#ff0000">
+MyBatis默认开启一级缓存，不需要进行任何配置。</font><br><strong><font size="3">
+一级缓存测试</font></strong><br>
+项目代码使用前文项目（<a href="https://www.jianshu.com/p/063a5ca8874c">https://www.jianshu.com/p/063a5ca8874c</a>）<br>
+现在数据库的tb_user表中插入几条数据：<br>
+<a href="https://img2018.cnblogs.com/blog/526027/201911/526027-20191126115346611-2002770881.png"><img width="481" height="357" title="MyBatis01" style="border: 0px currentcolor; border-image: none; margin-right: auto; margin-left: auto; float: none; display: block; background-image: none;" alt="MyBatis01" src="./images/MyBatis的事物管理和缓存0.png" border="0"></a><br>
+然后在项目的UserMapper.xml文件中添加查询和删除程序，完整程序如下：<br>
+<src class="cnblogs_code"><pre><code><span style="color: rgb(0, 128, 128);">  1</span> &lt;?xml version="<span style="color: rgb(139, 0, 0);">1.0</span>" encoding="<span style="color: rgb(139, 0, 0);">UTF-8</span>"?&gt;
+<span style="color: rgb(0, 128, 128);">  2</span> &lt;!DOCTYPE mapper PUBLIC "<span style="color: rgb(139, 0, 0);">-//mybatis.org//DTD Mapper 3.0//EN</span>"
+<span style="color: rgb(0, 128, 128);">  3</span>         "<span style="color: rgb(139, 0, 0);">http://mybatis.org/dtd/mybatis-3-mapper.dtd</span>"&gt;
+<span style="color: rgb(0, 128, 128);">  4</span> &lt;mapper namespace="<span style="color: rgb(139, 0, 0);">com.snow.dcl.mapper.UserMapper</span>"&gt;
+<span style="color: rgb(0, 128, 128);">  5</span>     &lt;!--插入用户数据--&gt;
+<span style="color: rgb(0, 128, 128);">  6</span>     &lt;insert id="<span style="color: rgb(139, 0, 0);">saveUser</span>" parameterType="<span style="color: rgb(139, 0, 0);">com.snow.dcl.domain.User</span>" useGeneratedKeys="<span style="color: rgb(139, 0, 0);">true</span>"&gt;
+<span style="color: rgb(0, 128, 128);">  7</span>         insert into tb_user(name,sex,age) values (#{name},#{sex},#{age});
+<span style="color: rgb(0, 128, 128);">  8</span>     &lt;/insert&gt;
+<span style="color: rgb(0, 128, 128);">  9</span>     &lt;!--根据id查询用户--&gt;
+<span style="color: rgb(0, 128, 128);"> 10</span>     &lt;select id="<span style="color: rgb(139, 0, 0);">selectUserById</span>" parameterType="<span style="color: rgb(139, 0, 0);">int</span>" resultType="<span style="color: rgb(139, 0, 0);">com.snow.dcl.domain.User</span>"&gt;
+<span style="color: rgb(0, 128, 128);"> 11</span>         select * from tb_user where id=#{id};
+<span style="color: rgb(0, 128, 128);"> 12</span>     &lt;/select&gt;
+<span style="color: rgb(0, 128, 128);"> 13</span>     &lt;!--查询所有用户--&gt;
+<span style="color: rgb(0, 128, 128);"> 14</span>     &lt;select id="<span style="color: rgb(139, 0, 0);">selectAllUser</span>" resultType="<span style="color: rgb(139, 0, 0);">com.snow.dcl.domain.User</span>"&gt;
+<span style="color: rgb(0, 128, 128);"> 15</span>         select * from tb_user;
+<span style="color: rgb(0, 128, 128);"> 16</span>     &lt;/select&gt;
+<span style="color: rgb(0, 128, 128);"> 17</span>     &lt;!--根据id删除用户--&gt;
+<span style="color: rgb(0, 128, 128);"> 18</span>     &lt;delete id="<span style="color: rgb(139, 0, 0);">deleteUserById</span>" parameterType="<span style="color: rgb(139, 0, 0);">int</span>"&gt;
+<span style="color: rgb(0, 128, 128);"> 19</span>         delete from tb_user where id=#{id};
+<span style="color: rgb(0, 128, 128);"> 20</span>     &lt;/delete&gt;
+<span style="color: rgb(0, 128, 128);"> 21</span> &lt;/mapper&gt;</code></pre><br>
+在项目的java目录右键，创建com.snow.dcl.mapper包，在该包中创建UserMapper.java接口类：<br>
+<a href="https://img2018.cnblogs.com/blog/526027/201911/526027-20191126115347334-929547838.png"><img width="433" height="506" title="MyBatis02" style="border: 0px currentcolor; border-image: none; margin-right: auto; margin-left: auto; float: none; display: block; background-image: none;" alt="MyBatis02" src="./images/MyBatis的事物管理和缓存1.png" border="0"></a><br>
+编写如下程序：<br>
+<src class="cnblogs_code"><pre><code><span style="color: rgb(0, 128, 128);">  1</span> <span style="color: rgb(0, 0, 255);">public</span> <span style="color: rgb(0, 0, 255);">interface</span> UserMapper {
+<span style="color: rgb(0, 128, 128);">  2</span>     <span style="color: rgb(0, 128, 0);">//根据id查询用户</span>
+<span style="color: rgb(0, 128, 128);">  3</span>     User selectUserById(Integer id);
+<span style="color: rgb(0, 128, 128);">  4</span>     <span style="color: rgb(0, 128, 0);">//查询所有用户</span>
+<span style="color: rgb(0, 128, 128);">  5</span>     List&lt;User&gt; selectAllUser();
+<span style="color: rgb(0, 128, 128);">  6</span>     <span style="color: rgb(0, 128, 0);">//根据id删除用户</span>
+<span style="color: rgb(0, 128, 128);">  7</span>     <span style="color: rgb(0, 0, 255);">void</span> deleteUserById(Integer id);
+<span style="color: rgb(0, 128, 128);">  8</span> }</code></pre><br>
+获取mybatis-config.xml配置文件，根据配置文件创建SqlSessionFactory，获取SqlSession对象这一系列操作，每次都要使用，所以将其封装在一个类文件中，在项目java目录右键，创建com.snow.dcl.utils包，在该包下创建FactoryUtil.java类文件：<br>
+<a href="https://img2018.cnblogs.com/blog/526027/201911/526027-20191126115347932-2069402591.png"><img width="424" height="506" title="MyBatis03" style="border: 0px currentcolor; border-image: none; margin-right: auto; margin-left: auto; float: none; display: block; background-image: none;" alt="MyBatis03" src="./images/MyBatis的事物管理和缓存2.png" border="0"></a><br>
+添加如下程序：<br>
+<src class="cnblogs_code"><pre><code><span style="color: rgb(0, 128, 128);">  1</span> <span style="color: rgb(0, 0, 255);">public</span> <span style="color: rgb(0, 0, 255);">class</span> FactoryUtil {
+<span style="color: rgb(0, 128, 128);">  2</span>     <span style="color: rgb(0, 0, 255);">private</span> <span style="color: rgb(0, 0, 255);">static</span> SqlSessionFactory sqlSessionFactory = <span style="color: rgb(0, 0, 255);">null</span>;
+<span style="color: rgb(0, 128, 128);">  3</span> 
+<span style="color: rgb(0, 128, 128);">  4</span>     <span style="color: rgb(0, 0, 255);">static</span> {
+<span style="color: rgb(0, 128, 128);">  5</span>         <span style="color: rgb(0, 0, 255);">try</span> {
+<span style="color: rgb(0, 128, 128);">  6</span>             InputStream inputStream = Resources.getResourceAsStream("<span style="color: rgb(139, 0, 0);">mybatis-config.xml</span>");
+<span style="color: rgb(0, 128, 128);">  7</span>             sqlSessionFactory = <span style="color: rgb(0, 0, 255);">new</span> SqlSessionFactoryBuilder().build(inputStream);
+<span style="color: rgb(0, 128, 128);">  8</span>         } <span style="color: rgb(0, 0, 255);">catch</span> (IOException e) {
+<span style="color: rgb(0, 128, 128);">  9</span>             e.printStackTrace();
+<span style="color: rgb(0, 128, 128);"> 10</span>         }
+<span style="color: rgb(0, 128, 128);"> 11</span>     }
+<span style="color: rgb(0, 128, 128);"> 12</span> 
+<span style="color: rgb(0, 128, 128);"> 13</span>     <span style="color: rgb(0, 0, 255);">public</span> <span style="color: rgb(0, 0, 255);">static</span> SqlSession getSqlSession(){
+<span style="color: rgb(0, 128, 128);"> 14</span>         <span style="color: rgb(0, 0, 255);">return</span> sqlSessionFactory.openSession();
+<span style="color: rgb(0, 128, 128);"> 15</span>     }
+<span style="color: rgb(0, 128, 128);"> 16</span> }
+<span style="color: rgb(0, 128, 128);"> 17</span> </code></pre></p><p><br>
+在项目的test目录下的java目录下创建OneLevelCacheTest.java测试类文件：<br>
+<a href="https://img2018.cnblogs.com/blog/526027/201911/526027-20191126115348511-1833155925.png"><img width="430" height="506" title="MyBatis04" style="border: 0px currentcolor; border-image: none; margin-right: auto; margin-left: auto; float: none; display: block; background-image: none;" alt="MyBatis04" src="./images/MyBatis的事物管理和缓存3.png" border="0"></a><br>
+编写如下程序：<br>
+<src class="cnblogs_code"><pre><code><span style="color: rgb(0, 128, 128);">  1</span> <span style="color: rgb(0, 0, 255);">public</span> <span style="color: rgb(0, 0, 255);">class</span> OneLevelCacheTest {
+<span style="color: rgb(0, 128, 128);">  2</span>     <span style="color: rgb(0, 0, 255);">public</span> <span style="color: rgb(0, 0, 255);">static</span> <span style="color: rgb(0, 0, 255);">void</span> main(String[] args) {
+<span style="color: rgb(0, 128, 128);">  3</span>         OneLevelCacheTest oneLevelCacheTest = <span style="color: rgb(0, 0, 255);">new</span> OneLevelCacheTest();
+<span style="color: rgb(0, 128, 128);">  4</span>         oneLevelCacheTest.cacheOneTest();
+<span style="color: rgb(0, 128, 128);">  5</span>     }
+<span style="color: rgb(0, 128, 128);">  6</span> 
+<span style="color: rgb(0, 128, 128);">  7</span>     <span style="color: rgb(0, 0, 255);">public</span> <span style="color: rgb(0, 0, 255);">void</span> cacheOneTest(){
+<span style="color: rgb(0, 128, 128);">  8</span>         SqlSession sqlSession = FactoryUtil.getSqlSession();
+<span style="color: rgb(0, 128, 128);">  9</span>         UserMapper userMapper = sqlSession.getMapper(UserMapper.<span style="color: rgb(0, 0, 255);">class</span>);
+<span style="color: rgb(0, 128, 128);"> 10</span>         User user = userMapper.selectUserById(1);
+<span style="color: rgb(0, 128, 128);"> 11</span>         System.out.println(user);
+<span style="color: rgb(0, 128, 128);"> 12</span>         User anotherUser = userMapper.selectUserById(1);
+<span style="color: rgb(0, 128, 128);"> 13</span>         System.out.println(anotherUser);
+<span style="color: rgb(0, 128, 128);"> 14</span>         sqlSession.close();
+<span style="color: rgb(0, 128, 128);"> 15</span>     }
+<span style="color: rgb(0, 128, 128);"> 16</span> }
+<span style="color: rgb(0, 128, 128);"> 17</span> </code></pre></p><p><br>
+执行测试程序OneLevelCacheTest1.java，可以在控制台看到打印结果：<br>
+<a href="https://img2018.cnblogs.com/blog/526027/201911/526027-20191126115349196-787069347.png"><img width="981" height="168" title="MyBatis05" style="border: 0px currentcolor; border-image: none; margin-right: auto; margin-left: auto; float: none; display: block; background-image: none;" alt="MyBatis05" src="./images/MyBatis的事物管理和缓存4.png" border="0"></a><br>
+可以看到在第一次执行查询id为1的User对象时，执行了一条select语句，第二次执行查询id为1的User对象时，没有执行select语句，因为此时一级缓存中已经缓存了id为1的User对象，MyBatis直接从缓存中将User对象取出来，并没有再次去数据库中查询。<br><font size="3"><strong>
+DML操作清空缓存</strong></font><br>
+在项目的test目录下的java目录创建OneLevelCacheTest2测试类文件，编写如下代码：<br>
+<src class="cnblogs_code"><pre><code><span style="color: rgb(0, 128, 128);">  1</span> <span style="color: rgb(0, 0, 255);">public</span> <span style="color: rgb(0, 0, 255);">class</span> OneLevelCacheTest2 {
+<span style="color: rgb(0, 128, 128);">  2</span>     <span style="color: rgb(0, 0, 255);">public</span> <span style="color: rgb(0, 0, 255);">static</span> <span style="color: rgb(0, 0, 255);">void</span> main(String[] args) {
+<span style="color: rgb(0, 128, 128);">  3</span>         OneLevelCacheTest2 oneLevelCacheTest = <span style="color: rgb(0, 0, 255);">new</span> OneLevelCacheTest2();
+<span style="color: rgb(0, 128, 128);">  4</span>         oneLevelCacheTest.cacheOneTest();
+<span style="color: rgb(0, 128, 128);">  5</span>     }
+<span style="color: rgb(0, 128, 128);">  6</span> 
+<span style="color: rgb(0, 128, 128);">  7</span>     <span style="color: rgb(0, 0, 255);">public</span> <span style="color: rgb(0, 0, 255);">void</span> cacheOneTest(){
+<span style="color: rgb(0, 128, 128);">  8</span>         SqlSession sqlSession = FactoryUtil.getSqlSession();
+<span style="color: rgb(0, 128, 128);">  9</span>         UserMapper userMapper = sqlSession.getMapper(UserMapper.<span style="color: rgb(0, 0, 255);">class</span>);
+<span style="color: rgb(0, 128, 128);"> 10</span>         User user = userMapper.selectUserById(1);
+<span style="color: rgb(0, 128, 128);"> 11</span>         System.out.println(user);
+<span style="color: rgb(0, 128, 128);"> 12</span>         userMapper.deleteUserById(7);
+<span style="color: rgb(0, 128, 128);"> 13</span>         sqlSession.commit();
+<span style="color: rgb(0, 128, 128);"> 14</span>         User anotherUser = userMapper.selectUserById(1);
+<span style="color: rgb(0, 128, 128);"> 15</span>         System.out.println(anotherUser);
+<span style="color: rgb(0, 128, 128);"> 16</span>         sqlSession.close();
+<span style="color: rgb(0, 128, 128);"> 17</span>     }
+<span style="color: rgb(0, 128, 128);"> 18</span> }
+<span style="color: rgb(0, 128, 128);"> 19</span> </code></pre></p><p><br>
+执行测试程序OneLevelCacheTest2.java，可以在控制台看到打印结果：<br>
+<a href="https://img2018.cnblogs.com/blog/526027/201911/526027-20191126115349863-1633113023.png"><img width="981" height="228" title="MyBatis06" style="border: 0px currentcolor; border-image: none; margin-right: auto; margin-left: auto; float: none; display: block; background-image: none;" alt="MyBatis06" src="./images/MyBatis的事物管理和缓存5.png" border="0"></a><br>
+可以看到在第一次执行查询id为1的User对象时，执行了一条select语句，接下来执行了一个delete操作，MyBatis为了保证缓存中存储的是最新的数据，清空了一级缓存，所以第二次执行查询id为1的User对象时，又执行了select语句。<br><font size="3"><strong>
+不同Session对象对一级缓存的影响</strong></font><br>
+在项目的test目录下的java目录创建OneLevelCacheTest3测试类文件，编写如下代码：<br>
+<src class="cnblogs_code"><pre><code><span style="color: rgb(0, 128, 128);">  1</span> <span style="color: rgb(0, 0, 255);">public</span> <span style="color: rgb(0, 0, 255);">class</span> OneLevelCacheTest3 {
+<span style="color: rgb(0, 128, 128);">  2</span>     <span style="color: rgb(0, 0, 255);">public</span> <span style="color: rgb(0, 0, 255);">static</span> <span style="color: rgb(0, 0, 255);">void</span> main(String[] args) {
+<span style="color: rgb(0, 128, 128);">  3</span>         OneLevelCacheTest3 oneLevelCacheTest = <span style="color: rgb(0, 0, 255);">new</span> OneLevelCacheTest3();
+<span style="color: rgb(0, 128, 128);">  4</span>         oneLevelCacheTest.cacheOneTest();
+<span style="color: rgb(0, 128, 128);">  5</span>     }
+<span style="color: rgb(0, 128, 128);">  6</span> 
+<span style="color: rgb(0, 128, 128);">  7</span>     <span style="color: rgb(0, 0, 255);">public</span> <span style="color: rgb(0, 0, 255);">void</span> cacheOneTest(){
+<span style="color: rgb(0, 128, 128);">  8</span>         SqlSession sqlSession = FactoryUtil.getSqlSession();
+<span style="color: rgb(0, 128, 128);">  9</span>         UserMapper userMapper = sqlSession.getMapper(UserMapper.<span style="color: rgb(0, 0, 255);">class</span>);
+<span style="color: rgb(0, 128, 128);"> 10</span>         User user = userMapper.selectUserById(1);
+<span style="color: rgb(0, 128, 128);"> 11</span>         System.out.println(user);
+<span style="color: rgb(0, 128, 128);"> 12</span>         sqlSession.close();
+<span style="color: rgb(0, 128, 128);"> 13</span>         sqlSession = FactoryUtil.getSqlSession();
+<span style="color: rgb(0, 128, 128);"> 14</span>         userMapper = sqlSession.getMapper(UserMapper.<span style="color: rgb(0, 0, 255);">class</span>);
+<span style="color: rgb(0, 128, 128);"> 15</span>         User anotherUser = userMapper.selectUserById(1);
+<span style="color: rgb(0, 128, 128);"> 16</span>         System.out.println(anotherUser);
+<span style="color: rgb(0, 128, 128);"> 17</span>         sqlSession.close();
+<span style="color: rgb(0, 128, 128);"> 18</span>     }
+<span style="color: rgb(0, 128, 128);"> 19</span> }
+<span style="color: rgb(0, 128, 128);"> 20</span> </code></pre></p><p><br>
+执行测试程序OneLevelCacheTest2.java，可以在控制台看到打印结果：<br>
+<a href="https://img2018.cnblogs.com/blog/526027/201911/526027-20191126115350571-2100747541.png"><img width="981" height="195" title="MyBatis07" style="border: 0px currentcolor; border-image: none; margin-right: auto; margin-left: auto; float: none; display: block; background-image: none;" alt="MyBatis07" src="./images/MyBatis的事物管理和缓存6.png" border="0"></a><br>
+可以看到在第一次执行查询id为1的User对象时，执行了一条select语句，接下来调用了sqlSession.close()关闭了一级缓存，第二次执行查询id为1的User对象时，一级缓存是一个新的对象，缓存中没有缓存任何数据，所以再次执行了select语句。<br><font size="3"><strong>
+二级缓存</strong></font><br>
+使用二级缓存时，多个SqlSession使用同一个Mapper的sql语句去操作数据库，得到的数据会存在二级缓存区域，它同样是使用HashMap进行数据存储。相比一级缓存SqlSession，二级缓存的范围更大，多个SqlSession可以共用二级缓存，二级缓存是跨SqlSession的。<br>
+二级缓存是多个SqlSession共享的，其作用域是mapper的同一个namespace。不同的SqlSession两次执行相同namespace下的sql语句，且向sql中传递的参数也相同，即最终执行相同的sql语句，则第一次执行完毕会将数据库中查询的数据写入缓存，第二次查询时会从缓存中获取数据，不再去底层数据库查询，提高效率。<br><font color="#ff0000">
+MyBatis默认没有开启二级缓存，需要在setting全局参数中进行配置，开启二级缓存。</font><br><font size="3"><strong>
+二级缓存测试</strong></font><br>
+在mubatis-config.xml配置文件中开启二级缓存，完整配置文件如下：<br>
+<src class="cnblogs_code"><pre><code><span style="color: rgb(0, 128, 128);">  1</span> &lt;configuration&gt;
+<span style="color: rgb(0, 128, 128);">  2</span>     &lt;!-- 指定Mybatis所用日志的具体实现 --&gt;
+<span style="color: rgb(0, 128, 128);">  3</span>     &lt;settings&gt;
+<span style="color: rgb(0, 128, 128);">  4</span>         &lt;!--开启二级缓存--&gt;
+<span style="color: rgb(0, 128, 128);">  5</span>         &lt;setting name="<span style="color: rgb(139, 0, 0);">cacheEnabled</span>" value="<span style="color: rgb(139, 0, 0);">true</span>"/&gt;
+<span style="color: rgb(0, 128, 128);">  6</span>         &lt;!--开启日志--&gt;
+<span style="color: rgb(0, 128, 128);">  7</span>         &lt;setting name="<span style="color: rgb(139, 0, 0);">logImpl</span>" value="<span style="color: rgb(139, 0, 0);">Log4J</span>"/&gt;
+<span style="color: rgb(0, 128, 128);">  8</span>     &lt;/settings&gt;
+<span style="color: rgb(0, 128, 128);">  9</span>     &lt;!--环境配置，连接的数据库--&gt;
+<span style="color: rgb(0, 128, 128);"> 10</span>     &lt;environments <span style="color: rgb(0, 0, 255);">default</span>="<span style="color: rgb(139, 0, 0);">mysql</span>"&gt;
+<span style="color: rgb(0, 128, 128);"> 11</span>         &lt;environment id="<span style="color: rgb(139, 0, 0);">mysql</span>"&gt;
+<span style="color: rgb(0, 128, 128);"> 12</span>             &lt;!--指定事务管理的类型，这里简单使用Java的JDBC的提交和回滚设置--&gt;
+<span style="color: rgb(0, 128, 128);"> 13</span>             &lt;transactionManager type="<span style="color: rgb(139, 0, 0);">JDBC</span>"&gt;&lt;/transactionManager&gt;
+<span style="color: rgb(0, 128, 128);"> 14</span>             &lt;!--dataSource 指连接源配置，POOLED是JDBC连接对象的数据源连接池的实现--&gt;
+<span style="color: rgb(0, 128, 128);"> 15</span>             &lt;dataSource type="<span style="color: rgb(139, 0, 0);">POOLED</span>"&gt;
+<span style="color: rgb(0, 128, 128);"> 16</span>                 &lt;property name="<span style="color: rgb(139, 0, 0);">driver</span>" value="<span style="color: rgb(139, 0, 0);">com.mysql.jdbc.Driver</span>"&gt;&lt;/property&gt;
+<span style="color: rgb(0, 128, 128);"> 17</span>                 &lt;property name="<span style="color: rgb(139, 0, 0);">url</span>" value="<span style="color: rgb(139, 0, 0);">jdbc:mysql://127.0.0.1:3306/mybatis?useUnicode=true&amp;amp;characterEncoding=UTF-8</span>"&gt;&lt;/property&gt;
+<span style="color: rgb(0, 128, 128);"> 18</span>                 &lt;property name="<span style="color: rgb(139, 0, 0);">username</span>" value="<span style="color: rgb(139, 0, 0);">root</span>"&gt;&lt;/property&gt;
+<span style="color: rgb(0, 128, 128);"> 19</span>                 &lt;property name="<span style="color: rgb(139, 0, 0);">password</span>" value="<span style="color: rgb(139, 0, 0);">Password@123</span>"&gt;&lt;/property&gt;
+<span style="color: rgb(0, 128, 128);"> 20</span>             &lt;/dataSource&gt;
+<span style="color: rgb(0, 128, 128);"> 21</span>         &lt;/environment&gt;
+<span style="color: rgb(0, 128, 128);"> 22</span>     &lt;/environments&gt;
+<span style="color: rgb(0, 128, 128);"> 23</span>     &lt;mappers&gt;
+<span style="color: rgb(0, 128, 128);"> 24</span>         &lt;!--告诉Mybatis持久化类的映射文件路径--&gt;
+<span style="color: rgb(0, 128, 128);"> 25</span>         &lt;mapper resource="<span style="color: rgb(139, 0, 0);">mapping/UserMapper.xml</span>"&gt;&lt;/mapper&gt;
+<span style="color: rgb(0, 128, 128);"> 26</span>     &lt;/mappers&gt;
+<span style="color: rgb(0, 128, 128);"> 27</span> &lt;/configuration&gt;</code></pre><br>
+cacheEnabled默认为false，设置为true表示开启二级缓存。<br>
+在UserMapper.sml文件配置缓存相关参数，完整配置文件如下：<br>
+<src class="cnblogs_code"><pre><code><span style="color: rgb(0, 128, 128);">  1</span> &lt;?xml version="<span style="color: rgb(139, 0, 0);">1.0</span>" encoding="<span style="color: rgb(139, 0, 0);">UTF-8</span>"?&gt;
+<span style="color: rgb(0, 128, 128);">  2</span> &lt;!DOCTYPE mapper PUBLIC "<span style="color: rgb(139, 0, 0);">-//mybatis.org//DTD Mapper 3.0//EN</span>"
+<span style="color: rgb(0, 128, 128);">  3</span>         "<span style="color: rgb(139, 0, 0);">http://mybatis.org/dtd/mybatis-3-mapper.dtd</span>"&gt;
+<span style="color: rgb(0, 128, 128);">  4</span> &lt;mapper namespace="<span style="color: rgb(139, 0, 0);">com.snow.dcl.mapper.UserMapper</span>"&gt;
+<span style="color: rgb(0, 128, 128);">  5</span>     &lt;!--开启当前mapper的namespace下的二级缓存--&gt;
+<span style="color: rgb(0, 128, 128);">  6</span>     &lt;cache eviction="<span style="color: rgb(139, 0, 0);">LRU</span>" flushInterval="<span style="color: rgb(139, 0, 0);">20000</span>" size="<span style="color: rgb(139, 0, 0);">512</span>" readOnly="<span style="color: rgb(139, 0, 0);">true</span>"/&gt;
+<span style="color: rgb(0, 128, 128);">  7</span>     &lt;!--插入用户数据--&gt;
+<span style="color: rgb(0, 128, 128);">  8</span>     &lt;insert id="<span style="color: rgb(139, 0, 0);">saveUser</span>" parameterType="<span style="color: rgb(139, 0, 0);">com.snow.dcl.domain.User</span>" useGeneratedKeys="<span style="color: rgb(139, 0, 0);">true</span>"&gt;
+<span style="color: rgb(0, 128, 128);">  9</span>         insert into tb_user(name,sex,age) values (#{name},#{sex},#{age});
+<span style="color: rgb(0, 128, 128);"> 10</span>     &lt;/insert&gt;
+<span style="color: rgb(0, 128, 128);"> 11</span>     &lt;!--根据id查询用户--&gt;
+<span style="color: rgb(0, 128, 128);"> 12</span>     &lt;select id="<span style="color: rgb(139, 0, 0);">selectUserById</span>" parameterType="<span style="color: rgb(139, 0, 0);">int</span>" resultType="<span style="color: rgb(139, 0, 0);">com.snow.dcl.domain.User</span>"&gt;
+<span style="color: rgb(0, 128, 128);"> 13</span>         select * from tb_user where id=#{id};
+<span style="color: rgb(0, 128, 128);"> 14</span>     &lt;/select&gt;
+<span style="color: rgb(0, 128, 128);"> 15</span>     &lt;!--查询所有用户--&gt;
+<span style="color: rgb(0, 128, 128);"> 16</span>     &lt;select id="<span style="color: rgb(139, 0, 0);">selectAllUser</span>" resultType="<span style="color: rgb(139, 0, 0);">com.snow.dcl.domain.User</span>"&gt;
+<span style="color: rgb(0, 128, 128);"> 17</span>        select * from tb_user;
+<span style="color: rgb(0, 128, 128);"> 18</span>     &lt;/select&gt;
+<span style="color: rgb(0, 128, 128);"> 19</span>     &lt;!--根据id删除用户--&gt;
+<span style="color: rgb(0, 128, 128);"> 20</span>     &lt;delete id="<span style="color: rgb(139, 0, 0);">deleteUserById</span>" parameterType="<span style="color: rgb(139, 0, 0);">int</span>"&gt;
+<span style="color: rgb(0, 128, 128);"> 21</span>         delete from tb_user where id=#{id};
+<span style="color: rgb(0, 128, 128);"> 22</span>     &lt;/delete&gt;
+<span style="color: rgb(0, 128, 128);"> 23</span> &lt;/mapper&gt;</code></pre><br>
+参数解释：<br>
+1.eviction：回收策略，默认为LRU，此外还有FIFO、SOFT、WEAK。<br>
+LRU：最近最少使用策略，移除最长时间不被使用的对象。<br>
+FIFO：先进先出策略，按对象进入缓存的顺序来移除。<br>
+SOFT：软引用策略，移除基于垃圾回收器状态和软引用规则的对象。<br>
+WEAK：弱引用策略，更积极地移除基于垃圾收集器状态和弱引用规则的对象。<br>
+2.flushInterval：刷新间隔时间，任意正整数，单位毫秒，默认情况下是没有刷新间隔，缓存仅在调用语句时刷新。<br>
+3.size：缓存数目，任意正整数，要记住缓存的对象数目与运行环境的可用内存资源数目，默认1024。<br>
+4.readOnly：只读，属性为true或false。true缓存会给所有调用者返回缓存对象的相同实例，对象不能修改，性能高。false缓存会返回缓存对象的拷贝（通过序列化），性能低，但是安全。默认为false。<br><font color="#ff0000">
+注意：<br>
+使用二级缓存时，与查询结果映射的Java对象必须实现java.io.Serializable接口的序列化和反序列化操作，若存在父类，其成员都要实现序列化接口。实现该接口的原因是为了对缓存数据进行序列化和反序列化操作，因为二级缓存数据存储介质多种多样，不一定在内存，可能是硬盘或者远程服务器。</font><br>
+在项目的test目录下的java目录下创建TwoLevelCacheTest1.java测试类文件，编写如下代码：<br>
+<src class="cnblogs_code"><pre><code><span style="color: rgb(0, 128, 128);">  1</span> <span style="color: rgb(0, 0, 255);">public</span> <span style="color: rgb(0, 0, 255);">class</span> TwoLevelCacheTest1 {
+<span style="color: rgb(0, 128, 128);">  2</span>     <span style="color: rgb(0, 0, 255);">public</span> <span style="color: rgb(0, 0, 255);">static</span> <span style="color: rgb(0, 0, 255);">void</span> main(String[] args) {
+<span style="color: rgb(0, 128, 128);">  3</span>         TwoLevelCacheTest1 twoLevelCacheTest = <span style="color: rgb(0, 0, 255);">new</span> TwoLevelCacheTest1();
+<span style="color: rgb(0, 128, 128);">  4</span>         twoLevelCacheTest.cacheTwoTest();
+<span style="color: rgb(0, 128, 128);">  5</span>     }
+<span style="color: rgb(0, 128, 128);">  6</span> 
+<span style="color: rgb(0, 128, 128);">  7</span>     <span style="color: rgb(0, 0, 255);">public</span> <span style="color: rgb(0, 0, 255);">void</span> cacheTwoTest(){
+<span style="color: rgb(0, 128, 128);">  8</span>         SqlSession sqlSession = FactoryUtil.getSqlSession();
+<span style="color: rgb(0, 128, 128);">  9</span>         UserMapper userMapper = sqlSession.getMapper(UserMapper.<span style="color: rgb(0, 0, 255);">class</span>);
+<span style="color: rgb(0, 128, 128);"> 10</span>         User user = userMapper.selectUserById(1);
+<span style="color: rgb(0, 128, 128);"> 11</span>         System.out.println(user);
+<span style="color: rgb(0, 128, 128);"> 12</span>         sqlSession.close();
+<span style="color: rgb(0, 128, 128);"> 13</span>         sqlSession = FactoryUtil.getSqlSession();
+<span style="color: rgb(0, 128, 128);"> 14</span>         userMapper = sqlSession.getMapper(UserMapper.<span style="color: rgb(0, 0, 255);">class</span>);
+<span style="color: rgb(0, 128, 128);"> 15</span>         User anotherUser = userMapper.selectUserById(1);
+<span style="color: rgb(0, 128, 128);"> 16</span>         System.out.println(anotherUser);
+<span style="color: rgb(0, 128, 128);"> 17</span>         sqlSession.close();
+<span style="color: rgb(0, 128, 128);"> 18</span>     }
+<span style="color: rgb(0, 128, 128);"> 19</span> }
+<span style="color: rgb(0, 128, 128);"> 20</span> </code></pre></p><p><br>
+执行测试程序TwoLevelCacheTest.java，可以在控制台看到打印结果：<br>
+<a href="https://img2018.cnblogs.com/blog/526027/201911/526027-20191126115351255-655788314.png"><img width="981" height="177" title="MyBatis08" style="border: 0px currentcolor; border-image: none; margin-right: auto; margin-left: auto; float: none; display: block; background-image: none;" alt="MyBatis08" src="./images/MyBatis的事物管理和缓存7.png" border="0"></a><br>
+可以看到在第一次执行查询id为1的User对象时，执行了一条select语句，接下来调用了sqlSession.close()关闭了一级缓存，第二次执行查询id为1的User对象时，一级缓存没有任何对象，但因为启用了二级缓存，第一次查询的数据会缓存在二级缓存中，所以显示命中二级缓存数据，不需要在执行select语句。<br><font color="#ff0000">
+注意：</font><br>
+在UserMapper.xml文件的select语句中设置useCache='false'，可以禁用当前select语句的二级缓存，即每次都会查询数据库，默认为true，配置内容如下：<br>
+<src class="cnblogs_code"><pre><code><span style="color: rgb(0, 128, 128);">  1</span> &lt;?xml version="<span style="color: rgb(139, 0, 0);">1.0</span>" encoding="<span style="color: rgb(139, 0, 0);">UTF-8</span>"?&gt;
+<span style="color: rgb(0, 128, 128);">  2</span> &lt;!DOCTYPE mapper PUBLIC "<span style="color: rgb(139, 0, 0);">-//mybatis.org//DTD Mapper 3.0//EN</span>"
+<span style="color: rgb(0, 128, 128);">  3</span>         "<span style="color: rgb(139, 0, 0);">http://mybatis.org/dtd/mybatis-3-mapper.dtd</span>"&gt;
+<span style="color: rgb(0, 128, 128);">  4</span> &lt;mapper namespace="<span style="color: rgb(139, 0, 0);">com.snow.dcl.mapper.UserMapper</span>"&gt;
+<span style="color: rgb(0, 128, 128);">  5</span>     &lt;!--开启当前mapper的namespace下的二级缓存--&gt;
+<span style="color: rgb(0, 128, 128);">  6</span>     &lt;cache eviction="<span style="color: rgb(139, 0, 0);">LRU</span>" flushInterval="<span style="color: rgb(139, 0, 0);">20000</span>" size="<span style="color: rgb(139, 0, 0);">512</span>" readOnly="<span style="color: rgb(139, 0, 0);">true</span>"/&gt;
+<span style="color: rgb(0, 128, 128);">  7</span>     &lt;!--插入用户数据--&gt;
+<span style="color: rgb(0, 128, 128);">  8</span>     &lt;insert id="<span style="color: rgb(139, 0, 0);">saveUser</span>" parameterType="<span style="color: rgb(139, 0, 0);">com.snow.dcl.domain.User</span>" useGeneratedKeys="<span style="color: rgb(139, 0, 0);">true</span>"&gt;
+<span style="color: rgb(0, 128, 128);">  9</span>         insert into tb_user(name,sex,age) values (#{name},#{sex},#{age});
+<span style="color: rgb(0, 128, 128);"> 10</span>     &lt;/insert&gt;
+<span style="color: rgb(0, 128, 128);"> 11</span>     &lt;!--根据id查询用户--&gt;
+<span style="color: rgb(0, 128, 128);"> 12</span>     &lt;select id="<span style="color: rgb(139, 0, 0);">selectUserById</span>" parameterType="<span style="color: rgb(139, 0, 0);">int</span>" resultType="<span style="color: rgb(139, 0, 0);">com.snow.dcl.domain.User</span>" useCache="<span style="color: rgb(139, 0, 0);">false</span>"&gt;
+<span style="color: rgb(0, 128, 128);"> 13</span>         select * from tb_user where id=#{id};
+<span style="color: rgb(0, 128, 128);"> 14</span>     &lt;/select&gt;
+<span style="color: rgb(0, 128, 128);"> 15</span>     &lt;!--查询所有用户--&gt;
+<span style="color: rgb(0, 128, 128);"> 16</span>     &lt;select id="<span style="color: rgb(139, 0, 0);">selectAllUser</span>" resultType="<span style="color: rgb(139, 0, 0);">com.snow.dcl.domain.User</span>"&gt;
+<span style="color: rgb(0, 128, 128);"> 17</span>         select * from tb_user;
+<span style="color: rgb(0, 128, 128);"> 18</span>     &lt;/select&gt;
+<span style="color: rgb(0, 128, 128);"> 19</span>     &lt;!--根据id删除用户--&gt;
+<span style="color: rgb(0, 128, 128);"> 20</span>     &lt;delete id="<span style="color: rgb(139, 0, 0);">deleteUserById</span>" parameterType="<span style="color: rgb(139, 0, 0);">int</span>"&gt;
+<span style="color: rgb(0, 128, 128);"> 21</span>         delete from tb_user where id=#{id};
+<span style="color: rgb(0, 128, 128);"> 22</span>     &lt;/delete&gt;
+<span style="color: rgb(0, 128, 128);"> 23</span> &lt;/mapper&gt;</code></pre></p>
+
+</div><hr><script charset='utf-8' src='../../js/sming.js'></script></body></html>

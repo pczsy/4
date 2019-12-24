@@ -1,0 +1,1411 @@
+<html><head><meta charset='utf-8'><meta name='viewport' content='width=device-width, initial-scale=1'>
+<meta name='applicable-device' content='pc'><meta name='keywords' content='电脑,电脑讲解,电脑技术,编程,电脑故障维修品优购(IDEA版)-第二天' />
+<script src='../../highlight/highlight.pack.js'></script>
+<link rel='stylesheet' type='text/css' href='../../highlight/styles/monokai.css'/>
+
+<link rel='stylesheet' href='../../fenxiang/dist/css/share.min.css'>
+<script src='../../fenxiang/src/js/social-share.js'></script>
+<script src='../../fenxiang/src/js/qrcode.js'></script>
+
+</head><body><script>hljs.initHighlightingOnLoad();</script><script>
+var system ={};  
+var p = navigator.platform;       
+system.win = p.indexOf('Win') == 0;  
+system.mac = p.indexOf('Mac') == 0;  
+system.x11 = (p == 'X11') || (p.indexOf('Linux') == 0);     
+if(system.win||system.mac||system.xll){
+document.write("<link href='../css/3.css' rel='stylesheet' type='text/css'>");}else{ document.write("<link href='../css/3wap.css' rel='stylesheet' type='text/css'>");}</script><script src='../../js/3.js'></script><div class='div2'><div class='heading_nav'><ul><div><li><a href='../../index.html'>首页</a></li>
+</div><div onclick='hidden1()' >分享</div>
+</ul></div></div>
+<div id='heading_nav2'> 
+<li class='row' >
+<div class='social-share' data-mode='prepend'><a href='javascript:' class='social-share-icon icon-heart'></a></div></li></div><script charset='utf-8' src='../../3/js/hengfu.js'></script><script charset='utf-8' src='../../3/js/hengfu2.js'></script><hr><div class='div1'><div class='biaoti'><center>品优购(IDEA版)-第二天</center></div><div class='banquan'>原文出处:本文由博客园博主我是阿喵酱提供。<br/>
+原文连接:https://www.cnblogs.com/amiaojiang/p/11863807.html</div><br>
+    <h1 id="品优购-第2天">品优购-第2天</h1>
+<h2 id="学习目标"><a href="#学习目标">学习目标</a></h2>
+<p>目标1：运用AngularJS前端框架的常用指令<br />
+目标2：完成品牌管理的列表功能<br />
+目标3：完成品牌管理的分页列表功能<br />
+目标4：完成品牌管理的增加功能<br />
+目标5：完成品牌管理的修改功能<br />
+目标6：完成品牌管理的删除功能<br />
+目标7：完成品牌管理的条件查询功能<br />
+目标N：通用Mapper</p>
+<h3 id="第1章-前端框架angularjs入门"><a href="#第1章-前端框架angularjs入门">第1章 前端框架AngularJS入门</a></h3>
+<h4 id="angularjs简介rjs">1.1 AngularJS简介rJS</h4>
+<p>AngularJS 诞生于2009年，由Misko Hevery 等人创建，后为Google所收购。是一款优秀的前端JS框架，已经被用于Google的多款产品当中。AngularJS有着诸多特性，最为核心的是：MVC、模块化、自动化双向数据绑定、依赖注入等等。<br />
+<img src="./images/品优购(IDEA版)-第二天0.png" alt="在这里插入图片描述" /></p>
+<h4 id="angularjs四大特征">1.2 AngularJS四大特征</h4>
+<h5 id="mvc模式">1.2.1 MVC模式</h5>
+<p>Angular遵循软件工程的MVC模式,并鼓励展现，数据，和逻辑组件之间的松耦合.通过依赖注入（dependency injection），Angular为客户端的Web应用带来了传统服务端的服务，例如独立于视图的控制。 因此，后端减少了许多负担，产生了更轻的Web应用。<br />
+<img src="./images/品优购(IDEA版)-第二天1.png" alt="在这里插入图片描述" /><br />
+Model:数据,其实就是angular变量($scope.XX);</p>
+<p>View: 数据的呈现,Html+Directive(指令);</p>
+<p>Controller:操作数据,就是function,数据的增删改查;</p>
+<h5 id="双向绑定">1.2.2 双向绑定</h5>
+<p>AngularJS是建立在这样的信念上的：即声明式编程应该用于构建用户界面以及编写软件构建，而指令式编程非常适合来表示业务逻辑。框架采用并扩展了传统HTML，通过双向的数据绑定来适应动态内容，双向的数据绑定允许模型和视图之间的自动同步。因此，AngularJS使得对DOM的操作不再重要并提升了可测试性。<br />
+<img src="./images/品优购(IDEA版)-第二天2.png" alt="在这里插入图片描述" /></p>
+<h5 id="依赖注入">1.2.3 依赖注入</h5>
+<p>依赖注入(Dependency Injection,简称DI)是一种设计模式, 指某个对象依赖的其他对象无需手工创建，只需要“吼一嗓子”，则此对象在创建时，其依赖的对象由框架来自动创建并注入进来,其实就是最少知识法则;模块中所有的service和provider两类对象，都可以根据形参名称实现DI.</p>
+<h5 id="模块化设计">1.2.4 模块化设计</h5>
+<p>高内聚低耦合法则</p>
+<p>1)官方提供的模块 ng、ngRoute、ngAnimate</p>
+<p>2)用户自定义的模块 angular.module(‘模块名’,[ ])</p>
+<h4 id="入门小demo">1.3 入门小Demo</h4>
+<h5 id="表达式">1.3.1 表达式</h5>
+<pre><code><code>&lt;html&gt;
+&lt;head&gt;
+    &lt;title&gt;入门小Demo-1&lt;/title&gt;
+    &lt;script src=&quot;angular.min.js&quot;&gt;&lt;/script&gt;
+&lt;/head&gt;
+&lt;body ng-app&gt;
+{{100+100}}
+&lt;/body&gt;
+&lt;/html&gt;</code></code></pre>
+<p>执行结果如下：<br />
+<img src="./images/品优购(IDEA版)-第二天3.png" alt="在这里插入图片描述" /><br />
+表达式的写法是{{表达式 }} 表达式可以是变量或是运算式</p>
+<blockquote>
+<p>ng-app 指令 作用是告诉子元素以下的指令是归angularJs的,angularJs会识别的<br />
+ng-app 指令定义了AngularJS 应用程序的 根元素。<br />
+ng-app 指令在网页加载完毕时会自动引导（自动初始化）应用程序。</p>
+</blockquote>
+<h5 id="双向绑定-1">1.3.2 双向绑定</h5>
+<pre><code><code>&lt;html&gt;
+&lt;head&gt;
+    &lt;title&gt;入门小Demo-1  双向绑定&lt;/title&gt;
+    &lt;script src=&quot;angular.min.js&quot;&gt;&lt;/script&gt;
+&lt;/head&gt;
+&lt;body ng-app&gt;
+请输入你的姓名：&lt;input ng-model=&quot;myname&quot;&gt;
+&lt;br&gt;
+{{myname}},你好
+&lt;/body&gt;
+&lt;/html&gt;</code></code></pre>
+<p>运行效果如下：<br />
+<img src="./images/品优购(IDEA版)-第二天4.png" alt="在这里插入图片描述" /></p>
+<blockquote>
+<p>ng-model 指令用于绑定变量,这样用户在文本框输入的内容会绑定到变量上，而表达式可以实时地输出变量。</p>
+</blockquote>
+<h5 id="初始化指令">1.3.3 初始化指令</h5>
+<blockquote>
+<p>我们如果希望有些变量具有初始值，可以使用ng-init指令来对变量初始化:</p>
+</blockquote>
+<pre><code><code>&lt;html&gt;
+&lt;head&gt;
+    &lt;title&gt;入门小Demo-3  初始化&lt;/title&gt;
+    &lt;script src=&quot;angular.min.js&quot;&gt;&lt;/script&gt;
+&lt;/head&gt;
+&lt;body ng-app   ng-init=&quot;myname=&#39;陈大海&#39;&quot;&gt;
+请输入你的姓名：&lt;input ng-model=&quot;myname&quot;&gt;
+&lt;br&gt;
+{{myname}},你好
+&lt;/body&gt;
+&lt;/html&gt;</code></code></pre>
+<h5 id="控制器">1.3.4 控制器</h5>
+<pre><code><code>&lt;html&gt;
+&lt;head&gt;
+    &lt;title&gt;入门小Demo-3  初始化&lt;/title&gt;
+    &lt;script src=&quot;angular.min.js&quot;&gt;&lt;/script&gt;
+    &lt;script&gt;
+        var app=angular.module(&#39;myApp&#39;,[]); //定义了一个叫myApp的模块
+        //定义控制器
+        app.controller(&#39;myController&#39;,function($scope){
+            $scope.add=function(){
+                return parseInt($scope.x)+parseInt($scope.y);
+            }
+        });
+    &lt;/script&gt;
+&lt;/head&gt;
+&lt;body ng-app=&quot;myApp&quot; ng-controller=&quot;myController&quot;&gt;
+x:&lt;input ng-model=&quot;x&quot; &gt;
+y:&lt;input ng-model=&quot;y&quot; &gt;
+运算结果：{{add()}}
+&lt;/body&gt;
+&lt;/html&gt;</code></code></pre>
+<p>运行结果如下：<br />
+<img src="./images/品优购(IDEA版)-第二天5.png" alt="在这里插入图片描述" /><br />
+ng-controller用于指定所使用的控制器。</p>
+<blockquote>
+<p>理解 $scope：</p>
+<p>$scope 的使用贯穿整个 AngularJS App 应用,它与数据模型相关联,同时也是表达式执行的上下文.<strong>有了$scope就在视图和控制器之间建立了一个通道</strong>,基于作用域视图在修改数据时会立刻更新 $scope,同样的$scope 发生改变时也会立刻重新渲染视图.</p>
+</blockquote>
+<h5 id="事件指令">1.3.5 事件指令</h5>
+<pre><code><code>&lt;html&gt;
+&lt;head&gt;
+    &lt;title&gt;入门小Demo-5  事件指令&lt;/title&gt;
+    &lt;script src=&quot;angular.min.js&quot;&gt;&lt;/script&gt;  
+    &lt;script&gt;
+        var app=angular.module(&#39;myApp&#39;,[]); //定义了一个叫myApp的模块
+        //定义控制器
+        app.controller(&#39;myController&#39;,function($scope){         
+            $scope.add=function(){
+                $scope.z= parseInt($scope.x)+parseInt($scope.y);
+            }           
+        }); 
+    &lt;/script&gt;
+&lt;/head&gt;
+&lt;body ng-app=&quot;myApp&quot; ng-controller=&quot;myController&quot;&gt;
+x:&lt;input ng-model=&quot;x&quot; &gt;
+y:&lt;input ng-model=&quot;y&quot; &gt;
+&lt;button ng-click=&quot;add()&quot;&gt;运算&lt;/button&gt;
+结果：{{z}}
+&lt;/body&gt;
+&lt;/html&gt;</code></code></pre>
+<p>运行结果：<br />
+<img src="./images/品优购(IDEA版)-第二天6.png" alt="在这里插入图片描述" /><br />
+ng-click 是最常用的单击事件指令，再点击时触发控制器的某个方法</p>
+<h5 id="循环数组">1.3.6 循环数组</h5>
+<pre><code><code>&lt;html&gt;
+&lt;head&gt;
+    &lt;title&gt;入门小Demo-6  循环数据&lt;/title&gt;
+    &lt;script src=&quot;angular.min.js&quot;&gt;&lt;/script&gt;
+    &lt;script&gt;
+        var app=angular.module(&#39;myApp&#39;,[]); //定义了一个叫myApp的模块
+        //定义控制器
+        app.controller(&#39;myController&#39;,function($scope){
+            $scope.list= [100,192,203,434 ];//定义数组
+        });
+    &lt;/script&gt;
+&lt;/head&gt;
+&lt;body ng-app=&quot;myApp&quot; ng-controller=&quot;myController&quot;&gt;
+&lt;table&gt;
+&lt;tr ng-repeat=&quot;x in list&quot;&gt;
+    &lt;td&gt;{{x}}&lt;/td&gt;
+&lt;/tr&gt;
+&lt;/table&gt;
+&lt;/body&gt;
+&lt;/html&gt;</code></code></pre>
+<p>这里的ng-repeat指令用于循环数组变量。</p>
+<p>运行结果如下：</p>
+<h5 id="循环对象数组">1.3.7 循环对象数组</h5>
+<pre><code><code>&lt;html&gt;
+&lt;head&gt;
+    &lt;title&gt;入门小Demo-7  循环对象数组&lt;/title&gt;
+    &lt;script src=&quot;angular.min.js&quot;&gt;&lt;/script&gt;  
+    &lt;script&gt;
+        var app=angular.module(&#39;myApp&#39;,[]); //定义了一个叫myApp的模块
+        //定义控制器
+        app.controller(&#39;myController&#39;,function($scope){     
+            $scope.list= [
+                {name:&#39;张三&#39;,shuxue:100,yuwen:93},
+                {name:&#39;李四&#39;,shuxue:88,yuwen:87},
+                {name:&#39;王五&#39;,shuxue:77,yuwen:56}
+            ];//定义数组            
+        }); 
+    &lt;/script&gt;   
+&lt;/head&gt;
+&lt;body ng-app=&quot;myApp&quot; ng-controller=&quot;myController&quot;&gt;
+&lt;table&gt;
+&lt;tr&gt;
+    &lt;td&gt;姓名&lt;/td&gt;
+    &lt;td&gt;数学&lt;/td&gt;
+    &lt;td&gt;语文&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr ng-repeat=&quot;entity in list&quot;&gt;
+    &lt;td&gt;{{entity.name}}&lt;/td&gt;
+    &lt;td&gt;{{entity.shuxue}}&lt;/td&gt;
+    &lt;td&gt;{{entity.yuwen}}&lt;/td&gt;
+&lt;/tr&gt;
+&lt;/table&gt;
+&lt;/body&gt;
+&lt;/html&gt;</code></code></pre>
+<p>运行结果如下：<br />
+<img src="./images/品优购(IDEA版)-第二天7.png" alt="在这里插入图片描述" /></p>
+<h5 id="内置服务">1.3.8 内置服务</h5>
+<p>我们的数据一般都是从后端获取的，那么如何获取数据呢？我们一般使用内置服务$http来实现。注意：以下代码需要在tomcat中运行。</p>
+<pre><code><code>&lt;html&gt;
+&lt;head&gt;
+    &lt;title&gt;入门小Demo-8  内置服务&lt;/title&gt;
+    &lt;meta charset=&quot;utf-8&quot; /&gt;
+    &lt;script src=&quot;angular.min.js&quot;&gt;&lt;/script&gt;  
+    &lt;script&gt;
+        var app=angular.module(&#39;myApp&#39;,[]); //定义了一个叫myApp的模块
+        //定义控制器
+        app.controller(&#39;myController&#39;,function($scope,$http){       
+            $scope.findAll=function(){
+                $http.get(&#39;data.json&#39;).success(
+                    function(response){
+                        $scope.list=response;
+                    }                   
+                );              
+            }           
+        }); 
+    &lt;/script&gt;   
+&lt;/head&gt;
+&lt;body ng-app=&quot;myApp&quot; ng-controller=&quot;myController&quot; ng-init=&quot;findAll()&quot;&gt;
+&lt;table&gt;
+&lt;tr&gt;
+    &lt;td&gt;姓名&lt;/td&gt;
+    &lt;td&gt;数学&lt;/td&gt;
+    &lt;td&gt;语文&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr ng-repeat=&quot;entity in list&quot;&gt;
+    &lt;td&gt;{{entity.name}}&lt;/td&gt;
+    &lt;td&gt;{{entity.shuxue}}&lt;/td&gt;
+    &lt;td&gt;{{entity.yuwen}}&lt;/td&gt;
+&lt;/tr&gt;
+&lt;/table&gt;
+&lt;/body&gt;
+&lt;/html&gt;</code></code></pre>
+<p>建立文件 data.json</p>
+<pre class="json"><code>[
+    {&quot;name&quot;:&quot;张三&quot;,&quot;shuxue&quot;:100,&quot;yuwen&quot;:93},
+    {&quot;name&quot;:&quot;李四&quot;,&quot;shuxue&quot;:88,&quot;yuwen&quot;:87},
+    {&quot;name&quot;:&quot;王五&quot;,&quot;shuxue&quot;:77,&quot;yuwen&quot;:56},
+    {&quot;name&quot;:&quot;赵六&quot;,&quot;shuxue&quot;:67,&quot;yuwen&quot;:86}
+]</code></code></pre>
+<h3 id="第2章-通用mapper">第2章 <strong>通用Mapper</strong></h3>
+<h4 id="通用mapper介绍">2.1 通用Mapper介绍</h4>
+<p>通用 Mapper 提供了一些通用的方法，这些通用方法是以接口的形式提供的，它主要简化了我们工作中常做的单表操作问题，让MyBatis由面向过程转换成了面向对象的操作方式，当然，MyBatis编写SQL面向过程操作和通用Mapper面向对象操作可以共存。</p>
+<p>为了方便测试，我们在parent工程中引入log日志包,版本如下：</p>
+<pre class="xml"><code>&lt;slf4j.version&gt;1.6.6&lt;/slf4j.version&gt;
+&lt;log4j.version&gt;1.2.12&lt;/log4j.version&gt;</code></code></pre>
+<p>包引入如下：</p>
+<pre class="xml"><code>&lt;!-- log start --&gt;
+&lt;dependency&gt;
+    &lt;groupId&gt;log4j&lt;/groupId&gt;
+    &lt;artifactId&gt;log4j&lt;/artifactId&gt;
+    &lt;version&gt;${log4j.version}&lt;/version&gt;
+&lt;/dependency&gt;
+
+&lt;dependency&gt;
+    &lt;groupId&gt;org.slf4j&lt;/groupId&gt;
+    &lt;artifactId&gt;slf4j-api&lt;/artifactId&gt;
+    &lt;version&gt;${slf4j.version}&lt;/version&gt;
+&lt;/dependency&gt;
+
+&lt;dependency&gt;
+    &lt;groupId&gt;org.slf4j&lt;/groupId&gt;
+    &lt;artifactId&gt;slf4j-log4j12&lt;/artifactId&gt;
+    &lt;version&gt;${slf4j.version}&lt;/version&gt;
+&lt;/dependency&gt;
+&lt;!-- log end --&gt;</code></code></pre>
+<p>log4j.properties</p>
+<pre class="shell"><code>log4j.rootLogger=DEBUG,Console
+log4j.appender.Console=org.apache.log4j.ConsoleAppender
+log4j.appender.Console.layout=org.apache.log4j.PatternLayout
+log4j.appender.Console.layout.ConversionPattern=%d [%t] %-5p [%c] - %m%n
+log4j.logger.org.apache=DEBUG</code></code></pre>
+<h4 id="配置介绍">2.2 配置介绍</h4>
+<p>使用通用通用Mapper首先需要引入依赖包。</p>
+<pre class="xml"><code>&lt;!--通用Mapper--&gt;
+&lt;dependency&gt;
+    &lt;groupId&gt;tk.mybatis&lt;/groupId&gt;
+    &lt;artifactId&gt;mapper&lt;/artifactId&gt;
+&lt;/dependency&gt;</code></code></pre>
+<p>替换MyBatis集成Spring的包扫描bean，修改pinyougou-mapper项目中spring-mybatis.xml</p>
+<p>替换前：</p>
+<pre class="xml"><code>&lt;bean class=&quot;org.mybatis.spring.mapper.MapperScannerConfigurer&quot;
+   p:basePackage=&quot;com.pinyougou.mapper&quot;
+     p:sqlSessionFactoryBeanName=&quot;sqlSessionFactoryBean&quot; /&gt;</code></code></pre>
+<p>替换后：</p>
+<pre class="xml"><code>&lt;bean class=&quot;tk.mybatis.spring.mapper.MapperScannerConfigurer&quot;
+     p:basePackage=&quot;com.pinyougou.mapper&quot;
+     p:sqlSessionFactoryBeanName=&quot;sqlSessionFactoryBean&quot;&gt;
+   &lt;!--通用接口--&gt;
+   &lt;property name=&quot;properties&quot;&gt;
+      &lt;value&gt;
+         mappers=tk.mybatis.mapper.common.Mapper
+      &lt;/value&gt;
+   &lt;/property&gt;
+&lt;/bean&gt;</code></code></pre>
+<h4 id="mybatis通用mapperspring集成测试">2.3 MyBatis+通用Mapper+Spring集成测试</h4>
+<p>在pinyougou-sellergoods-service编写测试类</p>
+<pre class="java"><code>package com.pinyougou;
+import org.junit.Before;
+import org.junit.Test;
+import org.springframework.context.ApplicationContext;
+import org.springframework.context.support.ClassPathXmlApplicationContext;
+public class MapperTest {
+    private ApplicationContext act;
+    @Before
+    public void init(){
+        act = new ClassPathXmlApplicationContext(&quot;classpath:spring/spring.xml&quot;);
+    }
+    @Test
+    public void testSpring(){
+        String[] names = act.getBeanDefinitionNames();
+
+        for (String name : names) {
+            System.out.println(name);
+        }
+    }
+}</code></code></pre>
+<p>测试结果</p>
+<pre class="java"><code>addressMapper
+areasMapper
+brandMapper
+citiesMapper
+contentCategoryMapper
+contentMapper
+freightTemplateMapper
+goodsDescMapper
+goodsMapper
+itemCatMapper
+itemMapper
+orderItemMapper
+orderMapper
+payLogMapper
+provincesMapper
+seckillGoodsMapper
+seckillOrderMapper
+sellerMapper
+specificationMapper
+specificationOptionMapper
+typeTemplateMapper
+userMapper</code></code></pre>
+<p>这里可以看到每个接口都产生了一个代理对象，并且注入到Spring容器中，而每个接口都继承了Mapper 接口,所以初步可以断定，继承通用Mapper成功，接着我们来使用通用Mapper实现增删改查。</p>
+<h4 id="通用mapper的使用">2.4通用Mapper的使用</h4>
+<h5 id="增加操作">2.4.1 <strong>增加操作</strong></h5>
+<h6 id="不忽略空值-insert">2.4.1.1 <strong>不忽略空值-insert</strong></h6>
+<pre class="java"><code>/***
+ * 增加数据
+ * 不忽略空值
+ */
+@Test
+public void testInsert(){
+    Brand brand = new Brand();
+    brand.setName(&quot;深圳黑马训练营&quot;);
+    //brand.setFirstChar(&quot;C&quot;);
+    int acount = brandMapper.insert(brand);
+    System.out.println(acount);
+}</code></code></pre>
+<p>日志：</p>
+<p>当Brand的id、firstChar为空的时候，SQL语句仍然执行了插入操作。</p>
+<pre><code><code>==&gt;  Preparing: INSERT INTO tb_brand ( id,name,first_char ) VALUES( ?,?,? ) 
+==&gt; Parameters: null, 深圳黑马训练营(String), null</code></code></pre>
+<h6 id="忽略空值-insertselective">1.4.1.2. <strong>忽略空值-insertSelective</strong></h6>
+<pre class="java"><code>/***
+ * 增加数据
+ * 忽略空值
+ */
+@Test
+public void testInsertSelective(){
+    Brand brand = new Brand();
+    brand.setName(&quot;传智播客-黑马训练营&quot;);
+    //brand.setFirstChar(&quot;C&quot;);
+    int acount = brandMapper.insertSelective(brand);
+    System.out.println(acount);
+}</code></code></pre>
+<p>日志：</p>
+<p>当Brand的id、firstChar为空的时候，SQL语句没有执行了插入操作。</p>
+<pre><code><code>==&gt;  Preparing: INSERT INTO tb_brand ( name ) VALUES( ? ) 
+==&gt; Parameters: 传智播客-黑马训练营(String)</code></code></pre>
+<h5 id="修改操作">2.4.2<strong>修改操作</strong></h5>
+<h6 id="根据主键修改数据-不忽略空值">2.4.2.1 <strong>根据主键修改数据-不忽略空值</strong></h6>
+<pre class="java"><code>/**
+ * 需改操作
+ * 不忽略空值
+ */
+@Test
+public void testUpdateByPrimaryKey(){
+    Brand brand = new Brand();
+    brand.setId(25L);
+    //brand.setName(&quot;深圳黑马训练营&quot;);
+    brand.setFirstChar(&quot;S&quot;);
+    //根据主键修改数据
+    int mcount = brandMapper.updateByPrimaryKey(brand);
+    System.out.println(mcount);
+}</code></code></pre>
+<p>日志：</p>
+<p>当name为空的时候，SQL语句仍然执行修改。</p>
+<pre class="sql"><code>==&gt;  Preparing: UPDATE tb_brand SET name = ?,first_char = ? WHERE id = ? 
+==&gt; Parameters: null, S(String), 25(Long)</code></code></pre>
+<h6 id="根据主键修改数据-忽略空值">2.4.2.2. <strong>根据主键修改数据-忽略空值</strong></h6>
+<pre class="java"><code>/**
+ * 需改操作
+ * 忽略空值
+ */
+@Test
+public void testUpdateByPrimaryKeySelective(){
+    Brand brand = new Brand();
+    brand.setId(25L);
+    brand.setName(&quot;深圳黑马训练营&quot;);
+    //brand.setFirstChar(&quot;S&quot;);
+    //根据主键修改数据
+    int mcount = brandMapper.updateByPrimaryKeySelective(brand);
+    System.out.println(mcount);
+}</code></code></pre>
+<p>日志：</p>
+<p>当name为空的时候，SQL语句不执行修改。</p>
+<pre><code><code>1
+2
+3
+sql
+==&gt;  Preparing: UPDATE tb_brand SET name = ? WHERE id = ? 
+==&gt; Parameters: 深圳黑马训练营(String), 25(Long)</code></code></pre>
+<h6 id="构造条件修改数据-不忽略空值">2.4.2.3<strong>构造条件修改数据-不忽略空值</strong></h6>
+<pre class="java"><code>/**
+ * 构造条件执行修改
+ * 不忽略空值
+ */
+@Test
+public void testUpdateByExample(){
+    //firstChar=S
+    Brand brand = new Brand();
+    brand.setName(&quot;深圳市黑马训练营&quot;);
+
+    //创建Example对象
+    Example example = new Example(Brand.class);
+
+    //Criteria 用来构造约束条件
+    Example.Criteria criteria = example.createCriteria();
+
+    //第一个参数是Brand对应的属性，第二个参数是属性约束值   相当于 where firstChar=S
+    criteria.andEqualTo(&quot;firstChar&quot;,&quot;S&quot;);
+
+    //条件修改数据
+    int mcount = brandMapper.updateByExample(brand,example);
+    System.out.println(mcount);
+}</code></code></pre>
+<p>日志：</p>
+<p>criteria.andEqualTo(<strong>“firstChar”</strong>,<strong>“S”</strong>); 转换成了这里的SQL语句 where(first_char=?)，这里firstChart为空，但SQL语句仍然执行了修改。</p>
+<pre><code><code>1
+2
+==&gt;  Preparing: UPDATE tb_brand SET name = ?,first_char = ? WHERE ( first_char = ? ) 
+==&gt; Parameters: 深圳市黑马训练营(String), null, S(String)</code></code></pre>
+<h6 id="构造条件修改数据-忽略空值">2.4.2.4 <strong>构造条件修改数据-忽略空值</strong></h6>
+<pre class="java"><code>/**
+ * 构造条件执行修改
+ * 忽略空值
+ */
+@Test
+public void testUpdateByExampleSelective(){
+    //firstChar=S
+    Brand brand = new Brand();
+    brand.setFirstChar(&quot;S&quot;);
+    //创建Example对象
+    Example example = new Example(Brand.class);
+    //Criteria 用来构造约束条件
+    Example.Criteria criteria = example.createCriteria();
+
+    //第一个参数是Brand对应的属性，第二个参数是属性约束值   相当于 where name=&#39;深圳市黑马训练营&#39;
+    criteria.andEqualTo(&quot;name&quot;,&quot;深圳市黑马训练营&quot;);
+
+    //条件修改数据
+    int mcount = brandMapper.updateByExampleSelective(brand,example);
+    System.out.println(mcount);
+}</code></code></pre>
+<p>日志：</p>
+<p>这里name为空，SQL语句并没有做出修改操作。</p>
+<pre class="sql"><code>==&gt;  Preparing: UPDATE tb_brand SET first_char = ? WHERE ( name = ? ) 
+==&gt; Parameters: S(String), 深圳市黑马训练营(String)</code></code></pre>
+<h5 id="查询操作">2.4.3<strong>查询操作</strong></h5>
+<h6 id="根据主键查询">1.4.3.1. <strong>根据主键查询</strong></h6>
+<pre class="java"><code>/***
+ * 根据主键查询
+ */
+@Test
+public void testSelectByPrimaryKey(){
+    long id = 25L;
+    Brand brand = brandMapper.selectByPrimaryKey(id);
+    System.out.println(brand);
+}</code></code></pre>
+<p>日志：</p>
+<pre class="sql"><code>==&gt;  Preparing: SELECT id,name,first_char FROM tb_brand WHERE id = ? 
+==&gt; Parameters: 25(Long)
+Brand{id=25, name=&#39;深圳市黑马训练营&#39;, firstChar=&#39;S&#39;}</code></code></pre>
+<h6 id="查询单条记录">2.4.3.1<strong>查询单条记录</strong></h6>
+<pre class="java"><code>/***
+ * 查询单个记录
+ */
+@Test
+public void testSelectOne(){
+    Brand brand = new Brand();
+    brand.setId(25L);
+    brand.setName(&quot;深圳市黑马训练营&quot;);
+    Brand brand1 = brandMapper.selectOne(brand);
+    System.out.println(brand1);
+}</code></code></pre>
+<p>日志：</p>
+<pre class="sql"><code>==&gt;  Preparing: SELECT id,name,first_char FROM tb_brand WHERE id = ? AND name = ? 
+==&gt; Parameters: 25(Long), 深圳市黑马训练营(String)
+Brand{id=25, name=&#39;深圳市黑马训练营&#39;, firstChar=&#39;S&#39;}</code></code></pre>
+<p>注意：</p>
+<p>这里需要注意一下，复合该条件的数据，数据库里必须&lt;=1条，如果大于了1条数据，则会报错</p>
+<pre class="java"><code>TooManyResultsException: Expected one result (or null) to be returned by selectOne(), but found: 3</code></code></pre>
+<h6 id="根据条件查询-example">2.4.3.2 <strong>根据条件查询-Example</strong></h6>
+<pre class="java"><code>/***
+ * 根据条件执行查询
+ */
+@Test
+public void testExample(){
+    Example example = new Example(Brand.class);
+    Example.Criteria criteria = example.createCriteria();
+    //id IN(1,2,5,6)
+    List&lt;Long&gt; ids = new ArrayList&lt;Long&gt;();
+    ids.add(1L);
+    ids.add(2L);
+    ids.add(5L);
+    ids.add(6L);
+
+    //第二个参数是个集合对象即可，注意集合对象这里对应的类型虽然是Object，不过要和你数据库对应的类型保持一致
+    criteria.andIn(&quot;id&quot;,ids);
+
+    //执行查询
+    List&lt;Brand&gt; brands = brandMapper.selectByExample(example);
+
+    for (Brand brand : brands) {
+        System.out.println(brand);
+    }
+}</code></code></pre>
+<p>日志：</p>
+<pre class="sql"><code>==&gt;  Preparing: SELECT id,name,first_char FROM tb_brand WHERE ( id in ( ? , ? , ? , ? ) ) 
+==&gt; Parameters: 1(Long), 2(Long), 5(Long), 6(Long)
+Brand{id=1, name=&#39;联想&#39;, firstChar=&#39;L&#39;}
+Brand{id=2, name=&#39;华为&#39;, firstChar=&#39;H&#39;}
+Brand{id=5, name=&#39;OPPO&#39;, firstChar=&#39;O&#39;}
+Brand{id=6, name=&#39;深圳市黑马训练营&#39;, firstChar=&#39;S&#39;}</code></code></pre>
+<h6 id="根据条件查询-javabean">2.4.3.3 <strong>根据条件查询-JavaBean</strong></h6>
+<pre class="java"><code>/***
+ * 根据条件查询
+ * 入参：JavaBean
+ */
+@Test
+public void testSelect(){
+    Brand brand = new Brand();
+    brand.setId(25L);
+    brand.setName(&quot;深圳市黑马训练营&quot;);
+    //把brand作为查询条件，这里会忽略空值
+    List&lt;Brand&gt; brands = brandMapper.select(brand);
+    for (Brand bd : brands) {
+        System.out.println(bd);
+    }
+}</code></code></pre>
+<p>日志：</p>
+<pre class="sql"><code>==&gt;  Preparing: SELECT id,name,first_char FROM tb_brand WHERE id = ? AND name = ? 
+==&gt; Parameters: 25(Long), 深圳市黑马训练营(String)
+Brand{id=25, name=&#39;深圳市黑马训练营&#39;, firstChar=&#39;S&#39;}</code></code></pre>
+<h6 id="查询所有">2.4.3.4 <strong>查询所有</strong></h6>
+<pre class="java"><code>/***
+ * 查询所有
+ */
+@Test
+public void testSelectAll(){
+    //执行查询
+    List&lt;Brand&gt; brands = brandMapper.selectAll();
+
+    for (Brand brand : brands) {
+        System.out.println(brand);
+    }
+}</code></code></pre>
+<p>日志：</p>
+<pre class="sql"><code>==&gt;  Preparing: SELECT id,name,first_char FROM tb_brand 
+==&gt; Parameters: 
+Brand{id=1, name=&#39;联想&#39;, firstChar=&#39;L&#39;}
+Brand{id=2, name=&#39;华为&#39;, firstChar=&#39;H&#39;}
+Brand{id=3, name=&#39;深圳市黑马训练营&#39;, firstChar=&#39;S&#39;}
+...........................................</code></code></pre>
+<h6 id="统计查询">2.4.3.5 <strong>统计查询</strong></h6>
+<pre class="java"><code>/***
+ * 统计查询-总记录数
+ */
+@Test
+public void testSelectCount(){
+    //查询总记录数
+    int count = brandMapper.selectCount(null);
+    System.out.println(count);
+}</code></code></pre>
+<p>日志：</p>
+<pre class="sql"><code>==&gt;  Preparing: SELECT COUNT(id) FROM tb_brand 
+==&gt; Parameters: 
+25</code></code></pre>
+<h5 id="删除操作">2.4.4 <strong>删除操作</strong></h5>
+<h6 id="根据主键删除">2.4.4.1 <strong>根据主键删除</strong></h6>
+<pre class="java"><code>/***
+ * 根据ID删除
+ */
+@Test
+public void testDeleteByPrimaryKey(){
+    long id = 25;
+    int dcount = brandMapper.deleteByPrimaryKey(id);
+    System.out.println(dcount);
+}</code></code></pre>
+<p>日志：</p>
+<pre class="sql"><code>==&gt;  Preparing: DELETE FROM tb_brand WHERE id = ? 
+==&gt; Parameters: 25(Long)</code></code></pre>
+<h6 id="条件删除-example">2.4.4.2 <strong>条件删除-Example</strong></h6>
+<pre class="java"><code>/***
+ * 条件删除
+ */
+@Test
+public void testDeleteByExample(){
+    Example example = new Example(Brand.class);
+    Example.Criteria criteria = example.createCriteria();
+    //where id between 23 and 28
+    criteria.andBetween(&quot;id&quot;,23L,28L);
+    //根据条件删除
+    int dcount = brandMapper.deleteByExample(example);
+    System.out.println(dcount);
+}</code></code></pre>
+<p>日志：</p>
+<pre class="sql"><code>==&gt;  Preparing: DELETE FROM tb_brand WHERE ( id between ? and ? ) 
+==&gt; Parameters: 23(Long), 28(Long)</code></code></pre>
+<h6 id="条件删除-javabean">2.4.4.3 <strong>条件删除-JavaBean</strong></h6>
+<pre class="java"><code>/***
+ * 条件删除
+ * 入参：javaBean
+ */
+@Test
+public void testDelete(){
+    Brand brand = new Brand();
+    brand.setName(&quot;阿凡达&quot;);
+    //根据条件删除
+    int dcount = brandMapper.delete(brand);
+    System.out.println(dcount);
+}</code></code></pre>
+<p>日志：</p>
+<pre class="sql"><code>==&gt;  Preparing: DELETE FROM tb_brand WHERE name = ? 
+==&gt; Parameters: 阿凡达(String)</code></code></pre>
+<h3 id="第3章-分页工具">第3章 <strong>分页工具</strong></h3>
+<p>在做项目的时候，分页属于很常见的，但通常都有繁琐的封装。这里提供了一个通用分页插件pagehelper，能满足我们工作中的基本需求。</p>
+<h4 id="配置介绍-1">3.1 配置介绍</h4>
+<p>首先需要引入对应的依赖</p>
+<pre class="xml"><code>&lt;!--分页工具包--&gt;
+&lt;dependency&gt;
+    &lt;groupId&gt;com.github.pagehelper&lt;/groupId&gt;
+    &lt;artifactId&gt;pagehelper&lt;/artifactId&gt;
+&lt;/dependency&gt;</code></code></pre>
+<p>然后需要配置一个mybatis拦截器，在pinyougou-mapper项目的mybatis.xml中加入如下插件代码</p>
+<pre class="xml"><code>&lt;plugins&gt;
+    &lt;!-- com.github.pagehelper为PageInterceptor类所在包名 --&gt;
+    &lt;plugin interceptor=&quot;com.github.pagehelper.PageInterceptor&quot;&gt;
+        &lt;property name=&quot;reasonable&quot; value=&quot;true&quot;/&gt;
+    &lt;/plugin&gt;
+&lt;/plugins&gt;</code></code></pre>
+<p>上述配置也可以不配置在mybatis.xml中，也可以配置在spring-mybatis.xml的SqlSessionFactoryBean中，代码如下：</p>
+<pre class="xml"><code>&lt;!-- SqlSessionFactoryBean --&gt;
+&lt;bean id=&quot;sqlSessionFactoryBean&quot; class=&quot;org.mybatis.spring.SqlSessionFactoryBean&quot;&gt;
+    &lt;property name=&quot;configLocation&quot; value=&quot;classpath:mybatis/mybatis.xml&quot; /&gt;
+    &lt;property name=&quot;typeAliasesPackage&quot; value=&quot;com.pinyougou.model&quot; /&gt;
+    &lt;property name=&quot;mapperLocations&quot;&gt;
+        &lt;list&gt;
+            &lt;value&gt;classpath:com/pinyougou/mapper/*Mapper.xml&lt;/value&gt;
+        &lt;/list&gt;
+    &lt;/property&gt;
+    &lt;property name=&quot;dataSource&quot; ref=&quot;dataSource&quot; /&gt;
+
+    &lt;!--分页插件配置--&gt;
+    &lt;property name=&quot;plugins&quot;&gt;
+        &lt;array&gt;
+            &lt;bean class=&quot;com.github.pagehelper.PageInterceptor&quot;&gt;
+                &lt;!--配置分页属性--&gt;
+                &lt;property name=&quot;properties&quot;&gt;
+                    &lt;props&gt;
+                        &lt;!--指定数据库方言--&gt;
+                        &lt;prop key=&quot;helperDialect&quot;&gt;mysql&lt;/prop&gt;
+                        &lt;!--合理化分页操作--&gt;
+                        &lt;prop key=&quot;reasonable&quot;&gt;true&lt;/prop&gt;
+                    &lt;/props&gt;
+                &lt;/property&gt;
+            &lt;/bean&gt;
+        &lt;/array&gt;
+    &lt;/property&gt;
+&lt;/bean&gt;</code></code></pre>
+<h4 id="分页类介绍">3.2 分页类介绍</h4>
+<p>PageInfo类既包含我们工作中的分页信息，也包含分页查询的集合对象，所以很实用，如下代码：</p>
+<pre class="java"><code>public class PageInfo&lt;T&gt; implements Serializable {
+    private static final long serialVersionUID = 1L;
+    //当前页
+    private int pageNum;
+    //每页的数量
+    private int pageSize;
+    //当前页的数量
+    private int size;
+    //当前页面第一个元素在数据库中的行号
+    private int startRow;
+    //当前页面最后一个元素在数据库中的行号
+    private int endRow;
+    //总记录数
+    private long total;
+    //总页数
+    private int pages;
+    //结果集
+    private List&lt;T&gt; list;
+    //前一页
+    private int prePage;
+    //下一页
+    private int nextPage;
+    //是否为第一页
+    private boolean isFirstPage = false;
+    //是否为最后一页
+    private boolean isLastPage = false;
+    //是否有前一页
+    private boolean hasPreviousPage = false;
+    //是否有下一页
+    private boolean hasNextPage = false;
+    //导航页码数
+    private int navigatePages;
+    //所有导航页号
+    private int[] navigatepageNums;
+    //导航条上的第一页
+    private int navigateFirstPage;
+    //导航条上的最后一页
+    private int navigateLastPage;
+     //........略
+}</code></code></pre>
+<h4 id="分页插件的使用">3.3 分页插件的使用</h4>
+<p>分页插件的使用很简单，配置好了后，直接调用PageHelper的静态方法startPage即可实现分页，其他查询正常写就行了，注意一点，调用startPage的方法必须写在执行查询selectAll()前面，否则分页无效。</p>
+<pre class="java"><code>/**
+ * 分页测试
+ */
+@Test
+public void testPage(){
+    //page 当前页    size 每页显示多少条
+    int page = 1,size=10;
+    //分页处理,只需要调用PageHelper.startPage静态方法即可。S
+    PageHelper.startPage(page,size);
+
+    //查询
+    List&lt;Brand&gt; brands = brandMapper.selectAll();
+
+    //获取分页信息,注意这里传入了brands集合对象
+    PageInfo&lt;Brand&gt; pageInfo = new PageInfo&lt;Brand&gt;(brands);
+    System.out.println(pageInfo);
+}</code></code></pre>
+<p>日志:</p>
+<pre class="sql"><code>==&gt;  Preparing: SELECT count(0) FROM tb_brand 
+==&gt; Parameters: 
+------------------------------------------------------------------------------------------------------------------------------------------------
+==&gt;  Preparing: SELECT id,name,first_char FROM tb_brand LIMIT ? 
+==&gt; Parameters: 10(Integer)
+------------------------------------------------------------------------------------------------------------------------------------------------
+PageInfo{pageNum=1, pageSize=10, size=10, startRow=1, endRow=10, total=22, pages=3, list=Page{count=true, pageNum=1, pageSize=10, startRow=0, endRow=10, total=22, pages=3, reasonable=true, pageSizeZero=false}, prePage=0, nextPage=2, isFirstPage=true, isLastPage=false, hasPreviousPage=false, hasNextPage=true, navigatePages=8, navigateFirstPage=1, navigateLastPage=3, navigatepageNums=[1, 2, 3]}</code></code></pre>
+<h3 id="第4章-品牌列表的实现">第4章 <strong>品牌列表的实现</strong></h3>
+<p>品牌分页实现，记得再pinyougou-sellergoods-interface中引入分页包</p>
+<pre class="xml"><code>&lt;!--分页工具包--&gt;
+&lt;dependency&gt;
+    &lt;groupId&gt;com.github.pagehelper&lt;/groupId&gt;
+    &lt;artifactId&gt;pagehelper&lt;/artifactId&gt;
+&lt;/dependency&gt;</code></code></pre>
+<h4 id="需求分析">4.1 需求分析</h4>
+<p>实现品牌列表的查询（不用分页和条件查询）效果如下：</p>
+<p><img src="./images/品优购(IDEA版)-第二天8.png" alt="在这里插入图片描述" /></p>
+<h4 id="前端代码">4.2 前端代码</h4>
+<h5 id="拷贝资源">4.2.1 拷贝资源</h5>
+<p>将“资源/静态原型/运营商管理后台”下的页面资源拷贝到pinyougou-manager-web下</p>
+<p><img src="./images/品优购(IDEA版)-第二天9.png" alt="在这里插入图片描述" /></p>
+<p>其中plugins文件夹中包括了angularJS 、bootstrap、JQuery等常用前端库，我们将在项目中用到</p>
+<h5 id="引入js">4.2.2 引入JS</h5>
+<p>修改brand.html ，引入JS</p>
+<pre><code><code>&lt;script src=&quot;/plugins/angularjs/angular.min.js&quot;&gt;&lt;/script&gt;</code></code></pre>
+<p>指定模块和控制器</p>
+<pre><code><code>&lt;body ng-app=&quot;pinyougou&quot; ng-controller=&quot;brandController&quot; class=&quot;hold-transition skin-red sidebar-mini&quot;&gt;</code></code></pre>
+<p>ng-app 指令中定义的就是模块的名称</p>
+<p>ng-controller 指令用于为你的应用添加控制器。</p>
+<p>在控制器中，你可以编写代码，制作函数和变量，并使用 scope 对象来访问。</p>
+<h5 id="编写js代码">4.2.3 编写JS代码</h5>
+<pre><code><code>&lt;script&gt;
+   /******
+   * 1、引入angularjs
+   * 2、发送请求
+   * 3、显示数据
+   *****/
+
+   //定义一个模块
+   var app = angular.module(&quot;pinyougou&quot;,[]);
+
+   /*****
+    * 定义一个controller
+    * 发送HTTP请求从后台获取数据
+    ****/
+   app.controller(&quot;brandController&quot;,function($scope,$http){
+      //创建一个方法
+      //获取所有的品牌信息
+      $scope.getPage=function(page,size){
+         //发送请求获取数据
+         $http.post(&quot;/brand/list.shtml?page=&quot;+page+&quot;&amp;size=&quot;+size).success(function(response){
+            //集合数据
+            $scope.list = response.list;
+         });
+      }
+   });
+&lt;/script&gt;</code></code></pre>
+<h5 id="循环显示表格数据">4.3.4 循环显示表格数据</h5>
+<pre><code><code>&lt;tbody&gt;
+&lt;tr ng-repeat=&quot;entity in list&quot;&gt;
+   &lt;td&gt;&lt;input  type=&quot;checkbox&quot; ng-model=&quot;id&quot; &gt;&lt;/td&gt;
+   &lt;td&gt;{{entity.id}}&lt;/td&gt;
+   &lt;td&gt;{{entity.name}}&lt;/td&gt;
+   &lt;td&gt;{{entity.firstChar}}&lt;/td&gt;
+   &lt;td class=&quot;text-center&quot;&gt;
+      &lt;button type=&quot;button&quot; class=&quot;btn bg-olive btn-xs&quot; data-toggle=&quot;modal&quot; data-target=&quot;#editModal&quot;  &gt;修改&lt;/button&gt;
+   &lt;/td&gt;
+&lt;/tr&gt;
+&lt;/tbody&gt;</code></code></pre>
+<p>4.3.5 初始化调用</p>
+<pre><code><code>&lt;body ng-app=&quot;pinyougou&quot; ng-controller=&quot;brandController&quot; ng-init=&quot;getPage(1,10)&quot; class=&quot;hold-transition skin-red sidebar-mini&quot;&gt;</code></code></pre>
+<h3 id="第5章-品牌列表分页的实现"><a href="#第5章-品牌列表分页的实现">第5章 品牌列表分页的实现</a></h3>
+<h4 id="需求分析-1">5.1 需求分析</h4>
+<p>在品牌管理下方放置分页栏，实现分页功能</p>
+<p><img src="./images/品优购(IDEA版)-第二天10.png" alt="在这里插入图片描述" /></p>
+<h4 id="后端代码">5.2 后端代码</h4>
+<h5 id="服务接口层">5.2.1 服务接口层</h5>
+<p>在pinyougou-sellergoods-interface的BrandService.java 增加方法定义</p>
+<pre class="java"><code>/***
+ * 分页返回列表
+ * @param pageNum
+ * @param pageSize
+ * @return
+ */
+public PageInfo&lt;Brand&gt; getAll(int pageNum, int pageSize);</code></code></pre>
+<h5 id="服务实现层">5.2.2 服务实现层</h5>
+<p>在pinyougou-sellergoods-service的BrandServiceImpl.java中实现该方法y:</p>
+<pre class="java"><code>public PageInfo&lt;Brand&gt; getAll(int pageNum, int pageSize) {
+    //执行分页
+    PageHelper.startPage(pageNum,pageSize);
+    //List&lt;Brand&gt; all = brandMapper.getAllBrand();
+    List&lt;Brand&gt; all = brandMapper.selectAll();
+
+    PageInfo&lt;Brand&gt; pageInfo = new PageInfo&lt;Brand&gt;(all);
+    return pageInfo;
+}</code></code></pre>
+<p>PageHelper为MyBatis分页插件</p>
+<h5 id="控制层">5.2.3 控制层</h5>
+<p>在pinyougou-manager-web工程的BrandController.java新增方法</p>
+<pre class="java"><code>/***
+ * 分页查询数据
+ * 获取JSON数据
+ * @return
+ */
+@RequestMapping(value = &quot;/list&quot;)
+public PageInfo&lt;Brand&gt; list(@RequestParam(value = &quot;page&quot;, required = false, defaultValue = &quot;1&quot;) int page,
+                            @RequestParam(value = &quot;size&quot;, required = false, defaultValue = &quot;10&quot;) int size) {
+    return brandService.getAll(page, size);
+}</code></code></pre>
+<h4 id="前端代码控制层">5.3 前端代码控制层</h4>
+<h5 id="html">5.3.1 HTML</h5>
+<p>在brand.html引入分页组件</p>
+<pre><code><code>&lt;!--分页相关引入--&gt;
+&lt;link rel=&quot;stylesheet&quot; href=&quot;/plugins/angularjs/pagination.css&quot;&gt;
+&lt;script src=&quot;/plugins/angularjs/pagination.js&quot;&gt;&lt;/script&gt;</code></code></pre>
+<p>构建app模块时引入pagination模块</p>
+<pre class="js"><code>//定义一个模块
+var app = angular.module(&quot;pinyougou&quot;,[&quot;pagination&quot;]); //引入分页模块</code></code></pre>
+<p>页面的表格下放置分页组件</p>
+<pre class="js"><code>&lt;!--分页--&gt;
+&lt;tm-pagination conf=&quot;paginationConf&quot;&gt;&lt;/tm-pagination&gt;</code></code></pre>
+<h5 id="js代码">5.3.2 JS代码</h5>
+<p>在brandController中添加如下代码</p>
+<pre class="js"><code>/***
+ * 分页控件配置
+ * currentPage:当前页
+ * totalItems:共有多少条记录
+ * itemsPerPage:每页显示多少条
+ * perPageOptions:每页多少条选项条
+ * onChange:参数发生变化时执行
+ * */
+$scope.paginationConf = {
+   currentPage: 1,
+   totalItems: 10,
+   itemsPerPage: 10,
+   perPageOptions: [10, 20, 30, 40, 50],
+   onChange: function(){
+      $scope.reloadList();//重新加载
+   }
+};
+//重新加载
+$scope.reloadList=function(){
+   $scope.getPage($scope.paginationConf.currentPage,$scope.paginationConf.itemsPerPage);
+}</code></code></pre>
+<p>在页面的body元素上去掉ng-init指令的调用</p>
+<pre class="js"><code>&lt;body ng-app=&quot;pinyougou&quot; ng-controller=&quot;brandController&quot; class=&quot;hold-transition skin-red sidebar-mini&quot;&gt;</code></code></pre>
+<h5 id="完整代码">5.3.3 完整代码</h5>
+<pre class="js"><code>&lt;script&gt;
+   /******
+    * 步骤分析：
+    * 1、引入angularjs
+    * 2、发送请求
+    * 3、显示数据
+    *****/
+    //定义一个模块
+   var app = angular.module(&quot;pinyougou&quot;,[&quot;pagination&quot;]);
+
+   /*****
+    * 定义一个controller
+    * 发送HTTP请求从后台获取数据
+    ****/
+   app.controller(&quot;brandController&quot;,function($scope,$http){
+      /***
+       * 分页控件配置
+       * currentPage:当前页
+       * totalItems:共有多少条记录
+       * itemsPerPage:每页显示多少条
+       * perPageOptions:每页多少条选项条
+       * onChange:参数发生变化时执行
+       * */
+      $scope.paginationConf = {
+         currentPage: 1,
+         totalItems: 10,
+         itemsPerPage: 10,
+         perPageOptions: [10, 20, 30, 40, 50],
+         onChange: function(){
+            $scope.reloadList();//重新加载
+         }
+      };
+
+      //创建一个方法
+      //获取所有的品牌信息
+      $scope.getPage=function(page,size){
+         //发送请求获取数据
+         $http.post(&quot;/brand/list.shtml?page=&quot;+page+&quot;&amp;size=&quot;+size).success(function(response){
+            //集合数据
+            $scope.list = response.list;
+
+            //分页数据
+            $scope.paginationConf.totalItems=response.total;
+         });
+      }
+      
+      //重新加载
+      $scope.reloadList=function(){
+         $scope.getPage($scope.paginationConf.currentPage,$scope.paginationConf.itemsPerPage);
+      }
+   });
+&lt;/script&gt;</code></code></pre>
+<h5 id="效果">5.3.4 效果</h5>
+<p><img src="./images/品优购(IDEA版)-第二天11.png" alt="在这里插入图片描述" /></p>
+<h3 id="第6章-增加品牌"><a href="#第6章-增加品牌">第6章 增加品牌</a></h3>
+<h4 id="需求分析-2">6.1 需求分析</h4>
+<p>实现品牌增加功能</p>
+<p><img src="./images/品优购(IDEA版)-第二天12.png" alt="在这里插入图片描述" /></p>
+<h4 id="后端代码-1">6.2 后端代码</h4>
+<h5 id="控制层-1">6.2.1 控制层</h5>
+<p>在pinyougou-manager-web的BrandController中增加add方法，同时相应JSON数据。</p>
+<pre class="java"><code>/***
+ * 增加品牌数据
+ * @param brand
+ * 响应数据：success
+ *                  true:成功  false：失败
+ *           message
+ *                  响应的消息
+ *
+ */
+@RequestMapping(value = &quot;/add&quot;,method = RequestMethod.POST)
+public Map&lt;String,Object&gt; add(@RequestBody Brand brand){
+    //存放响应消息
+    Map&lt;String,Object&gt; dataMap = new HashMap&lt;String,Object&gt;();
+    
+    try {
+        //执行增加
+        int acount = brandService.add(brand);
+
+        if(acount&gt;0){
+            //增加成功
+            dataMap.put(&quot;success&quot;,true);
+            dataMap.put(&quot;message&quot;,&quot;增加品牌成功&quot;);
+        }
+    } catch (Exception e) {
+        e.printStackTrace();
+        dataMap.put(&quot;success&quot;,false);
+        dataMap.put(&quot;message&quot;,&quot;增加品牌失败&quot;);
+    }
+    return dataMap;
+}</code></code></pre>
+<h5 id="服务接口层-1">6.2.2 服务接口层</h5>
+<p>在pinyougou-sellergoods-interface的BrandService.java新增方法定义</p>
+<pre class="java"><code>/***
+ * 增加品牌信息
+ * @param brand
+ * @return
+ */
+int add(Brand brand);</code></code></pre>
+<h5 id="服务实现层-1">6.2.3 服务实现层</h5>
+<p>在com.pinyougou.sellergoods.service.impl的BrandServiceImpl.java实现该方法</p>
+<pre class="java"><code>@Override
+public int add(Brand brand) {
+    return brandMapper.insertSelective(brand);
+}</code></code></pre>
+<h4 id="前端代码-1">6.3 前端代码</h4>
+<h5 id="js代码-1">6.3.1 js代码</h5>
+<pre class="js"><code>//添加品牌方法
+$scope.save = function(){
+   //发送Http请求，执行增加
+   $http.post(&quot;/brand/add.shtml&quot;,$scope.entity).success(function(response){
+      //判断执行状态
+      if(response.success){
+         //重新加载新的数据
+         $scope.reloadList();
+      }else{
+         //打印错误消息
+         alert(response.message);
+      }
+   });
+}</code></code></pre>
+<h5 id="html代码">6.3.2 html代码</h5>
+<p>绑定表单元素，我们用ng-model指令，绑定按钮的单击事件我们用ng-click</p>
+<pre><code><code>&lt;!-- 编辑窗口 --&gt;
+&lt;div class=&quot;modal fade&quot; id=&quot;editModal&quot; tabindex=&quot;-1&quot; role=&quot;dialog&quot; aria-labelledby=&quot;myModalLabel&quot; aria-hidden=&quot;true&quot;&gt;
+   &lt;div class=&quot;modal-dialog&quot; &gt;
+      &lt;div class=&quot;modal-content&quot;&gt;
+         &lt;div class=&quot;modal-header&quot;&gt;
+            &lt;button type=&quot;button&quot; class=&quot;close&quot; data-dismiss=&quot;modal&quot; aria-hidden=&quot;true&quot;&gt;×&lt;/button&gt;
+            &lt;h3 id=&quot;myModalLabel&quot;&gt;品牌编辑&lt;/h3&gt;
+         &lt;/div&gt;
+         &lt;div class=&quot;modal-body&quot;&gt;
+            &lt;table class=&quot;table table-bordered table-striped&quot;  width=&quot;800px&quot;&gt;
+               &lt;tr&gt;
+                  &lt;td&gt;品牌名称&lt;/td&gt;
+                  &lt;td&gt;&lt;input ng-model=&quot;entity.name&quot; class=&quot;form-control&quot; placeholder=&quot;品牌名称&quot; &gt;  &lt;/td&gt;
+               &lt;/tr&gt;
+               &lt;tr&gt;
+                  &lt;td&gt;首字母&lt;/td&gt;
+                  &lt;td&gt;&lt;input ng-model=&quot;entity.firstChar&quot;  class=&quot;form-control&quot; placeholder=&quot;首字母&quot;&gt;  &lt;/td&gt;
+               &lt;/tr&gt;
+            &lt;/table&gt;
+         &lt;/div&gt;
+         &lt;div class=&quot;modal-footer&quot;&gt;
+            &lt;button ng-click=&quot;save()&quot; class=&quot;btn btn-success&quot; data-dismiss=&quot;modal&quot; aria-hidden=&quot;true&quot;&gt;保存&lt;/button&gt;
+            &lt;button class=&quot;btn btn-default&quot; data-dismiss=&quot;modal&quot; aria-hidden=&quot;true&quot;&gt;关闭&lt;/button&gt;
+         &lt;/div&gt;
+      &lt;/div&gt;
+   &lt;/div&gt;
+&lt;/div&gt;</code></code></pre>
+<h5 id="效果-1">6.3.3 <strong>效果</strong></h5>
+<p><img src="./images/品优购(IDEA版)-第二天13.png" alt="在这里插入图片描述" /></p>
+<h4 id="增加缓存解决">6.4 <strong>增加缓存解决</strong></h4>
+<p>为了每次打开窗口没有遗留上次的数据，我们可以修改新建按钮，对entity变量进行清空操作</p>
+<pre><code><code>&lt;button ng-click=&quot;entity={}&quot; type=&quot;button&quot; class=&quot;btn btn-default&quot; title=&quot;新建&quot; data-toggle=&quot;modal&quot; data-target=&quot;#editModal&quot; &gt;&lt;i class=&quot;fa fa-file-o&quot;&gt;&lt;/i&gt; 新建&lt;/button&gt;</code></code></pre>
+<p>效果</p>
+<p><img src="./images/品优购(IDEA版)-第二天14.png" alt="在这里插入图片描述" /></p>
+<h4 id="封装响应消息体">6.5 封装响应消息体</h4>
+<h5 id="封装介绍">6.5.1 封装介绍</h5>
+<p>响应消息体我们写的是一个Map，每次需要用到的时候，都要重复创建这个Map对象，并重复给指定的key赋值，存在大量重复代码，而且每次key容易书写错，所以我们可以考虑封装成一个实体Bean，名字叫Result，每次直接new Result()即可。</p>
+<h5 id="创建result">6.5.2 创建Result</h5>
+<p>由于Result可能会在很多项目中都会用到，所以我们可以考虑把它放到pinyougou-common项目中，在pinyougou-common中创建Result类</p>
+<pre class="java"><code>package com.pinyougou.http;
+import java.io.Serializable;
+public class Result implements Serializable {
+
+    private boolean success;
+
+    private String message;
+
+    public Result(boolean success, String message) {
+        this.success = success;
+        this.message = message;
+    }
+
+    public Result(boolean success) {
+        this.success = success;
+    }
+
+    public Result(String message) {
+        this.message = message;
+    }
+
+    public Result() {
+    }
+
+    //get.. set.. toString..
+}</code></code></pre>
+<h5 id="依赖关系分析">6.5.3 依赖关系分析</h5>
+<p>无论是哪个项目都直接或者间接依赖了pinyougou-pojo，所以可以让pojo依赖pinyougou-common，maven有依赖的传递性，则所有项目都会依赖pinyougou-common，而pinyougou-common主要用来写一些常用的工具包，所以任何项目依赖他都合情合理。</p>
+<p>在pinyougou-pojo的pom.xml中加入依赖</p>
+<pre class="xml"><code>&lt;!--依赖pinyougou-common--&gt;
+&lt;dependency&gt;
+    &lt;artifactId&gt;pinyougou-common&lt;/artifactId&gt;
+    &lt;groupId&gt;com.pinyougou&lt;/groupId&gt;
+    &lt;version&gt;1.0-SNAPSHOT&lt;/version&gt;
+&lt;/dependency&gt;</code></code></pre>
+<h5 id="修改controllerl">6.5.4 修改Controllerl</h5>
+<p>修改pinyougou-manager-web中的BrandController的add方法:</p>
+<pre class="java"><code>/***
+ * 增加品牌数据
+ * @param brand
+ * 响应数据：success
+ *                  true:成功  false：失败
+ *           message
+ *                  响应的消息
+ *
+ */
+@RequestMapping(value = &quot;/add&quot;,method = RequestMethod.POST)
+public Result add(@RequestBody Brand brand){
+    try {
+        //执行增加
+        int acount = brandService.add(brand);
+
+        if(acount&gt;0){
+            //增加成功
+           return new Result(true,&quot;增加品牌成功&quot;);
+        }
+    } catch (Exception e) {
+        e.printStackTrace();
+    }
+    return new Result(false,&quot;增加品牌失败&quot;);
+}</code></code></pre>
+<h3 id="第7章-修改品牌"><a href="#第7章-修改品牌">第7章 修改品牌</a></h3>
+<h4 id="需求分析-3">7.1 需求分析</h4>
+<p>点击列表的修改按钮，弹出窗口，修改数据后点“保存”执行保存操作,大概分为2个步骤。</p>
+<p>第一：根据ID查询出品牌数据，展示出来。</p>
+<p>第二：根据用户修改保存数据。</p>
+<p><img src="./images/品优购(IDEA版)-第二天15.png" alt="在这里插入图片描述" /></p>
+<h4 id="后端代码-2">7.2 后端代码</h4>
+<h5 id="控制层-2">7.2.1 控制层</h5>
+<p>在pinyougou-manager-web的BrandController中分别加入根据id查询和修改品牌的方法</p>
+<pre class="java"><code>/***
+ * 修改品牌信息
+ * @param brand
+ * @return
+ */
+@RequestMapping(value = &quot;/update&quot;,method = RequestMethod.POST)
+public Result modify(@RequestBody Brand brand){
+    try {
+        //根据ID修改品牌信息
+        int mcount = brandService.updateBrandById(brand);
+        if(mcount&gt;0){
+            return new Result(true,&quot;品牌修改成功&quot;);
+        }
+    } catch (Exception e) {
+        e.printStackTrace();
+    }
+    return new Result(false,&quot;品牌修改失败&quot;);
+}
+
+/***
+ * 根据ID查询品牌信息
+ * @param id
+ * @return
+ */
+@RequestMapping(value = &quot;/{id}&quot;,method = RequestMethod.GET)
+public Brand getById(@PathVariable(value = &quot;id&quot;)long id){
+    //根据ID查询品牌信息
+    Brand brand = brandService.getOneById(id);
+    return brand;
+}</code></code></pre>
+<h5 id="服务接口层-2">7.2.2 服务接口层</h5>
+<p>在pinyougou-sellergoods-interface的BrandService.java新增方法定义</p>
+<pre class="java"><code>/***
+ * 根据ID查询品牌信息
+ * @param id
+ * @return
+ */
+Brand getOneById(long id);
+
+/***
+ * 根据ID修改品牌信息
+ * @param brand
+ * @return
+ */
+int updateBrandById(Brand brand);</code></code></pre>
+<h5 id="服务实现层-2">7.2.3 服务实现层</h5>
+<p>在pinyougou-sellergoods-service的BrandServiceImpl.java新增方法实现</p>
+<pre class="java"><code>@Override
+public Brand getOneById(long id) {
+    return brandMapper.selectByPrimaryKey(id);
+}
+
+@Override
+public int updateBrandById(Brand brand) {
+    return brandMapper.updateByPrimaryKeySelective(brand);
+}</code></code></pre>
+<h4 id="前端代码-2">7.3 前端代码</h4>
+<h5 id="实现数据查询">7.3.1 实现数据查询</h5>
+<p>增加JS代码;</p>
+<pre class="js"><code>//根据ID查询品牌信息
+$scope.getById=function(id){
+   $http.get(&quot;/brand/&quot;+id+&quot;.shtml&quot;).success(function(response){
+      //将后台的数据绑定到前台
+      $scope.entity=response;
+   });
+}</code></code></pre>
+<p>修改列表中的“修改”按钮，调用此方法执行查询实体的操作</p>
+<pre><code><code>&lt;button ng-click=&quot;getById(entity.id)&quot; type=&quot;button&quot; class=&quot;btn bg-olive btn-xs&quot; data-toggle=&quot;modal&quot; data-target=&quot;#editModal&quot;&gt;修改&lt;/button&gt;</code></code></pre>
+<h5 id="保存数据">7.3.2 保存数据</h5>
+<p>修改JS的save方法</p>
+<pre class="js"><code>//添加或者修改品牌方法
+$scope.save = function(){
+   //发送Http请求，执行增加
+   var url=&quot;/brand/add.shtml&quot;;
+   if($scope.entity.id!=null){
+      //执行修改数据
+      url=&quot;/brand/update.shtml&quot;;
+   }
+   //执行操作
+   $http.post(url,$scope.entity).success(function(response){
+      //判断执行状态
+      if(response.success){
+         //重新加载新的数据
+         $scope.reloadList();
+      }else{
+         //打印错误消息
+         alert(response.message);
+      }
+   });
+}</code></code></pre>
+<h3 id="第8章-删除品牌"><a href="#第8章-删除品牌">第8章 删除品牌</a></h3>
+<h4 id="需求分析-4">8.1 需求分析</h4>
+<p>点击列表前的复选框，点击删除按钮，删除选中的品牌。</p>
+<p><img src="./images/品优购(IDEA版)-第二天16.png" alt="在这里插入图片描述" /></p>
+<h4 id="后端代码-3">8.2 后端代码</h4>
+<h5 id="控制层-3">8.2.1 控制层</h5>
+<p>在BrandController中加入删除方法</p>
+<pre class="java"><code>/***
+ * 根据ID批量删除
+ * @param ids
+ * @return
+ */
+@RequestMapping(value = &quot;/delete&quot;)
+public Result delete(@RequestBody List&lt;Long&gt; ids){
+    try {
+        //根据ID删除数据
+        int dcount = brandService.deleteByIds(ids);
+
+        if(dcount&gt;0){
+            return new Result(true,&quot;品牌删除成功&quot;);
+        }
+    } catch (Exception e) {
+        e.printStackTrace();
+    }
+    return new Result(false,&quot;品牌删除失败&quot;);
+}</code></code></pre>
+<h5 id="服务接口层-3">8.2.2 服务接口层</h5>
+<p>在pinyougou-sellergoods-interface的BrandService.java接口定义方法</p>
+<pre class="java"><code>/***
+ * 根据ID批量删除品牌信息
+ * @param ids
+ * @return
+ */
+int deleteByIds(List&lt;Long&gt; ids);</code></code></pre>
+<h5 id="服务实现层-3">8.2.3 服务实现层</h5>
+<p>在pinyougou-sellergoods-service的BrandServiceImpl.java实现该方法</p>
+<pre class="java"><code>@Override
+public int deleteByIds(List&lt;Long&gt; ids) {
+    //创建Example，来构建根据ID删除数据
+    Example example = new Example(Brand.class);
+    Example.Criteria criteria = example.createCriteria();
+
+    //所需的SQL语句类似 delete from tb_brand where id in(1,2,5,6)
+    criteria.andIn(&quot;id&quot;,ids);
+    return brandMapper.deleteByExample(example);
+}</code></code></pre>
+<h4 id="前端代码-3">8.3 前端代码</h4>
+<h5 id="js">8.3.1 js</h5>
+<p>主要思路：我们需要定义一个用于存储选中ID的数组，当我们点击复选框后判断是选择还是取消选择，如果是选择就加到数组中，如果是取消选择就从数组中移除。在点击删除按钮时需要用到这个存储了ID的数组。</p>
+<p>这里我们补充一下JS的关于数组操作的知识</p>
+<p>数组的push方法：向数组中添加元素</p>
+<p>数组的splice方法：从数组的指定位置移除指定个数的元素 ，参数1为位置 ，参数2位移除的个数</p>
+<p>复选框的checked属性：用于判断是否被选中:</p>
+<pre class="js"><code>//定义一个变量，用于存储要删除的品牌ID
+$scope.selectids=[];
+
+//判断当前点击是否要删除对应品牌
+$scope.updateSelection=function($event,id){
+   //判断当前操作是否是选中复选框
+   if($event.target.checked){
+      //如果选中复选框，则将该id增加到数组中去
+      $scope.selectids.push(id);
+   }else{
+      //取消删除，则从数组中移除该id
+      var idx = $scope.selectids.indexOf(id);   //获取id对应的下标
+      $scope.selectids.splice(idx, 1);//删除对应下标的数据，1表示删除的数量
+   }
+}
+
+
+//批量删除
+$scope.delete=function(){
+   $http.post(&quot;/brand/delete.shtml&quot;,$scope.selectids).success(function(response){
+      //判断删除状态
+      if(response.success){
+         $scope.reloadList();
+      }else{
+         alert(response.message);
+      }
+   });
+}</code></code></pre>
+<h5 id="html-1">8.3.2 HTML</h5>
+<p>修改列表的复选框</p>
+<pre><code><code>&lt;input  type=&quot;checkbox&quot; ng-click=&quot;updateSelection($event,entity.id)&quot; &gt;</code></code></pre>
+<p>修改删除按钮</p>
+<pre><code><code>&lt;button ng-click=&quot;delete()&quot; type=&quot;button&quot; class=&quot;btn btn-default&quot; title=&quot;删除&quot; &gt;&lt;i class=&quot;fa fa-trash-o&quot;&gt;&lt;/i&gt; 删除&lt;/button&gt;</code></code></pre>
+<h3 id="第9章-品牌条件查询"><a href="#第9章-品牌条件查询">第9章 品牌条件查询</a></h3>
+<h4 id="需求分析-5">9.1 需求分析</h4>
+<p>实现品牌条件查询功能，输入品牌名称、首字母后查询，并分页。</p>
+<h4 id="后端代码-4">9.2 后端代码</h4>
+<h5 id="控制层-4">9.2.1 控制层</h5>
+<p>修改BrandController里面的list方法</p>
+<pre class="java"><code>/***
+ * 分页查询数据
+ * 获取JSON数据
+ * @return
+ */
+@RequestMapping(value = &quot;/list&quot;)
+public PageInfo&lt;Brand&gt; list(@RequestBody Brand brand,@RequestParam(value = &quot;page&quot;, required = false, defaultValue = &quot;1&quot;) int page,
+                            @RequestParam(value = &quot;size&quot;, required = false, defaultValue = &quot;10&quot;) int size) {
+    return brandService.getAll(brand,page, size);
+}</code></code></pre>
+<h5 id="服务接口层-4">9.2.2 服务接口层</h5>
+<p>在pinyougou-sellergoods-interface工程的BrandService.java方法增加方法定义</p>
+<pre class="java"><code>/***
+ * 分页返回列表
+ * @param pageNum
+ * @param pageSize
+ * @return
+ */
+public PageInfo&lt;Brand&gt; getAll(Brand brand,int pageNum, int pageSize);</code></code></pre>
+<h5 id="服务实现层-4">9.2.3 服务实现层</h5>
+<p>在pinyougou-sellergoods-service工程BrandServiceImpl.java实现该方法</p>
+<pre class="java"><code>public PageInfo&lt;Brand&gt; getAll(Brand brand,int pageNum, int pageSize) {
+    //执行分页
+    PageHelper.startPage(pageNum,pageSize);
+
+    //条件查询
+    Example example = new Example(Brand.class);
+    Example.Criteria criteria = example.createCriteria();
+
+    if(brand!=null){
+        //名字模糊搜索
+        if(StringUtils.isNotBlank(brand.getName())){
+            criteria.andLike(&quot;name&quot;,&quot;%&quot;+brand.getName()+&quot;%&quot;);
+        }
+
+        //首字母搜索
+        if(StringUtils.isNotBlank(brand.getFirstChar())){
+            criteria.andEqualTo(&quot;firstChar&quot;,brand.getFirstChar());
+        }
+    }
+    //执行查询
+    List&lt;Brand&gt; all = brandMapper.selectByExample(example);
+    PageInfo&lt;Brand&gt; pageInfo = new PageInfo&lt;Brand&gt;(all);
+
+
+    //======================================================================
+    //List&lt;Brand&gt; all = brandMapper.getAllBrand();
+    /*List&lt;Brand&gt; all = brandMapper.selectAll();
+
+    PageInfo&lt;Brand&gt; pageInfo = new PageInfo&lt;Brand&gt;(all);*/
+    return pageInfo;
+}</code></code></pre>
+<h4 id="前端代码-4">9.3 前端代码</h4>
+<p>修改pinyougou-manager-web的brand.html</p>
+<h5 id="增加搜索块">9.3.1 增加搜索块</h5>
+<p>增加搜索代码块，并绑定一个搜索对象。同时增加点击事件，调用搜索方法。</p>
+<pre><code><code>&lt;div class=&quot;has-feedback&quot;&gt;
+   品牌名称：&lt;input ng-model=&quot;searchEntity.name&quot;&gt;
+   品牌首字母：&lt;input ng-model=&quot;searchEntity.firstChar&quot;&gt;
+   &lt;button ng-click=&quot;getPage(1,10)&quot; class=&quot;btn btn-default&quot;&gt;查询&lt;/button&gt;
+&lt;/div&gt;</code></code></pre>
+<h5 id="js-1">9.3.2 js</h5>
+<p>定义一个搜索对象，和搜索条件那里保持一致，并修改原来搜索方法。</p>
+<pre class="js"><code>//条件查询对象定义
+$scope.searchEntity={};
+
+//获取所有的品牌信息
+$scope.getPage=function(page,size){
+   //发送请求获取数据
+   $http.post(&quot;/brand/list.shtml?page=&quot;+page+&quot;&amp;size=&quot;+size,$scope.searchEntity).success(function(response){
+      //集合数据
+      $scope.list = response.list;
+
+      //分页数据
+      $scope.paginationConf.totalItems=response.total;
+   });
+}</code></code></pre>
+<h5 id="效果-2">9.3.3 效果</h5>
+<p><img src="./images/品优购(IDEA版)-第二天17.png" alt="在这里插入图片描述" /><br />
+第二天需要的<a href="https://tpedutw-my.sharepoint.com/:f:/g/personal/miion_tp_edu_tw/ElGPizIoHONMpsw3UrZolcIBH7_XZ-ih-uV3xWKT0I5qSQ?e=zkj41D">资料文件</a></p>
+
+
+</div><hr><script charset='utf-8' src='../../js/sming.js'></script></body></html>

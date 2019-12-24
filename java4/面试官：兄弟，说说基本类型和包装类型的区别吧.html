@@ -1,0 +1,85 @@
+<html><head><meta charset='utf-8'><meta name='viewport' content='width=device-width, initial-scale=1'>
+<meta name='applicable-device' content='pc'><meta name='keywords' content='电脑,电脑讲解,电脑技术,编程,电脑故障维修面试官：兄弟，说说基本类型和包装类型的区别吧' />
+<script src='../../highlight/highlight.pack.js'></script>
+<link rel='stylesheet' type='text/css' href='../../highlight/styles/monokai.css'/>
+
+<link rel='stylesheet' href='../../fenxiang/dist/css/share.min.css'>
+<script src='../../fenxiang/src/js/social-share.js'></script>
+<script src='../../fenxiang/src/js/qrcode.js'></script>
+
+</head><body><script>hljs.initHighlightingOnLoad();</script><script>
+var system ={};  
+var p = navigator.platform;       
+system.win = p.indexOf('Win') == 0;  
+system.mac = p.indexOf('Mac') == 0;  
+system.x11 = (p == 'X11') || (p.indexOf('Linux') == 0);     
+if(system.win||system.mac||system.xll){
+document.write("<link href='../css/3.css' rel='stylesheet' type='text/css'>");}else{ document.write("<link href='../css/3wap.css' rel='stylesheet' type='text/css'>");}</script><script src='../../js/3.js'></script><div class='div2'><div class='heading_nav'><ul><div><li><a href='../../index.html'>首页</a></li>
+</div><div onclick='hidden1()' >分享</div>
+</ul></div></div>
+<div id='heading_nav2'> 
+<li class='row' >
+<div class='social-share' data-mode='prepend'><a href='javascript:' class='social-share-icon icon-heart'></a></div></li></div><script charset='utf-8' src='../../3/js/hengfu.js'></script><script charset='utf-8' src='../../3/js/hengfu2.js'></script><hr><div class='div1'><div class='biaoti'><center>面试官：兄弟，说说基本类型和包装类型的区别吧</center></div><div class='banquan'>原文出处:本文由博客园博主沉默王二提供。<br/>
+原文连接:https://www.cnblogs.com/qing-gee/p/11605791.html</div><br>
+    <p>六年前，我从苏州回到洛阳，抱着一幅&ldquo;海归&rdquo;的心态，投了不少简历，也&ldquo;约谈&rdquo;了不少面试官，但仅有两三个令我感到满意。其中有一位叫老马，至今还活在我的手机通讯录里。他当时扔了一个面试题把我砸懵了：说说基本类型和包装类型的区别吧。</p>
+<p>我当时二十三岁，正值青春年华，从事 Java 编程已有 N 年经验（N &lt; 4），自认为所有的面试题都能对答如流，结果没想到啊，被&ldquo;刁难&rdquo;了&mdash;&mdash;原来洛阳这块互联网的荒漠也有技术专家啊。现在回想起来，脸上不自觉地泛起了羞愧的红晕：主要是自己当时太菜了。不管怎么说，是时候写篇文章剖析一下基本类型和包装类型的区别了。</p>
+<p>Java 的每个基本类型都对应了一个包装类型，比如说 int 的包装类型为 Integer，double 的包装类型为 Double。基本类型和包装类型的区别主要有以下 4 点。</p>
+<h3 id="h01null">01、包装类型可以为 null，而基本类型不可以</h3>
+<p>别小看这一点区别，它使得包装类型可以应用于 POJO 中，而基本类型则不行。</p>
+<p>POJO 是什么呢？这里稍微说明一下。</p>
+<p>POJO 的英文全称是 <code>Plain Ordinary Java Object</code>，翻译一下就是，简单无规则的 Java 对象，只有属性字段以及 setter 和 getter 方法，示例如下。</p>
+<pre><code><code class="java language-java hljs"><span class="hljs-class"><span class="hljs-keyword">class&nbsp;<span class="hljs-title">Writer&nbsp;{<br />&nbsp;&nbsp;&nbsp;&nbsp;<span class="hljs-keyword">private&nbsp;Integer&nbsp;age;<br />&nbsp;&nbsp;&nbsp;&nbsp;<span class="hljs-keyword">private&nbsp;String&nbsp;name;<br /><br />&nbsp;&nbsp;&nbsp;&nbsp;<span class="hljs-function"><span class="hljs-keyword">public&nbsp;Integer&nbsp;<span class="hljs-title">getAge<span class="hljs-params">()&nbsp;{<br />&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="hljs-keyword">return&nbsp;age;<br />&nbsp;&nbsp;&nbsp;&nbsp;}<br /><br />&nbsp;&nbsp;&nbsp;&nbsp;<span class="hljs-function"><span class="hljs-keyword">public&nbsp;<span class="hljs-keyword">void&nbsp;<span class="hljs-title">setAge<span class="hljs-params">(Integer&nbsp;age)&nbsp;{<br />&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="hljs-keyword">this.age&nbsp;=&nbsp;age;<br />&nbsp;&nbsp;&nbsp;&nbsp;}<br /><br />&nbsp;&nbsp;&nbsp;&nbsp;<span class="hljs-function"><span class="hljs-keyword">public&nbsp;String&nbsp;<span class="hljs-title">getName<span class="hljs-params">()&nbsp;{<br />&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="hljs-keyword">return&nbsp;name;<br />&nbsp;&nbsp;&nbsp;&nbsp;}<br /><br />&nbsp;&nbsp;&nbsp;&nbsp;<span class="hljs-function"><span class="hljs-keyword">public&nbsp;<span class="hljs-keyword">void&nbsp;<span class="hljs-title">setName<span class="hljs-params">(String&nbsp;name)&nbsp;{<br />&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="hljs-keyword">this.name&nbsp;=&nbsp;name;<br />&nbsp;&nbsp;&nbsp;&nbsp;}<br />}<br /></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></code></code></pre>
+<p>和 POJO 类似的，还有数据传输对象 DTO（Data Transfer Object，泛指用于展示层与服务层之间的数据传输对象）、视图对象 VO（View Object，把某个页面的数据封装起来）、持久化对象 PO（Persistant Object，可以看成是与数据库中的表映射的 Java 对象）。</p>
+<p>那为什么 POJO 的属性必须要用包装类型呢？</p>
+<p>《阿里巴巴 Java 开发手册》上有详细的说明，我们来大声朗读一下（预备，起）。</p>
+<blockquote>
+<p>数据库的查询结果可能是 null，如果使用基本类型的话，因为要自动拆箱（将包装类型转为基本类型，比如说把 Integer 对象转换成 int 值），就会抛出 <code>NullPointerException</code> 的异常。</p>
+</blockquote>
+<h3 id="h02">02、包装类型可用于泛型，而基本类型不可以</h3>
+<p>泛型不能使用基本类型，因为使用基本类型时会编译出错。</p>
+<pre><code><code class="java language-java hljs">List&lt;<span class="hljs-keyword">int&gt;&nbsp;list&nbsp;=&nbsp;<span class="hljs-keyword">new&nbsp;ArrayList&lt;&gt;();&nbsp;<span class="hljs-comment">//&nbsp;提示&nbsp;Syntax&nbsp;error,&nbsp;insert&nbsp;"Dimensions"&nbsp;to&nbsp;complete&nbsp;ReferenceType<br />List&lt;Integer&gt;&nbsp;list&nbsp;=&nbsp;<span class="hljs-keyword">new&nbsp;ArrayList&lt;&gt;();<br /></span></span></span></span></code></code></pre>
+<p>为什么呢？因为泛型在编译时会进行类型擦除，最后只保留原始类型，而原始类型只能是 Object 类及其子类&mdash;&mdash;基本类型是个特例。</p>
+<h3 id="h03">03、基本类型比包装类型更高效</h3>
+<p>基本类型在栈中直接存储的具体数值，而包装类型则存储的是堆中的引用。</p>
+<p><img src="./images/面试官：兄弟，说说基本类型和包装类型的区别吧0.png" alt="" /></p>
+<p>&nbsp;</p>
+<p>&nbsp;</p>
+<p>很显然，相比较于基本类型而言，包装类型需要占用更多的内存空间。假如没有基本类型的话，对于数值这类经常使用到的数据来说，每次都要通过 new 一个包装类型就显得非常笨重。</p>
+<h3 id="h03-1">03、两个包装类型的值可以相同，但却不相等</h3>
+<p>两个包装类型的值可以相同，但却不相等&mdash;&mdash;这句话怎么理解呢？来看一段代码就明明白白了。</p>
+<pre><code><code class="java language-java hljs">Integer&nbsp;chenmo&nbsp;=&nbsp;<span class="hljs-keyword">new&nbsp;Integer(<span class="hljs-number">10);<br />Integer&nbsp;wanger&nbsp;=&nbsp;<span class="hljs-keyword">new&nbsp;Integer(<span class="hljs-number">10);<br /><br />System.out.println(chenmo&nbsp;==&nbsp;wanger);&nbsp;<span class="hljs-comment">//&nbsp;false<br />System.out.println(chenmo.equals(wanger&nbsp;));&nbsp;<span class="hljs-comment">//&nbsp;true<br /></span></span></span></span></span></span></code></code></pre>
+<p>两个包装类型在使用&ldquo;==&rdquo;进行判断的时候，判断的是其指向的地址是否相等。chenmo 和 wanger 两个变量使用了 new 关键字，导致它们在&ldquo;==&rdquo;的时候输出了 false。</p>
+<p>而 <code>chenmo.equals(wanger)</code> 的输出结果为 true，是因为 equals 方法内部比较的是两个 int 值是否相等。源码如下。</p>
+<pre><code><code class="java language-java hljs"><span class="hljs-keyword">private&nbsp;<span class="hljs-keyword">final&nbsp;<span class="hljs-keyword">int&nbsp;value;<br /><br /><span class="hljs-function"><span class="hljs-keyword">public&nbsp;<span class="hljs-keyword">int&nbsp;<span class="hljs-title">intValue<span class="hljs-params">()&nbsp;{<br />&nbsp;&nbsp;&nbsp;&nbsp;<span class="hljs-keyword">return&nbsp;value;<br />}<br /><span class="hljs-function"><span class="hljs-keyword">public&nbsp;<span class="hljs-keyword">boolean&nbsp;<span class="hljs-title">equals<span class="hljs-params">(Object&nbsp;obj)&nbsp;{<br />&nbsp;&nbsp;&nbsp;&nbsp;<span class="hljs-keyword">if&nbsp;(obj&nbsp;<span class="hljs-keyword">instanceof&nbsp;Integer)&nbsp;{<br />&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="hljs-keyword">return&nbsp;value&nbsp;==&nbsp;((Integer)obj).intValue();<br />&nbsp;&nbsp;&nbsp;&nbsp;}<br />&nbsp;&nbsp;&nbsp;&nbsp;<span class="hljs-keyword">return&nbsp;<span class="hljs-keyword">false;<br />}<br /></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></code></code></pre>
+<p>瞧，虽然 chenmo 和 wanger 的值都是 10，但他们并不相等。换句话说就是：<strong>将&ldquo;==&rdquo;操作符应用于包装类型比较的时候，其结果很可能会和预期的不符</strong>。</p>
+<h3 id="h04">04、自动装箱和自动拆箱</h3>
+<p>既然有了基本类型和包装类型，肯定有些时候要在它们之间进行转换。把基本类型转换成包装类型的过程叫做装箱（boxing）。反之，把包装类型转换成基本类型的过程叫做拆箱（unboxing）。</p>
+<p>在 Java SE5 之前，开发人员要手动进行装拆箱，比如说：</p>
+<pre><code><code class="java language-java hljs">Integer&nbsp;chenmo&nbsp;=&nbsp;<span class="hljs-keyword">new&nbsp;Integer(<span class="hljs-number">10);&nbsp;&nbsp;<span class="hljs-comment">//&nbsp;手动装箱<br /><span class="hljs-keyword">int&nbsp;wanger&nbsp;=&nbsp;chenmo.intValue();&nbsp;&nbsp;<span class="hljs-comment">//&nbsp;手动拆箱<br /></span></span></span></span></span></code></code></pre>
+<p>Java SE5 为了减少开发人员的工作，提供了自动装箱与自动拆箱的功能。</p>
+<pre><code><code class="java language-java hljs">Integer&nbsp;chenmo&nbsp;&nbsp;=&nbsp;<span class="hljs-number">10;&nbsp;&nbsp;<span class="hljs-comment">//&nbsp;自动装箱<br /><span class="hljs-keyword">int&nbsp;wanger&nbsp;=&nbsp;chenmo;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="hljs-comment">//&nbsp;自动拆箱<br /></span></span></span></span></code></code></pre>
+<p>上面这段代码使用 JAD 反编译后的结果如下所示：</p>
+<pre><code><code class="java language-java hljs">Integer&nbsp;chenmo&nbsp;=&nbsp;Integer.valueOf(<span class="hljs-number">10);<br /><span class="hljs-keyword">int&nbsp;wanger&nbsp;=&nbsp;chenmo.intValue();<br /></span></span></code></code></pre>
+<p>也就是说，自动装箱是通过 <code>Integer.valueOf()</code> 完成的；自动拆箱是通过 <code>Integer.intValue()</code> 完成的。理解了原理之后，我们再来看一道老马当年给我出的面试题。</p>
+<pre><code><code class="java language-java hljs"><span class="hljs-comment">//&nbsp;1）基本类型和包装类型<br /><span class="hljs-keyword">int&nbsp;a&nbsp;=&nbsp;<span class="hljs-number">100;<br />Integer&nbsp;b&nbsp;=&nbsp;<span class="hljs-number">100;<br />System.out.println(a&nbsp;==&nbsp;b);<br /><br /><span class="hljs-comment">//&nbsp;2）两个包装类型<br />Integer&nbsp;c&nbsp;=&nbsp;<span class="hljs-number">100;<br />Integer&nbsp;d&nbsp;=&nbsp;<span class="hljs-number">100;<br />System.out.println(c&nbsp;==&nbsp;d);<br /><br /><span class="hljs-comment">//&nbsp;3）<br />c&nbsp;=&nbsp;<span class="hljs-number">200;<br />d&nbsp;=&nbsp;<span class="hljs-number">200;<br />System.out.println(c&nbsp;==&nbsp;d);<br /></span></span></span></span></span></span></span></span></span></span></code></code></pre>
+<p>答案是什么呢？有举手要回答的吗？答对的奖励一朵小红花哦。</p>
+<p>第一段代码，基本类型和包装类型进行 == 比较，这时候 b 会自动拆箱，直接和 a 比较值，所以结果为 true。</p>
+<p>第二段代码，两个包装类型都被赋值为了 100，这时候会进行自动装箱，那 == 的结果会是什么呢？</p>
+<p>我们之前的结论是：将&ldquo;==&rdquo;操作符应用于包装类型比较的时候，其结果很可能会和预期的不符。那结果是 false？但这次的结果却是 true，是不是感觉很意外？</p>
+<p>第三段代码，两个包装类型重新被赋值为了 200，这时候仍然会进行自动装箱，那 == 的结果会是什么呢？</p>
+<p>吃了第二段代码的亏后，是不是有点怀疑人生了，这次结果是 true 还是 false 呢？扔个硬币吧，哈哈。我先告诉你结果吧，false。</p>
+<p>为什么？为什么？为什么呢？</p>
+<p>事情到了这一步，必须使出杀手锏了&mdash;&mdash;分析源码吧。</p>
+<p>之前我们已经知道了，自动装箱是通过 <code>Integer.valueOf()</code> 完成的，那我们就来看看这个方法的源码吧。</p>
+<pre><code><code class="java language-java hljs"><span class="hljs-function"><span class="hljs-keyword">public&nbsp;<span class="hljs-keyword">static&nbsp;Integer&nbsp;<span class="hljs-title">valueOf<span class="hljs-params">(<span class="hljs-keyword">int&nbsp;i)&nbsp;{<br />&nbsp;&nbsp;&nbsp;&nbsp;<span class="hljs-keyword">if&nbsp;(i&nbsp;&gt;=&nbsp;IntegerCache.low&nbsp;&amp;&amp;&nbsp;i&nbsp;&lt;=&nbsp;IntegerCache.high)<br />&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="hljs-keyword">return&nbsp;IntegerCache.cache[i&nbsp;+&nbsp;(-IntegerCache.low)];<br />&nbsp;&nbsp;&nbsp;&nbsp;<span class="hljs-keyword">return&nbsp;<span class="hljs-keyword">new&nbsp;Integer(i);<br />}<br /></span></span></span></span></span></span></span></span></span></span></code></code></pre>
+<p>难不成是 IntegerCache 在作怪？你猜对了！</p>
+<pre><code><code class="java language-java hljs"><span class="hljs-keyword">private&nbsp;<span class="hljs-keyword">static&nbsp;<span class="hljs-class"><span class="hljs-keyword">class&nbsp;<span class="hljs-title">IntegerCache&nbsp;{<br />&nbsp;&nbsp;&nbsp;&nbsp;<span class="hljs-keyword">static&nbsp;<span class="hljs-keyword">final&nbsp;<span class="hljs-keyword">int&nbsp;low&nbsp;=&nbsp;-<span class="hljs-number">128;<br />&nbsp;&nbsp;&nbsp;&nbsp;<span class="hljs-keyword">static&nbsp;<span class="hljs-keyword">final&nbsp;<span class="hljs-keyword">int&nbsp;high;<br />&nbsp;&nbsp;&nbsp;&nbsp;<span class="hljs-keyword">static&nbsp;<span class="hljs-keyword">final&nbsp;Integer&nbsp;cache[];<br /><br />&nbsp;&nbsp;&nbsp;&nbsp;<span class="hljs-keyword">static&nbsp;{<br />&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="hljs-comment">//&nbsp;high&nbsp;value&nbsp;may&nbsp;be&nbsp;configured&nbsp;by&nbsp;property<br />&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="hljs-keyword">int&nbsp;h&nbsp;=&nbsp;<span class="hljs-number">127;<br />&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="hljs-keyword">int&nbsp;i&nbsp;=&nbsp;parseInt(integerCacheHighPropValue);<br />&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;i&nbsp;=&nbsp;Math.max(i,&nbsp;<span class="hljs-number">127);<br />&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;h&nbsp;=&nbsp;Math.min(i,&nbsp;Integer.MAX_VALUE&nbsp;-&nbsp;(-low)&nbsp;-<span class="hljs-number">1);<br />&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;high&nbsp;=&nbsp;h;<br /><br />&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;cache&nbsp;=&nbsp;<span class="hljs-keyword">new&nbsp;Integer[(high&nbsp;-&nbsp;low)&nbsp;+&nbsp;<span class="hljs-number">1];<br />&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="hljs-keyword">int&nbsp;j&nbsp;=&nbsp;low;<br />&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="hljs-keyword">for(<span class="hljs-keyword">int&nbsp;k&nbsp;=&nbsp;<span class="hljs-number">0;&nbsp;k&nbsp;&lt;&nbsp;cache.length;&nbsp;k++)<br />&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;cache[k]&nbsp;=&nbsp;<span class="hljs-keyword">new&nbsp;Integer(j++);<br /><br />&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="hljs-comment">//&nbsp;range&nbsp;[-128,&nbsp;127]&nbsp;must&nbsp;be&nbsp;interned&nbsp;(JLS7&nbsp;5.1.7)<br />&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="hljs-keyword">assert&nbsp;IntegerCache.high&nbsp;&gt;=&nbsp;<span class="hljs-number">127;<br />&nbsp;&nbsp;&nbsp;&nbsp;}<br />}<br /></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></code></code></pre>
+<p>大致瞟一下这段代码你就全明白了。-128 到 127 之间的数会从 IntegerCache 中取，然后比较，所以第二段代码（100 在这个范围之内）的结果是 true，而第三段代码（200 不在这个范围之内，所以 new 出来了两个 Integer 对象）的结果是 false。</p>
+<p>看完上面的分析之后，我希望大家记住一点：<strong>当需要进行自动装箱时，如果数字在 -128 至 127 之间时，会直接使用缓存中的对象，而不是重新创建一个对象</strong>。</p>
+<p>自动装拆箱是一个很好的功能，大大节省了我们开发人员的精力，但也会引发一些麻烦，比如下面这段代码，性能就很差。</p>
+<pre><code><code class="java language-java hljs"><span class="hljs-keyword">long&nbsp;t1&nbsp;=&nbsp;System.currentTimeMillis();<br />Long&nbsp;sum&nbsp;=&nbsp;<span class="hljs-number">0L;<br /><span class="hljs-keyword">for&nbsp;(<span class="hljs-keyword">int&nbsp;i&nbsp;=&nbsp;<span class="hljs-number">0;&nbsp;i&nbsp;&lt;&nbsp;Integer.MAX_VALUE;i++)&nbsp;{<br />&nbsp;&nbsp;&nbsp;&nbsp;sum&nbsp;+=&nbsp;i;<br />}<br /><span class="hljs-keyword">long&nbsp;t2&nbsp;=&nbsp;System.currentTimeMillis();&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<br />System.out.println(t2-t1);<br /></span></span></span></span></span></span></code></code></pre>
+<p>sum 由于被声明成了包装类型 Long 而不是基本类型 long，所以 <code>sum += i</code> 进行了大量的拆装箱操作（sum 先拆箱和 i 相加，然后再装箱赋值给 sum），导致这段代码运行完花费的时间足足有 2986 毫秒；如果把 sum 换成基本类型 long，时间就仅有 554 毫秒，完全不一个等量级啊。</p>
+<h3 id="h05">&nbsp;</h3>
+<p>&nbsp;</p>
+
+</div><hr><script charset='utf-8' src='../../js/sming.js'></script></body></html>

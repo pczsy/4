@@ -1,0 +1,326 @@
+<html><head><meta charset='utf-8'><meta name='viewport' content='width=device-width, initial-scale=1'>
+<meta name='applicable-device' content='pc'><meta name='keywords' content='电脑,电脑讲解,电脑技术,编程,电脑故障维修从三层架构到Spring框架' />
+<script src='../../highlight/highlight.pack.js'></script>
+<link rel='stylesheet' type='text/css' href='../../highlight/styles/monokai.css'/>
+
+<link rel='stylesheet' href='../../fenxiang/dist/css/share.min.css'>
+<script src='../../fenxiang/src/js/social-share.js'></script>
+<script src='../../fenxiang/src/js/qrcode.js'></script>
+
+</head><body><script>hljs.initHighlightingOnLoad();</script><script>
+var system ={};  
+var p = navigator.platform;       
+system.win = p.indexOf('Win') == 0;  
+system.mac = p.indexOf('Mac') == 0;  
+system.x11 = (p == 'X11') || (p.indexOf('Linux') == 0);     
+if(system.win||system.mac||system.xll){
+document.write("<link href='../css/3.css' rel='stylesheet' type='text/css'>");}else{ document.write("<link href='../css/3wap.css' rel='stylesheet' type='text/css'>");}</script><script src='../../js/3.js'></script><div class='div2'><div class='heading_nav'><ul><div><li><a href='../../index.html'>首页</a></li>
+</div><div onclick='hidden1()' >分享</div>
+</ul></div></div>
+<div id='heading_nav2'> 
+<li class='row' >
+<div class='social-share' data-mode='prepend'><a href='javascript:' class='social-share-icon icon-heart'></a></div></li></div><script charset='utf-8' src='../../3/js/hengfu.js'></script><script charset='utf-8' src='../../3/js/hengfu2.js'></script><hr><div class='div1'><div class='biaoti'><center>从三层架构到Spring框架</center></div><div class='banquan'>原文出处:本文由博客园博主Magic_Li提供。<br/>
+原文连接:https://www.cnblogs.com/Magic-Li/p/11722976.html</div><br>
+    <p><strong><span style="color: #ff6600; font-size: 18pt;">首先是软件的应用分层架构</span></strong><br />	　　标准三层架构:<br />	　　　　1:数据访问层:实现了数据的持久化<br />	　　　　2:业务逻辑层:对逻辑的实现及处理，实际上不可能在表示层对数据不做任何处理，但是尽可能的将逻辑分为一层<br />	　　　　3:表示层:数据的展示</p>
+<p>　　优点:<br />		　　　　降低了一个程序的耦合度，一个类中有一千行代码可以转化为三个类中各写300多行代码，每个类实现自己的功能<br />	　　慢慢的就形成了一种标准化趋势，更加的适应于面向接口编程，注重《开闭原则》的实现，对修改关闭，而对扩展开放，<br />	　　扩展的功能定义为接口，程序员进行实现，在现有的代码中组合进新功能的实现类对象，从而实现新功能的添加。</p>
+<p>　　缺点:<br />		　　　　然而这种三层体系架构依旧存在一些问题<br />		　　　　1.有些时候将简单的问题复杂化，假如：<br />			　　　　　　一个类300代码可以完成的工作，分为三层架构后每个类需要120行代码进行完成，反而得不偿失了<br />		　　　　2.组合的代码不一定有效，例如：<br />			　　　　　　有这样一个类：</p>
+<src class="cnblogs_code">
+<pre><code>　　　　　<span style="color: #0000ff;">public</span> <span style="color: #0000ff;">class</span><span style="color: #000000;"> A{
+　　　　　　　　</span><span style="color: #0000ff;">private</span> IB b=<span style="color: #0000ff;">new</span><span style="color: #000000;"> BImpl();
+　　　　　　　　</span><span style="color: #0000ff;">public</span> <span style="color: #0000ff;">void</span><span style="color: #000000;"> go(){
+　　　　　　　　b.go();
+　　　　　　　　}    
+　　　　　　　　</span><span style="color: #0000ff;">public</span> <span style="color: #0000ff;">static</span> <span style="color: #0000ff;">void</span><span style="color: #000000;"> main(String agrs[]){
+　　　　　　　　　　</span><span style="color: #0000ff;">new</span><span style="color: #000000;"> A().go();
+　　　　　　　　}
+　　　　　　}</span></code></pre>
+
+<p>这个例子可以看出，一旦IB接口的实现类BImpl出现了问题，那么b.go()可能空指针异常，A类中的方法就无法正常运行</p>
+<p>那么：有没有一种方法可以不使用组合的方式来获得对象？<br />				　　Java中创建对象对象除了new关键字之外，有的就是反射机制了。有效的破坏莫不失为一种好想法，有了反射我们就可以直接通过权限定名来创建对象。</p>
+<p><strong><span style="color: #ff6600; font-size: 18pt;">Spring框架的相关概念</span></strong><br />	轻量级:spring是一种轻量级框架,用户可以自定义自己需要的内容，选择自己需要的功能模块<br />	<br />	容器的概念:<br />		Java开发中常见的容器有：GUI，Tomcat都是一些容器，比如jsp动态页面的展示，就是需要Tomcat容器的支持才可以运行。spring框架中的容器可以管理项目中各种对象的生命周期(对象的创建、初始化、使用、销毁)<br />		前提是项目中要使用spring框架,并且把这些需要管理的对象配置给spring的容器，常见的IOC容器可以控制bean对象的<br />		</p>
+<p>但是这个bean对象一般都是单例的。<br />	生成生命周期，当然前提是对象不可以脱离容器控制范围（单例对象和多例对象）</p>
+<p>	spring框架给项目带来的好处:<br />	1）动态解藕,方便开发,面向接口设计<br />		我们可以将对象之间的依赖关系交由Spring进行控制<br />	2）方便程序的测试<br />		spring框架也提供了测试模块,可以和很多主流的测试框架相结合<br />	3）降低Java EE API的使用难度<br />		Spring封装了如jdbc等许多有难度的操作，使得代码&ldquo;相对&rdquo;精简。<br />		这里的相对是说，使用了框架相当于在项目中已经引入了代码，所以说Java之所以有许多人用，那是因为Java的类库太丰富了<br />		Spring功能足够强大，但是又可以自己选择模块，这就十分人性化了。<br />		但是Java在程序的效率方面来说是比不上C和C++了。<br />	4）方便集成各种优秀框架<br />		Spring不排斥各种优秀的开源框架,相反,Spring可以降低各种框架的使用难度<br />		Spring提供了对各种优秀框架（如Struts,Hibernate,MyBatis）等的直接支持<br />	5）AOP编程的支持<br />		通过Spring提供的AOP功能,方便进行面向切面的编程<br />	6）声明式事务的支持<br />		在Spring中,我们可以从单调烦闷的事务管理代码中解脱出来,通过声明式方式灵活地进行事务的管理,提高开发效率和质量<br />	7）spring是一个模块化的项目,可以根据自己的需要定制功能模块</p>
+<p>	spring的核心宗旨:简化企业级应用开发,同时给复杂问题提供强大的、非侵入性解决方案</p>
+<p><strong><span style="color: #ff6600; font-size: 18pt;">Spring核心功能模块 Spring Framework</span></strong><br />	在Spring Framework中又分为许多的模块<br />	Spring Context(spring的上下文)<br />	Spring Web<br />	Spring DAO<br />	Spring ORM<br />	Spring AOP(面向切面编程)<br />	Spring MVC(Spring WebMVC)</p>
+<p>	Spring Core(spring的核心容器)<br />		这个容器是Spring的一个核心容器</p>
+<p>	我当前主要学习了的是spring Core和spring AOP,也就是spring框架所提供的ioc和aop功能<br />	Spring MVC是一个集成化的web开发框架，不恰当的说它的地位甚至可以将其从Spring中分离出来，作为一个单独的框架</p>
+<p><strong><span style="color: #ff6600; font-size: 18pt;">spring中的IOC</span></strong><br />	IOC:Inversion of Control 控制反转<br />		spring核心容器也可以称为IOC容器,该容器主要负责管理各种对象的生命周期(对象的创建、初始化、销毁等)<br />		IOC容器并没有实现更多的功能,但它的存在使我们不需要很多代码、不需要考虑对象间复杂的耦合关系就能从IOC容器中获取合适的对象<br />		而且提供了各种对象的可靠的管理,极大地降低了开发的复杂性。</p>
+<p>		思考1:是什么东西的"控制"被"反转"了?<br />			简单的说：是对象被控制了起来，创建对象的操作反转给了框架<br />		思考2:自己组装电脑和直接购买整机的区别</p>
+<p>    DI:Dependency Injection 依赖注入<br />		DI的概念的提出是用来代替IOC的,表示让调用类对某一接口实现类的依赖关系由容器注入,以移除调用类对某一接口实现类的依赖。(思考servlet和service层接口以及service层接口实现类这三者的关系)<br />		依赖注入 这个名词显然比 控制反转 更直接明了,并且易于理解。</p>
+<p>    DL:Dependency Loopup 依赖查找<br />		容器创建对象并提供 回调接口和上下文环境 给这个对象,需要时通过接口从容器中查找其他对象<br />		(之后会见到很多XxxxAware的接口,先简单理解即可)<br />	</p>
+<p><strong><span style="color: #ff6600; font-size: 18pt;">Spring IOC容器核心api(容器将来会是一个对象)</span></strong><br />	BeanFactory接口<br />		BeanFactory是Spring中IOC容器的核心接口,主要用于处理Bean的初始化和配置,建立对象间的依赖关系</p>
+<p>		接口中主要方法如下:<br />		//根据指定名称返回一个Bean实例<br />		Object getBean(String name)</p>
+<p>		//判断名称为name的Bean是否是原型,即是否总是返回一个新实例(非单例)<br />		boolean isPrototype(String name)   </p>
+<p>		//判断名称为name的Bean是否是单例<br />		boolean isSingleton(String name)   </p>
+<p>		//判断容器中是否包含给定名称的Bean实例<br />		boolean containsBean(String name)  </p>
+<p>		//如果名称为name的Bean有别名则返回所有别名<br />	    String[] getAliases(String name)  <br />	   </p>
+<p>	ApplicationContext接口<br />		该接口继承于BeanFactory,增强了BeanFactory,增加了事务处理AOP,国际化,事件传递等功能</p>
+<p>		所以在代码中我们一般会使用ApplicationContext接口,以及这个接口相应的实现类来创建spring的容器对象<br />		例如:<br />		String path = "com/briup/ioc/set/set.xml";<br />		ApplicationContext container = <br />				new ClassPathXmlApplicationContext(path);<br />		<br />		Student s = (Student)container.getBean("student");<br />		//使用s即可<br />	<br />	三层关系如下：</p>
+<p>	BeanFactory<br />		&uarr;<br />	ApplicationContext<br />		&uarr;<br />	ClassPathXmlApplicationContext</p>
+<p><strong><span style="color: #ff6600; font-size: 18pt;">配置文件</span></strong><br />	这是一个框架中必不可少的部分，会写Spring的XML文件一定会用Spring框架，但是会用不一定明白为什么这么用......<br />	Spring通过读取配置文件中的数据来对项目各个对象进行实例化,配置以及组装,通常使用XML文件来作为配置文件<br />	<br />	XML基本结构如下:</p>
+<src class="cnblogs_code">
+<pre><code><span style="color: #0000ff;">&lt;?</span><span style="color: #ff00ff;">xml version="1.0" encoding="UTF-8"</span><span style="color: #0000ff;">?&gt;</span>
+<span style="color: #0000ff;">&lt;</span><span style="color: #800000;">beans </span><span style="color: #ff0000;">xmlns</span><span style="color: #0000ff;">="http://www.springframework.org/schema/beans"</span><span style="color: #ff0000;">
+xmlns:xsi</span><span style="color: #0000ff;">="http://www.w3.org/2001/XMLSchema-instance"</span><span style="color: #ff0000;">
+xmlns:context</span><span style="color: #0000ff;">="http://www.springframework.org/schema/context"</span><span style="color: #ff0000;">
+xsi:schemaLocation</span><span style="color: #0000ff;">="http://www.springframework.org/schema/beans
+http://www.springframework.org/schema/beans/spring-beans-3.2.xsd
+http://www.springframework.org/schema/context
+http://www.springframework.org/schema/context/spring-context-3.2.xsd"</span><span style="color: #0000ff;">&gt;</span><span style="color: #000000;">
+......
+</span><span style="color: #0000ff;">&lt;/</span><span style="color: #800000;">beans</span><span style="color: #0000ff;">&gt;</span></code></pre>
+
+<p>&nbsp;</p>
+<p><span style="font-size: 18pt;"><strong><span style="color: #ff6600;">IOC的相关功能</span></strong></span></p>
+<p> IOC实际上就是实现的Spring容器帮助我们管理对象的功能，所以要先从如何将对象注入到容器中来学习<br />	</p>
+<p>注入有两种方式：set注入和构造器注入，自动注入和继承也属于这个知识点内</p>
+<p><span style="font-size: 18px;"><strong><span style="color: #993366;">set方式注入（必须依靠set方法）</span></strong></span><br />	<br />	顾名思义，实现set方式的注入就必须存在set方法<br />	这种动态代理的方式创建对象是反射机制，如果是set注入就必须要无参构造器的支持</p>
+<p>	可以注入的内容有:<br />		<span style="color: #ff0000;">　　1<strong>基本类型（8中基本类型+字符串）的装配</strong></span><br /><strong><span style="color: #ff0000;">		　　2对象类型的装配</span></strong><br /><strong><span style="color: #ff0000;">		　　3集合的装配</span></strong></p>
+<p><span style="color: #ff0000;">1.基本类型的装配</span><br />		方式: 配置元素&lt;value/&gt;<br />		例子:</p>
+<src class="cnblogs_code">
+<pre><code><span style="color: #0000ff;">public</span> <span style="color: #0000ff;">class</span><span style="color: #000000;"> HelloBean {
+</span><span style="color: #0000ff;">private</span><span style="color: #000000;"> String name;
+</span><span style="color: #0000ff;">private</span> <span style="color: #0000ff;">int</span><span style="color: #000000;"> age;
+</span><span style="color: #0000ff;">public</span><span style="color: #000000;"> String sayHello(){
+</span><span style="color: #0000ff;">return</span> "hello "+name +",your age is" +<span style="color: #000000;"> age;
+}
+.............
+}</span></code></pre>
+
+<p>&nbsp;</p>
+<p><br />	配置文件set.xml</p>
+<src class="cnblogs_code">
+<pre><code><span style="color: #0000ff;">&lt;?</span><span style="color: #ff00ff;">xml version="1.0" encoding="UTF-8"</span><span style="color: #0000ff;">?&gt;</span>
+<span style="color: #0000ff;">&lt;</span><span style="color: #800000;">beans </span><span style="color: #ff0000;">xmlns</span><span style="color: #0000ff;">="http://www.springframework.org/schema/beans"</span><span style="color: #ff0000;">
+xmlns:xsi</span><span style="color: #0000ff;">="http://www.w3.org/2001/XMLSchema-instance"</span><span style="color: #ff0000;">
+xmlns:context</span><span style="color: #0000ff;">="http://www.springframework.org/schema/context"</span><span style="color: #ff0000;">
+xsi:schemaLocation</span><span style="color: #0000ff;">="http://www.springframework.org/schema/beans
+http://www.springframework.org/schema/beans/spring-beans-3.2.xsd
+http://www.springframework.org/schema/context
+http://www.springframework.org/schema/context/spring-context-3.2.xsd"</span><span style="color: #0000ff;">&gt;</span>
+<span style="color: #0000ff;">&lt;</span><span style="color: #800000;">bean </span><span style="color: #ff0000;">id</span><span style="color: #0000ff;">="helloBean"</span><span style="color: #ff0000;"> class</span><span style="color: #0000ff;">="ioc.HelloBean"</span><span style="color: #0000ff;">&gt;</span>
+<span style="color: #0000ff;">&lt;</span><span style="color: #800000;">property </span><span style="color: #ff0000;">name</span><span style="color: #0000ff;">="name"</span><span style="color: #0000ff;">&gt;</span>
+<span style="color: #0000ff;">&lt;</span><span style="color: #800000;">value</span><span style="color: #0000ff;">&gt;</span>tom<span style="color: #0000ff;">&lt;/</span><span style="color: #800000;">value</span><span style="color: #0000ff;">&gt;</span>
+<span style="color: #0000ff;">&lt;/</span><span style="color: #800000;">property</span><span style="color: #0000ff;">&gt;</span>
+<span style="color: #0000ff;">&lt;</span><span style="color: #800000;">property </span><span style="color: #ff0000;">name</span><span style="color: #0000ff;">="age"</span><span style="color: #ff0000;"> value</span><span style="color: #0000ff;">="20"</span><span style="color: #0000ff;">&gt;</span>
+<span style="color: #0000ff;">&lt;/</span><span style="color: #800000;">property</span><span style="color: #0000ff;">&gt;</span>
+<span style="color: #0000ff;">&lt;/</span><span style="color: #800000;">bean</span><span style="color: #0000ff;">&gt;</span>
+<span style="color: #0000ff;">&lt;/</span><span style="color: #800000;">beans</span><span style="color: #0000ff;">&gt;</span></code></pre>
+
+<p> id是Bean的唯一标识,要求在整个配置文件中要唯一<br />	也可使用name属性,bean标签里面的id和name属性都可以用来标识这个配置的对象<br />	但是id会帮我们检查给对象起的名字是否规范(名字不能重复、不能用数字开头、不能有空格等等)<br />	如果检查出来了那么就会报错name属性不会帮检查这些东西<br /><br />property 对于所有用set方式来注入的必须使用该标签<br />value 是对于基本类型,都用value(标签/属性)来注入,可以实现自动的数据类型转换<br />		这里的自动数据类型不是绝对的，自定义的类型不可以自动的数据类型转换<br />		如果有这方面的要求，就需要实现一个类型处理器。</p>
+<p> 测试类:</p>
+<src class="cnblogs_code">
+<pre><code><span style="color: #000000;">main:
+ApplicationContext ac </span>= 
+<span style="color: #0000ff;">new</span> ClassPathXmlApplicationContext("set.xml"<span style="color: #000000;">);
+</span><span style="color: #008000;">//</span><span style="color: #008000;">获取容器的一个实例</span>
+HelloBean hb = (HelloBean) ac.getBean("helloBean"<span style="color: #000000;">);
+System.out.println(hb.sayHello());</span></code></pre>
+
+<p>&nbsp;</p>
+<p> <br />    <span style="color: #ff0000;">2.对象类型的装配</span><br />	    1.&lt;ref local=" "/&gt; 用于涉及的对象的id在本配置文件中<br />	    2.&lt;ref bean=" "/&gt;  用于涉及的对象的id不在本配置文件中<br />	    3.使用property的ref属性引用,这样就不需要处理涉及到的对象在不在同一个xml配置文件中<br />	<br />	例如:</p>
+<src class="cnblogs_code">
+<pre><code><span style="color: #0000ff;">public</span> <span style="color: #0000ff;">class</span><span style="color: #000000;"> OtherBean {
+</span><span style="color: #0000ff;">private</span><span style="color: #000000;"> String str1;
+</span><span style="color: #0000ff;">public</span><span style="color: #000000;"> String getStr1() {
+</span><span style="color: #0000ff;">return</span><span style="color: #000000;"> str1;
+}
+</span><span style="color: #0000ff;">public</span> <span style="color: #0000ff;">void</span><span style="color: #000000;"> setStr1(String str1) {
+</span><span style="color: #0000ff;">this</span>.str1 =<span style="color: #000000;"> str1;
+}
+</span><span style="color: #0000ff;">public</span><span style="color: #000000;"> String toString(){
+</span><span style="color: #0000ff;">return</span> "OtherBean "+<span style="color: #000000;">str1;
+}
+}</span></code></pre>
+
+<p>&nbsp;</p>
+<src class="cnblogs_code">
+<pre><code><span style="color: #0000ff;">public</span> <span style="color: #0000ff;">class</span><span style="color: #000000;"> SomeBean {
+</span><span style="color: #0000ff;">private</span><span style="color: #000000;"> OtherBean ob;
+</span><span style="color: #0000ff;">public</span> <span style="color: #0000ff;">void</span><span style="color: #000000;"> printInfo(){
+System.out.println(</span>"someBean "+<span style="color: #000000;">ob);
+}
+</span><span style="color: #0000ff;">public</span><span style="color: #000000;"> OtherBean getOb() {
+</span><span style="color: #0000ff;">return</span><span style="color: #000000;"> ob;
+}
+</span><span style="color: #0000ff;">public</span> <span style="color: #0000ff;">void</span><span style="color: #000000;"> setOb(OtherBean ob) {
+</span><span style="color: #0000ff;">this</span>.ob =<span style="color: #000000;"> ob;
+}
+}</span></code></pre>
+
+<p>&nbsp;</p>
+<p>配置applicationContext.xml</p>
+<src class="cnblogs_code">
+<pre><code><span style="color: #0000ff;">&lt;</span><span style="color: #800000;">bean </span><span style="color: #ff0000;">id</span><span style="color: #0000ff;">="someBean"</span><span style="color: #ff0000;"> class</span><span style="color: #0000ff;">="ioc.SomeBean"</span><span style="color: #0000ff;">&gt;</span>
+<span style="color: #0000ff;">&lt;</span><span style="color: #800000;">property </span><span style="color: #ff0000;">name</span><span style="color: #0000ff;">="ob"</span><span style="color: #0000ff;">&gt;</span>
+<span style="color: #008000;">&lt;!--</span><span style="color: #008000;"> &lt;ref bean=" "/&gt; 用于涉及的对象的id不在本配置文件中 </span><span style="color: #008000;">--&gt;</span>
+<span style="color: #0000ff;">&lt;</span><span style="color: #800000;">ref </span><span style="color: #ff0000;">bean</span><span style="color: #0000ff;">="otherBean"</span> <span style="color: #0000ff;">/&gt;</span>
+<span style="color: #0000ff;">&lt;/</span><span style="color: #800000;">property</span><span style="color: #0000ff;">&gt;</span>
+<span style="color: #0000ff;">&lt;/</span><span style="color: #800000;">bean</span><span style="color: #0000ff;">&gt;</span></code></pre>
+
+<p>&nbsp;</p>
+<p>配置other.xml文件</p>
+<src class="cnblogs_code">
+<pre><code><span style="color: #0000ff;">&lt;</span><span style="color: #800000;">bean </span><span style="color: #ff0000;">id</span><span style="color: #0000ff;">="otherBean"</span><span style="color: #ff0000;"> class</span><span style="color: #0000ff;">="ioc.OtherBean"</span><span style="color: #0000ff;">&gt;</span>
+<span style="color: #0000ff;">&lt;</span><span style="color: #800000;">property </span><span style="color: #ff0000;">name</span><span style="color: #0000ff;">="str1"</span><span style="color: #0000ff;">&gt;</span>
+<span style="color: #0000ff;">&lt;</span><span style="color: #800000;">value</span><span style="color: #0000ff;">&gt;</span>hello<span style="color: #0000ff;">&lt;/</span><span style="color: #800000;">value</span><span style="color: #0000ff;">&gt;</span>
+<span style="color: #0000ff;">&lt;/</span><span style="color: #800000;">property</span><span style="color: #0000ff;">&gt;</span>
+<span style="color: #0000ff;">&lt;/</span><span style="color: #800000;">bean</span><span style="color: #0000ff;">&gt;</span></code></pre>
+
+<p>&nbsp;</p>
+<p>测试类:</p>
+<src class="cnblogs_code">
+<pre><code><span style="color: #000000;">main:
+String[] path </span>= {"ioc/applicationContext.xml","ioc/other.xml"<span style="color: #000000;">};
+ApplicationContext ac </span>= <span style="color: #0000ff;">new</span><span style="color: #000000;"> ClassPathXmlApplicationContext(path);
+SomeBean sb </span>= (SomeBean) ac.getBean("someBean"<span style="color: #000000;">);
+sb.printInfo();</span>&nbsp;</code></pre>
+
+<p><span style="color: #ff0000;">3.集合的装配</span><br />		方式:配置元素&lt;list&gt; &lt;set&gt; &lt;map&gt; &lt;props&gt;<br />	例如:</p>
+<src class="cnblogs_code">
+<pre><code><span style="color: #0000ff;">public</span> <span style="color: #0000ff;">class</span><span style="color: #000000;"> SomeBean {
+
+</span><span style="color: #0000ff;">private</span><span style="color: #000000;"> List listProperty;
+</span><span style="color: #0000ff;">private</span><span style="color: #000000;"> Set setProperty;
+</span><span style="color: #0000ff;">private</span><span style="color: #000000;"> Map mapProperty;
+</span><span style="color: #0000ff;">private</span> Properties&lt;String,String&gt;<span style="color: #000000;"> property;
+
+get</span>/<span style="color: #000000;">set......
+
+toString();
+}</span></code></pre>
+
+<p>&nbsp;</p>
+<p>applicationContext.xml的写法:</p>
+<src class="cnblogs_code">
+<pre><code><span style="color: #0000ff;">&lt;</span><span style="color: #800000;">bean </span><span style="color: #ff0000;">id</span><span style="color: #0000ff;">="someBean"</span><span style="color: #ff0000;"> class</span><span style="color: #0000ff;">="ioc.SomeBean"</span><span style="color: #0000ff;">&gt;</span>
+<span style="color: #0000ff;">&lt;</span><span style="color: #800000;">property </span><span style="color: #ff0000;">name</span><span style="color: #0000ff;">="listProperty"</span><span style="color: #0000ff;">&gt;</span>
+<span style="color: #0000ff;">&lt;</span><span style="color: #800000;">list</span><span style="color: #0000ff;">&gt;</span>
+<span style="color: #0000ff;">&lt;</span><span style="color: #800000;">value</span><span style="color: #0000ff;">&gt;</span>list1<span style="color: #0000ff;">&lt;/</span><span style="color: #800000;">value</span><span style="color: #0000ff;">&gt;</span>
+<span style="color: #0000ff;">&lt;</span><span style="color: #800000;">value</span><span style="color: #0000ff;">&gt;</span>list2<span style="color: #0000ff;">&lt;/</span><span style="color: #800000;">value</span><span style="color: #0000ff;">&gt;</span>
+<span style="color: #0000ff;">&lt;</span><span style="color: #800000;">value</span><span style="color: #0000ff;">&gt;</span>list3<span style="color: #0000ff;">&lt;/</span><span style="color: #800000;">value</span><span style="color: #0000ff;">&gt;</span>
+<span style="color: #0000ff;">&lt;/</span><span style="color: #800000;">list</span><span style="color: #0000ff;">&gt;</span>
+<span style="color: #0000ff;">&lt;/</span><span style="color: #800000;">property</span><span style="color: #0000ff;">&gt;</span>
+<span style="color: #0000ff;">&lt;</span><span style="color: #800000;">property </span><span style="color: #ff0000;">name</span><span style="color: #0000ff;">="setProperty"</span><span style="color: #0000ff;">&gt;</span>
+<span style="color: #0000ff;">&lt;</span><span style="color: #800000;">set</span><span style="color: #0000ff;">&gt;</span>
+<span style="color: #0000ff;">&lt;</span><span style="color: #800000;">value</span><span style="color: #0000ff;">&gt;</span>set1<span style="color: #0000ff;">&lt;/</span><span style="color: #800000;">value</span><span style="color: #0000ff;">&gt;</span>
+<span style="color: #0000ff;">&lt;</span><span style="color: #800000;">value</span><span style="color: #0000ff;">&gt;</span>set2<span style="color: #0000ff;">&lt;/</span><span style="color: #800000;">value</span><span style="color: #0000ff;">&gt;</span>
+<span style="color: #0000ff;">&lt;</span><span style="color: #800000;">value</span><span style="color: #0000ff;">&gt;</span>set3<span style="color: #0000ff;">&lt;/</span><span style="color: #800000;">value</span><span style="color: #0000ff;">&gt;</span>
+<span style="color: #0000ff;">&lt;/</span><span style="color: #800000;">set</span><span style="color: #0000ff;">&gt;</span>
+<span style="color: #0000ff;">&lt;/</span><span style="color: #800000;">property</span><span style="color: #0000ff;">&gt;</span>
+<span style="color: #0000ff;">&lt;</span><span style="color: #800000;">property </span><span style="color: #ff0000;">name</span><span style="color: #0000ff;">="mapProperty"</span><span style="color: #0000ff;">&gt;</span>
+<span style="color: #0000ff;">&lt;</span><span style="color: #800000;">map</span><span style="color: #0000ff;">&gt;</span>
+<span style="color: #0000ff;">&lt;</span><span style="color: #800000;">entry </span><span style="color: #ff0000;">key</span><span style="color: #0000ff;">="key1"</span><span style="color: #0000ff;">&gt;</span>
+<span style="color: #0000ff;">&lt;</span><span style="color: #800000;">value</span><span style="color: #0000ff;">&gt;</span>value1<span style="color: #0000ff;">&lt;/</span><span style="color: #800000;">value</span><span style="color: #0000ff;">&gt;</span>
+<span style="color: #0000ff;">&lt;/</span><span style="color: #800000;">entry</span><span style="color: #0000ff;">&gt;</span>
+<span style="color: #0000ff;">&lt;</span><span style="color: #800000;">entry </span><span style="color: #ff0000;">key</span><span style="color: #0000ff;">="key2"</span><span style="color: #0000ff;">&gt;</span>
+<span style="color: #0000ff;">&lt;</span><span style="color: #800000;">value</span><span style="color: #0000ff;">&gt;</span>value2<span style="color: #0000ff;">&lt;/</span><span style="color: #800000;">value</span><span style="color: #0000ff;">&gt;</span>
+<span style="color: #0000ff;">&lt;/</span><span style="color: #800000;">entry</span><span style="color: #0000ff;">&gt;</span>
+<span style="color: #0000ff;">&lt;/</span><span style="color: #800000;">map</span><span style="color: #0000ff;">&gt;</span>
+<span style="color: #0000ff;">&lt;/</span><span style="color: #800000;">property</span><span style="color: #0000ff;">&gt;</span>
+
+<span style="color: #0000ff;">&lt;</span><span style="color: #800000;">property </span><span style="color: #ff0000;">name</span><span style="color: #0000ff;">="property"</span><span style="color: #0000ff;">&gt;</span>
+<span style="color: #0000ff;">&lt;</span><span style="color: #800000;">props</span><span style="color: #0000ff;">&gt;</span>
+<span style="color: #0000ff;">&lt;</span><span style="color: #800000;">prop </span><span style="color: #ff0000;">key</span><span style="color: #0000ff;">="key1"</span><span style="color: #0000ff;">&gt;</span>prop1<span style="color: #0000ff;">&lt;/</span><span style="color: #800000;">prop</span><span style="color: #0000ff;">&gt;</span>
+<span style="color: #0000ff;">&lt;</span><span style="color: #800000;">prop </span><span style="color: #ff0000;">key</span><span style="color: #0000ff;">="key2"</span><span style="color: #0000ff;">&gt;</span>prop2<span style="color: #0000ff;">&lt;/</span><span style="color: #800000;">prop</span><span style="color: #0000ff;">&gt;</span>
+<span style="color: #0000ff;">&lt;</span><span style="color: #800000;">prop </span><span style="color: #ff0000;">key</span><span style="color: #0000ff;">="key3"</span><span style="color: #0000ff;">&gt;</span>prop3<span style="color: #0000ff;">&lt;/</span><span style="color: #800000;">prop</span><span style="color: #0000ff;">&gt;</span>
+<span style="color: #0000ff;">&lt;/</span><span style="color: #800000;">props</span><span style="color: #0000ff;">&gt;</span>
+<span style="color: #0000ff;">&lt;/</span><span style="color: #800000;">property</span><span style="color: #0000ff;">&gt;</span>
+<span style="color: #0000ff;">&lt;/</span><span style="color: #800000;">bean</span><span style="color: #0000ff;">&gt;</span></code></pre>
+
+<p>&nbsp;</p>
+<p>测试类:</p>
+<src class="cnblogs_code">
+<pre><code><span style="color: #000000;">main:
+String path </span>= "ioc/applicationContext.xml"<span style="color: #000000;">;
+ApplicationContext ac </span>=
+<span style="color: #0000ff;">new</span><span style="color: #000000;"> ClassPathXmlApplicationContext(path);
+SomeBean sb </span>= (SomeBean) ac.getBean("someBean"<span style="color: #000000;">);
+sb.printInfo();</span></code></pre>
+
+<p>&nbsp;</p>
+<p><span style="color: #993366;"><strong><span style="font-size: 18px;">基于构造器注入</span></strong></span><br />	方式: 配置&lt;constructor-arg&gt;元素<br />	在Bean中不用写set方法,但是要有相应的构造器</p>
+<p>	构造器注入有俩种形式 一个是根据参数类型 一个是根据参数位置的下标<br />	&lt;constructor-arg type="int" value=""&gt;<br />	&lt;constructor-arg  index="0" value=""&gt;</p>
+<p> 例如:</p>
+<src class="cnblogs_code">
+<pre><code><span style="color: #0000ff;">&lt;</span><span style="color: #800000;">bean </span><span style="color: #ff0000;">name</span><span style="color: #0000ff;">="student"</span><span style="color: #ff0000;"> class</span><span style="color: #0000ff;">="com.briup.bean.Student"</span><span style="color: #0000ff;">&gt;</span>
+<span style="color: #0000ff;">&lt;</span><span style="color: #800000;">constructor-arg </span><span style="color: #ff0000;">type</span><span style="color: #0000ff;">="int"</span><span style="color: #ff0000;"> value</span><span style="color: #0000ff;">="25"</span><span style="color: #0000ff;">&gt;</span>
+<span style="color: #0000ff;">&lt;/</span><span style="color: #800000;">constructor-arg</span><span style="color: #0000ff;">&gt;</span>
+
+<span style="color: #0000ff;">&lt;</span><span style="color: #800000;">constructor-arg </span><span style="color: #ff0000;">type</span><span style="color: #0000ff;">="java.lang.String"</span><span style="color: #ff0000;"> value</span><span style="color: #0000ff;">="tom"</span><span style="color: #0000ff;">&gt;</span>
+<span style="color: #0000ff;">&lt;/</span><span style="color: #800000;">constructor-arg</span><span style="color: #0000ff;">&gt;</span>
+
+<span style="color: #0000ff;">&lt;</span><span style="color: #800000;">constructor-arg </span><span style="color: #ff0000;">type</span><span style="color: #0000ff;">="long"</span><span style="color: #ff0000;"> value</span><span style="color: #0000ff;">="100"</span><span style="color: #0000ff;">&gt;</span>
+<span style="color: #0000ff;">&lt;/</span><span style="color: #800000;">constructor-arg</span><span style="color: #0000ff;">&gt;</span>
+
+<span style="color: #0000ff;">&lt;/</span><span style="color: #800000;">bean</span><span style="color: #0000ff;">&gt;</span></code></pre>
+
+<p>&nbsp;</p>
+<p>或者:</p>
+<src class="cnblogs_code">
+<pre><code><span style="color: #0000ff;">&lt;</span><span style="color: #800000;">bean </span><span style="color: #ff0000;">name</span><span style="color: #0000ff;">="student"</span><span style="color: #ff0000;"> class</span><span style="color: #0000ff;">="com.briup.bean.Student"</span><span style="color: #0000ff;">&gt;</span>
+<span style="color: #0000ff;">&lt;</span><span style="color: #800000;">constructor-arg </span><span style="color: #ff0000;">index</span><span style="color: #0000ff;">="2"</span><span style="color: #0000ff;">&gt;</span>
+<span style="color: #0000ff;">&lt;</span><span style="color: #800000;">value</span><span style="color: #0000ff;">&gt;</span>30<span style="color: #0000ff;">&lt;/</span><span style="color: #800000;">value</span><span style="color: #0000ff;">&gt;</span>
+<span style="color: #0000ff;">&lt;/</span><span style="color: #800000;">constructor-arg</span><span style="color: #0000ff;">&gt;</span>
+
+<span style="color: #0000ff;">&lt;</span><span style="color: #800000;">constructor-arg </span><span style="color: #ff0000;">index</span><span style="color: #0000ff;">="0"</span><span style="color: #0000ff;">&gt;</span>
+<span style="color: #0000ff;">&lt;</span><span style="color: #800000;">value</span><span style="color: #0000ff;">&gt;</span>200<span style="color: #0000ff;">&lt;/</span><span style="color: #800000;">value</span><span style="color: #0000ff;">&gt;</span>
+<span style="color: #0000ff;">&lt;/</span><span style="color: #800000;">constructor-arg</span><span style="color: #0000ff;">&gt;</span>
+
+<span style="color: #0000ff;">&lt;</span><span style="color: #800000;">constructor-arg </span><span style="color: #ff0000;">index</span><span style="color: #0000ff;">="1"</span><span style="color: #0000ff;">&gt;</span>
+<span style="color: #0000ff;">&lt;</span><span style="color: #800000;">value</span><span style="color: #0000ff;">&gt;</span>lily<span style="color: #0000ff;">&lt;/</span><span style="color: #800000;">value</span><span style="color: #0000ff;">&gt;</span>
+<span style="color: #0000ff;">&lt;/</span><span style="color: #800000;">constructor-arg</span><span style="color: #0000ff;">&gt;</span>
+<span style="color: #0000ff;">&lt;/</span><span style="color: #800000;">bean</span><span style="color: #0000ff;">&gt;</span></code></pre>
+
+<p>&nbsp;</p>
+<p>构造器注入有俩种形式 一个是根据参数类型 一个是根据参数位置的下标&nbsp;<br /><span style="color: #ff0000;">还有指定参数传参</span> 这里的name指的是形参的参数名字&nbsp;</p>
+<src class="cnblogs_code">
+<pre><code><span style="color: #0000ff;">&lt;</span><span style="color: #800000;">bean </span><span style="color: #ff0000;">name</span><span style="color: #0000ff;">="student"</span><span style="color: #ff0000;"> class</span><span style="color: #0000ff;">="com.briup.bean.Student"</span><span style="color: #0000ff;">&gt;</span>
+<span style="color: #0000ff;">&lt;</span><span style="color: #800000;">constructor-arg </span><span style="color: #ff0000;">index</span><span style="color: #0000ff;">="0"</span><span style="color: #ff0000;"> value</span><span style="color: #0000ff;">="2"</span><span style="color: #ff0000;"> name</span><span style="color: #0000ff;">="a"</span><span style="color: #0000ff;">&gt;&lt;/</span><span style="color: #800000;">constructor-arg</span><span style="color: #0000ff;">&gt;</span>
+<span style="color: #0000ff;">&lt;</span><span style="color: #800000;">constructor-arg </span><span style="color: #ff0000;">index</span><span style="color: #0000ff;">="1"</span><span style="color: #ff0000;"> value</span><span style="color: #0000ff;">="3"</span><span style="color: #ff0000;"> name</span><span style="color: #0000ff;">="b"</span><span style="color: #0000ff;">&gt;&lt;/</span><span style="color: #800000;">constructor-arg</span><span style="color: #0000ff;">&gt;</span>
+<span style="color: #0000ff;">&lt;</span><span style="color: #800000;">constructor-arg </span><span style="color: #ff0000;">index</span><span style="color: #0000ff;">="2"</span><span style="color: #ff0000;"> value</span><span style="color: #0000ff;">="4"</span><span style="color: #ff0000;"> name</span><span style="color: #0000ff;">="c"</span><span style="color: #0000ff;">&gt;&lt;/</span><span style="color: #800000;">constructor-arg</span><span style="color: #0000ff;">&gt;</span>
+<span style="color: #0000ff;">&lt;/</span><span style="color: #800000;">bean</span><span style="color: #0000ff;">&gt;</span></code></pre>
+
+<p>&nbsp;</p>
+<p><strong><span style="font-size: 18px; color: #993366;">自动注入 :容器依照一些规则去装配bean中的一个属性</span></strong><br />		注意:自动装配只对[对象类型]起作用,对基本类型不起作用.<br />		<span style="color: #ff0000;">第一种情况:</span><br />			在beans标签中配置装载方式:default-autowire="byName"</p>
+<p>    		在根元素beans中加入这个属性,那么下面所有的bean都会<br />    		使用byName的方式进行自动注入,如果在下面的某一个bean<br />    		里面想使用其他的方式进行注入,可以用autowire=""属性进行<br />    		说明,或者某一个bean不想使用任何自动注入就使用autowire="no"</p>
+<p><span style="color: #ff0000;">		第二种情况:</span><br />			在bean标签中指定配置方式</p>
+<p>			autowire="byName":<br />    		spring容器会到当前的类中找property的名字,然后<br />    		再根据这个名字去spring容器中找有没有和这个property<br />    		名字相同的对象,有的话,就把这个对象当做参数放到<br />    		setXxxx这个方法里面注入进来.</p>
+<p>			比如Teacher类中有一个属性Student student<br />			对应的有setStudent()方法<br />			在xml中配置了Student这个类。<br />			name="studnet";<br />			Spring在自动注入Teacher类中的student属性的时候就会去找和这个property<br />    		名字相同的对象</p>
+<p>		&lt;bean name="t" class="com.briup.bean.Teacher" autowire="byName"&gt;<br />   		&lt;property name="id" value="10"&gt;&lt;/property&gt;<br />   		&lt;property name="name" value="王老师"&gt;&lt;/property&gt;<br />   		&lt;!-- &lt;property name="student" ref="stu"&gt;&lt;/property&gt; --&gt;<br />  		&lt;/bean&gt;</p>
+<p>    		注意:了解property指的类中的什么东西<br />			property来源于attribute<br />			property name="xxxx"实际上就是setXxxx()<br />			这四个xxxx是一个含义</p>
+<p>			autowire="byType":<br />    		spring容器会根据当前类中的set方法里面参数的类型,<br />    		去容器中找相匹配的对象,如果没找到就算了,如果找到<br />    		一个就注入进来,如果找到多个,那么就会报错了.</p>
+<p>			也就是说找不到大不了就赋值为null，但是找到两个框架报错了，因为框架不知道用哪个啊<br />			所以说要么就不写，写了就不要有歧义。</p>
+<p>			autowire="constructor" <br />			根据构造器的参数类型去匹配</p>
+<p><br /><span style="font-size: 18px;"><strong><span style="color: #993366;">继承</span></strong></span><br />		配置文件中,一个bean的配置可以继承另一个bean的配置<br />             <br />		bean标签中的俩个属性:<br />			abstract属性<br />			&lt;bean name=".." class=".." abstract="true"&gt;<br />			注:bean中一旦定义为了abstract="true",则说明该bean是用来被继承的,不能通过该bean获得对象了</p>
+<p>			parent属性,指定继承哪个bean的配置<br />			&lt;bean name=".." parent="另一个bean的名字"&gt;<br />			</p>
+<p> 例子:</p>
+<src class="cnblogs_code">
+<pre><code><span style="color: #0000ff;">&lt;</span><span style="color: #800000;">bean </span><span style="color: #ff0000;">name</span><span style="color: #0000ff;">="student"</span><span style="color: #ff0000;"> class</span><span style="color: #0000ff;">="com.briup.bean.Student"</span><span style="color: #0000ff;">&gt;</span>
+<span style="color: #0000ff;">&lt;</span><span style="color: #800000;">property </span><span style="color: #ff0000;">name</span><span style="color: #0000ff;">="name"</span><span style="color: #0000ff;">&gt;</span>
+<span style="color: #0000ff;">&lt;</span><span style="color: #800000;">value</span><span style="color: #0000ff;">&gt;</span>zhangsan<span style="color: #0000ff;">&lt;/</span><span style="color: #800000;">value</span><span style="color: #0000ff;">&gt;</span>
+<span style="color: #0000ff;">&lt;/</span><span style="color: #800000;">property</span><span style="color: #0000ff;">&gt;</span>
+<span style="color: #0000ff;">&lt;/</span><span style="color: #800000;">bean</span><span style="color: #0000ff;">&gt;</span></code></pre>
+
+<p>&nbsp;</p>
+<p> abstract="true" 表示当前的配置是一个抽象的配置,<br />		这时候我们在代码中就不能通过这个bean的名字teacher来<br />		获得相应的对象了(和java中的抽象类不能直接new对象的道理一样)<br />		<br />		但是我们可以再写一个配置去继承这个抽象的配置,当然即使当前<br />		这个配置不是抽象的,也能够被继承(和java中继承一样)</p>
+<src class="cnblogs_code">
+<pre><code><span style="color: #0000ff;">&lt;</span><span style="color: #800000;">bean </span><span style="color: #ff0000;">name</span><span style="color: #0000ff;">="teacher"</span><span style="color: #ff0000;"> class</span><span style="color: #0000ff;">="com.briup.bean.Teacher"</span><span style="color: #ff0000;"> abstract</span><span style="color: #0000ff;">="true"</span><span style="color: #0000ff;">&gt;</span>
+<span style="color: #0000ff;">&lt;</span><span style="color: #800000;">property </span><span style="color: #ff0000;">name</span><span style="color: #0000ff;">="student"</span><span style="color: #ff0000;"> ref</span><span style="color: #0000ff;">="student"</span><span style="color: #0000ff;">&gt;&lt;/</span><span style="color: #800000;">property</span><span style="color: #0000ff;">&gt;</span>
+<span style="color: #0000ff;">&lt;/</span><span style="color: #800000;">bean</span><span style="color: #0000ff;">&gt;</span></code></pre>
+
+<p>&nbsp;</p>
+<p> parent="teacher" 表示当前配置是继承了另外一个名字叫<br />		teacher的bean的配置,配置和配置的继承像java中的类和类<br />		直接的继承一样,子类会把父类中的对象继承过来.<br />		当然在子配置里面依然是可以覆盖父配置中已经写的配置信息.</p>
+<src class="cnblogs_code">
+<pre><code><span style="color: #0000ff;">&lt;</span><span style="color: #800000;">bean </span><span style="color: #ff0000;">name</span><span style="color: #0000ff;">="t"</span><span style="color: #ff0000;"> parent</span><span style="color: #0000ff;">="teacher"</span><span style="color: #0000ff;">&gt;</span>    
+<span style="color: #0000ff;">&lt;</span><span style="color: #800000;">property </span><span style="color: #ff0000;">name</span><span style="color: #0000ff;">="id"</span><span style="color: #0000ff;">&gt;</span>
+<span style="color: #0000ff;">&lt;</span><span style="color: #800000;">value</span><span style="color: #0000ff;">&gt;</span>11<span style="color: #0000ff;">&lt;/</span><span style="color: #800000;">value</span><span style="color: #0000ff;">&gt;</span>
+<span style="color: #0000ff;">&lt;/</span><span style="color: #800000;">property</span><span style="color: #0000ff;">&gt;</span>
+<span style="color: #0000ff;">&lt;</span><span style="color: #800000;">property </span><span style="color: #ff0000;">name</span><span style="color: #0000ff;">="name"</span><span style="color: #0000ff;">&gt;</span>
+<span style="color: #0000ff;">&lt;</span><span style="color: #800000;">value</span><span style="color: #0000ff;">&gt;</span>TeacherWang<span style="color: #0000ff;">&lt;/</span><span style="color: #800000;">value</span><span style="color: #0000ff;">&gt;</span>
+<span style="color: #0000ff;">&lt;/</span><span style="color: #800000;">property</span><span style="color: #0000ff;">&gt;</span>
+<span style="color: #0000ff;">&lt;/</span><span style="color: #800000;">bean</span><span style="color: #0000ff;">&gt;</span></code></pre>
+
+<p>&nbsp;</p>
+
+</div><hr><script charset='utf-8' src='../../js/sming.js'></script></body></html>

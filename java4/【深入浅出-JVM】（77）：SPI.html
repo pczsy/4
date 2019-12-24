@@ -1,0 +1,118 @@
+<html><head><meta charset='utf-8'><meta name='viewport' content='width=device-width, initial-scale=1'>
+<meta name='applicable-device' content='pc'><meta name='keywords' content='电脑,电脑讲解,电脑技术,编程,电脑故障维修【深入浅出-JVM】（77）：SPI' />
+<script src='../../highlight/highlight.pack.js'></script>
+<link rel='stylesheet' type='text/css' href='../../highlight/styles/monokai.css'/>
+
+<link rel='stylesheet' href='../../fenxiang/dist/css/share.min.css'>
+<script src='../../fenxiang/src/js/social-share.js'></script>
+<script src='../../fenxiang/src/js/qrcode.js'></script>
+
+</head><body><script>hljs.initHighlightingOnLoad();</script><script>
+var system ={};  
+var p = navigator.platform;       
+system.win = p.indexOf('Win') == 0;  
+system.mac = p.indexOf('Mac') == 0;  
+system.x11 = (p == 'X11') || (p.indexOf('Linux') == 0);     
+if(system.win||system.mac||system.xll){
+document.write("<link href='../css/3.css' rel='stylesheet' type='text/css'>");}else{ document.write("<link href='../css/3wap.css' rel='stylesheet' type='text/css'>");}</script><script src='../../js/3.js'></script><div class='div2'><div class='heading_nav'><ul><div><li><a href='../../index.html'>首页</a></li>
+</div><div onclick='hidden1()' >分享</div>
+</ul></div></div>
+<div id='heading_nav2'> 
+<li class='row' >
+<div class='social-share' data-mode='prepend'><a href='javascript:' class='social-share-icon icon-heart'></a></div></li></div><script charset='utf-8' src='../../3/js/hengfu.js'></script><script charset='utf-8' src='../../3/js/hengfu2.js'></script><hr><div class='div1'><div class='biaoti'><center>【深入浅出-JVM】（77）：SPI</center></div><div class='banquan'>原文出处:本文由博客园博主mousycoder提供。<br/>
+原文连接:https://www.cnblogs.com/mousycoder/p/11528958.html</div><br>
+    <h2 id="概念">概念</h2>
+<p>Service Provider Interface</p>
+<h2 id="规则">规则</h2>
+<ol>
+<li>在resource/META-INF/services 创建一个以接口全限定名为命名的文件，内容写上实现类的全限定名</li>
+<li>接口实现类在classpath路径下</li>
+<li>主程序通过 java.util.ServiceLoader 动态装载实现模块（扫描META-INF/services目录下的配置文件找到实现类，装载到 JVM）</li>
+</ol>
+<h2 id="好处">好处</h2>
+<p>解耦，主程序和实现类之间不用硬编码</p>
+<h2 id="例子">例子</h2>
+<pre><code><code>package com.mousycoder.mycode.thinking_in_jvm;
+
+/**
+ * @version 1.0
+ * @author: mousycoder
+ * @date: 2019-09-16 16:14
+ */
+public interface SPIService {
+    void execute();
+}
+</code></code></pre>
+<pre><code><code>package com.mousycoder.mycode.thinking_in_jvm;
+
+/**
+ * @version 1.0
+ * @author: mousycoder
+ * @date: 2019-09-16 16:16
+ */
+public class SpiImpl1 implements SPIService {
+    @Override
+    public void execute() {
+        System.out.println(&quot;SpiImpl1.execute()&quot;);
+    }
+}
+</code></code></pre>
+<pre><code><code>package com.mousycoder.mycode.thinking_in_jvm;
+
+/**
+ * @version 1.0
+ * @author: mousycoder
+ * @date: 2019-09-16 16:16
+ */
+public class SpiImpl2 implements SPIService {
+    @Override
+    public void execute() {
+        System.out.println(&quot;SpiImpl2.execute()&quot;);
+    }
+}
+</code></code></pre>
+<p>在 resources/META-INF/services/目录下创建文件名为com.mousycoder.mycode.thinking_in_jvm.SPIService的文件，内容<br />
+com.mousycoder.mycode.thinking_in_jvm.SpiImpl1<br />
+com.mousycoder.mycode.thinking_in_jvm.SpiImpl2</p>
+<p>主程序</p>
+<pre><code><code>package com.mousycoder.mycode.thinking_in_jvm;
+
+import sun.misc.Service;
+
+import java.util.Iterator;
+import java.util.ServiceLoader;
+
+/**
+ * @version 1.0
+ * @author: mousycoder
+ * @date: 2019-09-16 16:21
+ */
+public class SPIMain {
+
+    public static void main(String[] args) {
+        Iterator&lt;SPIService&gt; providers = Service.providers(SPIService.class);
+        ServiceLoader&lt;SPIService&gt; load = ServiceLoader.load(SPIService.class);
+
+        while (providers.hasNext()){
+            SPIService ser = providers.next();
+            ser.execute();
+        }
+
+        System.out.println(&quot;-----------------------&quot;);
+        Iterator&lt;SPIService&gt; iterator = load.iterator();
+        while (iterator.hasNext()){
+            SPIService ser = iterator.next();
+            ser.execute();
+        }
+    }
+}
+</code></code></pre>
+<p>输出</p>
+<pre><code><code>SpiImpl1.execute()
+SpiImpl2.execute()
+-----------------------
+SpiImpl1.execute()
+SpiImpl2.execute()</code></code></pre>
+
+
+</div><hr><script charset='utf-8' src='../../js/sming.js'></script></body></html>

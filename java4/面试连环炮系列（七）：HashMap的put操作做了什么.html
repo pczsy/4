@@ -1,0 +1,48 @@
+<html><head><meta charset='utf-8'><meta name='viewport' content='width=device-width, initial-scale=1'>
+<meta name='applicable-device' content='pc'><meta name='keywords' content='电脑,电脑讲解,电脑技术,编程,电脑故障维修面试连环炮系列（七）：HashMap的put操作做了什么' />
+<script src='../../highlight/highlight.pack.js'></script>
+<link rel='stylesheet' type='text/css' href='../../highlight/styles/monokai.css'/>
+
+<link rel='stylesheet' href='../../fenxiang/dist/css/share.min.css'>
+<script src='../../fenxiang/src/js/social-share.js'></script>
+<script src='../../fenxiang/src/js/qrcode.js'></script>
+
+</head><body><script>hljs.initHighlightingOnLoad();</script><script>
+var system ={};  
+var p = navigator.platform;       
+system.win = p.indexOf('Win') == 0;  
+system.mac = p.indexOf('Mac') == 0;  
+system.x11 = (p == 'X11') || (p.indexOf('Linux') == 0);     
+if(system.win||system.mac||system.xll){
+document.write("<link href='../css/3.css' rel='stylesheet' type='text/css'>");}else{ document.write("<link href='../css/3wap.css' rel='stylesheet' type='text/css'>");}</script><script src='../../js/3.js'></script><div class='div2'><div class='heading_nav'><ul><div><li><a href='../../index.html'>首页</a></li>
+</div><div onclick='hidden1()' >分享</div>
+</ul></div></div>
+<div id='heading_nav2'> 
+<li class='row' >
+<div class='social-share' data-mode='prepend'><a href='javascript:' class='social-share-icon icon-heart'></a></div></li></div><script charset='utf-8' src='../../3/js/hengfu.js'></script><script charset='utf-8' src='../../3/js/hengfu2.js'></script><hr><div class='div1'><div class='biaoti'><center>面试连环炮系列（七）：HashMap的put操作做了什么</center></div><div class='banquan'>原文出处:本文由博客园博主编码砖家提供。<br/>
+原文连接:https://www.cnblogs.com/xiaoyangjia/p/11549908.html</div><br>
+    <ol>
+<li><strong>HashMap的put操作做了什么？</strong><br />
+HashMap的是由数组和链表构成的，JDK7之后加入了红黑树处理哈希冲突。put操作的步骤是这样的：
+<ol>
+<li>根据key值计算出哈希值作为数组下标。如果数组的这个位置是空的，把k放进去，put操作就完成了。</li>
+<li>如果数组位置不为空，这个元素必然是个链表。遍历链表逐一比对value，如果value在链表中不存在，就把新建节点，将value放进去，put操作完成。</li>
+<li>如果链表中value存在，则替换原节点的value，put操作完成。</li>
+<li>如果链表节点数已经达到8个，首先判断当前hashMap的长度，如果不足64，只进行resize，扩容table，如果达到64就将冲突的链表为红黑树。</li>
+</ol></li>
+<li><p><strong>元素在数组中的位置怎么计算出来的</strong><br />
+采用数组长度与value的哈希值取与操作计算的，表达式：<code>(n - 1) &amp; hash</code>,n是数组长度，hash是hash(value)。</p></li>
+<li><p><strong>红黑树有什么优势，为什么要将链表转成红黑树</strong><br />
+红黑树的平均查找长度是log(n)，长度为8的时候，平均查找长度为3，如果使用链表，平均查找长度为8/2=4。链表长度如果是小于等于6，平均查找长度6/2=3，虽然速度也很快，但是转化为树结构和生成树的时间也会耗时。</p></li>
+<li><p><strong>什么情况下数组会扩容</strong><br />
+当元素个数超过<code>数组长度 * loadFactor</code>时，就会进行数组扩容，loadFactor的默认值为0.75。默认情况下，数组大小为16，元素个数超过<code>16 * 0.75=12</code>的时候，就把数组的大小扩展一倍，即<code>2 * 16 = 32</code>，重新计算每个元素在数组中的位置，这是一个非常消耗性能的操作。</p></li>
+</ol>
+<h4 id="参考部分摘抄的文字版权属于原作者">参考(部分摘抄的文字版权属于原作者)：</h4>
+<p><a href="https://www.jianshu.com/p/2c7a4a4e1f53" class="uri">https://www.jianshu.com/p/2c7a4a4e1f53</a><br />
+<a href="https://www.cnblogs.com/liwei2222/p/8013367.html" class="uri">https://www.cnblogs.com/liwei2222/p/8013367.html</a><br />
+<a href="https://www.cnblogs.com/williamjie/p/9358291.html" class="uri">https://www.cnblogs.com/williamjie/p/9358291.html</a><br />
+<a href="https://www.cnblogs.com/xc-chejj/p/10825676.html" class="uri">https://www.cnblogs.com/xc-chejj/p/10825676.html</a></p>
+<h4 id="鸡汤你全心全意的付出还不如别人的随便搞搞">鸡汤：你全心全意的付出，还不如别人的随便搞搞。</h4>
+
+
+</div><hr><script charset='utf-8' src='../../js/sming.js'></script></body></html>

@@ -1,0 +1,1076 @@
+<html><head><meta charset='utf-8'><meta name='viewport' content='width=device-width, initial-scale=1'>
+<meta name='applicable-device' content='pc'><meta name='keywords' content='电脑,电脑讲解,电脑技术,编程,电脑故障维修javaWeb核心技术第十二篇之分页和条件' />
+<script src='../../highlight/highlight.pack.js'></script>
+<link rel='stylesheet' type='text/css' href='../../highlight/styles/monokai.css'/>
+
+<link rel='stylesheet' href='../../fenxiang/dist/css/share.min.css'>
+<script src='../../fenxiang/src/js/social-share.js'></script>
+<script src='../../fenxiang/src/js/qrcode.js'></script>
+
+</head><body><script>hljs.initHighlightingOnLoad();</script><script>
+var system ={};  
+var p = navigator.platform;       
+system.win = p.indexOf('Win') == 0;  
+system.mac = p.indexOf('Mac') == 0;  
+system.x11 = (p == 'X11') || (p.indexOf('Linux') == 0);     
+if(system.win||system.mac||system.xll){
+document.write("<link href='../css/3.css' rel='stylesheet' type='text/css'>");}else{ document.write("<link href='../css/3wap.css' rel='stylesheet' type='text/css'>");}</script><script src='../../js/3.js'></script><div class='div2'><div class='heading_nav'><ul><div><li><a href='../../index.html'>首页</a></li>
+</div><div onclick='hidden1()' >分享</div>
+</ul></div></div>
+<div id='heading_nav2'> 
+<li class='row' >
+<div class='social-share' data-mode='prepend'><a href='javascript:' class='social-share-icon icon-heart'></a></div></li></div><script charset='utf-8' src='../../3/js/hengfu.js'></script><script charset='utf-8' src='../../3/js/hengfu2.js'></script><hr><div class='div1'><div class='biaoti'><center>javaWeb核心技术第十二篇之分页和条件</center></div><div class='banquan'>原文出处:本文由博客园博主小小一提供。<br/>
+原文连接:https://www.cnblogs.com/haizai/p/11442985.html</div><br>
+    <src class="cnblogs_code">
+<pre><code>分页:limit ?,?<span style="color: #000000;">
+    参数1 : startIndex  开始索引.
+    参数2 : pageSize  每页显示的个数
+    n 表示第几页 给定一个特殊的单词  pageNumber
+    select </span>*<span style="color: #000000;"> from product;
+    
+    第一页显示五条数据:
+    select </span>* from product LIMIT 0 , 5<span style="color: #000000;">;
+    第二页显示五条数据
+    select </span>* from product LIMIT 5 , 5<span style="color: #000000;">;
+    第三页显示五条数据
+    select </span>* from product LIMIT 10 , 5<span style="color: #000000;">;
+    
+    第N页显示五条数据
+    select </span>* from product LIMIT (pageNumber-1)*<span style="color: #000000;">pageSize , pageSize;
+    
+    如果只有一个参数 表示 第一页 显示几个数据
+    select </span>* from product LIMIT 5<span style="color: #000000;">;
+    
+    简单分页查询步骤:
+        </span>1.sql : select from table limit ?,?
+        2<span style="color: #000000;">.startIntdex : 开始索引  不可以是负数
+        </span>3<span style="color: #000000;">.pageSize : 每页显示的个数
+        </span>4<span style="color: #000000;">.pageNumber : 用户访问的当前页
+        </span>5<span style="color: #000000;">.由页面发起传入 pageNumber 和 pageSize(目前写死)  在service层中进行计算startIndex
+        </span>6.公式 (pageNumber-1)*<span style="color: #000000;">pageSize
+    
+    高级分页查询:
+        将service返回的六个参数,封装成一个PageBean
+    两个传的
+        pageNumber,pageSize.
+    两个查的
+        totalRecord,data
+    两个算的
+        startIndex,totalPage
+    
+    在service编写代码逻辑 </span>--&gt;<span style="color: #000000;"> 将所有的代码逻辑封装到PageBean中
+    
+</span><span style="color: #008000;">/*</span><span style="color: #008000;">
+    
+    &lt;!--分页  class="disabled"  class="active"--&gt;
+        &lt;div style="width:1100px;margin:0 auto;margin-top:50px;"&gt;
+            
+            &lt;ul class="pagination" style="text-align:center; margin-top:10px;"&gt;
+                
+                &lt;%-- 如果当前页 等于 1 不需要再显示上一页  如果当前不等于1 显示 --%&gt;
+                &lt;c:if test="${pageBean.pageNumber != 1}"&gt;
+                    &lt;li &gt;&lt;a href="${pageContext.request.contextPath}/ProductServlet?method=findAll&amp;pageNumber=1" aria-label="Previous"&gt;&lt;span aria-hidden="true"&gt;&amp;laquo;&lt;/span&gt;&lt;/a&gt;&lt;/li&gt;
+                    &lt;li &gt;&lt;a href="${pageContext.request.contextPath}/ProductServlet?method=findAll&amp;pageNumber=${pageBean.pageNumber - 1 }" aria-label="Previous"&gt;&lt;span aria-hidden="true"&gt;上一页&lt;/span&gt;&lt;/a&gt;&lt;/li&gt;
+                &lt;/c:if&gt;
+                
+                &lt;%-- 循环显示 所有的页数 --%&gt;
+                &lt;c:forEach begin="${pageBean.start}" end="${pageBean.end}" var="num" step="1"&gt;
+                    &lt;li ${pageBean.pageNumber == num ? " class='active'"  : ""} &gt;&lt;a href="${pageContext.request.contextPath}/ProductServlet?method=findAll&amp;pageNumber=${num}"&gt;${num}&lt;/a&gt;&lt;/li&gt;
+                &lt;/c:forEach&gt;
+                
+                &lt;%-- 如果当前页小于总页数 显示下一页 --%&gt;
+                &lt;c:if test="${pageBean.pageNumber &lt; pageBean.totalPage}"&gt;
+                    &lt;li&gt;&lt;a href="${pageContext.request.contextPath}/ProductServlet?method=findAll&amp;pageNumber=${pageBean.pageNumber + 1 }" aria-label="Next"&gt;&lt;span aria-hidden="true"&gt;下一页&lt;/span&gt;&lt;/a&gt;&lt;/li&gt;
+                    &lt;li&gt;&lt;a href="${pageContext.request.contextPath}/ProductServlet?method=findAll&amp;pageNumber=${pageBean.totalPage}" aria-label="Next"&gt;&lt;span aria-hidden="true"&gt;&amp;raquo;&lt;/span&gt;&lt;/a&gt;&lt;/li&gt;
+                &lt;/c:if&gt;
+                
+                
+            &lt;/ul&gt;
+            
+        &lt;/div&gt;
+        &lt;!-- 分页结束=======================        --&gt;
+    
+
+    以后专门用来处理分页的数据:
+    泛型的定义:
+        1:方法级别的定义,修饰和返回值之间&lt;T&gt;
+        2:类级别泛型定义,类名后&lt;T&gt;
+    public class PageBean&lt;T&gt; {
+        /*
+        一共六个参数:
+        2个传入:
+            pageNumber : 表示当前页
+            pageSize : 表示每页显示个数
+        2个查询
+            data : 分页的数据
+            totalRecord : 总记录数
+        2个计算
+            startIndex : 开始索引
+            totalPage : 总页数
+        private int pageNumber;
+        private int pageSize;
+        private int totalRecodr;
+        private int startIndex;
+        private int totalPage;
+        private List&lt;T&gt; data;
+        
+        public int getStartIndex() {
+            startIndex = (pageNumber - 1)*pageSize;
+        }
+        
+        public int getTotalPage() {
+            if(totalRecord % pageSize == 0) {
+                totalPage = totalRecord / pageSize;
+            }else {
+                totalPage = totalRecord / pageSize + 1;
+            }
+            return totalPage;
+        }
+        
+        public int getPageNumber() {
+            return pageNumber;
+        }
+        
+        public void setPageNumber(int pageNumber) {
+            this.pageNumber = pageNumber;
+        }
+    }
+    开发中真实案例--前五后四动态条 - 扩展 - 前四后五
+        开发中应用:
+    //循环的开始
+        private int start;
+    //循环结束
+        private int end;
+        
+    //计算  开始  和  结束的数据
+    private void jisuan() {
+        //总页数有没有可能小于10
+        //小于 10 不需要前四后五的动态条
+        if(getTotalPage() &lt; 10) {//必须调用getTotalPage() 因为totalPage需要提前计算
+            start = 1;
+            end = totalPage;//最后一页等于最大页数
+            
+        }else {
+            //总页数一定大于10  需要前四后五动态条
+            start = pageNumber - 4;
+            end = pageNumber + 5;
+            //如果start &lt; 1 表示 当前1 2 3 4 总共显示10页
+            if(start &lt; 1) {
+                start = 1;
+                end = 10;
+            }
+            
+            //如果end &gt; totalPage 需要 计算start值
+            if(end &gt; totalPage) {
+                end = totalPage;
+                start = totalPage - 9;
+            }
+            
+        }
+        
+    }
+    
+案例:代码体现
+
+    public class ProductServlet extends HttpServlet {
+    
+    protected void doGet(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
+    
+        try {
+            //获得页面传递的参数 用来执行某段代码
+            String method = request.getParameter("method");
+            
+            ProductService pService = new ProductService();
+            CategoryService cService = new CategoryService();
+            //根据页面功能执行某段特殊的代码
+            if("findAll".equals(method)){
+                /**
+                 * 1.类型问题       两种解决方式:   1.正则 2.try
+                 * 2.索引不可以是负数
+                 </span><span style="color: #008000;">*/</span>
+                <span style="color: #008000;">//</span><span style="color: #008000;">1.获得 
+                </span><span style="color: #008000;">//</span><span style="color: #008000;"> 获得分页的数据 pageNumber </span>
+                String pageNumberStr = request.getParameter("pageNumber"<span style="color: #000000;">);            
+                </span><span style="color: #0000ff;">int</span> pageNumber = 1<span style="color: #000000;">;
+                </span><span style="color: #0000ff;">try</span><span style="color: #000000;"> {
+                    </span><span style="color: #008000;">//</span><span style="color: #008000;">如果是a 强转失败  赋值操作没有成功  pageNumber = 1 </span>
+                    pageNumber =<span style="color: #000000;"> Integer.valueOf(pageNumberStr);
+                    </span><span style="color: #0000ff;">if</span>(pageNumber &lt; 1<span style="color: #000000;"> ){
+                        pageNumber </span>= 1<span style="color: #000000;">;
+                    }
+                    
+                } </span><span style="color: #0000ff;">catch</span><span style="color: #000000;"> (Exception e) {
+                }
+                </span><span style="color: #0000ff;">int</span> pageSize = 2<span style="color: #000000;">;
+                </span><span style="color: #008000;">//</span><span style="color: #008000;">2.处理
+                </span><span style="color: #008000;">//</span><span style="color: #008000;">List&lt;Product&gt; pList = pService.findByPage(pageNumber , pageSize);</span>
+                PageBean&lt;Product&gt; pageBean =<span style="color: #000000;"> pService.findByPage(pageNumber , pageSize);
+                </span><span style="color: #008000;">//</span><span style="color: #008000;">3.响应
+                </span><span style="color: #008000;">//</span><span style="color: #008000;">3.1 将数据存到request</span>
+                request.setAttribute("pageBean"<span style="color: #000000;">, pageBean);
+                </span><span style="color: #008000;">//</span><span style="color: #008000;">3.2 请求转发给jsp </span>
+                request.getRequestDispatcher("/admin/product/product_list.jsp"<span style="color: #000000;">).forward(request, response);
+                </span><span style="color: #0000ff;">return</span><span style="color: #000000;">;
+            }
+            
+            </span><span style="color: #008000;">//</span><span style="color: #008000;">添加商品前查询分类的数据</span>
+            <span style="color: #0000ff;">if</span>("addProductUI"<span style="color: #000000;">.equals(method)){
+                </span><span style="color: #008000;">//</span><span style="color: #008000;">1.获得
+                </span><span style="color: #008000;">//</span><span style="color: #008000;">2.处理
+                </span><span style="color: #008000;">//</span><span style="color: #008000;">2.1 调用service 查询出所有分类 返回值 List&lt;Category&gt;</span>
+<span style="color: #000000;">                
+                List</span>&lt;Category&gt; cList =<span style="color: #000000;"> cService.findAll();
+                </span><span style="color: #008000;">//</span><span style="color: #008000;">3.响应
+                </span><span style="color: #008000;">//</span><span style="color: #008000;">3.1 将数据存到request</span>
+                request.setAttribute("cList"<span style="color: #000000;">, cList);
+                </span><span style="color: #008000;">//</span><span style="color: #008000;">3.2 请求转发给product_add.jsp </span>
+                request.getRequestDispatcher("/admin/product/product_add.jsp"<span style="color: #000000;">).forward(request, response);
+                
+                </span><span style="color: #0000ff;">return</span><span style="color: #000000;">;
+            }
+            
+            </span><span style="color: #008000;">//</span><span style="color: #008000;">添加商品数据</span>
+            <span style="color: #0000ff;">if</span>("addProduct"<span style="color: #000000;">.equals(method)){
+                
+                </span><span style="color: #008000;">//</span><span style="color: #008000;">1.获得
+                </span><span style="color: #008000;">//</span><span style="color: #008000;">1.1 获得map</span>
+                Map&lt;String, String[]&gt; map =<span style="color: #000000;"> request.getParameterMap();
+                </span><span style="color: #008000;">//</span><span style="color: #008000;">1.2 创建Product</span>
+                Product product = <span style="color: #0000ff;">new</span><span style="color: #000000;"> Product();
+                </span><span style="color: #008000;">//</span><span style="color: #008000;">1.3 封装数据</span>
+<span style="color: #000000;">                BeanUtils.populate(product, map);
+                </span><span style="color: #008000;">//</span><span style="color: #008000;">1.4 手动封装数据</span>
+                product.setPid( UUID.randomUUID().toString().replace("-", "") );<span style="color: #008000;">//</span><span style="color: #008000;">主键会随机生成</span>
+                product.setPimage("products/1/c_0001.jpg"<span style="color: #000000;">);
+                product.setPdate(</span><span style="color: #0000ff;">new</span><span style="color: #000000;"> Date().toLocaleString());
+                product.setIs_hot(</span>0);<span style="color: #008000;">//</span><span style="color: #008000;">0表示非热门</span>
+                product.setPflag(0);<span style="color: #008000;">//</span><span style="color: #008000;">0表示未下架
+                </span><span style="color: #008000;">//</span><span style="color: #008000;">2.处理
+                </span><span style="color: #008000;">//</span><span style="color: #008000;">调用service保存</span>
+<span style="color: #000000;">                pService.save(product);
+                </span><span style="color: #008000;">//</span><span style="color: #008000;">3.响应
+                </span><span style="color: #008000;">//</span><span style="color: #008000;">重定向到查询所有的案例</span>
+                response.sendRedirect(request.getContextPath() +"/ProductServlet?method=findAll"<span style="color: #000000;">);
+                </span><span style="color: #0000ff;">return</span><span style="color: #000000;">;
+                
+            }
+            
+            </span><span style="color: #008000;">//</span><span style="color: #008000;">根据pid查询出商品的信息</span>
+            <span style="color: #0000ff;">if</span>("findByPid"<span style="color: #000000;">.equals(method)){
+                </span><span style="color: #008000;">//</span><span style="color: #008000;">1.获得
+                </span><span style="color: #008000;">//</span><span style="color: #008000;">获得pid的编号</span>
+                String pid = request.getParameter("pid"<span style="color: #000000;">);
+                </span><span style="color: #008000;">//</span><span style="color: #008000;">2 处理
+                </span><span style="color: #008000;">//</span><span style="color: #008000;">2.1 商品数据</span>
+                Product product =<span style="color: #000000;"> pService.findByPid(pid);
+                </span><span style="color: #008000;">//</span><span style="color: #008000;">2.2 分类的数据</span>
+                List&lt;Category&gt; cList =<span style="color: #000000;"> cService.findAll();
+                </span><span style="color: #008000;">//</span><span style="color: #008000;">3 响应</span>
+                request.setAttribute("product"<span style="color: #000000;">, product);
+                request.setAttribute(</span>"cList"<span style="color: #000000;">, cList);
+                request.getRequestDispatcher(</span>"/admin/product/product_edit.jsp"<span style="color: #000000;">).forward(request, response);
+                </span><span style="color: #0000ff;">return</span><span style="color: #000000;">;
+            }
+            
+            
+            </span><span style="color: #008000;">//</span><span style="color: #008000;">修改商品数据的代码</span>
+            <span style="color: #0000ff;">if</span>("editProduct"<span style="color: #000000;">.equals(method)){
+                </span><span style="color: #008000;">//</span><span style="color: #008000;">1.获得
+                </span><span style="color: #008000;">//</span><span style="color: #008000;">1.1 获得map集合</span>
+                Map&lt;String, String[]&gt; map =<span style="color: #000000;"> request.getParameterMap();
+                </span><span style="color: #008000;">//</span><span style="color: #008000;">1.2 创建product对象</span>
+                Product product = <span style="color: #0000ff;">new</span><span style="color: #000000;"> Product();
+                </span><span style="color: #008000;">//</span><span style="color: #008000;">1.3 封装</span>
+<span style="color: #000000;">                BeanUtils.populate(product, map);
+                </span><span style="color: #008000;">//</span><span style="color: #008000;">2.处理
+                </span><span style="color: #008000;">//</span><span style="color: #008000;">2.1 调用service修改</span>
+                <span style="color: #0000ff;">boolean</span> flag =<span style="color: #000000;"> pService.update(product);
+                </span><span style="color: #008000;">//</span><span style="color: #008000;">3.响应
+                </span><span style="color: #008000;">//</span><span style="color: #008000;">3.1 重定向到查询所有的案例</span>
+                <span style="color: #0000ff;">if</span><span style="color: #000000;">(flag){
+                    </span><span style="color: #008000;">//</span><span style="color: #008000;">成功</span>
+                    response.sendRedirect(request.getContextPath() + "/ProductServlet?method=findAll"<span style="color: #000000;">);
+                }
+                </span><span style="color: #0000ff;">return</span><span style="color: #000000;"> ;
+            }
+            
+            
+            </span><span style="color: #008000;">//</span><span style="color: #008000;">根据pid删除商品</span>
+            <span style="color: #0000ff;">if</span>("deleteByPid"<span style="color: #000000;">.equals(method)){
+                </span><span style="color: #008000;">//</span><span style="color: #008000;">1.获得
+                </span><span style="color: #008000;">//</span><span style="color: #008000;">获得pid</span>
+                String pid = request.getParameter("pid"<span style="color: #000000;">);
+                </span><span style="color: #008000;">//</span><span style="color: #008000;">2.处理</span>
+                <span style="color: #0000ff;">int</span> count =<span style="color: #000000;"> pService.deleteByPid(pid);
+                </span><span style="color: #008000;">//</span><span style="color: #008000;">3.响应</span>
+                <span style="color: #0000ff;">if</span>(count &gt; 0<span style="color: #000000;">){
+                    response.sendRedirect(request.getContextPath() </span>+ "/ProductServlet?method=findAll"<span style="color: #000000;">);
+                }
+                </span><span style="color: #0000ff;">return</span><span style="color: #000000;">;
+            }
+            
+        } </span><span style="color: #0000ff;">catch</span><span style="color: #000000;"> (Exception e) {
+            e.printStackTrace();
+        }
+    
+    }
+
+    </span><span style="color: #0000ff;">protected</span> <span style="color: #0000ff;">void</span> doPost(HttpServletRequest request, HttpServletResponse response) <span style="color: #0000ff;">throws</span><span style="color: #000000;"> ServletException, IOException {
+        </span><span style="color: #008000;">//</span><span style="color: #008000;"> TODO Auto-generated method stub</span>
+<span style="color: #000000;">        doGet(request, response);
+    }
+    
+    
+    </span><span style="color: #0000ff;">public</span> <span style="color: #0000ff;">static</span> <span style="color: #0000ff;">void</span><span style="color: #000000;"> main(String[] args) {
+        System.out.println(UUID.randomUUID().toString().replace(</span>"-", ""<span style="color: #000000;">));
+        
+    }
+
+}
+
+</span><span style="color: #0000ff;">public</span> <span style="color: #0000ff;">class</span><span style="color: #000000;"> ProductService {
+    
+    
+    </span><span style="color: #008000;">/*</span><span style="color: #008000;">public PageBean&lt;Product&gt; findByPage(int pageNumber, int pageSize) throws SQLException {
+        //创建一个即将被返回的对象 PageBean&lt;Product&gt;
+        PageBean&lt;Product&gt; pageBean = new PageBean&lt;Product&gt;();
+        
+        
+        ProductDao dao = new ProductDao();
+        
+        //将pageNumber 转换成startIndex
+        int startIndex = (pageNumber - 1) * pageSize;
+        
+        //查询当前页的2条数据
+        List&lt;Product&gt; data = dao.findByPage( startIndex, pageSize);
+        
+        
+        //查询总记录数
+        int totalRecord = dao.findRecord();
+        
+        //计算总页数
+        int totalPage = 0;
+        if(totalRecord % pageSize == 0 ){
+            totalPage = totalRecord / pageSize;
+        }else{
+            totalPage = totalRecord / pageSize + 1;
+        }
+        
+        //赋值
+        pageBean.setData(data);
+        pageBean.setPageNumber(pageNumber);
+        pageBean.setPageSize(pageSize);
+        pageBean.setStartIndex(startIndex);
+        pageBean.setTotalPage(totalPage);
+        pageBean.setTotalRecord(totalRecord);
+        return pageBean;
+    }</span><span style="color: #008000;">*/</span>
+    <span style="color: #0000ff;">public</span> PageBean&lt;Product&gt; findByPage(<span style="color: #0000ff;">int</span> pageNumber, <span style="color: #0000ff;">int</span> pageSize) <span style="color: #0000ff;">throws</span><span style="color: #000000;"> SQLException {
+        </span><span style="color: #008000;">//</span><span style="color: #008000;">创建一个即将被返回的对象 PageBean&lt;Product&gt;</span>
+        PageBean&lt;Product&gt; pageBean = <span style="color: #0000ff;">new</span> PageBean&lt;Product&gt;<span style="color: #000000;">( pageNumber , pageSize);
+        
+        ProductDao dao </span>= <span style="color: #0000ff;">new</span><span style="color: #000000;"> ProductDao();
+        
+        </span><span style="color: #008000;">//</span><span style="color: #008000;">查询当前页的2条数据</span>
+        List&lt;Product&gt; data =<span style="color: #000000;"> dao.findByPage( pageBean.getStartIndex() , pageSize);
+        
+        </span><span style="color: #008000;">//</span><span style="color: #008000;">查询总记录数</span>
+        <span style="color: #0000ff;">int</span> totalRecord =<span style="color: #000000;"> dao.findRecord();
+        
+        </span><span style="color: #008000;">//</span><span style="color: #008000;">赋值</span>
+<span style="color: #000000;">        pageBean.setData(data);
+        pageBean.setTotalRecord(totalRecord);
+        </span><span style="color: #0000ff;">return</span><span style="color: #000000;"> pageBean;
+    }
+
+    </span><span style="color: #0000ff;">public</span> List&lt;Product&gt; findAll() <span style="color: #0000ff;">throws</span><span style="color: #000000;"> SQLException {
+        ProductDao dao </span>= <span style="color: #0000ff;">new</span><span style="color: #000000;"> ProductDao();
+        </span><span style="color: #0000ff;">return</span><span style="color: #000000;"> dao.findAll();
+    }
+
+    </span><span style="color: #0000ff;">public</span> <span style="color: #0000ff;">void</span> save(Product product) <span style="color: #0000ff;">throws</span><span style="color: #000000;"> SQLException {
+        ProductDao dao </span>= <span style="color: #0000ff;">new</span><span style="color: #000000;"> ProductDao();
+         dao.save(product);
+    }
+
+    </span><span style="color: #0000ff;">public</span> Product findByPid(String pid) <span style="color: #0000ff;">throws</span><span style="color: #000000;"> SQLException {
+        ProductDao dao </span>= <span style="color: #0000ff;">new</span><span style="color: #000000;"> ProductDao();
+        </span><span style="color: #0000ff;">return</span><span style="color: #000000;">  dao.findByPid(pid);
+    }
+
+    </span><span style="color: #0000ff;">public</span> <span style="color: #0000ff;">boolean</span> update(Product product) <span style="color: #0000ff;">throws</span><span style="color: #000000;"> SQLException {
+        ProductDao dao </span>= <span style="color: #0000ff;">new</span><span style="color: #000000;"> ProductDao();
+        </span><span style="color: #0000ff;">return</span><span style="color: #000000;">  dao.update(product);
+    }
+
+    </span><span style="color: #0000ff;">public</span> <span style="color: #0000ff;">int</span> deleteByPid(String pid) <span style="color: #0000ff;">throws</span><span style="color: #000000;"> SQLException {
+        ProductDao dao </span>= <span style="color: #0000ff;">new</span><span style="color: #000000;"> ProductDao();
+        </span><span style="color: #0000ff;">return</span><span style="color: #000000;"> dao.deleteByPid(pid);
+    }
+
+    
+
+}
+
+</span><span style="color: #0000ff;">package</span><span style="color: #000000;"> com.baidu.domain;
+
+</span><span style="color: #0000ff;">public</span> <span style="color: #0000ff;">class</span><span style="color: #000000;"> Product {
+
+     </span><span style="color: #008000;">/*</span><span style="color: #008000;"> 
+      `pid` VARCHAR(32) NOT NULL,
+      `pname` VARCHAR(50) DEFAULT NULL,        #商品名称
+      `market_price` DOUBLE DEFAULT NULL,    #商场价
+      
+      `shop_price` DOUBLE DEFAULT NULL,        #商城价
+      `pimage` VARCHAR(200) DEFAULT NULL,    #商品图片路径
+      `pdate` DATE DEFAULT NULL,            #上架时间
+      
+      `is_hot` INT(11) DEFAULT NULL,        #是否热门：0=不热门,1=热门
+      `pdesc` VARCHAR(255) DEFAULT NULL,    #商品描述
+      `pflag` INT(11) DEFAULT 0,            #商品标记：0=未下架(默认值),1=已经下架
+      
+      `cid` VARCHAR(32) DEFAULT NULL,        #分类id</span><span style="color: #008000;">*/</span>
+    
+    <span style="color: #0000ff;">private</span><span style="color: #000000;"> String pid;
+    </span><span style="color: #0000ff;">private</span><span style="color: #000000;"> String pname;
+    </span><span style="color: #0000ff;">private</span> <span style="color: #0000ff;">double</span><span style="color: #000000;"> market_price;
+    
+    </span><span style="color: #0000ff;">private</span> <span style="color: #0000ff;">double</span><span style="color: #000000;"> shop_price;
+    </span><span style="color: #0000ff;">private</span><span style="color: #000000;"> String pimage;
+    </span><span style="color: #0000ff;">private</span><span style="color: #000000;"> String pdate;
+    
+    </span><span style="color: #0000ff;">private</span> <span style="color: #0000ff;">int</span><span style="color: #000000;"> is_hot;
+    </span><span style="color: #0000ff;">private</span><span style="color: #000000;"> String pdesc;
+    </span><span style="color: #0000ff;">private</span> <span style="color: #0000ff;">int</span><span style="color: #000000;"> pflag;
+    
+    </span><span style="color: #0000ff;">private</span><span style="color: #000000;"> String cid;
+
+    </span><span style="color: #0000ff;">public</span><span style="color: #000000;"> String getPid() {
+        </span><span style="color: #0000ff;">return</span><span style="color: #000000;"> pid;
+    }
+
+    </span><span style="color: #0000ff;">public</span> <span style="color: #0000ff;">void</span><span style="color: #000000;"> setPid(String pid) {
+        </span><span style="color: #0000ff;">this</span>.pid =<span style="color: #000000;"> pid;
+    }
+
+    </span><span style="color: #0000ff;">public</span><span style="color: #000000;"> String getPname() {
+        </span><span style="color: #0000ff;">return</span><span style="color: #000000;"> pname;
+    }
+
+    </span><span style="color: #0000ff;">public</span> <span style="color: #0000ff;">void</span><span style="color: #000000;"> setPname(String pname) {
+        </span><span style="color: #0000ff;">this</span>.pname =<span style="color: #000000;"> pname;
+    }
+
+    </span><span style="color: #0000ff;">public</span> <span style="color: #0000ff;">double</span><span style="color: #000000;"> getMarket_price() {
+        </span><span style="color: #0000ff;">return</span><span style="color: #000000;"> market_price;
+    }
+
+    </span><span style="color: #0000ff;">public</span> <span style="color: #0000ff;">void</span> setMarket_price(<span style="color: #0000ff;">double</span><span style="color: #000000;"> market_price) {
+        </span><span style="color: #0000ff;">this</span>.market_price =<span style="color: #000000;"> market_price;
+    }
+
+    </span><span style="color: #0000ff;">public</span> <span style="color: #0000ff;">double</span><span style="color: #000000;"> getShop_price() {
+        </span><span style="color: #0000ff;">return</span><span style="color: #000000;"> shop_price;
+    }
+
+    </span><span style="color: #0000ff;">public</span> <span style="color: #0000ff;">void</span> setShop_price(<span style="color: #0000ff;">double</span><span style="color: #000000;"> shop_price) {
+        </span><span style="color: #0000ff;">this</span>.shop_price =<span style="color: #000000;"> shop_price;
+    }
+
+    </span><span style="color: #0000ff;">public</span><span style="color: #000000;"> String getPimage() {
+        </span><span style="color: #0000ff;">return</span><span style="color: #000000;"> pimage;
+    }
+
+    </span><span style="color: #0000ff;">public</span> <span style="color: #0000ff;">void</span><span style="color: #000000;"> setPimage(String pimage) {
+        </span><span style="color: #0000ff;">this</span>.pimage =<span style="color: #000000;"> pimage;
+    }
+
+    </span><span style="color: #0000ff;">public</span><span style="color: #000000;"> String getPdate() {
+        </span><span style="color: #0000ff;">return</span><span style="color: #000000;"> pdate;
+    }
+
+    </span><span style="color: #0000ff;">public</span> <span style="color: #0000ff;">void</span><span style="color: #000000;"> setPdate(String pdate) {
+        </span><span style="color: #0000ff;">this</span>.pdate =<span style="color: #000000;"> pdate;
+    }
+
+    </span><span style="color: #0000ff;">public</span> <span style="color: #0000ff;">int</span><span style="color: #000000;"> getIs_hot() {
+        </span><span style="color: #0000ff;">return</span><span style="color: #000000;"> is_hot;
+    }
+
+    </span><span style="color: #0000ff;">public</span> <span style="color: #0000ff;">void</span> setIs_hot(<span style="color: #0000ff;">int</span><span style="color: #000000;"> is_hot) {
+        </span><span style="color: #0000ff;">this</span>.is_hot =<span style="color: #000000;"> is_hot;
+    }
+
+    </span><span style="color: #0000ff;">public</span><span style="color: #000000;"> String getPdesc() {
+        </span><span style="color: #0000ff;">return</span><span style="color: #000000;"> pdesc;
+    }
+
+    </span><span style="color: #0000ff;">public</span> <span style="color: #0000ff;">void</span><span style="color: #000000;"> setPdesc(String pdesc) {
+        </span><span style="color: #0000ff;">this</span>.pdesc =<span style="color: #000000;"> pdesc;
+    }
+
+    </span><span style="color: #0000ff;">public</span> <span style="color: #0000ff;">int</span><span style="color: #000000;"> getPflag() {
+        </span><span style="color: #0000ff;">return</span><span style="color: #000000;"> pflag;
+    }
+
+    </span><span style="color: #0000ff;">public</span> <span style="color: #0000ff;">void</span> setPflag(<span style="color: #0000ff;">int</span><span style="color: #000000;"> pflag) {
+        </span><span style="color: #0000ff;">this</span>.pflag =<span style="color: #000000;"> pflag;
+    }
+
+    </span><span style="color: #0000ff;">public</span><span style="color: #000000;"> String getCid() {
+        </span><span style="color: #0000ff;">return</span><span style="color: #000000;"> cid;
+    }
+
+    </span><span style="color: #0000ff;">public</span> <span style="color: #0000ff;">void</span><span style="color: #000000;"> setCid(String cid) {
+        </span><span style="color: #0000ff;">this</span>.cid =<span style="color: #000000;"> cid;
+    }
+    
+    
+    
+    
+}
+
+</span><span style="color: #0000ff;">public</span> <span style="color: #0000ff;">class</span><span style="color: #000000;"> ProductDao {
+    </span><span style="color: #008000;">/**</span><span style="color: #008000;">
+     * 分页的dao
+     * </span><span style="color: #808080;">@param</span><span style="color: #008000;"> startIndex
+     * </span><span style="color: #808080;">@param</span><span style="color: #008000;"> pageSize
+     * </span><span style="color: #808080;">@return</span><span style="color: #008000;">
+     * </span><span style="color: #808080;">@throws</span><span style="color: #008000;"> SQLException 
+     </span><span style="color: #008000;">*/</span>
+    <span style="color: #0000ff;">public</span> List&lt;Product&gt; findByPage(<span style="color: #0000ff;">int</span> startIndex, <span style="color: #0000ff;">int</span> pageSize) <span style="color: #0000ff;">throws</span><span style="color: #000000;"> SQLException {
+        QueryRunner queryRunner </span>= <span style="color: #0000ff;">new</span><span style="color: #000000;"> QueryRunner(C3P0Utils.getDataSource());
+        String sql </span>=" select * from product limit ?,? "<span style="color: #000000;">;
+        Object [] params </span>=<span style="color: #000000;"> {
+                startIndex , pageSize
+        };
+        </span><span style="color: #0000ff;">return</span> queryRunner.query(sql, <span style="color: #0000ff;">new</span> BeanListHandler&lt;Product&gt;(Product.<span style="color: #0000ff;">class</span><span style="color: #000000;">), params);
+    }
+    </span><span style="color: #008000;">/**</span><span style="color: #008000;">
+     * 计算总记录数
+     * </span><span style="color: #808080;">@return</span><span style="color: #008000;">
+     * </span><span style="color: #808080;">@throws</span><span style="color: #008000;"> SQLException 
+     </span><span style="color: #008000;">*/</span>
+    <span style="color: #0000ff;">public</span> <span style="color: #0000ff;">int</span> findRecord() <span style="color: #0000ff;">throws</span><span style="color: #000000;"> SQLException {
+        QueryRunner queryRunner </span>= <span style="color: #0000ff;">new</span><span style="color: #000000;"> QueryRunner(C3P0Utils.getDataSource());
+        String sql </span>=" select count(*) from product "<span style="color: #000000;">;
+        Object [] params </span>=<span style="color: #000000;"> {
+        };
+        Object object </span>= queryRunner.query(sql, <span style="color: #0000ff;">new</span><span style="color: #000000;"> ScalarHandler(), params);
+        </span><span style="color: #0000ff;">return</span><span style="color: #000000;"> Integer.valueOf(object.toString());
+    }    
+
+    </span><span style="color: #0000ff;">public</span> List&lt;Product&gt; findAll() <span style="color: #0000ff;">throws</span><span style="color: #000000;"> SQLException {
+        QueryRunner queryRunner </span>= <span style="color: #0000ff;">new</span><span style="color: #000000;"> QueryRunner(C3P0Utils.getDataSource());
+        
+        String sql </span>=" select * from product order by pdate desc "<span style="color: #000000;">;
+        
+        Object [] params </span>=<span style="color: #000000;"> {};
+        
+        </span><span style="color: #0000ff;">return</span> queryRunner.query(sql, <span style="color: #0000ff;">new</span> BeanListHandler&lt;Product&gt;(Product.<span style="color: #0000ff;">class</span><span style="color: #000000;">), params);
+    }
+
+    </span><span style="color: #0000ff;">public</span> <span style="color: #0000ff;">void</span> save(Product product) <span style="color: #0000ff;">throws</span><span style="color: #000000;"> SQLException {
+        QueryRunner queryRunner </span>= <span style="color: #0000ff;">new</span><span style="color: #000000;"> QueryRunner(C3P0Utils.getDataSource());
+        
+        String sql </span>=" insert into product values(?,?,?,?,?,?,?,?,?,?) "<span style="color: #000000;">;
+        
+        Object [] params </span>=<span style="color: #000000;"> {
+                product.getPid() , product.getPname() , product.getMarket_price() , 
+                product.getShop_price() , product.getPimage() , product.getPdate() , 
+                product.getIs_hot() , product.getPdesc() , product.getPflag() , 
+                product.getCid()
+        };
+        
+        queryRunner.update(sql, params);
+    }
+
+    </span><span style="color: #0000ff;">public</span> Product findByPid(String pid) <span style="color: #0000ff;">throws</span><span style="color: #000000;"> SQLException {
+        QueryRunner queryRunner </span>= <span style="color: #0000ff;">new</span><span style="color: #000000;"> QueryRunner(C3P0Utils.getDataSource());
+        
+        String sql </span>=" select * from product where pid = ? "<span style="color: #000000;">;
+        
+        Object [] params </span>=<span style="color: #000000;"> {pid};
+        
+        </span><span style="color: #0000ff;">return</span> queryRunner.query(sql, <span style="color: #0000ff;">new</span> BeanHandler&lt;Product&gt;(Product.<span style="color: #0000ff;">class</span><span style="color: #000000;">), params);
+    }
+
+    </span><span style="color: #0000ff;">public</span> <span style="color: #0000ff;">boolean</span> update(Product product) <span style="color: #0000ff;">throws</span><span style="color: #000000;"> SQLException {
+        
+        QueryRunner queryRunner </span>= <span style="color: #0000ff;">new</span><span style="color: #000000;"> QueryRunner(C3P0Utils.getDataSource());
+        
+        String  sql </span>= " update product set pname = ? , shop_price = ? , pdesc = ? , cid = ? where pid = ?  "<span style="color: #000000;">;
+        
+        Object [] params </span>=<span style="color: #000000;"> {
+                product.getPname() , product.getShop_price() , product.getPdesc() , 
+                product.getCid() , product.getPid()
+        };
+        
+        
+        
+        </span><span style="color: #0000ff;">return</span> queryRunner.update(sql, params) &gt; 0<span style="color: #000000;"> ;
+    }
+
+    </span><span style="color: #0000ff;">public</span> <span style="color: #0000ff;">int</span> deleteByPid(String pid) <span style="color: #0000ff;">throws</span><span style="color: #000000;"> SQLException {
+
+        QueryRunner queryRunner </span>= <span style="color: #0000ff;">new</span><span style="color: #000000;"> QueryRunner(C3P0Utils.getDataSource());
+        
+        String  sql </span>= " delete from product where pid = ?  "<span style="color: #000000;">;
+        
+        Object [] params </span>=<span style="color: #000000;"> {
+                pid
+        };
+        
+        
+        
+        </span><span style="color: #0000ff;">return</span><span style="color: #000000;"> queryRunner.update(sql, params)  ;
+    }
+    
+</span><span style="color: #008000;">/**</span><span style="color: #008000;">
+ * 处理乱码的工具类
+ *
+ </span><span style="color: #008000;">*/</span>
+<span style="color: #0000ff;">public</span> <span style="color: #0000ff;">class</span> EncodingFilter <span style="color: #0000ff;">implements</span><span style="color: #000000;"> Filter {
+
+
+    </span><span style="color: #0000ff;">public</span> <span style="color: #0000ff;">void</span><span style="color: #000000;"> destroy() {
+        </span><span style="color: #008000;">//</span><span style="color: #008000;"> TODO Auto-generated method stub</span>
+<span style="color: #000000;">    }
+
+    </span><span style="color: #0000ff;">public</span> <span style="color: #0000ff;">void</span> doFilter(ServletRequest req, ServletResponse resp, FilterChain chain) <span style="color: #0000ff;">throws</span><span style="color: #000000;"> IOException, ServletException {
+        </span><span style="color: #0000ff;">final</span> HttpServletRequest request =<span style="color: #000000;"> (HttpServletRequest)req;
+        HttpServletResponse response </span>=<span style="color: #000000;"> (HttpServletResponse)resp;
+        </span><span style="color: #0000ff;">try</span><span style="color: #000000;"> {
+            
+            </span><span style="color: #008000;">//</span><span style="color: #008000;">处理post乱码</span>
+            request.setCharacterEncoding("utf-8"<span style="color: #000000;">);
+            
+            </span><span style="color: #008000;">//</span><span style="color: #008000;">处理响应</span>
+            response.setHeader("content-type", "text/html;charset=utf-8"<span style="color: #000000;">);
+            
+            </span><span style="color: #008000;">//</span><span style="color: #008000;">处理get乱码</span>
+            HttpServletRequest myRequest =<span style="color: #000000;"> (HttpServletRequest)Proxy.newProxyInstance(
+                    EncodingFilter.</span><span style="color: #0000ff;">class</span><span style="color: #000000;">.getClassLoader(), 
+                    request.getClass().getInterfaces(), 
+                    </span><span style="color: #0000ff;">new</span><span style="color: #000000;"> InvocationHandler() {
+                        @Override
+                        </span><span style="color: #0000ff;">public</span> Object invoke(Object proxy, Method method, Object[] args) <span style="color: #0000ff;">throws</span><span style="color: #000000;"> Throwable {
+                            
+                            </span><span style="color: #008000;">//</span><span style="color: #008000;">可以对getParameter进行增强   get提交方式
+                            
+                            </span><span style="color: #008000;">//</span><span style="color: #008000;">1.判断是get请求方式</span>
+                            String requestMethod=<span style="color: #000000;"> request.getMethod();
+                            </span><span style="color: #0000ff;">if</span>("GET"<span style="color: #000000;">.equalsIgnoreCase(requestMethod)){
+                                </span><span style="color: #008000;">//</span><span style="color: #008000;">get提交  只对getParameter方法进行拦截</span>
+                                String methodName =<span style="color: #000000;"> method.getName();
+                                </span><span style="color: #0000ff;">if</span>("getParameter"<span style="color: #000000;">.equals(methodName)){
+                                    </span><span style="color: #008000;">//</span><span style="color: #008000;">get方式 并且 调用的getParameter方法
+                                    </span><span style="color: #008000;">//</span><span style="color: #008000;">获得以前乱码 return 不乱码</span>
+                                    String tempValue = request.getParameter(args[0<span style="color: #000000;">].toString());
+                                    </span><span style="color: #008000;">//</span><span style="color: #008000;">如果没有获得数据 防止空指针</span>
+                                    <span style="color: #0000ff;">if</span>(tempValue == <span style="color: #0000ff;">null</span><span style="color: #000000;">){
+                                        </span><span style="color: #0000ff;">return</span> <span style="color: #0000ff;">null</span><span style="color: #000000;">;
+                                    }
+                                    </span><span style="color: #0000ff;">return</span> <span style="color: #0000ff;">new</span> String(tempValue.getBytes("iso-8859-1"),"utf-8"<span style="color: #000000;">);
+                                    
+                                }
+                            }
+                            
+                            </span><span style="color: #008000;">//</span><span style="color: #008000;">不需要增强</span>
+                            <span style="color: #0000ff;">return</span><span style="color: #000000;"> method.invoke(request, args);
+                        }
+                    });
+            
+            </span><span style="color: #008000;">//</span><span style="color: #008000;">放行</span>
+<span style="color: #000000;">            chain.doFilter(myRequest, response);
+        } </span><span style="color: #0000ff;">catch</span><span style="color: #000000;"> (Exception e) {
+            </span><span style="color: #008000;">//</span><span style="color: #008000;"> TODO Auto-generated catch block</span>
+<span style="color: #000000;">            e.printStackTrace();
+        }
+    }
+    </span><span style="color: #0000ff;">public</span> <span style="color: #0000ff;">void</span> init(FilterConfig fConfig) <span style="color: #0000ff;">throws</span><span style="color: #000000;"> ServletException {
+        </span><span style="color: #008000;">//</span><span style="color: #008000;"> TODO Auto-generated method stub</span>
+<span style="color: #000000;">    }
+
+}
+
+jsp代码:
+    </span>&lt;%-- 获得数据 并遍历 --%&gt;
+                                &lt;c:forEach items="${pageBean.data}" var="product"&gt;
+                                    &lt;tr onmouseover="this.style.backgroundColor = '#F5FAFE'"<span style="color: #000000;">
+                                        onmouseout</span>="this.style.backgroundColor = '#fff';"&gt;
+                                        &lt;td style="CURSOR: hand; HEIGHT: 22px" align="center"&gt;
+                                            &lt;input type="checkbox" name="" value="" /&gt;
+                                        &lt;/td&gt;
+                                        &lt;td style="CURSOR: hand; HEIGHT: 22px" align="center"&gt;
+                                            &lt;img src="${pageContext.request.contextPath}/${product.pimage}" style="height: 200px;width:150px" /&gt;
+                                        &lt;/td&gt;
+                                        &lt;td style="CURSOR: hand; HEIGHT: 22px" align="center"&gt;<span style="color: #000000;">
+                                            ${product.cid}
+                                        </span>&lt;/td&gt;
+                                        &lt;td style="CURSOR: hand; HEIGHT: 22px" align="center"&gt;<span style="color: #000000;">
+                                            ${product.pname}
+                                        </span>&lt;/td&gt;
+                                        &lt;td style="CURSOR: hand; HEIGHT: 22px" align="center"&gt;<span style="color: #000000;">
+                                            ${product.shop_price}
+                                        </span>&lt;/td&gt;
+                                        &lt;td style="CURSOR: hand; HEIGHT: 22px" align="center"&gt;<span style="color: #000000;">
+                                            ${product.pdesc}
+                                        </span>&lt;/td&gt;
+                                        &lt;td align="center" style="HEIGHT: 22px"&gt;
+                                            &lt;%--编辑 --%&gt;
+                                            &lt;a href="${pageContext.request.contextPath}/ProductServlet?pid=${product.pid}&amp;method=findByPid"&gt;
+                                                &lt;img src="${pageContext.request.contextPath}/images/i_edit.gif" border="0" style="CURSOR: hand"&gt;
+                                            &lt;/a&gt;
+                                        &lt;/td&gt;
+                                        &lt;td align="center" style="HEIGHT: 22px"&gt;
+                                            &lt;%--查询 --%&gt;
+                                            &lt;a href="../user/view.html?userID=15"&gt;
+                                                &lt;img src="${pageContext.request.contextPath}/images/button_view.gif" border="0" style="CURSOR: hand"&gt;
+                                            &lt;/a&gt;
+                                        &lt;/td&gt;
+                                        &lt;td align="center" style="HEIGHT: 22px"&gt;
+                                            &lt;%--删除  ctrl + q --%&gt;
+                                            &lt;a href="${pageContext.request.contextPath}/ProductServlet?method=deleteByPid&amp;pid=${product.pid}"&gt;
+                                                &lt;img src="${pageContext.request.contextPath}/images/i_del.gif" width="16" height="16" border="0" style="CURSOR: hand"&gt;
+                                            &lt;/a&gt;
+                                            
+                                            
+                                            &lt;%--提示删除 --%&gt;
+                                            &lt;a href="javascript:void(0)" onclick="deleteByPid('${product.pid}')"&gt;
+                                                &lt;img src="${pageContext.request.contextPath}/images/i_del.gif" width="16" height="16" border="0" style="CURSOR: hand"&gt;
+                                            &lt;/a&gt;
+                                        &lt;/td&gt;
+                                            
+                                    &lt;/tr&gt;
+                                &lt;/c:forEach&gt;
+                                &lt;%-- 获得数据 并遍历 --%&gt;
+                                &lt;script&gt;
+                                    <span style="color: #008000;">//</span><span style="color: #008000;">javascript 需要在写在 header标签中</span>
+<span style="color: #000000;">                                    function deleteByPid(pid){
+                                        </span><span style="color: #008000;">//</span><span style="color: #008000;">alert(pid);
+                                        </span><span style="color: #008000;">//</span><span style="color: #008000;">提示用户 </span>
+                                        var flag = confirm("您确定要删除信息吗?"<span style="color: #000000;">);
+                                        </span><span style="color: #0000ff;">if</span><span style="color: #000000;">(flag){
+                                            </span><span style="color: #008000;">//</span><span style="color: #008000;">确定删除
+                                            </span><span style="color: #008000;">//</span><span style="color: #008000;">访问服务器删除的Servlet
+                                            </span><span style="color: #008000;">//</span><span style="color: #008000;">修改地址栏 跳转路径  等效我们自己点击超链接</span>
+                                            location.href="${pageContext.request.contextPath}/ProductServlet?method=deleteByPid&amp;pid="+<span style="color: #000000;">pid;
+                                        }
+                                    }
+                                </span>&lt;/script&gt;
+                        &lt;/table&gt;
+                    &lt;/td&gt;
+                &lt;/tr&gt;
+            &lt;/TBODY&gt;
+        &lt;/table&gt;
+        &lt;!--分页  <span style="color: #0000ff;">class</span>="disabled"  <span style="color: #0000ff;">class</span>="active"--&gt;
+        &lt;div style="width:1100px;margin:0 auto;margin-top:50px;"&gt;
+            
+            &lt;ul <span style="color: #0000ff;">class</span>="pagination" style="text-align:center; margin-top:10px;"&gt;
+                
+                &lt;%-- 如果当前页 等于 1 不需要再显示上一页  如果当前不等于1 显示 --%&gt;
+                &lt;c:<span style="color: #0000ff;">if</span> test="${pageBean.pageNumber != 1}"&gt;
+                    &lt;li &gt;&lt;a href="${pageContext.request.contextPath}/ProductServlet?method=findAll&amp;pageNumber=1" aria-label="Previous"&gt;&lt;span aria-hidden="true"&gt;&amp;laquo;&lt;/span&gt;&lt;/a&gt;&lt;/li&gt;
+                    &lt;li &gt;&lt;a href="${pageContext.request.contextPath}/ProductServlet?method=findAll&amp;pageNumber=${pageBean.pageNumber - 1 }" aria-label="Previous"&gt;&lt;span aria-hidden="true"&gt;上一页&lt;/span&gt;&lt;/a&gt;&lt;/li&gt;
+                &lt;/c:<span style="color: #0000ff;">if</span>&gt;
+                
+                &lt;%-- 循环显示 所有的页数 --%&gt;
+                &lt;c:forEach begin="${pageBean.start}" end="${pageBean.end}" var="num" step="1"&gt;
+                    &lt;li ${pageBean.pageNumber == num ? " class='active'"  : ""} &gt;&lt;a href="${pageContext.request.contextPath}/ProductServlet?method=findAll&amp;pageNumber=${num}"&gt;${num}&lt;/a&gt;&lt;/li&gt;
+                &lt;/c:forEach&gt;
+                
+                &lt;%-- 如果当前页小于总页数 显示下一页 --%&gt;
+                &lt;c:<span style="color: #0000ff;">if</span> test="${pageBean.pageNumber &lt; pageBean.totalPage}"&gt;
+                    &lt;li&gt;&lt;a href="${pageContext.request.contextPath}/ProductServlet?method=findAll&amp;pageNumber=${pageBean.pageNumber + 1 }" aria-label="Next"&gt;&lt;span aria-hidden="true"&gt;下一页&lt;/span&gt;&lt;/a&gt;&lt;/li&gt;
+                    &lt;li&gt;&lt;a href="${pageContext.request.contextPath}/ProductServlet?method=findAll&amp;pageNumber=${pageBean.totalPage}" aria-label="Next"&gt;&lt;span aria-hidden="true"&gt;&amp;raquo;&lt;/span&gt;&lt;/a&gt;&lt;/li&gt;
+                &lt;/c:<span style="color: #0000ff;">if</span>&gt;
+                
+                
+            &lt;/ul&gt;
+            
+        &lt;/div&gt;
+        &lt;!-- 分页结束=======================        --&gt;<span style="color: #000000;">
+
+
+    
+    条件查询：
+        </span>1<span style="color: #000000;">: 先在首页上查询分类数据,并且遍历显示
+            分析:
+                select </span>* from product where cid = ? and pname = ?<span style="color: #000000;">;
+                含有的可能性:
+                    </span>1<span style="color: #000000;">.两者都有.
+                    </span>2<span style="color: #000000;">.两者都没有.
+                    </span>3<span style="color: #000000;">.有cid但没有pname
+                    </span>4<span style="color: #000000;">.没有cid但有pname
+                
+                select count(</span>*) from product where 1=1<span style="color: #000000;">;
+                伪代码:
+                    SQL </span>= " select * from product where 1=1 "<span style="color: #000000;">;
+                    </span><span style="color: #0000ff;">if</span>(cid != <span style="color: #0000ff;">null</span><span style="color: #000000;">) {
+                        SQL </span>+= " and cid = ? "<span style="color: #000000;">
+                    }
+                    </span><span style="color: #0000ff;">if</span>(pname != <span style="color: #0000ff;">null</span><span style="color: #000000;">) {
+                        SQL </span>+= " and pname like ? "<span style="color: #000000;">
+                    }
+        </span>1<span style="color: #000000;">: 修改表单 action属性,method属性,name属性,自定义的method判断逻辑.
+        </span>2<span style="color: #000000;">: 调用Servlet
+            a : 获得 cid和pname
+            b : 处理 调用service 调用dao(重要)
+            c : 响应 </span>-<span style="color: #000000;"> 将数据存到request里,请求转发给product_list.jsp
+        </span>3<span style="color: #000000;">.对jsp页面进行改造
+        
+    条件查询注意事项:
+        </span>1 . Dao的sql部分,拼接的问题,使用 where 1=1<span style="color: #000000;"> 解决了脏读、不可重复读、
+        </span>2<span style="color: #000000;"> . Dao的参数拼接部分,使用List接收数据,最后将list转换成数组,解决.
+        </span>3<span style="color: #000000;"> . 查询完以后将数据返回给页面,但还需要加上,用户传入后台的cid和pname;
+    切记:条件查询 不可以 和 分页 同一个项目 但以后 条件查询需要和分页结合
+        </span>4<span style="color: #000000;"> . 如果条件查询和分页需要做到同一个项目,需要处理参数问题.
+        </span>5 . PageBean 查询总记录数 --&gt;<span style="color: #000000;"> 如果加入条件查询,查询总记录数时需要加上条件.
+    
+案例:代码体现
+    </span><span style="color: #0000ff;">public</span> <span style="color: #0000ff;">class</span> ProductServlet <span style="color: #0000ff;">extends</span><span style="color: #000000;"> HttpServlet {
+    
+    </span><span style="color: #0000ff;">protected</span> <span style="color: #0000ff;">void</span> doGet(HttpServletRequest request, HttpServletResponse response) <span style="color: #0000ff;">throws</span><span style="color: #000000;"> ServletException, IOException {
+    
+        </span><span style="color: #0000ff;">try</span><span style="color: #000000;"> {
+            </span><span style="color: #008000;">//</span><span style="color: #008000;">获得页面传递的参数 用来执行某段代码</span>
+            String method = request.getParameter("method"<span style="color: #000000;">);
+            
+            ProductService pService </span>= <span style="color: #0000ff;">new</span><span style="color: #000000;"> ProductService();
+            CategoryService cService </span>= <span style="color: #0000ff;">new</span><span style="color: #000000;"> CategoryService();
+            </span><span style="color: #008000;">//</span><span style="color: #008000;">根据页面功能执行某段特殊的代码</span>
+            <span style="color: #0000ff;">if</span>("findAll"<span style="color: #000000;">.equals(method)){
+                </span><span style="color: #008000;">//</span><span style="color: #008000;">执行查询所有的代码
+                </span><span style="color: #008000;">//</span><span style="color: #008000;">1.获得
+                </span><span style="color: #008000;">//</span><span style="color: #008000;">1.31 获得cid</span>
+                String cid = request.getParameter("cid"<span style="color: #000000;">);
+                </span><span style="color: #008000;">//</span><span style="color: #008000;">1.2 获得pname</span>
+                String pname = request.getParameter("pname"<span style="color: #000000;">);
+                
+                
+                </span><span style="color: #008000;">//</span><span style="color: #008000;">2.处理</span>
+                List&lt;Product&gt; pList =<span style="color: #000000;"> pService.findAll( cid , pname );
+                List</span>&lt;Category&gt; cList =<span style="color: #000000;"> cService.findAll();
+                </span><span style="color: #008000;">//</span><span style="color: #008000;">3.响应
+                </span><span style="color: #008000;">//</span><span style="color: #008000;">3.1 将数据存到request</span>
+                request.setAttribute("pList"<span style="color: #000000;">, pList);
+                request.setAttribute(</span>"cList"<span style="color: #000000;">, cList);
+                
+                request.setAttribute(</span>"cid"<span style="color: #000000;">, cid);
+                request.setAttribute(</span>"pname"<span style="color: #000000;">, pname);
+                
+                </span><span style="color: #008000;">//</span><span style="color: #008000;">3.2 请求转发给jsp </span>
+                request.getRequestDispatcher("/admin/product/product_list.jsp"<span style="color: #000000;">).forward(request, response);
+                </span><span style="color: #0000ff;">return</span><span style="color: #000000;">;
+            }
+
+</span><span style="color: #0000ff;">public</span> <span style="color: #0000ff;">class</span><span style="color: #000000;"> ProductDao {
+    </span><span style="color: #008000;">/**</span><span style="color: #008000;">
+     * 条件查询
+     * </span><span style="color: #808080;">@param</span><span style="color: #008000;"> cid
+     * </span><span style="color: #808080;">@param</span><span style="color: #008000;"> pname
+     * </span><span style="color: #808080;">@return</span><span style="color: #008000;">
+     * </span><span style="color: #808080;">@throws</span><span style="color: #008000;"> SQLException 
+     </span><span style="color: #008000;">*/</span>
+    <span style="color: #0000ff;">public</span> List&lt;Product&gt; findAll(String cid, String pname) <span style="color: #0000ff;">throws</span><span style="color: #000000;"> SQLException {
+        QueryRunner queryRunner </span>= <span style="color: #0000ff;">new</span><span style="color: #000000;"> QueryRunner(C3P0Utils.getDataSource());
+        
+        String  sql </span>= " select * from product where 1=1 "<span style="color: #000000;">;
+        
+        </span><span style="color: #008000;">//</span><span style="color: #008000;">定义一个List  作用 用来保存参数 </span>
+        List&lt;Object&gt; paramList = <span style="color: #0000ff;">new</span> ArrayList&lt;Object&gt;<span style="color: #000000;">();
+        </span><span style="color: #008000;">//</span><span style="color: #008000;">cid判断</span>
+        <span style="color: #0000ff;">if</span>(cid != <span style="color: #0000ff;">null</span> &amp;&amp; !""<span style="color: #000000;">.equals(cid)){
+            sql </span>+= " and cid = ?  "<span style="color: #000000;">;
+            paramList.add(cid);
+        }
+        </span><span style="color: #008000;">//</span><span style="color: #008000;">pname判断</span>
+        <span style="color: #0000ff;">if</span>(pname != <span style="color: #0000ff;">null</span> &amp;&amp; !""<span style="color: #000000;">.equals(pname)){
+            sql </span>+= " and pname like ?  "<span style="color: #000000;">;
+            paramList.add(</span>"%"+pname+"%"<span style="color: #000000;">);
+        }
+        
+        </span><span style="color: #008000;">//</span><span style="color: #008000;">数组的缺陷 长度固定  集合的长度不固定   集合最后转换成数组</span>
+        Object [] params =<span style="color: #000000;"> paramList.toArray();
+        
+        </span><span style="color: #0000ff;">return</span> queryRunner.query(sql,<span style="color: #0000ff;">new</span> BeanListHandler&lt;Product&gt;(Product.<span style="color: #0000ff;">class</span><span style="color: #000000;">), params);
+        
+    }
+    
+    </span>&lt;form action="${pageContext.request.contextPath}/ProductServlet" method="post"&gt;
+                            &lt;%--隐藏域 --%&gt;
+                            &lt;input type="hidden" name="method" value="findAll"/&gt;
+                        
+                            &lt;table cellpadding="0" cellspacing="0" border="0" width="100%"&gt;
+                                &lt;tr&gt;
+                                    &lt;td height="22" align="center" bgColor="#f5fafe" <span style="color: #0000ff;">class</span>="ta_01" style="width: 15%"&gt;<span style="color: #000000;">
+                                        分类
+                                    </span>&lt;/td&gt;
+                                    &lt;td <span style="color: #0000ff;">class</span>="ta_01" bgColor="#ffffff" style="width: 30%"&gt;
+                                        &lt;select name="cid" <span style="color: #0000ff;">class</span>="form-control"&gt;
+                                            &lt;option value=""&gt;请选择&lt;/option&gt;
+                                            &lt;c:forEach items="${cList}" var="category"&gt;
+                                                &lt;option ${category.cid==cid ? "selected" : ""} value="${category.cid}"&gt;${category.cname}&lt;/option&gt;
+                                            &lt;/c:forEach&gt;
+                                        &lt;/select&gt;
+                                    &lt;/td&gt;
+                                    &lt;td height="22" align="center" bgColor="#f5fafe" <span style="color: #0000ff;">class</span>="ta_01" style="width: 15%"&gt;<span style="color: #000000;">
+                                        商品名称：
+                                    </span>&lt;/td&gt;
+                                    &lt;td <span style="color: #0000ff;">class</span>="ta_01" bgColor="#ffffff"&gt;
+                                        &lt;input type="text" name="pname" size="15" value="${pname}" <span style="color: #0000ff;">class</span>="form-control"/&gt;
+                                    &lt;/td&gt;<span style="color: #000000;">
+            
+    
+    批量删除:
+        思想:
+            前台两套方法:
+                </span>1<span style="color: #000000;"> . 表单提交:将所有被选中的数据,的pid传入后台,后台执行批量删除.
+                </span>2 . 修改sql 修改成 sql=" delete from product where pid in (?) " 数据循环拼接 1,2,4
+                3<span style="color: #000000;"> . 开发中会使用jdbc jdbc当中有批处理,也可以处理批量任务.
+        
+            事务特性:
+                A : 原子性;
+                C : 一致性;
+                I : 隔离性 : isolation 隔离会产生隔离问题
+                D : 持久性.
+
+    </span><span style="color: #0000ff;">protected</span> <span style="color: #0000ff;">void</span> doGet(HttpServletRequest request, HttpServletResponse response) <span style="color: #0000ff;">throws</span><span style="color: #000000;"> ServletException, IOException {
+    
+        </span><span style="color: #0000ff;">try</span><span style="color: #000000;"> {
+            </span><span style="color: #008000;">//</span><span style="color: #008000;">获得页面传递的参数 用来执行某段代码</span>
+            String method = request.getParameter("method"<span style="color: #000000;">);
+            
+            ProductService pService </span>= <span style="color: #0000ff;">new</span><span style="color: #000000;"> ProductService();
+            CategoryService cService </span>= <span style="color: #0000ff;">new</span><span style="color: #000000;"> CategoryService();
+            </span><span style="color: #008000;">//</span><span style="color: #008000;">根据pid删除商品</span>
+            <span style="color: #0000ff;">if</span>("deleteByPid"<span style="color: #000000;">.equals(method)){
+                </span><span style="color: #008000;">//</span><span style="color: #008000;">1.获得
+                </span><span style="color: #008000;">//</span><span style="color: #008000;">获得数组集合</span>
+                String[] pids = request.getParameterValues("pid"<span style="color: #000000;">);
+                </span><span style="color: #008000;">//</span><span style="color: #008000;">2.处理</span>
+                <span style="color: #0000ff;">int</span> count =<span style="color: #000000;"> pService.deleteByPid(pids);
+                </span><span style="color: #008000;">//</span><span style="color: #008000;">3.响应</span>
+                <span style="color: #0000ff;">if</span>(count &gt; 0<span style="color: #000000;">){
+                    response.sendRedirect(request.getContextPath() </span>+ "/ProductServlet?method=findAll"<span style="color: #000000;">);
+                }
+                </span><span style="color: #0000ff;">return</span><span style="color: #000000;">;
+            }
+            
+    </span>&lt;td align="center" width="6%"&gt;
+                                    &lt;input type="button" value="删除选中" onclick="deleteAll()"&gt;
+                                    &lt;script&gt;<span style="color: #000000;">
+                                        function deleteAll(){
+                                            </span><span style="color: #008000;">//</span><span style="color: #008000;">1.提示</span>
+                                            var flag = confirm("您确定要删除信息吗?"<span style="color: #000000;">);
+                                            </span><span style="color: #0000ff;">if</span>(!<span style="color: #000000;">flag){
+                                                </span><span style="color: #0000ff;">return</span><span style="color: #000000;"> ; 
+                                            }
+                                            </span><span style="color: #008000;">//</span><span style="color: #008000;">2.获得所有选中的pid 获得所有的数组 最后的格式 pid=1&amp;pid=2&amp;pid3..</span>
+                                            var pids = $("input[name='pid']:checked"<span style="color: #000000;">).serialize() ;
+                                            </span><span style="color: #008000;">//</span><span style="color: #008000;">3.发送</span>
+                                            location.href="${pageContext.request.contextPath}/ProductServlet?method=deleteByPid&amp;"+<span style="color: #000000;">pids;
+                                        }
+                                    </span>&lt;/script&gt;
+                                &lt;/td&gt;
+                                &lt;td align="center" width="15%"&gt;<span style="color: #000000;">
+                                    预览图
+                                </span>&lt;/td&gt;
+                                &lt;td align="center" width="12%"&gt;<span style="color: #000000;">
+                                    商品分类
+                                </span>&lt;/td&gt;
+                                &lt;td align="center" width="25%"&gt;<span style="color: #000000;">
+                                    商品名称
+                                </span>&lt;/td&gt;
+                                &lt;td align="center" width="8%"&gt;<span style="color: #000000;">
+                                    商品价格
+                                </span>&lt;/td&gt;
+                                &lt;td width="11%" align="center"&gt;<span style="color: #000000;">
+                                    描述
+                                </span>&lt;/td&gt;
+                                &lt;td width="7%" align="center"&gt;<span style="color: #000000;">
+                                    编辑
+                                </span>&lt;/td&gt;
+                                &lt;td width="7%" align="center"&gt;<span style="color: #000000;">
+                                    查看
+                                </span>&lt;/td&gt;
+                                &lt;td width="7%" align="center"&gt;<span style="color: #000000;">
+                                    删除
+                                </span>&lt;/td&gt;
+                            &lt;/tr&gt;
+                                &lt;%-- 获得数据 并遍历 --%&gt;
+                                &lt;c:forEach items="${pList}" var="product"&gt;
+                                    &lt;tr onmouseover="this.style.backgroundColor = '#F5FAFE'"<span style="color: #000000;">
+                                        onmouseout</span>="this.style.backgroundColor = '#fff';"&gt;
+                                        &lt;td style="CURSOR: hand; HEIGHT: 22px" align="center"&gt;
+                                            &lt;input type="checkbox" name="pid" value="${product.pid}" /&gt;
+                                        &lt;/td&gt;
+                                        &lt;td style="CURSOR: hand; HEIGHT: 22px" align="center"&gt;
+                                            &lt;img src="${pageContext.request.contextPath}/${product.pimage}" style="height: 200px;width:150px" /&gt;
+                                        &lt;/td&gt;
+                                        &lt;td style="CURSOR: hand; HEIGHT: 22px" align="center"&gt;<span style="color: #000000;">
+                                            ${product.cid}
+                                        </span>&lt;/td&gt;
+                                        &lt;td style="CURSOR: hand; HEIGHT: 22px" align="center"&gt;<span style="color: #000000;">
+                                            ${product.pname}
+                                        </span>&lt;/td&gt;
+                                        &lt;td style="CURSOR: hand; HEIGHT: 22px" align="center"&gt;<span style="color: #000000;">
+                                            ${product.shop_price}
+                                        </span>&lt;/td&gt;
+                                        &lt;td style="CURSOR: hand; HEIGHT: 22px" align="center"&gt;<span style="color: #000000;">
+                                            ${product.pdesc}
+                                        </span>&lt;/td&gt;
+                                        &lt;td align="center" style="HEIGHT: 22px"&gt;
+                                            &lt;%--编辑 --%&gt;
+                                            &lt;a href="${pageContext.request.contextPath}/ProductServlet?pid=${product.pid}&amp;method=findByPid"&gt;
+                                                &lt;img src="${pageContext.request.contextPath}/images/i_edit.gif" border="0" style="CURSOR: hand"&gt;
+                                            &lt;/a&gt;
+                                        &lt;/td&gt;
+                                        &lt;td align="center" style="HEIGHT: 22px"&gt;
+                                            &lt;%--查询 --%&gt;
+                                            &lt;a href="../user/view.html?userID=15"&gt;
+                                                &lt;img src="${pageContext.request.contextPath}/images/button_view.gif" border="0" style="CURSOR: hand"&gt;
+                                            &lt;/a&gt;
+                                        &lt;/td&gt;
+                                        &lt;td align="center" style="HEIGHT: 22px"&gt;
+                                            &lt;%--删除  ctrl + q --%&gt;
+                                            &lt;a href="${pageContext.request.contextPath}/ProductServlet?method=deleteByPid&amp;pid=${product.pid}"&gt;
+                                                &lt;img src="${pageContext.request.contextPath}/images/i_del.gif" width="16" height="16" border="0" style="CURSOR: hand"&gt;
+                                            &lt;/a&gt;
+                                            
+                                            
+                                            &lt;%--提示删除 --%&gt;
+                                            &lt;a href="javascript:void(0)" onclick="deleteByPid('${product.pid}')"&gt;
+                                                &lt;img src="${pageContext.request.contextPath}/images/i_del.gif" width="16" height="16" border="0" style="CURSOR: hand"&gt;
+                                            &lt;/a&gt;
+                                        &lt;/td&gt;
+                                            
+                                    &lt;/tr&gt;
+                                &lt;/c:forEach&gt;
+                                &lt;%-- 获得数据 并遍历 --%&gt;
+                                &lt;script&gt;
+                                    <span style="color: #008000;">//</span><span style="color: #008000;">javascript 需要在写在 header标签中</span>
+<span style="color: #000000;">                                    function deleteByPid(pid){
+                                        </span><span style="color: #008000;">//</span><span style="color: #008000;">alert(pid);
+                                        </span><span style="color: #008000;">//</span><span style="color: #008000;">提示用户 </span>
+                                        var flag = confirm("您确定要删除信息吗?"<span style="color: #000000;">);
+                                        </span><span style="color: #0000ff;">if</span><span style="color: #000000;">(flag){
+                                            </span><span style="color: #008000;">//</span><span style="color: #008000;">确定删除
+                                            </span><span style="color: #008000;">//</span><span style="color: #008000;">访问服务器删除的Servlet
+                                            </span><span style="color: #008000;">//</span><span style="color: #008000;">修改地址栏 跳转路径  等效我们自己点击超链接</span>
+                                            location.href="${pageContext.request.contextPath}/ProductServlet?method=deleteByPid&amp;pid="+<span style="color: #000000;">pid;
+                                        }
+                                    }
+                                </span>&lt;/script&gt;
+                        &lt;/table&gt;
+                    &lt;/td&gt;
+                &lt;/tr&gt;
+            &lt;/TBODJY&gt;
+        &lt;/table&gt;<span style="color: #000000;">
+        
+数据库开启手动提交以后,只要commit以后,会改成自动提交.查一下是否改成了自动提交</span></code></pre>
+
+<p>&nbsp;</p>
+
+</div><hr><script charset='utf-8' src='../../js/sming.js'></script></body></html>

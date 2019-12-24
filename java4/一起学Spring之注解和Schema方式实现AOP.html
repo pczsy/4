@@ -1,0 +1,293 @@
+<html><head><meta charset='utf-8'><meta name='viewport' content='width=device-width, initial-scale=1'>
+<meta name='applicable-device' content='pc'><meta name='keywords' content='电脑,电脑讲解,电脑技术,编程,电脑故障维修一起学Spring之注解和Schema方式实现AOP' />
+<script src='../../highlight/highlight.pack.js'></script>
+<link rel='stylesheet' type='text/css' href='../../highlight/styles/monokai.css'/>
+
+<link rel='stylesheet' href='../../fenxiang/dist/css/share.min.css'>
+<script src='../../fenxiang/src/js/social-share.js'></script>
+<script src='../../fenxiang/src/js/qrcode.js'></script>
+
+</head><body><script>hljs.initHighlightingOnLoad();</script><script>
+var system ={};  
+var p = navigator.platform;       
+system.win = p.indexOf('Win') == 0;  
+system.mac = p.indexOf('Mac') == 0;  
+system.x11 = (p == 'X11') || (p.indexOf('Linux') == 0);     
+if(system.win||system.mac||system.xll){
+document.write("<link href='../css/3.css' rel='stylesheet' type='text/css'>");}else{ document.write("<link href='../css/3wap.css' rel='stylesheet' type='text/css'>");}</script><script src='../../js/3.js'></script><div class='div2'><div class='heading_nav'><ul><div><li><a href='../../index.html'>首页</a></li>
+</div><div onclick='hidden1()' >分享</div>
+</ul></div></div>
+<div id='heading_nav2'> 
+<li class='row' >
+<div class='social-share' data-mode='prepend'><a href='javascript:' class='social-share-icon icon-heart'></a></div></li></div><script charset='utf-8' src='../../3/js/hengfu.js'></script><script charset='utf-8' src='../../3/js/hengfu2.js'></script><hr><div class='div1'><div class='biaoti'><center>一起学Spring之注解和Schema方式实现AOP</center></div><div class='banquan'>原文出处:本文由博客园博主Alan.hsiang提供。<br/>
+原文连接:https://www.cnblogs.com/hsiang/p/11747309.html</div><br>
+    <h2><span style="color: #339966;">概述</span></h2>
+<p>在上一篇，我们了解了通过实现接口和XML配置的方式来实现AOP，在实现注解方式AOP之前，先了解一下AspectJ。AspectJ是一个面向切面的框架，它扩展了Java语言，定义了AOP语法，能够在编译时实现代码的注入。Spring通过集成ApsectJ实现了以注解方式定义通知类，大大减少了配置文件的工作量。本文主要讲解通过注解方式和Schema方式实现AOP编程，仅供学习分享使用，如有不足之处，还请指正。</p>
+<h2><span style="color: #339966;">实现AOP的三种方式：</span></h2>
+<ol>
+<li>通过实现相应接口，并配置Xml进行实现，可以参考上一篇。</li>
+<li>通过注解方式实现。</li>
+<li>通过Schema的方式实现。</li>
+</ol>
+<h2><span style="color: #339966;">通过注解方式实现AOP</span></h2>
+<p>@Aspect 放在类的上面，表示这个类在Spring容器中是一个切点注入类。</p>
+<p>@Component("logAnnotation") 表示此类是一个Bean，在Spring Ioc容器里面进行注入。</p>
+<h3><span style="color: #993366;">步骤如下：</span></h3>
+<h3><span style="color: #993366;">1. 定义一个类，并在类上面增加@Aspect注解，表名此类为切面通知类。</span></h3>
+<p>如下所示：</p>
+<src class="cnblogs_code">
+<pre><code><span style="color: #008080;"> 1</span> <span style="color: #0000ff;">package</span><span style="color: #000000;"> com.hex.second;
+</span><span style="color: #008080;"> 2</span> 
+<span style="color: #008080;"> 3</span> <span style="color: #0000ff;">import</span><span style="color: #000000;"> org.aspectj.lang.JoinPoint;
+</span><span style="color: #008080;"> 4</span> <span style="color: #0000ff;">import</span><span style="color: #000000;"> org.aspectj.lang.ProceedingJoinPoint;
+</span><span style="color: #008080;"> 5</span> <span style="color: #0000ff;">import</span><span style="color: #000000;"> org.aspectj.lang.annotation.AfterReturning;
+</span><span style="color: #008080;"> 6</span> <span style="color: #0000ff;">import</span><span style="color: #000000;"> org.aspectj.lang.annotation.AfterThrowing;
+</span><span style="color: #008080;"> 7</span> <span style="color: #0000ff;">import</span><span style="color: #000000;"> org.aspectj.lang.annotation.Around;
+</span><span style="color: #008080;"> 8</span> <span style="color: #0000ff;">import</span><span style="color: #000000;"> org.aspectj.lang.annotation.Aspect;
+</span><span style="color: #008080;"> 9</span> <span style="color: #0000ff;">import</span><span style="color: #000000;"> org.aspectj.lang.annotation.Before;
+</span><span style="color: #008080;">10</span> <span style="color: #0000ff;">import</span><span style="color: #000000;"> org.springframework.stereotype.Component;
+</span><span style="color: #008080;">11</span> 
+<span style="color: #008080;">12</span> <span style="color: #008000;">/**</span>
+<span style="color: #008080;">13</span> <span style="color: #008000;"> * @Aspect:声明类为一个通知类
+</span><span style="color: #008080;">14</span> <span style="color: #008000;"> * @Component("logAnnotation")：通过注解方法生成一个Bean，但是需要配置注解的支持
+</span><span style="color: #008080;">15</span> <span style="color: #008000;"> * 通过注解的方式声明通知
+</span><span style="color: #008080;">16</span> <span style="color: #008000;"> * </span><span style="color: #808080;">@author</span><span style="color: #008000;"> Administrator
+</span><span style="color: #008080;">17</span> <span style="color: #008000;"> *
+</span><span style="color: #008080;">18</span>  <span style="color: #008000;">*/</span>
+<span style="color: #008080;">19</span> @Component("logAnnotation"<span style="color: #000000;">)
+</span><span style="color: #008080;">20</span> <span style="color: #000000;">@Aspect
+</span><span style="color: #008080;">21</span> <span style="color: #0000ff;">public</span> <span style="color: #0000ff;">class</span><span style="color: #000000;"> LogAspectAnnotation {
+</span><span style="color: #008080;">22</span> 
+<span style="color: #008080;">23</span> }</code></pre>
+
+<h3><span style="color: #993366;">2. 前置通知函数</span></h3>
+<p>@Before("execution(public void com.hex.second.StudentServiceImpl.addStudent(com.hex.second.Student))") 表示前置通知，用两个参数，默认为value值，指示切入点，告诉Spring在哪些地方进行注入。</p>
+<p>JoinPoint 可以获取切入点的所有内容，包括目标对象，函数名称，参数，返回值等等。如下所示：</p>
+<src class="cnblogs_code">
+<pre><code><span style="color: #008080;">1</span> <span style="color: #008000;">/**</span>
+<span style="color: #008080;">2</span> <span style="color: #008000;"> * 前置通知，@Before的参数为目标通知类的表达式
+</span><span style="color: #008080;">3</span> <span style="color: #008000;"> * JoinPoint 用来获取目标函数的参数及对象等信息
+</span><span style="color: #008080;">4</span>  <span style="color: #008000;">*/</span>
+<span style="color: #008080;">5</span> @Before("execution(public void com.hex.second.StudentServiceImpl.addStudent(com.hex.second.Student))"<span style="color: #000000;">)
+</span><span style="color: #008080;">6</span> <span style="color: #0000ff;">public</span> <span style="color: #0000ff;">void</span><span style="color: #000000;"> MyBefore(JoinPoint jp){
+</span><span style="color: #008080;">7</span>     System.out.println("我是注解方式的前置通知"<span style="color: #000000;">);
+</span><span style="color: #008080;">8</span>     System.out.println("method="+jp.getSignature().getName()+",args数量="+jp.getArgs().length+",target="+<span style="color: #000000;">jp.getTarget());
+</span><span style="color: #008080;">9</span> }</code></pre>
+
+<h3><span style="color: #993366;">3. 后置通知</span></h3>
+<p>@AfterReturning(pointcut = "execution(public void com.hex.second.StudentServiceImpl.addStudent(com.hex.second.Student))",returning="returningValue") 表示后置通知，其中value和poingcut都表示切入点，功能一样。returning表示定义目标函数的返回值。如下所示：</p>
+<src class="cnblogs_code">
+<pre><code><span style="color: #008080;"> 1</span> <span style="color: #008000;">/**</span>
+<span style="color: #008080;"> 2</span> <span style="color: #008000;">     * 功能：后置通知
+</span><span style="color: #008080;"> 3</span> <span style="color: #008000;">     * 注解形式实现AOP通知时，参数不能随便写，否则和目标函数对应不上，会报错
+</span><span style="color: #008080;"> 4</span> <span style="color: #008000;">     * </span><span style="color: #808080;">@param</span><span style="color: #008000;"> jp ：切入点目标对象
+</span><span style="color: #008080;"> 5</span> <span style="color: #008000;">     * </span><span style="color: #808080;">@param</span><span style="color: #008000;"> returningValue 返回值
+</span><span style="color: #008080;"> 6</span>      <span style="color: #008000;">*/</span>
+<span style="color: #008080;"> 7</span>     @AfterReturning(pointcut = "execution(public void com.hex.second.StudentServiceImpl.addStudent(com.hex.second.Student))",returning="returningValue"<span style="color: #000000;">)
+</span><span style="color: #008080;"> 8</span>     <span style="color: #0000ff;">public</span> <span style="color: #0000ff;">void</span><span style="color: #000000;"> MyAfterReturning(JoinPoint jp,Object returningValue){
+</span><span style="color: #008080;"> 9</span>         System.out.println("我是注解方式的后置通知"<span style="color: #000000;">);
+</span><span style="color: #008080;">10</span>         System.out.println("返回值是："+<span style="color: #000000;">returningValue);
+</span><span style="color: #008080;">11</span>     }</code></pre>
+
+<h3><span style="color: #993366;">4. 异常通知</span></h3>
+<p>@AfterThrowing(pointcut="execution(public void com.hex.second.StudentServiceImpl.addStudent(com.hex.second.Student))",throwing="e") 表示异常通知，其中trowing表示将抛出异常绑定到参数中。当切入函数抛出异常时将会触发，如下所示：</p>
+<src class="cnblogs_code">
+<pre><code><span style="color: #008080;">1</span> <span style="color: #008000;">/**</span>
+<span style="color: #008080;">2</span> <span style="color: #008000;">     * 异常通知
+</span><span style="color: #008080;">3</span>      <span style="color: #008000;">*/</span>
+<span style="color: #008080;">4</span>     @AfterThrowing(pointcut="execution(public void com.hex.second.StudentServiceImpl.addStudent(com.hex.second.Student))",throwing="e"<span style="color: #000000;">)
+</span><span style="color: #008080;">5</span>     <span style="color: #0000ff;">public</span> <span style="color: #0000ff;">void</span><span style="color: #000000;"> MyAfterThrow(JoinPoint jp,Throwable e){
+</span><span style="color: #008080;">6</span>         System.out.println("我是注解方式的异常通知"<span style="color: #000000;">);
+</span><span style="color: #008080;">7</span>     }</code></pre>
+
+<h3><span style="color: #993366;">5. 环绕通知</span></h3>
+<p>@Around(value="execution(public void com.hex.second.StudentServiceImpl.addStudent(com.hex.second.Student))") 环绕通知功能最全面，可以实现其他几种，其中参数使用ProceedingJoinPoint，是JoinPoint的子类。</p>
+<src class="cnblogs_code">
+<pre><code><span style="color: #008080;"> 1</span> <span style="color: #008000;">/**</span>
+<span style="color: #008080;"> 2</span> <span style="color: #008000;">     * 环绕通知
+</span><span style="color: #008080;"> 3</span> <span style="color: #008000;">     * </span><span style="color: #808080;">@param</span><span style="color: #008000;"> jp 才用的是JoinPoint的子类
+</span><span style="color: #008080;"> 4</span>      <span style="color: #008000;">*/</span>
+<span style="color: #008080;"> 5</span>     @Around(value="execution(public void com.hex.second.StudentServiceImpl.addStudent(com.hex.second.Student))"<span style="color: #000000;">)
+</span><span style="color: #008080;"> 6</span>     <span style="color: #0000ff;">public</span> <span style="color: #0000ff;">void</span><span style="color: #000000;"> MyAround(ProceedingJoinPoint jp){
+</span><span style="color: #008080;"> 7</span>         Object obj = <span style="color: #0000ff;">null</span><span style="color: #000000;">;
+</span><span style="color: #008080;"> 8</span>         <span style="color: #0000ff;">try</span><span style="color: #000000;"> {
+</span><span style="color: #008080;"> 9</span> 
+<span style="color: #008080;">10</span>             <span style="color: #008000;">//</span><span style="color: #008000;"> 前置通知</span>
+<span style="color: #008080;">11</span>             System.out.println("注解环绕实现前置通知。。。"<span style="color: #000000;">);
+</span><span style="color: #008080;">12</span>             System.out.println("环绕通知：target="+jp.getTarget()+",method="+jp.getSignature().getName()+",args="+<span style="color: #000000;">jp.getArgs().length);
+</span><span style="color: #008080;">13</span>             <span style="color: #008000;">//</span><span style="color: #008000;"> 控制目标方法的执行 obj表示目标方法的返回值，表示执行addStudent(student)方法
+</span><span style="color: #008080;">14</span>             <span style="color: #008000;">//</span><span style="color: #008000;">此方法控制目标方法的执行，如果不写此方法，则目标方法不会执行，此方法前的是前置通知，此方法后的是后置通知</span>
+<span style="color: #008080;">15</span>             obj =<span style="color: #000000;"> jp.proceed();
+</span><span style="color: #008080;">16</span>             <span style="color: #008000;">//</span><span style="color: #008000;"> 后置通知</span>
+<span style="color: #008080;">17</span>             System.out.println("注解环绕实现后置通知。。。"<span style="color: #000000;">);
+</span><span style="color: #008080;">18</span>         } <span style="color: #0000ff;">catch</span><span style="color: #000000;"> (Throwable e) {
+</span><span style="color: #008080;">19</span>             <span style="color: #008000;">//</span><span style="color: #008000;"> 异常通知</span>
+<span style="color: #008080;">20</span>             System.out.println("注解环绕实现异常通知。。。"<span style="color: #000000;">);
+</span><span style="color: #008080;">21</span>         }<span style="color: #0000ff;">finally</span><span style="color: #000000;">{
+</span><span style="color: #008080;">22</span>             <span style="color: #008000;">//</span><span style="color: #008000;">最终通知</span>
+<span style="color: #008080;">23</span>             System.out.println("注解环绕实现最终通知。。。"<span style="color: #000000;">);
+</span><span style="color: #008080;">24</span> <span style="color: #000000;">        }
+</span><span style="color: #008080;">25</span>     }</code></pre>
+
+<h3><span style="color: #993366;">6. 最终通知</span></h3>
+<p>@After("execution(public void com.hex.second.StudentServiceImpl.addStudent(com.hex.second.Student))") 表示最终通知,不管是否抛出异常，都会得到执行，类似于finally。如下所示：</p>
+<src class="cnblogs_code">
+<pre><code><span style="color: #008080;">1</span> <span style="color: #008000;">/**</span>
+<span style="color: #008080;">2</span> <span style="color: #008000;">     * 最终通知，@After的参数为目标通知类的表达式
+</span><span style="color: #008080;">3</span> <span style="color: #008000;">     * JoinPoint 用来获取目标函数的参数及对象等信息
+</span><span style="color: #008080;">4</span>      <span style="color: #008000;">*/</span>
+<span style="color: #008080;">5</span>     @After("execution(public void com.hex.second.StudentServiceImpl.addStudent(com.hex.second.Student))"<span style="color: #000000;">)
+</span><span style="color: #008080;">6</span>     <span style="color: #0000ff;">public</span> <span style="color: #0000ff;">void</span><span style="color: #000000;"> MyAfter(JoinPoint jp){
+</span><span style="color: #008080;">7</span>         System.out.println("我是注解方式最终通知"<span style="color: #000000;">);
+</span><span style="color: #008080;">8</span>         System.out.println("method="+jp.getSignature().getName()+",args数量="+jp.getArgs().length+",target="+<span style="color: #000000;">jp.getTarget());
+</span><span style="color: #008080;">9</span>     }</code></pre>
+
+<h3><span style="color: #993366;">7. 除了上述注解之外，还需要在Sping容器中，配置对注解的支持和AOP的自动扫描。</span></h3>
+<p>如下所示：</p>
+<src class="cnblogs_code">
+<pre><code><span style="color: #008080;"> 1</span> <span style="color: #0000ff;">&lt;?</span><span style="color: #ff00ff;">xml version="1.0" encoding="UTF-8"</span><span style="color: #0000ff;">?&gt;</span>
+<span style="color: #008080;"> 2</span> <span style="color: #0000ff;">&lt;</span><span style="color: #800000;">beans </span><span style="color: #ff0000;">xmlns</span><span style="color: #0000ff;">="http://www.springframework.org/schema/beans"</span>
+<span style="color: #008080;"> 3</span> <span style="color: #ff0000;">xmlns:xsi</span><span style="color: #0000ff;">="http://www.w3.org/2001/XMLSchema-instance"</span>
+<span style="color: #008080;"> 4</span> <span style="color: #ff0000;">xmlns:p</span><span style="color: #0000ff;">="http://www.springframework.org/schema/p"</span>
+<span style="color: #008080;"> 5</span> <span style="color: #ff0000;">xmlns:aop</span><span style="color: #0000ff;">="http://www.springframework.org/schema/aop"</span>
+<span style="color: #008080;"> 6</span> <span style="color: #ff0000;">xmlns:context</span><span style="color: #0000ff;">="http://www.springframework.org/schema/context"</span>
+<span style="color: #008080;"> 7</span> <span style="color: #ff0000;">xsi:schemaLocation</span><span style="color: #0000ff;">="http://www.springframework.org/schema/beans
+</span><span style="color: #008080;"> 8</span> <span style="color: #0000ff;"> http://www.springframework.org/schema/beans/spring-beans.xsd
+</span><span style="color: #008080;"> 9</span> <span style="color: #0000ff;"> http://www.springframework.org/schema/aop
+</span><span style="color: #008080;">10</span> <span style="color: #0000ff;"> http://www.springframework.org/schema/aop/spring-aop.xsd
+</span><span style="color: #008080;">11</span> <span style="color: #0000ff;"> http://www.springframework.org/schema/context
+</span><span style="color: #008080;">12</span> <span style="color: #0000ff;"> http://www.springframework.org/schema/context/spring-context.xsd"</span><span style="color: #0000ff;">&gt;</span>
+<span style="color: #008080;">13</span>      
+<span style="color: #008080;">14</span>      <span style="color: #008000;">&lt;!--</span><span style="color: #008000;"> 服务类 </span><span style="color: #008000;">--&gt;</span>
+<span style="color: #008080;">15</span>      <span style="color: #0000ff;">&lt;</span><span style="color: #800000;">bean </span><span style="color: #ff0000;">id</span><span style="color: #0000ff;">="studentService"</span><span style="color: #ff0000;"> class</span><span style="color: #0000ff;">="com.hex.second.StudentServiceImpl"</span><span style="color: #0000ff;">&gt;</span>
+<span style="color: #008080;">16</span>          
+<span style="color: #008080;">17</span>      <span style="color: #0000ff;">&lt;/</span><span style="color: #800000;">bean</span><span style="color: #0000ff;">&gt;</span>
+<span style="color: #008080;">18</span>      <span style="color: #008000;">&lt;!--</span><span style="color: #008000;"> 将addStudent和通知进行关联 </span><span style="color: #008000;">--&gt;</span>
+<span style="color: #008080;">19</span>      <span style="color: #008000;">&lt;!--</span><span style="color: #008000;"> 配置对注解方式AOP的支持 </span><span style="color: #008000;">--&gt;</span>
+<span style="color: #008080;">20</span>      <span style="color: #0000ff;">&lt;</span><span style="color: #800000;">aop:aspectj-autoproxy</span><span style="color: #0000ff;">&gt;&lt;/</span><span style="color: #800000;">aop:aspectj-autoproxy</span><span style="color: #0000ff;">&gt;</span>
+<span style="color: #008080;">21</span>      <span style="color: #008000;">&lt;!--</span><span style="color: #008000;"> 配置对注解的扫描 </span><span style="color: #008000;">--&gt;</span>
+<span style="color: #008080;">22</span>      <span style="color: #0000ff;">&lt;</span><span style="color: #800000;">context:component-scan </span><span style="color: #ff0000;">base-package</span><span style="color: #0000ff;">="com.hex.second"</span><span style="color: #0000ff;">&gt;&lt;/</span><span style="color: #800000;">context:component-scan</span><span style="color: #0000ff;">&gt;</span>
+<span style="color: #008080;">23</span> <span style="color: #0000ff;">&lt;/</span><span style="color: #800000;">beans</span><span style="color: #0000ff;">&gt;</span></code></pre>
+
+<h2><span style="color: #339966;">通过Schema方式实现AOP</span></h2>
+<p>通过Schema方式实现步骤如下：</p>
+<h3><span style="color: #993366;">1. 定义一个普通的类，分别实现各种功能的通知，参数和注解方式的一致。</span></h3>
+<p>如下所示：</p>
+<src class="cnblogs_code" onclick="cnblogs_code_show('f8016f58-cd55-4c0d-9dd4-0c8197ec972f')"><img id="code_img_closed_f8016f58-cd55-4c0d-9dd4-0c8197ec972f" class="code_img_closed" src="./images/一起学Spring之注解和Schema方式实现AOP0.png" alt="" /><img id="code_img_opened_f8016f58-cd55-4c0d-9dd4-0c8197ec972f" class="code_img_opened" style="display: none;" onclick="cnblogs_code_hide('f8016f58-cd55-4c0d-9dd4-0c8197ec972f',event)" src="./images/一起学Spring之注解和Schema方式实现AOP1.png" alt="" />
+<src id="cnblogs_code_open_f8016f58-cd55-4c0d-9dd4-0c8197ec972f" class="cnblogs_code_hide">
+<pre><code><span style="color: #008080;"> 1</span> <span style="color: #0000ff;">package</span><span style="color: #000000;"> com.hex.second;
+</span><span style="color: #008080;"> 2</span> 
+<span style="color: #008080;"> 3</span> <span style="color: #0000ff;">import</span><span style="color: #000000;"> org.aspectj.lang.JoinPoint;
+</span><span style="color: #008080;"> 4</span> <span style="color: #0000ff;">import</span><span style="color: #000000;"> org.aspectj.lang.ProceedingJoinPoint;
+</span><span style="color: #008080;"> 5</span> 
+<span style="color: #008080;"> 6</span> <span style="color: #008000;">/**</span>
+<span style="color: #008080;"> 7</span> <span style="color: #008000;"> * 通过Schema配置的方式实现通知
+</span><span style="color: #008080;"> 8</span> <span style="color: #008000;"> * </span><span style="color: #808080;">@author</span><span style="color: #008000;"> Administrator
+</span><span style="color: #008080;"> 9</span> <span style="color: #008000;"> *
+</span><span style="color: #008080;">10</span>  <span style="color: #008000;">*/</span>
+<span style="color: #008080;">11</span> <span style="color: #0000ff;">public</span> <span style="color: #0000ff;">class</span><span style="color: #000000;"> LogAspectSchema {
+</span><span style="color: #008080;">12</span>     <span style="color: #008000;">/**</span>
+<span style="color: #008080;">13</span> <span style="color: #008000;">     * 前置通知，@Before的参数为目标通知类的表达式
+</span><span style="color: #008080;">14</span> <span style="color: #008000;">     * JoinPoint 用来获取目标函数的参数及对象等信息
+</span><span style="color: #008080;">15</span>      <span style="color: #008000;">*/</span>
+<span style="color: #008080;">16</span>     <span style="color: #0000ff;">public</span> <span style="color: #0000ff;">void</span><span style="color: #000000;"> MyBefore(JoinPoint jp){
+</span><span style="color: #008080;">17</span>         System.out.println("我是Schema方式的前置通知"<span style="color: #000000;">);
+</span><span style="color: #008080;">18</span>         System.out.println("method="+jp.getSignature().getName()+",args数量="+jp.getArgs().length+",target="+<span style="color: #000000;">jp.getTarget());
+</span><span style="color: #008080;">19</span> <span style="color: #000000;">    }
+</span><span style="color: #008080;">20</span>     
+<span style="color: #008080;">21</span>     <span style="color: #008000;">/**</span>
+<span style="color: #008080;">22</span> <span style="color: #008000;">     * 功能：后置通知
+</span><span style="color: #008080;">23</span> <span style="color: #008000;">     * Schema形式实现AOP通知时，参数不能随便写，否则和目标函数对应不上，会报错
+</span><span style="color: #008080;">24</span> <span style="color: #008000;">     * </span><span style="color: #808080;">@param</span><span style="color: #008000;"> jp ：切入点目标对象
+</span><span style="color: #008080;">25</span> <span style="color: #008000;">     * </span><span style="color: #808080;">@param</span><span style="color: #008000;"> returningValue 返回值
+</span><span style="color: #008080;">26</span>      <span style="color: #008000;">*/</span>
+<span style="color: #008080;">27</span>     <span style="color: #0000ff;">public</span> <span style="color: #0000ff;">void</span><span style="color: #000000;"> MyAfterReturning(JoinPoint jp,Object returningValue){
+</span><span style="color: #008080;">28</span>         System.out.println("我是Schema方式的后置通知"<span style="color: #000000;">);
+</span><span style="color: #008080;">29</span>         System.out.println("返回值是："+<span style="color: #000000;">returningValue);
+</span><span style="color: #008080;">30</span> <span style="color: #000000;">    }
+</span><span style="color: #008080;">31</span>     
+<span style="color: #008080;">32</span>     <span style="color: #008000;">/**</span>
+<span style="color: #008080;">33</span> <span style="color: #008000;">     * 异常通知
+</span><span style="color: #008080;">34</span>      <span style="color: #008000;">*/</span>
+<span style="color: #008080;">35</span>     <span style="color: #0000ff;">public</span> <span style="color: #0000ff;">void</span><span style="color: #000000;"> MyAfterThrow(JoinPoint jp ,Throwable ex){
+</span><span style="color: #008080;">36</span>         System.out.println("我是Schema方式的异常通知"<span style="color: #000000;">);
+</span><span style="color: #008080;">37</span>         System.out.println("ex:"+<span style="color: #000000;">ex.getMessage());
+</span><span style="color: #008080;">38</span> <span style="color: #000000;">    }
+</span><span style="color: #008080;">39</span>     
+<span style="color: #008080;">40</span>     <span style="color: #008000;">/**</span>
+<span style="color: #008080;">41</span> <span style="color: #008000;">     * 环绕通知
+</span><span style="color: #008080;">42</span> <span style="color: #008000;">     * </span><span style="color: #808080;">@param</span><span style="color: #008000;"> jp 才用的是JoinPoint的子类
+</span><span style="color: #008080;">43</span>      <span style="color: #008000;">*/</span>
+<span style="color: #008080;">44</span>     <span style="color: #0000ff;">public</span> <span style="color: #0000ff;">void</span><span style="color: #000000;"> MyAround(ProceedingJoinPoint jp){
+</span><span style="color: #008080;">45</span>         Object obj = <span style="color: #0000ff;">null</span><span style="color: #000000;">;
+</span><span style="color: #008080;">46</span>         <span style="color: #0000ff;">try</span><span style="color: #000000;"> {
+</span><span style="color: #008080;">47</span> 
+<span style="color: #008080;">48</span>             <span style="color: #008000;">//</span><span style="color: #008000;"> 前置通知</span>
+<span style="color: #008080;">49</span>             System.out.println("Schema环绕实现前置通知。。。"<span style="color: #000000;">);
+</span><span style="color: #008080;">50</span>             System.out.println("Schema环绕通知：target="+jp.getTarget()+",method="+jp.getThis()+",args="+<span style="color: #000000;">jp.getArgs().length);
+</span><span style="color: #008080;">51</span>             <span style="color: #008000;">//</span><span style="color: #008000;"> 控制目标方法的执行 obj表示目标方法的返回值，表示执行addStudent(student)方法
+</span><span style="color: #008080;">52</span>             <span style="color: #008000;">//</span><span style="color: #008000;">此方法控制目标方法的执行，如果不写此方法，则目标方法不会执行，此方法前的是前置通知，此方法后的是后置通知</span>
+<span style="color: #008080;">53</span>             obj =<span style="color: #000000;"> jp.proceed();
+</span><span style="color: #008080;">54</span>             <span style="color: #008000;">//</span><span style="color: #008000;"> 后置通知</span>
+<span style="color: #008080;">55</span>             System.out.println("Schema环绕实现后置通知。。。"<span style="color: #000000;">);
+</span><span style="color: #008080;">56</span>         } <span style="color: #0000ff;">catch</span><span style="color: #000000;"> (Throwable e) {
+</span><span style="color: #008080;">57</span>             <span style="color: #008000;">//</span><span style="color: #008000;"> 异常通知</span>
+<span style="color: #008080;">58</span>             System.out.println("Schema环绕实现异常通知。。。"<span style="color: #000000;">);
+</span><span style="color: #008080;">59</span>         }<span style="color: #0000ff;">finally</span><span style="color: #000000;">{
+</span><span style="color: #008080;">60</span>             <span style="color: #008000;">//</span><span style="color: #008000;">最终通知</span>
+<span style="color: #008080;">61</span>             System.out.println("Schema环绕实现最终通知。。。"<span style="color: #000000;">);
+</span><span style="color: #008080;">62</span> <span style="color: #000000;">        }
+</span><span style="color: #008080;">63</span> <span style="color: #000000;">    }
+</span><span style="color: #008080;">64</span>     
+<span style="color: #008080;">65</span>     <span style="color: #008000;">/**</span>
+<span style="color: #008080;">66</span> <span style="color: #008000;">     * 最终通知
+</span><span style="color: #008080;">67</span> <span style="color: #008000;">     * </span><span style="color: #808080;">@param</span><span style="color: #008000;"> jp
+</span><span style="color: #008080;">68</span>      <span style="color: #008000;">*/</span>
+<span style="color: #008080;">69</span>     <span style="color: #0000ff;">public</span> <span style="color: #0000ff;">void</span><span style="color: #000000;"> MyAfter(JoinPoint jp){
+</span><span style="color: #008080;">70</span>         System.out.println("我是Schema方式的最终通知"<span style="color: #000000;">);
+</span><span style="color: #008080;">71</span> <span style="color: #000000;">    }
+</span><span style="color: #008080;">72</span> }</code></pre>
+
+<span class="cnblogs_code_collapse">View Code</span>
+<h3><span style="color: #993366;">2. 在Spring容器中配置</span></h3>
+<p>首先将通知类注入到Spring IOC容器中，然后配置&lt;aop:config&gt;将业务类和切面类关联起来。如下所示：</p>
+<src class="cnblogs_code" onclick="cnblogs_code_show('e5c540d8-dfe8-417d-8a22-ab81bf77311b')"><img id="code_img_closed_e5c540d8-dfe8-417d-8a22-ab81bf77311b" class="code_img_closed" src="./images/一起学Spring之注解和Schema方式实现AOP0.png" alt="" /><img id="code_img_opened_e5c540d8-dfe8-417d-8a22-ab81bf77311b" class="code_img_opened" style="display: none;" onclick="cnblogs_code_hide('e5c540d8-dfe8-417d-8a22-ab81bf77311b',event)" src="./images/一起学Spring之注解和Schema方式实现AOP1.png" alt="" />
+<src id="cnblogs_code_open_e5c540d8-dfe8-417d-8a22-ab81bf77311b" class="cnblogs_code_hide">
+<pre><code><span style="color: #008080;"> 1</span> <span style="color: #0000ff;">&lt;?</span><span style="color: #ff00ff;">xml version="1.0" encoding="UTF-8"</span><span style="color: #0000ff;">?&gt;</span>
+<span style="color: #008080;"> 2</span> <span style="color: #0000ff;">&lt;</span><span style="color: #800000;">beans </span><span style="color: #ff0000;">xmlns</span><span style="color: #0000ff;">="http://www.springframework.org/schema/beans"</span>
+<span style="color: #008080;"> 3</span> <span style="color: #ff0000;">xmlns:xsi</span><span style="color: #0000ff;">="http://www.w3.org/2001/XMLSchema-instance"</span>
+<span style="color: #008080;"> 4</span> <span style="color: #ff0000;">xmlns:p</span><span style="color: #0000ff;">="http://www.springframework.org/schema/p"</span>
+<span style="color: #008080;"> 5</span> <span style="color: #ff0000;">xmlns:aop</span><span style="color: #0000ff;">="http://www.springframework.org/schema/aop"</span>
+<span style="color: #008080;"> 6</span> <span style="color: #ff0000;">xmlns:context</span><span style="color: #0000ff;">="http://www.springframework.org/schema/context"</span>
+<span style="color: #008080;"> 7</span> <span style="color: #ff0000;">xsi:schemaLocation</span><span style="color: #0000ff;">="http://www.springframework.org/schema/beans
+</span><span style="color: #008080;"> 8</span> <span style="color: #0000ff;"> http://www.springframework.org/schema/beans/spring-beans.xsd
+</span><span style="color: #008080;"> 9</span> <span style="color: #0000ff;"> http://www.springframework.org/schema/aop
+</span><span style="color: #008080;">10</span> <span style="color: #0000ff;"> http://www.springframework.org/schema/aop/spring-aop.xsd
+</span><span style="color: #008080;">11</span> <span style="color: #0000ff;"> http://www.springframework.org/schema/context
+</span><span style="color: #008080;">12</span> <span style="color: #0000ff;"> http://www.springframework.org/schema/context/spring-context.xsd"</span><span style="color: #0000ff;">&gt;</span>
+<span style="color: #008080;">13</span>      
+<span style="color: #008080;">14</span>      <span style="color: #008000;">&lt;!--</span><span style="color: #008000;"> 服务类 </span><span style="color: #008000;">--&gt;</span>
+<span style="color: #008080;">15</span>      <span style="color: #0000ff;">&lt;</span><span style="color: #800000;">bean </span><span style="color: #ff0000;">id</span><span style="color: #0000ff;">="studentService"</span><span style="color: #ff0000;"> class</span><span style="color: #0000ff;">="com.hex.second.StudentServiceImpl"</span><span style="color: #0000ff;">&gt;</span>
+<span style="color: #008080;">16</span>          
+<span style="color: #008080;">17</span>      <span style="color: #0000ff;">&lt;/</span><span style="color: #800000;">bean</span><span style="color: #0000ff;">&gt;</span>
+<span style="color: #008080;">18</span>      <span style="color: #0000ff;">&lt;</span><span style="color: #800000;">bean </span><span style="color: #ff0000;">id</span><span style="color: #0000ff;">="logSchema"</span><span style="color: #ff0000;"> class</span><span style="color: #0000ff;">="com.hex.second.LogAspectSchema"</span><span style="color: #0000ff;">&gt;&lt;/</span><span style="color: #800000;">bean</span><span style="color: #0000ff;">&gt;</span>
+<span style="color: #008080;">19</span>      <span style="color: #0000ff;">&lt;</span><span style="color: #800000;">aop:config</span><span style="color: #0000ff;">&gt;</span>
+<span style="color: #008080;">20</span>          <span style="color: #008000;">&lt;!--</span><span style="color: #008000;"> 配置切入点 </span><span style="color: #008000;">--&gt;</span>
+<span style="color: #008080;">21</span>          <span style="color: #0000ff;">&lt;</span><span style="color: #800000;">aop:pointcut </span><span style="color: #ff0000;">expression</span><span style="color: #0000ff;">="execution(public void com.hex.second.StudentServiceImpl.deleteStudent(int)) or execution(public void com.hex.second.StudentServiceImpl.addStudent(com.hex.second.Student))"</span><span style="color: #ff0000;"> id</span><span style="color: #0000ff;">="pc"</span><span style="color: #0000ff;">/&gt;</span>
+<span style="color: #008080;">22</span>          <span style="color: #0000ff;">&lt;</span><span style="color: #800000;">aop:aspect </span><span style="color: #ff0000;">ref</span><span style="color: #0000ff;">="logSchema"</span><span style="color: #0000ff;">&gt;</span>
+<span style="color: #008080;">23</span>              <span style="color: #008000;">&lt;!--</span><span style="color: #008000;"> 通过Schema实现的通知 </span><span style="color: #008000;">--&gt;</span>
+<span style="color: #008080;">24</span>              <span style="color: #0000ff;">&lt;</span><span style="color: #800000;">aop:before </span><span style="color: #ff0000;">method</span><span style="color: #0000ff;">="MyBefore"</span><span style="color: #ff0000;"> pointcut-ref</span><span style="color: #0000ff;">="pc"</span><span style="color: #0000ff;">/&gt;</span>
+<span style="color: #008080;">25</span>              <span style="color: #0000ff;">&lt;</span><span style="color: #800000;">aop:after-returning </span><span style="color: #ff0000;">method</span><span style="color: #0000ff;">="MyAfterReturning"</span><span style="color: #ff0000;"> pointcut-ref</span><span style="color: #0000ff;">="pc"</span><span style="color: #ff0000;"> returning</span><span style="color: #0000ff;">="returningValue"</span><span style="color: #0000ff;">/&gt;</span>
+<span style="color: #008080;">26</span>              <span style="color: #0000ff;">&lt;</span><span style="color: #800000;">aop:after-throwing </span><span style="color: #ff0000;">method</span><span style="color: #0000ff;">="MyAfterThrow"</span><span style="color: #ff0000;"> pointcut-ref</span><span style="color: #0000ff;">="pc"</span><span style="color: #ff0000;"> throwing</span><span style="color: #0000ff;">="ex"</span> <span style="color: #0000ff;">/&gt;</span>
+<span style="color: #008080;">27</span>              <span style="color: #0000ff;">&lt;</span><span style="color: #800000;">aop:around </span><span style="color: #ff0000;">method</span><span style="color: #0000ff;">="MyAround"</span><span style="color: #ff0000;"> pointcut-ref</span><span style="color: #0000ff;">="pc"</span><span style="color: #0000ff;">/&gt;</span>
+<span style="color: #008080;">28</span>              <span style="color: #0000ff;">&lt;</span><span style="color: #800000;">aop:after </span><span style="color: #ff0000;">method</span><span style="color: #0000ff;">="MyAfter"</span><span style="color: #ff0000;">  pointcut-ref</span><span style="color: #0000ff;">="pc"</span><span style="color: #0000ff;">/&gt;</span>
+<span style="color: #008080;">29</span>          <span style="color: #0000ff;">&lt;/</span><span style="color: #800000;">aop:aspect</span><span style="color: #0000ff;">&gt;</span>
+<span style="color: #008080;">30</span>      <span style="color: #0000ff;">&lt;/</span><span style="color: #800000;">aop:config</span><span style="color: #0000ff;">&gt;</span>
+<span style="color: #008080;">31</span> <span style="color: #0000ff;">&lt;/</span><span style="color: #800000;">beans</span><span style="color: #0000ff;">&gt;</span></code></pre>
+
+<span class="cnblogs_code_collapse">View Code</span>
+<h2><span style="color: #339966;">备注</span></h2>
+<p>假如你不够快乐<br />也不要把眉头深锁<br />人生本来短暂<br />为什么 还要栽培苦涩</p>
+<p>打开尘封的门窗<br />让阳光雨露洒遍每个角落<br />走向生命的原野<br />让风儿熨平前额<br /><br />博大可以稀释忧愁<br />深色能够覆盖浅色</p>
+
+</div><hr><script charset='utf-8' src='../../js/sming.js'></script></body></html>

@@ -1,0 +1,106 @@
+<html><head><meta charset='utf-8'><meta name='viewport' content='width=device-width, initial-scale=1'>
+<meta name='applicable-device' content='pc'><meta name='keywords' content='电脑,电脑讲解,电脑技术,编程,电脑故障维修docker-compose下的java应用启动顺序两部曲之一：问题分析' />
+<script src='../../highlight/highlight.pack.js'></script>
+<link rel='stylesheet' type='text/css' href='../../highlight/styles/monokai.css'/>
+
+<link rel='stylesheet' href='../../fenxiang/dist/css/share.min.css'>
+<script src='../../fenxiang/src/js/social-share.js'></script>
+<script src='../../fenxiang/src/js/qrcode.js'></script>
+
+</head><body><script>hljs.initHighlightingOnLoad();</script><script>
+var system ={};  
+var p = navigator.platform;       
+system.win = p.indexOf('Win') == 0;  
+system.mac = p.indexOf('Mac') == 0;  
+system.x11 = (p == 'X11') || (p.indexOf('Linux') == 0);     
+if(system.win||system.mac||system.xll){
+document.write("<link href='../css/3.css' rel='stylesheet' type='text/css'>");}else{ document.write("<link href='../css/3wap.css' rel='stylesheet' type='text/css'>");}</script><script src='../../js/3.js'></script><div class='div2'><div class='heading_nav'><ul><div><li><a href='../../index.html'>首页</a></li>
+</div><div onclick='hidden1()' >分享</div>
+</ul></div></div>
+<div id='heading_nav2'> 
+<li class='row' >
+<div class='social-share' data-mode='prepend'><a href='javascript:' class='social-share-icon icon-heart'></a></div></li></div><script charset='utf-8' src='../../3/js/hengfu.js'></script><script charset='utf-8' src='../../3/js/hengfu2.js'></script><hr><div class='div1'><div class='biaoti'><center>docker-compose下的java应用启动顺序两部曲之一：问题分析</center></div><div class='banquan'>原文出处:本文由博客园博主zq2599提供。<br/>
+原文连接:https://www.cnblogs.com/bolingcavalry/p/11784526.html</div><br>
+    <p>在docker-compose编排多个容器时，需要按实际情况控制各容器的启动顺序，本文是《docker-compose下的java应用启动顺序两部曲》的第一篇，文中会分析启动顺序的重要性，以及启动顺序有问题时会有什么样的影响，再给出临时解决的和官方推荐的两种解决方案，为下一篇的实战做好铺垫。</p>
+<h3 id="环境信息">环境信息</h3>
+<p>本次实战的环境如下：</p>
+<ol>
+<li>操作系统：CentOS Linux release 7.7.1908</li>
+<li>docker：1.13.1</li>
+<li>docker-compose：1.24.1</li>
+<li><p>spring cloud：Finchley.RELEASE</p>
+<h3 id="分布式环境中的依赖关系">分布式环境中的依赖关系</h3>
+<p>在分布式环境中，各服务之间可能存在依赖关系，例如SpringCloud环境中的应用在启动时都会先往注册中心Eurka发起请求，如下图（来自spring官方博客：<a href="https://spring.io/blog/2015/07/14/microservices-with-spring" class="uri">https://spring.io/blog/2015/07/14/microservices-with-spring</a> ）：<br />
+<img src="./images/docker-compose下的java应用启动顺序两部曲之一：问题分析0.png" alt="在这里插入图片描述" /><br />
+从上图可知，如果Eureka的服务不可用，就会影响业务服务的功能；</p></li>
+</ol>
+<h3 id="docker环境中的依赖关系">Docker环境中的依赖关系</h3>
+<ol>
+<li>上述服务如果用docker-compose编排在一起，也面依赖着问题：Eureka容器启动完毕并且能提供http服务以后，业务服务的容器才能在Eureka注册成功并取得服务列表，通常我们都使用<font color="blue">depends_on</font>参数来设定依赖关系；</li>
+<li>以下是个docker-compose.yml文件，里面有两个容器：eureka和service，eureka是注册中心，service是业务服务，service启动后要去eureka注册，为了确保启动顺序，service配置了<font color="blue">depends_on</font>参数：</li>
+</ol>
+<pre><code><code>version: &#39;3&#39;
+services:
+  eureka:
+    image: bolingcavalry/eureka:0.0.1-SNAPSHOT
+    container_name: eureka
+    restart: unless-stopped
+  service:
+    image: bolingcavalry/service:0.0.1-SNAPSHOT
+    container_name: service
+    restart: unless-stopped
+    command: sh -c &#39;java -Xms1g -Xmx1g -cp /app/resources:/app/classes:/app/libs/* com.bolingcavalry.waitforitdemo.ServiceApplication&#39;
+    depends_on:
+    - eureka</code></code></pre>
+<ol>
+<li>上述yml文件能解决依赖问题吗？service服务启动时能否成功在eureka注册？来试试吧，在Linux电脑上创建docker-compose.yml文件，内容如上所示；</li>
+<li>在docker-compose.yml所在目录执行<font color="blue">docker-compose up</font>，docker服务会先去hub.docker.com下载镜像，然后依次创建容器，控制台会同时打印eureka和service的日志，如下图所示，service注册eureka失败了，请注意图中的文字分析：<br />
+<img src="./images/docker-compose下的java应用启动顺序两部曲之一：问题分析1.png" alt="在这里插入图片描述" /></li>
+<li>为何会注册失败呢？继续看后面的日志，如下图，service注册失败后eureka才初始化完成，所以前面的service注册会失败：<br />
+<img src="./images/docker-compose下的java应用启动顺序两部曲之一：问题分析2.png" alt="在这里插入图片描述" /></li>
+<li>至此可以确定：<font color="blue">depends_on</font>参数可以确保eureka容器启动后再启动service容器，但我们真正想要的，是eureka容器启动后，并且eureka服务初始化完毕进入可用状态后，再启动service容器，显然<font color="blue">depends_on</font>参数达不到我们的要求；</li>
+<li>docker官方文档也证实了这一点，如下图红框所示：<br />
+<img src="./images/docker-compose下的java应用启动顺序两部曲之一：问题分析3.png" alt="在这里插入图片描述" /></li>
+<li>看来<font color="blue">depends_on</font>参数解决不了我们的问题，需要去寻找其他方法；</li>
+</ol>
+<p>另外您可能会说：没关系，service会自动重新注册，但是在真实环境中，不是每个服务都有能力去自己解决依赖不可用的问题，例如spring-cloud-config服务如果起不来，依赖它的服务可能会立即停止；</p>
+<h3 id="有一种临时方法此方法v3版语法不再支持">有一种临时方法(此方法V3版语法不再支持)</h3>
+<ol>
+<li>如果eureka容器配置了健康检查，那么service容器可以配置健康检查依赖来控制启动时机，具体的做法可以参考官方示例，如下所示，地址是：<a href="https://docs.docker.com/compose/compose-file/compose-file-v2/" class="uri">https://docs.docker.com/compose/compose-file/compose-file-v2/</a> ：</li>
+</ol>
+<pre><code><code>version: &quot;2.4&quot;
+services:
+  web:
+    build: .
+    depends_on:
+      db:
+        condition: service_healthy
+      redis:
+        condition: service_started
+  redis:
+    image: redis
+  db:
+    image: redis
+    healthcheck:
+      test: &quot;exit 0&quot;</code></code></pre>
+<p>从上述编排内容可见：db容器有健康检查，可以确定db容器的服务是否可用，web容器的<font color="blue">depends_on</font>参数内可以配置<font color="blue">condition</font>，这样就做到了只有redis已经启动并且db的健康检查通过，才会启动web容器；</p>
+<ol>
+<li>上述配置看起来似乎是个不错的方案，在我们这里，只要给eureka配置要健康检查，再让service容器的<font color="blue">depends_on</font>参数内配置<font color="blue">condition: service_healthy</font>就可以了；</li>
+<li>不幸的是：<font color="red">在docker-compose的第三版语法中，取消了condition参数！</font>文档地址是：<a href="https://docs.docker.com/compose/compose-file/" class="uri">https://docs.docker.com/compose/compose-file/</a> ，如下图红框所示：<br />
+<img src="./images/docker-compose下的java应用启动顺序两部曲之一：问题分析4.png" alt="在这里插入图片描述" /></li>
+<li>因此，condition参数看似好用，但是从V3版开始的docker-compose.yml已经不再支持该参数，不能作为标准的解决方案；</li>
+</ol>
+<h3 id="官方推荐的方案">官方推荐的方案</h3>
+<p>如下图红框所示，docker官方推荐使用<font color="blue">wait-for-it.sh</font>脚本来解决问题，地址：<a href="https://docs.docker.com/compose/startup-order/" class="uri">https://docs.docker.com/compose/startup-order/</a> ：<br />
+<img src="./images/docker-compose下的java应用启动顺序两部曲之一：问题分析5.png" alt="在这里插入图片描述" /><br />
+至此，本篇已经分析了docker-compose下容器启动顺序的问题，下一篇文章，我们用SpringCloud应用来做实战，将其做到在docker-compose下有序启动；</p>
+<h3 id="参考文章">参考文章</h3>
+<p>如果您对docker容器健康检查有兴趣，可以参考以下文章：</p>
+<ol>
+<li><a href="https://blog.csdn.net/boling_cavalry/article/details/102641942">《极速体验docker容器健康》</a>；</li>
+<li><p><a href="https://blog.csdn.net/boling_cavalry/article/details/102649435">《Java应用在docker环境配置容器健康检查》</a>；</p>
+<h3 id="欢迎关注公众号程序员欣宸">欢迎关注公众号：程序员欣宸</h3></li>
+</ol>
+
+
+</div><hr><script charset='utf-8' src='../../js/sming.js'></script></body></html>

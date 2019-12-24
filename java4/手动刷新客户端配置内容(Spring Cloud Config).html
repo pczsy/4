@@ -1,0 +1,62 @@
+<html><head><meta charset='utf-8'><meta name='viewport' content='width=device-width, initial-scale=1'>
+<meta name='applicable-device' content='pc'><meta name='keywords' content='电脑,电脑讲解,电脑技术,编程,电脑故障维修手动刷新客户端配置内容(Spring Cloud Config)' />
+<script src='../../highlight/highlight.pack.js'></script>
+<link rel='stylesheet' type='text/css' href='../../highlight/styles/monokai.css'/>
+
+<link rel='stylesheet' href='../../fenxiang/dist/css/share.min.css'>
+<script src='../../fenxiang/src/js/social-share.js'></script>
+<script src='../../fenxiang/src/js/qrcode.js'></script>
+
+</head><body><script>hljs.initHighlightingOnLoad();</script><script>
+var system ={};  
+var p = navigator.platform;       
+system.win = p.indexOf('Win') == 0;  
+system.mac = p.indexOf('Mac') == 0;  
+system.x11 = (p == 'X11') || (p.indexOf('Linux') == 0);     
+if(system.win||system.mac||system.xll){
+document.write("<link href='../css/3.css' rel='stylesheet' type='text/css'>");}else{ document.write("<link href='../css/3wap.css' rel='stylesheet' type='text/css'>");}</script><script src='../../js/3.js'></script><div class='div2'><div class='heading_nav'><ul><div><li><a href='../../index.html'>首页</a></li>
+</div><div onclick='hidden1()' >分享</div>
+</ul></div></div>
+<div id='heading_nav2'> 
+<li class='row' >
+<div class='social-share' data-mode='prepend'><a href='javascript:' class='social-share-icon icon-heart'></a></div></li></div><script charset='utf-8' src='../../3/js/hengfu.js'></script><script charset='utf-8' src='../../3/js/hengfu2.js'></script><hr><div class='div1'><div class='biaoti'><center>手动刷新客户端配置内容(Spring Cloud Config)</center></div><div class='banquan'>原文出处:本文由博客园博主维晟提供。<br/>
+原文连接:https://www.cnblogs.com/bluersw/p/11610720.html</div><br>
+    <h1 id="手动刷新客户端配置内容">手动刷新客户端配置内容</h1>
+<h2 id="客户端项目增加依赖项">客户端项目增加依赖项</h2>
+<pre><code><code>&lt;dependency&gt;
+  &lt;groupId&gt;org.springframework.boot&lt;/groupId&gt;
+  &lt;artifactId&gt;spring-boot-starter-actuator&lt;/artifactId&gt;
+&lt;/dependency&gt;</code></code></pre>
+<h2 id="客户端项目修改配置文件">客户端项目修改配置文件</h2>
+<p>增加management.endpoints.web.exposure.include=refresh,health,info</p>
+<pre class="text"><code>spring.application.name=spring-cloud-config-client
+server.port=9006
+spring.cloud.consul.host=127.0.0.1
+spring.cloud.consul.port=8500
+#设置不需要注册到 consul 中
+spring.cloud.consul.discovery.register=false
+#显示的暴露接入点
+management.endpoints.web.exposure.include=refresh,health,info</code></code></pre>
+<h2 id="客户端程序增加支持刷新注解">客户端程序增加支持刷新注解</h2>
+<p>在使用配置中心的类上添加@RefreshScope注解：</p>
+<pre class="java"><code>@RestController
+//刷新触发地址/actuator/refresh
+@RefreshScope
+public class ConfigTestController {
+
+    //配置信息通过@Value注解读取,配置项用${配置项}读取
+    @Value(&quot;${bluersw.config}&quot;)
+    private String configBluersw;
+
+    @RequestMapping(&quot;/ConfigTest&quot;)
+    public String ConfigTest(){
+        return this.configBluersw;
+    }
+}</code></code></pre>
+<h2 id="测试刷新效果">测试刷新效果</h2>
+<p>将Git仓库里的配置内容改外Test-5（bluersw.config=Test-5），启动客户端程序（spring-cloud-config-client），刷新客户端页面127.0.0.1:9006/ConfigTest，发现显示内容还是Test-3，然后执行:</p>
+<pre class="shell"><code>curl -X POST http://127.0.0.1:9006/actuat/refresh</code></code></pre>
+<p>再次刷新页面127.0.0.1:9006/ConfigTest，页面内容显示为Test-5，说明客户端程序内的配置信息读取了最新的值。</p>
+
+
+</div><hr><script charset='utf-8' src='../../js/sming.js'></script></body></html>

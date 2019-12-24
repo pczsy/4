@@ -1,0 +1,863 @@
+<html><head><meta charset='utf-8'><meta name='viewport' content='width=device-width, initial-scale=1'>
+<meta name='applicable-device' content='pc'><meta name='keywords' content='电脑,电脑讲解,电脑技术,编程,电脑故障维修阿里《JAVA实习生入职测试题—2019最新》之答案详解（连载二）' />
+<script src='../../highlight/highlight.pack.js'></script>
+<link rel='stylesheet' type='text/css' href='../../highlight/styles/monokai.css'/>
+
+<link rel='stylesheet' href='../../fenxiang/dist/css/share.min.css'>
+<script src='../../fenxiang/src/js/social-share.js'></script>
+<script src='../../fenxiang/src/js/qrcode.js'></script>
+
+</head><body><script>hljs.initHighlightingOnLoad();</script><script>
+var system ={};  
+var p = navigator.platform;       
+system.win = p.indexOf('Win') == 0;  
+system.mac = p.indexOf('Mac') == 0;  
+system.x11 = (p == 'X11') || (p.indexOf('Linux') == 0);     
+if(system.win||system.mac||system.xll){
+document.write("<link href='../css/3.css' rel='stylesheet' type='text/css'>");}else{ document.write("<link href='../css/3wap.css' rel='stylesheet' type='text/css'>");}</script><script src='../../js/3.js'></script><div class='div2'><div class='heading_nav'><ul><div><li><a href='../../index.html'>首页</a></li>
+</div><div onclick='hidden1()' >分享</div>
+</ul></div></div>
+<div id='heading_nav2'> 
+<li class='row' >
+<div class='social-share' data-mode='prepend'><a href='javascript:' class='social-share-icon icon-heart'></a></div></li></div><script charset='utf-8' src='../../3/js/hengfu.js'></script><script charset='utf-8' src='../../3/js/hengfu2.js'></script><hr><div class='div1'><div class='biaoti'><center>阿里《JAVA实习生入职测试题—2019最新》之答案详解（连载二）</center></div><div class='banquan'>原文出处:本文由博客园博主CoderBaby提供。<br/>
+原文连接:https://www.cnblogs.com/NaughtyCat/p/alibaba-java-interview-serial-2.html</div><br>
+    <p>力争清晰完整准确（逐步完善，持续更新）</p>
+<hr />
+<p><span style="color: #008000;"><strong><em>3、反射中，Class.forName和<span>ClassLoader.loadClass</span>的区别</em></strong></span></p>
+<p><span style="color: #000000;">更准确的说，是Class.forName（"SomeClass")和ClassLoader.getSystemClassLoader().loadClass("SomeClass")的区别</span></p>
+<pre><code>Class.forName（&ldquo;SomeClass&rdquo;）= Class.forName(className,true,classloader）<br />ClassLoader.loadClass(className) = ClassLoader.loadClass(className,false)</code></pre>
+<ul>
+<li><span style="color: #000000;">第一个会用调用这段代码的class loader 来load class, 并且完成初始化（true&mdash;&mdash;表示要初始化，即静态初始化会被执行，包括静态代码块，静态变量）</span></li>
+<li><span style="color: #000000;">第二个会调用&ldquo;system" class loader （这个会被覆盖掉），不会被初始化（如果用它来load&nbsp;&nbsp;JDBC driver，那么它不会被注册，因此你无法使用JDBC)</span></li>
+</ul>
+<p><span style="color: #000000;">类和接口的装载及初始化，请参看&nbsp;<a href="https://docs.oracle.com/javase/specs/jls/se7/html/jls-12.html#jls-12.2">https://docs.oracle.com/javase/specs/jls/se7/html/jls-12.html#jls-12.2</a>&nbsp;之12.2和12.4。</span></p>
+<p><span style="color: #000000;">详情参看&nbsp;<a href="https://stackoverflow.com/questions/8100376/class-forname-vs-classloader-loadclass-which-to-use-for-dynamic-loading">https://stackoverflow.com/questions/8100376/class-forname-vs-classloader-loadclass-which-to-use-for-dynamic-loading</a></span></p>
+<p>&nbsp;</p>
+<p><em><strong><span style="color: #008000;">4、session和cookie的区别与联系，session的生命周期，多个服务部署时session管理</span></strong></em></p>
+<p>这个得从HTTP协议是无状态说起。http协议就是客服端向服务器发起一次请求，链接，然后传数据，断开链接。</p>
+<ul>
+<li>无状态（stateless)</li>
+</ul>
+<p>就是第一次客户端A来了,在服务器要了些资源，干了些事，然后断开链接，走了。没有谁记录这次链接的一些状态，下一次客户端A再来一次，服务器不认识它，不知道它来过，也不知道它上次干过啥，完全当作新的一次链接访问来处理。就如同生活中有个陌生人来你家做客，吃饭打牌玩游戏，然后他回家了。下次这家伙又来，结果你有遗忘症，完全认不得这哥们。</p>
+<ul>
+<li>有状态 (stateful)</li>
+</ul>
+<p>就是第一次客户端A来了,在服务器要了些资源，干了些事，然后断开链接，走了。有东西记录这次访问的一些信息，比如操作记录、用户名密码等。这次就是有个陌生人来你家做客，吃饭打牌玩游戏，然后他回家了。下次这家伙又来，主人是有正常记忆的人，对这哥们有印象。</p>
+<p>&nbsp;</p>
+<p><em>session和cookie的作用就是记录访问用户和服务器的交互状态。</em>它们让http请求变成了能记录状态的会话。cookie存在客户端，B/S里客户端就是浏览器；session存在服务器。</p>
+<p>cookie截图如下:</p>
+<p><img src="./images/阿里《JAVA实习生入职测试题—2019最新》之答案详解（连载二）0.png" alt="" /></p>
+<p>&nbsp;</p>
+<ul>
+<li><strong>&nbsp;cookie</strong></li>
+</ul>
+<p>存放key/value键值对数据。当用户通过HTTP访问服务器,服务器会在reponse里将这些&ldquo;键值对&rdquo;信息给到客户端浏览器，并对这些数据做一定的限制。在条件符合的时候，用户再次访问这个服务器，数据又被完整带回服务器（在HTTP header里）。 Cookie设计的初衷是记录一段时间内用户访问Web应用的行为路径。</p>
+<p><span style="color: #ff0000;"><em><strong>缺点：Cookie可能被盗和伪造等</strong></em></span></p>
+<ul>
+<li><strong>session（会话）</strong></li>
+</ul>
+<p>session基于cookie工作的。同一客户端和服务器交互时，不需要每次都回传所有Cookie信息，只需要传个唯一ID（客户端第一次访问服务器时服务器生成的唯一标识），服务端每次回传这个唯一标识（sessionId),服务器就知道这个客户端是谁了，来服务器端干过啥。减少了客服端和服务端每次交互传输的数据量，节省带宽。在PV过亿的情况，节省的带宽就相当可观了</p>
+<p><span style="background-color: #ffffff; color: #ff0000;"><em><strong>缺点：Session不易在多台服务器间共享等</strong></em></span></p>
+<ul>
+<li><span style="background-color: #ffffff;"><strong>session生命周期</strong></span></li>
+<li><span style="background-color: #ffffff;"><strong>多服务器部署的session管理</strong></span></li>
+</ul>
+<p><span style="background-color: #ffffff;"><em><strong><span style="color: #008000;">5、Java中的队列都有哪些，有什么区别</span></strong></em></span></p>
+<p><br /><span style="background-color: #ffffff;"><em><strong><span style="color: #008000;">6、详谈一下Java的内存模型以及GC算法</span></strong></em></span></p>
+<p>Java内存模型（Java Memory Model, JMM)</p>
+<ul>
+<li>为什么Java要抽象和实现这么一套东西？</li>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+</ul>
+<p>简单地先从硬件角度说，CPU和存储设备速度相差几个数量级，而CPU高速运算的数据源及运算的结构，不可避免要和存储设备有读写交互，单靠寄存器搞不定。所以中间搞个高速缓存，解决CPU与内存的速度矛盾。这样一来，解决了问题，又增加了新的问题，复杂性增加了（自不待言），缓存一致性的问题又来了（Cache Coherence)。</p>
+<p>Java虚拟机的&ldquo;内存模型&rdquo;可以说是对特定的内存和高速缓存读写过程的抽象，屏蔽掉各种硬件和操作系统的内存访问差异，确保Java程序在各种平台上运行效果一样，不需要再改代码（跨平台, Write once, run everywhere）。而诸如C++等语言，直接使用物理硬件和操作系统的内存模型，换个平台可能就会出错，所以在某些场景必须针对不同的平台编写不同的分支处理程序。</p>
+<p>不说了，上图</p>
+<p><img src="./images/阿里《JAVA实习生入职测试题—2019最新》之答案详解（连载二）1.png" alt="" /></p>
+<ul>
+<li>运行时数据区域</li>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+</ul>
+<p><img src="./images/阿里《JAVA实习生入职测试题—2019最新》之答案详解（连载二）2.png" alt="" /></p>
+<p>这个和前面的划分不是同一层次角度，面试时有面试官，随手写段代码，让我区分里面的变量等分别是放在那个区域的。</p>
+<p>1）程序计数器（Program Counter Register)</p>
+<ul>
+<li>据说可以理解为JAVA底层执行的字节码的行号指示器，通过改变此的数值，来选取执行不同的字节码指令，完成分支、循环、跳转、异常处理、线程恢复等编程语言基本都具备的基础功能</li>
+<li>不会抛出OutOfMemoryError</li>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+</ul>
+<p><em><span style="color: #008000;">线程私有</span></em>（有游戏主程问我哪些是线程私有的，这个问题在思考什么呢）</p>
+<p>2)&nbsp; Java虚拟机栈（Java Virtual Machine Stacks)</p>
+<ul>
+<li>生命周期 = 线程的生命周期，数据结构：stack</li>
+<li>栈帧（Stack Frame) ，存储局部变量表、操作数栈、动态链接、方法出口等。和方法息息相关，方法的调用一直到执行完毕，对应着一个栈桢的入栈到出栈之全过程。</li>
+<li>局部变量表，存放8种基本数据类型（boolean、byte、char、short、integer、long、float、double）、对象引用、returnAddress（指向一条字节码指令的地址）</li>
+<li>会抛出StackOverflowError及OutOfMemoryError</li>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+</ul>
+<p><span style="color: #008000;"><em>线程私有</em></span></p>
+<p>3)&nbsp; 本地方法栈 (Native Method Stack)</p>
+<ul>
+<li>为Native方法服务（类似虚拟机栈）</li>
+<li>实现方式、数据结构、语言可灵活处理，如Sun HotSpot 虚拟机把本地方法栈和虚拟机栈合二为一</li>
+<li>会抛出StackOverflowError及OutOfMemoryError</li>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+</ul>
+<p>4）堆（heap)</p>
+<ul>
+<li>存放几乎所有对象</li>
+<li>细分为新生代和老年代（内存空间占比为1：2），新生代根据死亡概率，会有不同的回收算法（有游戏主程专门问到，老年代的回收算法有哪些？）</li>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+</ul>
+<p><img src="./images/阿里《JAVA实习生入职测试题—2019最新》之答案详解（连载二）3.png" alt="" /></p>
+<ul>
+<li>会抛出OutOfMemoryError</li>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+</ul>
+<p><span style="color: #008000;"><em>线程共享</em></span></p>
+<p>5)&nbsp; &nbsp;方法区（Method Area)</p>
+<ul>
+<li>存储被虚拟机加载的类信息、常量、静态变量、即时编译器编译后的代码等</li>
+<li>会抛出OutOfMemoryError</li>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+</ul>
+<p><span style="color: #008000;"><em>线程共享</em></span></p>
+<p>6）运行时常量池（Runtime Constant Pool)</p>
+<ul>
+<li>&nbsp;存放编译期生成的各种字面量和符号引用及<em>直接引用（？）</em></li>
+<li>动态可变，即在运行期也可将新的常量放入池中，如通过String类的intern()方法</li>
+<li>会抛出OutOfMemoryError</li>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+</ul>
+<hr />
+<p>&nbsp;</p>
+<ul>
+<li><span style="font-size: 14px;">GC算法</span></li>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+</ul>
+<p>&nbsp;</p>
+<p>&nbsp;推荐&nbsp;<a href="https://blog.csdn.net/javazejian/article/details/72772461">https://blog.csdn.net/javazejian/article/details/72772461</a></p>
+<p><span style="background-color: #ffffff;"><em><strong><span style="color: #008000;">7、JAVA10、JAVA11的新特性</span></strong></em></span></p>
+<p>JAVA10 新特性官方发布页：&nbsp;<em><a title="JAVA10新特性-官方发布" href="https://www.oracle.com/technetwork/java/javase/10-relnote-issues-4108729.html" target="_blank">https://www.oracle.com/technetwork/java/javase/10-relnote-issues-4108729.html</a></em></p>
+<ul>
+<li>新增<strong> Optional.orElseThrow() </strong>方法</li>
+<li>新增几个<strong>Unmodifiable Collections </strong>API，如<code>Collectors</code>&nbsp;类新增&nbsp;<code>toUnmodifiableList</code>,&nbsp;<code>toUnmodifiableSet</code>, 和<code>toUnmodifiableMap</code>&nbsp;方法</li>
+<li>...</li>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+</ul>
+<p>JAVA11 新特性官方发布页:&nbsp;&nbsp;<a href="https://www.oracle.com/technetwork/java/javase/11-relnote-issues-5012449.html" target="_blank">https://www.oracle.com/technetwork/java/javase/11-relnote-issues-5012449.html</a></p>
+<p><em>卧槽，最近jdk更新有点快，都13了</em></p>
+<p><span style="color: #008000;"><em><strong>8、Java内存泄漏的问题调查定位：jmap, jstack的使用</strong></em></span><br /><span style="color: #008000;"><em><strong>9、Spring的体系结构和jar用途</strong></em></span><br /><span style="color: #008000;"><em><strong>10、Spring MVC的运行原理&nbsp;</strong></em></span><br /><span style="color: #008000;"><em><strong>11、Spring Boot的执行过程</strong></em></span></p>
+<p>spring boot 类加载过程和tomcat类加载过程的区别，也是面试常问</p>
+<p><span style="color: #008000;"><em><strong>12、Spring IOC和AOP的底层实现</strong></em></span><br /><span style="color: #008000;"><em><strong>14、Spring boot 的优势和劣势，以及适用场景等</strong></em></span><br /><span style="color: #008000;"><em><strong>15、讲一下Sping Cloud和Dubbo的优缺点</strong></em></span><br /><span style="color: #008000;"><em><strong>16、什么是Hystrix?它如何实现容错？</strong></em></span></p>
+<p>hystrx 工作原理，详见&nbsp;<a href="https://segmentfault.com/a/1190000012439580" target="_blank">https://segmentfault.com/a/1190000012439580</a></p>
+<p><br /><em><strong><span style="color: #008000;">17、什么Netflix Feign?它的优点是什么？</span></strong></em></p>
+<p><br /><em><strong><span style="color: #008000;">18、谈一谈分布式一致性到CAP理论，BASE理论</span></strong></em></p>
+<ul>
+<li>CAP &mdash; C:Consistency（一致性），A:Avaliaility(可用性）和P:Partition tolerance(分区容错性）</li>
+
+
+
+</ul>
+<p>三者至多同时满足其中的两个，具体参见CAP猜想：&nbsp;<em><a href="https://people.eecs.berkeley.edu/~brewer/cs262b-2004/PODC-keynote.pdf">https://people.eecs.berkeley.edu/~brewer/cs262b-2004/PODC-keynote.pdf</a>&nbsp; &mdash;&mdash;&nbsp;</em>由加州大学伯克利分校的Eric Brewer教授于2000年在ACM PODC（Principles of Distributed Computing）会议上提出</p>
+<ul>
+<li>BASE &mdash; BA: Basic Available（基本可用），S: Soft state（软状态）和 E: Eventually consistent(最终一致性）</li>
+
+
+
+</ul>
+<p>基于大规模互联网分布式实践经验和CAP理论，权衡考虑CAP中的一致性和可用性，大家发现即使难以满足强一致性（Strong consistency)，但应用应该结合自身业务特点，实现在有限时间内达到最终一致性（Eventual consistency)</p>
+<p><br /><span style="color: #008000;"><em><strong>19、常用的线程池模式以及不同线程池的使用场景&mdash;面试出现频率非常高</strong></em></span></p>
+<ul>
+<li><strong>FixedThreadPool</strong></li>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+</ul>
+<p>　　定长线程池</p>
+<p><img src="./images/阿里《JAVA实习生入职测试题—2019最新》之答案详解（连载二）4.png" alt="" /></p>
+<p>源码如下：</p>
+<src class="cnblogs_code">
+<pre><code>    <span style="color: #0000ff;">public</span> <span style="color: #0000ff;">static</span> ExecutorService newFixedThreadPool(<span style="color: #0000ff;">int</span><span style="color: #000000;"> nThreads) {
+        </span><span style="color: #0000ff;">return</span> <span style="color: #0000ff;">new</span><span style="color: #000000;"> ThreadPoolExecutor(nThreads, nThreads,
+                                      </span><span style="color: #800080;">0L</span><span style="color: #000000;">, TimeUnit.MILLISECONDS,
+                                      </span><span style="color: #0000ff;">new</span> LinkedBlockingQueue&lt;Runnable&gt;<span style="color: #000000;">());
+    }</span></code></pre>
+
+<p>&nbsp;</p>
+<ul>
+<li><strong>CachedThreadPool</strong></li>
+</ul>
+<p>　　可缓存的线程池</p>
+<p><img src="./images/阿里《JAVA实习生入职测试题—2019最新》之答案详解（连载二）5.png" alt="" />&nbsp;</p>
+<p>源码如下：</p>
+<src class="cnblogs_code">
+<pre><code>    <span style="color: #0000ff;">public</span> <span style="color: #0000ff;">static</span><span style="color: #000000;"> ExecutorService newCachedThreadPool() {
+        </span><span style="color: #0000ff;">return</span> <span style="color: #0000ff;">new</span> ThreadPoolExecutor(0<span style="color: #000000;">, Integer.MAX_VALUE,
+                                      </span>60L<span style="color: #000000;">, TimeUnit.SECONDS,
+                                      </span><span style="color: #0000ff;">new</span> SynchronousQueue&lt;Runnable&gt;<span style="color: #000000;">());
+    }</span></code></pre>
+
+<p>&nbsp;</p>
+<ul>
+<li><strong>SingleThreadExecutor</strong></li>
+</ul>
+<p>　　单一线程池</p>
+<p><img src="./images/阿里《JAVA实习生入职测试题—2019最新》之答案详解（连载二）6.png" alt="" /></p>
+<p>　　1）只会创建一个工作线程，即corePoolSize和maxiumPoolSize都被设置1，其它的同<em>FixedThreadPool</em></p>
+<src class="cnblogs_code">
+<pre><code>    <span style="color: #0000ff;">public</span> <span style="color: #0000ff;">static</span><span style="color: #000000;"> ExecutorService newSingleThreadExecutor() {
+        </span><span style="color: #0000ff;">return</span> <span style="color: #0000ff;">new</span><span style="color: #000000;"> FinalizableDelegatedExecutorService
+            (</span><span style="color: #0000ff;">new</span> ThreadPoolExecutor(1, 1<span style="color: #000000;">,
+                                    </span>0L<span style="color: #000000;">, TimeUnit.MILLISECONDS,
+                                    </span><span style="color: #0000ff;">new</span> LinkedBlockingQueue&lt;Runnable&gt;<span style="color: #000000;">()));
+    }</span></code></pre>
+
+<p>　　2）采用的阻塞队列为LinkedBlockingQueue</p>
+<ul>
+<li><strong>ScheduledThreadPool</strong></li>
+</ul>
+<p>　　可调度线程池&nbsp; （处理延时或定时任务）</p>
+<p><img src="./images/阿里《JAVA实习生入职测试题—2019最新》之答案详解（连载二）7.png" alt="" /></p>
+<p>源码如下：</p>
+<src class="cnblogs_code">
+<pre><code>    <span style="color: #0000ff;">public</span> ScheduledThreadPoolExecutor(<span style="color: #0000ff;">int</span><span style="color: #000000;"> corePoolSize) {
+        </span><span style="color: #0000ff;">super</span>(corePoolSize, Integer.MAX_VALUE, 0<span style="color: #000000;">, NANOSECONDS,
+              </span><span style="color: #0000ff;">new</span><span style="color: #000000;"> DelayedWorkQueue());
+    }</span></code></pre>
+
+<ul>
+<li>&nbsp;线程池如果满了，会抛什么异常，拒绝策略包含哪些？（游戏主程的问题）</li>
+</ul>
+<p>抛出 "RejectedExecutionException"异常，拒绝策略包括4种（implements RejectedExecutionHandler),&nbsp;</p>
+<ol>
+<li>CallerRunsPolicy &mdash;&mdash; 让新来的task在调用它的线程里自己跑</li>
+<li>AbortPolicy &mdash;&mdash; 不执行新来的task，直接抛出异常&mdash;&mdash;默认</li>
+<li>DiscardPolicy &mdash;&mdash; 静悄悄地丢弃掉被拒绝地task,不抛出异常通知一下哈</li>
+<li>DiscardOldestPolicy &mdash;&mdash; 丢弃掉最早地未处理地请求；如果线程池关闭，则丢弃掉新来的task</li>
+</ol>
+<p>推荐：&nbsp;<a href="https://blog.csdn.net/z_s_z2016/article/details/81674893" target="_blank">https://blog.csdn.net/z_s_z2016/article/details/81674893</a></p>
+<p><span style="color: #008000;"><strong><em>20、ReentrantLock 和 synchronized的区别</em></strong></span><br /><span style="color: #008000;"><strong><em>21、AtomicInteger和volatile等线程安全操作的关键字的理解和使用</em></strong></span></p>
+<p><span style="font-size: 14px;">关于线程安全，我的理解就是一段代码在单线程下跑完的结果在多线程下跑完一样。</span></p>
+<p><strong><span style="font-size: 16px;">volatie</span></strong>作用于fields,语义表示内存可见性。也就是说，一旦最新对此值作了修改，所有的线程都知道；又可防止指令重排序，保证多线程下的线程安全。</p>
+<p><strong><span style="font-size: 16px;">AtomicInteger</span></strong><span style="font-size: 14px;">的存储值的value被volatile修饰符限定，即保证了其线程安全。主要用来计数</span></p>
+<p><span>源码片段如下：</span></p>
+<src class="cnblogs_code">
+<pre><code>    <span style="color: #0000ff;">private</span> <span style="color: #0000ff;">static</span> final Unsafe <span style="color: #0000ff;">unsafe</span> =<span style="color: #000000;"> Unsafe.getUnsafe();
+    </span><span style="color: #0000ff;">private</span> <span style="color: #0000ff;">static</span> final <span style="color: #0000ff;">long</span><span style="color: #000000;"> valueOffset;
+
+    </span><span style="color: #0000ff;">static</span><span style="color: #000000;"> {
+        </span><span style="color: #0000ff;">try</span><span style="color: #000000;"> {
+            valueOffset </span>= <span style="color: #0000ff;">unsafe</span><span style="color: #000000;">.objectFieldOffset
+                (AtomicInteger.</span><span style="color: #0000ff;">class</span>.getDeclaredField(<span style="color: #800000;">"</span><span style="color: #800000;">value</span><span style="color: #800000;">"</span><span style="color: #000000;">));
+        } </span><span style="color: #0000ff;">catch</span> (Exception ex) { <span style="color: #0000ff;">throw</span> <span style="color: #0000ff;">new</span><span style="color: #000000;"> Error(ex); }
+    }
+
+    </span><span style="color: #0000ff;">private</span> <span style="color: #0000ff;">volatile</span> <span style="color: #0000ff;">int</span> value;</code></pre>
+
+<p>&nbsp;AtomicInteger源码比较简单，主要的几个接口，都是调用Unsafe类的<em>&nbsp;compareAndSwapInt（）、getAndAddInt（）、getAndSetInt（）</em>实现。</p>
+<p><strong>valueOffset</strong>，也就是内存偏移量。AtomicInteger的原子操作就是依靠内存偏移量来实现的。</p>
+<ul>
+<li>关于CAS(compareAndSwap)后面单独写篇博客吧，乐观锁的机制就是CAS</li>
+</ul>
+<src class="cnblogs_code">
+<pre><code>    <span style="color: #0000ff;">public</span> final boolean compareAndSet(<span style="color: #0000ff;">int</span> expect, <span style="color: #0000ff;">int</span><span style="color: #000000;"> update) {
+        </span><span style="color: #0000ff;">return</span> <span style="color: #0000ff;">unsafe</span>.compareAndSwapInt(<span style="color: #0000ff;">this</span><span style="color: #000000;">, valueOffset, expect, update);
+    }</span></code></pre>
+
+<p>&nbsp;</p>
+<p>简单说，就是更新之前，先读取，看读取的actual vulue 和原来的值(expect)是否是一致的。如果一致，就直接更新；否则更新expect，再次读取。保证了在不加锁的情况下，不会出问题，效率还高</p>
+<ul>
+<li>Unsafe类读写速度很快，类似C的指针，可以操作系统内存资源、自主管理内存。没有JVM的内存管理，可能会有内存泄漏等安全问题，所以JAVA官方不推荐使用</li>
+</ul>
+<p><em>关于volatile详情，请参见：</em></p>
+<ul>
+<li><a href="https://www.cnblogs.com/dolphin0520/p/3920373.html">https://www.cnblogs.com/dolphin0520/p/3920373.html</a></li>
+<li><a href="https://stackoverflow.com/questions/106591/what-is-the-volatile-keyword-useful-for">https://stackoverflow.com/questions/106591/what-is-the-volatile-keyword-useful-for</a></li>
+</ul>
+<p><em>关于Unsafe类，请移步</em>&nbsp;<a href="https://tech.meituan.com/2019/02/14/talk-about-java-magic-class-unsafe.html">https://tech.meituan.com/2019/02/14/talk-about-java-magic-class-unsafe.html</a></p>
+<p>关于<br /><span style="color: #008000;"><strong><em>22、分布式锁三种实现方式</em></strong></span><br /><span style="color: #008000;"><strong><em>23、socket框架netty的使用，以及NIO的实现原理，为什么是异步非阻塞</em></strong></span><br /><span style="color: #008000;"><strong><em>24、简述NIO的最佳实践</em></strong></span><br /><span style="color: #008000;"><strong><em>25、Zookeeper的用途，选举的原理是什么</em></strong></span><br /><span style="color: #008000;"><strong><em>26、手写一个哈夫曼树</em></strong></span></p>
+<p>哈夫曼树（Huffman Tree）又称最优二叉树</p>
+<p>*****************************************************************************************************</p>
+<p><strong><em>精力有限，想法太多，专注做好一件事就行</em></strong></p>
+<ul>
+<li><em><em>我只是一个程序猿。</em>5年内把代码写好，技术博客字字推敲，坚持零拷贝和原创</em></li>
+<li><em>写博客的意义在于锻炼逻辑条理性，加深对知识的系统性理解，锻炼文笔，如果恰好又对别人有点帮助，那真是一件令人开心的事</em></li>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+</ul>
+<p>*****************************************************************************************************</p>
+
+</div><hr><script charset='utf-8' src='../../js/sming.js'></script></body></html>

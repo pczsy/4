@@ -1,0 +1,47 @@
+<html><head><meta charset='utf-8'><meta name='viewport' content='width=device-width, initial-scale=1'>
+<meta name='applicable-device' content='pc'><meta name='keywords' content='电脑,电脑讲解,电脑技术,编程,电脑故障维修java 线程之线程状态' />
+<script src='../../highlight/highlight.pack.js'></script>
+<link rel='stylesheet' type='text/css' href='../../highlight/styles/monokai.css'/>
+
+<link rel='stylesheet' href='../../fenxiang/dist/css/share.min.css'>
+<script src='../../fenxiang/src/js/social-share.js'></script>
+<script src='../../fenxiang/src/js/qrcode.js'></script>
+
+</head><body><script>hljs.initHighlightingOnLoad();</script><script>
+var system ={};  
+var p = navigator.platform;       
+system.win = p.indexOf('Win') == 0;  
+system.mac = p.indexOf('Mac') == 0;  
+system.x11 = (p == 'X11') || (p.indexOf('Linux') == 0);     
+if(system.win||system.mac||system.xll){
+document.write("<link href='../css/3.css' rel='stylesheet' type='text/css'>");}else{ document.write("<link href='../css/3wap.css' rel='stylesheet' type='text/css'>");}</script><script src='../../js/3.js'></script><div class='div2'><div class='heading_nav'><ul><div><li><a href='../../index.html'>首页</a></li>
+</div><div onclick='hidden1()' >分享</div>
+</ul></div></div>
+<div id='heading_nav2'> 
+<li class='row' >
+<div class='social-share' data-mode='prepend'><a href='javascript:' class='social-share-icon icon-heart'></a></div></li></div><script charset='utf-8' src='../../3/js/hengfu.js'></script><script charset='utf-8' src='../../3/js/hengfu2.js'></script><hr><div class='div1'><div class='biaoti'><center>java 线程之线程状态</center></div><div class='banquan'>原文出处:本文由博客园博主小禾点点提供。<br/>
+原文连接:https://www.cnblogs.com/jalja/p/11451981.html</div><br>
+    <p>Thread&nbsp;类中的线程状态：</p>
+<src class="cnblogs_code">
+<pre><code> <span style="color: #0000ff;">public</span> <span style="color: #0000ff;">enum</span><span style="color: #000000;"> State {
+        NEW,</span><span style="color: #008000;">//</span><span style="color: #008000;">新建</span>
+        RUNNABLE,<span style="color: #008000;">//</span><span style="color: #008000;"> 执行态</span>
+        BLOCKED, <span style="color: #008000;">//</span><span style="color: #008000;">等待锁（在获取锁的池子里）</span>
+        WAITING,<span style="color: #008000;">//</span><span style="color: #008000;">等待状态</span>
+        TIMED_WAITING,<span style="color: #008000;">//</span><span style="color: #008000;">定时等待</span>
+        TERMINATED; <span style="color: #008000;">//</span><span style="color: #008000;">终止 </span>
+}</code></pre>
+
+<p><img src="./images/java 线程之线程状态0.png" alt="" width="729" height="392" /></p>
+<p>创建状态（NEW）：当一个线程创建以后，就处于创建状态。Thread&nbsp; &nbsp;th= new&nbsp;Thread（（）-&gt;{ }）;</p>
+<p>等待锁（BLOCKED）：当线程调用 th.start()&nbsp;方法，表明该线程具备获取锁的资格，进入等待锁的池子中。</p>
+<p>可运行状态：当线程&nbsp;th&nbsp;获取到锁之后就进入该状态（该状态并不存在Thread&nbsp;类中，但是操作系统是否执行线程，是根据是否分配时间片来决定的）。</p>
+<p>执行态（RUNNABLE）：当可运行态的线程&nbsp;th&nbsp;获取到cpu的时间片以后就进入执行。</p>
+<p>终止态（TERMINATED）：线程执行完毕，或者出现异常。</p>
+<p>阻塞状态：在&nbsp;Thread&nbsp;源码里没有改状态但是在《操作系统原理》中线程是存在该状态的。阻塞态的线程是没有释放自己本身持有的锁（例如线程运行时需要外部I/O资源，打印机、调用sleep()方法。）只是由于外部提出了干预，等外部事件执行完毕后，可直接进入可运行状态。</p>
+<p>等待状态（WAITING）： 一个处于运行状态的线程还可能调用wait()方法、该方法会使调用的线程释放对象锁释，所以线程将进入等待获取锁的队列里面。join()&nbsp;方法同理，join（）方法底层使用的wait()，只不过Join()方法作用于当前执行的线程中。通过调用notify()或notifyAll()这两个方法来唤醒线程然后进入锁池状态。进入锁池状态以后继续参与锁的竞争。</p>
+<p>定时等待状态（TIMED_WAITING）：调用&nbsp;带参数的wait(long num)&nbsp;方法。该方法等定时一到自动会唤醒线程然后进入锁池状态。进入锁池状态以后继续参与锁的竞争。</p>
+<p>挂起状态：当一个处于运行状态的线程调用了suspend()方法以后，它就会进入挂起状态（这一方法已经过时不建议使用）。挂起状态的线程也没有释放对象锁，它需要调用resume()方法以后才能恢复到可运行状态。将线程挂起容易导致程序死锁。</p>
+<p>&nbsp;</p>
+
+</div><hr><script charset='utf-8' src='../../js/sming.js'></script></body></html>

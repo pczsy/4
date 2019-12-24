@@ -1,0 +1,139 @@
+<html><head><meta charset='utf-8'><meta name='viewport' content='width=device-width, initial-scale=1'>
+<meta name='applicable-device' content='pc'><meta name='keywords' content='电脑,电脑讲解,电脑技术,编程,电脑故障维修五、springboot 简单优雅是实现邮件服务' />
+<script src='../../highlight/highlight.pack.js'></script>
+<link rel='stylesheet' type='text/css' href='../../highlight/styles/monokai.css'/>
+
+<link rel='stylesheet' href='../../fenxiang/dist/css/share.min.css'>
+<script src='../../fenxiang/src/js/social-share.js'></script>
+<script src='../../fenxiang/src/js/qrcode.js'></script>
+
+</head><body><script>hljs.initHighlightingOnLoad();</script><script>
+var system ={};  
+var p = navigator.platform;       
+system.win = p.indexOf('Win') == 0;  
+system.mac = p.indexOf('Mac') == 0;  
+system.x11 = (p == 'X11') || (p.indexOf('Linux') == 0);     
+if(system.win||system.mac||system.xll){
+document.write("<link href='../css/3.css' rel='stylesheet' type='text/css'>");}else{ document.write("<link href='../css/3wap.css' rel='stylesheet' type='text/css'>");}</script><script src='../../js/3.js'></script><div class='div2'><div class='heading_nav'><ul><div><li><a href='../../index.html'>首页</a></li>
+</div><div onclick='hidden1()' >分享</div>
+</ul></div></div>
+<div id='heading_nav2'> 
+<li class='row' >
+<div class='social-share' data-mode='prepend'><a href='javascript:' class='social-share-icon icon-heart'></a></div></li></div><script charset='utf-8' src='../../3/js/hengfu.js'></script><script charset='utf-8' src='../../3/js/hengfu2.js'></script><hr><div class='div1'><div class='biaoti'><center>五、springboot 简单优雅是实现邮件服务</center></div><div class='banquan'>原文出处:本文由博客园博主quellanan提供。<br/>
+原文连接:https://www.cnblogs.com/quellanan/p/11655972.html</div><br>
+    <h1 id="前言">前言</h1>
+<p>spring boot 的项目放下小半个月没有更新了，终于闲下来可以开心的接着写啦。<br />
+之前我们配置好mybatis 多数据源的，接下来我们需要做一个邮件服务。比如你注册的时候，需要输入验证码来校验。这个验证码就可以通过邮件来发送。当然现在验证码大部分都是通过短信，单邮件有时候也是必不可少的。所以我们的spring架手架还是将邮件服务也搭建起来。下一篇将短信服务也整合进来。<br />
+好了，言归正传。搭建邮件服务没有接触可能会觉得很麻烦或者单机环境测试环境都实现不了。觉得没有邮件服务。其实我们个人使用的话，是可以做到的。qq邮箱，网易邮箱都可以的。我这里使用的是QQ邮箱。网上有很多相关的教程。</p>
+<h1 id="邮箱服务器准备">邮箱服务器准备</h1>
+<p>登录QQ邮箱，点击设置 --&gt;账户 可以找到 下图这个。</p>
+<p><img src="./images/五、springboot 简单优雅是实现邮件服务0.png" alt="file" /></p>
+<p>需要开通 POP3/SMTP服务。开通这个后，会生成一个秘钥。这个秘钥我们待会会在项目中用到。拿小本本记下来哈哈。</p>
+<h1 id="添加依赖和配置">添加依赖和配置</h1>
+<p>邮箱准备好了，我们就开始我们的项目吧。<br />
+首先在pom.xml 文件中添加依赖</p>
+<pre><code><code>&lt;dependency&gt;
+            &lt;groupId&gt;org.springframework.boot&lt;/groupId&gt;
+            &lt;artifactId&gt;spring-boot-starter-mail&lt;/artifactId&gt;
+        &lt;/dependency&gt;</code></code></pre>
+<p>然后在application.proteries 文件中添加配置，改成自己的邮箱。password 就是刚刚生成的那个秘钥。QQ邮箱的服务器地址是：smtp.qq.com 。网易的大家可以搜一下。</p>
+<pre><code><code>spring.mail.host=smtp.qq.com
+spring.mail.username=1186154608@qq.com
+spring.mail.password=abcdefgqazqaz
+spring.mail.default-encoding=UTF-8
+
+mail.from=1186154608@qq.com</code></code></pre>
+<p><img src="./images/五、springboot 简单优雅是实现邮件服务1.png" alt="file" /></p>
+<h1 id="service-层">Service 层</h1>
+<p>配置信息都好了之后，我们就可以来使用啦。这里我们暂时没有涉及到数据库，就直接写Service层和controller 层。<br />
+在service 包下创建一个MailService 和MailServiceImpl</p>
+<p><img src="./images/五、springboot 简单优雅是实现邮件服务2.png" alt="file" /></p>
+<p>MailServiceImpl 中代码</p>
+<pre><code><code>@Service
+@Slf4j
+public class MailServiceImpl implements MailService{
+    @Autowired
+    private JavaMailSender mailSender;
+    @Value(&quot;${mail.from}&quot;)
+    private String mailFrom;
+    @Override
+    public void sendSimpleMail(String mailTo) {
+        SimpleMailMessage message=new SimpleMailMessage();
+        message.setFrom(mailFrom);
+        message.setTo(mailTo);
+        message.setSubject(&quot;simple mail&quot;);
+        message.setText(&quot;hello world&quot;);
+        mailSender.send(message);
+        log.info(&quot;邮件已经发送&quot;);
+    }
+
+}</code></code></pre>
+<p>这里我们就先简单的测试一下看看邮件能不能发送。mailFrom 是发件人，mailTo 是收件人。message.setSubject()设置邮件主题。message.setText()设置邮件内容。<br />
+mailSender.send(message)是发送短信。</p>
+<p># controller层<br />
+我们创建一个MailController类。代码如下：<br />
+```<br />
+@RestController<br />
+@RequestMapping(&quot;/mail&quot;)<br />
+public class MailController {<br />
+@Autowired<br />
+private MailService mailService;</p>
+<pre><code><code>@RequestMapping(value = &quot;/send&quot;,method = RequestMethod.GET)
+public String sendMail(@RequestParam(value = &quot;userName&quot;)String userName){
+    mailService.sendSimpleMail(userName);
+    return &quot;success&quot;;
+}</code></code></pre>
+<p>}<br />
+```<br />
+可以看到就一个发送的接口。很简单，参数传过来接收人的邮箱就好了。</p>
+<p># 测试<br />
+到此为止，我们邮件服务的demo 就已经搭建好了。我们接下来测试测试一下。我们启动项目。然后调接口<br />
+<code>http://localhost:9090/zlflovemm/mail/send?userName=1303123974@qq.com</code></p>
+<p><img src="./images/五、springboot 简单优雅是实现邮件服务3.png" alt="file" /></p>
+<p>提示已经发送成功啦，我们进邮箱看下我们发送情况。可以看到是发送成功了。所以说明我们的邮件服务搭建成功了。</p>
+<p><img src="./images/五、springboot 简单优雅是实现邮件服务4.png" alt="file" /></p>
+<p>所以现在看来，springboot 集成邮件服务是非常简单的，配置邮件服务器，就可以直接使用啦。</p>
+<h1 id="发送附件">发送附件</h1>
+<p>有时候我们发送邮件不仅仅发送内容，还需要发送附件，那怎么实现呢。其实也很简单。那些配置还是不变。我们在service 层。写一个sendMail方法。如下</p>
+<pre><code><code>@Override
+    public void sendMail(String mailTo) {
+        MimeMessage message=mailSender.createMimeMessage();
+        MimeMessageHelper helper = null;
+        try {
+            helper = new MimeMessageHelper(message, true);
+            helper.setFrom(mailFrom);
+            helper.setTo(mailTo);
+            helper.setSubject(&quot;simple mail&quot;);
+            helper.setText(&quot;hello world&quot;, true);
+            FileSystemResource file = new FileSystemResource(new File(&quot;E:\\myself\\test.xls&quot;));
+            String fileName = file.getFilename();
+            helper.addAttachment(fileName, file);
+            mailSender.send(message);
+            log.info(&quot;邮件已经发送&quot;);
+        } catch (MessagingException e) {
+            log.error(&quot;{}&quot;,e);
+        }
+    }</code></code></pre>
+<p>可以看到和我们开始测试的时候，有一点不同。这里先</p>
+<pre><code><code>MimeMessage message=mailSender.createMimeMessage();</code></code></pre>
+<p>MimeMessage 比 SimpleMailMessage 功能更强大，可以发送附件，也可以将内容转成html 格式发送。所以一般实际使用的时候都使用MimeMessage。<br />
+另外发送附件，还需要借助MimeMessageHelper 。MimeMessageHelper是辅助MimeMessage的。</p>
+<pre><code><code>helper.setFrom(mailFrom);
+helper.setTo(mailTo);
+helper.setSubject(&quot;simple mail&quot;);
+helper.setText(&quot;hello world&quot;, true);</code></code></pre>
+<p>这些和前面是一样的，发件人收件人，主题，内容。<br />
+helper.addAttachment()是添加附件的。</p>
+<p>好了，接下我们测试一下。可以看到发送的邮件是有附件的。证明没问题。</p>
+<p><img src="./images/五、springboot 简单优雅是实现邮件服务5.png" alt="file" /></p>
+<h1 id="番外">番外</h1>
+<p>好了，就说这么多啦，今天项目的代码也同步到github 上啦。<br />
+github地址：https://github.com/QuellanAn/zlflovemm</p>
+<p>后续加油♡</p>
+<p>欢迎大家关注个人公众号 &quot;程序员爱酸奶&quot;</p>
+<p>分享各种学习资料，包含java，linux，大数据等。资料包含视频文档以及源码，同时分享本人及投递的优质技术博文。</p>
+<p>如果大家喜欢记得关注和分享哟❤<br />
+<img src="./images/五、springboot 简单优雅是实现邮件服务6.png" alt="file" /></p>
+
+
+</div><hr><script charset='utf-8' src='../../js/sming.js'></script></body></html>

@@ -1,0 +1,59 @@
+<html><head><meta charset='utf-8'><meta name='viewport' content='width=device-width, initial-scale=1'>
+<meta name='applicable-device' content='pc'><meta name='keywords' content='电脑,电脑讲解,电脑技术,编程,电脑故障维修性能测试从入门到入土的一点思考' />
+<script src='../../highlight/highlight.pack.js'></script>
+<link rel='stylesheet' type='text/css' href='../../highlight/styles/monokai.css'/>
+
+<link rel='stylesheet' href='../../fenxiang/dist/css/share.min.css'>
+<script src='../../fenxiang/src/js/social-share.js'></script>
+<script src='../../fenxiang/src/js/qrcode.js'></script>
+
+</head><body><script>hljs.initHighlightingOnLoad();</script><script>
+var system ={};  
+var p = navigator.platform;       
+system.win = p.indexOf('Win') == 0;  
+system.mac = p.indexOf('Mac') == 0;  
+system.x11 = (p == 'X11') || (p.indexOf('Linux') == 0);     
+if(system.win||system.mac||system.xll){
+document.write("<link href='../css/3.css' rel='stylesheet' type='text/css'>");}else{ document.write("<link href='../css/3wap.css' rel='stylesheet' type='text/css'>");}</script><script src='../../js/3.js'></script><div class='div2'><div class='heading_nav'><ul><div><li><a href='../../index.html'>首页</a></li>
+</div><div onclick='hidden1()' >分享</div>
+</ul></div></div>
+<div id='heading_nav2'> 
+<li class='row' >
+<div class='social-share' data-mode='prepend'><a href='javascript:' class='social-share-icon icon-heart'></a></div></li></div><script charset='utf-8' src='../../3/js/hengfu.js'></script><script charset='utf-8' src='../../3/js/hengfu2.js'></script><hr><div class='div1'><div class='biaoti'><center>性能测试从入门到入土的一点思考</center></div><div class='banquan'>原文出处:本文由博客园博主彪悍大蓝猫提供。<br/>
+原文连接:https://www.cnblogs.com/skywp/p/11676276.html</div><br>
+    <h2 id="我为什么要写这篇文章">我为什么要写这篇文章</h2>
+<blockquote>
+<p>性能测试是软件产品在发布之前必须经过的一个步骤，或在POC之时，或在UAT之前。而不同公司的业务系统千千万，本文将阐述性能测试会被忽略的地方，以及作者在实际性能测试工作期间遇到的问题。希望能对您有一点小小的启发或者帮助。</p>
+</blockquote>
+<h3 id="性能测试工具">性能测试工具</h3>
+<p>我常用的性能测试工具为：</p>
+<ul>
+<li>Apache Benchmark（AB）</li>
+<li>Apache JMeter</li>
+<li>HP LoadRunner（LR）（收费）</li>
+</ul>
+<p>AB个人认为更适合对纯粹的api接口进行通过率测试，或者仅仅是为了获取TPS，简单高效。LR的性能最佳，图表展示好，没有缺点，缺点就是收费（贵不是LR的缺点，是我的缺点）。由于JMeter是开源的，且插件丰富，并发性能刚好满足系统需求，我最终选择了它。</p>
+<h3 id="如何确立压测方案">如何确立压测方案</h3>
+<p>万事开头难，性能测试最难的地方就是如何制定切实有效的测试方案。不同于以往的功能测试，更偏向对于业务的理解。而性能测试，往往想模拟出最真实的实际生产情况下系统会呈现出什么样的问题。</p>
+<p>个人如下建议：</p>
+<ol>
+<li>与系统架构师取的良好沟通，获取整体的系统架构，确立压测的起点（往往一般是从网关开始，但不同的系统又可能有多个业务网关或者对接第三方系统网关）。</li>
+</ol>
+<p>2.从业务架构师那获取性能测试的重点，在大数据、微服务大背景下，业务系统往往会被拆分成多个子服务。有的时候为了针对性体现报告数据，有可能会对某些子服务做针对性性能测试（性能不够，数据来凑~）。避免浪费过多精力。</p>
+<p>3.及时分析数据，形成报告。</p>
+<h3 id="性能测试坑点干货">性能测试坑点（干货）</h3>
+<p>我曾遇到以下坑点（或者说犯的错）：</p>
+<ol>
+<li><p>压力测试前并未做基准测试（后来在技术老大的指导下才知道，压力测试必须做基准测试，而且要仿真业务系统实际情况去做基准测试）。</p></li>
+<li><p>从技术层面上说，压力测试的目标，充分使用硬件资源，把服务器的每个核，能有90%的使用率，说明CPU的性能都使用了（而这点对于开发人员来说，是相反的。就像我们在使用自己的电脑时，cpu占用越低我们越开心，而服务器上理想最佳使用效果就是99%的使用率）。</p></li>
+<li><p>针对特点业务场景，分清是“计算密集型”还是“I/O密集型”。</p></li>
+<li><p>日志打印真的很耗时，建议异步写。</p></li>
+<li><p>个人认为nmon的图表真的不错。</p></li>
+<li><p>用于压力测试的线程数不宜过多，避免因CPU频繁切换造成额外的性能损耗。</p></li>
+</ol>
+<blockquote>
+<p>欢迎关注我的公号：彪悍大蓝猫，持续分享大数据、Java、安全干货~</p>
+</blockquote>
+
+
+</div><hr><script charset='utf-8' src='../../js/sming.js'></script></body></html>

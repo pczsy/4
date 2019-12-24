@@ -1,0 +1,183 @@
+<html><head><meta charset='utf-8'><meta name='viewport' content='width=device-width, initial-scale=1'>
+<meta name='applicable-device' content='pc'><meta name='keywords' content='电脑,电脑讲解,电脑技术,编程,电脑故障维修Docker详解（三）— 镜像和容器卷' />
+<script src='../../highlight/highlight.pack.js'></script>
+<link rel='stylesheet' type='text/css' href='../../highlight/styles/monokai.css'/>
+
+<link rel='stylesheet' href='../../fenxiang/dist/css/share.min.css'>
+<script src='../../fenxiang/src/js/social-share.js'></script>
+<script src='../../fenxiang/src/js/qrcode.js'></script>
+
+</head><body><script>hljs.initHighlightingOnLoad();</script><script>
+var system ={};  
+var p = navigator.platform;       
+system.win = p.indexOf('Win') == 0;  
+system.mac = p.indexOf('Mac') == 0;  
+system.x11 = (p == 'X11') || (p.indexOf('Linux') == 0);     
+if(system.win||system.mac||system.xll){
+document.write("<link href='../css/3.css' rel='stylesheet' type='text/css'>");}else{ document.write("<link href='../css/3wap.css' rel='stylesheet' type='text/css'>");}</script><script src='../../js/3.js'></script><div class='div2'><div class='heading_nav'><ul><div><li><a href='../../index.html'>首页</a></li>
+</div><div onclick='hidden1()' >分享</div>
+</ul></div></div>
+<div id='heading_nav2'> 
+<li class='row' >
+<div class='social-share' data-mode='prepend'><a href='javascript:' class='social-share-icon icon-heart'></a></div></li></div><script charset='utf-8' src='../../3/js/hengfu.js'></script><script charset='utf-8' src='../../3/js/hengfu2.js'></script><hr><div class='div1'><div class='biaoti'><center>Docker详解（三）— 镜像和容器卷</center></div><div class='banquan'>原文出处:本文由博客园博主丁可乐提供。<br/>
+原文连接:https://www.cnblogs.com/dwlovelife/p/11568124.html</div><br>
+    <src class="toc">
+    <p class="toc-title">目录</p>
+    <src class="toc-list">
+        <ul>
+        <li><a href="#docker镜像">1. Docker镜像</a><ul>
+        <li><a href="#镜像存储">1.1 镜像存储</a></li>
+        <li><a href="#base镜像">1.2 base镜像</a></li>
+        <li><a href="#镜像commit">1.3 镜像Commit</a></li>
+        </ul></li>
+        <li><a href="#docker容器数据卷">2. Docker容器数据卷</a><ul>
+        <li><a href="#基本介绍">2.1 基本介绍</a></li>
+        <li><a href="#数据卷">2.2 数据卷</a></li>
+        <li><a href="#数据卷容器">2.3 数据卷容器</a></li>
+        </ul></li>
+        </ul>
+    
+
+<blockquote>
+<p>序言：前两章我们主要介绍了Docker的概念和体系，以及Docker的镜像和容器命令，这一章我们将深入Docker镜像以及熟悉Docker的容器数据卷。OK，我们开始第三章的学习吧。</p>
+</blockquote>
+<p><a href="https://www.cnblogs.com/dwlovelife/p/11482056.html%5D">Docker详解（一）</a><br />
+<a href="https://www.cnblogs.com/dwlovelife/p/11520221.html%5D">Docker详解（二）</a><br />
+ <br />
+  </p>
+<h2 id="docker镜像">1. Docker镜像</h2>
+<h3 id="镜像存储">1.1 镜像存储</h3>
+<p>要了解 Docker镜像的存储首先务必得了解联合文件系统 UnionFS(Union File System).</p>
+<p><strong>UnionFS（联合文件系统）：</strong>Union文件系统（UnionFS）是一种分层、轻量级并且高性能的文件系统，它支持<strong>对文件系统的修改作为一次提交来一层层的叠加</strong>，并且可以将不同目录挂载到同一个虚拟文件系统下。Union文件系统是Docker镜像的基础。镜像可以通过分层来进行继承，基于基础镜像，可以制作各种具体的应用镜像。</p>
+<p><img src="./images/Docker详解（三）— 镜像和容器卷0.png" /></p>
+<p> </p>
+<p><strong>Docker镜像加载原理：</strong></p>
+<p>Docker的镜像实际上由一层一层的文件系统组成，这种层级的文件系统UnionFS。</p>
+<p><strong>bootfs(boot file system)：</strong>主要包含bootloader和kernel, bootloader主要是引导加载kernel, Linux刚启动时会加载bootfs文件系统，在Docker镜像的最底层是bootfs。这一层与我们典型的Linux/Unix系统是一样的，包含boot加载器和内核。当boot加载完成之后整个内核就都在内存中了，此时内存的使用权已由bootfs转交给内核，此时系统也会卸载bootfs。</p>
+<p><strong>rootfs (root file system) ：</strong>在bootfs之上。包含的就是典型 Linux 系统中的 /dev, /proc, /bin, /etc 等标准目录和文件。rootfs就是各种不同的操作系统发行版，比如Ubuntu，Centos等等。</p>
+<p><img src="./images/Docker详解（三）— 镜像和容器卷1.png" /></p>
+<p> </p>
+<h3 id="base镜像">1.2 base镜像</h3>
+<p>在了解base镜像之前，我们先说一下dockerFile，之前我们把镜像比作<strong>类</strong>、容器比作<strong>实例</strong>，如果有人不理解dockerFile的话，那么横向对比，你可以把它看作是 <strong>.class 文件</strong>。</p>
+<p><strong>那么base镜像就是 没有 FROM 或者 FROM scratch开头的 DockerFile所构建出来的镜像</strong></p>
+<p>base镜像通常都是各种 Linux发行版的镜像，如 Centos，Ubuntu，Debian 等</p>
+<p><strong>且base 镜像提供的是最小安装的Linux发行版</strong>，此外 Docker Hub上 99% 的镜像都是通过在base镜像中安装和配置需要的软件构建而来</p>
+<p>下图是 官方 Centos 镜像 的 DockerFile内容</p>
+<p><img src="./images/Docker详解（三）— 镜像和容器卷2.png" /></p>
+<p> </p>
+<h3 id="镜像commit">1.3 镜像Commit</h3>
+<p><code>docker commit</code> 提交容器副本使之成为一个新的镜像</p>
+<p><code>docker commit -m=&quot;提交的描述信息&quot; -a=&quot;作者&quot; 容器ID  要创建的目标镜像名:[标签名]</code></p>
+<p> </p>
+<p><strong>案例演示</strong></p>
+<p><strong>1. 从Hub 上下载tomcat镜像到本地并成功运行 （也可采用阿里云加速下载）</strong></p>
+<pre><code><code>docker pull tomcat</code></code></pre>
+<p><img src="./images/Docker详解（三）— 镜像和容器卷3.png" /></p>
+<p> </p>
+<p><strong>2. 故意删除上一步镜像生产tomcat的文档</strong></p>
+<p>注：如果不想新开窗口，可以 后台启动 tomcat ( docker run -d -p 8888:8080 tomcat )</p>
+<pre><code><code>docker exec -it 088c813ad8ca /bin/bash</code></code></pre>
+<p><img src="./images/Docker详解（三）— 镜像和容器卷4.png" /></p>
+<p> </p>
+<p><strong>3. 提交删除文档的 tomcat容器副本 作为一个新的镜像</strong></p>
+<pre><code><code>docker commit -a=&quot;coke&quot; -m=&quot;del tomcat docs&quot; 088c813ad8ca coke/tomcat02:1.2</code></code></pre>
+<p><img src="./images/Docker详解（三）— 镜像和容器卷5.png" /></p>
+<p> </p>
+<p><strong>4. 运行我们上传成功的测试镜像</strong></p>
+<pre><code><code>docker run -it  -p 8888:8080 coke/tomcat02:1.2</code></code></pre>
+<p><img src="./images/Docker详解（三）— 镜像和容器卷6.png" /></p>
+<p> </p>
+<h2 id="docker容器数据卷">2. Docker容器数据卷</h2>
+<h3 id="基本介绍">2.1 基本介绍</h3>
+<p>Docker容器产生的数据，如果不通过docker commit生成新的镜像，使得数据做为镜像的一部分保存下来，</p>
+<p>那么当容器删除后，数据自然也就没有了。</p>
+<p><strong>为了保存数据，使容器之间可以进行数据共享，在Docker 中我们使用容器数据卷。</strong></p>
+<p><strong>卷的设计目的就是数据的持久化，完全独立于容器的生存周期，因此Docker不会在容器删除时删除其挂载的数据卷</strong></p>
+<p><strong>主要用途： 1. 容器的持久化 2. 容器间继承 + 共享数据</strong></p>
+<p>特点：</p>
+<ul>
+<li>数据卷可在容器之间共享或重用数据</li>
+<li>卷中的更改可以直接生效</li>
+<li>数据卷中的更改不会包含在镜像的更新中</li>
+<li>数据卷的生命周期一直持续到没有容器使用它为止</li>
+</ul>
+<p><img src="./images/Docker详解（三）— 镜像和容器卷7.png" /></p>
+<p> </p>
+<h3 id="数据卷">2.2 数据卷</h3>
+<p><strong>我们接下来进行操作，尝试在容器 或者 DockerFile中 添加数据卷</strong></p>
+<blockquote>
+<p><strong>直接命令添加</strong></p>
+</blockquote>
+<p><strong>1、 命令添加</strong></p>
+<p><code>docker run -it -v /宿主机目录:/容器内目录 centos /bin/bash</code></p>
+<p><img src="./images/Docker详解（三）— 镜像和容器卷8.png" /></p>
+<p><img src="./images/Docker详解（三）— 镜像和容器卷9.png" /></p>
+<p> </p>
+<p><strong>2、查看容器卷是否挂载成功</strong></p>
+<p><code>docker inspect  容器ID</code></p>
+<p><img src="./images/Docker详解（三）— 镜像和容器卷10.png" /></p>
+<p> </p>
+<p><strong>3、容器和宿主机之间数据共享</strong></p>
+<p>①. 尝试在Docker 容器内进行写入，主机查看是否实时更新</p>
+<p><img src="./images/Docker详解（三）— 镜像和容器卷11.png" /></p>
+<p><img src="./images/Docker详解（三）— 镜像和容器卷12.png" /></p>
+<p> </p>
+<p>②. 尝试在主机进行文件修改，在Docker容器进行查看是否实时更新</p>
+<p><img src="./images/Docker详解（三）— 镜像和容器卷13.png" /></p>
+<p><img src="./images/Docker详解（三）— 镜像和容器卷14.png" /></p>
+<p><strong>注意：容器停止退出，主机修改文件，容器再次重启进入，主机修改的文件依然会同步到容器哦，有兴趣的可以试试。</strong></p>
+<p> </p>
+<blockquote>
+<p><strong>DockerFile 添加</strong> （此处我们只要学会使用Dockerfile添加容器卷就行，Dockerfile后面会介绍）</p>
+</blockquote>
+<p><strong>1、在主机根目录下 新建mydocker 文件夹，并进入</strong></p>
+<p><code>mkdir mydocker</code> 新建一个mydocker文件夹</p>
+<p> </p>
+<p><strong>2、构建一个DockerFile</strong></p>
+<p><code>vim DockFile</code> vim编辑器 编辑DockerFile文件</p>
+<pre><code><code># volume test
+FROM centos
+VOLUME [&quot;/dataVolumeContainer1&quot;,&quot;/dataVolumeContainer2&quot;]
+CMD echo &quot;finished,--------success1&quot;
+CMD /bin/bash</code></code></pre>
+<p><code>docker build -f /mydocker/Dockerfile -t coke/centos .</code> 在centos基础上构建自己的Dockfile</p>
+<p><img src="./images/Docker详解（三）— 镜像和容器卷15.png" /></p>
+<p> </p>
+<p><strong>3、run 容器</strong></p>
+<p><code>docker run -it coke/centos</code> 运行我们刚刚构建的镜像的实例容器</p>
+<p><img src="./images/Docker详解（三）— 镜像和容器卷16.png" /></p>
+<p> </p>
+<p><strong>4、获取主机的默认目录，后面 容器卷同步数据操作 同直接命令添加</strong></p>
+<p><code>docker inspect 容器ID</code></p>
+<p><img src="./images/Docker详解（三）— 镜像和容器卷17.png" /></p>
+<p> </p>
+<h3 id="数据卷容器">2.3 数据卷容器</h3>
+<p>命名的容器挂载数据卷，其它容器通过挂载这个(父容器)实现数据共享，挂载数据卷的容器，称之为数据卷容器</p>
+<ul>
+<li><strong>我们以上一步新建的镜像 coke/centos 为模板运行容器 dc01/dc02/dc03</strong></li>
+<li><strong>它们已经具有的容器卷：/dataVolumeContainer1、/dataVolumeContainer2</strong></li>
+</ul>
+<p> </p>
+<p><strong>1、先启动一个父容器dc01，在dataVolumeContainer2新增内容</strong></p>
+<p><img src="./images/Docker详解（三）— 镜像和容器卷18.png" /></p>
+<pre><code><code>cd dataVolumeContainer2
+touch doc01_add.txt</code></code></pre>
+<p> </p>
+<p><strong>2、dc02/dc03继承自dc01，分别在dataVolumeContainer2中新增内容</strong></p>
+<p><code>docker run -it --name dc02 --volumes-from dc01 coke/centos</code> dc02继承dc01</p>
+<p><img src="./images/Docker详解（三）— 镜像和容器卷19.png" /></p>
+<p><strong>说明：doc02继承doc01后，容器卷中的文件做到了共享</strong></p>
+<p> </p>
+<p><code>docker run -it --name dc03 --volumes-from dc01 coke/centos</code> dc03继承dc02</p>
+<p><img src="./images/Docker详解（三）— 镜像和容器卷20.png" /></p>
+<p> </p>
+<p><strong>3、回到dc01可以看到02/03各自添加的数据都能共享了</strong><br />
+<img src="./images/Docker详解（三）— 镜像和容器卷21.png" /></p>
+<p> </p>
+<p><strong>4、删除dc01，dc02修改后打dc03可否访问</strong></p>
+<p><img src="./images/Docker详解（三）— 镜像和容器卷22.png" /></p>
+<p><img src="./images/Docker详解（三）— 镜像和容器卷23.png" /></p>
+<p> </p>
+<p><strong>结论：容器之间的配置信息的传递，数据卷的生命周期一直持续到没有容器使用它为止。</strong></p>
+
+</div><hr><script charset='utf-8' src='../../js/sming.js'></script></body></html>

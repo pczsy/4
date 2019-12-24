@@ -1,0 +1,177 @@
+<html><head><meta charset='utf-8'><meta name='viewport' content='width=device-width, initial-scale=1'>
+<meta name='applicable-device' content='pc'><meta name='keywords' content='电脑,电脑讲解,电脑技术,编程,电脑故障维修Spring Boot入门(二)：获取配置文件值' />
+<script src='../../highlight/highlight.pack.js'></script>
+<link rel='stylesheet' type='text/css' href='../../highlight/styles/monokai.css'/>
+
+<link rel='stylesheet' href='../../fenxiang/dist/css/share.min.css'>
+<script src='../../fenxiang/src/js/social-share.js'></script>
+<script src='../../fenxiang/src/js/qrcode.js'></script>
+
+</head><body><script>hljs.initHighlightingOnLoad();</script><script>
+var system ={};  
+var p = navigator.platform;       
+system.win = p.indexOf('Win') == 0;  
+system.mac = p.indexOf('Mac') == 0;  
+system.x11 = (p == 'X11') || (p.indexOf('Linux') == 0);     
+if(system.win||system.mac||system.xll){
+document.write("<link href='../css/3.css' rel='stylesheet' type='text/css'>");}else{ document.write("<link href='../css/3wap.css' rel='stylesheet' type='text/css'>");}</script><script src='../../js/3.js'></script><div class='div2'><div class='heading_nav'><ul><div><li><a href='../../index.html'>首页</a></li>
+</div><div onclick='hidden1()' >分享</div>
+</ul></div></div>
+<div id='heading_nav2'> 
+<li class='row' >
+<div class='social-share' data-mode='prepend'><a href='javascript:' class='social-share-icon icon-heart'></a></div></li></div><script charset='utf-8' src='../../3/js/hengfu.js'></script><script charset='utf-8' src='../../3/js/hengfu2.js'></script><hr><div class='div1'><div class='biaoti'><center>Spring Boot入门(二)：获取配置文件值</center></div><div class='banquan'>原文出处:本文由博客园博主申城异乡人提供。<br/>
+原文连接:https://www.cnblogs.com/zwwhnly/p/11750325.html</div><br>
+    <p>本篇博客主要讲解下在Spring Boot中如何获取配置文件的值。</p>
+<h2 id="使用yaml配置文件">1. 使用yaml配置文件</h2>
+<p>Spring Boot默认生成的配置文件为application.properties，不过它也支持yaml语言的配置文件，</p>
+<p>两者之间的差别并不是很大，只是yaml语言的配置文件层次结构更明显，可读性更强，因此目前使用的更多一些。</p>
+<p>我们假设本来application.properties的配置为：</p>
+<pre><code><code>spring.main.banner-mode=off</code></code></pre>
+<p>那么如何将配置文件切换为application.yml呢？</p>
+<p>首先删除掉原来的配置文件application.properties，新增配置文件application.yml，新增方式如下：</p>
+<p><img src="./images/Spring Boot入门(二)：获取配置文件值0.png" /></p>
+<p><img src="./images/Spring Boot入门(二)：获取配置文件值1.png" /></p>
+<p><img src="./images/Spring Boot入门(二)：获取配置文件值2.png" /></p>
+<p>然后修改application.yml为：</p>
+<pre class="yaml"><code>spring:
+  main:
+    banner-mode: &quot;off&quot;</code></code></pre>
+<p>运行结果和原来使用properties配置文件时一致。</p>
+<h2 id="使用value注解获取配置文件值">2. 使用@Value注解获取配置文件值</h2>
+<p>首先在application.yml中添加如下配置：</p>
+<pre class="yaml"><code>book:
+  author: wangyunfei
+  name: spring boot</code></code></pre>
+<p>然后修改启动类的代码为：</p>
+<pre class="java"><code>package com.zwwhnly.springbootaction;
+
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.boot.SpringApplication;
+import org.springframework.boot.autoconfigure.SpringBootApplication;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
+
+@RestController
+@SpringBootApplication
+public class SpringbootActionApplication {
+    @Value(&quot;${book.name}&quot;)
+    private String bookName;
+
+    @Value(&quot;${book.author}&quot;)
+    private String bookAuthor;
+
+    @RequestMapping(&quot;/&quot;)
+    public String index() {
+        return &quot;book name is:&quot; + bookName + &quot; and book author is:&quot; + bookAuthor;
+    }
+
+    public static void main(String[] args) {
+        SpringApplication.run(SpringbootActionApplication.class, args);
+    }
+}</code></code></pre>
+<p>运行项目，在浏览器中输入http://localhost:8080/，会看到如下信息：</p>
+<p><img src="./images/Spring Boot入门(二)：获取配置文件值3.png" /></p>
+<p>这种方式和在Spring项目中的使用方式一样，更多的细节，可以查看我之前总结的博客：</p>
+<p><a href="https://www.cnblogs.com/zwwhnly/p/11361803.html">Spring入门(九)：运行时值注入</a>。</p>
+<h2 id="使用configurationproperties注解获取配置文件值">3. 使用@ConfigurationProperties注解获取配置文件值</h2>
+<p>Spring Boot还提供了<code>@ConfigurationProperties</code>注解来获取配置文件值，该种方式可把配置文件值和一个Bean自动关联起来，使用起来更加方便而且类型安全，<strong>建议使用这种方式</strong>。</p>
+<p>首先，在application.yml中添加如下配置：</p>
+<pre class="yaml"><code>author:
+  name: wangyunfei
+  age: 32</code></code></pre>
+<p>然后，新建类AuthorSettings，添加<code>@Component</code>注解和<code>@ConfigurationProperties</code>注解：</p>
+<pre class="java"><code>package com.zwwhnly.springbootaction;
+
+import org.springframework.boot.context.properties.ConfigurationProperties;
+import org.springframework.stereotype.Component;
+
+@Component
+@ConfigurationProperties(prefix = &quot;author&quot;)
+public class AuthorSettings {
+    private String name;
+    private Integer age;
+
+    public String getName() {
+        return name;
+    }
+
+    public void setName(String name) {
+        this.name = name;
+    }
+
+    public Integer getAge() {
+        return age;
+    }
+
+    public void setAge(Integer age) {
+        this.age = age;
+    }
+}</code></code></pre>
+<p>这里的重点是<code>@ConfigurationProperties</code>注解，它的prefix属性用来指定配置的前缀，如本例中的author。</p>
+<p>然后修改启动类的代码为：</p>
+<pre class="java"><code>package com.zwwhnly.springbootaction;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.SpringApplication;
+import org.springframework.boot.autoconfigure.SpringBootApplication;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
+
+@RestController
+@SpringBootApplication
+public class SpringbootActionApplication {
+    @Autowired
+    private AuthorSettings authorSettings;
+
+    @RequestMapping(&quot;/&quot;)
+    public String index() {
+        return &quot;author name is &quot; + authorSettings.getName() + &quot; and author age is &quot; + authorSettings.getAge();
+    }
+
+    public static void main(String[] args) {
+        SpringApplication.run(SpringbootActionApplication.class, args);
+    }
+}</code></code></pre>
+<p>运行项目，在浏览器中输入http://localhost:8080/，会看到如下信息：</p>
+<p><img src="./images/Spring Boot入门(二)：获取配置文件值4.png" /></p>
+<h2 id="使用profile实现多环境配置管理">4. 使用Profile实现多环境配置管理</h2>
+<p>一般情况下，我们开发的应用程序都会有多套环境， 如dev环境，qa环境，prod环境，那么如何实现多套环境下的配置管理呢？</p>
+<p>其实在Spring Boot下，我们可以使用Profile来实现，接下来讲解下具体的实现方式。</p>
+<p>首先，新建2个配置文件：application-dev.yml，application-prod.yml。</p>
+<p>此时的项目结构如下图所示：</p>
+<p><img src="./images/Spring Boot入门(二)：获取配置文件值5.png" /></p>
+<p>如果有的同学比较喜欢用properties文件，可以用下图中的方式新建：</p>
+<p><img src="./images/Spring Boot入门(二)：获取配置文件值6.png" /></p>
+<p><img src="./images/Spring Boot入门(二)：获取配置文件值7.png" /></p>
+<p>默认情况下，启动的端口号为8080，如果我们希望在dev环境使用端口号8082，在prod环境使用端口号8083，那么可以修改配置文件如下：</p>
+<p>application-dev.yml新增如下配置：</p>
+<pre class="yaml"><code>server:
+  port: 8082</code></code></pre>
+<p>application-prod.yml新增如下配置：</p>
+<pre class="yaml"><code>server:
+  port: 8083</code></code></pre>
+<p>运行项目，如下图所示：</p>
+<p><img src="./images/Spring Boot入门(二)：获取配置文件值8.png" /></p>
+<p>我们会发现，仍然使用的是默认的端口号8080，那么如何指定使用dev或者prod环境的端口呢？</p>
+<p>我们需要在application.yml新增如下配置：</p>
+<pre class="yaml"><code>spring:
+  profiles:
+    active: dev</code></code></pre>
+<p>此时，再次运行项目，会发现使用的是端口号8082，也就是application-dev.yml文件中配置的。</p>
+<p><img src="./images/Spring Boot入门(二)：获取配置文件值9.png" /></p>
+<p>如果希望使用prod环境的，可以修改配置为：</p>
+<pre class="yaml"><code>spring:
+  profiles:
+    active: prod</code></code></pre>
+<p>运行结果为：</p>
+<p><img src="./images/Spring Boot入门(二)：获取配置文件值10.png" /></p>
+<p>关于Spring项目中Profile的使用可以查看我之前总结的博客：<a href="https://www.cnblogs.com/zwwhnly/p/11350018.html">Spring入门(七)：Spring Profile使用讲解</a>。</p>
+<h2 id="源码及参考">5. 源码及参考</h2>
+<p>源码地址：<a href="https://github.com/zwwhnly/springboot-action.git" class="uri">https://github.com/zwwhnly/springboot-action.git</a>，欢迎下载。</p>
+<p>汪云飞《Java EE开发的颠覆者：Spring Boot实战》</p>
+<p><a href="https://blog.csdn.net/j080624/article/details/80507927">SpringBoot - 多Profile使用与切换</a></p>
+<p><a href="https://blog.csdn.net/u013164931/article/details/76283884">IDEA如何创建.properties文件</a></p>
+<p>最后，欢迎关注我的微信公众号：「申城异乡人」，所有博客会同步更新。</p>
+
+
+</div><hr><script charset='utf-8' src='../../js/sming.js'></script></body></html>

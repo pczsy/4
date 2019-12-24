@@ -1,0 +1,102 @@
+<html><head><meta charset='utf-8'><meta name='viewport' content='width=device-width, initial-scale=1'>
+<meta name='applicable-device' content='pc'><meta name='keywords' content='电脑,电脑讲解,电脑技术,编程,电脑故障维修避免Java中NullPointerException的Java技巧和最佳实践' />
+<script src='../../highlight/highlight.pack.js'></script>
+<link rel='stylesheet' type='text/css' href='../../highlight/styles/monokai.css'/>
+
+<link rel='stylesheet' href='../../fenxiang/dist/css/share.min.css'>
+<script src='../../fenxiang/src/js/social-share.js'></script>
+<script src='../../fenxiang/src/js/qrcode.js'></script>
+
+</head><body><script>hljs.initHighlightingOnLoad();</script><script>
+var system ={};  
+var p = navigator.platform;       
+system.win = p.indexOf('Win') == 0;  
+system.mac = p.indexOf('Mac') == 0;  
+system.x11 = (p == 'X11') || (p.indexOf('Linux') == 0);     
+if(system.win||system.mac||system.xll){
+document.write("<link href='../css/3.css' rel='stylesheet' type='text/css'>");}else{ document.write("<link href='../css/3wap.css' rel='stylesheet' type='text/css'>");}</script><script src='../../js/3.js'></script><div class='div2'><div class='heading_nav'><ul><div><li><a href='../../index.html'>首页</a></li>
+</div><div onclick='hidden1()' >分享</div>
+</ul></div></div>
+<div id='heading_nav2'> 
+<li class='row' >
+<div class='social-share' data-mode='prepend'><a href='javascript:' class='social-share-icon icon-heart'></a></div></li></div><script charset='utf-8' src='../../3/js/hengfu.js'></script><script charset='utf-8' src='../../3/js/hengfu2.js'></script><hr><div class='div1'><div class='biaoti'><center>避免Java中NullPointerException的Java技巧和最佳实践</center></div><div class='banquan'>原文出处:本文由博客园博主Java知己提供。<br/>
+原文连接:https://www.cnblogs.com/java-friend/p/11757375.html</div><br>
+    <p>Java中的NullPointerException是我们最经常遇到的异常了，那我们到底应该如何在编写代码是防患于未然呢。下面我们就从几个方面来入手，解决这个棘手的​问题吧。​</p>
+<p>值得庆幸的是，通过应用一些防御性编码技术并遵循应用程序多个部分之间的约定，您可以在一定程度上避免Java中的NullPointerException。</p>
+<p>顺便说一下，在本文中，我们将学习一些Java的编码技术和最佳实践，这些技巧和最佳实践可用于避免的Java中的空指针异常。遵循这些Java的技巧还可以最大程度地减少很多Java代码中的 <strong>x !=NULL</strong> 检查。</p>
+<p>作为经验丰富的Java的程序员，您可能已经知道其中一些技巧，并且已经在项目中遵循了这些技巧，但是对于新手和中级 发人员来说，这可能是个不错的学习机会。顺便说一句，如果您知道其他避免Java中的NullPointerException并减少的Java中的空检查的Java的技巧，请与我们分享。</p>
+<h3 id="java技巧和最佳实践">Java技巧和最佳实践</h3>
+<p>这些都是简单的技术，很容易遵循，但是对代码质量和健壮性有重大影响。以我的经验，仅第一个技巧就可以显着提高代码质量。如前所述，如果您知道任何其他Java技巧或最佳实践，可以帮助减少空检查，那么可以通过评论本文与我们分享。</p>
+<h3 id="在已知的字符串而不是未知的对象上调用equals和equalsignorecase方法">1）在已知的字符串而不是未知的对象上调用equals()和equalsIgnoreCase()方法</h3>
+<p>始终在不为null的已知字符串上调用equals()方法。由于equals()方法的方法是对称的，调用a.equals(b)与调用b.equals(a)是一样的，这就是为什么很多程序员不注意对象a和b。如果调用者为空，则此调用的一个副作用就是可能导致NullPointerException。</p>
+<pre><code><code>Object unknownObject = null;
+
+//错误的方式 - 可能引起NullPointerException
+if(unknownObject.equals(&quot;knownObject&quot;)){
+   System.err.println(&quot;This may result in NullPointerException if unknownObject is null&quot;);
+}
+
+//正确的方式 - 如果unknownObject为null避免 NullPointerException
+if(&quot;knownObject&quot;.equals(unknownObject)){
+    System.err.println(&quot;better coding avoided NullPointerException&quot;);
+}
+</code></code></pre>
+<p>这是避免NullPointerException的最简单的Java技巧或最佳实践，但是由于equals()是一种常见方法，因此带来了极大的改进 。</p>
+<h3 id="优先使用valueof而不是tostring两个都返回相同的结果">2）优先使用valueOf()而不是toString()，两个都返回相同的结果</h3>
+<p>由于在 null对象上调用toString()会引发NullPointerException ，因此，如果我们可以通过调用valueOf()获得相同的值， 则最好这样做，因为将null传递给valueOf()会返回“ null ”，特别是在诸如Integer ，Float ，Double 这样的包装类的情况下或BigDecimal 。</p>
+<pre><code><code>BigDecimal bd = getPrice();
+System.out.println(String.valueOf(bd)); /不会抛出NPE
+System.out.println(bd.toString()); //在main线程抛出java.lang.NullPointerException&quot;异常</code></code></pre>
+<p>如果不确定对象是否为null，请遵循此Java技巧。</p>
+<h3 id="使用null安全的方法和库">3、使用null安全的方法和库</h3>
+<p>有很多这样开源库，这些库为您检查空做了大量工作。最常见的一种来自Apache Common 的StringUtils。您可以使用StringUtils.isBlank() ，ISNUMERIC() ，isWhiteSpace()和其他实用程序方法，而不必担心NullPointerException 。</p>
+<pre><code><code>//StringUtils中的方法是空指针安全的, 它不会出现NullPointerException
+System.out.println(StringUtils.isEmpty(null));
+System.out.println(StringUtils.isBlank(null));
+System.out.println(StringUtils.isNumeric(null));
+System.out.println(StringUtils.isAllUpperCase(null));</code></code></pre>
+<p>输出结果:</p>
+<pre><code><code>true
+true
+false
+false</code></code></pre>
+<p>但是，在使用库方法之前，请不要忘记阅读Null安全方法和类的文档。这是另一种Java最佳实践，不需要太多的时间，但可以带来很大的改进。</p>
+<h3 id="避免从方法中返回null而应返回空集合或空数组">4、避免从方法中返回null，而应返回空集合或空数组</h3>
+<p>Joshua Bloch在他的书《Effective Java》中也提到了Java最佳实践或技巧，从这本书中你将获得更多的Java编程技巧。在公众号【Java知己】，后台回复：Effective Java，可以获得该书籍的链接。</p>
+<p>通过返回空集合或空数组，您可以确保基本调用（如size()，length()）不会因NullPointerException异常而失败。集合类提供方便的空的List, Set 和Map方法：Collections.EMPTY_LIST ，Collections.EMPTY_SET 和Collections.EMPTY_MAP ，可以相应地使用它们。这是代码示例</p>
+<pre><code><code>public List getOrders(Customer customer){
+   List result = Collections.EMPTY_LIST;
+   return result;
+}
+</code></code></pre>
+<p>同样，您可以使用Collections.EMPTY_SET 和Collections.EMPTY_MAP 而不是返回null。</p>
+<h3 id="使用注释notnull和nullable">5、使用注释@NotNull和@Nullable</h3>
+<p>在编写方法时，可以通过使用@NotNull 和@Nullable 这样的注释来声明方法是否为null安全，从而定义有关可空性的契约。 现代的编译器，IDE或工具可以读取此批注并帮助您进行缺失的空检查，或者可以通知您不必要的空检查，这会使您的代码混乱。</p>
+<p>IntelliJ IDE 和FindBugs的已经支持这种注释。这些注释也是JSR 305的一部分，但是即使在没有任何工具或IDE支持的情况下，此注释本身也可以作为文档使用。通过查看 @NotNull 和@Nullable ，程序员自己可以决定是否检查null。顺便说一句，对于Java程序员来说，这是相对较新的最佳实践，要花些时间才能被利用起来。</p>
+<h3 id="避免在代码中预先的自动装箱和拆箱">6、避免在代码中预先的自动装箱和拆箱</h3>
+<p>尽管存在其他缺点，例如创建临时对象，但如果包装类对象为null，则自动装箱也容易发生NullPointerException 。例如， 如果人员没有电话号码，则以下代码将失败，会NullPointerException ，而不是返回null 。</p>
+<pre><code><code>Person ram = new Person(&quot;ram&quot;);
+int phone = ram.getPhone();</code></code></pre>
+<p>如果与自动装箱和拆箱一起使用，既也会引发NullPointerException 。</p>
+<h3 id="遵守约定并定义合理的预设值">7、遵守约定并定义合理的预设值</h3>
+<p>在Java的中避免NullPointerException异常的最佳方法之一就是定义初始值并遵循约定。大多数NullPointerException异常发生的原因是使用不完整的信息创建对象或未提供所有必需的依赖关系。如果您不允许创建不完整的对象并优雅地拒绝任何此类请求，则可以防止很多NullPointerException 的出现。同样，如果 允许创建对象，则应该使用合理的替代值。例如，如果没有id 和name ，则不能创建Employee 对象 ，但是可以具有可选的电话号码。现在，如果员工没有电话号码而不是返回零，否则返回默认值，例如零，但是必须谨慎地选择该选项，踩在某些时候检查null很容易，而不是拨打无效号码。一个相同的注释，通过定义什么可以为空和什么不能为空，调用者可以做出明智的决定。选择fast-fail还是接受null也是您需要采取并坚持一致的重要设计方法。</p>
+<h3 id="如果您使用数据库来存储">8、如果您使用数据库来存储</h3>
+<p>客户，订单等领域对象，则应在数据库本身上定义空值约束。由于数据库可以从多个来源获取数据，因此在DB中进行空能力检查将确保数据完整性。保持数据库的空约束也将有助于减少_Java代码中的空检查_。从数据库加载对象时，您将确定其中一部分可以为null以及其中部分不为null，这将最大程度地减少代码中的的 <strong>!=null</strong> 检查。</p>
+<h3 id="使用空对象模式">9、使用空对象模式</h3>
+<p>这是避免Java中的NullPointerExcpetion的另一种方法。如果某个方法返回一个对象，该对象将在调用方上执行，例如Collection.iterator()方法返回Iterator，则调用方将在该迭代器上执行遍历。假设调用者没有任何继承器，则可以返回Null对象而不是null。Null对象是一个特殊的对象，在不同的其中中具有不同的含义，例如，在此处，调用hasNext()并返回false 的空Iterator 可以是null对象。类似地，对于返回容器或集合类型的方法，应使用空对象而不是返回null。我打算写一篇关于<strong>空对象模式</strong>，在这里我将分享Java中空对象的更多示例。</p>
+<p>伙计们，这些都是容易理解的Java技巧和最佳实践，可以避免NullPointerException。您将不费吹灰之力就可以知道这些技巧有多有用。如果您要使用其他任何技巧来避免此例外（不在此列表中） ），则请通过评论与我们分享，我将在此处后续更新。</p>
+<hr />
+<blockquote>
+<p>“不积跬步，无以至千里”，希望未来的你能：有梦为马 随处可栖！加油，少年！</p>
+</blockquote>
+<p>关注公众号:<strong>「Java 知己」</strong>，每天更新Java知识哦，期待你的到来！</p>
+<ul>
+<li>发送「<strong>Group</strong>」，与 10 万程序员一起进步。</li>
+<li>发送「<strong>面试</strong>」，领取BATJ面试资料、面试视频攻略。</li>
+<li>发送「<strong>玩转算法</strong>」，领取《玩转算法》系列视频教程。</li>
+<li>千万不要发送「<strong>1024</strong>」...</li>
+</ul>
+<p><img src="./images/避免Java中NullPointerException的Java技巧和最佳实践0.png" alt="每日福利" /></p>
+
+
+</div><hr><script charset='utf-8' src='../../js/sming.js'></script></body></html>

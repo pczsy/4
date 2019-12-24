@@ -1,0 +1,95 @@
+<html><head><meta charset='utf-8'><meta name='viewport' content='width=device-width, initial-scale=1'>
+<meta name='applicable-device' content='pc'><meta name='keywords' content='电脑,电脑讲解,电脑技术,编程,电脑故障维修logback日志文件位置动态指定' />
+<script src='../../highlight/highlight.pack.js'></script>
+<link rel='stylesheet' type='text/css' href='../../highlight/styles/monokai.css'/>
+
+<link rel='stylesheet' href='../../fenxiang/dist/css/share.min.css'>
+<script src='../../fenxiang/src/js/social-share.js'></script>
+<script src='../../fenxiang/src/js/qrcode.js'></script>
+
+</head><body><script>hljs.initHighlightingOnLoad();</script><script>
+var system ={};  
+var p = navigator.platform;       
+system.win = p.indexOf('Win') == 0;  
+system.mac = p.indexOf('Mac') == 0;  
+system.x11 = (p == 'X11') || (p.indexOf('Linux') == 0);     
+if(system.win||system.mac||system.xll){
+document.write("<link href='../css/3.css' rel='stylesheet' type='text/css'>");}else{ document.write("<link href='../css/3wap.css' rel='stylesheet' type='text/css'>");}</script><script src='../../js/3.js'></script><div class='div2'><div class='heading_nav'><ul><div><li><a href='../../index.html'>首页</a></li>
+</div><div onclick='hidden1()' >分享</div>
+</ul></div></div>
+<div id='heading_nav2'> 
+<li class='row' >
+<div class='social-share' data-mode='prepend'><a href='javascript:' class='social-share-icon icon-heart'></a></div></li></div><script charset='utf-8' src='../../3/js/hengfu.js'></script><script charset='utf-8' src='../../3/js/hengfu2.js'></script><hr><div class='div1'><div class='biaoti'><center>logback日志文件位置动态指定</center></div><div class='banquan'>原文出处:本文由博客园博主张占岭提供。<br/>
+原文连接:https://www.cnblogs.com/lori/p/11888911.html</div><br>
+    <h1 id="logback日志文件位置动态指定">logback日志文件位置动态指定</h1>
+<blockquote>
+<p>参考：<a href="https://stackoverflow.com/questions/19518843/logback-configuration-via-jvm-argument" class="uri">https://stackoverflow.com/questions/19518843/logback-configuration-via-jvm-argument</a></p>
+</blockquote>
+<p>logback相关配置，其中${LOG_HOME}表示为环境变量，在java启动应用程序时，通过java -DLOG_HOME=&quot;路径&quot;来指定的，可以动态去设置它的地址。</p>
+<pre><code><code>&lt;?xml version=&quot;1.0&quot; encoding=&quot;UTF-8&quot; ?&gt;
+
+&lt;configuration&gt;
+    　&lt;property name=&quot;logPath&quot; value=&quot;${LOG_HOME-/home}/logs&quot; /&gt;
+
+    &lt;!--  日志打印的格式 --&gt;
+    &lt;appender name=&quot;consoleLog&quot; class=&quot;ch.qos.logback.core.ConsoleAppender&quot;&gt;
+        &lt;layout class=&quot;ch.qos.logback.classic.PatternLayout&quot;&gt;
+            &lt;pattern&gt;
+                %d - %msg%n
+            &lt;/pattern&gt;
+        &lt;/layout&gt;
+    &lt;/appender&gt;
+
+    &lt;!-- info 状态下的日志   --&gt;
+    &lt;appender name=&quot;fileInfoLog&quot; class=&quot;ch.qos.logback.core.rolling.RollingFileAppender&quot;&gt;
+        &lt;filter class=&quot;ch.qos.logback.classic.filter.LevelFilter&quot;&gt;
+            &lt;level&gt;ERROR&lt;/level&gt;
+            &lt;onMatch&gt;DENY&lt;/onMatch&gt;
+            &lt;onMismatch&gt;ACCEPT&lt;/onMismatch&gt;
+        &lt;/filter&gt;
+        &lt;encoder&gt;
+            &lt;pattern&gt;
+                %d{yyyy-MM-dd HH:mm:ss.SSS} %10logger [%thread]  :  %msg%n
+            &lt;/pattern&gt;
+        &lt;/encoder&gt;
+        &lt;!--滚动策略--&gt;
+        &lt;rollingPolicy class=&quot;ch.qos.logback.core.rolling.TimeBasedRollingPolicy&quot;&gt;
+           &lt;fileNamePattern&gt;${logPath}/info.%d.log&lt;/fileNamePattern&gt;
+            &lt;maxHistory&gt;7&lt;/maxHistory&gt;
+        &lt;/rollingPolicy&gt;
+    &lt;/appender&gt;
+
+    &lt;!--  错误级别的日志文件  --&gt;
+    &lt;appender name=&quot;fileErrorLog&quot; class=&quot;ch.qos.logback.core.rolling.RollingFileAppender&quot;&gt;
+        &lt;filter class=&quot;ch.qos.logback.classic.filter.ThresholdFilter&quot;&gt;
+            &lt;level&gt;ERROR&lt;/level&gt;
+        &lt;/filter&gt;
+        &lt;encoder&gt;
+            &lt;pattern&gt;
+                %d{yyyy-MM-dd HH:mm:ss.SSS} %10logger [%thread]  :  %msg%n
+            &lt;/pattern&gt;
+        &lt;/encoder&gt;
+        &lt;!--滚动策略--&gt;
+        &lt;rollingPolicy class=&quot;ch.qos.logback.core.rolling.TimeBasedRollingPolicy&quot;&gt;
+         &lt;fileNamePattern&gt;${logPath}/error.%d.log&lt;/fileNamePattern&gt;
+            &lt;maxHistory&gt;7&lt;/maxHistory&gt;
+        &lt;/rollingPolicy&gt;
+    &lt;/appender&gt;
+
+    &lt;root level=&quot;info&quot;&gt;
+        &lt;appender-ref ref=&quot;consoleLog&quot; /&gt;
+        &lt;appender-ref ref=&quot;fileInfoLog&quot; /&gt;
+        &lt;appender-ref ref=&quot;fileErrorLog&quot; /&gt;
+    &lt;/root&gt;
+
+&lt;/configuration&gt;</code></code></pre>
+<p>上面代码中<code>${LOG_HOME-/home}/logs</code>表示，如果没有传入环境变量LOG_HOME，然后就使用后面的/home路径，对于windows系统来说，/home表示当前jar包所在的盘符。</p>
+<h1 id="项目启动">项目启动</h1>
+<pre><code><code> java -Dlogback_home=&quot;c:\\logs&quot; -jar eureka.jar
+</code></code></pre>
+<p>这样就把日志文件存储到了C盘logs目录了。</p>
+<h1 id="docker容器时指定">docker容器时指定</h1>
+<pre><code><code>docker run -d -p 7070:7070 -m 200M -e JAVA_OPTIONS=&#39;-Dlogback_home=&quot;/deployments/&#39;  eurekaserver</code></code></pre>
+
+
+</div><hr><script charset='utf-8' src='../../js/sming.js'></script></body></html>

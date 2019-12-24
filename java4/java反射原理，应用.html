@@ -1,0 +1,181 @@
+<html><head><meta charset='utf-8'><meta name='viewport' content='width=device-width, initial-scale=1'>
+<meta name='applicable-device' content='pc'><meta name='keywords' content='电脑,电脑讲解,电脑技术,编程,电脑故障维修java反射原理，应用' />
+<script src='../../highlight/highlight.pack.js'></script>
+<link rel='stylesheet' type='text/css' href='../../highlight/styles/monokai.css'/>
+
+<link rel='stylesheet' href='../../fenxiang/dist/css/share.min.css'>
+<script src='../../fenxiang/src/js/social-share.js'></script>
+<script src='../../fenxiang/src/js/qrcode.js'></script>
+
+</head><body><script>hljs.initHighlightingOnLoad();</script><script>
+var system ={};  
+var p = navigator.platform;       
+system.win = p.indexOf('Win') == 0;  
+system.mac = p.indexOf('Mac') == 0;  
+system.x11 = (p == 'X11') || (p.indexOf('Linux') == 0);     
+if(system.win||system.mac||system.xll){
+document.write("<link href='../css/3.css' rel='stylesheet' type='text/css'>");}else{ document.write("<link href='../css/3wap.css' rel='stylesheet' type='text/css'>");}</script><script src='../../js/3.js'></script><div class='div2'><div class='heading_nav'><ul><div><li><a href='../../index.html'>首页</a></li>
+</div><div onclick='hidden1()' >分享</div>
+</ul></div></div>
+<div id='heading_nav2'> 
+<li class='row' >
+<div class='social-share' data-mode='prepend'><a href='javascript:' class='social-share-icon icon-heart'></a></div></li></div><script charset='utf-8' src='../../3/js/hengfu.js'></script><script charset='utf-8' src='../../3/js/hengfu2.js'></script><hr><div class='div1'><div class='biaoti'><center>java反射原理，应用</center></div><div class='banquan'>原文出处:本文由博客园博主若千、提供。<br/>
+原文连接:https://www.cnblogs.com/Ruoqian/p/rq207_01.html</div><br>
+    <src class="cnblogs_code">
+<pre><code></code></pre>
+
+<p><strong>java类的加载过程</strong></p>
+<p>　　调用java命令运行程序时，该命令会启动一条java虚拟机进程，该程序的所有线程都会运行在这个虚拟机进程里面。程序运行产生的线程、变量都处于这个进程，共同使用该JVM进程的内存区。<br />　　<strong>类加载过程</strong><br />　　当程序调用一个类的时候，该类的class文件会被读入到内存中，用一个数组存放，产生一个对应的类对象。此时class还不可使用。而后开始检查该class文件是否正确，然后给类中的静态变量分配储存空间。最后对静态对象和静态代码块执行初始化工作。<br />如果该类存在父类。而且没有被加载，那么就会先加载初始化父类。并且先执行类中的初始化语句。<br /><strong>反射</strong><br />反射就是在class文件被加载到JVM的时候进行操作的。因为java类被编译为class文件。所以使用反射获取class文件从而拿到java类的所有信息。<br />即：java类中的所有元素，包括属性，方法，都会被看做一个对象。</p>
+<p><strong>如何获取class的对象</strong><br />java是面向对象语言，万事万物皆为对象。即所有类也是一个对象。是lang包下的Class类的对象：java.lang.Class的对象。<br />有三种获得方式：<br />　　1、通过对象类的对象获取<br />　　//首先创建类的对象		Stu stu = new Stu();<br />　　在不知道类名的情况下，传入一个对象，可以使用getClass()方法获得类名<br />　　//class获取该类		Class getclass = stu.getClass();<br />　　2、通过类名获取<br />　　//跳过对象类创建对象的过程 		Class getclass = Stu.class;<br />　　3、通过类名获取，但是会有异常抛出，并且需要强转类型<br />　　最常用<br />　　try{<br />　　　　Class getclass = (Class) Class.forName("Stu");<br />　　} catch (ClassNotFoundException e) {<br />　　　　e.printStackTrace();<br />　　}<br /><strong>通过类的对象获取属性，方法</strong><br /> 此时需要调用Method类：（以下为Api内容）<br />　　Method 提供关于类或接口上单独某个方法（以及如何访问该方法）的信息。所反映的方法可能是类方法或实例方法（包括抽象方法）。<br />　　Method 允许在匹配要调用的实参与底层方法的形参时进行扩展转换；但如果要进行收缩转换，则会抛出 IllegalArgumentException。</p>
+<p>首先：获得该类的所有成员方法，接上文的Class对象getClass<br />　　getMethods() ：方法是获得类所有的public方法。<br />　　Method[ ]  methods  =  getclass.getMethods(); <br />　　getDeclareMethods() : 方法是获得类所有方法，不考虑权限。但是不包括父类继承的方法。<br />　　Method[ ]  methods  =  getclass.getDeclareMethods();</p>
+<p>开发尽量少用继承<br />　　遍历集合：getReturnType()   :  得到方法的返回值类型<br />    　　getName（） :   得到方法名<br />　　先获取类型，再获取方法名<br />　　Class  returnType = methods[ i ].getReturnType();<br />　　String  returnTypeName  =  returnType.getName();</p>
+<p>现在拿到了方法的返回值类型，方法名，还需要方法的参数列表，因为一个方法的参数列表可能有多个，所以需要先得到参数列表的集合，遍历得到单个参数类型 <br />　　　　public Class&lt;?&gt;[ ] getParameterTypes()<br />　　按照声明顺序返回 Class 对象的数组，这些对象描述了此 Method 对象所表示的方法的形参类型。如果底层方法不带参数，则返回长度为 0 的数组。<br />　　返回：此对象所表示的方法的参数类型  (来自Api)</p>
+<p>　　Class[ ]  paramTypes = methods[ i ].getParameterTypes();</p>
+<p>由：paramTypes[ i ].getName();  得到参数类型名。</p>
+<p>　　参数名由Java8提供的Parameter类可以得到参数名。<br />　　Parameter[ ]  parameters = method[ i ].getParameters();<br />　　遍历该集合可以得到参数名----一般编译器默认不编译参数名的，所以可能获得的是arg0;<br /> 　　　　//参数类型   String Type  =  parameters[ i ].getType().toString();<br /> 　　　　//参数名   String name  =  parameters[ i ].getName();<br /><strong>获取成员变量</strong><br />　　方法是Method类的对象，成员变量是Field类的对象。<br />　　　　getFields()   :  获得所有公有成员变量<br />　　　　getDeclaredFields()   :  获得所有自己声明的成员变量，不考虑权限，，但是不包括父类继承的。	<br />　　　　Fields[ ]   fields = getclass.getFields();</p>
+<p>　　　　getType()  ：  获得成员变量的类型     <br />　　　　getName()  :  获得成员变量名	<br />　　　　String name = fields[ i ].getType().getName();<br />		<br /><strong>获取构造函数</strong><br />　　　　构造函数是Constructor类的对象；<br />　　　　//获得构造函数集合  区别同上<br /> 　　　　　　Constructor[] constructors1 = class1.getConstructors();<br />		　　　　　　Constructor[] constructors2 = class1.getDeclaredConstructors();</p>
+<p>　　　　遍历得到类型：<br />　　　　　　for (Constructor constructor : constructors2) {<br />			　　　　　　Class[] paramTypes = constructor.getParameterTypes();<br />				　　　　　　　　for (Class paramType : paramTypes) {<br />					　　　　　　　　　　String paramTypeName = paramType.getName();<br />							　　　　　　}<br />　　　　}<br /><strong>通过反射调用方法</strong><br />　　获取类类型，然后获取方法类型<br />　　　　try{<br />　　　　　　Class getclass = (Class) Class.forName("Stu");<br />　　　　　　} catch (ClassNotFoundException e) {<br />　　　　　　　　e.printStackTrace();<br />　　　　　　　　}<br />　　//第一个参数表示方法名，后面依次为方法的参数类型，没有则不传<br />　　　　Method[ ]  methods = getclass.getMethod(" FunctionName ", FunctionType)<br />　　　　methods.function(类对象，方法参数)<br />eg：<br />类方法  <br />public class Stu {<br />　　public void add (int a,int b){ return a+b;}<br />　　}<br />获取类对象，获取方法，调用方法<br />　　Stu stu = new Stu();<br />　　try{<br />　　　　Class getclass = (Class) Class.forName("Stu");<br />　　　　Method func = getclass.getMethod("add",int.class,int.claaa);<br />　　　　func.add(stu,2,3);<br />　　　} catch (ClassNotFoundException e) {<br />　　　　e.printStackTrace();<br />　　}</p>
+<p>&nbsp;</p>
+<src class="cnblogs_code" onclick="cnblogs_code_show('63de7367-056f-43de-afe8-41865fd63fd6')"><img id="code_img_closed_63de7367-056f-43de-afe8-41865fd63fd6" class="code_img_closed" src="./images/java反射原理，应用0.png" alt="" /><img id="code_img_opened_63de7367-056f-43de-afe8-41865fd63fd6" class="code_img_opened" style="display: none;" onclick="cnblogs_code_hide('63de7367-056f-43de-afe8-41865fd63fd6',event)" src="./images/java反射原理，应用1.png" alt="" />
+<src id="cnblogs_code_open_63de7367-056f-43de-afe8-41865fd63fd6" class="cnblogs_code_hide">
+<pre><code><span style="color: #008080;"> 1</span> <span style="color: #0000ff;">public</span> <span style="color: #0000ff;">class</span><span style="color: #000000;"> User {
+</span><span style="color: #008080;"> 2</span>     <span style="color: #0000ff;">private</span> <span style="color: #0000ff;">int</span><span style="color: #000000;"> id;
+</span><span style="color: #008080;"> 3</span>     <span style="color: #0000ff;">private</span><span style="color: #000000;"> String name;
+</span><span style="color: #008080;"> 4</span>     <span style="color: #0000ff;">public</span><span style="color: #000000;"> String addr;
+</span><span style="color: #008080;"> 5</span> 
+<span style="color: #008080;"> 6</span>     <span style="color: #0000ff;">private</span> <span style="color: #0000ff;">void</span> speak(<span style="color: #0000ff;">int</span> a,<span style="color: #0000ff;">int</span><span style="color: #000000;"> b){
+</span><span style="color: #008080;"> 7</span>         System.out.println("私有方法"<span style="color: #000000;">);
+</span><span style="color: #008080;"> 8</span> <span style="color: #000000;">    }
+</span><span style="color: #008080;"> 9</span>     <span style="color: #0000ff;">public</span> <span style="color: #0000ff;">void</span><span style="color: #000000;"> eat(String a){
+</span><span style="color: #008080;">10</span>         System.out.println("公有方法"<span style="color: #000000;">);
+</span><span style="color: #008080;">11</span> <span style="color: #000000;">    }
+</span><span style="color: #008080;">12</span>     <span style="color: #0000ff;">public</span> <span style="color: #0000ff;">int</span><span style="color: #000000;"> run(Boolean a){
+</span><span style="color: #008080;">13</span>         System.out.println("共有有返回值方法"<span style="color: #000000;">);
+</span><span style="color: #008080;">14</span>         <span style="color: #0000ff;">return</span> 4<span style="color: #000000;">;
+</span><span style="color: #008080;">15</span> <span style="color: #000000;">    }
+</span><span style="color: #008080;">16</span> 
+<span style="color: #008080;">17</span>     <span style="color: #0000ff;">public</span> User(<span style="color: #0000ff;">int</span><span style="color: #000000;"> id, String name, String addr) {
+</span><span style="color: #008080;">18</span>         <span style="color: #0000ff;">this</span>.id =<span style="color: #000000;"> id;
+</span><span style="color: #008080;">19</span>         <span style="color: #0000ff;">this</span>.name =<span style="color: #000000;"> name;
+</span><span style="color: #008080;">20</span>         <span style="color: #0000ff;">this</span>.addr =<span style="color: #000000;"> addr;
+</span><span style="color: #008080;">21</span> <span style="color: #000000;">    }
+</span><span style="color: #008080;">22</span> }</code></pre>
+
+<span class="cnblogs_code_collapse">JavaBean</span>
+<src class="cnblogs_code">
+<pre><code><span style="color: #0000ff;">import</span><span style="color: #000000;"> java.lang.reflect.Constructor;
+</span><span style="color: #0000ff;">import</span><span style="color: #000000;"> java.lang.reflect.Field;
+</span><span style="color: #0000ff;">import</span><span style="color: #000000;"> java.lang.reflect.Method;
+
+</span><span style="color: #0000ff;">public</span> <span style="color: #0000ff;">class</span><span style="color: #000000;"> Test {
+    </span><span style="color: #0000ff;">public</span> <span style="color: #0000ff;">static</span> <span style="color: #0000ff;">void</span> main(String[] args) <span style="color: #0000ff;">throws</span><span style="color: #000000;"> ClassNotFoundException {
+        </span><span style="color: #008000;">//</span><span style="color: #008000;">拿到对象</span>
+        Class clazz = Class.forName("User"<span style="color: #000000;">);
+        </span><span style="color: #008000;">//</span><span style="color: #008000;">通过对象拿类的方法，属性
+
+        </span><span style="color: #008000;">//</span><span style="color: #008000;">拿到所有共有方法</span>
+        Method[] getMethon1 =<span style="color: #000000;"> clazz.getMethods();
+        </span><span style="color: #0000ff;">for</span><span style="color: #000000;"> (Method method : getMethon1) {
+            System.out.println(</span>"打印共有方法名："+<span style="color: #000000;">method.getName());
+            System.out.println(</span>"打印共有方法返回值类型："+<span style="color: #000000;">method.getReturnType());
+            Class[] funcType </span>=<span style="color: #000000;"> method.getParameterTypes();
+            </span><span style="color: #0000ff;">for</span><span style="color: #000000;"> (Class aClass : funcType) {
+                System.out.println(</span>"打印该方法的参数类型列表: "+<span style="color: #000000;">aClass.getTypeName());
+            }
+        }
+        System.out.println(</span>"-----------------------------------"<span style="color: #000000;">);
+        </span><span style="color: #008000;">//</span><span style="color: #008000;">获得该类自己创建的方法</span>
+        Method[] getMethon2 =<span style="color: #000000;"> clazz.getDeclaredMethods();
+        </span><span style="color: #0000ff;">for</span><span style="color: #000000;"> (Method method : getMethon2) {
+            System.out.println(</span>"打印所有创建方法名："+<span style="color: #000000;">method.getName());
+            System.out.println(</span>"打印所有创建方法返回值类型："+<span style="color: #000000;">method.getReturnType());
+            Class[] funcType2 </span>=<span style="color: #000000;"> method.getParameterTypes();
+            </span><span style="color: #0000ff;">for</span><span style="color: #000000;"> (Class aClass : funcType2) {
+                System.out.println(</span>"打印该方法的参数类型列表: "+<span style="color: #000000;">aClass.getTypeName());
+            }
+        }
+
+        </span><span style="color: #008000;">//</span><span style="color: #008000;">拿到公有成员变量</span>
+        Field[] fields =<span style="color: #000000;"> clazz.getFields();
+        </span><span style="color: #0000ff;">for</span><span style="color: #000000;"> (Field field : fields) {
+            System.out.println(</span>"打印该变量的变量名："+<span style="color: #000000;">field.getName());
+            System.out.println(</span>"打印该变量的类型："+<span style="color: #000000;">field.getType());
+        }
+        </span><span style="color: #008000;">//</span><span style="color: #008000;">拿到该类创建的成员变量</span>
+        Field[] fields1 =<span style="color: #000000;"> clazz.getDeclaredFields();
+        </span><span style="color: #0000ff;">for</span><span style="color: #000000;"> (Field field : fields1) {
+            System.out.println(</span>"打印该变量的变量名："+<span style="color: #000000;">field.getName());
+            System.out.println(</span>"打印该变量的类型："+<span style="color: #000000;">field.getType());
+        }
+        </span><span style="color: #008000;">//</span><span style="color: #008000;">拿到构造函数</span>
+        Constructor[] constructors =<span style="color: #000000;"> clazz.getConstructors();
+        </span><span style="color: #0000ff;">for</span><span style="color: #000000;"> (Constructor constructor : constructors) {
+            System.out.println(</span>"打印构造方法的名 ： "+<span style="color: #000000;">constructor.getName());
+            </span><span style="color: #008000;">//</span><span style="color: #008000;">拿到构造方法的参数列表</span>
+            Class[] funcTypeCons =<span style="color: #000000;"> constructor.getParameterTypes();
+            </span><span style="color: #0000ff;">for</span><span style="color: #000000;"> (Class funcTypeCon : funcTypeCons) {
+                System.out.println(</span>"打印参数类型："+<span style="color: #000000;">funcTypeCon.getTypeName());
+            }
+        }
+
+    }
+}</span></code></pre>
+
+<src class="cnblogs_code" onclick="cnblogs_code_show('d1f9175a-ee7c-418b-ac6a-31ed5fe965b6')"><img id="code_img_closed_d1f9175a-ee7c-418b-ac6a-31ed5fe965b6" class="code_img_closed" src="./images/java反射原理，应用0.png" alt="" /><img id="code_img_opened_d1f9175a-ee7c-418b-ac6a-31ed5fe965b6" class="code_img_opened" style="display: none;" onclick="cnblogs_code_hide('d1f9175a-ee7c-418b-ac6a-31ed5fe965b6',event)" src="./images/java反射原理，应用1.png" alt="" />
+<src id="cnblogs_code_open_d1f9175a-ee7c-418b-ac6a-31ed5fe965b6" class="cnblogs_code_hide">
+<pre><code><span style="color: #000000;">打印共有方法名：run
+打印共有方法返回值类型：</span><span style="color: #0000ff;">int</span><span style="color: #000000;">
+打印该方法的参数类型列表: java.lang.Boolean
+打印共有方法名：eat
+打印共有方法返回值类型：</span><span style="color: #0000ff;">void</span><span style="color: #000000;">
+打印该方法的参数类型列表: java.lang.String
+打印共有方法名：wait
+打印共有方法返回值类型：</span><span style="color: #0000ff;">void</span><span style="color: #000000;">
+打印共有方法名：wait
+打印共有方法返回值类型：</span><span style="color: #0000ff;">void</span><span style="color: #000000;">
+打印该方法的参数类型列表: </span><span style="color: #0000ff;">long</span><span style="color: #000000;">
+打印该方法的参数类型列表: </span><span style="color: #0000ff;">int</span><span style="color: #000000;">
+打印共有方法名：wait
+打印共有方法返回值类型：</span><span style="color: #0000ff;">void</span><span style="color: #000000;">
+打印该方法的参数类型列表: </span><span style="color: #0000ff;">long</span><span style="color: #000000;">
+打印共有方法名：equals
+打印共有方法返回值类型：</span><span style="color: #0000ff;">boolean</span><span style="color: #000000;">
+打印该方法的参数类型列表: java.lang.Object
+打印共有方法名：toString
+打印共有方法返回值类型：</span><span style="color: #0000ff;">class</span><span style="color: #000000;"> java.lang.String
+打印共有方法名：hashCode
+打印共有方法返回值类型：</span><span style="color: #0000ff;">int</span><span style="color: #000000;">
+打印共有方法名：getClass
+打印共有方法返回值类型：</span><span style="color: #0000ff;">class</span><span style="color: #000000;"> java.lang.Class
+打印共有方法名：notify
+打印共有方法返回值类型：</span><span style="color: #0000ff;">void</span><span style="color: #000000;">
+打印共有方法名：notifyAll
+打印共有方法返回值类型：</span><span style="color: #0000ff;">void</span>
+-----------------------------------<span style="color: #000000;">
+打印所有创建方法名：run
+打印所有创建方法返回值类型：</span><span style="color: #0000ff;">int</span><span style="color: #000000;">
+打印该方法的参数类型列表: java.lang.Boolean
+打印所有创建方法名：speak
+打印所有创建方法返回值类型：</span><span style="color: #0000ff;">void</span><span style="color: #000000;">
+打印该方法的参数类型列表: </span><span style="color: #0000ff;">int</span><span style="color: #000000;">
+打印该方法的参数类型列表: </span><span style="color: #0000ff;">int</span><span style="color: #000000;">
+打印所有创建方法名：eat
+打印所有创建方法返回值类型：</span><span style="color: #0000ff;">void</span><span style="color: #000000;">
+打印该方法的参数类型列表: java.lang.String
+打印该变量的变量名：addr
+打印该变量的类型：</span><span style="color: #0000ff;">class</span><span style="color: #000000;"> java.lang.String
+打印该变量的变量名：id
+打印该变量的类型：</span><span style="color: #0000ff;">int</span><span style="color: #000000;">
+打印该变量的变量名：name
+打印该变量的类型：</span><span style="color: #0000ff;">class</span><span style="color: #000000;"> java.lang.String
+打印该变量的变量名：addr
+打印该变量的类型：</span><span style="color: #0000ff;">class</span><span style="color: #000000;"> java.lang.String
+打印构造方法的名 ： User
+打印参数类型：</span><span style="color: #0000ff;">int</span><span style="color: #000000;">
+打印参数类型：java.lang.String
+打印参数类型：java.lang.String</span></code></pre>
+
+<span class="cnblogs_code_collapse">测试结果</span>
+<p>&nbsp;</p>
+
+</div><hr><script charset='utf-8' src='../../js/sming.js'></script></body></html>

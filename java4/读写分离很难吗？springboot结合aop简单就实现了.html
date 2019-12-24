@@ -1,0 +1,338 @@
+<html><head><meta charset='utf-8'><meta name='viewport' content='width=device-width, initial-scale=1'>
+<meta name='applicable-device' content='pc'><meta name='keywords' content='电脑,电脑讲解,电脑技术,编程,电脑故障维修读写分离很难吗？springboot结合aop简单就实现了' />
+<script src='../../highlight/highlight.pack.js'></script>
+<link rel='stylesheet' type='text/css' href='../../highlight/styles/monokai.css'/>
+
+<link rel='stylesheet' href='../../fenxiang/dist/css/share.min.css'>
+<script src='../../fenxiang/src/js/social-share.js'></script>
+<script src='../../fenxiang/src/js/qrcode.js'></script>
+
+</head><body><script>hljs.initHighlightingOnLoad();</script><script>
+var system ={};  
+var p = navigator.platform;       
+system.win = p.indexOf('Win') == 0;  
+system.mac = p.indexOf('Mac') == 0;  
+system.x11 = (p == 'X11') || (p.indexOf('Linux') == 0);     
+if(system.win||system.mac||system.xll){
+document.write("<link href='../css/3.css' rel='stylesheet' type='text/css'>");}else{ document.write("<link href='../css/3wap.css' rel='stylesheet' type='text/css'>");}</script><script src='../../js/3.js'></script><div class='div2'><div class='heading_nav'><ul><div><li><a href='../../index.html'>首页</a></li>
+</div><div onclick='hidden1()' >分享</div>
+</ul></div></div>
+<div id='heading_nav2'> 
+<li class='row' >
+<div class='social-share' data-mode='prepend'><a href='javascript:' class='social-share-icon icon-heart'></a></div></li></div><script charset='utf-8' src='../../3/js/hengfu.js'></script><script charset='utf-8' src='../../3/js/hengfu2.js'></script><hr><div class='div1'><div class='biaoti'><center>读写分离很难吗？springboot结合aop简单就实现了</center></div><div class='banquan'>原文出处:本文由博客园博主鄙人薛某提供。<br/>
+原文连接:https://www.cnblogs.com/yeya/p/11936239.html</div><br>
+    <src class="toc">
+    <p class="toc-title">目录</p>
+    <src class="toc-list">
+        <ul>
+        <li><a href="#前言">前言</a></li>
+        <li><a href="#环境部署">环境部署</a></li>
+        <li><a href="#开始项目">开始项目</a></li>
+        <li><a href="#注意">注意</a></li>
+        <li><a href="#參考">參考：</a></li>
+        </ul>
+    
+
+<h3 id="前言">前言</h3>
+<p>入职新公司到现在也有一个月了，完成了手头的工作，前几天终于有时间研究下公司旧项目的代码。在研究代码的过程中，发现项目里用到了Spring Aop来实现数据库的读写分离，本着自己爱学习(我自己都不信...)的性格，决定写个实例工程来实现spring aop读写分离的效果。</p>
+<h3 id="环境部署">环境部署</h3>
+<p>数据库：MySql</p>
+<p>库数量：2个，一主一从</p>
+<p>关于mysql的主从环境部署之前已经写过文章介绍过了，这里就不再赘述，参考<a href="https://www.cnblogs.com/yeya/p/11878009.html">《手把手教你，如何在windows系统搭建mysql主从复制的环境》</a></p>
+<h3 id="开始项目">开始项目</h3>
+<p>首先，毫无疑问，先开始搭建一个SpringBoot工程，然后在pom文件中引入如下依赖：</p>
+<pre><code><code>&lt;dependencies&gt;
+        &lt;dependency&gt;
+            &lt;groupId&gt;com.alibaba&lt;/groupId&gt;
+            &lt;artifactId&gt;druid-spring-boot-starter&lt;/artifactId&gt;
+            &lt;version&gt;1.1.10&lt;/version&gt;
+        &lt;/dependency&gt;
+        &lt;dependency&gt;
+            &lt;groupId&gt;org.mybatis.spring.boot&lt;/groupId&gt;
+            &lt;artifactId&gt;mybatis-spring-boot-starter&lt;/artifactId&gt;
+            &lt;version&gt;1.3.2&lt;/version&gt;
+        &lt;/dependency&gt;
+        &lt;dependency&gt;
+            &lt;groupId&gt;tk.mybatis&lt;/groupId&gt;
+            &lt;artifactId&gt;mapper-spring-boot-starter&lt;/artifactId&gt;
+            &lt;version&gt;2.1.5&lt;/version&gt;
+        &lt;/dependency&gt;
+        &lt;dependency&gt;
+            &lt;groupId&gt;mysql&lt;/groupId&gt;
+            &lt;artifactId&gt;mysql-connector-java&lt;/artifactId&gt;
+            &lt;version&gt;8.0.16&lt;/version&gt;
+        &lt;/dependency&gt;
+        &lt;!-- 动态数据源 所需依赖 ### start--&gt;
+        &lt;dependency&gt;
+            &lt;groupId&gt;org.springframework.boot&lt;/groupId&gt;
+            &lt;artifactId&gt;spring-boot-starter-jdbc&lt;/artifactId&gt;
+            &lt;scope&gt;provided&lt;/scope&gt;
+        &lt;/dependency&gt;
+        &lt;dependency&gt;
+            &lt;groupId&gt;org.springframework.boot&lt;/groupId&gt;
+            &lt;artifactId&gt;spring-boot-starter-aop&lt;/artifactId&gt;
+            &lt;scope&gt;provided&lt;/scope&gt;
+        &lt;/dependency&gt;
+        &lt;!-- 动态数据源 所需依赖 ### end--&gt;
+        &lt;dependency&gt;
+            &lt;groupId&gt;org.springframework.boot&lt;/groupId&gt;
+            &lt;artifactId&gt;spring-boot-starter-web&lt;/artifactId&gt;
+        &lt;/dependency&gt;
+        &lt;dependency&gt;
+            &lt;groupId&gt;org.projectlombok&lt;/groupId&gt;
+            &lt;artifactId&gt;lombok&lt;/artifactId&gt;
+            &lt;optional&gt;true&lt;/optional&gt;
+        &lt;/dependency&gt;
+        &lt;dependency&gt;
+            &lt;groupId&gt;com.alibaba&lt;/groupId&gt;
+            &lt;artifactId&gt;fastjson&lt;/artifactId&gt;
+            &lt;version&gt;1.2.4&lt;/version&gt;
+        &lt;/dependency&gt;
+        &lt;dependency&gt;
+            &lt;groupId&gt;org.springframework.boot&lt;/groupId&gt;
+            &lt;artifactId&gt;spring-boot-starter-test&lt;/artifactId&gt;
+            &lt;scope&gt;test&lt;/scope&gt;
+        &lt;/dependency&gt;
+        &lt;dependency&gt;
+            &lt;groupId&gt;org.springframework.boot&lt;/groupId&gt;
+            &lt;artifactId&gt;spring-boot-starter-data-jpa&lt;/artifactId&gt;
+        &lt;/dependency&gt;
+    &lt;/dependencies&gt;</code></code></pre>
+<h4 id="目录结构">目录结构</h4>
+<p>引入基本的依赖后，整理一下目录结构，完成后的项目骨架大致如下：<br />
+<img src="./images/读写分离很难吗？springboot结合aop简单就实现了0.png" /></p>
+<h4 id="建表">建表</h4>
+<p>创建一张表user，在主库执行sql语句同时在从库生成对应的表数据</p>
+<pre><code><code>DROP TABLE IF EXISTS `user`;
+CREATE TABLE `user` (
+  `user_id` bigint(20) NOT NULL COMMENT &#39;用户id&#39;,
+  `user_name` varchar(255) DEFAULT &#39;&#39; COMMENT &#39;用户名称&#39;,
+  `user_phone` varchar(50) DEFAULT &#39;&#39; COMMENT &#39;用户手机&#39;,
+  `address` varchar(255) DEFAULT &#39;&#39; COMMENT &#39;住址&#39;,
+  `weight` int(3) NOT NULL DEFAULT &#39;1&#39; COMMENT &#39;权重，大者优先&#39;,
+  `created_at` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT &#39;创建时间&#39;,
+  `updated_at` datetime DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT &#39;更新时间&#39;,
+  PRIMARY KEY (`user_id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+
+INSERT INTO `user` VALUES (&#39;1196978513958141952&#39;, &#39;测试1&#39;, &#39;18826334748&#39;, &#39;广州市海珠区&#39;, &#39;1&#39;, &#39;2019-11-20 10:28:51&#39;, &#39;2019-11-22 14:28:26&#39;);
+INSERT INTO `user` VALUES (&#39;1196978513958141953&#39;, &#39;测试2&#39;, &#39;18826274230&#39;, &#39;广州市天河区&#39;, &#39;2&#39;, &#39;2019-11-20 10:29:37&#39;, &#39;2019-11-22 14:28:14&#39;);
+INSERT INTO `user` VALUES (&#39;1196978513958141954&#39;, &#39;测试3&#39;, &#39;18826273900&#39;, &#39;广州市天河区&#39;, &#39;1&#39;, &#39;2019-11-20 10:30:19&#39;, &#39;2019-11-22 14:28:30&#39;);</code></code></pre>
+<h4 id="主从数据源配置">主从数据源配置</h4>
+<p>application.yml，主要信息是主从库的数据源配置</p>
+<pre><code><code>server:
+  port: 8001
+spring:
+  jackson:
+    date-format: yyyy-MM-dd HH:mm:ss
+    time-zone: GMT+8
+  datasource:
+    type: com.alibaba.druid.pool.DruidDataSource
+    driver-class-name: com.mysql.cj.jdbc.Driver
+    master:
+      url: jdbc:mysql://127.0.0.1:3307/user?serverTimezone=Asia/Shanghai&amp;useUnicode=true&amp;characterEncoding=UTF-8&amp;autoReconnect=true&amp;failOverReadOnly=false&amp;useSSL=false&amp;zeroDateTimeBehavior=convertToNull&amp;allowMultiQueries=true
+      username: root
+      password:
+    slave:
+      url: jdbc:mysql://127.0.0.1:3308/user?serverTimezone=Asia/Shanghai&amp;useUnicode=true&amp;characterEncoding=UTF-8&amp;autoReconnect=true&amp;failOverReadOnly=false&amp;useSSL=false&amp;zeroDateTimeBehavior=convertToNull&amp;allowMultiQueries=true
+      username: root
+      password:</code></code></pre>
+<p>因为有一主一从两个数据源，我们用枚举类来代替，方便我们使用时能对应</p>
+<pre><code><code>@Getter
+public enum DynamicDataSourceEnum {
+    MASTER(&quot;master&quot;),
+    SLAVE(&quot;slave&quot;);
+    private String dataSourceName;
+    DynamicDataSourceEnum(String dataSourceName) {
+        this.dataSourceName = dataSourceName;
+    }
+}</code></code></pre>
+<p>数据源配置信息类 <strong>DataSourceConfig</strong>，这里配置了两个数据源，masterDb和slaveDb</p>
+<pre><code><code>@Configuration
+@MapperScan(basePackages = &quot;com.xjt.proxy.mapper&quot;, sqlSessionTemplateRef = &quot;sqlTemplate&quot;)
+public class DataSourceConfig {
+    
+     // 主库
+      @Bean
+      @ConfigurationProperties(prefix = &quot;spring.datasource.master&quot;)
+      public DataSource masterDb() {
+  return DruidDataSourceBuilder.create().build();
+      }
+
+    /**
+     * 从库
+     */
+    @Bean
+    @ConditionalOnProperty(prefix = &quot;spring.datasource&quot;, name = &quot;slave&quot;, matchIfMissing = true)
+    @ConfigurationProperties(prefix = &quot;spring.datasource.slave&quot;)
+    public DataSource slaveDb() {
+        return DruidDataSourceBuilder.create().build();
+    }
+
+    /**
+     * 主从动态配置
+     */
+    @Bean
+    public DynamicDataSource dynamicDb(@Qualifier(&quot;masterDb&quot;) DataSource masterDataSource,
+        @Autowired(required = false) @Qualifier(&quot;slaveDb&quot;) DataSource slaveDataSource) {
+        DynamicDataSource dynamicDataSource = new DynamicDataSource();
+        Map&lt;Object, Object&gt; targetDataSources = new HashMap&lt;&gt;();
+        targetDataSources.put(DynamicDataSourceEnum.MASTER.getDataSourceName(), masterDataSource);
+        if (slaveDataSource != null) {
+            targetDataSources.put(DynamicDataSourceEnum.SLAVE.getDataSourceName(), slaveDataSource);
+        }
+        dynamicDataSource.setTargetDataSources(targetDataSources);
+        dynamicDataSource.setDefaultTargetDataSource(masterDataSource);
+        return dynamicDataSource;
+    }
+    @Bean
+    public SqlSessionFactory sessionFactory(@Qualifier(&quot;dynamicDb&quot;) DataSource dynamicDataSource) throws Exception {
+        SqlSessionFactoryBean bean = new SqlSessionFactoryBean();
+        bean.setMapperLocations(
+            new PathMatchingResourcePatternResolver().getResources(&quot;classpath*:mapper/*Mapper.xml&quot;));
+        bean.setDataSource(dynamicDataSource);
+        return bean.getObject();
+    }
+    @Bean
+    public SqlSessionTemplate sqlTemplate(@Qualifier(&quot;sessionFactory&quot;) SqlSessionFactory sqlSessionFactory) {
+        return new SqlSessionTemplate(sqlSessionFactory);
+    }
+    @Bean(name = &quot;dataSourceTx&quot;)
+    public DataSourceTransactionManager dataSourceTx(@Qualifier(&quot;dynamicDb&quot;) DataSource dynamicDataSource) {
+        DataSourceTransactionManager dataSourceTransactionManager = new DataSourceTransactionManager();
+        dataSourceTransactionManager.setDataSource(dynamicDataSource);
+        return dataSourceTransactionManager;
+    }
+}</code></code></pre>
+<h4 id="设置路由">设置路由</h4>
+<p>设置路由的目的为了方便查找对应的数据源，我们可以用ThreadLocal保存数据源的信息到每个线程中，方便我们需要时获取</p>
+<pre><code><code>public class DataSourceContextHolder {
+    private static final ThreadLocal&lt;String&gt; DYNAMIC_DATASOURCE_CONTEXT = new ThreadLocal&lt;&gt;();
+    public static void set(String datasourceType) {
+        DYNAMIC_DATASOURCE_CONTEXT.set(datasourceType);
+    }
+    public static String get() {
+        return DYNAMIC_DATASOURCE_CONTEXT.get();
+    }
+    public static void clear() {
+        DYNAMIC_DATASOURCE_CONTEXT.remove();
+    }
+}</code></code></pre>
+<p>获取路由</p>
+<pre><code><code>public class DynamicDataSource extends AbstractRoutingDataSource {
+    @Override
+    protected Object determineCurrentLookupKey() {
+        return DataSourceContextHolder.get();
+    }
+}</code></code></pre>
+<p>AbstractRoutingDataSource的作用是基于查找key路由到对应的数据源，它内部维护了一组目标数据源，并且做了路由key与目标数据源之间的映射，提供基于key查找数据源的方法。</p>
+<h4 id="数据源的注解">数据源的注解</h4>
+<p>为了可以方便切换数据源，我们可以写一个注解，注解中包含数据源对应的枚举值，默认是主库，</p>
+<pre><code><code>@Retention(RetentionPolicy.RUNTIME)
+@Target(ElementType.METHOD)
+@Documented
+public @interface DataSourceSelector {
+
+    DynamicDataSourceEnum value() default DynamicDataSourceEnum.MASTER;
+    boolean clear() default true;
+}</code></code></pre>
+<h4 id="aop切换数据源">aop切换数据源</h4>
+<p>到这里，aop终于可以现身出场了，这里我们定义一个aop类，对有注解的方法做切换数据源的操作，具体代码如下：</p>
+<pre><code><code>@Slf4j
+@Aspect
+@Order(value = 1)
+@Component
+public class DataSourceContextAop {
+
+ @Around(&quot;@annotation(com.xjt.proxy.dynamicdatasource.DataSourceSelector)&quot;)
+    public Object setDynamicDataSource(ProceedingJoinPoint pjp) throws Throwable {
+        boolean clear = true;
+        try {
+            Method method = this.getMethod(pjp);
+            DataSourceSelector dataSourceImport = method.getAnnotation(DataSourceSelector.class);
+            clear = dataSourceImport.clear();
+            DataSourceContextHolder.set(dataSourceImport.value().getDataSourceName());
+            log.info(&quot;========数据源切换至：{}&quot;, dataSourceImport.value().getDataSourceName());
+            return pjp.proceed();
+        } finally {
+            if (clear) {
+                DataSourceContextHolder.clear();
+            }
+
+        }
+    }
+    private Method getMethod(JoinPoint pjp) {
+        MethodSignature signature = (MethodSignature)pjp.getSignature();
+        return signature.getMethod();
+    }
+
+}</code></code></pre>
+<p>到这一步，我们的准备配置工作就完成了，下面开始测试效果。</p>
+<p>先写好Service文件，包含读取和更新两个方法，</p>
+<pre><code><code>@Service
+public class UserService {
+
+    @Autowired
+    private UserMapper userMapper;
+
+    @DataSourceSelector(value = DynamicDataSourceEnum.SLAVE)
+    public List&lt;User&gt; listUser() {
+        List&lt;User&gt; users = userMapper.selectAll();
+        return users;
+    }
+
+    @DataSourceSelector(value = DynamicDataSourceEnum.MASTER)
+    public int update() {
+        User user = new User();
+        user.setUserId(Long.parseLong(&quot;1196978513958141952&quot;));
+        user.setUserName(&quot;修改后的名字2&quot;);
+        return userMapper.updateByPrimaryKeySelective(user);
+    }
+
+    @DataSourceSelector(value = DynamicDataSourceEnum.SLAVE)
+    public User find() {
+        User user = new User();
+        user.setUserId(Long.parseLong(&quot;1196978513958141952&quot;));
+        return userMapper.selectByPrimaryKey(user);
+    }
+}</code></code></pre>
+<p>根据方法上的注解可以看出，读的方法走从库，更新的方法走主库，更新的对象是userId为<code>1196978513958141953</code> 的数据，</p>
+<p>然后我们写个测试类测试下是否能达到效果，</p>
+<pre><code><code>@RunWith(SpringRunner.class)
+@SpringBootTest
+class UserServiceTest {
+
+    @Autowired
+    UserService userService;
+
+    @Test
+    void listUser() {
+        List&lt;User&gt; users = userService.listUser();
+        for (User user : users) {
+            System.out.println(user.getUserId());
+            System.out.println(user.getUserName());
+            System.out.println(user.getUserPhone());
+        }
+    }
+    @Test
+    void update() {
+        userService.update();
+        User user = userService.find();
+        System.out.println(user.getUserName());
+    }
+}</code></code></pre>
+<p>测试结果：</p>
+<p>1、读取方法<br />
+<img src="./images/读写分离很难吗？springboot结合aop简单就实现了1.png" /><br />
+2、更新方法<br />
+<img src="./images/读写分离很难吗？springboot结合aop简单就实现了2.png" /><br />
+执行之后，比对数据库就可以发现主从库都修改了数据，说明我们的读写分离是成功的。当然，更新方法可以指向从库，这样一来就只会修改到从库的数据，而不会涉及到主库。</p>
+<h3 id="注意">注意</h3>
+<p>上面测试的例子虽然比较简单，但也符合常规的读写分离配置。值得说明的是，读写分离的作用是为了缓解写库，也就是主库的压力，但一定要基于数据一致性的原则，就是保证主从库之间的数据一定要一致。<strong>如果一个方法涉及到写的逻辑，那么该方法里所有的数据库操作都要走主库</strong>。</p>
+<p>假设写的操作执行完后数据有可能还没同步到从库，然后读的操作也开始执行了，如果这个读取的程序走的依然是从库的话，那么就会出现数据不一致的现象了，这是我们不允许的。</p>
+<p>最后发一下项目的github地址，有兴趣的同学可以看下，记得给个star哦</p>
+<p>地址：<a href="https://github.com/Taoxj/mysql-proxy" class="uri">https://github.com/Taoxj/mysql-proxy</a></p>
+<h3 id="參考">參考：</h3>
+<p><a href="https://www.cnblogs.com/cjsblog/p/9712457.html" class="uri">https://www.cnblogs.com/cjsblog/p/9712457.html</a></p>
+
+</div><hr><script charset='utf-8' src='../../js/sming.js'></script></body></html>

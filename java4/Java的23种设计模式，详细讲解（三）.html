@@ -1,0 +1,636 @@
+<html><head><meta charset='utf-8'><meta name='viewport' content='width=device-width, initial-scale=1'>
+<meta name='applicable-device' content='pc'><meta name='keywords' content='电脑,电脑讲解,电脑技术,编程,电脑故障维修Java的23种设计模式，详细讲解（三）' />
+<script src='../../highlight/highlight.pack.js'></script>
+<link rel='stylesheet' type='text/css' href='../../highlight/styles/monokai.css'/>
+
+<link rel='stylesheet' href='../../fenxiang/dist/css/share.min.css'>
+<script src='../../fenxiang/src/js/social-share.js'></script>
+<script src='../../fenxiang/src/js/qrcode.js'></script>
+
+</head><body><script>hljs.initHighlightingOnLoad();</script><script>
+var system ={};  
+var p = navigator.platform;       
+system.win = p.indexOf('Win') == 0;  
+system.mac = p.indexOf('Mac') == 0;  
+system.x11 = (p == 'X11') || (p.indexOf('Linux') == 0);     
+if(system.win||system.mac||system.xll){
+document.write("<link href='../css/3.css' rel='stylesheet' type='text/css'>");}else{ document.write("<link href='../css/3wap.css' rel='stylesheet' type='text/css'>");}</script><script src='../../js/3.js'></script><div class='div2'><div class='heading_nav'><ul><div><li><a href='../../index.html'>首页</a></li>
+</div><div onclick='hidden1()' >分享</div>
+</ul></div></div>
+<div id='heading_nav2'> 
+<li class='row' >
+<div class='social-share' data-mode='prepend'><a href='javascript:' class='social-share-icon icon-heart'></a></div></li></div><script charset='utf-8' src='../../3/js/hengfu.js'></script><script charset='utf-8' src='../../3/js/hengfu2.js'></script><hr><div class='div1'><div class='biaoti'><center>Java的23种设计模式，详细讲解（三）</center></div><div class='banquan'>原文出处:本文由博客园博主Java博客手留余香提供。<br/>
+原文连接:https://www.cnblogs.com/yuxiang1/p/11691917.html</div><br>
+    <blockquote>
+<h3><span style="color: #ff0000;">本人免费整理了Java高级资料，涵盖了Java、Redis、MongoDB、MySQL、Zookeeper、Spring Cloud、Dubbo高并发分布式等教程，一共30G，需要自己领取。</span><br /><span style="color: #ff0000;">传送门</span>：<a class=" wrap external" href="https://link.zhihu.com/?target=https%3A//links.jianshu.com/go%3Fto%3Dhttps%253A%252F%252Flink.zhihu.com%252F%253Ftarget%253Dhttps%25253A%252F%252Fmp.weixin.qq.com%252Fs%252FJzddfH-7yNudmkjT0IRL8Q" rel="nofollow noreferrer" target="_blank" data-za-detail-view-id="1043">https://mp.weixin.qq.com/s/JzddfH-7yNudmkjT0IRL8Q</a></h3>
+
+</blockquote>
+<h2>1. 适配器（Adapter）</h2>
+<h3>Intent</h3>
+<p>把一个类接口转换成另一个用户需要的接口。</p>
+<p class="ztext-empty-paragraph">&nbsp;</p>
+<p><img class="origin_image zh-lightbox-thumb lazy" src="./images/Java的23种设计模式，详细讲解（三）0.png" alt="" width="552" data-caption="" data-size="normal" data-rawwidth="552" data-rawheight="279" data-original="https://pic2.zhimg.com/v2-20f085e78c4c5f1778858829328ea5cd_r.jpg" data-actualsrc="https://pic2.zhimg.com/v2-20f085e78c4c5f1778858829328ea5cd_b.jpg" data-lazy-status="ok" /></p>
+<p class="ztext-empty-paragraph">&nbsp;</p>
+<p class="ztext-empty-paragraph">&nbsp;</p>
+<h3>Class Diagram</h3>
+<p class="ztext-empty-paragraph">&nbsp;</p>
+<p><img class="origin_image zh-lightbox-thumb lazy" src="./images/Java的23种设计模式，详细讲解（三）1.png" alt="" width="848" data-caption="" data-size="normal" data-rawwidth="848" data-rawheight="375" data-original="https://pic3.zhimg.com/v2-1beb36d924643d5b2e7f507717232fb2_r.jpg" data-actualsrc="https://pic3.zhimg.com/v2-1beb36d924643d5b2e7f507717232fb2_b.jpg" data-lazy-status="ok" /></p>
+<p class="ztext-empty-paragraph">&nbsp;</p>
+<p class="ztext-empty-paragraph">&nbsp;</p>
+<h3>Implementation</h3>
+<p>鸭子（Duck）和火鸡（Turkey）拥有不同的叫声，Duck 的叫声调用 quack() 方法，而 Turkey 调用 gobble() 方法。</p>
+<p>要求将 Turkey 的 gobble() 方法适配成 Duck 的 quack() 方法，从而让火鸡冒充鸭子！</p>
+<src class="highlight">
+<src class="cnblogs_code">
+<pre><code><span style="color: #0000ff;">public</span> <span style="color: #0000ff;">interface</span><span style="color: #000000;"> Duck {
+    </span><span style="color: #0000ff;">void</span><span style="color: #000000;"> quack();
+}
+</span><span style="color: #0000ff;">public</span> <span style="color: #0000ff;">interface</span><span style="color: #000000;"> Turkey {
+    </span><span style="color: #0000ff;">void</span><span style="color: #000000;"> gobble();
+}
+</span><span style="color: #0000ff;">public</span> <span style="color: #0000ff;">class</span> WildTurkey <span style="color: #0000ff;">implements</span><span style="color: #000000;"> Turkey {
+    @Override
+    </span><span style="color: #0000ff;">public</span> <span style="color: #0000ff;">void</span><span style="color: #000000;"> gobble() {
+        System.out.println(</span>"gobble!"<span style="color: #000000;">);
+    }
+}
+</span><span style="color: #0000ff;">public</span> <span style="color: #0000ff;">class</span> TurkeyAdapter <span style="color: #0000ff;">implements</span><span style="color: #000000;"> Duck {
+    Turkey turkey;
+
+    </span><span style="color: #0000ff;">public</span><span style="color: #000000;"> TurkeyAdapter(Turkey turkey) {
+        </span><span style="color: #0000ff;">this</span>.turkey =<span style="color: #000000;"> turkey;
+    }
+
+    @Override
+    </span><span style="color: #0000ff;">public</span> <span style="color: #0000ff;">void</span><span style="color: #000000;"> quack() {
+        turkey.gobble();
+    }
+}
+</span><span style="color: #0000ff;">public</span> <span style="color: #0000ff;">class</span><span style="color: #000000;"> Client {
+    </span><span style="color: #0000ff;">public</span> <span style="color: #0000ff;">static</span> <span style="color: #0000ff;">void</span><span style="color: #000000;"> main(String[] args) {
+        Turkey turkey </span>= <span style="color: #0000ff;">new</span><span style="color: #000000;"> WildTurkey();
+        Duck duck </span>= <span style="color: #0000ff;">new</span><span style="color: #000000;"> TurkeyAdapter(turkey);
+        duck.quack();
+    }
+}</span></code></pre>
+
+<p>&nbsp;</p>
+
+<h3>JDK</h3>
+<ul>
+<li><a class=" wrap external" href="https://link.zhihu.com/?target=http%3A//docs.oracle.com/javase/8/docs/api/java/util/Arrays.html%23asList%2528T...%2529" rel="nofollow noreferrer" target="_blank" data-za-detail-view-id="1043">java.util.Arrays#asList()</a></li>
+<li><a class=" wrap external" href="https://link.zhihu.com/?target=https%3A//docs.oracle.com/javase/8/docs/api/java/util/Collections.html%23list-java.util.Enumeration-" rel="nofollow noreferrer" target="_blank" data-za-detail-view-id="1043">java.util.Collections#list()</a></li>
+<li><a class=" wrap external" href="https://link.zhihu.com/?target=https%3A//docs.oracle.com/javase/8/docs/api/java/util/Collections.html%23enumeration-java.util.Collection-" rel="nofollow noreferrer" target="_blank" data-za-detail-view-id="1043">java.util.Collections#enumeration()</a></li>
+<li><a class=" wrap external" href="https://link.zhihu.com/?target=http%3A//docs.oracle.com/javase/8/docs/api/javax/xml/bind/annotation/adapters/XmlAdapter.html%23marshal-BoundType-" rel="nofollow noreferrer" target="_blank" data-za-detail-view-id="1043">javax.xml.bind.annotation.adapters.XMLAdapter</a></li>
+</ul>
+<h2>2. 桥接（Bridge）</h2>
+<h3>Intent</h3>
+<p>将抽象与实现分离开来，使它们可以独立变化。</p>
+<h3>Class Diagram</h3>
+<ul>
+<li>Abstraction：定义抽象类的接口</li>
+<li>Implementor：定义实现类接口</li>
+</ul>
+<p class="ztext-empty-paragraph">&nbsp;</p>
+<p><img class="origin_image zh-lightbox-thumb lazy" src="./images/Java的23种设计模式，详细讲解（三）2.png" alt="" width="888" data-caption="" data-size="normal" data-rawwidth="888" data-rawheight="350" data-original="https://pic1.zhimg.com/v2-cae989743be11419cdf3f756ccaadd18_r.jpg" data-actualsrc="https://pic1.zhimg.com/v2-cae989743be11419cdf3f756ccaadd18_b.jpg" data-lazy-status="ok" /></p>
+<p class="ztext-empty-paragraph">&nbsp;</p>
+<p class="ztext-empty-paragraph">&nbsp;</p>
+<h3>Implementation</h3>
+<p>RemoteControl 表示遥控器，指代 Abstraction。</p>
+<p>TV 表示电视，指代 Implementor。</p>
+<p>桥接模式将遥控器和电视分离开来，从而可以独立改变遥控器或者电视的实现。</p>
+<src class="highlight">
+<src class="cnblogs_code">
+<pre><code><span style="color: #0000ff;">public</span> <span style="color: #0000ff;">abstract</span> <span style="color: #0000ff;">class</span><span style="color: #000000;"> TV {
+    </span><span style="color: #0000ff;">public</span> <span style="color: #0000ff;">abstract</span> <span style="color: #0000ff;">void</span><span style="color: #000000;"> on();
+
+    </span><span style="color: #0000ff;">public</span> <span style="color: #0000ff;">abstract</span> <span style="color: #0000ff;">void</span><span style="color: #000000;"> off();
+
+    </span><span style="color: #0000ff;">public</span> <span style="color: #0000ff;">abstract</span> <span style="color: #0000ff;">void</span><span style="color: #000000;"> tuneChannel();
+}
+</span><span style="color: #0000ff;">public</span> <span style="color: #0000ff;">class</span> Sony <span style="color: #0000ff;">extends</span><span style="color: #000000;"> TV {
+    @Override
+    </span><span style="color: #0000ff;">public</span> <span style="color: #0000ff;">void</span><span style="color: #000000;"> on() {
+        System.out.println(</span>"Sony.on()"<span style="color: #000000;">);
+    }
+
+    @Override
+    </span><span style="color: #0000ff;">public</span> <span style="color: #0000ff;">void</span><span style="color: #000000;"> off() {
+        System.out.println(</span>"Sony.off()"<span style="color: #000000;">);
+    }
+
+    @Override
+    </span><span style="color: #0000ff;">public</span> <span style="color: #0000ff;">void</span><span style="color: #000000;"> tuneChannel() {
+        System.out.println(</span>"Sony.tuneChannel()"<span style="color: #000000;">);
+    }
+}
+</span><span style="color: #0000ff;">public</span> <span style="color: #0000ff;">class</span> RCA <span style="color: #0000ff;">extends</span><span style="color: #000000;"> TV {
+    @Override
+    </span><span style="color: #0000ff;">public</span> <span style="color: #0000ff;">void</span><span style="color: #000000;"> on() {
+        System.out.println(</span>"RCA.on()"<span style="color: #000000;">);
+    }
+
+    @Override
+    </span><span style="color: #0000ff;">public</span> <span style="color: #0000ff;">void</span><span style="color: #000000;"> off() {
+        System.out.println(</span>"RCA.off()"<span style="color: #000000;">);
+    }
+
+    @Override
+    </span><span style="color: #0000ff;">public</span> <span style="color: #0000ff;">void</span><span style="color: #000000;"> tuneChannel() {
+        System.out.println(</span>"RCA.tuneChannel()"<span style="color: #000000;">);
+    }
+}
+</span><span style="color: #0000ff;">public</span> <span style="color: #0000ff;">abstract</span> <span style="color: #0000ff;">class</span><span style="color: #000000;"> RemoteControl {
+    </span><span style="color: #0000ff;">protected</span><span style="color: #000000;"> TV tv;
+
+    </span><span style="color: #0000ff;">public</span><span style="color: #000000;"> RemoteControl(TV tv) {
+        </span><span style="color: #0000ff;">this</span>.tv =<span style="color: #000000;"> tv;
+    }
+
+    </span><span style="color: #0000ff;">public</span> <span style="color: #0000ff;">abstract</span> <span style="color: #0000ff;">void</span><span style="color: #000000;"> on();
+
+    </span><span style="color: #0000ff;">public</span> <span style="color: #0000ff;">abstract</span> <span style="color: #0000ff;">void</span><span style="color: #000000;"> off();
+
+    </span><span style="color: #0000ff;">public</span> <span style="color: #0000ff;">abstract</span> <span style="color: #0000ff;">void</span><span style="color: #000000;"> tuneChannel();
+}
+</span><span style="color: #0000ff;">public</span> <span style="color: #0000ff;">class</span> ConcreteRemoteControl1 <span style="color: #0000ff;">extends</span><span style="color: #000000;"> RemoteControl {
+    </span><span style="color: #0000ff;">public</span><span style="color: #000000;"> ConcreteRemoteControl1(TV tv) {
+        </span><span style="color: #0000ff;">super</span><span style="color: #000000;">(tv);
+    }
+
+    @Override
+    </span><span style="color: #0000ff;">public</span> <span style="color: #0000ff;">void</span><span style="color: #000000;"> on() {
+        System.out.println(</span>"ConcreteRemoteControl1.on()"<span style="color: #000000;">);
+        tv.on();
+    }
+
+    @Override
+    </span><span style="color: #0000ff;">public</span> <span style="color: #0000ff;">void</span><span style="color: #000000;"> off() {
+        System.out.println(</span>"ConcreteRemoteControl1.off()"<span style="color: #000000;">);
+        tv.off();
+    }
+
+    @Override
+    </span><span style="color: #0000ff;">public</span> <span style="color: #0000ff;">void</span><span style="color: #000000;"> tuneChannel() {
+        System.out.println(</span>"ConcreteRemoteControl1.tuneChannel()"<span style="color: #000000;">);
+        tv.tuneChannel();
+    }
+}
+</span><span style="color: #0000ff;">public</span> <span style="color: #0000ff;">class</span> ConcreteRemoteControl2 <span style="color: #0000ff;">extends</span><span style="color: #000000;"> RemoteControl {
+    </span><span style="color: #0000ff;">public</span><span style="color: #000000;"> ConcreteRemoteControl2(TV tv) {
+        </span><span style="color: #0000ff;">super</span><span style="color: #000000;">(tv);
+    }
+
+    @Override
+    </span><span style="color: #0000ff;">public</span> <span style="color: #0000ff;">void</span><span style="color: #000000;"> on() {
+        System.out.println(</span>"ConcreteRemoteControl2.on()"<span style="color: #000000;">);
+        tv.on();
+    }
+
+    @Override
+    </span><span style="color: #0000ff;">public</span> <span style="color: #0000ff;">void</span><span style="color: #000000;"> off() {
+        System.out.println(</span>"ConcreteRemoteControl2.off()"<span style="color: #000000;">);
+        tv.off();
+    }
+
+    @Override
+    </span><span style="color: #0000ff;">public</span> <span style="color: #0000ff;">void</span><span style="color: #000000;"> tuneChannel() {
+        System.out.println(</span>"ConcreteRemoteControl2.tuneChannel()"<span style="color: #000000;">);
+        tv.tuneChannel();
+    }
+}
+</span><span style="color: #0000ff;">public</span> <span style="color: #0000ff;">class</span><span style="color: #000000;"> Client {
+    </span><span style="color: #0000ff;">public</span> <span style="color: #0000ff;">static</span> <span style="color: #0000ff;">void</span><span style="color: #000000;"> main(String[] args) {
+        RemoteControl remoteControl1 </span>= <span style="color: #0000ff;">new</span> ConcreteRemoteControl1(<span style="color: #0000ff;">new</span><span style="color: #000000;"> RCA());
+        remoteControl1.on();
+        remoteControl1.off();
+        remoteControl1.tuneChannel();
+        RemoteControl remoteControl2 </span>= <span style="color: #0000ff;">new</span> ConcreteRemoteControl2(<span style="color: #0000ff;">new</span><span style="color: #000000;"> Sony());
+         remoteControl2.on();
+         remoteControl2.off();
+         remoteControl2.tuneChannel();
+    }
+}</span></code></pre>
+
+<p>&nbsp;</p>
+
+<h3>JDK</h3>
+<ul>
+<li>AWT (It provides an abstraction layer which maps onto the native OS the windowing support.)</li>
+<li>JDBC</li>
+</ul>
+<h2>3. 组合（Composite）</h2>
+<h3>Intent</h3>
+<p>将对象组合成树形结构来表示&ldquo;整体/部分&rdquo;层次关系，允许用户以相同的方式处理单独对象和组合对象。</p>
+<h3>Class Diagram</h3>
+<p>组件（Component）类是组合类（Composite）和叶子类（Leaf）的父类，可以把组合类看成是树的中间节点。</p>
+<p>组合对象拥有一个或者多个组件对象，因此组合对象的操作可以委托给组件对象去处理，而组件对象可以是另一个组合对象或者叶子对象。</p>
+<p class="ztext-empty-paragraph">&nbsp;</p>
+<p><img class="origin_image zh-lightbox-thumb lazy" src="./images/Java的23种设计模式，详细讲解（三）3.png" alt="" width="886" data-caption="" data-size="normal" data-rawwidth="886" data-rawheight="462" data-original="https://pic1.zhimg.com/v2-4c294c21ae892bcf0ebd183bb0386b24_r.jpg" data-actualsrc="https://pic1.zhimg.com/v2-4c294c21ae892bcf0ebd183bb0386b24_b.jpg" data-lazy-status="ok" /></p>
+<p class="ztext-empty-paragraph">&nbsp;</p>
+<p class="ztext-empty-paragraph">&nbsp;</p>
+<h3>Implementation</h3>
+<src class="highlight">
+<src class="cnblogs_code">
+<pre><code><span style="color: #0000ff;">public</span> <span style="color: #0000ff;">abstract</span> <span style="color: #0000ff;">class</span><span style="color: #000000;"> Component {
+    </span><span style="color: #0000ff;">protected</span><span style="color: #000000;"> String name;
+
+    </span><span style="color: #0000ff;">public</span><span style="color: #000000;"> Component(String name) {
+        </span><span style="color: #0000ff;">this</span>.name =<span style="color: #000000;"> name;
+    }
+
+    </span><span style="color: #0000ff;">public</span> <span style="color: #0000ff;">void</span><span style="color: #000000;"> print() {
+        print(</span>0<span style="color: #000000;">);
+    }
+
+    </span><span style="color: #0000ff;">abstract</span> <span style="color: #0000ff;">void</span> print(<span style="color: #0000ff;">int</span><span style="color: #000000;"> level);
+
+    </span><span style="color: #0000ff;">abstract</span> <span style="color: #0000ff;">public</span> <span style="color: #0000ff;">void</span><span style="color: #000000;"> add(Component component);
+
+    </span><span style="color: #0000ff;">abstract</span> <span style="color: #0000ff;">public</span> <span style="color: #0000ff;">void</span><span style="color: #000000;"> remove(Component component);
+}
+</span><span style="color: #0000ff;">public</span> <span style="color: #0000ff;">class</span> Composite <span style="color: #0000ff;">extends</span><span style="color: #000000;"> Component {
+
+    </span><span style="color: #0000ff;">private</span> List&lt;Component&gt;<span style="color: #000000;"> child;
+
+    </span><span style="color: #0000ff;">public</span><span style="color: #000000;"> Composite(String name) {
+        </span><span style="color: #0000ff;">super</span><span style="color: #000000;">(name);
+        child </span>= <span style="color: #0000ff;">new</span> ArrayList&lt;&gt;<span style="color: #000000;">();
+    }
+
+    @Override
+    </span><span style="color: #0000ff;">void</span> print(<span style="color: #0000ff;">int</span><span style="color: #000000;"> level) {
+        </span><span style="color: #0000ff;">for</span> (<span style="color: #0000ff;">int</span> i = 0; i &lt; level; i++<span style="color: #000000;">) {
+            System.out.print(</span>"--"<span style="color: #000000;">);
+        }
+        System.out.println(</span>"Composite:" +<span style="color: #000000;"> name);
+        </span><span style="color: #0000ff;">for</span><span style="color: #000000;"> (Component component : child) {
+            component.print(level </span>+ 1<span style="color: #000000;">);
+        }
+    }
+
+    @Override
+    </span><span style="color: #0000ff;">public</span> <span style="color: #0000ff;">void</span><span style="color: #000000;"> add(Component component) {
+        child.add(component);
+    }
+
+    @Override
+    </span><span style="color: #0000ff;">public</span> <span style="color: #0000ff;">void</span><span style="color: #000000;"> remove(Component component) {
+        child.remove(component);
+    }
+}
+</span><span style="color: #0000ff;">public</span> <span style="color: #0000ff;">class</span> Leaf <span style="color: #0000ff;">extends</span><span style="color: #000000;"> Component {
+    </span><span style="color: #0000ff;">public</span><span style="color: #000000;"> Leaf(String name) {
+        </span><span style="color: #0000ff;">super</span><span style="color: #000000;">(name);
+    }
+
+    @Override
+    </span><span style="color: #0000ff;">void</span> print(<span style="color: #0000ff;">int</span><span style="color: #000000;"> level) {
+        </span><span style="color: #0000ff;">for</span> (<span style="color: #0000ff;">int</span> i = 0; i &lt; level; i++<span style="color: #000000;">) {
+            System.out.print(</span>"--"<span style="color: #000000;">);
+        }
+        System.out.println(</span>"left:" +<span style="color: #000000;"> name);
+    }
+
+    @Override
+    </span><span style="color: #0000ff;">public</span> <span style="color: #0000ff;">void</span><span style="color: #000000;"> add(Component component) {
+        </span><span style="color: #0000ff;">throw</span> <span style="color: #0000ff;">new</span> UnsupportedOperationException(); <span style="color: #008000;">//</span><span style="color: #008000;"> 牺牲透明性换取单一职责原则，这样就不用考虑是叶子节点还是组合节点</span>
+<span style="color: #000000;">    }
+
+    @Override
+    </span><span style="color: #0000ff;">public</span> <span style="color: #0000ff;">void</span><span style="color: #000000;"> remove(Component component) {
+        </span><span style="color: #0000ff;">throw</span> <span style="color: #0000ff;">new</span><span style="color: #000000;"> UnsupportedOperationException();
+    }
+}
+</span><span style="color: #0000ff;">public</span> <span style="color: #0000ff;">class</span><span style="color: #000000;"> Client {
+    </span><span style="color: #0000ff;">public</span> <span style="color: #0000ff;">static</span> <span style="color: #0000ff;">void</span><span style="color: #000000;"> main(String[] args) {
+        Composite root </span>= <span style="color: #0000ff;">new</span> Composite("root"<span style="color: #000000;">);
+        Component node1 </span>= <span style="color: #0000ff;">new</span> Leaf("1"<span style="color: #000000;">);
+        Component node2 </span>= <span style="color: #0000ff;">new</span> Composite("2"<span style="color: #000000;">);
+        Component node3 </span>= <span style="color: #0000ff;">new</span> Leaf("3"<span style="color: #000000;">);
+        root.add(node1);
+        root.add(node2);
+        root.add(node3);
+        Component node21 </span>= <span style="color: #0000ff;">new</span> Leaf("21"<span style="color: #000000;">);
+        Component node22 </span>= <span style="color: #0000ff;">new</span> Composite("22"<span style="color: #000000;">);
+        node2.add(node21);
+        node2.add(node22);
+        Component node221 </span>= <span style="color: #0000ff;">new</span> Leaf("221"<span style="color: #000000;">);
+        node22.add(node221);
+        root.print();
+    }
+}
+Composite:root
+</span>--left:1
+--Composite:2
+----left:21
+----Composite:22
+------left:221
+--left:3</code></pre>
+
+<p>&nbsp;</p>
+
+<h3>JDK</h3>
+<ul>
+<li>javax.swing.JComponent#add(Component)</li>
+<li>java.awt.Container#add(Component)</li>
+<li>java.util.Map#putAll(Map)</li>
+<li>java.util.List#addAll(Collection)</li>
+<li>java.util.Set#addAll(Collection)</li>
+</ul>
+<h2>4. 装饰（Decorator）</h2>
+<h3>Intent</h3>
+<p>为对象动态添加功能。</p>
+<h3>Class Diagram</h3>
+<p>装饰者（Decorator）和具体组件（ConcreteComponent）都继承自组件（Component），具体组件的方法实现不需要依赖于其它对象，而装饰者组合了一个组件，这样它可以装饰其它装饰者或者具体组件。所谓装饰，就是把这个装饰者套在被装饰者之上，从而动态扩展被装饰者的功能。装饰者的方法有一部分是自己的，这属于它的功能，然后调用被装饰者的方法实现，从而也保留了被装饰者的功能。可以看到，具体组件应当是装饰层次的最低层，因为只有具体组件的方法实现不需要依赖于其它对象。</p>
+<p class="ztext-empty-paragraph">&nbsp;</p>
+<p><img class="origin_image zh-lightbox-thumb lazy" src="./images/Java的23种设计模式，详细讲解（三）4.png" alt="" width="793" data-caption="" data-size="normal" data-rawwidth="793" data-rawheight="569" data-original="https://pic4.zhimg.com/v2-510f5fc144eb2f644b8a6cc1341eb4a3_r.jpg" data-actualsrc="https://pic4.zhimg.com/v2-510f5fc144eb2f644b8a6cc1341eb4a3_b.jpg" data-lazy-status="ok" /></p>
+<p class="ztext-empty-paragraph">&nbsp;</p>
+<p class="ztext-empty-paragraph">&nbsp;</p>
+<h3>Implementation</h3>
+<p>设计不同种类的饮料，饮料可以添加配料，比如可以添加牛奶，并且支持动态添加新配料。每增加一种配料，该饮料的价格就会增加，要求计算一种饮料的价格。</p>
+<p>下图表示在 DarkRoast 饮料上新增新添加 Mocha 配料，之后又添加了 Whip 配料。DarkRoast 被 Mocha 包裹，Mocha 又被 Whip 包裹。它们都继承自相同父类，都有 cost() 方法，外层类的 cost() 方法调用了内层类的 cost() 方法。</p>
+<p class="ztext-empty-paragraph">&nbsp;</p>
+<p><img class="origin_image zh-lightbox-thumb lazy" src="./images/Java的23种设计模式，详细讲解（三）5.png" alt="" width="1033" data-caption="" data-size="normal" data-rawwidth="1033" data-rawheight="610" data-original="https://pic4.zhimg.com/v2-aa5ff04901f7b42030b0e7f9f6c6dabb_r.jpg" data-actualsrc="https://pic4.zhimg.com/v2-aa5ff04901f7b42030b0e7f9f6c6dabb_b.jpg" data-lazy-status="ok" /></p>
+<p class="ztext-empty-paragraph">&nbsp;</p>
+<p class="ztext-empty-paragraph">&nbsp;</p>
+<src class="highlight">
+<src class="cnblogs_code">
+<pre><code><span style="color: #0000ff;">public</span> <span style="color: #0000ff;">interface</span><span style="color: #000000;"> Beverage {
+    </span><span style="color: #0000ff;">double</span><span style="color: #000000;"> cost();
+}
+</span><span style="color: #0000ff;">public</span> <span style="color: #0000ff;">class</span> DarkRoast <span style="color: #0000ff;">implements</span><span style="color: #000000;"> Beverage {
+    @Override
+    </span><span style="color: #0000ff;">public</span> <span style="color: #0000ff;">double</span><span style="color: #000000;"> cost() {
+        </span><span style="color: #0000ff;">return</span> 1<span style="color: #000000;">;
+    }
+}
+</span><span style="color: #0000ff;">public</span> <span style="color: #0000ff;">class</span> HouseBlend <span style="color: #0000ff;">implements</span><span style="color: #000000;"> Beverage {
+    @Override
+    </span><span style="color: #0000ff;">public</span> <span style="color: #0000ff;">double</span><span style="color: #000000;"> cost() {
+        </span><span style="color: #0000ff;">return</span> 1<span style="color: #000000;">;
+    }
+}
+</span><span style="color: #0000ff;">public</span> <span style="color: #0000ff;">abstract</span> <span style="color: #0000ff;">class</span> CondimentDecorator <span style="color: #0000ff;">implements</span><span style="color: #000000;"> Beverage {
+    </span><span style="color: #0000ff;">protected</span><span style="color: #000000;"> Beverage beverage;
+}
+</span><span style="color: #0000ff;">public</span> <span style="color: #0000ff;">class</span> Milk <span style="color: #0000ff;">extends</span><span style="color: #000000;"> CondimentDecorator {
+
+    </span><span style="color: #0000ff;">public</span><span style="color: #000000;"> Milk(Beverage beverage) {
+        </span><span style="color: #0000ff;">this</span>.beverage =<span style="color: #000000;"> beverage;
+    }
+
+    @Override
+    </span><span style="color: #0000ff;">public</span> <span style="color: #0000ff;">double</span><span style="color: #000000;"> cost() {
+        </span><span style="color: #0000ff;">return</span> 1 +<span style="color: #000000;"> beverage.cost();
+    }
+}
+</span><span style="color: #0000ff;">public</span> <span style="color: #0000ff;">class</span> Mocha <span style="color: #0000ff;">extends</span><span style="color: #000000;"> CondimentDecorator {
+
+    </span><span style="color: #0000ff;">public</span><span style="color: #000000;"> Mocha(Beverage beverage) {
+        </span><span style="color: #0000ff;">this</span>.beverage =<span style="color: #000000;"> beverage;
+    }
+
+    @Override
+    </span><span style="color: #0000ff;">public</span> <span style="color: #0000ff;">double</span><span style="color: #000000;"> cost() {
+        </span><span style="color: #0000ff;">return</span> 1 +<span style="color: #000000;"> beverage.cost();
+    }
+}
+</span><span style="color: #0000ff;">public</span> <span style="color: #0000ff;">class</span><span style="color: #000000;"> Client {
+
+    </span><span style="color: #0000ff;">public</span> <span style="color: #0000ff;">static</span> <span style="color: #0000ff;">void</span><span style="color: #000000;"> main(String[] args) {
+        Beverage beverage </span>= <span style="color: #0000ff;">new</span><span style="color: #000000;"> HouseBlend();
+        beverage </span>= <span style="color: #0000ff;">new</span><span style="color: #000000;"> Mocha(beverage);
+        beverage </span>= <span style="color: #0000ff;">new</span><span style="color: #000000;"> Milk(beverage);
+        System.out.println(beverage.cost());
+    }
+}
+</span>3.0</code></pre>
+
+<p>&nbsp;</p>
+
+<h3>设计原则</h3>
+<p>类应该对扩展开放，对修改关闭：也就是添加新功能时不需要修改代码。饮料可以动态添加新的配料，而不需要去修改饮料的代码。</p>
+<p>不可能把所有的类设计成都满足这一原则，应当把该原则应用于最有可能发生改变的地方。</p>
+<h3>JDK</h3>
+<ul>
+<li>java.io.BufferedInputStream(InputStream)</li>
+<li>java.io.DataInputStream(InputStream)</li>
+<li>java.io.BufferedOutputStream(OutputStream)</li>
+<li>java.util.zip.ZipOutputStream(OutputStream)</li>
+<li>java.util.Collections#checked<a class=" wrap external" href="https://link.zhihu.com/?target=https%3A//github.com/CyC2018/CS-Notes/blob/master/notes" rel="nofollow noreferrer" target="_blank" data-za-detail-view-id="1043">List|Map|Set|SortedSet|SortedMap</a></li>
+</ul>
+<h2>5. 外观（Facade）</h2>
+<h3>Intent</h3>
+<p>提供了一个统一的接口，用来访问子系统中的一群接口，从而让子系统更容易使用。</p>
+<h3>Class Diagram</h3>
+<p class="ztext-empty-paragraph">&nbsp;</p>
+<p><img class="origin_image zh-lightbox-thumb lazy" src="./images/Java的23种设计模式，详细讲解（三）6.png" alt="" width="994" data-caption="" data-size="normal" data-rawwidth="994" data-rawheight="533" data-original="https://pic2.zhimg.com/v2-5d77e26de65ba9af78167e9ce3125649_r.jpg" data-actualsrc="https://pic2.zhimg.com/v2-5d77e26de65ba9af78167e9ce3125649_b.jpg" data-lazy-status="ok" /></p>
+<p class="ztext-empty-paragraph">&nbsp;</p>
+<p class="ztext-empty-paragraph">&nbsp;</p>
+<h3>Implementation</h3>
+<p>观看电影需要操作很多电器，使用外观模式实现一键看电影功能。</p>
+<src class="highlight">
+<src class="cnblogs_code">
+<pre><code><span style="color: #0000ff;">public</span> <span style="color: #0000ff;">class</span><span style="color: #000000;"> SubSystem {
+    </span><span style="color: #0000ff;">public</span> <span style="color: #0000ff;">void</span><span style="color: #000000;"> turnOnTV() {
+        System.out.println(</span>"turnOnTV()"<span style="color: #000000;">);
+    }
+
+    </span><span style="color: #0000ff;">public</span> <span style="color: #0000ff;">void</span><span style="color: #000000;"> setCD(String cd) {
+        System.out.println(</span>"setCD( " + cd + " )"<span style="color: #000000;">);
+    }
+
+    </span><span style="color: #0000ff;">public</span> <span style="color: #0000ff;">void</span><span style="color: #000000;"> startWatching(){
+        System.out.println(</span>"startWatching()"<span style="color: #000000;">);
+    }
+}
+</span><span style="color: #0000ff;">public</span> <span style="color: #0000ff;">class</span><span style="color: #000000;"> Facade {
+    </span><span style="color: #0000ff;">private</span> SubSystem subSystem = <span style="color: #0000ff;">new</span><span style="color: #000000;"> SubSystem();
+
+    </span><span style="color: #0000ff;">public</span> <span style="color: #0000ff;">void</span><span style="color: #000000;"> watchMovie() {
+        subSystem.turnOnTV();
+        subSystem.setCD(</span>"a movie"<span style="color: #000000;">);
+        subSystem.startWatching();
+    }
+}
+</span><span style="color: #0000ff;">public</span> <span style="color: #0000ff;">class</span><span style="color: #000000;"> Client {
+    </span><span style="color: #0000ff;">public</span> <span style="color: #0000ff;">static</span> <span style="color: #0000ff;">void</span><span style="color: #000000;"> main(String[] args) {
+        Facade facade </span>= <span style="color: #0000ff;">new</span><span style="color: #000000;"> Facade();
+        facade.watchMovie();
+    }
+}</span></code></pre>
+
+<p>&nbsp;</p>
+
+<h3>设计原则</h3>
+<p>最少知识原则：只和你的密友谈话。也就是说客户对象所需要交互的对象应当尽可能少。</p>
+<h2>6. 享元（Flyweight）</h2>
+<h3>Intent</h3>
+<p>利用共享的方式来支持大量细粒度的对象，这些对象一部分内部状态是相同的。</p>
+<h3>Class Diagram</h3>
+<ul>
+<li>Flyweight：享元对象</li>
+<li>IntrinsicState：内部状态，享元对象共享内部状态</li>
+<li>ExtrinsicState：外部状态，每个享元对象的外部状态不同</li>
+</ul>
+<p class="ztext-empty-paragraph">&nbsp;</p>
+<p><img class="origin_image zh-lightbox-thumb lazy" src="./images/Java的23种设计模式，详细讲解（三）7.png" alt="" width="925" data-caption="" data-size="normal" data-rawwidth="925" data-rawheight="403" data-original="https://pic1.zhimg.com/v2-0279709d82b1f0d6fb20dbf75ef2dc90_r.jpg" data-actualsrc="https://pic1.zhimg.com/v2-0279709d82b1f0d6fb20dbf75ef2dc90_b.jpg" data-lazy-status="ok" /></p>
+<p class="ztext-empty-paragraph">&nbsp;</p>
+<p class="ztext-empty-paragraph">&nbsp;</p>
+<h3>Implementation</h3>
+<src class="highlight">
+<src class="cnblogs_code">
+<pre><code><span style="color: #0000ff;">public</span> <span style="color: #0000ff;">interface</span><span style="color: #000000;"> Flyweight {
+    </span><span style="color: #0000ff;">void</span><span style="color: #000000;"> doOperation(String extrinsicState);
+}
+</span><span style="color: #0000ff;">public</span> <span style="color: #0000ff;">class</span> ConcreteFlyweight <span style="color: #0000ff;">implements</span><span style="color: #000000;"> Flyweight {
+
+    </span><span style="color: #0000ff;">private</span><span style="color: #000000;"> String intrinsicState;
+
+    </span><span style="color: #0000ff;">public</span><span style="color: #000000;"> ConcreteFlyweight(String intrinsicState) {
+        </span><span style="color: #0000ff;">this</span>.intrinsicState =<span style="color: #000000;"> intrinsicState;
+    }
+
+    @Override
+    </span><span style="color: #0000ff;">public</span> <span style="color: #0000ff;">void</span><span style="color: #000000;"> doOperation(String extrinsicState) {
+        System.out.println(</span>"Object address: " + System.identityHashCode(<span style="color: #0000ff;">this</span><span style="color: #000000;">));
+        System.out.println(</span>"IntrinsicState: " +<span style="color: #000000;"> intrinsicState);
+        System.out.println(</span>"ExtrinsicState: " +<span style="color: #000000;"> extrinsicState);
+    }
+}
+</span><span style="color: #0000ff;">public</span> <span style="color: #0000ff;">class</span><span style="color: #000000;"> FlyweightFactory {
+
+    </span><span style="color: #0000ff;">private</span> HashMap&lt;String, Flyweight&gt; flyweights = <span style="color: #0000ff;">new</span> HashMap&lt;&gt;<span style="color: #000000;">();
+
+    Flyweight getFlyweight(String intrinsicState) {
+        </span><span style="color: #0000ff;">if</span> (!<span style="color: #000000;">flyweights.containsKey(intrinsicState)) {
+            Flyweight flyweight </span>= <span style="color: #0000ff;">new</span><span style="color: #000000;"> ConcreteFlyweight(intrinsicState);
+            flyweights.put(intrinsicState, flyweight);
+        }
+        </span><span style="color: #0000ff;">return</span><span style="color: #000000;"> flyweights.get(intrinsicState);
+    }
+}
+</span><span style="color: #0000ff;">public</span> <span style="color: #0000ff;">class</span><span style="color: #000000;"> Client {
+
+    </span><span style="color: #0000ff;">public</span> <span style="color: #0000ff;">static</span> <span style="color: #0000ff;">void</span><span style="color: #000000;"> main(String[] args) {
+        FlyweightFactory factory </span>= <span style="color: #0000ff;">new</span><span style="color: #000000;"> FlyweightFactory();
+        Flyweight flyweight1 </span>= factory.getFlyweight("aa"<span style="color: #000000;">);
+        Flyweight flyweight2 </span>= factory.getFlyweight("aa"<span style="color: #000000;">);
+        flyweight1.doOperation(</span>"x"<span style="color: #000000;">);
+        flyweight2.doOperation(</span>"y"<span style="color: #000000;">);
+    }
+}
+Object address: </span>1163157884<span style="color: #000000;">
+IntrinsicState: aa
+ExtrinsicState: x
+Object address: </span>1163157884<span style="color: #000000;">
+IntrinsicState: aa
+ExtrinsicState: y</span></code></pre>
+
+<p>&nbsp;</p>
+
+<h3>JDK</h3>
+<p>Java 利用缓存来加速大量小对象的访问时间。</p>
+<ul>
+<li>java.lang.Integer#valueOf(int)</li>
+<li>java.lang.Boolean#valueOf(boolean)</li>
+<li>java.lang.Byte#valueOf(byte)</li>
+<li>java.lang.Character#valueOf(char)</li>
+</ul>
+<h2>7. 代理（Proxy）</h2>
+<h3>Intent</h3>
+<p>控制对其它对象的访问。</p>
+<h3>Class Diagram</h3>
+<p>代理有以下四类：</p>
+<ul>
+<li>远程代理（Remote Proxy）：控制对远程对象（不同地址空间）的访问，它负责将请求及其参数进行编码，并向不同地址空间中的对象发送已经编码的请求。</li>
+<li>虚拟代理（Virtual Proxy）：根据需要创建开销很大的对象，它可以缓存实体的附加信息，以便延迟对它的访问，例如在网站加载一个很大图片时，不能马上完成，可以用虚拟代理缓存图片的大小信息，然后生成一张临时图片代替原始图片。</li>
+<li>保护代理（Protection Proxy）：按权限控制对象的访问，它负责检查调用者是否具有实现一个请求所必须的访问权限。</li>
+<li>智能代理（Smart Reference）：取代了简单的指针，它在访问对象时执行一些附加操作：记录对象的引用次数；当第一次引用一个对象时，将它装入内存；在访问一个实际对象前，检查是否已经锁定了它，以确保其它对象不能改变它。</li>
+</ul>
+<p class="ztext-empty-paragraph">&nbsp;</p>
+<p><img class="origin_image zh-lightbox-thumb lazy" src="./images/Java的23种设计模式，详细讲解（三）8.png" alt="" width="975" data-caption="" data-size="normal" data-rawwidth="975" data-rawheight="397" data-original="https://pic3.zhimg.com/v2-6f93a152483ea11c651204c29c44cc0a_r.jpg" data-actualsrc="https://pic3.zhimg.com/v2-6f93a152483ea11c651204c29c44cc0a_b.jpg" data-lazy-status="ok" /></p>
+<p class="ztext-empty-paragraph">&nbsp;</p>
+<p class="ztext-empty-paragraph">&nbsp;</p>
+<h3>Implementation</h3>
+<p>以下是一个虚拟代理的实现，模拟了图片延迟加载的情况下使用与图片大小相等的临时内容去替换原始图片，直到图片加载完成才将图片显示出来。</p>
+<src class="highlight">
+<src class="cnblogs_code">
+<pre><code><span style="color: #0000ff;">public</span> <span style="color: #0000ff;">interface</span><span style="color: #000000;"> Image {
+    </span><span style="color: #0000ff;">void</span><span style="color: #000000;"> showImage();
+}
+</span><span style="color: #0000ff;">public</span> <span style="color: #0000ff;">class</span> HighResolutionImage <span style="color: #0000ff;">implements</span><span style="color: #000000;"> Image {
+
+    </span><span style="color: #0000ff;">private</span><span style="color: #000000;"> URL imageURL;
+    </span><span style="color: #0000ff;">private</span> <span style="color: #0000ff;">long</span><span style="color: #000000;"> startTime;
+    </span><span style="color: #0000ff;">private</span> <span style="color: #0000ff;">int</span><span style="color: #000000;"> height;
+    </span><span style="color: #0000ff;">private</span> <span style="color: #0000ff;">int</span><span style="color: #000000;"> width;
+
+    </span><span style="color: #0000ff;">public</span> <span style="color: #0000ff;">int</span><span style="color: #000000;"> getHeight() {
+        </span><span style="color: #0000ff;">return</span><span style="color: #000000;"> height;
+    }
+
+    </span><span style="color: #0000ff;">public</span> <span style="color: #0000ff;">int</span><span style="color: #000000;"> getWidth() {
+        </span><span style="color: #0000ff;">return</span><span style="color: #000000;"> width;
+    }
+
+    </span><span style="color: #0000ff;">public</span><span style="color: #000000;"> HighResolutionImage(URL imageURL) {
+        </span><span style="color: #0000ff;">this</span>.imageURL =<span style="color: #000000;"> imageURL;
+        </span><span style="color: #0000ff;">this</span>.startTime =<span style="color: #000000;"> System.currentTimeMillis();
+        </span><span style="color: #0000ff;">this</span>.width = 600<span style="color: #000000;">;
+        </span><span style="color: #0000ff;">this</span>.height = 600<span style="color: #000000;">;
+    }
+
+    </span><span style="color: #0000ff;">public</span> <span style="color: #0000ff;">boolean</span><span style="color: #000000;"> isLoad() {
+        </span><span style="color: #008000;">//</span><span style="color: #008000;"> 模拟图片加载，延迟 3s 加载完成</span>
+        <span style="color: #0000ff;">long</span> endTime =<span style="color: #000000;"> System.currentTimeMillis();
+        </span><span style="color: #0000ff;">return</span> endTime - startTime &gt; 3000<span style="color: #000000;">;
+    }
+
+    @Override
+    </span><span style="color: #0000ff;">public</span> <span style="color: #0000ff;">void</span><span style="color: #000000;"> showImage() {
+        System.out.println(</span>"Real Image: " +<span style="color: #000000;"> imageURL);
+    }
+}
+</span><span style="color: #0000ff;">public</span> <span style="color: #0000ff;">class</span> ImageProxy <span style="color: #0000ff;">implements</span><span style="color: #000000;"> Image {
+
+    </span><span style="color: #0000ff;">private</span><span style="color: #000000;"> HighResolutionImage highResolutionImage;
+
+    </span><span style="color: #0000ff;">public</span><span style="color: #000000;"> ImageProxy(HighResolutionImage highResolutionImage) {
+        </span><span style="color: #0000ff;">this</span>.highResolutionImage =<span style="color: #000000;"> highResolutionImage;
+    }
+
+    @Override
+    </span><span style="color: #0000ff;">public</span> <span style="color: #0000ff;">void</span><span style="color: #000000;"> showImage() {
+        </span><span style="color: #0000ff;">while</span> (!<span style="color: #000000;">highResolutionImage.isLoad()) {
+            </span><span style="color: #0000ff;">try</span><span style="color: #000000;"> {
+                System.out.println(</span>"Temp Image: " + highResolutionImage.getWidth() + " " +<span style="color: #000000;"> highResolutionImage.getHeight());
+                Thread.sleep(</span>100<span style="color: #000000;">);
+            } </span><span style="color: #0000ff;">catch</span><span style="color: #000000;"> (InterruptedException e) {
+                e.printStackTrace();
+            }
+        }
+        highResolutionImage.showImage();
+    }
+}
+</span><span style="color: #0000ff;">public</span> <span style="color: #0000ff;">class</span><span style="color: #000000;"> ImageViewer {
+
+    </span><span style="color: #0000ff;">public</span> <span style="color: #0000ff;">static</span> <span style="color: #0000ff;">void</span> main(String[] args) <span style="color: #0000ff;">throws</span><span style="color: #000000;"> Exception {
+        String image </span>= "http://image.jpg"<span style="color: #000000;">;
+        URL url </span>= <span style="color: #0000ff;">new</span><span style="color: #000000;"> URL(image);
+        HighResolutionImage highResolutionImage </span>= <span style="color: #0000ff;">new</span><span style="color: #000000;"> HighResolutionImage(url);
+        ImageProxy imageProxy </span>= <span style="color: #0000ff;">new</span><span style="color: #000000;"> ImageProxy(highResolutionImage);
+        imageProxy.showImage();
+    }
+}</span></code></pre>
+
+<p>&nbsp;</p>
+
+<h3>JDK</h3>
+<ul>
+<li>java.lang.reflect.Proxy</li>
+<li>RMI</li>
+</ul>
+
+</div><hr><script charset='utf-8' src='../../js/sming.js'></script></body></html>

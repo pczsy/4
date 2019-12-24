@@ -1,0 +1,42 @@
+<html><head><meta charset='utf-8'><meta name='viewport' content='width=device-width, initial-scale=1'>
+<meta name='applicable-device' content='pc'><meta name='keywords' content='电脑,电脑讲解,电脑技术,编程,电脑故障维修关于登陆服务器设计的记录' />
+<script src='../../highlight/highlight.pack.js'></script>
+<link rel='stylesheet' type='text/css' href='../../highlight/styles/monokai.css'/>
+
+<link rel='stylesheet' href='../../fenxiang/dist/css/share.min.css'>
+<script src='../../fenxiang/src/js/social-share.js'></script>
+<script src='../../fenxiang/src/js/qrcode.js'></script>
+
+</head><body><script>hljs.initHighlightingOnLoad();</script><script>
+var system ={};  
+var p = navigator.platform;       
+system.win = p.indexOf('Win') == 0;  
+system.mac = p.indexOf('Mac') == 0;  
+system.x11 = (p == 'X11') || (p.indexOf('Linux') == 0);     
+if(system.win||system.mac||system.xll){
+document.write("<link href='../css/3.css' rel='stylesheet' type='text/css'>");}else{ document.write("<link href='../css/3wap.css' rel='stylesheet' type='text/css'>");}</script><script src='../../js/3.js'></script><div class='div2'><div class='heading_nav'><ul><div><li><a href='../../index.html'>首页</a></li>
+</div><div onclick='hidden1()' >分享</div>
+</ul></div></div>
+<div id='heading_nav2'> 
+<li class='row' >
+<div class='social-share' data-mode='prepend'><a href='javascript:' class='social-share-icon icon-heart'></a></div></li></div><script charset='utf-8' src='../../3/js/hengfu.js'></script><script charset='utf-8' src='../../3/js/hengfu2.js'></script><hr><div class='div1'><div class='biaoti'><center>关于登陆服务器设计的记录</center></div><div class='banquan'>原文出处:本文由博客园博主一诺&#183;flying苹果提供。<br/>
+原文连接:https://www.cnblogs.com/hanchen007/p/11636174.html</div><br>
+    <h1 style="text-align: left;">关于登陆服务器的实现</h1>
+<h2>(1) 设计</h2>
+<p>　　怎么实现合理，怎么实现安全，怎么能够保证用户的账号安全。这里是我的一些经验，以及我实现的方式。</p>
+<p>　　登陆的本质是验证密码的正确，当然也必须保证这个过程是安全的，不会被别人盗取。这样就需要对传输的数据进行加密，最安全的方案是用非对称的加密方式对数据进行保护，这样本身没有问题，但是这样的话就需要对客户段服务器分别保存对方的公共密钥。这种方法可行，还有一种成型的方案是用jwt的方式来实现这样也是可以的。</p>
+<p>　　这里用的不是这种方式。用的是一种对称加密的方式来保证数据传输的安全性，用md5的方式对密码进行保护，就可以做到安全的数据传输。</p>
+<p>　　怎么做到对称加密数据的安全，万一密钥被别人知道呢，这里是这样实现的，每个用户在登陆的时候，都先去服务器要一个密钥，这个密钥是在本次登陆过程中对数据进行加密。这个密钥在内存中或者是缓存中进行临时存储。</p>
+<p>　　md5是怎么保护用户的密码的？这个需要去了解md5的实现原理。</p>
+<h2>(2)&nbsp;注册</h2>
+<p>　　注册数据可以通过&nbsp; token = base64(账号 + md5（账号+密码）) 来组册 服务器存储 账号-&gt;md5（账号+密码）的对应关系。</p>
+<h2>(3) 登陆</h2>
+<p>　　1.通过uuid 来获取相对唯一的密钥。</p>
+<p>　　2.通过uuid和登陆token来登陆 token=base64(aes(账号 + md5（账号+密码）)) 。</p>
+<h2>(4) 验证</h2>
+<p>　　通过账号id以及本次登陆生成的token来验证本次登陆。</p>
+<p>&nbsp;</p>
+<p>&nbsp;</p>
+<p>具体实现代码可以留言和我要！&nbsp;</p>
+
+</div><hr><script charset='utf-8' src='../../js/sming.js'></script></body></html>

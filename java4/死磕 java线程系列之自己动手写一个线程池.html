@@ -1,0 +1,431 @@
+<html><head><meta charset='utf-8'><meta name='viewport' content='width=device-width, initial-scale=1'>
+<meta name='applicable-device' content='pc'><meta name='keywords' content='电脑,电脑讲解,电脑技术,编程,电脑故障维修死磕 java线程系列之自己动手写一个线程池' />
+<script src='../../highlight/highlight.pack.js'></script>
+<link rel='stylesheet' type='text/css' href='../../highlight/styles/monokai.css'/>
+
+<link rel='stylesheet' href='../../fenxiang/dist/css/share.min.css'>
+<script src='../../fenxiang/src/js/social-share.js'></script>
+<script src='../../fenxiang/src/js/qrcode.js'></script>
+
+</head><body><script>hljs.initHighlightingOnLoad();</script><script>
+var system ={};  
+var p = navigator.platform;       
+system.win = p.indexOf('Win') == 0;  
+system.mac = p.indexOf('Mac') == 0;  
+system.x11 = (p == 'X11') || (p.indexOf('Linux') == 0);     
+if(system.win||system.mac||system.xll){
+document.write("<link href='../css/3.css' rel='stylesheet' type='text/css'>");}else{ document.write("<link href='../css/3wap.css' rel='stylesheet' type='text/css'>");}</script><script src='../../js/3.js'></script><div class='div2'><div class='heading_nav'><ul><div><li><a href='../../index.html'>首页</a></li>
+</div><div onclick='hidden1()' >分享</div>
+</ul></div></div>
+<div id='heading_nav2'> 
+<li class='row' >
+<div class='social-share' data-mode='prepend'><a href='javascript:' class='social-share-icon icon-heart'></a></div></li></div><script charset='utf-8' src='../../3/js/hengfu.js'></script><script charset='utf-8' src='../../3/js/hengfu2.js'></script><hr><div class='div1'><div class='biaoti'><center>死磕 java线程系列之自己动手写一个线程池</center></div><div class='banquan'>原文出处:本文由博客园博主彤哥读源码提供。<br/>
+原文连接:https://www.cnblogs.com/tong-yuan/p/11639269.html</div><br>
+    <p>欢迎关注我的公众号“彤哥读源码”，查看更多源码系列文章, 与彤哥一起畅游源码的海洋。</p>
+<p><img src="./images/死磕 java线程系列之自己动手写一个线程池0.png" alt="mythreadpool" /></p>
+<p>（手机横屏看源码更方便）</p>
+<hr />
+<h2 id="问题">问题</h2>
+<p>（1）自己动手写一个线程池需要考虑哪些因素？</p>
+<p>（2）自己动手写的线程池如何测试？</p>
+<h2 id="简介">简介</h2>
+<p>线程池是Java并发编程中经常使用到的技术，那么自己如何动手写一个线程池呢？本文彤哥将手把手带你写一个可用的线程池。</p>
+<h2 id="属性分析">属性分析</h2>
+<p>线程池，顾名思义它首先是一个“池”，这个池里面放的是线程，线程是用来执行任务的。</p>
+<p><strong>首先</strong>，线程池中的线程应该是有类别的，有的是核心线程，有的是非核心线程，所以我们需要两个变量标识核心线程数量coreSize和最大线程数量maxSize。</p>
+<p>为什么要区分是否为核心线程呢？这是为了控制系统中线程的数量。</p>
+<p>当线程池中线程数未达到核心线程数coreSize时，来一个任务加一个线程是可以的，也可以提高任务执行的效率。</p>
+<p>当线程池中线程数达到核心线程数后，得控制一下线程的数量，来任务了先进队列，如果任务执行足够快，这些核心线程很快就能把队列中的任务执行完毕，完全没有新增线程的必要。</p>
+<p>当队列中任务也满了，这时候光靠核心线程就无法及时处理任务了，所以这时候就需要增加新的线程了，但是线程也不能无限制地增加，所以需要控制其最大线程数量maxSize。</p>
+<p><strong>其次</strong>，我们需要一个任务队列来存放任务，这个队列必须是线程安全的，我们一般使用BlockingQueue阻塞队列来充当，当然使用ConcurrentLinkedQueue也是可以的（注意ConcurrentLinkedQueue不是阻塞队列，不能运用在jdk的线程池中）。</p>
+<p><strong>最后</strong>，当任务越来越多而线程处理却不及时，迟早会达到一种状态，队列满了，线程数也达到最大线程数了，这时候怎么办呢？这时候就需要走拒绝策略了，也就是这些无法及时处理的任务怎么办的一种策略，常用的策略有丢弃当前任务、丢弃最老的任务、调用者自己处理、抛出异常等。</p>
+<p><strong>根据上面的描述</strong>，我们定义一个线程池一共需要这么四个变量：核心线程数coreSize、最大线程数maxSize、阻塞队列BlockingQueue、拒绝策略RejectPolicy。</p>
+<p>另外，为了便于给线程池一个名称，我们再加一个变量：线程池的名称name。</p>
+<p>所以我们得出了线程池的属性及构造方法大概如下：</p>
+<pre><code><code>public class MyThreadPoolExecutor implements Executor {
+    /**
+     * 线程池的名称
+     */
+    private String name;
+    /**
+     * 核心线程数
+     */
+    private int coreSize;
+    /**
+     * 最大线程数
+     */
+    private int maxSize;
+    /**
+     * 任务队列
+     */
+    private BlockingQueue&lt;Runnable&gt; taskQueue;
+    /**
+     * 拒绝策略
+     */
+    private RejectPolicy rejectPolicy;
+
+    public MyThreadPoolExecutor(String name, int coreSize, int maxSize, BlockingQueue&lt;Runnable&gt; taskQueue, RejectPolicy rejectPolicy) {
+        this.name = name;
+        this.coreSize = coreSize;
+        this.maxSize = maxSize;
+        this.taskQueue = taskQueue;
+        this.rejectPolicy = rejectPolicy;
+    }
+}</code></code></pre>
+<h2 id="任务流向分析">任务流向分析</h2>
+<p>根据上面的属性分析，基本上我们已经得到了任务流向的完整逻辑：</p>
+<p><strong>首先</strong>，如果运行的线程数小于核心线程数，直接创建一个新的核心线程来运行新的任务。</p>
+<p><strong>其次</strong>，如果运行的线程数达到了核心线程数，则把新任务入队列。</p>
+<p><strong>然后</strong>，如果队列也满了，则创建新的非核心线程来运行新的任务。</p>
+<p><strong>最后</strong>，如果非核心线程数也达到最大了，那就执行拒绝策略。</p>
+<p><img src="./images/死磕 java线程系列之自己动手写一个线程池1.png" alt="mythreadpool" /></p>
+<p>代码逻辑大致如下：</p>
+<pre><code><code>    @Override
+    public void execute(Runnable task) {
+        // 正在运行的线程数
+        int count = runningCount.get();
+        // 如果正在运行的线程数小于核心线程数，直接加一个线程
+        if (count &lt; coreSize) {
+            // 注意，这里不一定添加成功，addWorker()方法里面还要判断一次是不是确实小
+            if (addWorker(task, true)) {
+                return;
+            }
+            // 如果添加核心线程失败，进入下面的逻辑
+        }
+
+        // 如果达到了核心线程数，先尝试让任务入队
+        // 这里之所以使用offer()，是因为如果队列满了offer()会立即返回false
+        if (taskQueue.offer(task)) {
+            // do nothing，为了逻辑清晰这里留个空if
+            // 【本篇文章由公众号“彤哥读源码”原创】
+        } else {
+            // 如果入队失败，说明队列满了，那就添加一个非核心线程
+            if (!addWorker(task, false)) {
+                // 如果添加非核心线程失败了，那就执行拒绝策略
+                rejectPolicy.reject(task, this);
+            }
+        }
+    }</code></code></pre>
+<h2 id="创建线程逻辑分析">创建线程逻辑分析</h2>
+<p><strong>首先</strong>，创建线程的依据是正在运行的线程数量有没有达到核心线程数或者最大线程数，所以我们还需要一个变量runningCount用来记录正在运行的线程数。</p>
+<p><strong>其次</strong>，这个变量runningCount需要在并发环境下加加减减，所以这里需要使用到Unsafe的CAS指令来控制其值的修改，用了CAS就要给这个变量加上volatile修饰，为了方便我们这里直接使用AtomicInteger来作为这个变量的类型。</p>
+<p><strong>然后</strong>，因为是并发环境中，所以需要判断runningCount &lt; coreSize(或maxSize)（条件一）的同时修改runningCount CAS加一（条件二）成功了才表示可以增加一个线程，如果条件一失败则表示不能再增加线程了直接返回false，如果条件二失败则表示其它线程先修改了runningCount的值，则重试。</p>
+<p><strong>最后</strong>，创建一个线程并运行新任务，且不断从队列中拿任务来运行【本篇文章由公众号“彤哥读源码”原创】。</p>
+<p><img src="./images/死磕 java线程系列之自己动手写一个线程池2.png" alt="mythreadpool" /></p>
+<p>代码逻辑如下：</p>
+<pre><code><code>    private boolean addWorker(Runnable newTask, boolean core) {
+        // 自旋判断是不是真的可以创建一个线程
+        for (; ; ) {
+            // 正在运行的线程数
+            int count = runningCount.get();
+            // 核心线程还是非核心线程
+            int max = core ? coreSize : maxSize;
+            // 不满足创建线程的条件，直接返回false
+            if (count &gt;= max) {
+                return false;
+            }
+            // 修改runningCount成功，可以创建线程
+            if (runningCount.compareAndSet(count, count + 1)) {
+                // 线程的名字
+                String threadName = (core ? &quot;core_&quot; : &quot;&quot;) + name + sequence.incrementAndGet();
+                // 创建线程并启动
+                new Thread(() -&gt; {
+                    System.out.println(&quot;thread name: &quot; + Thread.currentThread().getName());
+                    // 运行的任务
+                    Runnable task = newTask;
+                    // 不断从任务队列中取任务执行，如果取出来的任务为null，则跳出循环，线程也就结束了
+                    while (task != null || (task = getTask()) != null) {
+                        try {
+                            // 执行任务
+                            task.run();
+                        } finally {
+                            // 任务执行完成，置为空
+                            task = null;
+                        }
+                    }
+                }, threadName).start();
+
+                break;
+            }
+        }
+
+        return true;
+    }</code></code></pre>
+<h2 id="取任务逻辑分析">取任务逻辑分析</h2>
+<p>从队列中取任务应该使用take()方法，这个方法会一直阻塞直至取到任务或者中断，如果中断了就返回null，这样当前线程也就可以安静地结束了，另外还要注意中断了记得把runningCount减一。</p>
+<pre><code><code>    private Runnable getTask() {
+        try {
+            // take()方法会一直阻塞直到取到任务为止
+            return taskQueue.take();
+        } catch (InterruptedException e) {
+            // 线程中断了，返回null可以结束当前线程
+            // 当前线程都要结束了，理应要把runningCount的数量减一
+            runningCount.decrementAndGet();
+            return null;
+        }
+    }</code></code></pre>
+<p>好了，到这里我们自己的线程池就写完了，下面我们一起来想想怎么测试呢？</p>
+<h2 id="测试逻辑分析">测试逻辑分析</h2>
+<p>我们再来回顾下自己的写的线程池的构造方法：</p>
+<pre><code><code>    public MyThreadPoolExecutor(String name, int coreSize, int maxSize, BlockingQueue&lt;Runnable&gt; taskQueue, RejectPolicy rejectPolicy) {
+        this.name = name;
+        this.coreSize = coreSize;
+        this.maxSize = maxSize;
+        this.taskQueue = taskQueue;
+        this.rejectPolicy = rejectPolicy;
+    }</code></code></pre>
+<p>name，这个随便传；</p>
+<p>coreSize，我们假设为5；</p>
+<p>maxSize，我们假设为10；</p>
+<p>taskQueue，任务队列，既然我们设置的是有边界的，我们就用最简单的ArrayBlockingQueue好吧，容量设置为15，这样里面最多可以存储15条任务；</p>
+<p>rejectPolicy，拒绝策略，我们假设使用丢弃当前任务的策略，OK，我们来实现一个。</p>
+<pre><code><code>/**
+ * 丢弃当前任务
+ */
+public class DiscardRejectPolicy implements RejectPolicy {
+    @Override
+    public void reject(Runnable task, MyThreadPoolExecutor myThreadPoolExecutor) {
+        // do nothing
+        System.out.println(&quot;discard one task&quot;);
+    }
+}</code></code></pre>
+<p>OK，这样一个线程池就创建完成了，下面就是执行任务了，我们假设通过for循环连续不断地添加100个任务好不好。</p>
+<pre><code><code>public class MyThreadPoolExecutorTest {
+    public static void main(String[] args) {
+        Executor threadPool = new MyThreadPoolExecutor(&quot;test&quot;, 5, 10, new ArrayBlockingQueue&lt;&gt;(15), new DiscardRejectPolicy());
+        AtomicInteger num = new AtomicInteger(0);
+
+        for (int i = 0; i &lt; 100; i++) {
+            threadPool.execute(()-&gt;{
+                try {
+                    Thread.sleep(1000);
+                    System.out.println(&quot;running: &quot; + System.currentTimeMillis() + &quot;: &quot; + num.incrementAndGet());
+                } catch (InterruptedException e) {
+                    e.printStackTrace();
+                }
+            });
+        }
+    }
+}</code></code></pre>
+<p>我们分析下这段程序：</p>
+<p>（1）先连续创建了5个核心线程，并执行了新任务；</p>
+<p>（2）后面的15个任务进了队列；</p>
+<p>（3）队列满了，又连续创建了5个线程，并执行了新任务；</p>
+<p>（4）后面的任务就没得执行了，全部走了丢弃策略；</p>
+<p>（5）所以真正执行成功的任务应该是 5 + 15 + 5 = 25 条任务；</p>
+<p>运行之：</p>
+<pre><code><code>thread name: core_test2
+thread name: core_test5
+thread name: core_test3
+thread name: core_test4
+thread name: core_test1
+thread name: test6
+thread name: test7
+thread name: test8
+thread name: test9
+discard one task
+thread name: test10
+discard one task
+...省略被拒绝的任务
+【本篇文章由公众号“彤哥读源码”原创】
+discard one task
+running: 1570546871851: 2
+running: 1570546871851: 8
+running: 1570546871851: 7
+running: 1570546871851: 6
+running: 1570546871851: 5
+running: 1570546871851: 3
+running: 1570546871851: 4
+running: 1570546871851: 1
+running: 1570546871851: 10
+running: 1570546871851: 9
+running: 1570546872852: 14
+running: 1570546872852: 20
+running: 1570546872852: 19
+running: 1570546872852: 17
+running: 1570546872852: 18
+running: 1570546872852: 16
+running: 1570546872852: 15
+running: 1570546872852: 12
+running: 1570546872852: 13
+running: 1570546872852: 11
+running: 1570546873852: 21
+running: 1570546873852: 24
+running: 1570546873852: 23
+running: 1570546873852: 25
+running: 1570546873852: 22</code></code></pre>
+<p>可以看到，创建了5个核心线程、5个非核心线程，成功执行了25条任务，完成没问题，完美^^。</p>
+<h2 id="总结">总结</h2>
+<p>（1）自己动手写一个线程池需要考虑的因素主要有：核心线程数、最大线程数、任务队列、拒绝策略。</p>
+<p>（2）创建线程的时候要时刻警惕并发的陷阱；</p>
+<h2 id="彩蛋">彩蛋</h2>
+<p>我们知道，jdk自带的线程池还有两个参数：keepAliveTime、unit，它们是干什么的呢？</p>
+<p>答：它们是用来控制何时销毁非核心线程的，当然也可以销毁核心线程，具体的分析请期待下一章吧。</p>
+<h2 id="完整源码">完整源码</h2>
+<h3 id="executor接口">Executor接口</h3>
+<pre><code><code>public interface Executor {
+    void execute(Runnable command);
+}</code></code></pre>
+<h3 id="mythreadpoolexecutor线程池实现类">MyThreadPoolExecutor线程池实现类</h3>
+<pre><code><code>/**
+ * 自动动手写一个线程池
+ */
+public class MyThreadPoolExecutor implements Executor {
+
+    /**
+     * 线程池的名称
+     */
+    private String name;
+    /**
+     * 线程序列号
+     */
+    private AtomicInteger sequence = new AtomicInteger(0);
+    /**
+     * 核心线程数
+     */
+    private int coreSize;
+    /**
+     * 最大线程数
+     */
+    private int maxSize;
+    /**
+     * 任务队列
+     */
+    private BlockingQueue&lt;Runnable&gt; taskQueue;
+    /**
+     * 拒绝策略
+     */
+    private RejectPolicy rejectPolicy;
+    /**
+     * 当前正在运行的线程数【本篇文章由公众号“彤哥读源码”原创】
+     * 需要修改时线程间立即感知，所以使用AtomicInteger
+     * 或者也可以使用volatile并结合Unsafe做CAS操作（参考Unsafe篇章讲解）
+     */
+    private AtomicInteger runningCount = new AtomicInteger(0);
+
+    public MyThreadPoolExecutor(String name, int coreSize, int maxSize, BlockingQueue&lt;Runnable&gt; taskQueue, RejectPolicy rejectPolicy) {
+        this.name = name;
+        this.coreSize = coreSize;
+        this.maxSize = maxSize;
+        this.taskQueue = taskQueue;
+        this.rejectPolicy = rejectPolicy;
+    }
+
+    @Override
+    public void execute(Runnable task) {
+        // 正在运行的线程数
+        int count = runningCount.get();
+        // 如果正在运行的线程数小于核心线程数，直接加一个线程
+        if (count &lt; coreSize) {
+            // 注意，这里不一定添加成功，addWorker()方法里面还要判断一次是不是确实小
+            if (addWorker(task, true)) {
+                return;
+            }
+            // 如果添加核心线程失败，进入下面的逻辑
+        }
+
+        // 如果达到了核心线程数，先尝试让任务入队
+        // 这里之所以使用offer()，是因为如果队列满了offer()会立即返回false
+        if (taskQueue.offer(task)) {
+            // do nothing，为了逻辑清晰这里留个空if
+        } else {
+            // 如果入队失败，说明队列满了，那就添加一个非核心线程
+            if (!addWorker(task, false)) {
+                // 如果添加非核心线程失败了，那就执行拒绝策略
+                rejectPolicy.reject(task, this);
+            }
+        }
+    }
+
+    private boolean addWorker(Runnable newTask, boolean core) {
+        // 自旋判断是不是真的可以创建一个线程
+        for (; ; ) {
+            // 正在运行的线程数
+            int count = runningCount.get();
+            // 核心线程还是非核心线程
+            int max = core ? coreSize : maxSize;
+            // 不满足创建线程的条件，直接返回false
+            if (count &gt;= max) {
+                return false;
+            }
+            // 修改runningCount成功，可以创建线程
+            if (runningCount.compareAndSet(count, count + 1)) {
+                // 线程的名字
+                String threadName = (core ? &quot;core_&quot; : &quot;&quot;) + name + sequence.incrementAndGet();
+                // 创建线程并启动
+                new Thread(() -&gt; {
+                    System.out.println(&quot;thread name: &quot; + Thread.currentThread().getName());
+                    // 运行的任务【本篇文章由公众号“彤哥读源码”原创】
+                    Runnable task = newTask;
+                    // 不断从任务队列中取任务执行，如果取出来的任务为null，则跳出循环，线程也就结束了
+                    while (task != null || (task = getTask()) != null) {
+                        try {
+                            // 执行任务
+                            task.run();
+                        } finally {
+                            // 任务执行完成，置为空
+                            task = null;
+                        }
+                    }
+                }, threadName).start();
+
+                break;
+            }
+        }
+
+        return true;
+    }
+
+    private Runnable getTask() {
+        try {
+            // take()方法会一直阻塞直到取到任务为止
+            return taskQueue.take();
+        } catch (InterruptedException e) {
+            // 线程中断了，返回null可以结束当前线程
+            // 当前线程都要结束了，理应要把runningCount的数量减一
+            runningCount.decrementAndGet();
+            return null;
+        }
+    }
+
+}</code></code></pre>
+<h3 id="rejectpolicy拒绝策略接口">RejectPolicy拒绝策略接口</h3>
+<pre><code><code>public interface RejectPolicy {
+    void reject(Runnable task, MyThreadPoolExecutor myThreadPoolExecutor);
+}</code></code></pre>
+<h3 id="discardrejectpolicy丢弃策略实现类">DiscardRejectPolicy丢弃策略实现类</h3>
+<pre><code><code>/**
+ * 丢弃当前任务
+ */
+public class DiscardRejectPolicy implements RejectPolicy {
+    @Override
+    public void reject(Runnable task, MyThreadPoolExecutor myThreadPoolExecutor) {
+        // do nothing
+        System.out.println(&quot;discard one task&quot;);
+    }
+}</code></code></pre>
+<h3 id="测试类">测试类</h3>
+<pre><code><code>public class MyThreadPoolExecutorTest {
+    public static void main(String[] args) {
+        Executor threadPool = new MyThreadPoolExecutor(&quot;test&quot;, 5, 10, new ArrayBlockingQueue&lt;&gt;(15), new DiscardRejectPolicy());
+        AtomicInteger num = new AtomicInteger(0);
+
+        for (int i = 0; i &lt; 100; i++) {
+            threadPool.execute(()-&gt;{
+                try {
+                    Thread.sleep(1000);
+                    System.out.println(&quot;running: &quot; + System.currentTimeMillis() + &quot;: &quot; + num.incrementAndGet());
+                } catch (InterruptedException e) {
+                    e.printStackTrace();
+                }
+            });
+        }
+
+    }
+}</code></code></pre>
+<hr />
+<p>欢迎关注我的公众号“彤哥读源码”，查看更多源码系列文章, 与彤哥一起畅游源码的海洋。</p>
+<p><img src="./images/死磕 java线程系列之自己动手写一个线程池3.png" alt="qrcode" /></p>
+
+
+</div><hr><script charset='utf-8' src='../../js/sming.js'></script></body></html>

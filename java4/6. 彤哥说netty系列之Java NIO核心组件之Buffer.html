@@ -1,0 +1,154 @@
+<html><head><meta charset='utf-8'><meta name='viewport' content='width=device-width, initial-scale=1'>
+<meta name='applicable-device' content='pc'><meta name='keywords' content='电脑,电脑讲解,电脑技术,编程,电脑故障维修6. 彤哥说netty系列之Java NIO核心组件之Buffer' />
+<script src='../../highlight/highlight.pack.js'></script>
+<link rel='stylesheet' type='text/css' href='../../highlight/styles/monokai.css'/>
+
+<link rel='stylesheet' href='../../fenxiang/dist/css/share.min.css'>
+<script src='../../fenxiang/src/js/social-share.js'></script>
+<script src='../../fenxiang/src/js/qrcode.js'></script>
+
+</head><body><script>hljs.initHighlightingOnLoad();</script><script>
+var system ={};  
+var p = navigator.platform;       
+system.win = p.indexOf('Win') == 0;  
+system.mac = p.indexOf('Mac') == 0;  
+system.x11 = (p == 'X11') || (p.indexOf('Linux') == 0);     
+if(system.win||system.mac||system.xll){
+document.write("<link href='../css/3.css' rel='stylesheet' type='text/css'>");}else{ document.write("<link href='../css/3wap.css' rel='stylesheet' type='text/css'>");}</script><script src='../../js/3.js'></script><div class='div2'><div class='heading_nav'><ul><div><li><a href='../../index.html'>首页</a></li>
+</div><div onclick='hidden1()' >分享</div>
+</ul></div></div>
+<div id='heading_nav2'> 
+<li class='row' >
+<div class='social-share' data-mode='prepend'><a href='javascript:' class='social-share-icon icon-heart'></a></div></li></div><script charset='utf-8' src='../../3/js/hengfu.js'></script><script charset='utf-8' src='../../3/js/hengfu2.js'></script><hr><div class='div1'><div class='biaoti'><center>6. 彤哥说netty系列之Java NIO核心组件之Buffer</center></div><div class='banquan'>原文出处:本文由博客园博主彤哥读源码提供。<br/>
+原文连接:https://www.cnblogs.com/tong-yuan/p/11980067.html</div><br>
+    <p align="right">——日拱一卒，不期而至！</p>
+<p><img src="./images/6. 彤哥说netty系列之Java NIO核心组件之Buffer0.png" alt="nio" /></p>
+<p>你好，我是彤哥，本篇是netty系列的第六篇。</p>
+<h1 id="简介">简介</h1>
+<p>上一章我们一起学习了Java NIO的核心组件Channel，它可以看作是实体与实体之间的连接，而且需要与Buffer交互，这一章我们就来学习一下Buffer的特性。</p>
+<h1 id="概念">概念</h1>
+<p>Buffer用于与Channel交互时使用，通过上一章的学习我们知道，数据从Channel读取到Buffer，或者从Buffer写入Channel。</p>
+<p><img src="./images/6. 彤哥说netty系列之Java NIO核心组件之Buffer1.png" alt="nio" /></p>
+<p>Buffer本质上是一个内存块，可以向里面写入数据，或者从里面读取数据，在Java中它被包装成了Buffer对象，并提供了一系列的方法用于操作这个内存块。</p>
+<h1 id="属性">属性</h1>
+<p>为了更好地理解Buffer的数据结构，我们必须熟悉它的三个常用属性：</p>
+<ul>
+<li>capacity：容量</li>
+<li>position：当前位置</li>
+<li>limit：限制长度</li>
+</ul>
+<p>在读模式和写模式下，position和limit的位置有所不同，见下图：</p>
+<p><img src="./images/6. 彤哥说netty系列之Java NIO核心组件之Buffer2.png" alt="nio" /></p>
+<h2 id="capacity">capacity</h2>
+<p>Buffer作为一个存储块，是有固定大小的，这个固定大小我们称作“容量”。</p>
+<p>当Buffer写满之后，需要先清空或者读取数据，才能继续写入新的数据。</p>
+<h2 id="position">position</h2>
+<p>写模式下，position从0开始，每写入一个单位的数据，position前进一位，position最大可到达(capacity-1)的位置。</p>
+<p>当Buffer从写模式切换为读模式时，position将重置为0。读取数据时，同样地，position每读取一个单位，前进一位，此时，position最大可到达limit的位置（实际最大可读取的位置是(limit-1)）。</p>
+<h2 id="limit">limit</h2>
+<p>写模式下，limit最大值等于capacity。</p>
+<p>读模式下，limit最大值等于切换为读模式时position的值，本文来源工从号彤哥读源码。</p>
+<blockquote>
+<p>这里可能有点绕，position类似于数组的下标，是从0开始的，limit表示最大可以读取或者写入的长度，capacity表示最大的容量，limit和capacity不是下标，类似于数组的长度，所以跟position比较需要-1。在写模式下，position指向的是下一个待写入的位置；在读模式下，position指向的是下一个待读取的位置。</p>
+</blockquote>
+<h1 id="类型">类型</h1>
+<p>Java NIO自带的Buffer类型有：</p>
+<ul>
+<li>ByteBuffer</li>
+<li>MappedByteBuffer</li>
+<li>CharBuffer</li>
+<li>ShortBuffer</li>
+<li>IntBuffer</li>
+<li>LongBuffer</li>
+<li>FloatBuffer</li>
+<li>DoubleBuffer</li>
+</ul>
+<p>与基本类型一样，每一种Buffer的基本单位长度不一样罢了。</p>
+<p>其中，MappedByteBuffer是一种特殊的ByteBuffer，它使用内存映射的方式加载物理文件，并不会耗费同等大小的物理内存，是一种直接操作堆外内存的方式，读写性能比较高。</p>
+<h1 id="基本用法">基本用法</h1>
+<p>上面我们学习了Buffer的数据结构以及常用的Buffer类型，它们怎么使用呢？常见的用法主要有四种：</p>
+<ul>
+<li>将数据写入Buffer</li>
+<li>切换为读模式flip()</li>
+<li>从Buffer中读取数据</li>
+<li>清空数据并切换为写模式clear()或者compact()</li>
+</ul>
+<h2 id="来个栗子">来个栗子</h2>
+<p><img src="./images/6. 彤哥说netty系列之Java NIO核心组件之Buffer3.png" alt="nio" /></p>
+<pre><code><code>public class FileChannelTest {
+    public static void main(String[] args) throws IOException {
+        // 从文件获取一个FileChannel
+        FileChannel fileChannel = new RandomAccessFile(&quot;D:\\object.txt&quot;, &quot;rw&quot;).getChannel();
+        // 分配一个Byte类型的Buffer
+        ByteBuffer buffer = ByteBuffer.allocate(1024);
+        // 将FileChannel中的数据读出到buffer中，-1表示读取完毕
+        // buffer默认为写模式，本文来源工从号彤哥读源码
+        // read()方法是相对channel而言的，相对buffer就是写
+        while ((fileChannel.read(buffer)) != -1) {
+            // buffer切换为读模式
+            buffer.flip();
+            // buffer中是否有未读数据
+            while (buffer.hasRemaining()) {
+                // 读取数据
+                System.out.print((char)buffer.get());
+            }
+            // 清空buffer，为下一次写入数据做准备
+            // clear()会将buffer再次切换为写模式
+            buffer.clear();
+        }
+    }
+}</code></code></pre>
+<h2 id="allocate">allocate()</h2>
+<p>要获取一个Buffer对象，必须先分配它，每个Buffer类都有一个allocate()方法用于分配Buffer对象。</p>
+<p>以下示例分配了一个容量为1024的ByteBuffer对象：</p>
+<pre><code><code>ByteBuffer buffer = ByteBuffer.allocate(1024);</code></code></pre>
+<p>下面是分配了一个容量为48的CharBuffer的对象：</p>
+<pre><code><code>CharBuffer buf = CharBuffer.allocate（48）;</code></code></pre>
+<h2 id="将数据写入buffer">将数据写入Buffer</h2>
+<p>将数据写入Buffer有两种形式：</p>
+<ul>
+<li>从Channel读出数据并写入Buffer，也叫从Channel读入Buffer</li>
+<li>调用Buffer自己的put()方法写入数据</li>
+</ul>
+<p>从Channel读入Buffer的示例如下：</p>
+<pre><code><code>int bytesRead = inChannel.read（buf）; //读入Buffer</code></code></pre>
+<p>Buffer自己put()写入数据的示例如下：</p>
+<pre><code><code>buf.put（127）;</code></code></pre>
+<p>当然，put()有很多不同的类型，比如在特定位置写入，写入不同类型的数据等等，可以在IDEA中按F12查看。</p>
+<h2 id="flip">flip()</h2>
+<p>flip()方法用于将Buffer从写模式切换为读模式，position将切换到0位置，且limit将切换到刚才position的位置。</p>
+<p>也就是说，position变成了可读数据的首位，limit表示可以读取的最大数据长度。</p>
+<h2 id="从buffer中读取数据">从Buffer中读取数据</h2>
+<p>从Buffer中读取数据也有两种形式：</p>
+<ul>
+<li>从Buffer读取数据，并写入Channel，也叫作从Buffer写入Channel</li>
+<li>调用Buffer自己的get()方法读取数据</li>
+</ul>
+<p>从Buffer写入Channel的示例如下：</p>
+<pre><code><code>// 本文来源工从号彤哥读源码
+int bytesWritten = inChannel.write（buf）;</code></code></pre>
+<p>调用Buffer自己的get()方法读取数据的示例如下：</p>
+<pre><code><code>byte aByte = buf.get();   </code></code></pre>
+<p>当然，get()有很多不同的类型，比如从特定的位置读取，读取不同类型的数据等等，可以在IDEA中按F12查看。</p>
+<h2 id="rewind">rewind()</h2>
+<p>rewind()方法会重置position为0，但limit保持不变，因此可以用来重新读取数据。通常是在重新读取数据之前调用。</p>
+<h2 id="clear">clear()</h2>
+<p>clear()方法用于清空整个Buffer，并将Buffer从读模式切换回写模式，且position归位到0位置。</p>
+<h2 id="compact">compact()</h2>
+<p>compact()方法用于清空已读取的数据，并将未读取的数据移至Buffer的头部，position的位置移动到从头开始计算的未读取的数据的下一个位置，它也会将Buffer从读模式切换回写模式。</p>
+<h2 id="mark-和-reset">mark() 和 reset()</h2>
+<p>mark()方法用于标记给定位置，然后可以在之后通过reset()方法重新回到mark的位置，示例如下：</p>
+<pre><code><code>buffer.mark（）;
+
+//多次调用buffer.get（），例如在解析过程中。
+
+buffer.reset（）; //将位置重新设置为标记。 </code></code></pre>
+<h1 id="总结">总结</h1>
+<p>今天我们学习了Java NIO核心组件Buffer，它经常跟Channel联合起来使用。讲到这里我们一直在使用FileChannel在举例，那么它们到底跟网络编程有什么关系呢？请听下回分解。</p>
+<h1 id="参考">参考</h1>
+<p><a href="http://tutorials.jenkov.com/java-nio/channels.html" class="uri">http://tutorials.jenkov.com/java-nio/channels.html</a></p>
+<p>最后，也欢迎来我的工从号<strong>彤哥读源码</strong>系统地学习<strong>源码&amp;架构</strong>的知识。</p>
+<p><img src="./images/6. 彤哥说netty系列之Java NIO核心组件之Buffer4.png" alt="nio" /></p>
+
+
+</div><hr><script charset='utf-8' src='../../js/sming.js'></script></body></html>

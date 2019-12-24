@@ -1,0 +1,507 @@
+<html><head><meta charset='utf-8'><meta name='viewport' content='width=device-width, initial-scale=1'>
+<meta name='applicable-device' content='pc'><meta name='keywords' content='电脑,电脑讲解,电脑技术,编程,电脑故障维修Spring框架AOP学习总结（下）' />
+<script src='../../highlight/highlight.pack.js'></script>
+<link rel='stylesheet' type='text/css' href='../../highlight/styles/monokai.css'/>
+
+<link rel='stylesheet' href='../../fenxiang/dist/css/share.min.css'>
+<script src='../../fenxiang/src/js/social-share.js'></script>
+<script src='../../fenxiang/src/js/qrcode.js'></script>
+
+</head><body><script>hljs.initHighlightingOnLoad();</script><script>
+var system ={};  
+var p = navigator.platform;       
+system.win = p.indexOf('Win') == 0;  
+system.mac = p.indexOf('Mac') == 0;  
+system.x11 = (p == 'X11') || (p.indexOf('Linux') == 0);     
+if(system.win||system.mac||system.xll){
+document.write("<link href='../css/3.css' rel='stylesheet' type='text/css'>");}else{ document.write("<link href='../css/3wap.css' rel='stylesheet' type='text/css'>");}</script><script src='../../js/3.js'></script><div class='div2'><div class='heading_nav'><ul><div><li><a href='../../index.html'>首页</a></li>
+</div><div onclick='hidden1()' >分享</div>
+</ul></div></div>
+<div id='heading_nav2'> 
+<li class='row' >
+<div class='social-share' data-mode='prepend'><a href='javascript:' class='social-share-icon icon-heart'></a></div></li></div><script charset='utf-8' src='../../3/js/hengfu.js'></script><script charset='utf-8' src='../../3/js/hengfu2.js'></script><hr><div class='div1'><div class='biaoti'><center>Spring框架AOP学习总结（下）</center></div><div class='banquan'>原文出处:本文由博客园博主宜春提供。<br/>
+原文连接:https://www.cnblogs.com/yichunguo/p/11939547.html</div><br>
+    <src class="toc">
+    <p class="toc-title">目录</p>
+    <src class="toc-list">
+        <ul>
+        <li><a href="#aop-的概述">1、 AOP 的概述</a></li>
+        <li><a href="#spring-基于aspectj-进行-aop-的开发入门xml-的方式">2、 Spring 基于AspectJ 进行 AOP 的开发入门（XML 的方式）：</a></li>
+        <li><a href="#spring-基于aspectj-进行-aop-的开发入门注解的方式">3、Spring 基于AspectJ 进行 AOP 的开发入门（注解的方式）：</a></li>
+        <li><a href="#spring的注解的aop的通知类型">4、Spring的注解的AOP的通知类型</a></li>
+        <li><a href="#spring的注解的aop的切入点的配置">5、Spring的注解的AOP的切入点的配置</a></li>
+        </ul>
+    
+
+<p>@<br />
+在<a href="https://blog.csdn.net/qq_44543508/article/details/98600615">Spring框架学习一</a>中主要讲的是一些Spring的概述、Spring工厂、Spring属性注入以及IOC入门，其中最重要的是IOC，上一篇中IOC大概讲的小结一下：<br />
+<img src="./images/Spring框架AOP学习总结（下）0.png" alt="在这里插入图片描述" /></p>
+<p>然后呢这一篇中主要讲一下Spring中除了IOC之外的另一个重要的核心：AOP，在Spring中IOC也好，AOP也好，都必须会二者的XML开发以及注解开发，也就是说<font color=red><strong>IOC和AOP的XML开发以及注解开发都要掌握</strong></font></p>
+<h2 id="aop-的概述">1、 AOP 的概述</h2>
+<p>从专业的角度来讲（千万不要问我有多专业，度娘是我表锅不对是表嫂QAQ）：</p>
+<blockquote>
+<p>在软件业，AOP为Aspect Oriented Programming的缩写，意为：面向切面编程，通过预编译方式和运行期动态代理实现程序功能的统一维护的一种技术。AOP是OOP的延续，是软件开发中的一个热点，也是Spring框架中的一个重要内容，是函数式编程的一种衍生范型。利用AOP可以对业务逻辑的各个部分进行隔离，从而使得业务逻辑各部分之间的耦合度降低，提高程序的可重用性，同时提高了开发的效率。</p>
+</blockquote>
+<p>从通俗易懂且不失风趣的角度来讲：（来自武哥文章<a href="https://blog.csdn.net/eson_15/article/details/51090040">谈谈Spring中的IOC和AOP概念</a>）</p>
+<blockquote>
+<p>面向切面编程的目标就是分离关注点。什么是关注点呢？就是你要做的事，就是关注点。假如你是个公子哥，没啥人生目标，天天就是衣来伸手，饭来张口，整天只知道玩一件事！那么，每天你一睁眼，就光想着吃完饭就去玩（你必须要做的事），但是在玩之前，你还需要穿衣服、穿鞋子、叠好被子、做饭等等等等事情，这些事情就是你的关注点，但是你只想吃饭然后玩，那么怎么办呢？这些事情通通交给别人去干。在你走到饭桌之前，有一个专门的仆人A帮你穿衣服，仆人B帮你穿鞋子，仆人C帮你叠好被子，仆人C帮你做饭，然后你就开始吃饭、去玩（这就是你一天的正事），你干完你的正事之后，回来，然后一系列仆人又开始帮你干这个干那个，然后一天就结束了！<br />
+AOP的好处就是你只需要干你的正事，其它事情别人帮你干。也许有一天，你想裸奔，不想穿衣服，那么你把仆人A解雇就是了！也许有一天，出门之前你还想带点钱，那么你再雇一个仆人D专门帮你干取钱的活！这就是AOP。每个人各司其职，灵活组合，达到一种可配置的、可插拔的程序结构。<br />
+从Spring的角度看，AOP最大的用途就在于提供了事务管理的能力。事务管理就是一个关注点，你的正事就是去访问数据库，而你不想管事务（太烦），所以，Spring在你访问数据库之前，自动帮你开启事务，当你访问数据库结束之后，自动帮你提交/回滚事务！</p>
+</blockquote>
+<h4 id="为什么学习-aop">1、1 为什么学习 AOP</h4>
+<p><strong>Spring 的 AOP 的由来</strong>:AOP 最早由 AOP 联盟的组织提出的,制定了一套规范.Spring 将 AOP 思想引入到框架中,必须遵守 AOP 联盟的规范.</p>
+<p><strong>Aop解决实际开发中的一些问题:</strong></p>
+<ul>
+<li>AOP 解决 OOP 中遇到的一些问题.是 OOP 的延续和扩展.</li>
+</ul>
+<p><strong>对程序进行增强:不修改源码的情况下：</strong></p>
+<ul>
+<li>AOP 可以进行权限校验,日志记录,性能监控,事务控制.</li>
+</ul>
+<h4 id="aop底层实现-代理机制了解">1、2 AOP底层实现: 代理机制（了解）</h4>
+<p>Spring 的 AOP 的底层用到两种代理机制：</p>
+<ul>
+<li>JDK 的动态代理 :针对实现了接口的类产生代理.</li>
+<li>Cglib 的动态代理 :针对没有实现接口的类产生代理. 应用的是底层的字节码增强的技术 生成当前类的子类对象</li>
+</ul>
+<p><font color=red>spring底层会完成自动代理，实现了接口的类默认使用的是JDK 的动态代理，相反的，没有实现接口的类默认使用的是Cglib 的动态代理 </font>，底层代码可以不懂但这个概念一定要知道，不然会被鄙视的，O(∩_∩)O哈哈~，下面是底层代码，有兴趣的可以了解了解。</p>
+<p><strong>JDK 动态代理增强一个类中方法:</strong></p>
+<pre><code><code>public class MyJDKProxy implements InvocationHandler {
+        private UserDao userDao;
+
+        public MyJDKProxy(UserDao userDao) {
+            this.userDao = userDao;
+        }
+
+        // 编写工具方法：生成代理：
+        public UserDao createProxy() {
+            UserDao userDaoProxy = (UserDao) Proxy.newProxyInstance(userDao
+                    .getClass().getClassLoader(), userDao.getClass()
+                    .getInterfaces(), this);
+            return userDaoProxy;
+        }
+
+        @Override
+        public Object invoke(Object proxy, Method method, Object[] args)
+                throws Throwable {
+            if (&quot;save&quot;.equals(method.getName())) {
+                System.out.println(&quot;权限校验================&quot;);
+            }
+            return method.invoke(userDao, args);
+        }
+    }</code></code></pre>
+<p><strong>Cglib 动态代理增强一个类中的方法:</strong></p>
+<pre><code><code>public class MyCglibProxy implements MethodInterceptor {
+        private CustomerDao customerDao;
+
+        public MyCglibProxy(CustomerDao customerDao) {
+            this.customerDao = customerDao;
+        }
+
+        // 生成代理的方法:
+        public CustomerDao createProxy() {
+            // 创建 Cglib 的核心类:
+            Enhancer enhancer = new Enhancer();
+            // 设置父类:
+            enhancer.setSuperclass(CustomerDao.class);
+            // 设置回调:
+            enhancer.setCallback(this);
+            // 生成代理：
+            CustomerDao customerDaoProxy = (CustomerDao) enhancer.create();
+            return customerDaoProxy;
+        }
+
+        @Override
+        public Object intercept(Object proxy, Method method, Object[] args,
+                MethodProxy methodProxy) throws Throwable {
+            if (&quot;delete&quot;.equals(method.getName())) {
+                Object obj = methodProxy.invokeSuper(proxy, args);
+                System.out.println(&quot;日志记录================&quot;);
+                return obj;
+            }
+            return methodProxy.invokeSuper(proxy, args);
+        }
+    }</code></code></pre>
+<h2 id="spring-基于aspectj-进行-aop-的开发入门xml-的方式">2、 Spring 基于AspectJ 进行 AOP 的开发入门（XML 的方式）：</h2>
+<p>首先，Spring为什么不直接进行Spring的AOP开发呢，而要基于Aspectj呢，是因为，Spring自己的AOP开发实现方式（传统的AOP开发）繁琐且复杂，效率极低，于是传统的AOP开发基本上弃用了，相反Aspectj的AOP开发效率高，所以AOP开发一般是Spring 的基于 AspectJ 的 AOP 开发。</p>
+<h4 id="aop-的开发中的相关术语">2.1 AOP 的开发中的相关术语:</h4>
+<p>Aop是一种非常高深的思想，当然会有非常专业的相关术语了（这弯绕的，你打几分？）</p>
+<p><strong>从专业的角度角度概述定义(相对来说比较枯燥不易理解)：</strong></p>
+<blockquote>
+<p><font color=red>Joinpoint(连接点)</font>:所谓连接点是指那些被拦截到的点。在 spring 中,这些点指的是方法,因为 spring 只<br />
+支持方法类型的连接点.<br />
+<font color=red>Pointcut(切入点)</font>:所谓切入点是指我们要对哪些 Joinpoint 进行拦截的定义.<br />
+<font color=red>Advice(通知/增强)</font>:所谓通知是指拦截到 Joinpoint 之后所要做的事情就是通知.通知分为前置通知,后置<br />
+通知,异常通知,最终通知,环绕通知(切面要完成的功能)<br />
+<font color=red>Introduction(引介)</font>:引介是一种特殊的通知在不修改类代码的前提下, Introduction 可以在运行期为类<br />
+动态地添加一些方法或 Field.<br />
+<font color=red>Target(目标对象)</font>:代理的目标对象<br />
+<font color=red>Weaving(织入)</font>:是指把增强应用到目标对象来创建新的代理对象的过程.<br />
+spring 采用动态代理织入，而 AspectJ 采用编译期织入和类装在期织入<br />
+<font color=red>Proxy（代理）</font>:一个类被 AOP 织入增强后，就产生一个结果代理类<br />
+<font color=red>Aspect(切面)</font>: 是切入点和通知（引介）的结合</p>
+</blockquote>
+<p><strong>基于专业的角度实例分析</strong>(相对来说易理解，什么？画质差？咳咳...1080p蓝光画质...哎哎哎..大哥..别打...别打...别打脸)：<br />
+<img src="./images/Spring框架AOP学习总结（下）1.png" alt="在这里插入图片描述" /></p>
+<h4 id="引入相应的-jar-包">2.2引入相应的 jar 包</h4>
+<p>引入jar包：基础六个jar包、AOP联盟jar包、spring的AOPjar包、aspectJ的jar包、spring整合aspectj的jar包</p>
+<ul>
+<li><p><strong>spring 的传统 AOP 的开发的包</strong>：<br />
+spring-aop-4.2.4.RELEASE.jar<br />
+com.springsource.org.aopalliance-1.0.0.jar</p></li>
+<li><p><strong>aspectJ 的开发包</strong>:<br />
+com.springsource.org.aspectj.weaver-1.6.8.RELEASE.jar<br />
+spring-aspects-4.2.4.RELEASE.jar<br />
+<img src="./images/Spring框架AOP学习总结（下）2.png" alt="在这里插入图片描述" /></p>
+<h4 id="引入-spring-的配置文件">2.3 引入 Spring 的配置文件</h4>
+<p>引入 AOP 约束:</p></li>
+</ul>
+<pre><code><code> &lt;beans xmlns=&quot;http://www.springframework.org/schema/beans&quot;
+xmlns:xsi=&quot;http://www.w3.org/2001/XMLSchema-instance&quot;
+xmlns:aop=&quot;http://www.springframework.org/schema/aop&quot; xsi:schemaLocation=&quot;
+http://www.springframework.org/schema/beans 
+http://www.springframework.org/schema/beans/spring-beans.xsd
+http://www.springframework.org/schema/aop 
+http://www.springframework.org/schema/aop/spring-aop.xsd&quot;&gt;
+&lt;/beans&gt;</code></code></pre>
+<h4 id="编写目标类">2.4 编写目标类</h4>
+<p>创建接口和类:</p>
+<pre><code><code>    public interface OrderDao {
+        public void save();
+
+        public void update();
+
+        public void delete();
+
+        public void find();
+    }
+
+    public class OrderDaoImpl implements OrderDao {
+        @Override
+        public void save() {
+            System.out.println(&quot;保存订单...&quot;);
+        }
+
+        @Override
+        public void update() {
+            System.out.println(&quot;修改订单...&quot;);
+        }
+
+        @Override
+        public void delete() {
+            System.out.println(&quot;删除订单...&quot;);
+        }
+
+        @Override
+        public void find() {
+            System.out.println(&quot;查询订单...&quot;);
+        }
+    }</code></code></pre>
+<h4 id="目标类的xml配置">2.5 目标类的XML配置</h4>
+<pre><code><code>&lt;!-- 目标类配置:被增强的类 --&gt; 
+&lt;bean id=&quot;orderDao&quot; class=&quot;com.gx.spring.demo3.OrderDaoImpl&quot;&gt;&lt;/bean&gt;</code></code></pre>
+<h4 id="整合-junit-单元测试">2.6 整合 Junit 单元测试</h4>
+<p><font color=red>前提：引入 <strong>spring-test.jar</strong> 测试的jar包，整合 Junit 单元测试之后就不需要每次都重复注册工厂，只要固定格式在测试类上写两个注解，需要的属性直接注入，之后只关心自己的测试类即可</font></p>
+<pre><code><code>//固定注解写法（前提：引入 spring-test.jar 测试的jar包）
+    @RunWith(SpringJUnit4ClassRunner.class)
+    @ContextConfiguration(&quot;classpath:applicationContext.xml&quot;)
+    public class SpringDemo3 {
+        @Resource(name = &quot;orderDao&quot;)  //需要的属性直接注入（前提：引入 spring-test.jar 测试的jar包）
+        private OrderDao orderDao;
+
+        @Test
+        public void demo1() {
+            orderDao.save();
+            orderDao.update();
+            orderDao.delete();
+            orderDao.find();
+        }
+    }</code></code></pre>
+<p>运行demo出现如下效果：<br />
+<img src="./images/Spring框架AOP学习总结（下）3.png" alt="在这里插入图片描述" /></p>
+<h4 id="通知类型">2.7 通知类型</h4>
+<p>到这里，就需要需要对通知类型了解一下（前三者常用）：</p>
+<p><strong>前置通知</strong> ：在目标方法执行之前执行.<br />
+<img src="./images/Spring框架AOP学习总结（下）4.png" alt="在这里插入图片描述" /><br />
+<strong>后置通知</strong> ：在目标方法执行之后执行<br />
+<img src="./images/Spring框架AOP学习总结（下）5.png" alt="在这里插入图片描述" /><br />
+<font color=red>如果要获得后置通知中的返回值，必须注意的是：</font><br />
+<img src="./images/Spring框架AOP学习总结（下）6.png" alt="在这里插入图片描述" /><br />
+<strong>环绕通知</strong> ：在目标方法执行前和执行后执行<br />
+<img src="./images/Spring框架AOP学习总结（下）7.png" alt="在这里插入图片描述" /><br />
+<strong>异常抛出通知</strong>：在目标方法执行出现 异常的时候 执行<br />
+<strong>最终通知</strong> ：无论目标方法是否出现异常 最终通知都会 执行.</p>
+<p><strong>通知类型XML配置</strong>：<br />
+<img src="./images/Spring框架AOP学习总结（下）8.png" alt="在这里插入图片描述" /><br />
+<img src="./images/Spring框架AOP学习总结（下）9.png" alt="在这里插入图片描述" /></p>
+<h4 id="切入点表达式">2.8 切入点表达式</h4>
+<p>execution(表达式)</p>
+<p><font color=red>表达式 : [方法访问修饰符] 方法返回值 包名.类名.方法名(方法的参数)</font></p>
+<p>切入点表达式所以就是execution( [方法访问修饰符] 方法返回值 包名.类名.方法名(方法的参数))</p>
+<p><font color=red>其中 [ ] 中的方法访问修饰符可有可无</font></p>
+<p>切入点表达式各类型例子：</p>
+<pre><code><code>public * com.gx.spring.dao. * .*(..)
+com.gx.spring.dao.*.*(..)
+com.gx.spring.dao.UserDao+.*(..)
+com.gx.spring.dao..*.*(..)</code></code></pre>
+<h4 id="编写一个切面类">2.9 编写一个切面类</h4>
+<p>好了，了解了通知类型以及切入点表达式之后就可以来 编写一个切面类玩起来了QAQ</p>
+<pre><code><code>public class MyAspectXml {
+    // 前置增强
+    public void before(){
+       System.out.println(&quot;前置增强===========&quot;);
+} }</code></code></pre>
+<h4 id="配置完成增强">2.10 配置完成增强</h4>
+<pre><code><code>&lt;!-- 配置切面类 --&gt; 
+&lt;bean id=&quot;myAspectXml&quot; class=&quot;com.gx.spring.demo3.MyAspectXml&quot;&gt;&lt;/bean&gt;
+&lt;!-- 进行 aop 的配置 --&gt; 
+&lt;aop:config&gt;
+&lt;!-- 配置切入点表达式:哪些类的哪些方法需要进行增强 --&gt;
+ &lt;aop:pointcut expression=&quot;execution(* com.gx.spring.demo3.OrderDao.save(..))&quot; id=&quot;pointcut1&quot;/&gt;
+&lt;!-- 配置切面 --&gt; 
+&lt;aop:aspect ref=&quot;myAspectXml&quot;&gt; 
+    &lt;aop:before method=&quot;before&quot; pointcut-ref=&quot;pointcut1&quot;/&gt;
+&lt;/aop:aspect&gt;
+&lt;/aop:config&gt;
+</code></code></pre>
+<p>需要注意的点我都规划出来了（不用夸我，我知道我长得帅QnQ）<br />
+<img src="./images/Spring框架AOP学习总结（下）10.png" alt="在这里插入图片描述" /></p>
+<h4 id="其他的增强的配置">2.11 其他的增强的配置：</h4>
+<pre><code><code>&lt;!-- 配置切面类 --&gt;
+ &lt;bean id=&quot;myAspectXml&quot; class=&quot;com.gx.demo3.MyAspectXml&quot;&gt;&lt;/bean&gt;
+    &lt;!-- 进行 aop 的配置 --&gt;
+ &lt;aop:config&gt;
+    &lt;!-- 配置切入点表达式:哪些类的哪些方法需要进行增强 --&gt;
+     &lt;aop:pointcut expression=&quot;execution(* com.gx.spring.demo3.*Dao.save(..))&quot; id=&quot;pointcut1&quot;/&gt;
+     &lt;aop:pointcut expression=&quot;execution(* com.gx.spring.demo3.*Dao.delete(..))&quot; id=&quot;pointcut2&quot;/&gt;
+     &lt;aop:pointcut expression=&quot;execution(* com.gx.spring.demo3.*Dao.update(..))&quot; id=&quot;pointcut3&quot;/&gt;
+     &lt;aop:pointcut expression=&quot;execution(* com.gx.spring.demo3.*Dao.find(..))&quot; id=&quot;pointcut4&quot;/&gt;
+    &lt;!-- 配置切面 --&gt; 
+    &lt;aop:aspect ref=&quot;myAspectXml&quot;&gt;
+       &lt;aop:before method=&quot;before&quot; pointcut-ref=&quot;pointcut1&quot;/&gt;
+       &lt;aop:after-returning method=&quot;afterReturing&quot;pointcut-ref=&quot;pointcut2&quot;/&gt;
+       &lt;aop:around method=&quot;around&quot; pointcut-ref=&quot;pointcut3&quot;/&gt;
+       &lt;aop:after-throwing method=&quot;afterThrowing&quot; pointcut-ref=&quot;pointcut4&quot;/&gt;
+       &lt;aop:after method=&quot;after&quot; pointcut-ref=&quot;pointcut4&quot;/&gt;
+    &lt;/aop:aspect&gt;
+&lt;/aop:config&gt;</code></code></pre>
+<h2 id="spring-基于aspectj-进行-aop-的开发入门注解的方式">3、Spring 基于AspectJ 进行 AOP 的开发入门（注解的方式）：</h2>
+<h4 id="创建项目引入jar包">3.1创建项目，引入jar包</h4>
+<p>引入的jar包如下：<br />
+<img src="./images/Spring框架AOP学习总结（下）11.png" alt="在这里插入图片描述" /></p>
+<h4 id="引入配置文件">3.2引入配置文件</h4>
+<p><img src="./images/Spring框架AOP学习总结（下）12.png" alt="在这里插入图片描述" /></p>
+<h4 id="编写目标类并配置">3.3编写目标类并配置</h4>
+<p>编写目标类：</p>
+<pre><code><code>package com.gx.spring.demo1;
+
+public class OrderDao {
+
+    public void save(){
+        System.out.println(&quot;保存订单...&quot;);
+    }
+    public void update(){
+        System.out.println(&quot;修改订单...&quot;);
+    }
+    public String delete(){
+        System.out.println(&quot;删除订单...&quot;);
+        return &quot;鄢寒&quot;;
+    }
+    public void find(){
+        System.out.println(&quot;查询订单...&quot;);
+    }
+}</code></code></pre>
+<p>XML配置：</p>
+<pre><code><code>&lt;!-- 配置目标类 --&gt;
+    &lt;bean id=&quot;orderDao&quot; class=&quot;com.gx.spring.demo1.OrderDao&quot;&gt;
+
+    &lt;/bean&gt;</code></code></pre>
+<h4 id="编写切面类并配置">3.4编写切面类并配置</h4>
+<p>编写切面类</p>
+<pre><code><code>package com.gx.spring.demo1;
+
+import org.aspectj.lang.ProceedingJoinPoint;
+import org.aspectj.lang.annotation.After;
+import org.aspectj.lang.annotation.AfterReturning;
+import org.aspectj.lang.annotation.AfterThrowing;
+import org.aspectj.lang.annotation.Around;
+import org.aspectj.lang.annotation.Aspect;
+import org.aspectj.lang.annotation.Before;
+import org.aspectj.lang.annotation.Pointcut;
+
+/**
+ * 切面类：注解的切面类
+ * @author jt
+ */
+public class MyAspectAnno {
+
+    public void before(){
+        System.out.println(&quot;前置增强===========&quot;);
+    }
+}</code></code></pre>
+<p>XML配置：</p>
+<pre><code><code>&lt;!-- 配置切面类 --&gt;
+    &lt;bean id=&quot;myAspect&quot; class=&quot;com.gx.spring.demo1.MyAspectAnno&quot;&gt;
+    
+    &lt;/bean&gt;</code></code></pre>
+<h4 id="使用注解的aop对象目标类进行增强">3.5使用注解的AOP对象目标类进行增强</h4>
+<p>1、在配置文件中打开注解的AOP开发</p>
+<pre><code><code>&lt;!-- 在配置文件中开启注解的AOP的开发 --&gt;
+    &lt;aop:aspectj-autoproxy/&gt;</code></code></pre>
+<p>2、在切面类上使用注解<br />
+在类上使用@Aspect注解代表这是一个切面类<br />
+在方法上注入属性@Before（execution表达式）代表前置增强</p>
+<pre><code><code>@Aspect
+public class MyAspectAnno {
+
+    @Before(value=&quot;execution(* com.gx.spring.demo1.OrderDao.save(..))&quot;)
+    public void before(){
+        System.out.println(&quot;前置增强===========&quot;);
+    }
+}</code></code></pre>
+<h4 id="编写测试类">3.6编写测试类</h4>
+<pre><code><code>package com.gx.spring.demo1;
+
+import javax.annotation.Resource;
+
+import org.junit.Test;
+import org.junit.runner.RunWith;
+import org.springframework.test.context.ContextConfiguration;
+import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
+
+/**
+ * Spring的AOP的注解开发
+ *
+ */
+@RunWith(SpringJUnit4ClassRunner.class)
+@ContextConfiguration(&quot;classpath:applicationContext.xml&quot;)
+public class SpringDemo1 {
+    @Resource(name=&quot;orderDao&quot;)
+    private static OrderDao orderDao;
+    
+    public static void main(String[] args) {
+        
+            orderDao.save();
+            orderDao.update();
+            orderDao.delete();
+            orderDao.find();
+        
+    }
+    
+}
+</code></code></pre>
+<p>测试结果：<br />
+<img src="./images/Spring框架AOP学习总结（下）13.png" alt="在这里插入图片描述" /></p>
+<h2 id="spring的注解的aop的通知类型">4、Spring的注解的AOP的通知类型</h2>
+<h4 id="before-前置通知">4.1@Before ：前置通知</h4>
+<pre><code><code>@Aspect
+public class MyAspectAnno {
+
+    @Before(value=&quot;execution(* com.gx.spring.demo1.OrderDao.save(..))&quot;)
+    public void before(){
+        System.out.println(&quot;前置增强===========&quot;);
+    }
+}</code></code></pre>
+<h4 id="afterreturning-后置通知">4.2@AfterReturning ：后置通知</h4>
+<p>后置通知可以获取方法返回值</p>
+<pre><code><code>// 后置通知:
+    @AfterReturning(value=&quot;execution(* com.gx.spring.demo1.OrderDao.save(..))&quot;)
+    public void afterReturning(Object result){
+        System.out.println(&quot;后置增强===========&quot;+result);
+    }</code></code></pre>
+<p>借用一下XML方式的图，意思意思啦，意思还是那个意思QnQ<br />
+<img src="./images/Spring框架AOP学习总结（下）6.png" alt="在这里插入图片描述" /></p>
+<h4 id="around-环绕通知">4.3@Around ：环绕通知</h4>
+<pre><code><code>// 环绕通知:
+    @Around(value=&quot;execution(* com.gx.spring.demo1.OrderDao.save(..))&quot;)
+    public Object around(ProceedingJoinPoint joinPoint) throws Throwable{
+        System.out.println(&quot;环绕前增强==========&quot;);
+        Object obj  = joinPoint.proceed();
+        System.out.println(&quot;环绕后增强==========&quot;);
+        return obj;
+    }</code></code></pre>
+<h4 id="afterthrowing-异常抛出通知">4.4@AfterThrowing ：异常抛出通知</h4>
+<p>测试前记得制造出个异常qnq</p>
+<pre><code><code>// 异常抛出通知:
+    @AfterThrowing(value=&quot;execution(* com.gx.spring.demo1.OrderDao.save(..))&quot; throwing=&quot;e&quot;)
+    public void afterThrowing(Throwable e){
+        System.out.println(&quot;异常抛出增强=========&quot;+e.getMessage());
+    }</code></code></pre>
+<h4 id="after-最终通知">4.5@After ：最终通知</h4>
+<pre><code><code>// 最终通知
+    @After(value=&quot;execution(* com.gx.spring.demo1.OrderDao.save(..))&quot;)
+    public void after(){
+        System.out.println(&quot;最终增强============&quot;);
+    }</code></code></pre>
+<h2 id="spring的注解的aop的切入点的配置">5、Spring的注解的AOP的切入点的配置</h2>
+<p>首先，我们发现在Spring 基于AspectJ 进行 AOP 的开发入门（注解的方式）的过程中如果方法过多，通知过多并且作用于一个方法，需求一改变就需要更改相应的源代码，为了更好的维护，于是有了AOP的切入点的配置，AOP的切入点的配置能很好地决绝改问题！只需要管理AOP的切入点的配置即可！</p>
+<p>具体代码如下：</p>
+<pre><code><code>package com.gx.spring.demo1;
+
+import org.aspectj.lang.ProceedingJoinPoint;
+import org.aspectj.lang.annotation.After;
+import org.aspectj.lang.annotation.AfterReturning;
+import org.aspectj.lang.annotation.AfterThrowing;
+import org.aspectj.lang.annotation.Around;
+import org.aspectj.lang.annotation.Aspect;
+import org.aspectj.lang.annotation.Before;
+import org.aspectj.lang.annotation.Pointcut;
+
+/**
+ * 切面类：注解的切面类
+ * @author jt
+ */
+@Aspect
+public class MyAspectAnno {
+    // 前置通知:
+    @Before(value=&quot;MyAspectAnno.pointcut2()&quot;)
+    public void before(){
+        System.out.println(&quot;前置增强===========&quot;);
+    }
+    
+    // 后置通知:
+    @AfterReturning(value=&quot;MyAspectAnno.pointcut4()&quot;,returning=&quot;result&quot;)
+    public void afterReturning(Object result){
+        System.out.println(&quot;后置增强===========&quot;+result);
+    }
+    
+    // 环绕通知:
+    @Around(value=&quot;MyAspectAnno.pointcut3()&quot;)
+    public Object around(ProceedingJoinPoint joinPoint) throws Throwable{
+        System.out.println(&quot;环绕前增强==========&quot;);
+        Object obj  = joinPoint.proceed();
+        System.out.println(&quot;环绕后增强==========&quot;);
+        return obj;
+    }
+    
+    // 异常抛出通知:
+    @AfterThrowing(value=&quot;MyAspectAnno.pointcut1()&quot;,throwing=&quot;e&quot;)
+    public void afterThrowing(Throwable e){
+        System.out.println(&quot;异常抛出增强=========&quot;+e.getMessage());
+    }
+    
+    // 最终通知
+    @After(value=&quot;MyAspectAnno.pointcut1()&quot;)
+    public void after(){
+        System.out.println(&quot;最终增强============&quot;);
+    }
+    
+    // 切入点注解：
+    @Pointcut(value=&quot;execution(* com.gx.spring.demo1.OrderDao.find(..))&quot;)
+    private void pointcut1(){}
+    @Pointcut(value=&quot;execution(* com.gx.spring.demo1.OrderDao.save(..))&quot;)
+    private void pointcut2(){}
+    @Pointcut(value=&quot;execution(* com.gx.spring.demo1.OrderDao.update(..))&quot;)
+    private void pointcut3(){}
+    @Pointcut(value=&quot;execution(* com.gx.spring.demo1.OrderDao.delete(..))&quot;)
+    private void pointcut4(){}
+}
+</code></code></pre>
+<p><strong>如果本文对你有一点点帮助，那么请点个赞呗，谢谢~</strong></p>
+<blockquote>
+<p><strong>最后，若有不足或者不正之处，欢迎指正批评，感激不尽！如果有疑问欢迎留言，绝对第一时间回复！</strong></p>
+</blockquote>
+<p>欢迎各位关注我的公众号，一起探讨技术，向往技术，追求技术，说好了来了就是盆友喔...</p>
+<p><img src="./images/Spring框架AOP学习总结（下）15.png" alt="在这里插入图片描述" /></p>
+
+</div><hr><script charset='utf-8' src='../../js/sming.js'></script></body></html>

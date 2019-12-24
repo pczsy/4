@@ -1,0 +1,189 @@
+<html><head><meta charset='utf-8'><meta name='viewport' content='width=device-width, initial-scale=1'>
+<meta name='applicable-device' content='pc'><meta name='keywords' content='电脑,电脑讲解,电脑技术,编程,电脑故障维修【xmind】 使用 Java 生成思维导图' />
+<script src='../../highlight/highlight.pack.js'></script>
+<link rel='stylesheet' type='text/css' href='../../highlight/styles/monokai.css'/>
+
+<link rel='stylesheet' href='../../fenxiang/dist/css/share.min.css'>
+<script src='../../fenxiang/src/js/social-share.js'></script>
+<script src='../../fenxiang/src/js/qrcode.js'></script>
+
+</head><body><script>hljs.initHighlightingOnLoad();</script><script>
+var system ={};  
+var p = navigator.platform;       
+system.win = p.indexOf('Win') == 0;  
+system.mac = p.indexOf('Mac') == 0;  
+system.x11 = (p == 'X11') || (p.indexOf('Linux') == 0);     
+if(system.win||system.mac||system.xll){
+document.write("<link href='../css/3.css' rel='stylesheet' type='text/css'>");}else{ document.write("<link href='../css/3wap.css' rel='stylesheet' type='text/css'>");}</script><script src='../../js/3.js'></script><div class='div2'><div class='heading_nav'><ul><div><li><a href='../../index.html'>首页</a></li>
+</div><div onclick='hidden1()' >分享</div>
+</ul></div></div>
+<div id='heading_nav2'> 
+<li class='row' >
+<div class='social-share' data-mode='prepend'><a href='javascript:' class='social-share-icon icon-heart'></a></div></li></div><script charset='utf-8' src='../../3/js/hengfu.js'></script><script charset='utf-8' src='../../3/js/hengfu2.js'></script><hr><div class='div1'><div class='biaoti'><center>【xmind】 使用 Java 生成思维导图</center></div><div class='banquan'>原文出处:本文由博客园博主KIWI的碎碎念提供。<br/>
+原文连接:https://www.cnblogs.com/kiwifly/p/11979633.html</div><br>
+    <p><img src="./images/【xmind】 使用 Java 生成思维导图0.png" alt="image.png" /></p>
+<h2 id="前言">前言</h2>
+<p>在日常的工作与学习中，我们经常会使用思维导图这个工具，来把抽象而又无形的思考转换成有形并且具体的图像，是理清思路，梳理逻辑的一大神器。</p>
+<p>准确的说，思维导图并不是一个具体的工具，而是一种方法。是道而不是术。实际落地时，我们通常还需要借助外部的工具。从最原始的纸和笔，到各种软件，可以说是应用尽有。目前我在使用的是 xmind 这款软件，下面就会以 xmind 为媒介间接的通过 Java 代码画思维导图。</p>
+<h2 id="放码过来">放码过来</h2>
+<h3 id="通过目录生成思维导图">通过目录生成思维导图</h3>
+<p>我在看书的时候有一个习惯，先通过思维导图画出一本书的大纲，然后通过这个大纲来分主次的去阅读。可能有些同学感到疑惑，还没读过书，如何了解大纲呢？其实一本书的目录就是这本书最好的大纲。</p>
+<p>本文通过把一个目录生成思维导图的例子来学习 xmind 基本的 api 使用。当然如果想系统学习的同学，可以参考文末给出的官方 api 链接。下图就是我们最终要生成的结果。</p>
+<p><img src="./images/【xmind】 使用 Java 生成思维导图1.png" alt="image.png" /></p>
+<h3 id="引入依赖">引入依赖</h3>
+<p> xmind 最开始是在 eclipse 上进行定制开发而来（对，这个 eclipse 就是你在遇到 idea 后，喜新厌旧抛弃的那个编程软件），所以天生就对 Java 有良好的支持。这个<a href="https://github.com/xmindltd/xmind">地址</a>就是 xmind 在 github 上的仓库。对 xmind 的操作的 api 全在 org.xmind.core 包下，按官方提示把代码拉下来在本地打个包，再引入就 ok 了。但是呢？偷懒是第一生产力。立马跑到 maven 仓库搜索了一下，发现果然有人把官方的打包上传了，直接拿来使用。（时间有点老，但是基本操作已经够了，如果想用新功能，可以拉代码自行打包）</p>
+<ul>
+<li>pom.xml</li>
+</ul>
+<pre><code><code>&lt;dependency&gt;
+  &lt;groupId&gt;com.github.eljah&lt;/groupId&gt;
+  &lt;artifactId&gt;xmindjbehaveplugin&lt;/artifactId&gt;
+  &lt;version&gt;0.8&lt;/version&gt;
+&lt;/dependency&gt;</code></code></pre>
+<h3 id="准备数据">准备数据</h3>
+<p>我们要生成思维导图，首先得有数据。这里的数据就是一本书的目录。</p>
+<p>首先，书籍我选的是《<a href="https://book.douban.com/subject/26437061/">一本书读懂24种互联网思维</a>》，选这本书，并不是因为这本书有多好，而是因为他比较典型，典型就典型在，看过这本书的目录后就没有必要再读这本书了，因为目录已经把要说的内容说的很清楚了。</p>
+<p>那知道书名，怎么获取书的目录呢？很简单，打开豆瓣，找到这本书的详情，里面就有书籍的目录，直接把它 copy 下来就可以了，目录如下图。</p>
+<p><img src="./images/【xmind】 使用 Java 生成思维导图2.png" alt="image.png" /></p>
+<h3 id="开始编码">开始编码</h3>
+<ul>
+<li>GeneratorDoubanXmind</li>
+</ul>
+<pre class="java"><code>/*
+ *
+ *  * *
+ *  *  * blog.coder4j.cn
+ *  *  * Copyright (C) 2016-2019 All Rights Reserved.
+ *  *
+ *
+ */
+package cn.coder4j.study.example;
+
+import cn.hutool.core.io.FileUtil;
+import cn.hutool.core.util.ReUtil;
+import cn.hutool.system.SystemUtil;
+import com.google.common.collect.Lists;
+import org.xmind.core.Core;
+import org.xmind.core.CoreException;
+import org.xmind.core.ISheet;
+import org.xmind.core.ITopic;
+import org.xmind.core.IWorkbook;
+import org.xmind.core.IWorkbookBuilder;
+
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.List;
+
+/**
+ * @author buhao
+ * @version GeneratorDoubanXmind.java, v 0.1 2019-12-02 22:54 buhao
+ */
+public class GeneratorDoubanXmind {
+
+    /**
+     * 当前类路径
+     */
+    public static final String CLASS_PATH = GeneratorDoubanXmind.class.getResource(&quot;/&quot;).getPath();
+    /**
+     * 文件分隔符
+     */
+    public static final String FILE_SEPARATOR = SystemUtil.getOsInfo().getFileSeparator();
+
+    public static void main(String[] args) throws IOException, CoreException {
+        // 读取目录
+        String bookName = &quot;一本书读懂24种互联网思维&quot;;
+        List&lt;String&gt; contents = FileUtil.readLines(CLASS_PATH + bookName + &quot;.txt&quot;, &quot;utf-8&quot;);
+
+        // 创建思维导图的工作空间
+        IWorkbookBuilder workbookBuilder = Core.getWorkbookBuilder();
+        IWorkbook workbook = workbookBuilder.createWorkbook();
+
+        // 获得默认sheet
+        ISheet primarySheet = workbook.getPrimarySheet();
+
+        // 获得根主题
+        ITopic rootTopic = primarySheet.getRootTopic();
+        // 设置根主题的标题
+        rootTopic.setTitleText(bookName);
+
+        // 章节 topic 的列表
+        ArrayList&lt;ITopic&gt; chapterTopics = Lists.newArrayList();
+        for (String content : contents) {
+            // 如果是数字开头为章节名称
+            if (ReUtil.isMatch(&quot;^[1-24].*?&quot;, content)) {
+                // 创建章节节点
+                ITopic topic = workbook.createTopic();
+                topic.setTitleText(content);
+                chapterTopics.add(topic);
+            } else {
+                // 创建小节节点
+                ITopic topic = workbook.createTopic();
+                topic.setTitleText(content);
+                chapterTopics.get(chapterTopics.size() - 1).add(topic, ITopic.ATTACHED);
+            }
+        }
+
+        // 把章节节点添加到要节点上
+        chapterTopics.forEach(it -&gt; rootTopic.add(it, ITopic.ATTACHED));
+
+        // 保存
+        workbook.save(CLASS_PATH + FILE_SEPARATOR + bookName + &quot;.xmind&quot;);
+
+    }
+}</code></code></pre>
+<h3 id="代码分析">代码分析</h3>
+<p>基本上代码都做了注释，对于核心代码再简单分析一下。</p>
+<pre class="java"><code>        // 读取目录
+        String bookName = &quot;一本书读懂24种互联网思维&quot;;
+        List&lt;String&gt; contents = FileUtil.readLines(CLASS_PATH + bookName + &quot;.txt&quot;, &quot;utf-8&quot;);</code></code></pre>
+<p>首先前两行不必说，我把目录数据保存到了 resources 目录下的 一本书读懂24种互联网思维.txt，这两行代码就是简单读取数据。</p>
+<pre class="java"><code>        // 创建思维导图的工作空间
+        IWorkbookBuilder workbookBuilder = Core.getWorkbookBuilder();
+        IWorkbook workbook = workbookBuilder.createWorkbook();</code></code></pre>
+<p>然后的两行代码，通过 Core 类创建工作空间构建者类，再通过它的 createWorkbook 方法创建出一个空白的工作空间，这个创建完就会得到一个没有任何节点的空白导图。</p>
+<pre class="java"><code>        // 获得默认sheet
+        ISheet primarySheet = workbook.getPrimarySheet();
+
+        // 获得根主题
+        ITopic rootTopic = primarySheet.getRootTopic();
+        // 设置根主题的标题
+        rootTopic.setTitleText(bookName);</code></code></pre>
+<p>再接着，通过刚刚创建 工作空间 得到主 sheet，这个 sheet 跟 excel 的概念差不多，就像浏览器的一个 tab 一样。效果如下图</p>
+<p><img src="./images/【xmind】 使用 Java 生成思维导图3.png" alt="image.png" /></p>
+<p>另外还通过主 sheet 获得了根 topic，并设置他的标题为书名，它对应下图</p>
+<p><img src="./images/【xmind】 使用 Java 生成思维导图4.png" alt="image.png" /></p>
+<pre class="java"><code>        // 章节 topic 的列表
+        ArrayList&lt;ITopic&gt; chapterTopics = Lists.newArrayList();
+        for (String content : contents) {
+            // 如果是数字开头为章节名称
+            if (ReUtil.isMatch(&quot;^[1-24].*?&quot;, content)) {
+                // 创建章节节点
+                ITopic topic = workbook.createTopic();
+                topic.setTitleText(content);
+                chapterTopics.add(topic);
+            } else {
+                // 创建小节节点
+                ITopic topic = workbook.createTopic();
+                topic.setTitleText(content);
+                chapterTopics.get(chapterTopics.size() - 1).add(topic, ITopic.ATTACHED);
+            }
+        }</code></code></pre>
+<p>这段代码比较多，但是重点是创建 topic 的操作，每个 topic 就是思维导图的一个节点，可以通过 workbook.createTopic() 来创建，同样的通过 setTitleText 设置标题。这段代码其实是分析了目录的规律，有1-24开头的是大章节，而后面紧跟的是小章节，一个大章节下是多个小章节（可以看上面的目录截图）。所以判断是大章节就创建一个新的节点，判断是小章节就往最后一个大章节上添加（通过 add 方法）。</p>
+<pre class="java"><code>        // 把章节节点添加到要节点上
+        chapterTopics.forEach(it -&gt; rootTopic.add(it, ITopic.ATTACHED));</code></code></pre>
+<p>刚才说了把小章节都添加到了大章节上了，但是大章节现在还是无依无靠的，所以通过一个循环全部添加到了根 Topic 上。</p>
+<pre class="java"><code>        // 保存
+        workbook.save(CLASS_PATH + FILE_SEPARATOR + bookName + &quot;.xmind&quot;);</code></code></pre>
+<p>到此我们编码结束了，但是这些操作还在内存中，我们需要通过 workbook 的 save 方法把文件保存到硬盘上，另外文件后缀记得改成 xmind，否则软件无法识别。</p>
+<h2 id="其它">其它</h2>
+<h3 id="说明">说明</h3>
+<p>因为篇幅有限，无法贴完所有代码，如遇到问题可到相关链接里面的 example 上，查看源码。</p>
+<h3 id="相关链接">相关链接</h3>
+<ol>
+<li><a href="https://github.com/xmindltd/xmind/wiki/UsingXmindAPI">xmind api 地址</a></li>
+<li><a href="https://github.com/kiwiflydream/study-example/tree/master/study-xmind-example">study-xmind-example</a></li>
+</ol>
+<p><img src="./images/【xmind】 使用 Java 生成思维导图5.png" alt="image.png" /></p>
+
+
+</div><hr><script charset='utf-8' src='../../js/sming.js'></script></body></html>

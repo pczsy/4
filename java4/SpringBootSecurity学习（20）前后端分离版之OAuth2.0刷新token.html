@@ -1,0 +1,53 @@
+<html><head><meta charset='utf-8'><meta name='viewport' content='width=device-width, initial-scale=1'>
+<meta name='applicable-device' content='pc'><meta name='keywords' content='电脑,电脑讲解,电脑技术,编程,电脑故障维修SpringBootSecurity学习（20）前后端分离版之OAuth2.0刷新token' />
+<script src='../../highlight/highlight.pack.js'></script>
+<link rel='stylesheet' type='text/css' href='../../highlight/styles/monokai.css'/>
+
+<link rel='stylesheet' href='../../fenxiang/dist/css/share.min.css'>
+<script src='../../fenxiang/src/js/social-share.js'></script>
+<script src='../../fenxiang/src/js/qrcode.js'></script>
+
+</head><body><script>hljs.initHighlightingOnLoad();</script><script>
+var system ={};  
+var p = navigator.platform;       
+system.win = p.indexOf('Win') == 0;  
+system.mac = p.indexOf('Mac') == 0;  
+system.x11 = (p == 'X11') || (p.indexOf('Linux') == 0);     
+if(system.win||system.mac||system.xll){
+document.write("<link href='../css/3.css' rel='stylesheet' type='text/css'>");}else{ document.write("<link href='../css/3wap.css' rel='stylesheet' type='text/css'>");}</script><script src='../../js/3.js'></script><div class='div2'><div class='heading_nav'><ul><div><li><a href='../../index.html'>首页</a></li>
+</div><div onclick='hidden1()' >分享</div>
+</ul></div></div>
+<div id='heading_nav2'> 
+<li class='row' >
+<div class='social-share' data-mode='prepend'><a href='javascript:' class='social-share-icon icon-heart'></a></div></li></div><script charset='utf-8' src='../../3/js/hengfu.js'></script><script charset='utf-8' src='../../3/js/hengfu2.js'></script><hr><div class='div1'><div class='biaoti'><center>SpringBootSecurity学习（20）前后端分离版之OAuth2.0刷新token</center></div><div class='banquan'>原文出处:本文由博客园博主程序员郭艺宾提供。<br/>
+原文连接:https://www.cnblogs.com/guos/p/11656730.html</div><br>
+    <h1 id="刷新token">刷新token</h1>
+<p>前面的例子和配置都是从头开始申请授权码和令牌，现在来看一下如何根据获取令牌时，回参中的 refresh_token 来刷新令牌。现在在项目中配置的是内存模式的默认用户名密码，第一步先改成数据库查询的方式，具体过程参考前面的文章即可，来看security配置类：</p>
+<p><img src="./images/SpringBootSecurity学习（20）前后端分离版之OAuth2.0刷新token0.png" alt="file" /></p>
+<p>然后修改授权服务配置类，在 endpoints 中配置userDetailsService：</p>
+<p><img src="./images/SpringBootSecurity学习（20）前后端分离版之OAuth2.0刷新token1.png" alt="file" /></p>
+<p>修改成数据库方式也是为了创建userDetailsService对象，刷新令牌时会根据此对象对用户信息进行检查。这样刷新令牌的配置就完成了。</p>
+<h1 id="测试">测试</h1>
+<p>首先根据前面的正常流程，申请授权码，然后获取到令牌：</p>
+<p><img src="./images/SpringBootSecurity学习（20）前后端分离版之OAuth2.0刷新token2.png" alt="file" /></p>
+<p>回参中有一个参数是 refresh_token 这个参数就是专门用来刷新令牌的，下面来看如何刷新令牌。刷新令牌和获取令牌一样，需要用post的方式访问同一个地址 ：</p>
+<ul>
+<li>/oauth/token</li>
+</ul>
+<p>不同的是，刷新令牌需要四个参数：</p>
+<ul>
+<li><p>grant_type：值必须是 refresh_token</p></li>
+<li><p>client_id</p></li>
+<li><p>client_secret</p></li>
+<li><p>refresh_token ： 上次获取令牌时回参中的 refresh_token</p></li>
+</ul>
+<p>通过上面四个参数可以看出，刷新令牌中每次变化的参数只有refresh_token。我们来使用本次获取的 refresh_token 来刷新令牌：</p>
+<p><img src="./images/SpringBootSecurity学习（20）前后端分离版之OAuth2.0刷新token3.png" alt="file" /></p>
+<p>可以看到刷新令牌和从头开始获取令牌返回的结果是一样的，使用本次刷新请求中返回的refresh_token替换上面的参数，还可以再次刷新。有兴趣可以多试几次。</p>
+<p>代码地址： <a href="https://gitee.com/blueses/spring-boot-security" class="uri">https://gitee.com/blueses/spring-boot-security</a> 25</p>
+<blockquote>
+<p>本文由博客一文多发平台 <a href="https://openwrite.cn">OpenWrite</a> 发布！</p>
+</blockquote>
+
+
+</div><hr><script charset='utf-8' src='../../js/sming.js'></script></body></html>

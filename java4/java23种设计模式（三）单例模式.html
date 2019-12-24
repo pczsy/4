@@ -1,0 +1,262 @@
+<html><head><meta charset='utf-8'><meta name='viewport' content='width=device-width, initial-scale=1'>
+<meta name='applicable-device' content='pc'><meta name='keywords' content='电脑,电脑讲解,电脑技术,编程,电脑故障维修java23种设计模式（三）单例模式' />
+<script src='../../highlight/highlight.pack.js'></script>
+<link rel='stylesheet' type='text/css' href='../../highlight/styles/monokai.css'/>
+
+<link rel='stylesheet' href='../../fenxiang/dist/css/share.min.css'>
+<script src='../../fenxiang/src/js/social-share.js'></script>
+<script src='../../fenxiang/src/js/qrcode.js'></script>
+
+</head><body><script>hljs.initHighlightingOnLoad();</script><script>
+var system ={};  
+var p = navigator.platform;       
+system.win = p.indexOf('Win') == 0;  
+system.mac = p.indexOf('Mac') == 0;  
+system.x11 = (p == 'X11') || (p.indexOf('Linux') == 0);     
+if(system.win||system.mac||system.xll){
+document.write("<link href='../css/3.css' rel='stylesheet' type='text/css'>");}else{ document.write("<link href='../css/3wap.css' rel='stylesheet' type='text/css'>");}</script><script src='../../js/3.js'></script><div class='div2'><div class='heading_nav'><ul><div><li><a href='../../index.html'>首页</a></li>
+</div><div onclick='hidden1()' >分享</div>
+</ul></div></div>
+<div id='heading_nav2'> 
+<li class='row' >
+<div class='social-share' data-mode='prepend'><a href='javascript:' class='social-share-icon icon-heart'></a></div></li></div><script charset='utf-8' src='../../3/js/hengfu.js'></script><script charset='utf-8' src='../../3/js/hengfu2.js'></script><hr><div class='div1'><div class='biaoti'><center>java23种设计模式（三）单例模式</center></div><div class='banquan'>原文出处:本文由博客园博主执偕提供。<br/>
+原文连接:https://www.cnblogs.com/zhixie/p/11750305.html</div><br>
+    <p>原文地址：https://zhuanlan.zhihu.com/p/23713957</p>
+<h2 id="一概述">一、概述</h2>
+<p>1、什么是单例模式？</p>
+<p>百度百科是这样定义的：单例模式是一种常用的软件设计模式。在它的核心结构中只包含一个被称为单例的特殊类。通过单例模式可以保证系统中一个类只有一个实例</p>
+<p>我是这样理解的：单例模式就是只允许一个实例，最开始使用它的时候是C#中，我要实例化一个A窗体，但是有个需求就是A窗体必须是唯一，不管我在B窗体操作A窗体还是C窗体中操作A窗体都是如此，这时候就使用到了单例模式</p>
+<p>2、单例模式分类</p>
+<p>A、懒汉单例模式：在第一次调用的时候实例化本身，在并发环境下，可能出现多个本身对象。所以线程是不安全的</p>
+<p>B、饿汉单例模式：在类初始化时，已经自行实例化一个静态对象，所以本身就是线程安全的</p>
+<p>C、登记单例模式：通过一个专门的类对各单例模式的单一实例进行管理和维护</p>
+<p>3、特点</p>
+<p>A、 单例模式类只能有一个实例<br />
+B、 单例模式类必须自己创建自己的唯一实例<br />
+C、 单例模式类必须给所有其他对象提供这一实例</p>
+<h2 id="二运用">二、运用</h2>
+<p>1、懒汉单例模式</p>
+<pre><code><code>/**
+ * 描述：懒汉单例模式&lt;p&gt;
+ * 作者： kimball &lt;p&gt;
+ * E-mail: kimballlu@foxmail.com &lt;p&gt;
+ * 日期：2016-11-16 下午4:30:32 &lt;p&gt;
+ */
+public class Singleton {
+    
+    /**
+     * 该函数限制用户主动创建实例
+     */
+    private Singleton() {}
+    private static Singleton singleton = null;
+    
+    /**
+     * 获取Singleton实例（也叫静态工厂方法）
+     * @return Singleton
+     */
+    public static Singleton getSingleton() {
+        /* 当singleton为空时创建它，反之直接返回，保证唯一性 */
+        if(singleton == null){
+            singleton = new Singleton();
+        }
+        return singleton;
+    }
+    
+}</code></code></pre>
+<p>线程安全的懒汉单例模式</p>
+<p>在getSingleton()添加synchronized同步</p>
+<pre><code><code>/**
+ * 描述：懒汉单例模式，在getSingleton()方法添加同步&lt;p&gt;
+ * 作者： kimball &lt;p&gt;
+ * E-mail: kimballlu@foxmail.com &lt;p&gt;
+ * 日期：2016-11-16 下午4:30:32 &lt;p&gt;
+ */
+public class Singleton {
+    
+/**
+     * 该函数限制用户主动创建实例
+     */
+    private Singleton() {}
+    private static Singleton singleton = null;
+    /**
+     * 获取Singleton实例，也叫静态工厂方法
+     * @return Singleton
+     */
+    public static synchronized Singleton getSingleton(){
+        if(singleton==null){
+            singleton=new Singleton();
+        }
+        return singleton;
+    }
+    
+}</code></code></pre>
+<p>双重检查锁定</p>
+<p>ps：已修正，仍不推荐使用，感谢<br />
+江南布衣<br />
+指正</p>
+<p>具体可参考正确使用双重检查锁定和双重检验锁失效”的问题说明</p>
+<pre><code><code>/**
+ * 描述：懒汉单例模式 ，双重检查锁定&lt;p&gt;
+ * 作者： kimball &lt;p&gt;
+ * E-mail: kimballlu@foxmail.com &lt;p&gt;
+ * 日期：2016-11-16 下午4:30:32 &lt;p&gt;
+ */
+public class Singleton {
+
+    /**
+     * 该函数限制用户主动创建实例
+     */
+    private Singleton() {}
+
+    private volatile static Singleton singleton = null;
+
+    /**
+     * 获取Singleton实例，也叫静态工厂方法
+     * @return Singleton
+     */
+    public static Singleton getInstance() {
+        if (singleton == null) {
+            synchronized (Singleton.class) {
+                if (singleton == null) {
+                    singleton = new Singleton();
+                }
+            }
+        }
+        return singleton;
+    }
+
+}</code></code></pre>
+<p>静态内部类：静态内部类比双重检查锁定和在getInstance()方法上加同步都要好，实现了线程安全又避免了同步带来的性能影响</p>
+<pre><code><code>/**
+ * 描述：懒汉单例模式 ，静态内部类&lt;p&gt;
+ * 作者： kimball &lt;p&gt;
+ * E-mail: kimballlu@foxmail.com &lt;p&gt;
+ * 日期：2016-11-16 下午4:30:32 &lt;p&gt;
+ */
+public class Singleton {
+
+    /**
+     * 静态内部类
+     * @author kimball
+     *
+     */
+    private static class LazyHolder {
+        // 创建Singleton实例
+        private static final Singleton INSTANCE = new Singleton();
+    }
+
+    /**
+     * 该函数限制用户主动创建实例
+     */
+    private Singleton() {}
+
+    /**
+     * 获取Singleton实例，也叫静态工厂方法
+     * @return Singleton
+     */
+    public static final Singleton getInstance() {
+        return LazyHolder.INSTANCE;
+    }
+
+}</code></code></pre>
+<p>2、饿汉单例模式</p>
+<pre><code><code>/**
+ * 描述：饿汉单例模式&lt;p&gt;
+ * 作者： kimball &lt;p&gt;
+ * E-mail: kimballlu@foxmail.com &lt;p&gt;
+ * 日期：2016-11-16 下午4:30:32 &lt;p&gt;
+ */
+public class Singleton {
+
+    /**
+     * 该函数限制用户主动创建实例
+     */
+    private Singleton() {}
+
+    private static final Singleton singleton = new Singleton();
+
+    /**
+     * 获取Singleton实例，也叫静态工厂方法
+     * @return Singleton
+     */
+    public static Singleton getInstance() {
+        return singleton;
+    }
+
+}</code></code></pre>
+<p>3、登记单利模式</p>
+<pre><code><code>/**
+ * 描述：登记单例模式&lt;p&gt;
+ * 作者： kimball &lt;p&gt;
+ * E-mail: kimballlu@foxmail.com &lt;p&gt;
+ * 日期：2016-11-16 下午4:30:32 &lt;p&gt;
+ */
+public class Singleton {
+
+    // 存储需要进行维护和管理的类的实例
+    private static Map&lt;String, Singleton&gt; map = new HashMap&lt;String, Singleton&gt;();
+    
+    /**
+     * 静态创建实例并添加到Map集合
+     */
+    static {
+        Singleton singleton = new Singleton();
+        map.put(singleton.getClass().getName(), singleton);
+    }
+
+    /**
+     * 该函数限制用户主动创建实例
+     */
+    private Singleton() {};
+
+    /**
+     * 获取Singleton实例，也叫静态工厂方法
+     * @return Singleton
+     */
+    public static Singleton getInstance(String name) {
+        /* 根据指定的类的名称从mao中获取实例并返回 */
+        return map.get(name);
+    }
+
+    // 一个示例性的商业方法
+    public String about() {
+        return &quot;你好,我是RegSingleton&quot;;
+    }
+
+    public static void main(String[] args) {
+        Singleton singleton = Singleton.getInstance(&quot;com.Singleton&quot;);
+        System.out.println(singleton.about());
+    }
+
+}</code></code></pre>
+<h2 id="三结语">三、结语</h2>
+<p>以上就是单例设计模式，虽然单例设计模式是23种设计模式种比较简单的设计模式。但是三个臭皮匠也能顶一个诸葛亮，它自然有它存在的道理。</p>
+<p>设计模式说白点就是编码的一种思维（之前在学校老师一个劲儿的说思维思维，现在我也开始说，手动滑稽）</p>
+<p>我是以生活的角度去看待编码，编码就是世界的缩小版</p>
+<h2 id="四补充">四、补充</h2>
+<p>上述讲的几种单例模式实现中，有一种情况下他们会重新创建对象，那就是反序列化，将一个单例实例对象写到磁盘再读回来，从而获得了一个实例。反序列化操作提供了readResolve方法，这个方法可以让开发人员控制对象的反序列化。在上述的几个方法示例中如果要杜绝单例对象被反序列化是重新生成对象，就必须加入如下方法：</p>
+<pre><code><code>private Object readResolve() throws ObjectStreamException{
+return singleton;
+}</code></code></pre>
+<p>以上摘自https://blog.csdn.net/itachi85/article/details/50510124<br />
+<strong>1、由于enum是通过继承了Enum类实现的，enum结构不能够作为子类继承其他类，但是可以用来实现接口。此外，enum类也不能够被继承。<br />
+2、enum有且仅有private的构造器，防止外部的额外构造</strong></p>
+<p>补充一种枚举实现的单例模式。</p>
+<pre><code><code>public enum  SingletonEnum {
+    INSTANCE;
+}</code></code></pre>
+<p>这样就实现完了，调用如下</p>
+<pre><code><code>    @Test
+    void singleton(){
+
+        SingletonEnum instance = SingletonEnum.INSTANCE;
+    }</code></code></pre>
+<p>对于序列化和反序列化，因为每一个枚举类型和枚举变量在JVM中都是唯一的，即Java在序列化和反序列化枚举时做了特殊的规定，枚举的writeObject、readObject、readObjectNoData、writeReplace和readResolve等方法是被编译器禁用的，因此也不存在实现序列化接口后调用readObject会破坏单例的问题。<br />
+以上摘自https://www.cnblogs.com/cielosun/p/6596475.html</p>
+<blockquote>
+<p>如果文章对您有帮助，请记得点赞关注哟~<br />
+欢迎大家关注我的公众号<情系IT>，每日技术推送文章供大家学习参考。</p>
+</blockquote>
+
+
+</div><hr><script charset='utf-8' src='../../js/sming.js'></script></body></html>

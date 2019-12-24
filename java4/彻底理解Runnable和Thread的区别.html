@@ -1,0 +1,174 @@
+<html><head><meta charset='utf-8'><meta name='viewport' content='width=device-width, initial-scale=1'>
+<meta name='applicable-device' content='pc'><meta name='keywords' content='电脑,电脑讲解,电脑技术,编程,电脑故障维修彻底理解Runnable和Thread的区别' />
+<script src='../../highlight/highlight.pack.js'></script>
+<link rel='stylesheet' type='text/css' href='../../highlight/styles/monokai.css'/>
+
+<link rel='stylesheet' href='../../fenxiang/dist/css/share.min.css'>
+<script src='../../fenxiang/src/js/social-share.js'></script>
+<script src='../../fenxiang/src/js/qrcode.js'></script>
+
+</head><body><script>hljs.initHighlightingOnLoad();</script><script>
+var system ={};  
+var p = navigator.platform;       
+system.win = p.indexOf('Win') == 0;  
+system.mac = p.indexOf('Mac') == 0;  
+system.x11 = (p == 'X11') || (p.indexOf('Linux') == 0);     
+if(system.win||system.mac||system.xll){
+document.write("<link href='../css/3.css' rel='stylesheet' type='text/css'>");}else{ document.write("<link href='../css/3wap.css' rel='stylesheet' type='text/css'>");}</script><script src='../../js/3.js'></script><div class='div2'><div class='heading_nav'><ul><div><li><a href='../../index.html'>首页</a></li>
+</div><div onclick='hidden1()' >分享</div>
+</ul></div></div>
+<div id='heading_nav2'> 
+<li class='row' >
+<div class='social-share' data-mode='prepend'><a href='javascript:' class='social-share-icon icon-heart'></a></div></li></div><script charset='utf-8' src='../../3/js/hengfu.js'></script><script charset='utf-8' src='../../3/js/hengfu2.js'></script><hr><div class='div1'><div class='biaoti'><center>彻底理解Runnable和Thread的区别</center></div><div class='banquan'>原文出处:本文由博客园博主J-Simon提供。<br/>
+原文连接:https://www.cnblogs.com/J-Simon/p/11470758.html</div><br>
+    <p>昨天去面试，面试官问了一个问题：Runnable和Thread有什么区别，因为针对这个问题以前有背过，并且网上大多数都是这些结论，所以脱口而出：</p>
+<pre><code><code>1.Thread有单继承的问题；
+2.Runnable便于实现资源共享，而Thread不能；</code></code></pre>
+<p>然而面试官好像并没有什么表示。之后结束后我就找了一下度娘，得到了这篇文章：<br />
+https://blog.csdn.net/zhaojianting/article/details/97664370</p>
+<p>突然发现“Runnable便于实现资源共享”这一优点好像并不合理，以下是我的代码实现。<br />
+<!-- more --></p>
+<h1 id="使用thread实现多线程">使用Thread实现多线程</h1>
+<pre class="java"><code>public class MyThread extends Thread {
+
+    private int ticket = 5;
+
+    @Override
+    public void run() {
+        while (true) {
+            System.out.println(&quot;Thread ticket = &quot; + ticket--);
+            if (ticket &lt; 0) {
+                break;
+            }
+        }
+    }
+
+}
+
+public class Test {
+    public static void main(String[] args) {
+
+            //Test Thread
+
+        new MyThread().start();
+        new MyThread().start();
+
+    }
+}
+    
+执行结果如下：
+Thread ticket = 5
+Thread ticket = 4
+Thread ticket = 3
+Thread ticket = 2
+Thread ticket = 1
+Thread ticket = 0
+Thread ticket = 5
+Thread ticket = 4
+Thread ticket = 3
+Thread ticket = 2
+Thread ticket = 1
+Thread ticket = 0</code></code></pre>
+<p>并不能实现资源共享，跟以前背的面试题答案一样；但真的是这样吗？我们仔细看一下，代码中我们创建了两个MyThread对象，每个对象都有自己的ticket成员变量，当然会多卖1倍。现在我们重新测试一下，请看测试代码：</p>
+<pre class="java"><code>public class Test {
+    public static void main(String[] args) {
+
+            //Test Thread
+
+        MyThread t1 = new MyThread();
+        new Thread(t1).start();
+        new Thread(t1).start();
+    }
+}
+
+测试结果如下：
+Thread ticket = 5
+Thread ticket = 4
+Thread ticket = 3
+Thread ticket = 2
+Thread ticket = 1
+Thread ticket = 0
+Thread ticket = -1</code></code></pre>
+<p>可以看到这次我们只创建了一个MyThread对象，并没出现卖两倍票的情况，Thread也可以实现资源共享。</p>
+<p>因为多线程访问同一变量会有并发问题（需要加锁），所以Thread正确的写法如下：</p>
+<pre class="java"><code>public class MyThread extends Thread {
+
+    private int ticket = 5;
+
+    @Override
+    public void run() {
+        if (ticket &gt; 0) {
+            synchronized (this) {
+                if (ticket &gt; 0) {
+                    while (true) {
+                        System.out.println(&quot;Thread:&quot; + Thread.currentThread().getName() + &quot;--Thread ticket = &quot; + ticket--);
+                        if (ticket &lt; 0) {
+                            break;
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+}
+
+public class Test {
+    public static void main(String[] args) {
+
+            //Test Thread
+
+        MyThread t1 = new MyThread();
+        new Thread(t1).start();
+        new Thread(t1).start();
+        new Thread(t1).start();
+        new Thread(t1).start();
+        new Thread(t1).start();
+        new Thread(t1).start();
+    }
+}
+
+执行结果如下：
+Thread:Thread-1--Thread ticket = 5
+Thread:Thread-1--Thread ticket = 4
+Thread:Thread-1--Thread ticket = 3
+Thread:Thread-1--Thread ticket = 2
+Thread:Thread-1--Thread ticket = 1
+Thread:Thread-1--Thread ticket = 0</code></code></pre>
+<p>现在看Thread和Runnable的源码：</p>
+<pre class="java"><code>
+public
+class Thread implements Runnable {
+    /* Make sure registerNatives is the first thing &lt;clinit&gt; does. */
+    private static native void registerNatives();
+    static {
+        registerNatives();
+    }
+
+    private volatile String name;
+    private int            priority;
+    private Thread         threadQ;
+    private long           eetop;
+    
+    
+
+@FunctionalInterface
+public interface Runnable {
+    /**
+     * When an object implementing interface &lt;code&gt;Runnable&lt;/code&gt; is used
+     * to create a thread, starting the thread causes the object&#39;s
+     * &lt;code&gt;run&lt;/code&gt; method to be called in that separately executing
+     * thread.
+     * &lt;p&gt;
+     * The general contract of the method &lt;code&gt;run&lt;/code&gt; is that it may
+     * take any action whatsoever.
+     *
+     * @see     java.lang.Thread#run()
+     */
+    public abstract void run();
+}
+</code></code></pre>
+<p>结论：其实Thread也就是实现了Runnable接口，提供了更多的方法而已。所以说Thread与Runnable并没有什么区别。如果硬要说有什么区别的话，那就是类与接口的区别，继承与实现的区别。另外最重要的是，学习的时候不要忘了思考哦！</p>
+
+
+</div><hr><script charset='utf-8' src='../../js/sming.js'></script></body></html>

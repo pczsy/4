@@ -1,0 +1,155 @@
+<html><head><meta charset='utf-8'><meta name='viewport' content='width=device-width, initial-scale=1'>
+<meta name='applicable-device' content='pc'><meta name='keywords' content='电脑,电脑讲解,电脑技术,编程,电脑故障维修四、双向链表' />
+<script src='../../highlight/highlight.pack.js'></script>
+<link rel='stylesheet' type='text/css' href='../../highlight/styles/monokai.css'/>
+
+<link rel='stylesheet' href='../../fenxiang/dist/css/share.min.css'>
+<script src='../../fenxiang/src/js/social-share.js'></script>
+<script src='../../fenxiang/src/js/qrcode.js'></script>
+
+</head><body><script>hljs.initHighlightingOnLoad();</script><script>
+var system ={};  
+var p = navigator.platform;       
+system.win = p.indexOf('Win') == 0;  
+system.mac = p.indexOf('Mac') == 0;  
+system.x11 = (p == 'X11') || (p.indexOf('Linux') == 0);     
+if(system.win||system.mac||system.xll){
+document.write("<link href='../css/3.css' rel='stylesheet' type='text/css'>");}else{ document.write("<link href='../css/3wap.css' rel='stylesheet' type='text/css'>");}</script><script src='../../js/3.js'></script><div class='div2'><div class='heading_nav'><ul><div><li><a href='../../index.html'>首页</a></li>
+</div><div onclick='hidden1()' >分享</div>
+</ul></div></div>
+<div id='heading_nav2'> 
+<li class='row' >
+<div class='social-share' data-mode='prepend'><a href='javascript:' class='social-share-icon icon-heart'></a></div></li></div><script charset='utf-8' src='../../3/js/hengfu.js'></script><script charset='utf-8' src='../../3/js/hengfu2.js'></script><hr><div class='div1'><div class='biaoti'><center>四、双向链表</center></div><div class='banquan'>原文出处:本文由博客园博主ねぇ提供。<br/>
+原文连接:https://www.cnblogs.com/lee0527/p/12013365.html</div><br>
+    <h2 id="双向链表">双向链表</h2>
+<p>首先来分析一个上篇文章中单向链表的缺点：</p>
+<ol>
+<li>单向链表查找的方向只能是一个方向，而双向链表可以向前或者向后查找。</li>
+<li>单向链表不能自我删除，需要靠辅助节点，而双向链表则可以自我删除。所以前面进行单链表删除的时候，我们总是找到待删除节点的上一个节点。</li>
+</ol>
+<p>双向链表也叫双链表，是链表的一种，它的每个数据结点中都有两个指针，分别指向直接后继和直接前驱。所以，从双向链表中的任意一个结点开始，都可以很方便地访问它的前驱结点和后继结点。</p>
+<p>代码示例：</p>
+<pre><code><code>public class HeroNode2 {
+    public int no;
+    public String name;
+    public String nickName;
+    public HeroNode2 next;//指向下一个节点
+    public HeroNode2 pre;//指向前一个节点
+
+    public HeroNode2(int no, String name, String nickName) {
+        this.no = no;
+        this.name = name;
+        this.nickName = nickName;
+    }
+
+    @Override
+    public String toString() {
+        return &quot;HeroNode{&quot; +
+                &quot;no=&quot; + no +
+                &quot;, name=&#39;&quot; + name + &#39;\&#39;&#39; +
+                &quot;, nickName=&#39;&quot; + nickName + &#39;\&#39;&#39; +
+                &#39;}&#39;;
+    }
+}
+
+class DoubleLinkedList{
+    private HeroNode2 head = new HeroNode2(0,&quot;&quot;,&quot;&quot;);
+
+    public HeroNode2 getHead(){
+        return head;
+    }
+
+    /**
+     * 遍历双向链表
+     */
+    public void list(){
+        if (head.next==null){
+            throw new RuntimeException(&quot;链表为空！&quot;);
+        }
+
+        HeroNode2 temp = head.next;
+        while (temp!=null){
+            System.out.println(temp);
+            temp = temp.next;
+        }
+    }
+
+    /**
+     * 添加节点
+     */
+    public void add(HeroNode2 heroNode){
+        HeroNode2 temp = head;
+        while (true){
+            if (temp.next==null){
+                break;
+            }
+            temp = temp.next;
+        }
+        temp.next = heroNode;
+        heroNode.pre = temp;
+    }
+
+    /**
+     * 按照编号进行添加
+     */
+    public void addByOrder(HeroNode2 heroNode){
+        HeroNode2 temp = head;
+        boolean flag = false;
+        while (true){
+            if (temp.next==null){
+                break;
+            }
+            if (temp.next.no&gt;heroNode.no){
+                break;
+            }else if (temp.next.no == heroNode.no){
+                flag = true;
+                break;
+            }
+            temp = temp.next;
+        }
+        if (flag){
+            throw new RuntimeException(&quot;要添加的节点编号已存在!&quot;);
+        }else{
+            if (temp.next!=null){
+                temp.next.pre = heroNode;
+            }
+            heroNode.next = temp.next;
+            temp.next = heroNode;
+            heroNode.pre = temp;
+        }
+    }
+
+    /**
+     * 删除节点
+     * 1、对于双向链表，我们可以直接找到要删除的这个节点
+     * 2、找到后删除即可
+     */
+    public void delete(int no){
+        if (head.next==null){
+            throw new RuntimeException(&quot;链表为空，不能删除!&quot;);
+        }
+        HeroNode2 temp = head.next;
+        boolean flag = false;
+        while (true){
+            if (temp==null){
+                break;
+            }
+            if (temp.no == no){
+                flag = true;
+                break;
+            }
+            temp = temp.next;
+        }
+        if (flag){
+            temp.pre.next = temp.next;
+            if (temp.next!=null){
+                temp.next.pre = temp.pre;
+            }
+        }else {
+            throw new RuntimeException(&quot;要删除的节点不存在!&quot;);
+        }
+    }
+}</code></code></pre>
+
+
+</div><hr><script charset='utf-8' src='../../js/sming.js'></script></body></html>

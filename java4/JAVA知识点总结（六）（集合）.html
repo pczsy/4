@@ -1,0 +1,196 @@
+<html><head><meta charset='utf-8'><meta name='viewport' content='width=device-width, initial-scale=1'>
+<meta name='applicable-device' content='pc'><meta name='keywords' content='电脑,电脑讲解,电脑技术,编程,电脑故障维修JAVA知识点总结（六）（集合）' />
+<script src='../../highlight/highlight.pack.js'></script>
+<link rel='stylesheet' type='text/css' href='../../highlight/styles/monokai.css'/>
+
+<link rel='stylesheet' href='../../fenxiang/dist/css/share.min.css'>
+<script src='../../fenxiang/src/js/social-share.js'></script>
+<script src='../../fenxiang/src/js/qrcode.js'></script>
+
+</head><body><script>hljs.initHighlightingOnLoad();</script><script>
+var system ={};  
+var p = navigator.platform;       
+system.win = p.indexOf('Win') == 0;  
+system.mac = p.indexOf('Mac') == 0;  
+system.x11 = (p == 'X11') || (p.indexOf('Linux') == 0);     
+if(system.win||system.mac||system.xll){
+document.write("<link href='../css/3.css' rel='stylesheet' type='text/css'>");}else{ document.write("<link href='../css/3wap.css' rel='stylesheet' type='text/css'>");}</script><script src='../../js/3.js'></script><div class='div2'><div class='heading_nav'><ul><div><li><a href='../../index.html'>首页</a></li>
+</div><div onclick='hidden1()' >分享</div>
+</ul></div></div>
+<div id='heading_nav2'> 
+<li class='row' >
+<div class='social-share' data-mode='prepend'><a href='javascript:' class='social-share-icon icon-heart'></a></div></li></div><script charset='utf-8' src='../../3/js/hengfu.js'></script><script charset='utf-8' src='../../3/js/hengfu2.js'></script><hr><div class='div1'><div class='biaoti'><center>JAVA知识点总结（六）（集合）</center></div><div class='banquan'>原文出处:本文由博客园博主为你，千千万万遍！提供。<br/>
+原文连接:https://www.cnblogs.com/javastudydoing/p/11603150.html</div><br>
+    <p><strong><span style="font-size: 16px;">第十九章　　集合</span></strong></p>
+<p><span style="font-size: 14px;">一、数组弊端：</span></p>
+<p>　　数组长度是固定的，无法继续添加元素。</p>
+<p><span style="font-size: 14px;">二、什么是集合：</span></p>
+<p>　　Java提供一个集合类，它的长度是可以改变的，能储存任意的对象，长度随着元素的增加而增加。</p>
+<p>三、集合和数组的区别：</p>
+<p>　　1.数组：能存放引用数据类型和基本数据类型。</p>
+<p>　　2.集合：只能存放引用数据类型（对象），即使存放基本数据类型，也会自动帮你装箱，把基本数据类型转换为引用数据类型。</p>
+<p>　　3.数组长度是固定的，集合长度能够改变。</p>
+<p>四、什么时候用数组，什么时候用集合？</p>
+<p>　　1.如果元素个数固定，用数组</p>
+<p>　　2.对元素进行增删改查操作时，使用集合。</p>
+<p>五、集合类：</p>
+<p>1、创建一个集合：</p>
+<src class="cnblogs_code">
+<pre><code><span style="color: #008080;">1</span> Collection c = <span style="color: #0000ff;">new</span> ArrayList();</code></pre>
+
+<p>2、向集合内添加元素：</p>
+<src class="cnblogs_code">
+<pre><code><span style="color: #008080;">1</span> Collection c = <span style="color: #0000ff;">new</span><span style="color: #000000;"> ArrayList();
+</span><span style="color: #008080;">2</span> <span style="color: #0000ff;">boolean</span> b1 = c.add("abc"<span style="color: #000000;">);
+</span><span style="color: #008080;">3</span> <span style="color: #0000ff;">boolean</span> b2 = c.add(10<span style="color: #000000;">);
+</span><span style="color: #008080;">4</span> <span style="color: #0000ff;">boolean</span> b3 = c.add(<span style="color: #0000ff;">true</span>);                   </code></pre>
+
+<p>3、删除集合内指定元素：</p>
+<src class="cnblogs_code">
+<pre><code><span style="color: #008080;">1</span> ArrayList c2 = <span style="color: #0000ff;">new</span><span style="color: #000000;"> ArrayList();
+</span><span style="color: #008080;">2</span> c2.add("a"<span style="color: #000000;">);
+</span><span style="color: #008080;">3 </span>c2.add("b"<span style="color: #000000;">);
+</span><span style="color: #008080;">4</span> c2.add("c"<span style="color: #000000;">);
+</span><span style="color: #008080;">5</span> <span style="color: #000000;">System.out.println(c2);
+</span><span style="color: #008080;">6</span>     
+<span style="color: #008080;">7</span> <span style="color: #008000;">//</span><span style="color: #008000;">从集合中移除指定元素</span>
+<span style="color: #008080;">8</span> c2.remove("b"<span style="color: #000000;">);
+</span><span style="color: #008080;">9</span> System.out.println(c2);</code></pre>
+
+<p>4、判断一个集合是否为空：</p>
+<src class="cnblogs_code">
+<pre><code><span style="color: #008080;">1</span> <span style="color: #008000;">//</span><span style="color: #008000;">判断一个集合是否为空</span>
+<span style="color: #008080;">2</span> System.out.println(c2.isEmpty());</code></pre>
+
+<p>5、获取集合的长度：</p>
+<src class="cnblogs_code">
+<pre><code><span style="color: #008080;">1</span> <span style="color: #008000;">//</span><span style="color: #008000;"> 获取集合当中的长度</span>
+<span style="color: #008080;">2</span> System.out.println(c2.size());</code></pre>
+
+<p>7、清空集合内的所有元素：</p>
+<src class="cnblogs_code">
+<pre><code><span style="color: #008080;">1</span> <span style="color: #008000;">//</span><span style="color: #008000;"> 清空集合内所有元素</span>
+<span style="color: #008080;">2</span> <span style="color: #000000;">c2.clear();
+</span><span style="color: #008080;">3</span> System.out.println(c2);</code></pre>
+
+<p>8、合并两个集合：</p>
+<src class="cnblogs_code">
+<pre><code><span style="color: #008080;">1</span> c1.addAll(c2);</code></pre>
+
+<p>9、从c1中删除两个集合的交集：</p>
+<src class="cnblogs_code">
+<pre><code><span style="color: #008080;">1</span> c1.removeAll(c2);</code></pre>
+
+<p>10、判断c1中是否完全包含c2:</p>
+<src class="cnblogs_code">
+<pre><code><span style="color: #008080;">1</span> <span style="color: #008000;">//</span><span style="color: #008000;">boolean res = c1.containsAll(c2);
+</span><span style="color: #008080;">2</span> <span style="color: #008000;">//</span><span style="color: #008000;">System.out.println(res);</span></code></pre>
+
+<p>11、取交集，将交集的值赋值给c1：</p>
+<src class="cnblogs_code">
+<pre><code><span style="color: #008080;">1</span> <span style="color: #0000ff;">boolean</span> b1 =<span style="color: #000000;"> c1.retainAll(c2);
+</span><span style="color: #008080;">2</span> <span style="color: #000000;">System.out.println(b1);
+</span><span style="color: #008080;">3</span> System.out.println(c1);</code></pre>
+
+<p>12、通过数组遍历集合：</p>
+<src class="cnblogs_code">
+<pre><code>Collection c = <span style="color: #0000ff;">new</span><span style="color: #000000;"> ArrayList();
+c.add(</span>"a"<span style="color: #000000;">);
+c.add(</span>"b"<span style="color: #000000;">);
+c.add(</span>"c"<span style="color: #000000;">);
+</span><span style="color: #008000;">//</span><span style="color: #008000;">将集合转化为数组，所有元素提升为Object类型</span>
+Object []arr =<span style="color: #000000;"> c.toArray();
+</span><span style="color: #0000ff;">for</span>(<span style="color: #0000ff;">int</span> i = 0;i&lt;arr.lengthi;i++<span style="color: #000000;">){
+       System.out.println(arr[i]); 
+}</span></code></pre>
+
+<p>六、ArrayList集合：</p>
+<p>1、使用迭代器遍历集合：</p>
+<src class="cnblogs_code">
+<pre><code><span style="color: #008080;"> 1</span> List list = <span style="color: #0000ff;">new</span><span style="color: #000000;"> ArrayList();
+</span><span style="color: #008080;"> 2</span>         list.add("a"<span style="color: #000000;">);
+</span><span style="color: #008080;"> 3</span>         list.add("2"<span style="color: #000000;">);
+</span><span style="color: #008080;"> 4</span>         list.add("c"<span style="color: #000000;">);
+</span><span style="color: #008080;"> 5</span>         list.add("d"<span style="color: #000000;">);
+</span><span style="color: #008080;"> 6</span>             
+<span style="color: #008080;"> 7</span>         <span style="color: #008000;">//</span><span style="color: #008000;">1.遍历集合</span>
+<span style="color: #008080;"> 8</span>         Iterator it =<span style="color: #000000;"> list.iterator();
+</span><span style="color: #008080;"> 9</span>         <span style="color: #0000ff;">while</span><span style="color: #000000;">(it.hasNext()){
+</span><span style="color: #008080;">10</span> <span style="color: #000000;">            System.out.pringln(it.next());    
+</span><span style="color: #008080;">11</span> <span style="color: #000000;">            }
+</span><span style="color: #008080;">12</span>         }</code></pre>
+
+<p>2、并发修改异常：</p>
+<p>　　在迭代集合过程中，是不允许修改集合结构的，比如添加，删除元素（个数的改变），如果改变了，就会发生并发修改异常。</p>
+<p>3、List 当中特有的迭代器，在删除修改时，不会造成并发修改异常。</p>
+<src class="cnblogs_code">
+<pre><code><span style="color: #008080;">1</span> ListIterator it = list.listIterator();</code></pre>
+
+<p>4、去除List集合中的重复元素：</p>
+<src class="cnblogs_code">
+<pre><code><span style="color: #008080;"> 1</span>     <span style="color: #0000ff;">static</span><span style="color: #000000;"> ArrayList getSingleEle(ArrayList list) {
+</span><span style="color: #008080;"> 2</span>         <span style="color: #008000;">//</span><span style="color: #008000;"> 1.创建一个新的集合</span>
+<span style="color: #008080;"> 3</span>         ArrayList newa1 = <span style="color: #0000ff;">new</span><span style="color: #000000;"> ArrayList();
+</span><span style="color: #008080;"> 4</span>         <span style="color: #008000;">//</span><span style="color: #008000;"> 2.将一次取出每一个元素</span>
+<span style="color: #008080;"> 5</span>         Iterator itr =<span style="color: #000000;"> list.iterator();
+</span><span style="color: #008080;"> 6</span>         <span style="color: #0000ff;">while</span><span style="color: #000000;"> (itr.hasNext()) {
+</span><span style="color: #008080;"> 7</span>             Object obj =<span style="color: #000000;"> itr.next();
+</span><span style="color: #008080;"> 8</span>             <span style="color: #008000;">//</span><span style="color: #008000;"> 3.每次取出元素都会判断新集合中已经有该元素
+</span><span style="color: #008080;"> 9</span>             <span style="color: #008000;">//</span><span style="color: #008000;"> 4.如果是已有元素，不把元素存放到新集合中</span>
+<span style="color: #008080;">10</span>             <span style="color: #0000ff;">if</span> (!<span style="color: #000000;">newa1.contains(obj)) {
+</span><span style="color: #008080;">11</span> <span style="color: #000000;">                newa1.add(obj);
+</span><span style="color: #008080;">12</span> <span style="color: #000000;">            }
+</span><span style="color: #008080;">13</span> <span style="color: #000000;">        }
+</span><span style="color: #008080;">14</span>         <span style="color: #008000;">//</span><span style="color: #008000;">System.out.println(newa1);</span>
+<span style="color: #008080;">15</span>         <span style="color: #0000ff;">return</span><span style="color: #000000;"> newa1;
+</span><span style="color: #008080;">16</span>     }</code></pre>
+
+<p>5、去除集合内重复的元素为对象时，重写equals方法：</p>
+<src class="cnblogs_code">
+<pre><code><span style="color: #008080;"> 1</span> <span style="color: #0000ff;">class</span><span style="color: #000000;"> Student {
+</span><span style="color: #008080;"> 2</span> <span style="color: #000000;">    String name;
+</span><span style="color: #008080;"> 3</span>     <span style="color: #0000ff;">int</span><span style="color: #000000;"> age;
+</span><span style="color: #008080;"> 4</span> 
+<span style="color: #008080;"> 5</span>     Student(String name, <span style="color: #0000ff;">int</span><span style="color: #000000;"> age) {
+</span><span style="color: #008080;"> 6</span>         <span style="color: #0000ff;">this</span>.name =<span style="color: #000000;"> name;
+</span><span style="color: #008080;"> 7</span>         <span style="color: #0000ff;">this</span>.age =<span style="color: #000000;"> age;
+</span><span style="color: #008080;"> 8</span> <span style="color: #000000;">    }
+</span><span style="color: #008080;"> 9</span> 
+<span style="color: #008080;">10</span> <span style="color: #000000;">    @Override
+</span><span style="color: #008080;">11</span>     <span style="color: #0000ff;">public</span><span style="color: #000000;"> String toString() {
+</span><span style="color: #008080;">12</span>         <span style="color: #0000ff;">return</span> "Student [name=" + name + ", age=" + age + "]"<span style="color: #000000;">;
+</span><span style="color: #008080;">13</span> <span style="color: #000000;">    }
+</span><span style="color: #008080;">14</span> 
+<span style="color: #008080;">15</span>     <span style="color: #008000;">//</span><span style="color: #008000;"> 做对象的比较，不想让其对比地址，必须要覆盖equals 根据自己的需求来定义什么时候相等（也可以通过快速生成）</span>
+<span style="color: #008080;">16</span>     <span style="color: #0000ff;">public</span> <span style="color: #0000ff;">boolean</span><span style="color: #000000;"> equals(Object obj) {
+</span><span style="color: #008080;">17</span>         Student stu =<span style="color: #000000;"> (Student) obj;
+</span><span style="color: #008080;">18</span>         <span style="color: #0000ff;">return</span> <span style="color: #0000ff;">this</span>.name.equals(stu.name) &amp;&amp; <span style="color: #0000ff;">this</span>.age ==<span style="color: #000000;"> stu.age;
+</span><span style="color: #008080;">19</span> <span style="color: #000000;">    }
+</span><span style="color: #008080;">20</span> 
+<span style="color: #008080;">21</span> }</code></pre>
+
+<p>6、LinkedList集合：</p>
+<src class="cnblogs_code">
+<pre><code><span style="color: #008080;">1</span>         LinkedList list = <span style="color: #0000ff;">new</span><span style="color: #000000;"> LinkedList();
+</span><span style="color: #008080;">2</span>         list.add("a"<span style="color: #000000;">);
+</span><span style="color: #008080;">3</span>         list.add("b"<span style="color: #000000;">);
+</span><span style="color: #008080;">4</span>         list.add("c"<span style="color: #000000;">);
+</span><span style="color: #008080;">5</span>         System.out.println(list);</code></pre>
+
+<p>7、Vector集合：</p>
+<src class="cnblogs_code">
+<pre><code><span style="color: #008080;"> 1</span>     <span style="color: #0000ff;">public</span> <span style="color: #0000ff;">static</span> <span style="color: #0000ff;">void</span><span style="color: #000000;"> main(String[] args) {
+</span><span style="color: #008080;"> 2</span>         <span style="color: #008000;">//</span><span style="color: #008000;">Vector 只是在内部进行了加锁，更加的安全</span>
+<span style="color: #008080;"> 3</span>         Vector v = <span style="color: #0000ff;">new</span><span style="color: #000000;"> Vector();
+</span><span style="color: #008080;"> 4</span>         v.add("a"<span style="color: #000000;">);
+</span><span style="color: #008080;"> 5</span>         v.add("b"<span style="color: #000000;">);
+</span><span style="color: #008080;"> 6</span>         v.add("c"<span style="color: #000000;">);
+</span><span style="color: #008080;"> 7</span> <span style="color: #000000;">        System.out.println(v);
+</span><span style="color: #008080;"> 8</span> 
+<span style="color: #008080;"> 9</span> <span style="color: #000000;">    }
+</span><span style="color: #008080;">10</span> 
+<span style="color: #008080;">11</span> }</code></pre>
+
+<p>&nbsp;</p>
+
+</div><hr><script charset='utf-8' src='../../js/sming.js'></script></body></html>

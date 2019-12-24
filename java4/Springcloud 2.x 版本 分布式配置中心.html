@@ -1,0 +1,256 @@
+<html><head><meta charset='utf-8'><meta name='viewport' content='width=device-width, initial-scale=1'>
+<meta name='applicable-device' content='pc'><meta name='keywords' content='电脑,电脑讲解,电脑技术,编程,电脑故障维修Springcloud 2.x 版本 分布式配置中心' />
+<script src='../../highlight/highlight.pack.js'></script>
+<link rel='stylesheet' type='text/css' href='../../highlight/styles/monokai.css'/>
+
+<link rel='stylesheet' href='../../fenxiang/dist/css/share.min.css'>
+<script src='../../fenxiang/src/js/social-share.js'></script>
+<script src='../../fenxiang/src/js/qrcode.js'></script>
+
+</head><body><script>hljs.initHighlightingOnLoad();</script><script>
+var system ={};  
+var p = navigator.platform;       
+system.win = p.indexOf('Win') == 0;  
+system.mac = p.indexOf('Mac') == 0;  
+system.x11 = (p == 'X11') || (p.indexOf('Linux') == 0);     
+if(system.win||system.mac||system.xll){
+document.write("<link href='../css/3.css' rel='stylesheet' type='text/css'>");}else{ document.write("<link href='../css/3wap.css' rel='stylesheet' type='text/css'>");}</script><script src='../../js/3.js'></script><div class='div2'><div class='heading_nav'><ul><div><li><a href='../../index.html'>首页</a></li>
+</div><div onclick='hidden1()' >分享</div>
+</ul></div></div>
+<div id='heading_nav2'> 
+<li class='row' >
+<div class='social-share' data-mode='prepend'><a href='javascript:' class='social-share-icon icon-heart'></a></div></li></div><script charset='utf-8' src='../../3/js/hengfu.js'></script><script charset='utf-8' src='../../3/js/hengfu2.js'></script><hr><div class='div1'><div class='biaoti'><center>Springcloud 2.x 版本 分布式配置中心</center></div><div class='banquan'>原文出处:本文由博客园博主王大葱提供。<br/>
+原文连接:https://www.cnblogs.com/wlx-0629/p/11863620.html</div><br>
+    <src class="cl-preview-section">
+<h2>一.什么是分布式配置中心？</h2>
+
+<src class="cl-preview-section">
+<p>　　就是为微服务架构中的微服务提供集中化的外部配置支持，配置中心为各个微服务应用的所有环境提供了中心化的外部配置（可能比较难理解，想知道是什么意思就要知道为什么这么配置：这么配置就是为了解决微服务中很多个provider中的application.properties配置管理问题，以及配置冗余问题，把这些配置集中到一起进行存放，并且把重复的配置提取出来解决冗余）</p>
+
+<src class="cl-preview-section">
+<h2><a id="_3"></a>二.图解运行</h2>
+
+<src class="cl-preview-section">
+<p><img src="./images/Springcloud 2.x 版本 分布式配置中心0.png" alt="在这里插入图片描述" /><br />　　1 . git hub 上存放我们的配置文件<br />　　2 . config-server 远程连接到 git hub<br />　　3 . config-client 连接到config-server<br />　　运行：当我们启动config-client 服务的时候，client 会通过连接的 config-server 拿到远程git 上面的配置文件，然后通过 Spring 加载到对象中。</p>
+
+
+<src class="cl-preview-section">
+<h2><a id="springcloud_config_10"></a>三.如何简单实现springcloud config的分布式配置中心</h2>
+
+
+<src class="cl-preview-section">
+<h4><a id="1github_12"></a>1.创建github账号</h4>
+
+
+<src class="cl-preview-section">
+<h4><a id="2githubrepository_13"></a>2.在github上面创建repository(仓库)</h4>
+
+
+<src class="cl-preview-section">
+<p>　　一个github账号可以有很多个仓库&mdash;&gt;一个仓库只能对应一个项目&mdash;&gt;所以仓库的名称就是所要提交的项目名<br />　　如果是一个新的账号，就必须先有一个命名空间(也是自己创建的，可以随意起名)<br /><img src="./images/Springcloud 2.x 版本 分布式配置中心1.png" alt="在这里插入图片描述" /></p>
+
+
+<src class="cl-preview-section">
+<h4><a id="3github_desktop_17"></a>3.使用github desktop把项目加载到本地</h4>
+
+
+<src class="cl-preview-section">
+<p>　　选择File&ndash;&gt;clone repository&ndash;&gt;选择需要加载到本地的项目<br /><img src="./images/Springcloud 2.x 版本 分布式配置中心2.png" alt="在这里插入图片描述" /></p>
+
+
+<src class="cl-preview-section">
+<h4><a id="4devtestpro_20"></a>4.创建三个文件（分为dev：开发环境，test：测试环境，pro：上线环境）</h4>
+
+
+<src class="cl-preview-section">
+<pre><code><code class="prism language-yaml">　　开发环境：
+　　application<span class="token punctuation">-dev.properties
+　　spring.profiles=dev
+
+　　server.port=3081
+　　　　
+　　spring.application.name=application<span class="token punctuation">-dev
+　　spring.datasource.driver<span class="token punctuation">-class<span class="token punctuation">-name=com.mysql.jdbc.Driver
+　　spring.datasource.url=jdbc<span class="token punctuation">:mysql<span class="token punctuation">://localhost<span class="token punctuation">:3306/dev<span class="token punctuation">?useSSL=false
+　　spring.datasource.username=root
+　　spring.datasource.password=root
+　　spring.datasource.type=com.alibaba.druid.pool.DruidDataSource
+</span></span></span></span></span></span></span></span></code></code></pre>
+
+<src class="cl-preview-section">
+<pre><code><code class="prism language-yaml">　　测试环境：
+　　application<span class="token punctuation">-test.properties
+　　spring.profiles=test
+
+　　server.port=3081
+
+　　spring.application.name=application<span class="token punctuation">-test
+　　spring.datasource.driver<span class="token punctuation">-class<span class="token punctuation">-name=com.mysql.jdbc.Driver
+　　spring.datasource.url=jdbc<span class="token punctuation">:mysql<span class="token punctuation">://localhost<span class="token punctuation">:3306/test<span class="token punctuation">?useSSL=false
+　　spring.datasource.username=root
+　　spring.datasource.password=root
+　　spring.datasource.type=com.alibaba.druid.pool.DruidDataSource
+<br /></span></span></span></span></span></span></span></span></code></code></pre>
+
+<src class="cl-preview-section">
+<h4><a id="5github_65"></a>5.把配置好的三个文件提交到github上</h4>
+
+<src class="cl-preview-section">
+<p>　　当使用github desktop提交代码到github上的时候，只能一个一个的提交，不能一起提交<br />　　选择commit to master(记住这个master)<br />　　选择repository选择&ndash;&gt;push</p>
+
+
+<src class="cl-preview-section">
+<h2><a id="_70"></a>四．分布式配置中心的访问规则:</h2>
+
+
+<src class="cl-preview-section">
+<p>　　无论是yml还是properties都可以使用该规则进行访问:<br />　　/{application}/{profile}[/{label}]</p>
+
+
+<src class="cl-preview-section">
+<p>　　properties文件:<br />　　/{application}-{profile}.properties<br />　　/{label(分支)}/{application}-{profile}.properties</p>
+
+
+<src class="cl-preview-section">
+<p>　　yml文件:<br />　　/{application}-{profile}.yml<br />　　/{label}/{application}-{profile}.yml</p>
+
+
+<src class="cl-preview-section">
+<h2><a id="springcloud_config_83"></a>五．配置springcloud config</h2>
+
+
+<src class="cl-preview-section">
+<h3>　　<a id="51_server_84"></a>5.1 server层的配置</h3>
+
+
+<src class="cl-preview-section">
+<h5>　　　　<a id="511_jar_85"></a>5.1.1 jar包</h5>
+
+
+<src class="cl-preview-section">
+<pre><code><code class="prism language-python"><span class="token operator">　　　　&lt;dependencies<span class="token operator">&gt;
+　　　　    <span class="token operator">&lt;dependency<span class="token operator">&gt;
+　　　　        <span class="token operator">&lt;groupId<span class="token operator">&gt;org<span class="token punctuation">.springframework<span class="token punctuation">.cloud<span class="token operator">&lt;<span class="token operator">/groupId<span class="token operator">&gt;
+ 　　　　       <span class="token operator">&lt;artifactId<span class="token operator">&gt;spring<span class="token operator">-cloud<span class="token operator">-config<span class="token operator">-server<span class="token operator">&lt;<span class="token operator">/artifactId<span class="token operator">&gt;
+　　  　　  <span class="token operator">&lt;<span class="token operator">/dependency<span class="token operator">&gt;
+　　　　<span class="token operator">&lt;<span class="token operator">/dependencies<span class="token operator">&gt;
+
+</span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></code></code></pre>
+
+<src class="cl-preview-section">
+<h5>　　　　<a id="512__applicationproperties_97"></a>5.1.2 application.properties配置</h5>
+
+<src class="cl-preview-section">
+<pre><code><code class="prism language-yaml"><span class="token comment">　　　　#首先还是常规的：
+　　　　server.port=4081
+　　　　server.servlet.context<span class="token punctuation">-path=/
+　　　　<span class="token comment">#配置application.name （可配置，可不配置） ，在此配置是为了提醒eureka中的这个配置(因为eureka中服务的发现就是找的这个名字)，不要忘记
+　　　　spring.application.name=springcloud<span class="token punctuation">-config<span class="token punctuation">-server<span class="token punctuation">-<span class="token number">4081
+　　　　<span class="token comment">#开始配置GitHub<br /><span class="token comment">　　　　#先配置GitHub的仓库的地址（在浏览器的地址栏上，直接复制就好）
+　　　　spring.cloud.config.server.git.uri=https<span class="token punctuation">://github.com/命名空间/仓库名
+ 
+　　　　<span class="token comment">#配置GitHub的账号和密码
+　　　　spring.cloud.config.server.git.username=邮箱/账号
+　　　　spring.cloud.config.server.git.password=密码
+　　　　<span class="token comment">#配置GitHub的仓库的搜索路径（固定的不要补全！！！）
+　　　　spring.cloud.config.server.git.search<span class="token punctuation">-paths=config<span class="token punctuation">-repo
+　　　　<span class="token comment">#跳过SSL的认证
+　　　　spring.cloud.config.server.git.skip<span class="token punctuation">-ssl<span class="token punctuation">-validation=true
+　　
+</span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></code></code></pre>
+
+<src class="cl-preview-section">
+<h5>　　5.1.3 ApplicationRun启动类注解</h5>
+<pre><code><code>　　　　除了常规的@@SpringBootApplication外，还有一个@EnableConfigServer，标明是server层的配置中心
+</code></code></pre>
+
+<src class="cl-preview-section">
+<h4>&nbsp;<a id="52_client__122"></a>5．2 client 层的配置</h4>
+
+<src class="cl-preview-section">
+<h6>　　<a id="521__jar_123"></a>5.2.1 jar包</h6>
+
+<src class="cl-preview-section">
+<pre><code><code class="prism language-python"><span class="token operator">　　&lt;dependencies<span class="token operator">&gt;
+　　    <span class="token operator">&lt;dependency<span class="token operator">&gt;
+　　        <span class="token operator">&lt;groupId<span class="token operator">&gt;com<span class="token punctuation">.wlx<span class="token punctuation">.springcloud<span class="token operator">&lt;<span class="token operator">/groupId<span class="token operator">&gt;
+　　        <span class="token operator">&lt;artifactId<span class="token operator">&gt;<span class="token number">20191108<span class="token operator">-management<span class="token operator">-model<span class="token operator">&lt;<span class="token operator">/artifactId<span class="token operator">&gt;
+　　        <span class="token operator">&lt;version<span class="token operator">&gt;<span class="token number">1.0<span class="token operator">-SNAPSHOT<span class="token operator">&lt;<span class="token operator">/version<span class="token operator">&gt;
+ 　　   <span class="token operator">&lt;<span class="token operator">/dependency<span class="token operator">&gt;
+　　    <span class="token operator">&lt;dependency<span class="token operator">&gt;
+　　        <span class="token operator">&lt;groupId<span class="token operator">&gt;mysql<span class="token operator">&lt;<span class="token operator">/groupId<span class="token operator">&gt;
+    　　    <span class="token operator">&lt;artifactId<span class="token operator">&gt;mysql<span class="token operator">-connector<span class="token operator">-java<span class="token operator">&lt;<span class="token operator">/artifactId<span class="token operator">&gt;
+   　　 <span class="token operator">&lt;<span class="token operator">/dependency<span class="token operator">&gt;
+   　　 <span class="token operator">&lt;dependency<span class="token operator">&gt;
+     　　   <span class="token operator">&lt;groupId<span class="token operator">&gt;com<span class="token punctuation">.alibaba<span class="token operator">&lt;<span class="token operator">/groupId<span class="token operator">&gt;
+ 　　       <span class="token operator">&lt;artifactId<span class="token operator">&gt;druid<span class="token operator">&lt;<span class="token operator">/artifactId<span class="token operator">&gt;
+ 　　   <span class="token operator">&lt;<span class="token operator">/dependency<span class="token operator">&gt;
+ 　　   <span class="token operator">&lt;dependency<span class="token operator">&gt;
+  　　      <span class="token operator">&lt;groupId<span class="token operator">&gt;org<span class="token punctuation">.mybatis<span class="token punctuation">.spring<span class="token punctuation">.boot<span class="token operator">&lt;<span class="token operator">/groupId<span class="token operator">&gt;
+ 　　       <span class="token operator">&lt;artifactId<span class="token operator">&gt;mybatis<span class="token operator">-spring<span class="token operator">-boot<span class="token operator">-starter<span class="token operator">&lt;<span class="token operator">/artifactId<span class="token operator">&gt;
+　　    <span class="token operator">&lt;<span class="token operator">/dependency<span class="token operator">&gt;
+　　    <span class="token operator">&lt;dependency<span class="token operator">&gt;
+　　        <span class="token operator">&lt;groupId<span class="token operator">&gt;org<span class="token punctuation">.springframework<span class="token punctuation">.boot<span class="token operator">&lt;<span class="token operator">/groupId<span class="token operator">&gt;
+　　        <span class="token operator">&lt;artifactId<span class="token operator">&gt;spring<span class="token operator">-boot<span class="token operator">-starter<span class="token operator">-web<span class="token operator">&lt;<span class="token operator">/artifactId<span class="token operator">&gt;
+　　    <span class="token operator">&lt;<span class="token operator">/dependency<span class="token operator">&gt;
+　　    <span class="token operator">&lt;dependency<span class="token operator">&gt;
+　　        <span class="token operator">&lt;groupId<span class="token operator">&gt;org<span class="token punctuation">.springframework<span class="token punctuation">.cloud<span class="token operator">&lt;<span class="token operator">/groupId<span class="token operator">&gt;
+　　        <span class="token operator">&lt;artifactId<span class="token operator">&gt;spring<span class="token operator">-cloud<span class="token operator">-starter<span class="token operator">-config<span class="token operator">&lt;<span class="token operator">/artifactId<span class="token operator">&gt;
+　　    <span class="token operator">&lt;<span class="token operator">/dependency<span class="token operator">&gt;
+　　<span class="token operator">&lt;<span class="token operator">/dependencies<span class="token operator">&gt;
+</span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></code></code></pre>
+
+<src class="cl-preview-section">
+<h5>　　<a id="522__config__156"></a>5.2.2 配置config 文件</h5>
+
+<src class="cl-preview-section">
+<p>　　此处的配置文件和之前的有区别，有两个配置文件 bootstrap.properties 和 application.properties 文件，配置两个文件的作用就是：查漏补缺。<br />把相同的配置放到了GitHub上，有差异的配置放在了application文件中，加载的时候会把这两个文件进行合并<br />　　<strong>Bootstrap.properties文件:</strong></p>
+
+
+<src class="cl-preview-section">
+<pre><code><code class="prism language-yaml"><span class="token comment">　　#从github上读取所要配置的文件的名称
+　　<span class="token comment">#从GitHub上的repository读取文件名
+　　<span class="token comment">#根据读取的规则：不要加后缀名   .properties或.yml
+　　spring.cloud.config.name=application<span class="token punctuation">-dev
+　　<span class="token comment">#配置prpfile的名称
+　　<span class="token comment">#必须要和GitHub上文件配置中心中的spring.profile的值一致，否则匹配不到
+　　spring.cloud.config.profile=dev
+　　<span class="token comment">#配置label（master） 如果使用默认的就不需要配置
+　　spring.cloud.config.label=master
+　　<span class="token comment">#配置config的 服务器端 的地址及端口
+　　spring.cloud.config.uri=http<span class="token punctuation">://localhost<span class="token punctuation">:端口号
+</span></span></span></span></span></span></span></span></span></span></code></code></pre>
+
+<src class="cl-preview-section">
+<p>　<strong>　Application.properties文件：</strong></p>
+
+<src class="cl-preview-section">
+<pre><code><code class="prism language-yaml"><span class="token comment">　　#一定要和bootstrap.properties中的spring.cloud.config.name的值一致，否则映射不到`
+　　spring.application.name=application<span class="token punctuation">-dev
+</span></span></code></code></pre>
+
+<src class="cl-preview-section">
+<h5>　　5.2.3 测试是否链接成功server层的服务器，加载云端的配置文件</h5>
+
+<src class="cl-preview-section">
+<p>　　新创建一个controller目录 &ndash;-&gt; 创建一个controller测试类 TestController ，利用@Value注解获取配置文件中的值</p>
+
+<src class="cl-preview-section">
+<pre><code><code class="prism language-java"><span class="token annotation punctuation">　　@RestController
+　　<span class="token keyword">public <span class="token keyword">class <span class="token class-name">TestController <span class="token punctuation">{
+
+　　　　 <span class="token annotation punctuation">@Value<span class="token punctuation">(<span class="token string">"${spring.datasource.driver-class-name}"<span class="token punctuation">)
+　　  	  <span class="token keyword">private String driverClassName<span class="token punctuation">;
+  	  
+   	 <span class="token annotation punctuation">@RequestMapping<span class="token punctuation">(<span class="token string">"/test"<span class="token punctuation">)
+  	  <span class="token keyword">public String <span class="token function">test<span class="token punctuation">(<span class="token punctuation">)<span class="token punctuation">{
+  	     <span class="token keyword">return driverClassName<span class="token punctuation">;
+   	<span class="token punctuation">}
+<span class="token punctuation">}
+</span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></code></code></pre>
+
+<src class="cl-preview-section">
+<p><span style="font-size: 14pt;">初次写博客，不喜勿喷！！！</span></p>
+
+
+</div><hr><script charset='utf-8' src='../../js/sming.js'></script></body></html>

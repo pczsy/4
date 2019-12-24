@@ -1,0 +1,495 @@
+<html><head><meta charset='utf-8'><meta name='viewport' content='width=device-width, initial-scale=1'>
+<meta name='applicable-device' content='pc'><meta name='keywords' content='电脑,电脑讲解,电脑技术,编程,电脑故障维修SpringBoot起飞系列-配置文件（三）' />
+<script src='../../highlight/highlight.pack.js'></script>
+<link rel='stylesheet' type='text/css' href='../../highlight/styles/monokai.css'/>
+
+<link rel='stylesheet' href='../../fenxiang/dist/css/share.min.css'>
+<script src='../../fenxiang/src/js/social-share.js'></script>
+<script src='../../fenxiang/src/js/qrcode.js'></script>
+
+</head><body><script>hljs.initHighlightingOnLoad();</script><script>
+var system ={};  
+var p = navigator.platform;       
+system.win = p.indexOf('Win') == 0;  
+system.mac = p.indexOf('Mac') == 0;  
+system.x11 = (p == 'X11') || (p.indexOf('Linux') == 0);     
+if(system.win||system.mac||system.xll){
+document.write("<link href='../css/3.css' rel='stylesheet' type='text/css'>");}else{ document.write("<link href='../css/3wap.css' rel='stylesheet' type='text/css'>");}</script><script src='../../js/3.js'></script><div class='div2'><div class='heading_nav'><ul><div><li><a href='../../index.html'>首页</a></li>
+</div><div onclick='hidden1()' >分享</div>
+</ul></div></div>
+<div id='heading_nav2'> 
+<li class='row' >
+<div class='social-share' data-mode='prepend'><a href='javascript:' class='social-share-icon icon-heart'></a></div></li></div><script charset='utf-8' src='../../3/js/hengfu.js'></script><script charset='utf-8' src='../../3/js/hengfu2.js'></script><hr><div class='div1'><div class='biaoti'><center>SpringBoot起飞系列-配置文件（三）</center></div><div class='banquan'>原文出处:本文由博客园博主Lookings提供。<br/>
+原文连接:https://www.cnblogs.com/lookings/p/11539817.html</div><br>
+    <p><strong><span style="font-size: 18pt;">一、SpringBoot中的配置文件</span></strong></p>
+<p>说起到配置文件，大家并不陌生，早在springboot之前，我们用ssh，ssm框架开发的时候整天都要接触配置文件，那时候的配置文件基本上都是.properties和.xml后缀的文件，也基本就是这两种格式，配置好后我们可以从配置文件中读取数据注入到我们的程序中，现在springboot也支持.properties文件，xml用的不多了，新增了一个yaml的配置文件，这是一种新型的配置文件，我们在以后的配置文件中也是尽可能的都会用这种类型的配置文件。</p>
+<p><strong><span style="font-size: 18pt;">二、YAML配置文件简介</span></strong></p>
+<p><strong><span style="font-size: 14pt;">2.1 什么是YAML</span></strong></p>
+<p><span><em>YAML</em>是"YAML Ain't a Markup Language"（YAML不是一种<a href="https://baike.baidu.com/item/%E6%A0%87%E8%AE%B0%E8%AF%AD%E8%A8%80" target="_blank">标记语言</a>）的<a href="https://baike.baidu.com/item/%E9%80%92%E5%BD%92%E7%BC%A9%E5%86%99" target="_blank">递归缩写</a>。在开发的这种语言时，<em>YAML&nbsp;</em>的意思其实是："Yet Another Markup Language"（仍是一种<a href="https://baike.baidu.com/item/%E6%A0%87%E8%AE%B0%E8%AF%AD%E8%A8%80" target="_blank">标记语言</a>），但为了强调这种语言以数据做为中心，而不是以标记语言为重点，而用反向缩略语重命名。它的结构像标记语言，但是语法书写形式方面和标记语言差很多，另外它的语法让它写起来更加的精简却能表达更多的数据内容。</span></p>
+<p><strong><span style="font-size: 14pt;">2.2 YAML和Properites比较</span></strong></p>
+<p><span>相比于传统的properties配置文件来说，YAML的语法就比较严格，语法格式也比较多，接下来我们比较一下两种配置文件对同一种配置的书写方式。</span></p>
+<p><span>Properties配置文件：</span></p>
+<src class="cnblogs_code">
+<pre><code>environments.dev.url=http:<span style="color: #008000;">//</span><span style="color: #008000;">dev.bar.com</span>
+environments.dev.name=<span style="color: #000000;">Developer Setup
+environments.prod.url</span>=http:<span style="color: #008000;">//</span><span style="color: #008000;">foo.bar.com</span>
+environments.prod.name=<span style="color: #000000;">My Cool App
+my.servers[</span><span style="color: #800080;">0</span>]=<span style="color: #000000;">dev.bar.com
+my.servers[</span><span style="color: #800080;">1</span>]=foo.bar.com</code></pre>
+
+<p>YAML配置文件：</p>
+<src class="cnblogs_code">
+<pre><code><span style="color: #000000;">environments:
+    dev:
+        url: http:</span><span style="color: #008000;">//</span><span style="color: #008000;">dev.bar.com</span>
+<span style="color: #000000;">        name: Developer Setup
+    prod:
+        url: http:</span><span style="color: #008000;">//</span><span style="color: #008000;">foo.bar.com</span>
+<span style="color: #000000;">        name: My Cool App
+my:
+    servers:
+        </span>-<span style="color: #000000;"> dev.bar.com
+        </span>- foo.bar.com</code></pre>
+
+<p>可以看出，YAML配置文件结构更加的清晰（通过空格缩进来表示层级），所书写的数据量也很小，有层次结构更加利于机器的解析。</p>
+<p><span style="font-size: 18pt;"><strong>三、YAML语法</strong></span></p>
+<p><span style="font-size: 14pt;"><strong>3.1 数据格式</strong></span></p>
+<p>首先YAML中允许表示三种结构的数据，分别是常量（字面量）、对象、数组。例如下边的数据配置：</p>
+<src class="cnblogs_code">
+<pre><code><span style="color: #000000;">#即表示url属性值；
+url: http:</span><span style="color: #008000;">//</span><span style="color: #008000;">www.wolfcode.cn </span>
+<span style="color: #000000;">#即表示server.host属性的值；
+server:
+    host: http:</span><span style="color: #008000;">//</span><span style="color: #008000;">www.wolfcode.cn </span>
+<span style="color: #000000;">#数组，即表示server为[a,b,c]
+server:
+    </span>- 120.168.117.21
+    - 120.168.117.22
+    - 120.168.117.23<span style="color: #000000;">
+#常量
+pi: </span>3.14   #定义一个数值3.14<span style="color: #000000;">
+hasChild: </span><span style="color: #0000ff;">true</span><span style="color: #000000;">  #定义一个boolean值
+name: </span>'你好YAML'   #定义一个字符串</code></pre>
+
+<p><strong><span style="font-size: 14pt;">3.2 注释</span></strong></p>
+<p>YAML中注释用#开头，和Properties一样，YAML只有行注释。</p>
+<p><strong><span style="font-size: 14pt;">3.3 格式要求</span></strong></p>
+<p>1.YAML中大小写敏感。</p>
+<p>2.使用空格缩进表示层级关系，统一缩进层次的属于同一个层级。</p>
+<p>3.缩进只能用空格，不能用tab，空格数量不做限制，只要求同一层级的保持同样的空格数量（吐槽一下，设计YAML的人估计有这个癖好）。</p>
+<p><strong><span style="font-size: 14pt;">3.4 对象格式</span></strong></p>
+<p>当我们要标记一个对象的时候，使用<strong>key: value的</strong>形式，这里注意冒号后边必须有一个空格（再吐槽一下：不明白是为什么）：</p>
+<src class="cnblogs_code">
+<pre><code>key: value</code></pre>
+
+<p>对象中包含多个值：</p>
+<src class="cnblogs_code">
+<pre><code><span style="color: #000000;">obj1: 
+    key1: value1
+    key2: value2</span></code></pre>
+
+<p>行内写法，YAML语序把对象写到一行，用{ }的形式，这和json差不多：</p>
+<src class="cnblogs_code">
+<pre><code>key: {key1: value1, key2: value2}</code></pre>
+
+<p>复杂的对象格式，可能一个对象的key是多个值，比如是一个数组，这里我们使用一个问号+一个空格代表一个复杂的key值，一个冒号+一个空格代表一个value：</p>
+<src class="cnblogs_code">
+<pre><code>?  
+    -<span style="color: #000000;"> complexkey1
+    </span>-<span style="color: #000000;"> complexkey2
+:
+    </span>-<span style="color: #000000;"> complexvalue1
+    </span>- complexvalue2</code></pre>
+
+<p>这里的意思是，对象的key是一个数组[complexkey1,complexkey2]，值也是[complexvalue1,complexvalue2]。</p>
+<p><strong><span style="font-size: 14pt;">3.5 数组格式</span></strong></p>
+<p><span style="font-size: 14px;">在YAML中，使用一个<strong> -</strong> 和<strong>一个空格</strong>代表一个数组元素，其他的和对象的格式一样，数组元素也可以是对象，可以无限的嵌套：</span></p>
+<src class="cnblogs_code">
+<pre><code><span style="color: #000000;">hobby:
+    </span>-<span style="color: #000000;"> running
+    </span>- reading</code></pre>
+
+<p>数组中也可以包含一些对象结构：</p>
+<src class="cnblogs_code">
+<pre><code><span style="color: #000000;">products:
+    </span>-<span style="color: #000000;">
+        id: </span><span style="color: #800080;">1</span><span style="color: #000000;">
+        name: iphone
+        price: </span><span style="color: #800080;">5000</span>
+    -<span style="color: #000000;">
+        id: </span><span style="color: #800080;">2</span><span style="color: #000000;">
+        name: xiaomi
+        price: </span><span style="color: #800080;">3000</span></code></pre>
+
+<p>数组也可以写成行内样式：</p>
+<src class="cnblogs_code">
+<pre><code>products: [{id: <span style="color: #800080;">1</span>,name: iphone,price: <span style="color: #800080;">5000</span>},{id: <span style="color: #800080;">2</span>,name: xiaomi,price: <span style="color: #800080;">3000</span>}]</code></pre>
+
+<h2>3.6 常量</h2>
+<p><span style="font-size: 14px;">YAML中提供了多种常量结构，包括：整数，浮点数，字符串，NULL，日期，布尔，时间等，可以看一下下面的例子：</span></p>
+<src class="cnblogs_code">
+<pre><code><span style="color: #000000;">boolean: 
+    </span>- TRUE  #<span style="color: #0000ff;">true</span><span style="color: #000000;">,True都可以
+    </span>- FALSE  #<span style="color: #0000ff;">false</span><span style="color: #000000;">，False都可以
+</span><span style="color: #0000ff;">float</span><span style="color: #000000;">:
+    </span>- <span style="color: #800080;">3.14</span>
+    - <span style="color: #800080;">6.8523015e+5</span><span style="color: #000000;">  #可以使用科学计数法
+</span><span style="color: #0000ff;">int</span><span style="color: #000000;">:
+    </span>- <span style="color: #800080;">123</span>
+    -<span style="color: #000000;"> 0b1010_0111_0100_1010_1110    #二进制表示
+</span><span style="color: #0000ff;">null</span><span style="color: #000000;">:
+    nodeName: </span><span style="color: #800000;">'</span><span style="color: #800000;">node</span><span style="color: #800000;">'</span><span style="color: #000000;">
+    parent: </span>~  #使用~<span style="color: #000000;">表示null
+</span><span style="color: #0000ff;">string</span><span style="color: #000000;">:
+    </span>-<span style="color: #000000;"> 哈哈
+    </span>- <span style="color: #800000;">'</span><span style="color: #800000;">Hello world</span><span style="color: #800000;">'</span><span style="color: #000000;">  #可以使用双引号或者单引号包裹特殊字符
+    </span>-<span style="color: #000000;"> newline
+      newline2    #字符串可以拆成多行，每一行会被转化成一个空格
+date:
+    </span>- <span style="color: #800080;">2018</span>-<span style="color: #800080;">02</span>-<span style="color: #800080;">17</span>    #日期必须使用ISO 8601格式，即yyyy-MM-<span style="color: #000000;">dd
+datetime: 
+    </span>-  <span style="color: #800080;">2018</span>-<span style="color: #800080;">02</span>-17T15:<span style="color: #800080;">02</span>:<span style="color: #800080;">31</span>+<span style="color: #800080;">08</span>:<span style="color: #800080;">00</span>    #时间使用ISO 8601格式，时间和日期之间使用T连接，最后使用+代表时区</code></pre>
+
+<h2>3.7 特殊符号</h2>
+<p>YAML中提供了很多特殊符号，可以表示不同的含义</p>
+<p>1. --- YAML可以在同一个文件中，使用---表示一个文档的开始；比如Springboot中profile的定义：</p>
+<src class="cnblogs_code">
+<pre><code><span style="color: #000000;">server:
+    address: </span><span style="color: #800080;">192.168</span>.<span style="color: #800080;">1.100</span>
+---<span style="color: #000000;">
+spring:
+    profiles: development
+    server:
+        address: </span><span style="color: #800080;">127.0</span>.<span style="color: #800080;">0.1</span>
+---<span style="color: #000000;">
+spring:
+    profiles: production
+    server:
+        address: </span><span style="color: #800080;">192.168</span>.<span style="color: #800080;">1.120</span></code></pre>
+
+<p>一般情况下同一层级的key是不允许重复的，这里spring显然是重复的，但是用---隔开了，相当于是两个配置文件了，只不过写到了一个里边。</p>
+<p>2. ... 和---配合使用，在一个配置文件中代表一个文件的结束，和上边的作用差不多：</p>
+<src class="cnblogs_code">
+<pre><code>---<span style="color: #000000;">
+time: </span><span style="color: #800080;">20</span>:<span style="color: #800080;">03</span>:<span style="color: #800080;">20</span><span style="color: #000000;">
+player: Sammy Sosa
+action: strike (miss)
+...
+</span>---<span style="color: #000000;">
+time: </span><span style="color: #800080;">20</span>:<span style="color: #800080;">03</span>:<span style="color: #800080;">47</span><span style="color: #000000;">
+player: Sammy Sosa
+action: grand slam
+...</span></code></pre>
+
+<p>3.&nbsp;!! YAML中使用!!做类型强行转换：</p>
+<src class="cnblogs_code">
+<pre><code><span style="color: #0000ff;">string</span><span style="color: #000000;">:
+    </span>- !!str <span style="color: #800080;">54321</span>
+    - !!str <span style="color: #0000ff;">true</span></code></pre>
+
+<p>这里相当于把数字54321和true强制转换成str类型，也就是字符串类型。</p>
+<src class="cnblogs_code">
+<pre><code>--- !!<span style="color: #0000ff;">set</span>
+- Mark McGwire: <span style="color: #800080;">65</span>
+- Sammy Sosa: <span style="color: #800080;">63</span>
+- Sammy Sosa: <span style="color: #800080;">63</span>
+- Ken Griffy: <span style="color: #800080;">58</span></code></pre>
+
+<p><span style="font-size: 14px;">将数组解析为set，简单理解，转化的内容就是：[{Ken Griffy=58}, {Mark McGwire=65}, {Sammy Sosa=63}]，重复的Sammy Sosa去掉。</span></p>
+<p>4. &gt;可以使字符串换行，| 保留换行符，有时候我们的文本需要换行或者特殊符号要保留出来，不起作用，那就需要用到这个符号：</p>
+<src class="cnblogs_code">
+<pre><code>accomplishment: &gt;<span style="color: #000000;">
+ Mark </span><span style="color: #0000ff;">set</span><span style="color: #000000;"> a major league
+ home run record </span><span style="color: #0000ff;">in</span> <span style="color: #800080;">1998</span><span style="color: #000000;">.
+stats: </span>|
+ <span style="color: #800080;">65</span><span style="color: #000000;"> Home Runs
+ </span><span style="color: #800080;">0.278</span> Batting Average</code></pre>
+
+<p>读取结果：</p>
+<src class="cnblogs_code">
+<pre><code>stats=<span style="color: #800080;">65</span><span style="color: #000000;"> Home Runs
+ </span><span style="color: #800080;">0.278</span><span style="color: #000000;"> Batting Average,
+
+
+accomplishment</span>=Mark <span style="color: #0000ff;">set</span> a major league home run record <span style="color: #0000ff;">in</span> <span style="color: #800080;">1998</span>.</code></pre>
+
+<p>可以看出来stats保留了换行，而accomplishment可以让我们在YAML中以换行的方式写配置，但是实际读取出来还是一行字符串。那么 | 就是所见即所得的配置，适于有格式的配置项，注意 | 需要有空格。</p>
+<p>我们通常用到的基本的语法就这么多，完全满足我们平常的配置使用了，更加高级的用法可以参考官方文档。</p>
+<h1>四、使用YAML配置</h1>
+<h2>4.1 配置注入</h2>
+<p>我们先添加一个YAML配置文件，是一个person的配置，我们准备把这些数据注入到我们的java实体中去：</p>
+<src class="cnblogs_code">
+<pre><code><span style="color: #000000;">person:
+    name: songlin
+    age: </span><span style="color: #800080;">1</span><span style="color: #000000;">
+    hobbies:
+      </span>- <span style="color: #000000;">running
+      </span>- <span style="color: #000000;">reading
+      </span>- <span style="color: #000000;">swiming
+    house:
+      address: 河南郑州
+      area: </span><span style="color: #800080;">90</span></code></pre>
+
+<p>添加一个person类：</p>
+<p>@ConfigurationProperties：使用配置文件中的数据绑定当前到当前类，prefix可以用来指定配置文件中以哪个key值开头的下边的所有属性绑定到此类。</p>
+<p>@Component：要绑定的类必须是spring中的组件，因为这是spring容器帮我们自动注入的，所以也得交给spring容器管理。</p>
+<src class="cnblogs_code">
+<pre><code><span style="color: #0000ff;">package</span><span style="color: #000000;"> com.example.demo.domain;
+
+</span><span style="color: #0000ff;">import</span><span style="color: #000000;"> org.springframework.boot.context.properties.ConfigurationProperties;
+</span><span style="color: #0000ff;">import</span><span style="color: #000000;"> org.springframework.stereotype.Component;
+
+</span><span style="color: #0000ff;">import</span><span style="color: #000000;"> java.util.List;
+</span><span style="color: #0000ff;">import</span><span style="color: #000000;"> java.util.Map;
+
+@ConfigurationProperties(prefix </span>= "person"<span style="color: #000000;">)
+@Component
+</span><span style="color: #0000ff;">public</span> <span style="color: #0000ff;">class</span><span style="color: #000000;"> Person {
+    </span><span style="color: #0000ff;">private</span><span style="color: #000000;"> String name;
+    </span><span style="color: #0000ff;">private</span><span style="color: #000000;"> Integer age;
+    </span><span style="color: #0000ff;">private</span> List&lt;String&gt;<span style="color: #000000;"> hobbies;
+
+    </span><span style="color: #0000ff;">private</span> Map&lt;String,String&gt;<span style="color: #000000;"> house;
+
+    @Override
+    </span><span style="color: #0000ff;">public</span><span style="color: #000000;"> String toString() {
+        </span><span style="color: #0000ff;">return</span> "Person{" +
+                "name='" + name + '\'' +
+                ", age=" + age +
+                ", hobbies=" + hobbies +
+                ", house=" + house +
+                '}'<span style="color: #000000;">;
+    }
+
+    </span><span style="color: #0000ff;">public</span><span style="color: #000000;"> String getName() {
+        </span><span style="color: #0000ff;">return</span><span style="color: #000000;"> name;
+    }
+
+    </span><span style="color: #0000ff;">public</span> <span style="color: #0000ff;">void</span><span style="color: #000000;"> setName(String name) {
+        </span><span style="color: #0000ff;">this</span>.name =<span style="color: #000000;"> name;
+    }
+
+    </span><span style="color: #0000ff;">public</span><span style="color: #000000;"> Integer getAge() {
+        </span><span style="color: #0000ff;">return</span><span style="color: #000000;"> age;
+    }
+
+    </span><span style="color: #0000ff;">public</span> <span style="color: #0000ff;">void</span><span style="color: #000000;"> setAge(Integer age) {
+        </span><span style="color: #0000ff;">this</span>.age =<span style="color: #000000;"> age;
+    }
+
+    </span><span style="color: #0000ff;">public</span> List&lt;String&gt;<span style="color: #000000;"> getHobbies() {
+        </span><span style="color: #0000ff;">return</span><span style="color: #000000;"> hobbies;
+    }
+
+    </span><span style="color: #0000ff;">public</span> <span style="color: #0000ff;">void</span> setHobbies(List&lt;String&gt;<span style="color: #000000;"> hobbies) {
+        </span><span style="color: #0000ff;">this</span>.hobbies =<span style="color: #000000;"> hobbies;
+    }
+
+    </span><span style="color: #0000ff;">public</span> Map&lt;String, String&gt;<span style="color: #000000;"> getHouse() {
+        </span><span style="color: #0000ff;">return</span><span style="color: #000000;"> house;
+    }
+
+    </span><span style="color: #0000ff;">public</span> <span style="color: #0000ff;">void</span> setHouse(Map&lt;String, String&gt;<span style="color: #000000;"> house) {
+        </span><span style="color: #0000ff;">this</span>.house =<span style="color: #000000;"> house;
+    }
+}</span></code></pre>
+
+<p>然后在test中运行单元测试：</p>
+<src class="cnblogs_code">
+<pre><code><span style="color: #0000ff;">package</span><span style="color: #000000;"> com.example.demo;
+
+</span><span style="color: #0000ff;">import</span><span style="color: #000000;"> com.example.demo.domain.Person;
+</span><span style="color: #0000ff;">import</span><span style="color: #000000;"> org.junit.Test;
+</span><span style="color: #0000ff;">import</span><span style="color: #000000;"> org.junit.runner.RunWith;
+</span><span style="color: #0000ff;">import</span><span style="color: #000000;"> org.springframework.beans.factory.annotation.Autowired;
+</span><span style="color: #0000ff;">import</span><span style="color: #000000;"> org.springframework.boot.test.context.SpringBootTest;
+</span><span style="color: #0000ff;">import</span><span style="color: #000000;"> org.springframework.test.context.junit4.SpringRunner;
+
+@RunWith(SpringRunner.</span><span style="color: #0000ff;">class</span><span style="color: #000000;">)
+@SpringBootTest
+</span><span style="color: #0000ff;">public</span> <span style="color: #0000ff;">class</span><span style="color: #000000;"> DemoApplicationTests {
+
+    @Autowired
+    </span><span style="color: #0000ff;">private</span><span style="color: #000000;"> Person person;
+    @Test
+    </span><span style="color: #0000ff;">public</span> <span style="color: #0000ff;">void</span><span style="color: #000000;"> contextLoads() {
+        System.out.println(person);
+    }
+
+}</span></code></pre>
+
+<p>直接运行会发现控制台输入person实例中的数据，说明我们的注入成功。</p>
+<p><img style="border: 1px solid black;" src="./images/SpringBoot起飞系列-配置文件（三）0.png" alt="" /></p>
+<p><span style="font-size: 14px;">配置中自动提示：我们可以加入以下依赖，当我们在配置文件中写配置的时候，springboot会根据我们项目中存在的实体，提示我们相应的配置名称。</span></p>
+<src class="cnblogs_code">
+<pre><code><span style="color: #008000;">&lt;!--</span><span style="color: #008000;">导入配置文件处理器，配置文件进行绑定就会有提示</span><span style="color: #008000;">--&gt;</span>
+        <span style="color: #0000ff;">&lt;</span><span style="color: #800000;">dependency</span><span style="color: #0000ff;">&gt;</span>
+            <span style="color: #0000ff;">&lt;</span><span style="color: #800000;">groupId</span><span style="color: #0000ff;">&gt;</span>org.springframework.boot<span style="color: #0000ff;">&lt;/</span><span style="color: #800000;">groupId</span><span style="color: #0000ff;">&gt;</span>
+            <span style="color: #0000ff;">&lt;</span><span style="color: #800000;">artifactId</span><span style="color: #0000ff;">&gt;</span>spring-boot-configuration-processor<span style="color: #0000ff;">&lt;/</span><span style="color: #800000;">artifactId</span><span style="color: #0000ff;">&gt;</span>
+            <span style="color: #0000ff;">&lt;</span><span style="color: #800000;">optional</span><span style="color: #0000ff;">&gt;</span>true<span style="color: #0000ff;">&lt;/</span><span style="color: #800000;">optional</span><span style="color: #0000ff;">&gt;</span>
+        <span style="color: #0000ff;">&lt;/</span><span style="color: #800000;">dependency</span><span style="color: #0000ff;">&gt;</span></code></pre>
+
+<p><img style="border: 1px solid black;" src="./images/SpringBoot起飞系列-配置文件（三）1.png" alt="" /></p>
+<h2>4.2 注入方式</h2>
+<p>@Value和@ConfigurationProperties注入方式对比：</p>
+<p><img style="border: 1px solid black;" src="./images/SpringBoot起飞系列-配置文件（三）2.png" alt="" /></p>
+<p>上述注入方式不区分是哪个配置文件的配置，YAML和Properties类型的配置文件都可以注入，springboot会自动查询。</p>
+<p>1.当我们的业务中需要获取配置文件中的某一个值时，我们可以用@Value的方式获取。</p>
+<p>2.当我们的业务中需要获取配置文件中的一组值或者复杂的值时，我们可以用@ConfigurationProperties来获取</p>
+<h2>4.3 配置文件来源</h2>
+<p>我们可以是用&nbsp;<span class="md-plain md-expand">@PropertySource&amp;@ImportResource&amp;@Bean 来指定当前配置文件的来源。</span></p>
+<p><span class="md-plain md-expand">@PropertySource：加载指定的配置文件，只能指定.properties类型的配置文件，不支持yml类型的配置文件。</span></p>
+<p><span class="md-plain md-expand">接下来我们从新添加一个person.properties配置文件，指定person类使用这个文件中的数据来注入：</span>&nbsp;</p>
+<p><img style="border: 1px solid black;" src="./images/SpringBoot起飞系列-配置文件（三）3.png" alt="" /></p>
+<p>在Person.java中使用该配置，在单元测试中输出person，可以看见读取了person.properties中的配置数据：</p>
+<p><img style="border: 1px solid black;" src="./images/SpringBoot起飞系列-配置文件（三）4.png" alt="" /></p>
+<p><img style="border: 1px solid black;" src="./images/SpringBoot起飞系列-配置文件（三）5.png" alt="" /></p>
+<p><span style="background-color: #ffff00;">注意：这里如果application.properties中或者application.yml中存在相同的配置，此时person.properties就会被前边两个配置文件中的配置覆盖掉，并且默认情况下application.properties比application.yml的优先级更高。</span></p>
+<p><span style="background-color: #ffffff;">@ImportResource：导入外部的spring配置文件，因为springboot倡导的就是零配置，因此不会识别项目里的spring的配置文件，如果我们指定spring配置文件（一些beans的实例），一些对象可以由此注入，spring的配置文件和上边的配置文件是不一样的。</span></p>
+<p><span style="background-color: #ffffff;">接下来我们来指定beans.xml来作为spring的配置文件，并把注解标在启动类上：</span></p>
+<src class="cnblogs_code">
+<pre><code><span style="color: #0000ff;">&lt;?</span><span style="color: #ff00ff;">xml version="1.0" encoding="UTF-8"</span><span style="color: #0000ff;">?&gt;</span>
+<span style="color: #0000ff;">&lt;</span><span style="color: #800000;">beans </span><span style="color: #ff0000;">xmlns</span><span style="color: #0000ff;">="http://www.springframework.org/schema/beans"</span><span style="color: #ff0000;">
+       xmlns:xsi</span><span style="color: #0000ff;">="http://www.w3.org/2001/XMLSchema-instance"</span><span style="color: #ff0000;">
+       xsi:schemaLocation</span><span style="color: #0000ff;">="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd"</span><span style="color: #0000ff;">&gt;</span>
+
+
+    <span style="color: #0000ff;">&lt;</span><span style="color: #800000;">bean </span><span style="color: #ff0000;">id</span><span style="color: #0000ff;">="personService"</span><span style="color: #ff0000;"> class</span><span style="color: #0000ff;">="com.example.demo.service.PersonService"</span><span style="color: #0000ff;">&gt;&lt;/</span><span style="color: #800000;">bean</span><span style="color: #0000ff;">&gt;</span>
+<span style="color: #0000ff;">&lt;/</span><span style="color: #800000;">beans</span><span style="color: #0000ff;">&gt;</span></code></pre>
+
+<p>在启动类上添加注解：@ImportResource(locations = {"classpath:beans.xml"})</p>
+<src class="cnblogs_code">
+<pre><code>@ImportResource(locations = {"classpath:beans.xml"<span style="color: #000000;">})
+@SpringBootApplication
+</span><span style="color: #0000ff;">public</span> <span style="color: #0000ff;">class</span><span style="color: #000000;"> DemoApplication {
+
+    </span><span style="color: #0000ff;">public</span> <span style="color: #0000ff;">static</span> <span style="color: #0000ff;">void</span><span style="color: #000000;"> main(String[] args) {
+        SpringApplication.run(DemoApplication.</span><span style="color: #0000ff;">class</span><span style="color: #000000;">, args);
+    }
+
+}</span>&nbsp;</code></pre>
+
+<p>添加PersonService类：</p>
+<src class="cnblogs_code">
+<pre><code><span style="color: #0000ff;">package</span><span style="color: #000000;"> com.example.demo.service;
+
+</span><span style="color: #0000ff;">import</span><span style="color: #000000;"> com.example.demo.domain.Person;
+
+
+</span><span style="color: #0000ff;">public</span> <span style="color: #0000ff;">class</span><span style="color: #000000;"> PersonService {
+
+    </span><span style="color: #0000ff;">public</span><span style="color: #000000;"> Person getPerson(){
+        Person p </span>= <span style="color: #0000ff;">new</span><span style="color: #000000;"> Person();
+        p.setAge(</span>12<span style="color: #000000;">);
+        p.setName(</span>"beans.xml"<span style="color: #000000;">);
+        </span><span style="color: #0000ff;">return</span><span style="color: #000000;"> p;
+    }
+}</span>&nbsp;</code></pre>
+
+<p>在单元测试中添加测试代码：</p>
+<src class="cnblogs_code">
+<pre><code>@RunWith(SpringRunner.<span style="color: #0000ff;">class</span><span style="color: #000000;">)
+@SpringBootTest
+</span><span style="color: #0000ff;">public</span> <span style="color: #0000ff;">class</span><span style="color: #000000;"> DemoApplicationTests {
+
+    @Autowired
+    </span><span style="color: #0000ff;">private</span><span style="color: #000000;"> PersonService personService;
+
+    @Test
+    </span><span style="color: #0000ff;">public</span> <span style="color: #0000ff;">void</span><span style="color: #000000;"> contextLoads() {
+        System.out.println(personService.getPerson());
+    }
+
+}</span>&nbsp;</code></pre>
+
+<p>运行输出结果：</p>
+<p><img src="./images/SpringBoot起飞系列-配置文件（三）6.png" alt="" /></p>
+<h2>4.5 注解方式自定义配置</h2>
+<p>前边我们是通过指定beans.xml配置文件，设置了spring的容器，接下来完全用代码加注解的方式来实现提供一个spring容器，这也是springboot官方推荐的一种方式</p>
+<p>1.使用@Configuration注解说明此类是一个spring配置文件。</p>
+<p>2.使用@Bean注解表名返回的内容是spring容器中的一个bean。</p>
+<src class="cnblogs_code">
+<pre><code><span style="color: #008000;">/**</span><span style="color: #008000;">
+ * @Configuration：指明当前类是一个配置类；就是来替代之前的Spring配置文件
+ *
+ * @Bean 相当于在配置文件中用&lt;bean&gt;&lt;bean/&gt;标签添加组件
+ *
+ </span><span style="color: #008000;">*/</span><span style="color: #000000;">
+@Configuration
+</span><span style="color: #0000ff;">public</span> <span style="color: #0000ff;">class</span><span style="color: #000000;"> MyAppConfig {
+
+    </span><span style="color: #008000;">//</span><span style="color: #008000;">将方法的返回值添加到容器中；容器中这个组件默认的id就是方法名</span>
+<span style="color: #000000;">    @Bean
+    </span><span style="color: #0000ff;">public</span><span style="color: #000000;"> PersonService personService1(){
+        System.out.println(</span>"配置类@Bean给容器中添加组件了..."<span style="color: #000000;">);
+        </span><span style="color: #0000ff;">return</span> <span style="color: #0000ff;">new</span><span style="color: #000000;"> PersonService();
+    }
+}</span></code></pre>
+
+<h2>4.6 多Profile模式</h2>
+<p>这个模式可以让我们的项目根据不同的环境提供不同的配置，灵活的分开了线上环境和测试环境的配置。</p>
+<p>在实际开发的时候，我们往往分为本地环境、测试环境、生产环境，如果我们的项目只用一个配置文件，这样的话就得根据发布环境一直修改这个配置文件，不仅麻烦还容易出错，引起生产事故。这个时候我们就可以添加多个环境的配置文件，格式一般为：application-{env}.properties/yml，默认使用applicaiton.properties/yml主配置文件，通过在里边配置激活不同的环境，来实现不同的环境使用不同的配置文件。</p>
+<p>我们可以创建以下几个配置文件：</p>
+<p>application.properties：主配置文件</p>
+<p>application-dev.properties：开发环境配置文件</p>
+<p>application-test.properties：测试环境配置文件</p>
+<p>application-prod.properties：生产环境配置文件</p>
+<p>加入我们分别在各个环境中添加配置：</p>
+<src class="cnblogs_code">
+<pre><code><span style="color: #000000;"># 开发环境  application-dev.properties
+server.port=8082
+
+# 测试环境  application-test.properties
+server.port=8083
+
+
+# 生产环境  application.prod-properties
+server.port=8084</span></code></pre>
+
+<p>然后在主配置文件中写入：</p>
+<src class="cnblogs_code">
+<pre><code><span style="color: #000000;"># 切换到开发环境  application.properties
+spring.profiles.active=dev</span></code></pre>
+
+<p>也可以在一个yml中配置成多个文档块，来区分各个环境：</p>
+<src class="cnblogs_code">
+<pre><code><span style="color: #000000;">spring:
+    profiles:
+        active: test    # 切换配置
+---
+# 开发环境
+server:
+    port: 8082
+spring:
+    profiles: dev
+---
+# 测试环境
+server:
+    port: 8083
+spring:
+    profiles: test
+---
+# 生产环境
+server:
+    port: 8084
+spring:
+    profiles: prod</span></code></pre>
+
+<p><span>也可以在启动时，使用命令行指定环境，会覆盖掉当前主配置文件中的环境激活配置：</span></p>
+<src class="cnblogs_code">
+<pre><code>java -jar com.example.demo.0.0.1-SNAPSHOT.jar --spring.profiles.active=dev；</code></pre>
+
+<h2>4.6 配置文件加载顺序</h2>
+<p><span class="md-plain md-expand">springboot 启动会扫描以下位置的application.properties或者application.yml文件作为Spring boot的默认配置文件。</span></p>
+<p class="md-end-block md-p"><span class="md-plain" style="font-size: 14px;">1.&ndash;file:./config/</span></p>
+<p class="md-end-block md-p"><span class="md-plain" style="font-size: 14px;">2.&ndash;file:./</span></p>
+<p class="md-end-block md-p"><span class="md-plain" style="font-size: 14px;">3.&ndash;classpath:/config/</span></p>
+<p class="md-end-block md-p"><span class="md-plain" style="font-size: 14px;">4.&ndash;classpath:/</span></p>
+<p class="md-end-block md-p"><span class="md-plain" style="font-size: 14px;">优先级由高到底，高优先级的配置会覆盖低优先级的配置，</span>springboot会从这四个位置全部加载主配置文件。</p>
+<p class="md-end-block md-p"><span class="md-plain">我们还可以通过spring.config.location来改变默认的配置文件位置</span></p>
+<p class="md-end-block md-p"><span style="font-size: 14px;"><strong>项目打包好以后，我们可以使用命令行参数的形式，启动项目的时候来指定配置文件的新位置，指定配置文件和默认加载的这些配置文件共同起作用形成互补配置，并不是只加载优先级最高的。</strong></span></p>
+<p class="md-end-block md-p md-focus"><span class="md-plain" style="font-size: 14px;">java -jar&nbsp;</span>com.example.demo.0.0.1-SNAPSHOT.jar<span class="md-plain">--spring.config.location=D:/application.properties。</span></p>
+<h1>五、总结</h1>
+<p><span>本篇讲了YAML配置文件的使用，在springboot中也推荐使用这种方式来做配置文件，当然springboot中也支持properties作为配置文件，使用方法也都是一样的。</span></p>
+
+</div><hr><script charset='utf-8' src='../../js/sming.js'></script></body></html>

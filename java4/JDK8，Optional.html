@@ -1,0 +1,151 @@
+<html><head><meta charset='utf-8'><meta name='viewport' content='width=device-width, initial-scale=1'>
+<meta name='applicable-device' content='pc'><meta name='keywords' content='电脑,电脑讲解,电脑技术,编程,电脑故障维修JDK8，Optional' />
+<script src='../../highlight/highlight.pack.js'></script>
+<link rel='stylesheet' type='text/css' href='../../highlight/styles/monokai.css'/>
+
+<link rel='stylesheet' href='../../fenxiang/dist/css/share.min.css'>
+<script src='../../fenxiang/src/js/social-share.js'></script>
+<script src='../../fenxiang/src/js/qrcode.js'></script>
+
+</head><body><script>hljs.initHighlightingOnLoad();</script><script>
+var system ={};  
+var p = navigator.platform;       
+system.win = p.indexOf('Win') == 0;  
+system.mac = p.indexOf('Mac') == 0;  
+system.x11 = (p == 'X11') || (p.indexOf('Linux') == 0);     
+if(system.win||system.mac||system.xll){
+document.write("<link href='../css/3.css' rel='stylesheet' type='text/css'>");}else{ document.write("<link href='../css/3wap.css' rel='stylesheet' type='text/css'>");}</script><script src='../../js/3.js'></script><div class='div2'><div class='heading_nav'><ul><div><li><a href='../../index.html'>首页</a></li>
+</div><div onclick='hidden1()' >分享</div>
+</ul></div></div>
+<div id='heading_nav2'> 
+<li class='row' >
+<div class='social-share' data-mode='prepend'><a href='javascript:' class='social-share-icon icon-heart'></a></div></li></div><script charset='utf-8' src='../../3/js/hengfu.js'></script><script charset='utf-8' src='../../3/js/hengfu2.js'></script><hr><div class='div1'><div class='biaoti'><center>JDK8，Optional</center></div><div class='banquan'>原文出处:本文由博客园博主feng_520提供。<br/>
+原文连接:https://www.cnblogs.com/zhoubb/p/11610754.html</div><br>
+    <p>　　&nbsp;作为程序员，你肯定遇到过NullPointerException, 这个异常对于初出茅庐的新人， 还是久经江湖的老手都是不可避免的痛， 可又是那么的无能为力，为了解决它，你只能在使用某个值之前，对其进行判空处理。然而这样会使得代码变得臃肿不堪。幸好jdk8引入了optional来处理了null的问题，使得我们可以不再对null做过多的关心。</p>
+<p>&nbsp;&nbsp;&nbsp;&nbsp;先展示jdk8之前的写法</p>
+<src class="cke_widget_wrapper cke_widget_block cke_widget_codeSnippet cke_widget_selected" data-cke-widget-wrapper="1" data-cke-filter="off" data-cke-display-name="代码段" data-cke-widget-id="7">
+<src class="cnblogs_code">
+<pre><code><span style="color: #008080;">1</span> <span style="color: #008000;">//</span><span style="color: #008000;"> First before jdk8</span>
+<span style="color: #008080;">2</span> Long id = 0L<span style="color: #000000;">;
+</span><span style="color: #008080;">3</span> User user =<span style="color: #000000;"> getUserById(id);
+</span><span style="color: #008080;">4</span> <span style="color: #0000ff;">if</span> (user != <span style="color: #0000ff;">null</span><span style="color: #000000;">) {
+</span><span style="color: #008080;">5</span>     String name =<span style="color: #000000;"> user.getName();
+</span><span style="color: #008080;">6</span>     System.out.println("name=" +<span style="color: #000000;"> name);
+</span><span style="color: #008080;">7</span> }</code></pre>
+
+<img class="cke_reset cke_widget_mask" src="data:image/gif;base64,R0lGODlhAQABAPABAP///wAAACH5BAEKAAAALAAAAAABAAEAAAICRAEAOw==" alt="" /><span class="cke_reset cke_widget_drag_handler_container"><img class="cke_reset cke_widget_drag_handler" title="点击并拖拽以移动" src="data:image/gif;base64,R0lGODlhAQABAPABAP///wAAACH5BAEKAAAALAAAAAABAAEAAAICRAEAOw==" alt="" width="15" height="15" data-cke-widget-drag-handler="1" /></span>
+<p>如果不对方法拿到的user 进行空判断，下面获取其属性很容易就会出现空指针异常。</p>
+<p>jdk 8 写法</p>
+<src class="cke_widget_wrapper cke_widget_block cke_widget_codeSnippet cke_widget_selected" data-cke-widget-wrapper="1" data-cke-filter="off" data-cke-display-name="代码段" data-cke-widget-id="6">
+<src class="cnblogs_code">
+<pre><code><span style="color: #008080;">1</span> User userById = Optional.ofNullable(getUserById(id)).orElse(<span style="color: #0000ff;">new</span><span style="color: #000000;"> User());
+</span><span style="color: #008080;">2</span> String name =<span style="color: #000000;"> userById.getName();
+</span><span style="color: #008080;">3</span> System.out.println("new name=" + name);</code></pre>
+
+<img class="cke_reset cke_widget_mask" src="data:image/gif;base64,R0lGODlhAQABAPABAP///wAAACH5BAEKAAAALAAAAAABAAEAAAICRAEAOw==" alt="" />
+<p>这种写法就避免了空的判断，代码显得很简便</p>
+<p>下面介绍下 optional 的方法</p>
+<p>1、首先是构造 &nbsp;of, &nbsp;ofNullable,&nbsp;empty</p>
+<src class="cke_widget_wrapper cke_widget_block cke_widget_codeSnippet cke_widget_selected" data-cke-widget-wrapper="1" data-cke-filter="off" data-cke-display-name="代码段" data-cke-widget-id="5">
+<src class="cnblogs_code">
+<pre><code><span style="color: #008080;"> 1</span> <span style="color: #008000;">//</span><span style="color: #008000;"> empty 构建空的optional对象</span>
+<span style="color: #008080;"> 2</span> Optional&lt;Object&gt; empty =<span style="color: #000000;"> Optional.empty();
+</span><span style="color: #008080;"> 3</span> 
+<span style="color: #008080;"> 4</span> <span style="color: #008000;">//</span><span style="color: #008000;"> of 构造user的optional 对象，user对象不为空， 如果为空，构建的时候就会报nullPointerException</span>
+<span style="color: #008080;"> 5</span> User user = <span style="color: #0000ff;">new</span><span style="color: #000000;"> User();
+</span><span style="color: #008080;"> 6</span> Optional&lt;User&gt; userOptional =<span style="color: #000000;"> Optional.of(user);
+</span><span style="color: #008080;"> 7</span> 
+<span style="color: #008080;"> 8</span> <span style="color: #008000;">//</span><span style="color: #008000;"> ofNull 构造optional对象，内部user如果为空，就构建空的optional对象</span>
+<span style="color: #008080;"> 9</span> Optional&lt;User&gt; userOptionalOfNull =<span style="color: #000000;"> Optional.ofNullable(user);
+</span><span style="color: #008080;">10</span> 
+<span style="color: #008080;">11</span> Optional&lt;Object&gt; objectOptional = Optional.of(<span style="color: #0000ff;">null</span><span style="color: #000000;">);
+</span><span style="color: #008080;">12</span> <span style="color: #000000;">System.out.println(objectOptional);
+</span><span style="color: #008080;">13</span> 
+<span style="color: #008080;">14</span> 
+<span style="color: #008080;">15</span> Exception in thread "main"<span style="color: #000000;"> java.lang.NullPointerException
+</span><span style="color: #008080;">16</span>     at java.util.Objects.requireNonNull(Objects.java:203<span style="color: #000000;">)
+</span><span style="color: #008080;">17</span>     at java.util.Optional.&lt;init&gt;(Optional.java:96<span style="color: #000000;">)
+</span><span style="color: #008080;">18</span>     at java.util.Optional.of(Optional.java:108<span style="color: #000000;">)
+</span><span style="color: #008080;">19</span>     at com.zbb.jdk.jdk8Test.optional.OptionalOfTest.main(OptionalOfTest.java:32)</code></pre>
+
+<p><img class="cke_reset cke_widget_drag_handler" title="点击并拖拽以移动" src="data:image/gif;base64,R0lGODlhAQABAPABAP///wAAACH5BAEKAAAALAAAAAABAAEAAAICRAEAOw==" alt="" width="15" height="15" data-cke-widget-drag-handler="1" /></p>
+
+<p>看下ofNullable 方法源码</p>
+<p><img src="./images/JDK8，Optional4.png" alt="" width="831" height="290" data-cke-saved-src="./images/JDK8，Optional4.png" /></p>
+<p>2、 获取 ifPresent, get, isPresent</p>
+<src class="cke_widget_wrapper cke_widget_block cke_widget_codeSnippet cke_widget_selected" data-cke-widget-wrapper="1" data-cke-filter="off" data-cke-display-name="代码段" data-cke-widget-id="3">
+<src class="cnblogs_code">
+<pre><code><span style="color: #008080;"> 1</span> Optional&lt;User&gt; userOptional =<span style="color: #000000;"> Optional.ofNullable(getUserById(id));
+</span><span style="color: #008080;"> 2</span> <span style="color: #008000;">//</span><span style="color: #008000;"> isPresent  判断optional对象是否存在，如果存在，返回true, 否则返回false</span>
+<span style="color: #008080;"> 3</span> <span style="color: #0000ff;">if</span><span style="color: #000000;">(userOptional.isPresent()){
+</span><span style="color: #008080;"> 4</span>     <span style="color: #008000;">//</span><span style="color: #008000;"> 已判断存在
+</span><span style="color: #008080;"> 5</span>     <span style="color: #008000;">//</span><span style="color: #008000;"> get 如果创建的Optional中有值存在，则返回此值，否则抛出NoSuchElementException</span>
+<span style="color: #008080;"> 6</span>     User user =<span style="color: #000000;"> userOptional.get();
+</span><span style="color: #008080;"> 7</span>     System.out.println("name" +<span style="color: #000000;"> user.getName());
+</span><span style="color: #008080;"> 8</span> <span style="color: #000000;">}
+</span><span style="color: #008080;"> 9</span> 
+<span style="color: #008080;">10</span> <span style="color: #008000;">//</span><span style="color: #008000;"> 创建的Optional中的值存在，则执行该方法的调用，否则什么也不做
+</span><span style="color: #008080;">11</span> <span style="color: #008000;">//</span><span style="color: #008000;"> ifPresent方法的参数是一个函数式接口， 该方法无返回值，可以直接用lambda表达式</span>
+<span style="color: #008080;">12</span> userOptional.ifPresent(user -&gt; System.out.println("name=" + user.getName()));</code></pre>
+
+<img class="cke_reset cke_widget_mask" src="data:image/gif;base64,R0lGODlhAQABAPABAP///wAAACH5BAEKAAAALAAAAAABAAEAAAICRAEAOw==" alt="" /><span class="cke_reset cke_widget_drag_handler_container"><img class="cke_reset cke_widget_drag_handler" title="点击并拖拽以移动" src="data:image/gif;base64,R0lGODlhAQABAPABAP///wAAACH5BAEKAAAALAAAAAABAAEAAAICRAEAOw==" alt="" width="15" height="15" data-cke-widget-drag-handler="1" /></span>
+<p>最开始的例子也可以用isPresent来这样改，但是这样和原先判空并没有什么区别，只是方法不同而已，本质没区别，所以不推荐。看下这几个方法的源码</p>
+<p><img src="./images/JDK8，Optional7.png" alt="" width="786" height="350" data-cke-saved-src="./images/JDK8，Optional7.png" /></p>
+<p>3、获取 orElse，&nbsp;orElseGet，&nbsp;orElseThrow</p>
+<src class="cke_widget_wrapper cke_widget_block cke_widget_codeSnippet cke_widget_selected" data-cke-widget-wrapper="1" data-cke-filter="off" data-cke-display-name="代码段" data-cke-widget-id="2">
+<src class="cnblogs_code">
+<pre><code><span style="color: #008080;"> 1</span> Optional&lt;User&gt; userOptional =<span style="color: #000000;"> Optional.ofNullable(getUserById(id));
+</span><span style="color: #008080;"> 2</span> 
+<span style="color: #008080;"> 3</span> <span style="color: #008000;">//</span><span style="color: #008000;">orElse 如果optional 有值就返回值，如果没有就返回一个默认值
+</span><span style="color: #008080;"> 4</span> <span style="color: #008000;">//</span><span style="color: #008000;"> 默认值就是我们创建的一个类</span>
+<span style="color: #008080;"> 5</span> User user = userOptional.orElse(<span style="color: #0000ff;">new</span> User("xiaohong", "123456789"<span style="color: #000000;">));
+</span><span style="color: #008080;"> 6</span> System.out.println("name=" + user.getName()); <span style="color: #008000;">//</span><span style="color: #008000;"> name=xiaohong
+</span><span style="color: #008080;"> 7</span> 
+<span style="color: #008080;"> 8</span> <span style="color: #008000;">//</span><span style="color: #008000;">orElseGet 如果optional有值就返回值，如果没有，就执行一个Supplier接口，返回生成的值</span>
+<span style="color: #008080;"> 9</span> User userOrElseGet = userOptional.orElseGet(() -&gt; <span style="color: #0000ff;">new</span> User("xiaohongGet", "123456789"<span style="color: #000000;">));
+</span><span style="color: #008080;">10</span> System.out.println("name=" + userOrElseGet.getName()); <span style="color: #008000;">//</span><span style="color: #008000;">name=xiaohongGet
+</span><span style="color: #008080;">11</span> 
+<span style="color: #008080;">12</span> <span style="color: #008000;">//</span><span style="color: #008000;">orElseThrow 如果optional有值就返回值，如果没有，就返回一个指定的Supplier接口生成的异常</span>
+<span style="color: #008080;">13</span> User userElseThrow = userOptional.orElseThrow(() -&gt; <span style="color: #0000ff;">new</span> Exception("userOptional 为空！"<span style="color: #000000;">));
+</span><span style="color: #008080;">14</span> 
+<span style="color: #008080;">15</span> <span style="color: #008000;">//</span><span style="color: #008000;"> 为空时，抛出的异常</span>
+<span style="color: #008080;">16</span> Exception in thread "main"<span style="color: #000000;"> java.lang.Exception: userOptional 为空！
+</span><span style="color: #008080;">17</span>     at com.zbb.jdk.jdk8Test.optional.OptionalOrElse.lambda$main$1(OptionalOrElse.java:29<span style="color: #000000;">)
+</span><span style="color: #008080;">18</span>     at java.util.Optional.orElseThrow(Optional.java:290<span style="color: #000000;">)
+</span><span style="color: #008080;">19</span>     at com.zbb.jdk.jdk8Test.optional.OptionalOrElse.main(OptionalOrElse.java:29)</code></pre>
+
+<img class="cke_reset cke_widget_mask" src="data:image/gif;base64,R0lGODlhAQABAPABAP///wAAACH5BAEKAAAALAAAAAABAAEAAAICRAEAOw==" alt="" /><span class="cke_reset cke_widget_drag_handler_container"><img class="cke_reset cke_widget_drag_handler" title="点击并拖拽以移动" src="data:image/gif;base64,R0lGODlhAQABAPABAP///wAAACH5BAEKAAAALAAAAAABAAEAAAICRAEAOw==" alt="" width="15" height="15" data-cke-widget-drag-handler="1" /></span>
+<p>看下源码</p>
+<p><img src="./images/JDK8，Optional10.png" alt="" width="717" height="388" data-cke-saved-src="./images/JDK8，Optional10.png" /></p>
+<p>orElseThrow 同理</p>
+<p>4、过滤 &nbsp;filter</p>
+<src class="cke_widget_wrapper cke_widget_block cke_widget_codeSnippet cke_widget_selected" data-cke-widget-wrapper="1" data-cke-filter="off" data-cke-display-name="代码段" data-cke-widget-id="1">
+<src class="cnblogs_code">
+<pre><code><span style="color: #008080;">1</span> Optional&lt;User&gt; userOptional = Optional.ofNullable(<span style="color: #0000ff;">new</span> User("xiao", "123456"<span style="color: #000000;">));
+</span><span style="color: #008080;">2</span> 
+<span style="color: #008080;">3</span> <span style="color: #008000;">//</span><span style="color: #008000;">optional中的值符合条件，则返回该optional对象，否则返回空的optional对象</span>
+<span style="color: #008080;">4</span> User user = userOptional.filter(u -&gt; NAME.equals(u.getName())).orElse(<span style="color: #0000ff;">new</span> User("不满足", ""<span style="color: #000000;">));
+</span><span style="color: #008080;">5</span> System.out.println("name=" + user.getName()); <span style="color: #008000;">//</span><span style="color: #008000;">name=xiao</span></code></pre>
+
+<img class="cke_reset cke_widget_mask" src="data:image/gif;base64,R0lGODlhAQABAPABAP///wAAACH5BAEKAAAALAAAAAABAAEAAAICRAEAOw==" alt="" /><span class="cke_reset cke_widget_drag_handler_container"><img class="cke_reset cke_widget_drag_handler" title="点击并拖拽以移动" src="data:image/gif;base64,R0lGODlhAQABAPABAP///wAAACH5BAEKAAAALAAAAAABAAEAAAICRAEAOw==" alt="" width="15" height="15" data-cke-widget-drag-handler="1" /></span>
+<p><img src="./images/JDK8，Optional13.png" alt="" width="800" height="480" data-cke-saved-src="./images/JDK8，Optional13.png" /></p>
+<p>5、转化 &nbsp;map, flatMap</p>
+<src class="cke_widget_wrapper cke_widget_block cke_widget_codeSnippet cke_widget_selected" data-cke-widget-wrapper="1" data-cke-filter="off" data-cke-display-name="代码段" data-cke-widget-id="0">
+<src class="cnblogs_code">
+<pre><code><span style="color: #008080;">1</span> Optional&lt;String&gt; optional = Optional.ofNullable("zhang,san"<span style="color: #000000;">);
+</span><span style="color: #008080;">2</span> 
+<span style="color: #008080;">3</span> <span style="color: #008000;">//</span><span style="color: #008000;">map  optional对象存在就执行Funciton函数
+</span><span style="color: #008080;">4</span> <span style="color: #008000;">//</span><span style="color: #008000;"> 可以返回任意类型的值
+</span><span style="color: #008080;">5</span> <span style="color: #008000;">//</span><span style="color: #008000;"> 该函数式接口对optional对象中的值进行修改，返回修改后的值</span>
+<span style="color: #008080;">6</span> Optional&lt;String[]&gt; optionalMap = optional.map(s -&gt; s.split(",")); <span style="color: #008000;">//</span><span style="color: #008000;">Optional[[Ljava.lang.String;@19dfb72a]
+</span><span style="color: #008080;">7</span> 
+<span style="color: #008080;">8</span> <span style="color: #008000;">//</span><span style="color: #008000;"> flatMap方法中的lambda表达式返回值必须是Optionl实例</span>
+<span style="color: #008080;">9</span> Optional&lt;String&gt; optionalFlatMap = optional.flatMap(s -&gt; Optional.of("lisi"));<span style="color: #008000;">//</span><span style="color: #008000;">Optional[lisi]</span></code></pre>
+
+<img class="cke_reset cke_widget_mask" src="data:image/gif;base64,R0lGODlhAQABAPABAP///wAAACH5BAEKAAAALAAAAAABAAEAAAICRAEAOw==" alt="" /><span class="cke_reset cke_widget_drag_handler_container"><img class="cke_reset cke_widget_drag_handler" title="点击并拖拽以移动" src="data:image/gif;base64,R0lGODlhAQABAPABAP///wAAACH5BAEKAAAALAAAAAABAAEAAAICRAEAOw==" alt="" width="15" height="15" data-cke-widget-drag-handler="1" /></span>
+<p><img src="./images/JDK8，Optional16.png" alt="" width="810" height="415" data-cke-saved-src="./images/JDK8，Optional16.png" /></p>
+<p><img src="./images/JDK8，Optional17.png" alt="" width="825" height="293" data-cke-saved-src="./images/JDK8，Optional17.png" /></p>
+<p>看源码知道，map 和 flatmap 都是如果optional中的值存在，就对该值执行提供的Function函数调用，返回一个optional类型的值，否&nbsp;<br />则就返回一个空的optional对象。</p>
+<p>&nbsp;&nbsp;&nbsp;&nbsp;最大的区别是map 函数执行之后是任意的类型数据，调用结束map 会再用optional对结果进行包装，而flatmap 是执行完之后就是一个optional 实例 ，flatmap 不会对结果进行optional封装。</p>
+
+</div><hr><script charset='utf-8' src='../../js/sming.js'></script></body></html>

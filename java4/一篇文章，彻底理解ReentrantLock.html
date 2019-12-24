@@ -1,0 +1,128 @@
+<html><head><meta charset='utf-8'><meta name='viewport' content='width=device-width, initial-scale=1'>
+<meta name='applicable-device' content='pc'><meta name='keywords' content='电脑,电脑讲解,电脑技术,编程,电脑故障维修一篇文章，彻底理解ReentrantLock' />
+<script src='../../highlight/highlight.pack.js'></script>
+<link rel='stylesheet' type='text/css' href='../../highlight/styles/monokai.css'/>
+
+<link rel='stylesheet' href='../../fenxiang/dist/css/share.min.css'>
+<script src='../../fenxiang/src/js/social-share.js'></script>
+<script src='../../fenxiang/src/js/qrcode.js'></script>
+
+</head><body><script>hljs.initHighlightingOnLoad();</script><script>
+var system ={};  
+var p = navigator.platform;       
+system.win = p.indexOf('Win') == 0;  
+system.mac = p.indexOf('Mac') == 0;  
+system.x11 = (p == 'X11') || (p.indexOf('Linux') == 0);     
+if(system.win||system.mac||system.xll){
+document.write("<link href='../css/3.css' rel='stylesheet' type='text/css'>");}else{ document.write("<link href='../css/3wap.css' rel='stylesheet' type='text/css'>");}</script><script src='../../js/3.js'></script><div class='div2'><div class='heading_nav'><ul><div><li><a href='../../index.html'>首页</a></li>
+</div><div onclick='hidden1()' >分享</div>
+</ul></div></div>
+<div id='heading_nav2'> 
+<li class='row' >
+<div class='social-share' data-mode='prepend'><a href='javascript:' class='social-share-icon icon-heart'></a></div></li></div><script charset='utf-8' src='../../3/js/hengfu.js'></script><script charset='utf-8' src='../../3/js/hengfu2.js'></script><hr><div class='div1'><div class='biaoti'><center>一篇文章，彻底理解ReentrantLock</center></div><div class='banquan'>原文出处:本文由博客园博主Java博客手留余香提供。<br/>
+原文连接:https://www.cnblogs.com/yuxiang1/p/11928321.html</div><br>
+    <blockquote>
+<h1><span style="font-size: 16px;">本人免费整理了Java高级资料，涵盖了Java、Redis、MongoDB、MySQL、Zookeeper、Spring Cloud、Dubbo高并发分布式等教程，一共30G，需要自己领取。<br />传送门：<a class=" wrap external" href="https://link.zhihu.com/?target=https%3A//links.jianshu.com/go%3Fto%3Dhttps%253A%252F%252Flink.zhihu.com%252F%253Ftarget%253Dhttps%25253A%252F%252Fmp.weixin.qq.com%252Fs%252FJzddfH-7yNudmkjT0IRL8Q" rel="nofollow noreferrer" target="_blank" data-za-detail-view-id="1043">https://mp.weixin.qq.com/s/JzddfH-7yNudmkjT0IRL8Q</a></span></h1>
+</blockquote>
+<h1>&nbsp;</h1>
+<h1><span style="font-size: 16px;">1. ReentrantLock的介绍</span></h1>
+<p><span style="font-size: 16px;">ReentrantLock重入锁，是实现Lock接口的一个类，也是在实际编程中使用频率很高的一个锁，支持重入性，表示能够对共享资源能够重复加锁，即当前线程获取该锁再次获取不会被阻塞。在java关键字synchronized隐式支持重入性，synchronized通过获取自增，释放自减的方式实现重入。与此同时，ReentrantLock还支持公平锁和非公平锁两种方式。那么，要想完完全全的弄懂ReentrantLock的话，主要也就是ReentrantLock同步语义的学习：1. 重入性的实现原理；2. 公平锁和非公平锁。</span></p>
+<h1><span style="font-size: 16px;">2. 重入性的实现原理</span></h1>
+<p><span style="font-size: 16px;">要想支持重入性，就要解决两个问题：**1. 在线程获取锁的时候，如果已经获取锁的线程是当前线程的话则直接再次获取成功；2. 由于锁会被获取n次，那么只有锁在被释放同样的n次之后，该锁才算是完全释放成功，我们知道，同步组件主要是通过重写AQS的几个protected方法来表达自己的同步语义。针对第一个问题，我们来看看ReentrantLock是怎样实现的，以非公平锁为例，判断当前线程能否获得锁为例，核心方法为nonfairTryAcquire：</span></p>
+<src class="cnblogs_code">
+<pre><code><span style="color: #0000ff;">final</span> <span style="color: #0000ff;">boolean</span> nonfairTryAcquire(<span style="color: #0000ff;">int</span><span style="color: #000000;"> acquires) {
+    </span><span style="color: #0000ff;">final</span> Thread current =<span style="color: #000000;"> Thread.currentThread();
+    </span><span style="color: #0000ff;">int</span> c =<span style="color: #000000;"> getState();
+    </span><span style="color: #008000;">//</span><span style="color: #008000;">1\. 如果该锁未被任何线程占有，该锁能被当前线程获取</span>
+    <span style="color: #0000ff;">if</span> (c == 0<span style="color: #000000;">) {
+        </span><span style="color: #0000ff;">if</span> (compareAndSetState(0<span style="color: #000000;">, acquires)) {
+            setExclusiveOwnerThread(current);
+            </span><span style="color: #0000ff;">return</span> <span style="color: #0000ff;">true</span><span style="color: #000000;">;
+        }
+    }
+    </span><span style="color: #008000;">//</span><span style="color: #008000;">2.若被占有，检查占有线程是否是当前线程</span>
+    <span style="color: #0000ff;">else</span> <span style="color: #0000ff;">if</span> (current ==<span style="color: #000000;"> getExclusiveOwnerThread()) {
+        </span><span style="color: #008000;">//</span><span style="color: #008000;"> 3\. 再次获取，计数加一</span>
+        <span style="color: #0000ff;">int</span> nextc = c +<span style="color: #000000;"> acquires;
+        </span><span style="color: #0000ff;">if</span> (nextc &lt; 0) <span style="color: #008000;">//</span><span style="color: #008000;"> overflow</span>
+            <span style="color: #0000ff;">throw</span> <span style="color: #0000ff;">new</span> Error("Maximum lock count exceeded"<span style="color: #000000;">);
+        setState(nextc);
+        </span><span style="color: #0000ff;">return</span> <span style="color: #0000ff;">true</span><span style="color: #000000;">;
+    }
+    </span><span style="color: #0000ff;">return</span> <span style="color: #0000ff;">false</span><span style="color: #000000;">;
+}</span></code></pre>
+
+<p>&nbsp;</p>
+<p><span style="font-size: 16px;">这段代码的逻辑也很简单，具体请看注释。为了支持重入性，在第二步增加了处理逻辑，如果该锁已经被线程所占有了，会继续检查占有线程是否为当前线程，如果是的话，同步状态加1返回true，表示可以再次获取成功。每次重新获取都会对同步状态进行加一的操作，那么释放的时候处理思路是怎样的了？（依然还是以非公平锁为例）核心方法为tryRelease：</span></p>
+<src class="cnblogs_code">
+<pre><code><span style="color: #0000ff;">protected</span> <span style="color: #0000ff;">final</span> <span style="color: #0000ff;">boolean</span> tryRelease(<span style="color: #0000ff;">int</span><span style="color: #000000;"> releases) {
+    </span><span style="color: #008000;">//</span><span style="color: #008000;">1\. 同步状态减1</span>
+    <span style="color: #0000ff;">int</span> c = getState() -<span style="color: #000000;"> releases;
+    </span><span style="color: #0000ff;">if</span> (Thread.currentThread() !=<span style="color: #000000;"> getExclusiveOwnerThread())
+        </span><span style="color: #0000ff;">throw</span> <span style="color: #0000ff;">new</span><span style="color: #000000;"> IllegalMonitorStateException();
+    </span><span style="color: #0000ff;">boolean</span> free = <span style="color: #0000ff;">false</span><span style="color: #000000;">;
+    </span><span style="color: #0000ff;">if</span> (c == 0<span style="color: #000000;">) {
+        </span><span style="color: #008000;">//</span><span style="color: #008000;">2\. 只有当同步状态为0时，锁成功被释放，返回true</span>
+        free = <span style="color: #0000ff;">true</span><span style="color: #000000;">;
+        setExclusiveOwnerThread(</span><span style="color: #0000ff;">null</span><span style="color: #000000;">);
+    }
+    </span><span style="color: #008000;">//</span><span style="color: #008000;"> 3\. 锁未被完全释放，返回false</span>
+<span style="color: #000000;">    setState(c);
+    </span><span style="color: #0000ff;">return</span><span style="color: #000000;"> free;
+}</span></code></pre>
+
+<p>&nbsp;</p>
+<p><span style="font-size: 16px;">代码的逻辑请看注释，需要注意的是，重入锁的释放必须得等到同步状态为0时锁才算成功释放，否则锁仍未释放。如果锁被获取n次，释放了n-1次，该锁未完全释放返回false，只有被释放n次才算成功释放，返回true。到现在我们可以理清ReentrantLock重入性的实现了，也就是理解了同步语义的第一条。</span></p>
+<h1><span style="font-size: 16px;">3. 公平锁与公平锁</span></h1>
+<p><span style="font-size: 16px;">ReentrantLock支持两种锁：公平锁和非公平锁。何谓公平性，是针对获取锁而言的，如果一个锁是公平的，那么锁的获取顺序就应该符合请求上的绝对时间顺序，满足FIFO。ReentrantLock的构造方法无参时是构造非公平锁，源码为：</span></p>
+<src class="cnblogs_code">
+<pre><code><span style="color: #0000ff;">public</span><span style="color: #000000;"> ReentrantLock() {
+    sync </span>= <span style="color: #0000ff;">new</span><span style="color: #000000;"> NonfairSync();
+}</span></code></pre>
+
+<p>&nbsp;</p>
+<p><span style="font-size: 16px;">另外还提供了另外一种方式，可传入一个boolean值，true时为公平锁，false时为非公平锁，源码为：</span></p>
+<src class="cnblogs_code">
+<pre><code><span style="color: #0000ff;">public</span> ReentrantLock(<span style="color: #0000ff;">boolean</span><span style="color: #000000;"> fair) {
+    sync </span>= fair ? <span style="color: #0000ff;">new</span> FairSync() : <span style="color: #0000ff;">new</span><span style="color: #000000;"> NonfairSync();
+}</span></code></pre>
+
+<p>&nbsp;</p>
+<p><span style="font-size: 16px;">在上面非公平锁获取时（nonfairTryAcquire方法）只是简单的获取了一下当前状态做了一些逻辑处理，并没有考虑到当前同步队列中线程等待的情况。我们来看看公平锁的处理逻辑是怎样的，核心方法为：</span></p>
+<src class="cnblogs_code">
+<pre><code><span style="color: #0000ff;">protected</span> <span style="color: #0000ff;">final</span> <span style="color: #0000ff;">boolean</span> tryAcquire(<span style="color: #0000ff;">int</span><span style="color: #000000;"> acquires) {
+    </span><span style="color: #0000ff;">final</span> Thread current =<span style="color: #000000;"> Thread.currentThread();
+    </span><span style="color: #0000ff;">int</span> c =<span style="color: #000000;"> getState();
+    </span><span style="color: #0000ff;">if</span> (c == 0<span style="color: #000000;">) {
+        </span><span style="color: #0000ff;">if</span> (!hasQueuedPredecessors() &amp;&amp;<span style="color: #000000;">
+            compareAndSetState(</span>0<span style="color: #000000;">, acquires)) {
+            setExclusiveOwnerThread(current);
+            </span><span style="color: #0000ff;">return</span> <span style="color: #0000ff;">true</span><span style="color: #000000;">;
+        }
+    }
+    </span><span style="color: #0000ff;">else</span> <span style="color: #0000ff;">if</span> (current ==<span style="color: #000000;"> getExclusiveOwnerThread()) {
+        </span><span style="color: #0000ff;">int</span> nextc = c +<span style="color: #000000;"> acquires;
+        </span><span style="color: #0000ff;">if</span> (nextc &lt; 0<span style="color: #000000;">)
+            </span><span style="color: #0000ff;">throw</span> <span style="color: #0000ff;">new</span> Error("Maximum lock count exceeded"<span style="color: #000000;">);
+        setState(nextc);
+        </span><span style="color: #0000ff;">return</span> <span style="color: #0000ff;">true</span><span style="color: #000000;">;
+    }
+    </span><span style="color: #0000ff;">return</span> <span style="color: #0000ff;">false</span><span style="color: #000000;">;
+  }
+}</span></code></pre>
+
+<p>&nbsp;</p>
+<p><span style="font-size: 16px;">这段代码的逻辑与nonfairTryAcquire基本上一直，唯一的不同在于增加了hasQueuedPredecessors的逻辑判断，方法名就可知道该方法用来判断当前节点在同步队列中是否有前驱节点的判断，如果有前驱节点说明有线程比当前线程更早的请求资源，根据公平性，当前线程请求资源失败。如果当前节点没有前驱节点的话，再才有做后面的逻辑判断的必要性。公平锁每次都是从同步队列中的第一个节点获取到锁，而非公平性锁则不一定，有可能刚释放锁的线程能再次获取到锁。</span></p>
+<blockquote>
+<p><span style="font-size: 16px;">公平锁 VS 非公平锁</span></p>
+</blockquote>
+<ol>
+<li>
+<p><span style="font-size: 16px;">公平锁每次获取到锁为同步队列中的第一个节点，保证请求资源时间上的绝对顺序，而非公平锁有可能刚释放锁的线程下次继续获取该锁，则有可能导致其他线程永远无法获取到锁，造成&ldquo;饥饿&rdquo;现象。</span></p>
+</li>
+<li>
+<p><span style="font-size: 16px;">公平锁为了保证时间上的绝对顺序，需要频繁的上下文切换，而非公平锁会降低一定的上下文切换，降低性能开销。因此，ReentrantLock默认选择的是非公平锁，则是为了减少一部分上下文切换，保证了系统更大的吞吐量。</span></p>
+</li>
+</ol>
+
+</div><hr><script charset='utf-8' src='../../js/sming.js'></script></body></html>

@@ -1,0 +1,141 @@
+<html><head><meta charset='utf-8'><meta name='viewport' content='width=device-width, initial-scale=1'>
+<meta name='applicable-device' content='pc'><meta name='keywords' content='电脑,电脑讲解,电脑技术,编程,电脑故障维修Maven仓库介绍以及私服搭建' />
+<script src='../../highlight/highlight.pack.js'></script>
+<link rel='stylesheet' type='text/css' href='../../highlight/styles/monokai.css'/>
+
+<link rel='stylesheet' href='../../fenxiang/dist/css/share.min.css'>
+<script src='../../fenxiang/src/js/social-share.js'></script>
+<script src='../../fenxiang/src/js/qrcode.js'></script>
+
+</head><body><script>hljs.initHighlightingOnLoad();</script><script>
+var system ={};  
+var p = navigator.platform;       
+system.win = p.indexOf('Win') == 0;  
+system.mac = p.indexOf('Mac') == 0;  
+system.x11 = (p == 'X11') || (p.indexOf('Linux') == 0);     
+if(system.win||system.mac||system.xll){
+document.write("<link href='../css/3.css' rel='stylesheet' type='text/css'>");}else{ document.write("<link href='../css/3wap.css' rel='stylesheet' type='text/css'>");}</script><script src='../../js/3.js'></script><div class='div2'><div class='heading_nav'><ul><div><li><a href='../../index.html'>首页</a></li>
+</div><div onclick='hidden1()' >分享</div>
+</ul></div></div>
+<div id='heading_nav2'> 
+<li class='row' >
+<div class='social-share' data-mode='prepend'><a href='javascript:' class='social-share-icon icon-heart'></a></div></li></div><script charset='utf-8' src='../../3/js/hengfu.js'></script><script charset='utf-8' src='../../3/js/hengfu2.js'></script><hr><div class='div1'><div class='biaoti'><center>Maven仓库介绍以及私服搭建</center></div><div class='banquan'>原文出处:本文由博客园博主yjry-th提供。<br/>
+原文连接:https://www.cnblogs.com/yjry-th/p/11672301.html</div><br>
+    <p align="center"><strong>&nbsp;</strong></p>
+<h1>1 什么是Maven？</h1>
+<h2>1.1 Maven的概念</h2>
+<p>　　Maven主要服务于基于Java平台的项目构建、依赖管理和项目信息开发，它是一个异常强大的构建工具，能够帮助我们自动化构建过程，从清理、编译、测试到生成报告，再到打包和部署。</p>
+<p>&nbsp;</p>
+<h2>1.2 Maven的优点</h2>
+<h3>1.2.1 便捷</h3>
+<p>　　使用Maven最大的一点优点就是便捷。构建项目时，开发者无需一遍又一遍地输入命令，一次又一次地点击鼠标，我们需要做的就是输入Maven的简单命令，Maven会帮我们处理那些繁琐的任务。</p>
+<h3>1.2.2 标准化构建方式</h3>
+<p>　　在使用Maven之前，多个项目可能有多种构建方式；使用Maven之后，多个项目的构建方式被统一起来，这样极大地避免了不必要的学习成本，而且有利于项目团队的标准化。</p>
+<h3>1.2.3 提供中央仓库</h3>
+<p>　　Maven不仅仅是构建工具，它还是一个依赖管理工具和项目信息管理工具。它提供有公共的中央仓库，只要我们提供项目所需构件的&ldquo;坐标&rdquo;，Maven能帮助我们自动下载，省去手工寻找的时间成本。</p>
+<p>&nbsp;</p>
+<h1>2 什么是Maven仓库</h1>
+<h2>2.1 Maven仓库的概念</h2>
+<p>　　在Maven的世界中，任何一个依赖、插件或者项目构建的输出，都可以被称为构件，每一个构件都有其唯一的坐标标识（主要包含groupId、artifactId、version）。根据坐标标识，任何Maven项目使用任何一个构件的方式是完全相同的。在此基础上，Maven可以在某个位置统一存储所有Maven项目共享的构件，这个统一的位置就是Maven仓库。</p>
+<p>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; 实际的Maven项目将不再各自存储其依赖文件，它们只需要声明这些依赖的坐标，在需要的时候（编译项目时），Maven会自动根据坐标找到仓库中的构件并使用它们。</p>
+<p>&nbsp;</p>
+<h2>2.2 Maven仓库的分类</h2>
+<h3>2.2.1 本地仓库</h3>
+<p>　　本地仓库即存储在本机磁盘中的某个文件夹，Maven下载的构件都存储在该文件夹下。在安装Maven软件后，默认情况下在用户目录下都有一个路径为&ldquo;.m2/repository/&rdquo;的仓库目录，目录路径类似如下形式：&ldquo;C:\Users\xxx\.m2\repository\&rdquo;，另外开发者可编辑Maven安装目录下&ldquo;conf&rdquo;文件夹中的&ldquo;settings.xml&rdquo;文件，在其中设置本地仓库的路径。具体的设置并不是本文重点，在此不加以描述，读者可请自行百度。</p>
+<p>&nbsp;</p>
+<h3>2.2.2 远程仓库</h3>
+<p>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; 顾名思义，远程仓库即是存储在远端服务器中的某个文件夹，该文件夹存储构件以供开发者进行下载，Maven就自带其中央仓库，我们可点击如下地址进行该仓库构件的查询<a href="https://mvnrepository.com/">https://mvnrepository.com/</a>。</p>
+<p>&nbsp;</p>
+<h2>2.3 Maven构件下载顺序</h2>
+<p>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; 当Maven根据坐标寻找构件时，会优先查看本地仓库，如果本地仓库存在此构件，则直接使用；如果本地仓库不存在此构件，或者需要查看是否有更新的构件版本，Maven就会去远程仓库去查找，发现所需构件后，将其下载到本地再使用。</p>
+<p>&nbsp;</p>
+<h1>3 Maven私服</h1>
+<h2>3.1 Maven私服的概念</h2>
+<p>　　私服是一种特殊的远程仓库，为了节省带宽和时间，大多数公司会选择在局域网中架设一个私有的仓库服务器，用其代理所有外部的远程仓库。内部的项目还可以部署到私服上以供其他项目使用。当Maven下载构件时，它从私服请求，若私服不存在此构件，Maven则从远程仓库查找并存储到私服中，在从私服中请求下载构件。此外，一些无法从外部仓库下载到的构件也能从本地上传到私服仓库中供大家使用。以下给出示例图。</p>
+<p>&nbsp;　　<img src="./images/Maven仓库介绍以及私服搭建0.png" alt="" /></p>
+<p>&nbsp;</p>
+<h2>3.2 建立私服的好处</h2>
+<h3>3.2.1 节省带宽</h3>
+<p>　　建立私服可以减少组织自己的开支，大量的对于外部仓库的重复请求会消耗很大的带宽，利用私服代理外部仓库之后，对外的重复构件下载便得以消除，即降低外网带宽的压力。</p>
+<h3>3.2.2 加速Maven构建</h3>
+<p>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; 不停地连接请求外部仓库是十分耗时的，但是Maven的一些内部机制（如快照等更新检查）要求Maven在执行构建时不停地检查远程仓库。因此当项目配置了很多远程仓库时，构建的速度会大大降低。使用私服可以很好地解决该问题，Maven只需检查局域网中私服的数据，项目构建速度得到提高。</p>
+<h3>3.3.3 部署第三方构件</h3>
+<p>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; 当某个构件无法从任何一个外部远程仓库获得，怎么办？建立私服之后，用户可以将这些构件部署到该仓库中，供内部的Maven项目使用。</p>
+<h3>3.3.4 提高稳定性，增强控制</h3>
+<p>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; Maven构建高度依赖远程仓库，因此，当外网连接不稳定时（如公司网络出现问题、远程仓库需要维护无法连接等），Maven构建会变得极其不稳定，甚至无法成功构建项目。建立私服后，即使暂时没有外网连接，由于私服中已经缓存了大量的构件，Maven仍然可以正常构建项目。另外一些私服软件提供了很多额外的功能，如权限管理、版本区分等，管理员可以对仓库进行一些更高级的控制。</p>
+<p>&nbsp;</p>
+<h1>4 构建Maven私服</h1>
+<h2>4.1 选择搭建工具</h2>
+<p>　　搭建Maven私服的工具有三种：Apache基金会的Archiva、JFrog的Artifactory和Sonatype的Nexus。其中Archiva是完全开源的，因此我建议选择该软件进行私服的搭建。</p>
+<p>&nbsp;</p>
+<h2>4.2 JDK的下载和安装</h2>
+<p>　　Archiva的应用启动需要用户提前安装jdk，关于jdk的下载和安装本文不再描述，请读者自行百度。</p>
+<p>&nbsp;</p>
+<h2>4.3 Archiva的下载和安装</h2>
+<p>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; 点击如下地址进入其官网地址：<a href="http://archiva.apache.org/index.cgi">http://archiva.apache.org/index.cgi</a>，在该页面中找到&ldquo;Download Archiva&rdquo;按钮，选择zip文件进行下载，如下图：</p>
+<p>&nbsp;</p>
+<p>&nbsp;<img src="./images/Maven仓库介绍以及私服搭建1.png" alt="" /></p>
+<p>&nbsp;</p>
+<p>&nbsp;</p>
+<p>&nbsp;<img src="./images/Maven仓库介绍以及私服搭建2.png" alt="" /></p>
+<p>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</p>
+<p>　　下载完成后解压该文件，将其中的&ldquo;apache-archiva-xxx&rdquo;文件夹放到某个磁盘目录下，其中该文件夹根目录下conf文件夹中的&ldquo;jetty.xml&rdquo;可以设置应用启动的端口，具体设置详情请百度。</p>
+<p>&nbsp;</p>
+<h2>4.4 启动服务</h2>
+<p>（1） 使用&ldquo;管理员身份运行cmd&rdquo;&nbsp; （开始菜单的附件中），进入软件安装目录中bin目录；</p>
+<p>　　C:\Windows\system32&gt;cd D:\Program Files\apache-archiva-2.2.1\bin</p>
+<p>　　C:\Windows\system32&gt;D:</p>
+<p>（2）输入命令&ldquo;archiva.bat install&rdquo;，命令运行正常则会输出&ldquo;wrapper | Apache Archiva installed.&rdquo;；</p>
+<p>　　E:\Program Files\apache-archiva-2.2.1\bin&gt;archiva.bat install</p>
+<p>　　wrapper | Apache Archiva installed.</p>
+<p>（3）输入命令&ldquo;archiva.bat start&rdquo;，命令运行正常则会输出&ldquo;wrapper | Starting the Apache Archiva service...、wrapper | Apache Archiva started.&rdquo;；</p>
+<p>　　E:\Program Files\apache-archiva-2.2.1\bin&gt;archiva.bat start</p>
+<p>　　wrapper | Starting the Apache Archiva service...</p>
+<p>wrapper | Apache Archiva started.</p>
+<p>&nbsp;</p>
+<h2>4.5 访问服务网页</h2>
+<p>　　打开浏览器，在地址栏中输入<a href="http://host:port/">http://host:port</a>（具体的host和port用户自行指定），进入到软件管理GUI页面，第一次访问时，用户可创建一个管理员账户。</p>
+<p>&nbsp;</p>
+<p><img src="./images/Maven仓库介绍以及私服搭建3.png" alt="" /></p>
+<p>&nbsp;</p>
+<p>　　用户登录成功后，页面左侧菜单栏罗列出软件全部功能菜单，用户可根据需要进行相关的配置。关于Archiva的各项配置说明，请读者自行百度。</p>
+<p>&nbsp;</p>
+<p><img src="./images/Maven仓库介绍以及私服搭建4.png" alt="" width="662" height="325" /></p>
+<p>&nbsp;</p>
+<p>&nbsp;</p>
+<p>&nbsp;</p>
+<p>&nbsp;</p>
+<h2>4.6 下载和上传构件</h2>
+<h3>4.6.1 下载构件</h3>
+<h4>4.6.1.1 配置本地Maven的settings.xml</h4>
+<p>（1）配置同服务器的认证信息</p>
+<p>在&lt;servers&gt;标签下新建一个&lt;server&gt;标签，在该标签下新建子标签&lt;id&gt;、&lt;username&gt;、&lt;password&gt;，其中id 是要认证的服务器名称，可以配置多个。它是用来标记服务器的，要唯一；username和password是登录私服服务器所需用户名和密码。如果要连接多个私服，可以类似地配置多个 server，每个 server 是一个私服的认证信息。</p>
+<p>（2）配置要连接的私服信息</p>
+<p>在&lt;mirrors&gt;标签下新建一个&lt;mirror&gt;标签，在该标签下新建子标签&lt;id&gt;、&lt;mirrorOf&gt;、&lt;name&gt;、&lt;url&gt;，其中id 是私服映射的标记，该标记要同 server 中的 id 一样，如果连接私服需要认证信息，Maven 可以通过 id 找对应的 server，用 server 的认证信息进行认证；mirrorOf的值设置为&ldquo;*&rdquo;，表示匹配所有远程仓库，name为该私服仓库的名称，可随意取，方便自己记忆和理解就好；url为该私服仓库的url地址，值为http://host:port/repository/仓库id（该值为默认值，用户可以修改）；</p>
+<p>&nbsp;<img src="./images/Maven仓库介绍以及私服搭建5.png" alt="" /></p>
+<p>&nbsp;</p>
+<p>&nbsp;</p>
+<h4>4.6.1.2 创建Maven项目</h4>
+<p>　　使用上述配置的settings.xml的Maven工具创建Maven项目，接下来的添加依赖和之前的添加方式并无区别，至此私服搭建完毕并可以使用。</p>
+<h3>4.6.2 上传构件</h3>
+<h4>4.6.2.1 配置Maven项目的pom文件</h4>
+<p>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; 在project标签内，添加&lt;distributionManagement&gt;标签，指定要发布的目标地（私服）。具体内容如下：</p>
+<p>&lt;distributionManagement&gt;</p>
+<p>&nbsp;&nbsp;&nbsp; &lt;repository&gt;</p>
+<p>&nbsp;&nbsp;&nbsp; &lt;id&gt;archivaServer（仓库id）&lt;/id&gt;</p>
+<p>&nbsp;&nbsp;&nbsp; &lt;url&gt;<a href="http://localhost:8080/repository/internal">http://localhost:8080/repository/internal</a>（仓库地址）&lt;/url&gt;</p>
+<p>&nbsp;&nbsp;&nbsp; &lt;/repository&gt;</p>
+<p>&nbsp;&nbsp;&nbsp; &lt;snapshotRepository&gt;</p>
+<p>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; &lt;id&gt;archivaServer（仓库id）&lt;/id&gt;</p>
+<p>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; &lt;url&gt;http://localhost:8080/repository/snapshots（仓库地址）&lt;/url&gt;</p>
+<p>&nbsp;&nbsp;&nbsp; &lt;/snapshotRepository&gt;</p>
+<p>&lt;/distributionManagement&gt;</p>
+<p>&nbsp;</p>
+<p>　　上面的信息配置了两个仓库 url，一个是 repository；另一个是快照 repository。每个 repository 中都有一个 url。</p>
+<p>&nbsp;</p>
+<h4>4.6.2.2 运行发布命令</h4>
+<p>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; 运行Maven的deploy命令，Maven会自动编译和打包项目，并将其发布到私服仓库中。发布完毕后，开发者即可随心所欲使用该构件。</p>
+<p><img style="display: block; margin-left: auto; margin-right: auto; float: left;" src="./images/Maven仓库介绍以及私服搭建6.png" alt="" /></p>
+<p>&nbsp;</p>
+
+</div><hr><script charset='utf-8' src='../../js/sming.js'></script></body></html>

@@ -1,0 +1,667 @@
+<html><head><meta charset='utf-8'><meta name='viewport' content='width=device-width, initial-scale=1'>
+<meta name='applicable-device' content='pc'><meta name='keywords' content='电脑,电脑讲解,电脑技术,编程,电脑故障维修java基础(30)DBUtils、连接池' />
+<script src='../../highlight/highlight.pack.js'></script>
+<link rel='stylesheet' type='text/css' href='../../highlight/styles/monokai.css'/>
+
+<link rel='stylesheet' href='../../fenxiang/dist/css/share.min.css'>
+<script src='../../fenxiang/src/js/social-share.js'></script>
+<script src='../../fenxiang/src/js/qrcode.js'></script>
+
+</head><body><script>hljs.initHighlightingOnLoad();</script><script>
+var system ={};  
+var p = navigator.platform;       
+system.win = p.indexOf('Win') == 0;  
+system.mac = p.indexOf('Mac') == 0;  
+system.x11 = (p == 'X11') || (p.indexOf('Linux') == 0);     
+if(system.win||system.mac||system.xll){
+document.write("<link href='../css/3.css' rel='stylesheet' type='text/css'>");}else{ document.write("<link href='../css/3wap.css' rel='stylesheet' type='text/css'>");}</script><script src='../../js/3.js'></script><div class='div2'><div class='heading_nav'><ul><div><li><a href='../../index.html'>首页</a></li>
+</div><div onclick='hidden1()' >分享</div>
+</ul></div></div>
+<div id='heading_nav2'> 
+<li class='row' >
+<div class='social-share' data-mode='prepend'><a href='javascript:' class='social-share-icon icon-heart'></a></div></li></div><script charset='utf-8' src='../../3/js/hengfu.js'></script><script charset='utf-8' src='../../3/js/hengfu2.js'></script><hr><div class='div1'><div class='biaoti'><center>java基础(30)DBUtils、连接池</center></div><div class='banquan'>原文出处:本文由博客园博主爱编程的小灰灰提供。<br/>
+原文连接:https://www.cnblogs.com/liuhui0308/p/11661023.html</div><br>
+    <h1>1.&nbsp;<strong>DBUtils</strong></h1>
+<p><span style="font-family: 宋体;">如果只使用</span>JDBC<span style="font-family: 宋体;">进行开发，我们会发现冗余代码过多，为了简化</span><span style="font-family: Calibri;">JDBC</span><span style="font-family: 宋体;">开发，本案例我们讲采用</span><span style="font-family: Calibri;">apache commons</span><span style="font-family: 宋体;">组件一个成员：</span><span style="font-family: Calibri;">DBUtils</span><span style="font-family: 宋体;">。</span></p>
+<p>DBUtils<span style="font-family: 宋体;">就是</span><span style="font-family: Calibri;">JDBC</span><span style="font-family: 宋体;">的简化开发工具包</span>。需要项目导入commons-dbutils-1.6.jar<span style="font-family: 宋体;">才能够正常使用</span>DBUtils<span style="font-family: 宋体;">工具。</span></p>
+<p><span style="font-family: 宋体;"><img src="./images/java基础(30)DBUtils、连接池0.png" alt="" /></span></p>
+<h2><!--[if !supportLists]-->1.1&nbsp;<!--[endif]--><strong>概述</strong></h2>
+<p>DBUtils<span style="font-family: 宋体;">是</span><span style="font-family: Calibri;">java</span><span style="font-family: 宋体;">编程中的数据库操作实用工具，小巧简单实用。</span></p>
+<p>DBUtils<span style="font-family: 宋体;">封装了对</span><span style="font-family: Calibri;">JDBC</span><span style="font-family: 宋体;">的操作，简化了</span><span style="font-family: Calibri;">JDBC</span><span style="font-family: 宋体;">操作，可以少写代码。</span></p>
+<p>Dbutils<span style="font-family: 宋体;">三个核心功能介绍</span></p>
+<p>　　QueryRunner<span style="font-family: 宋体;">中提供对</span><span style="font-family: Calibri;">sql</span><span style="font-family: 宋体;">语句操作的</span><span style="font-family: Calibri;">API.</span></p>
+<p>　　ResultSetHandler<span style="font-family: 宋体;">接口，用于定义</span><span style="font-family: Calibri;">select</span><span style="font-family: 宋体;">操作后，怎样封装结果集</span><span style="font-family: Calibri;">.</span></p>
+<p>　　DbUtils<span style="font-family: 宋体;">类，它就是一个工具类</span><span style="font-family: Calibri;">,</span><span style="font-family: 宋体;">定义了关闭资源与事务处理的方法</span></p>
+<p>&nbsp;</p>
+<h2><!--[if !supportLists]-->1.2&nbsp;<!--[endif]--><strong>QueryRunner<span style="font-family: 华文楷体;">核心类</span></strong></h2>
+<p>&nbsp;</p>
+<p>&nbsp;</p>
+<p class="16">update(Connection conn, String sql, Object... params) ，用来完成表数据的增加、删除、更新操作</p>
+<p>&nbsp;</p>
+<p class="16">query(Connection conn, String sql, ResultSetHandler&lt;T&gt; rsh, Object... params) ，用来完成表数据的查询操作</p>
+<p>&nbsp;</p>
+<p>&nbsp;</p>
+<h2><!--[if !supportLists]-->1.3&nbsp;<!--[endif]--><strong>QueryRunner<span style="font-family: 华文楷体;">实现添加、更新、删除操作</span></strong></h2>
+<p>&nbsp;</p>
+<p>&nbsp;</p>
+<p class="16">update(Connection conn, String sql, Object... params) ，用来完成表数据的增加、删除、更新操作</p>
+<p>&nbsp;</p>
+<p>&nbsp;</p>
+<h3><!--[if !supportLists]-->1.3.1&nbsp;<!--[endif]--><strong>添加</strong></h3>
+<p>&nbsp;</p>
+<p>&nbsp;</p>
+<src class="cnblogs_code">
+<pre><code><span style="color: #0000ff;">public</span> <span style="color: #0000ff;">void</span><span style="color: #000000;"> insert(){
+    </span><span style="color: #0000ff;">try</span><span style="color: #000000;"> {
+        </span><span style="color: #008000;">//</span><span style="color: #008000;">获取一个用来执行SQL语句的对象   QueryRunner</span>
+        QueryRunner qr = <span style="color: #0000ff;">new</span><span style="color: #000000;"> QueryRunner();
+        
+        String sql </span>= "INSERT INTO zhangwu(name,money,parent) VALUES(?,?,?)"<span style="color: #000000;">;
+        Object[] params </span>= {"股票收入", 5500, "收入"<span style="color: #000000;">};
+        Connection conn </span>=<span style="color: #000000;"> JDBCUtils.getConnection();
+        </span><span style="color: #0000ff;">int</span> line = qr.update(conn,sql,params);<span style="color: #008000;">//</span><span style="color: #008000;"> 用来完成表数据的增加、删除、更新操作
+        </span><span style="color: #008000;">//</span><span style="color: #008000;">结果集处理</span>
+        System.out.println("line = " +<span style="color: #000000;"> line);
+        
+    } </span><span style="color: #0000ff;">catch</span><span style="color: #000000;"> (SQLException e) {
+        </span><span style="color: #0000ff;">throw</span> <span style="color: #0000ff;">new</span><span style="color: #000000;"> RuntimeException(e);
+    }
+}</span></code></pre>
+
+<p>&nbsp;</p>
+<h3><!--[if !supportLists]-->1.3.2&nbsp;<!--[endif]--><strong>更新</strong></h3>
+<p>&nbsp;</p>
+<p>&nbsp;</p>
+<src class="cnblogs_code">
+<pre><code><span style="color: #0000ff;">public</span> <span style="color: #0000ff;">void</span><span style="color: #000000;"> update(){
+    </span><span style="color: #0000ff;">try</span><span style="color: #000000;"> {
+        </span><span style="color: #008000;">//</span><span style="color: #008000;">创建一个QueryRunner对象，用来完成SQL语句的执行</span>
+        QueryRunner qr = <span style="color: #0000ff;">new</span><span style="color: #000000;"> QueryRunner();
+        </span><span style="color: #008000;">//</span><span style="color: #008000;">执行SQL语句</span>
+        String sql = "UPDATE zhangwu SET money = money+1000 WHERE name=?"<span style="color: #000000;">;
+        Object[] params </span>= {"股票收入"<span style="color: #000000;">};
+        Connection conn </span>=<span style="color: #000000;"> JDBCUtils.getConnection();
+        </span><span style="color: #0000ff;">int</span> line =<span style="color: #000000;"> qr.update(conn, sql, params);
+        </span><span style="color: #008000;">//</span><span style="color: #008000;">结果集的处理</span>
+        System.out.println("line="+<span style="color: #000000;">line);
+        
+    } </span><span style="color: #0000ff;">catch</span><span style="color: #000000;"> (SQLException e) {
+        </span><span style="color: #0000ff;">throw</span> <span style="color: #0000ff;">new</span><span style="color: #000000;"> RuntimeException(e);
+    }
+}</span></code></pre>
+
+<p>&nbsp;</p>
+<h3><!--[if !supportLists]-->1.3.3&nbsp;<!--[endif]--><strong>删除</strong></h3>
+<src class="cnblogs_code">
+<pre><code><span style="color: #0000ff;">public</span> <span style="color: #0000ff;">void</span><span style="color: #000000;"> delete(){
+    </span><span style="color: #0000ff;">try</span><span style="color: #000000;"> {
+        </span><span style="color: #008000;">//</span><span style="color: #008000;">创建一个QueryRunner对象，用来完成SQL语句的执行</span>
+        QueryRunner qr = <span style="color: #0000ff;">new</span><span style="color: #000000;"> QueryRunner();
+        </span><span style="color: #008000;">//</span><span style="color: #008000;">执行SQL语句</span>
+        String sql = "DELETE FROM zhangwu WHERE name = ?"<span style="color: #000000;">;
+        Object[] params </span>= {"股票收入"<span style="color: #000000;">};
+        Connection conn </span>=<span style="color: #000000;"> JDBCUtils.getConnection();
+        </span><span style="color: #0000ff;">int</span> line =<span style="color: #000000;"> qr.update(conn, sql, params);
+        </span><span style="color: #008000;">//</span><span style="color: #008000;">结果集的处理</span>
+        System.out.println("line="+<span style="color: #000000;">line);
+        
+    } </span><span style="color: #0000ff;">catch</span><span style="color: #000000;"> (SQLException e) {
+        </span><span style="color: #0000ff;">throw</span> <span style="color: #0000ff;">new</span><span style="color: #000000;"> RuntimeException(e);
+    }
+}</span></code></pre>
+
+<h2><!--[if !supportLists]-->1.4&nbsp;<!--[endif]--><strong>QueryRunner<span style="font-family: 华文楷体;">实现查询操作</span></strong></h2>
+<p class="16">query(Connection conn, String sql, ResultSetHandler&lt;T&gt; rsh, Object... params) ，用来完成表数据的查询操作</p>
+<p>&nbsp;</p>
+<p>&nbsp;</p>
+<h3><!--[if !supportLists]-->1.4.1&nbsp;<!--[endif]--><strong>ResultSetHandler<span style="font-family: 黑体;">结果集处理类</span></strong></h3>
+<p>&nbsp;</p>
+<p>&nbsp;</p>
+<table border="1" cellspacing="0">
+<tbody>
+<tr>
+<td valign="top" width="153">
+<p>ArrayHandler</p>
+</td>
+<td valign="top" width="620">
+<p>将结果集中的第一条记录封装到一个<span style="font-family: Calibri;">Object[]</span><span style="font-family: 宋体;">数组中，数组中的每一个元素就是这条记录中的每一个字段的值</span></p>
+</td>
+</tr>
+<tr>
+<td valign="top" width="153">
+<p>ArrayListHandler</p>
+</td>
+<td valign="top" width="620">
+<p>将结果集中的每一条记录都封装到一个<span style="font-family: Calibri;">Object[]</span><span style="font-family: 宋体;">数组中，将这些数组在封装到</span><span style="font-family: Calibri;">List</span><span style="font-family: 宋体;">集合中。</span></p>
+</td>
+</tr>
+<tr>
+<td valign="top" width="153">
+<p>BeanHandler</p>
+</td>
+<td valign="top" width="620">
+<p>将结果集中第一条记录封装到一个指定的<span style="font-family: Calibri;">javaBean</span><span style="font-family: 宋体;">中。</span></p>
+</td>
+</tr>
+<tr>
+<td valign="top" width="153">
+<p>BeanListHandler</p>
+</td>
+<td valign="top" width="620">
+<p>将结果集中每一条记录封装到指定的<span style="font-family: Calibri;">javaBean</span><span style="font-family: 宋体;">中，将这些</span><span style="font-family: Calibri;">javaBean</span><span style="font-family: 宋体;">在封装到</span><span style="font-family: Calibri;">List</span><span style="font-family: 宋体;">集合中</span></p>
+</td>
+</tr>
+<tr>
+<td valign="top" width="153">
+<p>ColumnListHandler</p>
+</td>
+<td valign="top" width="620">
+<p>将结果集中指定的列的字段值，封装到一个<span style="font-family: Calibri;">List</span><span style="font-family: 宋体;">集合中</span></p>
+</td>
+</tr>
+<tr>
+<td valign="top" width="153">
+<p>ScalarHandler</p>
+</td>
+<td valign="top" width="620">
+<p>它是用于单数据。例如<span style="font-family: Calibri;">select count(*) from </span><span style="font-family: 宋体;">表操作。</span></p>
+</td>
+</tr>
+<tr>
+<td valign="top" width="153">
+<p>MapHandler</p>
+</td>
+<td valign="top" width="620">
+<p>将结果集第一行封装到<span style="font-family: Calibri;">Map</span><span style="font-family: 宋体;">集合中</span><span style="font-family: Calibri;">,Key </span><span style="font-family: 宋体;">列名</span><span style="font-family: Calibri;">, Value </span><span style="font-family: 宋体;">该列数据</span></p>
+</td>
+</tr>
+<tr>
+<td valign="top" width="153">
+<p>MapListHandler</p>
+</td>
+<td valign="top" width="620">
+<p>将结果集第一行封装到<span style="font-family: Calibri;">Map</span><span style="font-family: 宋体;">集合中</span><span style="font-family: Calibri;">,Key </span><span style="font-family: 宋体;">列名</span><span style="font-family: Calibri;">, Value </span><span style="font-family: 宋体;">该列数据</span><span style="font-family: Calibri;">,Map</span><span style="font-family: 宋体;">集合存储到</span><span style="font-family: Calibri;">List</span><span style="font-family: 宋体;">集合</span></p>
+</td>
+</tr>
+</tbody>
+</table>
+<p>&nbsp;</p>
+<p>&nbsp;</p>
+<h3><!--[if !supportLists]-->1.4.2&nbsp;<!--[endif]--><strong>JavaBean</strong></h3>
+<p>&nbsp;</p>
+<p>&nbsp;</p>
+<p>JavaBean<span style="font-family: 宋体;">就是一个类，在开发中常用封装数据。具有如下特性</span></p>
+<p>&nbsp;</p>
+<ol>
+<li><span style="font-family: 宋体;">需要实现接口：</span>java.io.Serializable <span style="font-family: 宋体;">，通常实现接口这步骤省略了，不会影响程序。</span></li>
+<li><span style="font-family: 宋体;">提供私有字段：</span>private <span style="font-family: 宋体;">类型 字段名</span><span style="font-family: Calibri;">;</span></li>
+<li><span style="font-family: 宋体;">提供</span>getter/setter<span style="font-family: 宋体;">方法：</span></li>
+<li>提供无参构造</li>
+</ol>
+<src class="cnblogs_code">
+<pre><code><span style="color: #008000;">/*</span><span style="color: #008000;">
+ * 账务类
+ </span><span style="color: #008000;">*/</span>
+<span style="color: #0000ff;">public</span> <span style="color: #0000ff;">class</span><span style="color: #000000;"> ZhangWu {
+    </span><span style="color: #0000ff;">private</span> <span style="color: #0000ff;">int</span><span style="color: #000000;"> id;
+    </span><span style="color: #0000ff;">private</span><span style="color: #000000;"> String name;
+    </span><span style="color: #0000ff;">private</span> <span style="color: #0000ff;">double</span><span style="color: #000000;"> money;
+    </span><span style="color: #0000ff;">private</span><span style="color: #000000;"> String parent;
+
+    </span><span style="color: #0000ff;">public</span><span style="color: #000000;"> ZhangWu() {
+        </span><span style="color: #0000ff;">super</span><span style="color: #000000;">();
+    }
+    </span><span style="color: #0000ff;">public</span> <span style="color: #0000ff;">int</span><span style="color: #000000;"> getId() {
+        </span><span style="color: #0000ff;">return</span><span style="color: #000000;"> id;
+    }
+    </span><span style="color: #0000ff;">public</span> <span style="color: #0000ff;">void</span> setId(<span style="color: #0000ff;">int</span><span style="color: #000000;"> id) {
+        </span><span style="color: #0000ff;">this</span>.id =<span style="color: #000000;"> id;
+    }
+    </span><span style="color: #0000ff;">public</span><span style="color: #000000;"> String getName() {
+        </span><span style="color: #0000ff;">return</span><span style="color: #000000;"> name;
+    }
+    </span><span style="color: #0000ff;">public</span> <span style="color: #0000ff;">void</span><span style="color: #000000;"> setName(String name) {
+        </span><span style="color: #0000ff;">this</span>.name =<span style="color: #000000;"> name;
+    }
+    </span><span style="color: #0000ff;">public</span> <span style="color: #0000ff;">double</span><span style="color: #000000;"> getMoney() {
+        </span><span style="color: #0000ff;">return</span><span style="color: #000000;"> money;
+    }
+    </span><span style="color: #0000ff;">public</span> <span style="color: #0000ff;">void</span> setMoney(<span style="color: #0000ff;">double</span><span style="color: #000000;"> money) {
+        </span><span style="color: #0000ff;">this</span>.money =<span style="color: #000000;"> money;
+    }
+    </span><span style="color: #0000ff;">public</span><span style="color: #000000;"> String getParent() {
+        </span><span style="color: #0000ff;">return</span><span style="color: #000000;"> parent;
+    }
+    </span><span style="color: #0000ff;">public</span> <span style="color: #0000ff;">void</span><span style="color: #000000;"> setParent(String parent) {
+        </span><span style="color: #0000ff;">this</span>.parent =<span style="color: #000000;"> parent;
+    }
+
+    @Override
+    </span><span style="color: #0000ff;">public</span> String toString() { <span style="color: #008000;">//</span><span style="color: #008000;">该方法可以省略</span>
+        <span style="color: #0000ff;">return</span> "ZhangWu [id=" + id + ", name=" + name + ", money=" + money + ", parent=" + parent + "]"<span style="color: #000000;">;
+    }
+}</span></code></pre>
+
+<h3><!--[if !supportLists]-->1.4.3&nbsp;<!--[endif]--><strong>ArrayHandler<span style="font-family: 黑体;">与</span><span style="font-family: 'Times New Roman';">ArrayListHandler</span><span style="font-family: 黑体;">查询</span></strong></h3>
+<p>&nbsp;</p>
+<p>&nbsp;</p>
+<p class="16">ArrayHandler：<span style="font-family: 宋体;">将结果集中的第一条记录封装到一个</span>Object[]数组中，数组中的每一个元素就是这条记录中的每一个字段的值</p>
+<p>&nbsp;</p>
+<p>&nbsp;</p>
+<src class="cnblogs_code">
+<pre><code><span style="color: #0000ff;">public</span> <span style="color: #0000ff;">class</span><span style="color: #000000;"> ArrayHandlerDemo {
+    
+    @Test
+    </span><span style="color: #0000ff;">public</span> <span style="color: #0000ff;">void</span><span style="color: #000000;"> method(){
+        </span><span style="color: #0000ff;">try</span><span style="color: #000000;"> {
+            </span><span style="color: #008000;">//</span><span style="color: #008000;">获取QueryRunner对象</span>
+            QueryRunner qr = <span style="color: #0000ff;">new</span><span style="color: #000000;"> QueryRunner();
+            </span><span style="color: #008000;">//</span><span style="color: #008000;">执行SQL语句</span>
+            String sql = "SELECT * FROM zhangwu"<span style="color: #000000;">;
+            Object[] params </span>=<span style="color: #000000;"> {};
+            Connection conn </span>=<span style="color: #000000;"> JDBCUtils.getConnection();
+            Object[] objArray </span>= qr.query(conn, sql, <span style="color: #0000ff;">new</span><span style="color: #000000;"> ArrayHandler(), params);
+            </span><span style="color: #008000;">//</span><span style="color: #008000;">结果集的处理</span>
+<span style="color: #000000;">            System.out.println( Arrays.toString(objArray) );
+            
+            conn.close();
+        } </span><span style="color: #0000ff;">catch</span><span style="color: #000000;"> (SQLException e) {
+            e.printStackTrace();
+        }
+    }
+}</span></code></pre>
+
+<p>&nbsp;</p>
+<p class="16">ArrayListHandler：<span style="font-family: 宋体;">将结果集中的每一条记录都封装到一个</span>Object[]数组中，将这些数组在封装到List集合中。</p>
+<p>&nbsp;</p>
+<p>&nbsp;</p>
+<src class="cnblogs_code">
+<pre><code><span style="color: #0000ff;">public</span> <span style="color: #0000ff;">class</span><span style="color: #000000;"> ArrayListHandlerDemo {
+    @Test
+    </span><span style="color: #0000ff;">public</span> <span style="color: #0000ff;">void</span><span style="color: #000000;"> method(){
+        </span><span style="color: #0000ff;">try</span><span style="color: #000000;"> {
+            </span><span style="color: #008000;">//</span><span style="color: #008000;">获取QueryRunner对象</span>
+            QueryRunner qr = <span style="color: #0000ff;">new</span><span style="color: #000000;"> QueryRunner();
+            </span><span style="color: #008000;">//</span><span style="color: #008000;">执行SQL语句</span>
+            String sql = "SELECT * FROM zhangwu WHERE money&gt;?"<span style="color: #000000;">;
+            Object[] params </span>= {2000<span style="color: #000000;">};
+            Connection conn </span>=<span style="color: #000000;"> JDBCUtils.getConnection();
+             List</span>&lt;Object[]&gt; list = qr.query(conn, sql, <span style="color: #0000ff;">new</span><span style="color: #000000;"> ArrayListHandler(), params);
+            </span><span style="color: #008000;">//</span><span style="color: #008000;">结果集的处理</span>
+             <span style="color: #0000ff;">for</span><span style="color: #000000;"> (Object[] objArray : list) {
+                System.out.println(  Arrays.toString(objArray) );
+            }
+            
+            conn.close();
+        } </span><span style="color: #0000ff;">catch</span><span style="color: #000000;"> (SQLException e) {
+            e.printStackTrace();
+        }
+    }
+}</span></code></pre>
+
+<p>&nbsp;</p>
+<h3><!--[if !supportLists]-->1.4.4&nbsp;<!--[endif]--><strong>BeanHandler<span style="font-family: 黑体;">与</span><span style="font-family: 'Times New Roman';">BeanListHandler</span><span style="font-family: 黑体;">查询</span></strong></h3>
+<p>&nbsp;</p>
+<p>&nbsp;</p>
+<p class="16">BeanHandler ：<span style="font-family: 宋体;">将结果集中第一条记录封装到一个指定的</span>javaBean中。</p>
+<p>&nbsp;</p>
+<p>&nbsp;</p>
+<src class="cnblogs_code">
+<pre><code><span style="color: #0000ff;">public</span> <span style="color: #0000ff;">class</span><span style="color: #000000;"> BeanHandlerDemo {
+    @Test
+    </span><span style="color: #0000ff;">public</span> <span style="color: #0000ff;">void</span><span style="color: #000000;"> method(){
+        </span><span style="color: #0000ff;">try</span><span style="color: #000000;">{
+            </span><span style="color: #008000;">//</span><span style="color: #008000;">获取QueryRunner </span>
+            QueryRunner qr = <span style="color: #0000ff;">new</span><span style="color: #000000;"> QueryRunner();
+            </span><span style="color: #008000;">//</span><span style="color: #008000;">执行SQL语句</span>
+            String sql = "SELECT * FROM zhangwu WHERE id=?"<span style="color: #000000;">;
+            Object[] params </span>= {1<span style="color: #000000;">};
+            Connection conn </span>=<span style="color: #000000;"> JDBCUtils.getConnection();
+            ZhangWu zw </span>= qr.query(conn, sql, <span style="color: #0000ff;">new</span> BeanHandler&lt;ZhangWu&gt;(ZhangWu.<span style="color: #0000ff;">class</span><span style="color: #000000;">), params);
+            </span><span style="color: #008000;">//</span><span style="color: #008000;">结果集处理</span>
+<span style="color: #000000;">            System.out.println(zw);
+            
+            conn.close();
+        } </span><span style="color: #0000ff;">catch</span><span style="color: #000000;">(SQLException e){
+            </span><span style="color: #0000ff;">throw</span> <span style="color: #0000ff;">new</span><span style="color: #000000;"> RuntimeException(e);
+        }
+    }
+}</span></code></pre>
+
+<p>&nbsp;</p>
+<p class="16">BeanListHandler ：<span style="font-family: 宋体;">将结果集中每一条记录封装到指定的</span>javaBean中，将这些javaBean在封装到List集合中</p>
+<p>&nbsp;</p>
+<p>&nbsp;</p>
+<src class="cnblogs_code">
+<pre><code><span style="color: #0000ff;">public</span> <span style="color: #0000ff;">class</span><span style="color: #000000;"> BeanListHandlerDemo {
+    @Test
+    </span><span style="color: #0000ff;">public</span> <span style="color: #0000ff;">void</span><span style="color: #000000;"> method(){
+        </span><span style="color: #0000ff;">try</span><span style="color: #000000;">{
+            </span><span style="color: #008000;">//</span><span style="color: #008000;">获取QueryRunner </span>
+            QueryRunner qr = <span style="color: #0000ff;">new</span><span style="color: #000000;"> QueryRunner();
+            </span><span style="color: #008000;">//</span><span style="color: #008000;">执行SQL语句</span>
+            String sql = "SELECT * FROM zhangwu WHERE money&gt;?"<span style="color: #000000;">;
+            Object[] params </span>= {2000<span style="color: #000000;">};
+            Connection conn </span>=<span style="color: #000000;"> JDBCUtils.getConnection();
+            List</span>&lt;ZhangWu&gt; list = qr.query(conn, sql, <span style="color: #0000ff;">new</span> BeanListHandler&lt;ZhangWu&gt;(ZhangWu.<span style="color: #0000ff;">class</span><span style="color: #000000;">), params);
+            </span><span style="color: #008000;">//</span><span style="color: #008000;">结果集处理</span>
+            <span style="color: #0000ff;">for</span><span style="color: #000000;"> (ZhangWu zw : list) {
+                System.out.println(zw);
+            }
+            
+            conn.close();
+        } </span><span style="color: #0000ff;">catch</span><span style="color: #000000;">(SQLException e){
+            </span><span style="color: #0000ff;">throw</span> <span style="color: #0000ff;">new</span><span style="color: #000000;"> RuntimeException(e);
+        }
+    }
+}</span></code></pre>
+
+<p>&nbsp;</p>
+<h3><!--[if !supportLists]-->1.4.5&nbsp;<!--[endif]--><strong>ColumnListHandler<span style="font-family: 黑体;">与</span><span style="font-family: 'Times New Roman';">ScalarHandler</span><span style="font-family: 黑体;">查询</span></strong></h3>
+<p>&nbsp;</p>
+<p>&nbsp;</p>
+<p>ColumnListHandler：<span style="font-family: 宋体;">将结果集中指定的列的字段值，封装到一个</span>List<span style="font-family: 宋体;">集合中</span></p>
+<p>&nbsp;</p>
+<p>&nbsp;</p>
+<src class="cnblogs_code">
+<pre><code><span style="color: #0000ff;">public</span> <span style="color: #0000ff;">class</span><span style="color: #000000;"> ColumnListHandlerDemo {
+    @Test
+    </span><span style="color: #0000ff;">public</span> <span style="color: #0000ff;">void</span><span style="color: #000000;"> method(){
+        </span><span style="color: #0000ff;">try</span><span style="color: #000000;"> {
+            </span><span style="color: #008000;">//</span><span style="color: #008000;">获取QueryRunner对象</span>
+            QueryRunner qr = <span style="color: #0000ff;">new</span><span style="color: #000000;"> QueryRunner();
+            </span><span style="color: #008000;">//</span><span style="color: #008000;">执行SQL语句</span>
+            String sql = "SELECT name FROM zhangwu WHERE money&gt;?"<span style="color: #000000;">;
+            Object[] params </span>= {2000<span style="color: #000000;">};
+            Connection conn </span>=<span style="color: #000000;"> JDBCUtils.getConnection();
+            List</span>&lt;String&gt; list = qr.query(conn, sql, <span style="color: #0000ff;">new</span> ColumnListHandler&lt;String&gt;<span style="color: #000000;">(), params); 
+            </span><span style="color: #008000;">//</span><span style="color: #008000;">结果集的处理</span>
+            <span style="color: #0000ff;">for</span><span style="color: #000000;"> (String str : list) {
+                System.out.println(str);
+            }
+
+            conn.close();
+        } </span><span style="color: #0000ff;">catch</span><span style="color: #000000;"> (SQLException e) {
+            e.printStackTrace();
+        }
+    }
+}</span></code></pre>
+
+<p>&nbsp;</p>
+<p class="16">ScalarHandler：<span style="font-family: 宋体;">它是用于单数据。例如</span>select count(*) from 表操作。</p>
+<p>&nbsp;</p>
+<p>&nbsp;</p>
+<src class="cnblogs_code">
+<pre><code><span style="color: #0000ff;">public</span> <span style="color: #0000ff;">class</span><span style="color: #000000;"> ScalarHandlerDemo {
+    @Test
+    </span><span style="color: #0000ff;">public</span> <span style="color: #0000ff;">void</span><span style="color: #000000;"> method(){
+        </span><span style="color: #0000ff;">try</span><span style="color: #000000;"> {
+            </span><span style="color: #008000;">//</span><span style="color: #008000;">获取QueryRunner对象</span>
+            QueryRunner qr = <span style="color: #0000ff;">new</span><span style="color: #000000;"> QueryRunner();
+            
+            </span><span style="color: #008000;">//</span><span style="color: #008000;">执行SQL语句</span>
+            String sql = "SELECT MAX(money) FROM zhangwu"<span style="color: #000000;">;
+            Object[] params </span>=<span style="color: #000000;"> {};
+            Connection conn </span>=<span style="color: #000000;"> JDBCUtils.getConnection();
+            Double max </span>= qr.query(conn, sql, <span style="color: #0000ff;">new</span> ScalarHandler&lt;Double&gt;<span style="color: #000000;">(), params);
+            </span><span style="color: #008000;">//</span><span style="color: #008000;">结果集的处理</span>
+            System.out.println("max=" +<span style="color: #000000;"> max);
+            
+            conn.close();
+        } </span><span style="color: #0000ff;">catch</span><span style="color: #000000;"> (SQLException e) {
+            e.printStackTrace();
+        }
+    }
+}</span></code></pre>
+
+<p>&nbsp;</p>
+<h1>2.&nbsp;<strong>连接池</strong></h1>
+<p>&nbsp;</p>
+<p>&nbsp;</p>
+<p><span style="font-family: 宋体;">实际开发中</span>&ldquo;获得连接&rdquo;或&ldquo;释放资源&rdquo;是非常消耗系统资源的两个过程，为了解决此类性能问题，通常情况我们采用连接池技术，来共享连接<span style="font-family: Calibri;">Connection</span><span style="font-family: 宋体;">。这样我们就不需要每次都创建连接、释放连接了，这些操作都交给了连接池</span></p>
+<p>&nbsp;</p>
+<h2><!--[if !supportLists]-->2.1&nbsp;<!--[endif]--><strong>连接池概述</strong></h2>
+<p>&nbsp;</p>
+<p>&nbsp;</p>
+<p>&nbsp;</p>
+<p class="16">概念</p>
+<p>&nbsp;</p>
+<p><span style="font-family: 宋体;">用池来管理</span>Connection<span style="font-family: 宋体;">，这样可以重复使用</span><span style="font-family: Calibri;">Connection</span><span style="font-family: 宋体;">。有了池，所以我们就不用自己来创建</span><span style="font-family: Calibri;">Connection</span><span style="font-family: 宋体;">，而是通过池来获取</span><span style="font-family: Calibri;">Connection</span><span style="font-family: 宋体;">对象。当使用完</span><span style="font-family: Calibri;">Connection</span><span style="font-family: 宋体;">后，调用</span><span style="font-family: Calibri;">Connection</span><span style="font-family: 宋体;">的</span><span style="font-family: Calibri;">close()</span><span style="font-family: 宋体;">方法也不会真的关闭</span><span style="font-family: Calibri;">Connection</span><span style="font-family: 宋体;">，而是把</span><span style="font-family: Calibri;">Connection</span><span style="font-family: 宋体;">&ldquo;归还&rdquo;给池。池就可以再利用这个</span><span style="font-family: Calibri;">Connection</span><span style="font-family: 宋体;">对象了。</span></p>
+<p>&nbsp;</p>
+<p><span style="font-family: 宋体;"><img src="./images/java基础(30)DBUtils、连接池1.png" alt="" /></span></p>
+<p>&nbsp;</p>
+<p>&nbsp;</p>
+<p>&nbsp;</p>
+<p class="16">规范</p>
+<p>Java<span style="font-family: 宋体;">为数据库连接池提供了公共的接口：</span><strong>javax.sql.DataSource</strong>，各个厂商需要让自己的连接池实现这个接口。这样应用程序可以方便的切换不同厂商的连接池！</p>
+<p><span style="font-family: 宋体;">常见的连接池：</span>DBCP<span style="font-family: 宋体;">、</span><span style="font-family: Calibri;">C3P0</span><span style="font-family: 宋体;">。</span></p>
+<p><span style="font-family: 宋体;">接下来，我们就详细的学习一下</span>DBCP<span style="font-family: 宋体;">连接池。</span><span style="font-family: Calibri;">C3P0</span><span style="font-family: 宋体;">连接池我们在就业班学习。</span></p>
+<p>&nbsp;</p>
+<p>&nbsp;</p>
+<h2><!--[if !supportLists]-->2.2&nbsp;<!--[endif]--><strong>DBCP<span style="font-family: 华文楷体;">连接池&nbsp;&nbsp;</span></strong></h2>
+<p>&nbsp;</p>
+<p>&nbsp;</p>
+<p>DBCP<span style="font-family: 宋体;">也是一个开源的连接池，是</span><span style="font-family: Calibri;">Apache Common</span><span style="font-family: 宋体;">成员之一，在企业开发中也比较常见，</span><span style="font-family: Calibri;">tomcat</span><span style="font-family: 宋体;">内置的连接池。</span></p>
+<p>&nbsp;</p>
+<p>&nbsp;</p>
+<h3><!--[if !supportLists]-->2.2.1&nbsp;<!--[endif]--><strong><span style="font-family: 黑体;">导入</span>jar<span style="font-family: 黑体;">包</span></strong></h3>
+<p>&nbsp;</p>
+<p><span style="font-family: 宋体;"><img src="./images/java基础(30)DBUtils、连接池2.png" alt="" /></span></p>
+<h3><!--[if !supportLists]-->2.2.2&nbsp;<!--[endif]--><strong>编写工具类</strong></h3>
+<p>&nbsp;</p>
+<p>&nbsp;</p>
+<p><span style="font-family: 宋体;">连接数据库表的工具类</span>, <span style="font-family: 宋体;">采用</span><span style="font-family: Calibri;">DBCP</span><span style="font-family: 宋体;">连接池的方式来完成</span>，Java<span style="font-family: 宋体;">中提供了一个连接池的规则接口 </span>：</p>
+<p>&nbsp;</p>
+<p>DataSource : <span style="font-family: 宋体;">它是</span><span style="font-family: Calibri;">java</span><span style="font-family: 宋体;">中提供的连接池，作为 </span><span style="font-family: Calibri;">DriverManager </span><span style="font-family: 宋体;">工具的替代项</span>。<span style="font-family: 宋体;">在</span>DBCP<span style="font-family: 宋体;">包中提供了</span><span style="font-family: Calibri;">DataSource</span><span style="font-family: 宋体;">接口的实现类，我们要用的具体的连接池 </span><span style="font-family: Calibri;">BasicDataSource</span><span style="font-family: 宋体;">类</span></p>
+<p>&nbsp;</p>
+<p>&nbsp;</p>
+<src class="cnblogs_code">
+<pre><code><span style="color: #0000ff;">public</span> <span style="color: #0000ff;">class</span><span style="color: #000000;"> JDBCUtils {
+    </span><span style="color: #0000ff;">public</span> <span style="color: #0000ff;">static</span> <span style="color: #0000ff;">final</span> String DRIVER = "com.mysql.jdbc.Driver"<span style="color: #000000;">;
+    </span><span style="color: #0000ff;">public</span> <span style="color: #0000ff;">static</span> <span style="color: #0000ff;">final</span> String URL = "jdbc:mysql://localhost:3306/daydb"<span style="color: #000000;">;
+    </span><span style="color: #0000ff;">public</span> <span style="color: #0000ff;">static</span> <span style="color: #0000ff;">final</span> String USERNAME = "root"<span style="color: #000000;">;
+    </span><span style="color: #0000ff;">public</span> <span style="color: #0000ff;">static</span> <span style="color: #0000ff;">final</span> String PASSWORD = "root"<span style="color: #000000;">;
+    </span><span style="color: #008000;">/*</span><span style="color: #008000;">
+     * 创建连接池BasicDataSource
+     </span><span style="color: #008000;">*/</span>
+    <span style="color: #0000ff;">public</span> <span style="color: #0000ff;">static</span> BasicDataSource dataSource = <span style="color: #0000ff;">new</span><span style="color: #000000;"> BasicDataSource();
+    </span><span style="color: #008000;">//</span><span style="color: #008000;">静态代码块</span>
+    <span style="color: #0000ff;">static</span><span style="color: #000000;"> {
+        </span><span style="color: #008000;">//</span><span style="color: #008000;">对连接池对象 进行基本的配置</span>
+        dataSource.setDriverClassName(DRIVER); <span style="color: #008000;">//</span><span style="color: #008000;"> 这是要连接的数据库的驱动</span>
+        dataSource.setUrl(URL); <span style="color: #008000;">//</span><span style="color: #008000;">指定要连接的数据库地址</span>
+        dataSource.setUsername(USERNAME); <span style="color: #008000;">//</span><span style="color: #008000;">指定要连接数据的用户名</span>
+        dataSource.setPassword(PASSWORD); <span style="color: #008000;">//</span><span style="color: #008000;">指定要连接数据的密码</span>
+<span style="color: #000000;">    }
+    </span><span style="color: #008000;">/*</span><span style="color: #008000;">
+     * 返回连接池对象
+     </span><span style="color: #008000;">*/</span>
+    <span style="color: #0000ff;">public</span> <span style="color: #0000ff;">static</span><span style="color: #000000;"> DataSource getDataSource(){
+        </span><span style="color: #0000ff;">return</span><span style="color: #000000;"> dataSource;
+    }
+}</span></code></pre>
+
+<p>&nbsp;</p>
+<h3><!--[if !supportLists]-->2.2.3&nbsp;<!--[endif]--><strong>工具类的使用</strong></h3>
+<p>&nbsp;</p>
+<p>&nbsp;</p>
+<p class="16">测试类</p>
+<p>&nbsp;</p>
+<p>&nbsp;</p>
+<src class="cnblogs_code">
+<pre><code><span style="color: #008000;">/*</span><span style="color: #008000;">
+ * 演示使用DBUtils工具  完成数据库表的增加操作
+ </span><span style="color: #008000;">*/</span>
+<span style="color: #0000ff;">public</span> <span style="color: #0000ff;">class</span><span style="color: #000000;"> Demo {
+    </span><span style="color: #008000;">//</span><span style="color: #008000;"> 插入功能 </span>
+<span style="color: #000000;">    @Test
+    </span><span style="color: #0000ff;">public</span> <span style="color: #0000ff;">void</span><span style="color: #000000;"> insert(){
+        </span><span style="color: #0000ff;">try</span><span style="color: #000000;"> {
+            </span><span style="color: #008000;">//</span><span style="color: #008000;">获取一个用来执行SQL语句的对象   QueryRunner</span>
+            QueryRunner qr = <span style="color: #0000ff;">new</span><span style="color: #000000;"> QueryRunner(JDBCUtils.getDataSource());
+　　　　　　  String sql </span>= "INSERT INTO zhangwu(name,money,parent) VALUES(?,?,?)"<span style="color: #000000;">;
+            Object[] params </span>= {"股票收入", 5500, "收入"<span style="color: #000000;">};    
+             </span><span style="color: #0000ff;">int</span> line =<span style="color: #000000;"> qr.update(sql,params);
+            </span><span style="color: #008000;">//</span><span style="color: #008000;">结果集处理</span>
+            System.out.println("line = " +<span style="color: #000000;"> line);
+            
+        } </span><span style="color: #0000ff;">catch</span><span style="color: #000000;"> (SQLException e) {
+            </span><span style="color: #0000ff;">throw</span> <span style="color: #0000ff;">new</span><span style="color: #000000;"> RuntimeException(e);
+        }
+    }
+    
+    </span><span style="color: #008000;">//</span><span style="color: #008000;">删除功能</span>
+<span style="color: #000000;">    @Test
+    </span><span style="color: #0000ff;">public</span> <span style="color: #0000ff;">void</span><span style="color: #000000;"> delete(){
+        </span><span style="color: #0000ff;">try</span><span style="color: #000000;"> {
+            </span><span style="color: #008000;">//</span><span style="color: #008000;">创建一个QueryRunner对象，用来完成SQL语句的执行</span>
+            QueryRunner qr = <span style="color: #0000ff;">new</span><span style="color: #000000;"> QueryRunner(JDBCUtils.getDataSource());
+            </span><span style="color: #008000;">//</span><span style="color: #008000;">执行SQL语句</span>
+            String sql = "DELETE FROM zhangwu WHERE name = ?"<span style="color: #000000;">;
+            Object[] params </span>= {"股票收入"<span style="color: #000000;">};
+            </span><span style="color: #0000ff;">int</span> line =<span style="color: #000000;"> qr.update(sql, params);
+            </span><span style="color: #008000;">//</span><span style="color: #008000;">结果集的处理</span>
+            System.out.println("line="+<span style="color: #000000;">line);
+            
+        } </span><span style="color: #0000ff;">catch</span><span style="color: #000000;"> (SQLException e) {
+            </span><span style="color: #0000ff;">throw</span> <span style="color: #0000ff;">new</span><span style="color: #000000;"> RuntimeException(e);
+        }
+    }
+    
+    </span><span style="color: #008000;">//</span><span style="color: #008000;">更新功能</span>
+<span style="color: #000000;">    @Test
+    </span><span style="color: #0000ff;">public</span> <span style="color: #0000ff;">void</span><span style="color: #000000;"> update(){
+        </span><span style="color: #0000ff;">try</span><span style="color: #000000;"> {
+            </span><span style="color: #008000;">//</span><span style="color: #008000;">创建一个QueryRunner对象，用来完成SQL语句的执行</span>
+            QueryRunner qr = <span style="color: #0000ff;">new</span><span style="color: #000000;"> QueryRunner(JDBCUtils.getDataSource());
+            </span><span style="color: #008000;">//</span><span style="color: #008000;">执行SQL语句</span>
+            String sql = "UPDATE zhangwu SET money = money+1000 WHERE name=?"<span style="color: #000000;">;
+            Object[] params </span>= {"股票收入"<span style="color: #000000;">};
+            </span><span style="color: #0000ff;">int</span> line =<span style="color: #000000;"> qr.update(sql, params);
+            </span><span style="color: #008000;">//</span><span style="color: #008000;">结果集的处理</span>
+            System.out.println("line="+<span style="color: #000000;">line);
+            
+        } </span><span style="color: #0000ff;">catch</span><span style="color: #000000;"> (SQLException e) {
+            </span><span style="color: #0000ff;">throw</span> <span style="color: #0000ff;">new</span><span style="color: #000000;"> RuntimeException(e);
+        }
+    }
+    
+    </span><span style="color: #008000;">//</span><span style="color: #008000;">查询功能,将结果集中第一条记录封装到一个指定的javaBean中。</span>
+<span style="color: #000000;">    @Test
+    </span><span style="color: #0000ff;">public</span> <span style="color: #0000ff;">void</span><span style="color: #000000;"> search(){
+        </span><span style="color: #0000ff;">try</span><span style="color: #000000;">{
+            </span><span style="color: #008000;">//</span><span style="color: #008000;">获取QueryRunner </span>
+            QueryRunner qr = <span style="color: #0000ff;">new</span><span style="color: #000000;"> QueryRunner(JDBCUtils.getDataSource());
+            </span><span style="color: #008000;">//</span><span style="color: #008000;">执行SQL语句</span>
+            String sql = "SELECT * FROM zhangwu"<span style="color: #000000;">;
+            Object[] params </span>=<span style="color: #000000;"> {};
+            Product p </span>= qr.query(sql, <span style="color: #0000ff;">new</span> BeanHandler&lt;Product&gt;(Product.<span style="color: #0000ff;">class</span><span style="color: #000000;">), params);
+            </span><span style="color: #008000;">//</span><span style="color: #008000;">结果集处理</span>
+<span style="color: #000000;">            System.out.println(p);
+            
+        } </span><span style="color: #0000ff;">catch</span><span style="color: #000000;">(SQLException e){
+            </span><span style="color: #0000ff;">throw</span> <span style="color: #0000ff;">new</span><span style="color: #000000;"> RuntimeException(e);
+        }
+    }
+}</span></code></pre>
+
+<p>&nbsp;</p>
+<h3><!--[if !supportLists]-->2.2.4&nbsp;<!--[endif]--><strong>常见配置项</strong></h3>
+<p>&nbsp;</p>
+<p>&nbsp;</p>
+<table border="1" cellspacing="0">
+<tbody>
+<tr>
+<td valign="top" width="169">
+<p>分类</p>
+</td>
+<td valign="top" width="242">
+<p>属性</p>
+</td>
+<td valign="top" width="362">
+<p>描述</p>
+</td>
+</tr>
+<tr>
+<td rowspan="4" valign="top" width="169">
+<p>必须项</p>
+<p>&nbsp;</p>
+<p>&nbsp;</p>
+<p>&nbsp;</p>
+</td>
+<td valign="top" width="242">
+<p>driverClassName</p>
+</td>
+<td valign="top" width="362">
+<p>数据库驱动名称</p>
+</td>
+</tr>
+<tr>
+<td valign="top" width="242">
+<p>url</p>
+</td>
+<td valign="top" width="362">
+<p>数据库的地址</p>
+</td>
+</tr>
+<tr>
+<td valign="top" width="242">
+<p>username</p>
+</td>
+<td valign="top" width="362">
+<p>用户名</p>
+</td>
+</tr>
+<tr>
+<td valign="top" width="242">
+<p>password</p>
+</td>
+<td valign="top" width="362">
+<p>密码</p>
+</td>
+</tr>
+<tr>
+<td rowspan="4" valign="top" width="169">
+<p>基本项（扩展）</p>
+<p>&nbsp;</p>
+<p>&nbsp;</p>
+<p>&nbsp;</p>
+</td>
+<td valign="top" width="242">
+<p>maxActive</p>
+</td>
+<td valign="top" width="362">
+<p>最大连接数量</p>
+</td>
+</tr>
+<tr>
+<td valign="top" width="242">
+<p>minIdle</p>
+</td>
+<td valign="top" width="362">
+<p>最小空闲连接</p>
+</td>
+</tr>
+<tr>
+<td valign="top" width="242">
+<p>maxIdle</p>
+</td>
+<td valign="top" width="362">
+<p>最大空闲连接</p>
+</td>
+</tr>
+<tr>
+<td valign="top" width="242">
+<p>initialSize</p>
+</td>
+<td valign="top" width="362">
+<p>初始化连接</p>
+</td>
+</tr>
+</tbody>
+</table>
+<p>&nbsp;</p>
+<p>&nbsp;</p>
+<p>参考文档：http://commons.apache.org/proper/commons-dbcp/configuration.html</p>
+
+</div><hr><script charset='utf-8' src='../../js/sming.js'></script></body></html>

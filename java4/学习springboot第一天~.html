@@ -1,0 +1,324 @@
+<html><head><meta charset='utf-8'><meta name='viewport' content='width=device-width, initial-scale=1'>
+<meta name='applicable-device' content='pc'><meta name='keywords' content='电脑,电脑讲解,电脑技术,编程,电脑故障维修学习springboot第一天~' />
+<script src='../../highlight/highlight.pack.js'></script>
+<link rel='stylesheet' type='text/css' href='../../highlight/styles/monokai.css'/>
+
+<link rel='stylesheet' href='../../fenxiang/dist/css/share.min.css'>
+<script src='../../fenxiang/src/js/social-share.js'></script>
+<script src='../../fenxiang/src/js/qrcode.js'></script>
+
+</head><body><script>hljs.initHighlightingOnLoad();</script><script>
+var system ={};  
+var p = navigator.platform;       
+system.win = p.indexOf('Win') == 0;  
+system.mac = p.indexOf('Mac') == 0;  
+system.x11 = (p == 'X11') || (p.indexOf('Linux') == 0);     
+if(system.win||system.mac||system.xll){
+document.write("<link href='../css/3.css' rel='stylesheet' type='text/css'>");}else{ document.write("<link href='../css/3wap.css' rel='stylesheet' type='text/css'>");}</script><script src='../../js/3.js'></script><div class='div2'><div class='heading_nav'><ul><div><li><a href='../../index.html'>首页</a></li>
+</div><div onclick='hidden1()' >分享</div>
+</ul></div></div>
+<div id='heading_nav2'> 
+<li class='row' >
+<div class='social-share' data-mode='prepend'><a href='javascript:' class='social-share-icon icon-heart'></a></div></li></div><script charset='utf-8' src='../../3/js/hengfu.js'></script><script charset='utf-8' src='../../3/js/hengfu2.js'></script><hr><div class='div1'><div class='biaoti'><center>学习springboot第一天~</center></div><div class='banquan'>原文出处:本文由博客园博主小狐狸敲代码提供。<br/>
+原文连接:https://www.cnblogs.com/zhuqianfang-fox/p/11795354.html</div><br>
+    <p>1. springboot是对spring的缺点进行改善和优化，它的约定大于配置，开箱即用，没有代码生成，也不需要xml文件配置，可以修改属性值来满足需求</p>
+<p>2. springboot的入门程序</p>
+<p>在idea中创建springboot的项目</p>
+<p>(1) 默认有个DemoApplication类，是springboot的启动类</p>
+<p>这个类必须要和其他代码的父级齐平，即它与所有类的父级是同一等级</p>
+<src class="cnblogs_code">
+<pre><code><span style="color: #000000;">@SpringBootApplication
+</span><span style="color: #0000ff;">public</span> <span style="color: #0000ff;">class</span><span style="color: #000000;"> DemoApplication {
+    </span><span style="color: #0000ff;">public</span> <span style="color: #0000ff;">static</span> <span style="color: #0000ff;">void</span><span style="color: #000000;"> main(String[] args) {//启动类
+        SpringApplication.run(DemoApplication.</span><span style="color: #0000ff;">class</span><span style="color: #000000;">, args);
+    }
+
+}</span></code></pre>
+
+<p>(2) 在resource目录下有application.properties，是springboot的配置文件</p>
+<p>(3) test包下有DemoApplicationTests测试类，是springboot的单元测试</p>
+<p>(4) pom.xml文件</p>
+<p>&nbsp;</p>
+<p>3. springboot web应用</p>
+<p>创建实体bean Car类</p>
+<p>导入依赖，安装lombok插件</p>
+<src class="cnblogs_code">
+<pre><code>&lt;dependency&gt;
+      &lt;groupId&gt;org.projectlombok&lt;/groupId&gt;
+      &lt;artifactId&gt;lombok&lt;/artifactId&gt;
+      &lt;version&gt;1.18.6&lt;/version&gt;
+&lt;/dependency&gt;</code></pre>
+
+<p>Car.java</p>
+<src class="cnblogs_code">
+<pre><code><span style="color: #000000;">@Data               </span><span style="color: #008000;">//</span><span style="color: #008000;">set+get</span>
+@NoArgsConstructor  <span style="color: #008000;">//</span><span style="color: #008000;">无参构造</span>
+@AllArgsConstructor <span style="color: #008000;">//</span><span style="color: #008000;">包含所有参数的有参构造</span>
+<span style="color: #0000ff;">public</span> <span style="color: #0000ff;">class</span><span style="color: #000000;"> Car {
+    </span><span style="color: #0000ff;">private</span><span style="color: #000000;"> Integer id;
+    </span><span style="color: #0000ff;">private</span><span style="color: #000000;"> String name;
+    </span><span style="color: #0000ff;">private</span><span style="color: #000000;"> Float price;
+    @JsonFormat(pattern </span>= "yyyy-MM-dd HH:mm:ss")<span style="color: #008000;">//</span><span style="color: #008000;">时间格式转化</span>
+    <span style="color: #0000ff;">private</span><span style="color: #000000;"> Date createDate;
+}</span></code></pre>
+
+<p>CarController.java</p>
+<p>@RequestParam：获取查询参数</p>
+<p>@PathVariable：获取路径参数<span style="color: #0000ff;"><br /></span></p>
+<src class="cnblogs_code">
+<pre><code><span style="color: #000000;">@RestController　　//</span>@RestController：相当于@Controller+@ResponseBody<br /><span>@RequestMapping(</span>"/car"<span>)<br /></span><span style="color: #0000ff;">public</span> <span style="color: #0000ff;">class</span><span> CarController {<br />　　@RequestMapping(</span>"/findCar"<span>) <br /></span><span style="color: #0000ff;">　　public</span><span> Car findCar(){ <br />　　　　Car car </span>= <span style="color: #0000ff;">new</span> Car(1, "宝马", 123.0F, <span style="color: #0000ff;">new</span><span> Date()); </span><span style="color: #0000ff;">return</span><span> car; <br />　　} <br /><br />　　@RequestMapping(</span>"/getCar/{id}"<span>) <br /></span><span style="color: #0000ff;">　　public</span> Car findOne(@PathVariable("id")Integer id, @RequestParam("name")String name,@RequestParam("price"<span>)Float price){ <br />　　　　Car car </span>= <span style="color: #0000ff;">new</span><span> Car(); <br />　　　　car.setId(id); car.setName(name); <br />　　　　car.setPrice(price); <br /></span><span style="color: #0000ff;">　　　　return</span><span> car; <br />　　} <br />}</span></code></pre>
+
+<p>&nbsp;</p>
+<p>&nbsp;</p>
+<p>获取springboot静态资源</p>
+<p>(1) 默认静态资源映射</p>
+<p>springboot默认将/**所有访问映射到classpath:/static，classpath:/public，classpath:/WETA-INF/resources</p>
+<p>即在resources目录下新建public，static，META-INF/resources，分别放入静态资源文件，可以直接通过访问资源名称，即可访问</p>
+<p>Spring Boot<span> 默认会挨个从 public、META-INF/resources、static 里面找是否存在相应的资源，如果有则直接返回</span></p>
+<p><span>(2) 自定义静态资源访问</span></p>
+<p><span>第一种方式：可以创建一个配置类</span></p>
+<src class="cnblogs_code">
+<pre><code><span style="color: #000000;">@Configuration   //将一个java类作为一个配置类
+</span><span style="color: #0000ff;">public</span> <span style="color: #0000ff;">class</span> WebMvcConfig <span style="color: #0000ff;">implements</span><span style="color: #000000;"> WebMvcConfigurer {
+    @Override
+    </span><span style="color: #0000ff;">public</span> <span style="color: #0000ff;">void</span> addResourceHandlers(ResourceHandlerRegistry registry) {  <br />　　　　//将所有d:\\Desktop\\访问都映射到/pathFile/**路径下<br />　　　　registry.addResourceHandler("/pathFile/**").addResourceLocations("file:d:\\Desktop\\"<span>);<br /></span><span> 　　}</span></code></pre>
+<pre><code><span style="color: #000000;">}</span></code></pre>
+
+<p>在浏览器输入：localhost:8080/pathFile/1.jpg即可访问该图片资源</p>
+<p>第二种方式：修改配置文件application.properties</p>
+<p>编写配置文件中的代码时，一定要细心，我同学就是因为在<em id="__mceDel"><em id="__mceDel">spring.mvc.static-path-pattern=/**后多写了一个空格，导致一直访问出错，所以在配置时，一定要仔细检查</em></em></p>
+<src class="cnblogs_code">
+<pre><code># 自定义的属性，指定一个路径<br />web.upload-path=d:/Desktop/<br />#表示所有的访问都经过静态资源路径<br /><em id="__mceDel"><em id="__mceDel"><span>spring.mvc.</span><span style="color: #0000ff;">static</span>-path-pattern=<span style="color: #008000;">/**<br /># 配置静态资源路径，这里的配置会覆盖默认访问配置(public、static、resources路径访问将会失效)，所以需要配置<br /></span></em></em><em id="__mceDel"><em id="__mceDel"><em id="__mceDel"><em id="__mceDel"><span style="color: #008000;">spring.resources.static-locations=classpath:/static/,classpath:/public/,classpath:/META-INF/resources/,file:${web.upload-path}</span></em></em></em></em></code></pre>
+
+<p>在浏览器输入：localhost:8080/1.jpg即可访问</p>
+<p>&nbsp;</p>
+<p>WebJars</p>
+<p>将所有前端的静态文件打包成一个jar包，然后引入此jar包，可以很好的对前端静态资源进行管理</p>
+<p>当时在打包时，因为直接把整个项目打成jar包，在本项目中引入后访问，一直报404。项目不能引入自己的jar包？我也不清楚什么原因，反正就是一直报错，就很烦~。</p>
+<p>解决：1.一定要新建一个项目，在新项目中引入jar包的依赖，</p>
+<p>　　　2. 要保证新项目中没有该jar包中的静态资源文件</p>
+<p>&nbsp;</p>
+<p>&nbsp;</p>
+<p>3.springboot属性配置</p>
+<p>修改springboot自动生成的application.properties配置文件的后缀名为yml(yml干嘛的我也不清楚，反正就是要修改成yml，可能更好用？)，可以修改默认配置</p>
+<p>springboot开发web应用的时候，默认tomcat启动端口号为8080，可以在配置文件中修改访问的端口号：</p>
+<src class="cnblogs_code">
+<pre><code><span style="color: #000000;">server:
+  port: </span>8888</code></pre>
+
+<p>注意：port前一定要留有空格，port:后也要留有空格(不留，在idea中port单词会不变色，不能使用)</p>
+<p>也可以修改访问路径：</p>
+<src class="cnblogs_code">
+<pre><code><span style="color: #000000;">server:
+  port: </span>8888<span style="color: #000000;">
+  servlet:
+    context</span>-path: /java0708</code></pre>
+
+<p>此时可以访问：http://localhost:8888/java0708</p>
+<p>书写是有顺序的，也有约束，要根据约束写，不然不起作用</p>
+<p>也可以自定义属性和读取</p>
+<p>在application.yml中定义常量：</p>
+<src class="cnblogs_code">
+<pre><code>offcn_ip: 12.134</code></pre>
+
+<p>编写Controller类，读取自定义的属性：</p>
+<src class="cnblogs_code">
+<pre><code><span style="color: #000000;">@RestController
+</span><span style="color: #0000ff;">public</span> <span style="color: #0000ff;">class</span><span style="color: #000000;"> TestConController {
+    @Value(</span>"${offcn_ip}"<span style="color: #000000;">)
+    </span><span style="color: #0000ff;">private</span><span style="color: #000000;"> String offcn_ip;
+
+    @GetMapping(</span>"/getValue"<span style="color: #000000;">)
+    </span><span style="color: #0000ff;">public</span><span style="color: #000000;"> String getIP(){
+        </span><span style="color: #0000ff;">return</span> "ip:"+<span style="color: #000000;">offcn_ip;
+    }
+}</span></code></pre>
+
+<p>&nbsp;</p>
+<p>实体类属性赋值</p>
+<p>在application.yml中配置：</p>
+<src class="cnblogs_code">
+<pre><code><span style="color: #000000;">userbody:
+  name: offcn
+  password: </span>123456<span style="color: #000000;">
+  birthday: </span>1992.10.28<span style="color: #000000;">
+  mobile: </span>13802789765<span style="color: #000000;">
+  address: beijing</span></code></pre>
+
+<p>不能再配置文件中写中文，会出现乱码，需要通过转码工具，才能输出中文(很麻烦，所以我写的是英文)</p>
+<p>创建实体类</p>
+<src class="cnblogs_code">
+<pre><code>@ConfigurationProperties(prefix = "userbody"<span style="color: #000000;">)
+</span><span style="color: #0000ff;">public</span> <span style="color: #0000ff;">class</span><span style="color: #000000;"> UserBody {
+    </span><span style="color: #0000ff;">private</span><span style="color: #000000;"> String name;
+    </span><span style="color: #0000ff;">private</span><span style="color: #000000;"> String password;
+    </span><span style="color: #0000ff;">private</span><span style="color: #000000;"> String birthday;
+    </span><span style="color: #0000ff;">private</span><span style="color: #000000;"> String mobile;
+    </span><span style="color: #0000ff;">private</span><span style="color: #000000;"> String address;
+}</span></code></pre>
+
+<p>编写Controller调用属性bean</p>
+<src class="cnblogs_code">
+<pre><code><span style="color: #000000;">@RestController
+@EnableConfigurationProperties({UserBody.</span><span style="color: #0000ff;">class</span><span style="color: #000000;">})
+</span><span style="color: #0000ff;">public</span> <span style="color: #0000ff;">class</span><span style="color: #000000;"> HelloControllerBean {
+    @Autowired
+    UserBody userbody;
+
+    @GetMapping(</span>"/getUser"<span style="color: #000000;">)
+    </span><span style="color: #0000ff;">public</span><span style="color: #000000;"> String getUser(){
+        </span><span style="color: #0000ff;">return</span><span style="color: #000000;"> userbody.toString();
+    }
+}</span></code></pre>
+
+<p>&nbsp;</p>
+<p>springboot构建RESTful</p>
+<p>RESTful是一种软件架构风格！</p>
+<p>RESTful架构风格规定，数据的元操作，即CRUD(create, read, update和delete,即数据的增删查改)操作，分别对应于HTTP方法：GET用来获取资源，</p>
+<p>POST用来新建资源（也可以用于更新资源），</p>
+<p>PUT用来更新资源，</p>
+<p>DELETE用来删除资源，</p>
+<p>这样就统一了数据操作的接口，仅通过HTTP方法，就可以完成对数据的所有增删查改工作</p>
+<table border="1" cellspacing="0">
+<tbody>
+<tr>
+<td valign="top" width="137">
+<p><strong>HTTP<span style="font-family: 宋体;">协议请求方法</span></strong></p>
+</td>
+<td valign="top" width="147">
+<p><strong>SpringBoot<span style="font-family: 宋体;">注解</span></strong></p>
+</td>
+<td valign="top" width="142">
+<p><strong>URL</strong></p>
+</td>
+<td valign="top" width="142">
+<p><strong>功能说明</strong></p>
+</td>
+</tr>
+<tr>
+<td valign="top" width="137">
+<p>POST</p>
+</td>
+<td valign="top" width="147">
+<p>@PostMapping</p>
+</td>
+<td valign="top" width="142">
+<p>/users</p>
+</td>
+<td valign="top" width="142">
+<p>创建一个用户</p>
+</td>
+</tr>
+<tr>
+<td valign="top" width="137">
+<p>GET</p>
+</td>
+<td valign="top" width="147">
+<p>@GetMapping</p>
+</td>
+<td valign="top" width="142">
+<p>/users</p>
+</td>
+<td valign="top" width="142">
+<p>查询用户列表</p>
+</td>
+</tr>
+<tr>
+<td valign="top" width="137">
+<p>GET</p>
+</td>
+<td valign="top" width="147">
+<p>@GetMapping</p>
+</td>
+<td valign="top" width="142">
+<p>/users/id</p>
+</td>
+<td valign="top" width="142">
+<p>根据<span style="font-family: Calibri;">id</span><span style="font-family: 宋体;">查询一个用户</span></p>
+</td>
+</tr>
+<tr>
+<td valign="top" width="137">
+<p>PUT</p>
+</td>
+<td valign="top" width="147">
+<p>@PutMapping</p>
+</td>
+<td valign="top" width="142">
+<p>/users/id</p>
+</td>
+<td valign="top" width="142">
+<p>根据<span style="font-family: Calibri;">id</span><span style="font-family: 宋体;">更新一个用户</span></p>
+</td>
+</tr>
+<tr>
+<td valign="top" width="137">
+<p>DELETE</p>
+</td>
+<td valign="top" width="147">
+<p>@DeleteMapping</p>
+</td>
+<td valign="top" width="142">
+<p>/users/id</p>
+</td>
+<td valign="top" width="142">
+<p>根据<span style="font-family: Calibri;">id</span><span style="font-family: 宋体;">删除一个用户</span></p>
+</td>
+</tr>
+</tbody>
+</table>
+<src class="cnblogs_code">
+<pre><code><span style="color: #000000;">@RestController
+@RequestMapping(</span>"/user-test"<span style="color: #000000;">)
+</span><span style="color: #0000ff;">public</span> <span style="color: #0000ff;">class</span><span style="color: #000000;"> UserController {
+    </span><span style="color: #0000ff;">private</span> List&lt;User&gt; userList = Collections.synchronizedList(<span style="color: #0000ff;">new</span> ArrayList&lt;User&gt;<span style="color: #000000;">());
+
+    </span><span style="color: #008000;">//</span><span style="color: #008000;">获取全部用户信息</span>
+    @GetMapping("/"<span style="color: #000000;">)
+    </span><span style="color: #0000ff;">public</span> List&lt;User&gt;<span style="color: #000000;"> getUserList(){
+        </span><span style="color: #0000ff;">return</span><span style="color: #000000;"> userList;
+    }
+
+    </span><span style="color: #008000;">//</span><span style="color: #008000;">添加用户信息</span>
+    @PostMapping("/"<span style="color: #000000;">)
+    </span><span style="color: #0000ff;">public</span><span style="color: #000000;"> String createUser(User user){
+        userList.add(user);
+        </span><span style="color: #0000ff;">return</span> "success"<span style="color: #000000;">;
+    }
+
+    </span><span style="color: #008000;">//</span><span style="color: #008000;">获取指定用户id信息</span>
+    @GetMapping("/{id}"<span style="color: #000000;">)
+    </span><span style="color: #0000ff;">public</span> User getUser(@PathVariable("id"<span style="color: #000000;">) Long id){
+        </span><span style="color: #0000ff;">for</span><span style="color: #000000;"> (User user : userList) {
+            </span><span style="color: #0000ff;">if</span> (user.getId() ==<span style="color: #000000;"> id){
+                </span><span style="color: #0000ff;">return</span><span style="color: #000000;"> user;
+            }
+        }
+        </span><span style="color: #0000ff;">return</span> <span style="color: #0000ff;">null</span><span style="color: #000000;">;
+    }
+
+    </span><span style="color: #008000;">//</span><span style="color: #008000;">修改指定用户id信息</span>
+    @PutMapping("/{id}"<span style="color: #000000;">)
+    </span><span style="color: #0000ff;">public</span> String updateUser(@PathVariable("id"<span style="color: #000000;">)Long id,User user){
+        </span><span style="color: #0000ff;">for</span><span style="color: #000000;"> (User user1 : userList) {
+            </span><span style="color: #0000ff;">if</span> (user1.getId() ==<span style="color: #000000;"> id){
+                user1.setName(user.getName());
+                user1.setAge(user.getAge());
+            }
+        }
+        </span><span style="color: #0000ff;">return</span> "success"<span style="color: #000000;">;
+    }
+
+    </span><span style="color: #008000;">//</span><span style="color: #008000;">删除指定用户id信息</span>
+    @DeleteMapping("/{id}"<span style="color: #000000;">)
+    </span><span style="color: #0000ff;">public</span> String deleteUser(@PathVariable("id"<span style="color: #000000;">)Long id){
+        userList.remove(getUser(id));
+        </span><span style="color: #0000ff;">return</span> "success"<span style="color: #000000;">;
+    }
+}</span></code></pre>
+
+<p>&nbsp;</p>
+<p>今天知识有点多，有点杂，很多代码都没有贴出来了，我还是比较懒，就总结了一些重要的知识点，应该不太全面，之后有时间会继续完善的</p>
+<p>作为初学者的我，这东西不是太好用，可能用spring习惯了，不过大多的知识还是比较基础的，今天学习比较轻松，明天继续努力啦</p>
+
+</div><hr><script charset='utf-8' src='../../js/sming.js'></script></body></html>

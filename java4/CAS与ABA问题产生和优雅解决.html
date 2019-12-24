@@ -1,0 +1,177 @@
+<html><head><meta charset='utf-8'><meta name='viewport' content='width=device-width, initial-scale=1'>
+<meta name='applicable-device' content='pc'><meta name='keywords' content='电脑,电脑讲解,电脑技术,编程,电脑故障维修CAS与ABA问题产生和优雅解决' />
+<script src='../../highlight/highlight.pack.js'></script>
+<link rel='stylesheet' type='text/css' href='../../highlight/styles/monokai.css'/>
+
+<link rel='stylesheet' href='../../fenxiang/dist/css/share.min.css'>
+<script src='../../fenxiang/src/js/social-share.js'></script>
+<script src='../../fenxiang/src/js/qrcode.js'></script>
+
+</head><body><script>hljs.initHighlightingOnLoad();</script><script>
+var system ={};  
+var p = navigator.platform;       
+system.win = p.indexOf('Win') == 0;  
+system.mac = p.indexOf('Mac') == 0;  
+system.x11 = (p == 'X11') || (p.indexOf('Linux') == 0);     
+if(system.win||system.mac||system.xll){
+document.write("<link href='../css/3.css' rel='stylesheet' type='text/css'>");}else{ document.write("<link href='../css/3wap.css' rel='stylesheet' type='text/css'>");}</script><script src='../../js/3.js'></script><div class='div2'><div class='heading_nav'><ul><div><li><a href='../../index.html'>首页</a></li>
+</div><div onclick='hidden1()' >分享</div>
+</ul></div></div>
+<div id='heading_nav2'> 
+<li class='row' >
+<div class='social-share' data-mode='prepend'><a href='javascript:' class='social-share-icon icon-heart'></a></div></li></div><script charset='utf-8' src='../../3/js/hengfu.js'></script><script charset='utf-8' src='../../3/js/hengfu2.js'></script><hr><div class='div1'><div class='biaoti'><center>CAS与ABA问题产生和优雅解决</center></div><div class='banquan'>原文出处:本文由博客园博主Java博客手留余香提供。<br/>
+原文连接:https://www.cnblogs.com/yuxiang1/p/12054984.html</div><br>
+    <blockquote>
+<p>本人免费整理了Java高级资料，涵盖了Java、Redis、MongoDB、MySQL、Zookeeper、Spring Cloud、Dubbo高并发分布式等教程，一共30G，需要自己领取。<br />传送门：<a class=" wrap external" href="https://link.zhihu.com/?target=https%3A//links.jianshu.com/go%3Fto%3Dhttps%253A%252F%252Flink.zhihu.com%252F%253Ftarget%253Dhttps%25253A%252F%252Fmp.weixin.qq.com%252Fs%252FJzddfH-7yNudmkjT0IRL8Q" rel="nofollow noreferrer" target="_blank" data-za-detail-view-id="1043">https://mp.weixin.qq.com/s/JzddfH-7yNudmkjT0IRL8Q</a></p>
+</blockquote>
+<p>&nbsp;</p>
+<p>独占锁：是一种悲观锁，synchronized就是一种独占锁，会导致其它所有需要锁的线程挂起，等待持有锁的线程释放锁。</p>
+<p>乐观锁：每次不加锁，假设没有冲突去完成某项操作，如果因为冲突失败就重试，直到成功为止。</p>
+<p>一、CAS 操作</p>
+<p>乐观锁用到的机制就是CAS，Compare and Swap。</p>
+<p>CAS有3个操作数，内存值V，旧的预期值A，要修改的新值B。当且仅当预期值A和内存值V相同时，将内存值V修改为B，否则什么都不做。</p>
+<p>1、非阻塞算法 （nonblocking algorithms）</p>
+<blockquote>一个线程的失败或者挂起不应该影响其他线程的失败或挂起的算法。</blockquote>
+<p>现代的CPU提供了特殊的指令，可以自动更新共享数据，而且能够检测到其他线程的干扰，而 compareAndSet() 就用这些代替了锁定。</p>
+<p>2、AtomicInteger示例</p>
+<p>拿出AtomicInteger来研究在没有锁的情况下是如何做到数据正确性的。</p>
+<src class="highlight">
+<src class="cnblogs_code">
+<pre><code><span style="color: #0000ff;">private</span> <span style="color: #0000ff;">volatile</span> <span style="color: #0000ff;">int</span> value;</code></pre>
+
+<p>&nbsp;</p>
+
+<p>在没有锁的机制下需要借助volatile原语，保证线程间的数据是可见的（共享的）。</p>
+<p>这样才获取变量的值的时候才能直接读取。</p>
+<src class="highlight">
+<src class="cnblogs_code">
+<pre><code><span style="color: #0000ff;">public</span> <span style="color: #0000ff;">final</span> <span style="color: #0000ff;">int</span><span style="color: #000000;"> get() {
+    </span><span style="color: #0000ff;">return</span><span style="color: #000000;"> value;
+}</span></code></pre>
+
+<p>&nbsp;</p>
+
+<p>然后来看看 ++i 是怎么做到的。</p>
+<src class="highlight">
+<src class="cnblogs_code">
+<pre><code><span style="color: #0000ff;">public</span> <span style="color: #0000ff;">final</span> <span style="color: #0000ff;">int</span><span style="color: #000000;"> incrementAndGet() {
+    </span><span style="color: #0000ff;">for</span><span style="color: #000000;"> (;;) {
+        </span><span style="color: #0000ff;">int</span> current =<span style="color: #000000;"> get();
+        </span><span style="color: #0000ff;">int</span> next = current + 1<span style="color: #000000;">;
+        </span><span style="color: #0000ff;">if</span><span style="color: #000000;"> (compareAndSet(current, next))
+            </span><span style="color: #0000ff;">return</span><span style="color: #000000;"> next;
+    }
+}</span></code></pre>
+
+<p>&nbsp;</p>
+
+<p>在这里采用了CAS操作，每次从内存中读取数据然后将此数据和+1后的结果进行CAS操作，如果成功就返回结果，否则重试直到成功为止。</p>
+<p>而compareAndSet利用JNI来完成CPU指令的操作。</p>
+<src class="highlight">
+<src class="cnblogs_code">
+<pre><code><span style="color: #0000ff;">public</span> <span style="color: #0000ff;">final</span> <span style="color: #0000ff;">boolean</span> compareAndSet(<span style="color: #0000ff;">int</span> expect, <span style="color: #0000ff;">int</span><span style="color: #000000;"> update) {   
+    </span><span style="color: #0000ff;">return</span> unsafe.compareAndSwapInt(<span style="color: #0000ff;">this</span><span style="color: #000000;">, valueOffset, expect, update);
+}</span></code></pre>
+
+<p>&nbsp;</p>
+
+<p>整体的过程就是这样子的，利用CPU的CAS指令，同时借助JNI来完成Java的非阻塞算法。其它原子操作都是利用类似的特性完成的。</p>
+<p>而整个J.U.C都是建立在CAS之上的，因此对于synchronized阻塞算法，J.U.C在性能上有了很大的提升。参考资料的文章中介绍了如果利用CAS构建非阻塞计数器、队列等数据结构。</p>
+<p>二、ABA问题</p>
+<p>CAS看起来很爽，但是会导致&ldquo;ABA问题&rdquo;。</p>
+<p>CAS算法实现一个重要前提需要取出内存中某时刻的数据，而在下时刻比较并替换，那么在这个时间差类会导致数据的变化。</p>
+<p>比如说一个线程one从内存位置V中取出A，这时候另一个线程two也从内存中取出A，并且two进行了一些操作变成了B，然后two又将V位置的数据变成A，这时候线程one进行CAS操作发现内存中仍然是A，然后one操作成功。尽管线程one的CAS操作成功，但是不代表这个过程就是没有问题的。</p>
+<p>如果链表的头在变化了两次后恢复了原值，但是不代表链表就没有变化。因此前面提到的原子操作AtomicStampedReference/AtomicMarkableReference就很有用了。这允许一对变化的元素进行原子操作。</p>
+<p>在运用CAS做Lock-Free操作中有一个经典的ABA问题：</p>
+<p>线程1准备用CAS将变量的值由A替换为B，在此之前，线程2将变量的值由A替换为C，又由C替换为A，然后线程1执行CAS时发现变量的值仍然为A，所以CAS成功。但实际上这时的现场已经和最初不同了，尽管CAS成功，但可能存在潜藏的问题，例如下面的例子：</p>
+<p><img class="content_image lazy" src="./images/CAS与ABA问题产生和优雅解决0.png" alt="" width="149" data-caption="" data-size="normal" data-rawwidth="149" data-rawheight="173" data-actualsrc="https://pic3.zhimg.com/v2-2cf7f51d04384acb778ff94e45d590ca_b.png" data-lazy-status="ok" /></p>
+<p>现有一个用单向链表实现的堆栈，栈顶为A，这时线程T1已经知道A.next为B，然后希望用CAS将栈顶替换为B：</p>
+<p>head.compareAndSet(A,B);</p>
+<p>在T1执行上面这条指令之前，线程T2介入，将A、B出栈，再pushD、C、A，此时堆栈结构如下图，而对象B此时处于游离状态：</p>
+<p><img class="content_image lazy" src="./images/CAS与ABA问题产生和优雅解决1.png" alt="" width="149" data-caption="" data-size="normal" data-rawwidth="149" data-rawheight="256" data-actualsrc="https://pic3.zhimg.com/v2-fb79fb5c31f166eb9603b8265c2186ca_b.png" data-lazy-status="ok" /></p>
+<p>此时轮到线程T1执行CAS操作，检测发现栈顶仍为A，所以CAS成功，栈顶变为B，但实际上B.next为null，所以此时的情况变为：</p>
+<p><img class="content_image lazy" src="./images/CAS与ABA问题产生和优雅解决2.png" alt="" width="342" data-caption="" data-size="normal" data-rawwidth="342" data-rawheight="222" data-actualsrc="https://pic1.zhimg.com/v2-a4cd5847a0ea0be5a60df1c05af2f9d8_b.jpg" data-lazy-status="ok" /></p>
+<p>其中堆栈中只有B一个元素，C和D组成的链表不再存在于堆栈中，平白无故就把C、D丢掉了。</p>
+<p>以上就是由于ABA问题带来的隐患，各种乐观锁的实现中通常都会用版本戳version来对记录或对象标记，避免并发操作带来的问题，在Java中，AtomicStampedReference&lt;E&gt;也实现了这个作用，它通过包装[E,Integer]的元组来对对象标记版本戳stamp，从而避免ABA问题，例如下面的代码分别用AtomicInteger和AtomicStampedReference来对初始值为100的原子整型变量进行更新，AtomicInteger会成功执行CAS操作，而加上版本戳的AtomicStampedReference对于ABA问题会执行CAS失败：</p>
+<src class="highlight">
+<src class="cnblogs_code">
+<pre><code><span style="color: #0000ff;">package</span><span style="color: #000000;"> concur.lock;
+
+</span><span style="color: #0000ff;">import</span><span style="color: #000000;"> java.util.concurrent.TimeUnit;
+</span><span style="color: #0000ff;">import</span><span style="color: #000000;"> java.util.concurrent.atomic.AtomicInteger;
+</span><span style="color: #0000ff;">import</span><span style="color: #000000;"> java.util.concurrent.atomic.AtomicStampedReference;
+
+</span><span style="color: #0000ff;">public</span> <span style="color: #0000ff;">class</span><span style="color: #000000;"> ABA {
+    
+    </span><span style="color: #0000ff;">private</span> <span style="color: #0000ff;">static</span> AtomicInteger atomicInt = <span style="color: #0000ff;">new</span> AtomicInteger(100<span style="color: #000000;">);
+    </span><span style="color: #0000ff;">private</span> <span style="color: #0000ff;">static</span> AtomicStampedReference&lt;Integer&gt; atomicStampedRef = 
+            <span style="color: #0000ff;">new</span> AtomicStampedReference&lt;Integer&gt;(100, 0<span style="color: #000000;">);
+    
+    </span><span style="color: #0000ff;">public</span> <span style="color: #0000ff;">static</span> <span style="color: #0000ff;">void</span> main(String[] args) <span style="color: #0000ff;">throws</span><span style="color: #000000;"> InterruptedException {
+        Thread intT1 </span>= <span style="color: #0000ff;">new</span> Thread(<span style="color: #0000ff;">new</span><span style="color: #000000;"> Runnable() {
+            @Override
+            </span><span style="color: #0000ff;">public</span> <span style="color: #0000ff;">void</span><span style="color: #000000;"> run() {
+                atomicInt.compareAndSet(</span>100, 101<span style="color: #000000;">);
+                atomicInt.compareAndSet(</span>101, 100<span style="color: #000000;">);
+            }
+        });
+        
+        Thread intT2 </span>= <span style="color: #0000ff;">new</span> Thread(<span style="color: #0000ff;">new</span><span style="color: #000000;"> Runnable() {
+            @Override
+            </span><span style="color: #0000ff;">public</span> <span style="color: #0000ff;">void</span><span style="color: #000000;"> run() {
+                </span><span style="color: #0000ff;">try</span><span style="color: #000000;"> {
+                    TimeUnit.SECONDS.sleep(</span>1<span style="color: #000000;">);
+                } </span><span style="color: #0000ff;">catch</span><span style="color: #000000;"> (InterruptedException e) {
+                    e.printStackTrace();
+                }
+                </span><span style="color: #0000ff;">boolean</span> c3 = atomicInt.compareAndSet(100, 101<span style="color: #000000;">);
+                System.out.println(c3);        </span><span style="color: #008000;">//</span><span style="color: #008000;">true</span>
+<span style="color: #000000;">            }
+        });
+        
+        intT1.start();
+        intT2.start();
+        intT1.join();
+        intT2.join();
+        
+        Thread refT1 </span>= <span style="color: #0000ff;">new</span> Thread(<span style="color: #0000ff;">new</span><span style="color: #000000;"> Runnable() {
+            @Override
+            </span><span style="color: #0000ff;">public</span> <span style="color: #0000ff;">void</span><span style="color: #000000;"> run() {
+                </span><span style="color: #0000ff;">try</span><span style="color: #000000;"> {
+                    TimeUnit.SECONDS.sleep(</span>1<span style="color: #000000;">);
+                } </span><span style="color: #0000ff;">catch</span><span style="color: #000000;"> (InterruptedException e) {
+                    e.printStackTrace();
+                }
+                atomicStampedRef.compareAndSet(</span>100, 101<span style="color: #000000;">, 
+                        atomicStampedRef.getStamp(), atomicStampedRef.getStamp()</span>+1<span style="color: #000000;">);
+                atomicStampedRef.compareAndSet(</span>101, 100<span style="color: #000000;">, 
+                        atomicStampedRef.getStamp(), atomicStampedRef.getStamp()</span>+1<span style="color: #000000;">);
+            }
+        });
+        
+        Thread refT2 </span>= <span style="color: #0000ff;">new</span> Thread(<span style="color: #0000ff;">new</span><span style="color: #000000;"> Runnable() {
+            @Override
+            </span><span style="color: #0000ff;">public</span> <span style="color: #0000ff;">void</span><span style="color: #000000;"> run() {
+                </span><span style="color: #0000ff;">int</span> stamp =<span style="color: #000000;"> atomicStampedRef.getStamp();
+                System.out.println(</span>"before sleep : stamp = " + stamp);    <span style="color: #008000;">//</span><span style="color: #008000;"> stamp = 0</span>
+                <span style="color: #0000ff;">try</span><span style="color: #000000;"> {
+                    TimeUnit.SECONDS.sleep(</span>2<span style="color: #000000;">);
+                } </span><span style="color: #0000ff;">catch</span><span style="color: #000000;"> (InterruptedException e) {
+                    e.printStackTrace();
+                }
+                System.out.println(</span>"after sleep : stamp = " + atomicStampedRef.getStamp());<span style="color: #008000;">//</span><span style="color: #008000;">stamp = 1</span>
+                <span style="color: #0000ff;">boolean</span> c3 = atomicStampedRef.compareAndSet(100, 101, stamp, stamp+1<span style="color: #000000;">);
+                System.out.println(c3);        </span><span style="color: #008000;">//</span><span style="color: #008000;">false</span>
+<span style="color: #000000;">            }
+        });
+        
+        refT1.start();
+        refT2.start();
+    }
+
+}</span></code></pre>
+
+<p>&nbsp;</p>
+
+
+</div><hr><script charset='utf-8' src='../../js/sming.js'></script></body></html>

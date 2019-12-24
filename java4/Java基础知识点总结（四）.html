@@ -1,0 +1,217 @@
+<html><head><meta charset='utf-8'><meta name='viewport' content='width=device-width, initial-scale=1'>
+<meta name='applicable-device' content='pc'><meta name='keywords' content='电脑,电脑讲解,电脑技术,编程,电脑故障维修Java基础知识点总结（四）' />
+<script src='../../highlight/highlight.pack.js'></script>
+<link rel='stylesheet' type='text/css' href='../../highlight/styles/monokai.css'/>
+
+<link rel='stylesheet' href='../../fenxiang/dist/css/share.min.css'>
+<script src='../../fenxiang/src/js/social-share.js'></script>
+<script src='../../fenxiang/src/js/qrcode.js'></script>
+
+</head><body><script>hljs.initHighlightingOnLoad();</script><script>
+var system ={};  
+var p = navigator.platform;       
+system.win = p.indexOf('Win') == 0;  
+system.mac = p.indexOf('Mac') == 0;  
+system.x11 = (p == 'X11') || (p.indexOf('Linux') == 0);     
+if(system.win||system.mac||system.xll){
+document.write("<link href='../css/3.css' rel='stylesheet' type='text/css'>");}else{ document.write("<link href='../css/3wap.css' rel='stylesheet' type='text/css'>");}</script><script src='../../js/3.js'></script><div class='div2'><div class='heading_nav'><ul><div><li><a href='../../index.html'>首页</a></li>
+</div><div onclick='hidden1()' >分享</div>
+</ul></div></div>
+<div id='heading_nav2'> 
+<li class='row' >
+<div class='social-share' data-mode='prepend'><a href='javascript:' class='social-share-icon icon-heart'></a></div></li></div><script charset='utf-8' src='../../3/js/hengfu.js'></script><script charset='utf-8' src='../../3/js/hengfu2.js'></script><hr><div class='div1'><div class='biaoti'><center>Java基础知识点总结（四）</center></div><div class='banquan'>原文出处:本文由博客园博主落成提供。<br/>
+原文连接:https://www.cnblogs.com/bobozz/p/11502254.html</div><br>
+    <p>&rdquo;<a href="https://www.runoob.com/java/java-data-structures.html">https://www.runoob.com/java/java-data-structures.html</a>&rdquo;</p>
+<ul class="ul-list" data-mark="-">
+<li class="md-list-item">
+<h4 class="md-end-block md-heading"><span class="md-plain md-expand">成员方法：是类中自己定义的方法。</span></h4>
+</li>
+<li class="md-list-item">
+<h4 class="md-end-block md-heading"><span class="md-plain">构造方法：要和自己类中类名相同。</span></h4>
+</li>
+</ul>
+<h2 class="md-end-block md-heading"><span class="md-tab"> 　　<span class="md-plain">不论是构造函数还是成员方法，子类想引用父类的构造函数和成员方法时都要使用super关键字，但当子类不管有没有参数的构造函数里没有super关键字时（同时父类拥有无参的构造函数），java会自动调用父类的无参构造函数（自动调用只应用于调用构造函数，不会调用父类成员方法）。</span></span></h2>
+<h2><span class="md-tab"><span class="md-plain">　　子类从父类重写的方法中可以用super关键字来调用被重写的父类方法，也可以调用父类中没有被当前方法重写的方法。</span></span></h2>
+<src class="cnblogs_code">
+<pre><code><span style="color: #0000ff;">class</span><span style="color: #000000;"> Animal{
+</span><span style="color: #0000ff;">public</span> <span style="color: #0000ff;">void</span><span style="color: #000000;"> move(){
+System.out.println(</span>"动物可以移动"<span style="color: #000000;">);
+}
+}
+</span><span style="color: #0000ff;">class</span> Dog <span style="color: #0000ff;">extends</span><span style="color: #000000;"> Animal{
+</span><span style="color: #0000ff;">public</span> <span style="color: #0000ff;">void</span><span style="color: #000000;"> move(){
+System.out.println(</span>"狗可以跑和走"<span style="color: #000000;">);
+}
+</span><span style="color: #0000ff;">public</span> <span style="color: #0000ff;">void</span><span style="color: #000000;"> bark(){
+System.out.println(</span>"狗可以吠叫"<span style="color: #000000;">);
+}
+}
+</span><span style="color: #0000ff;">public</span> <span style="color: #0000ff;">class</span><span style="color: #000000;"> TestDog{
+</span><span style="color: #0000ff;">public</span> <span style="color: #0000ff;">static</span> <span style="color: #0000ff;">void</span><span style="color: #000000;"> main(String args[]){
+Animal a </span>= <span style="color: #0000ff;">new</span> Animal(); <span style="color: #008000;">//</span><span style="color: #008000;"> Animal 对象</span>
+Animal b = <span style="color: #0000ff;">new</span> Dog(); <span style="color: #008000;">//</span><span style="color: #008000;"> Dog 对象</span>
+a.move();<span style="color: #008000;">//</span><span style="color: #008000;"> 执行 Animal 类的方法</span>
+b.move();<span style="color: #008000;">//</span><span style="color: #008000;">执行 Dog 类的方法</span>
+<span style="color: #000000;">b.bark();
+}
+}</span></code></pre>
+
+<h4 class="md-end-block md-p"><span class="md-plain">运行结果</span></h4>
+<src class="cnblogs_code">
+<pre><code>TestDog.java:30<span style="color: #000000;">: cannot find symbol
+symbol  : method bark()
+location: </span><span style="color: #0000ff;">class</span><span style="color: #000000;"> Animal
+                b.bark();
+                 </span>^</code></pre>
+
+<ul class="ul-list" data-mark="-">
+<li class="md-list-item">
+<p class="md-end-block md-p"><span class="md-plain">b的引用类型Animal没有bark方法，所以编译错误。</span></p>
+</li>
+</ul>
+<h4 class="md-end-block md-p"><span class="md-plain">重写和重载的区别</span></h4>
+<p class="md-end-block md-p">&nbsp;<img src="./images/Java基础知识点总结（四）0.png" alt="" /></p>
+<p class="md-end-block md-p"><span class="md-plain">要调用父类中被重写的方法，则必须使用super</span></p>
+<h4 class="md-end-block md-heading"><span class="md-plain">多态实现方式：</span></h4>
+<ul class="ul-list" data-mark="-">
+<li class="md-list-item">
+<p class="md-end-block md-p"><span class="md-plain">重写（重写和重载）</span></p>
+</li>
+<li class="md-list-item">
+<p class="md-end-block md-p"><span class="md-plain">接口</span></p>
+</li>
+<li class="md-list-item">
+<p class="md-end-block md-p"><span class="md-plain">抽象类和抽象方法</span></p>
+</li>
+</ul>
+<h4 class="md-end-block md-heading"><span class="md-plain">声明抽象方法：</span></h4>
+<ul class="ul-list" data-mark="-">
+<li class="md-list-item">
+<p class="md-end-block md-p"><span class="md-plain">抽象类可以不用包含抽象方法。但如果一个类包含抽象方法，那么该类必须是抽象类。</span></p>
+</li>
+<li class="md-list-item">
+<p class="md-end-block md-p"><span class="md-plain">任何子类必须重写父类的抽象方法，或者声明自身为抽象类。</span></p>
+</li>
+</ul>
+<ul class="ul-list" data-mark="-">
+<li class="md-list-item">
+<p class="md-end-block md-p"><span class="md-plain">构造方法、类方法（用static修饰的方法）不能声明为抽象方法。</span></p>
+</li>
+</ul>
+<ul class="ul-list" data-mark="-">
+<li class="md-list-item">
+<p class="md-end-block md-p"><span class="md-plain">抽象类的子类必须给出抽象类中的抽象方法的具体实现，除非该子类也是抽象类。</span></p>
+</li>
+</ul>
+<h4 class="md-end-block md-heading"><span class="md-plain">封装的特点：</span></h4>
+<ol class="ol-list">
+<li class="md-list-item">
+<p class="md-end-block md-p"><span class="md-plain">良好的封装能够减少耦合。</span></p>
+</li>
+<li class="md-list-item">
+<p class="md-end-block md-p"><span class="md-plain">类内部的结构可以自由修改。</span></p>
+</li>
+<li class="md-list-item">
+<p class="md-end-block md-p"><span class="md-plain">可以对成员变量进行更精确的控制。</span></p>
+</li>
+<li class="md-list-item">
+<p class="md-end-block md-p"><span class="md-plain">隐藏信息，实现细节。</span></p>
+</li>
+</ol>
+<p class="md-end-block md-p"><span class="md-plain">封装中采用 <span><strong>this</strong><span class="md-plain"> 关键字是为了解决实例变量（private String name）和局部变量（setName(String name)中的name变量）之间发生的同名的冲突。</span></span></span></p>
+<h4 class="md-end-block md-heading"><span class="md-plain">接口的特点：</span></h4>
+<ul class="ul-list" data-mark="-">
+<li class="md-list-item">
+<p class="md-end-block md-p"><span class="md-plain">接口无法被实例化，但是可以被实现。</span></p>
+</li>
+<li class="md-list-item">
+<p class="md-end-block md-p"><span class="md-plain">一个实现接口的类，必须实现接口内所描述的所有方法，否则就必须声明为抽象类。</span></p>
+</li>
+<li class="md-list-item">
+<p class="md-end-block md-p"><span class="md-plain">在 Java 中，接口类型可用来声明一个变量，他们可以成为一个空指针，或是被绑定在一个以此接口实现的对象。</span></p>
+</li>
+</ul>
+<h4 class="md-end-block md-heading"><span class="md-plain">接口与类的区别：</span></h4>
+<ul class="ul-list" data-mark="-">
+<li class="md-list-item">
+<p class="md-end-block md-p"><span class="md-plain">接口不能用于实例化对象。</span></p>
+</li>
+<li class="md-list-item">
+<p class="md-end-block md-p"><span class="md-plain">接口没有构造方法。</span></p>
+</li>
+<li class="md-list-item">
+<p class="md-end-block md-p"><span class="md-plain">接口中所有的方法必须是抽象方法。</span></p>
+</li>
+<li class="md-list-item">
+<p class="md-end-block md-p"><span class="md-plain">接口不能包含成员变量，除了 static 和 final 变量。</span></p>
+</li>
+<li class="md-list-item">
+<p class="md-end-block md-p"><span class="md-plain">接口不是被类继承了，而是要被类实现。</span></p>
+</li>
+<li class="md-list-item">
+<p class="md-end-block md-p"><span class="md-plain">接口支持多继承。</span></p>
+</li>
+</ul>
+<h4 class="md-end-block md-heading"><span class="md-plain">接口特性：</span></h4>
+<ul class="ul-list" data-mark="-">
+<li class="md-list-item">
+<p class="md-end-block md-p"><span class="md-plain">接口中每一个方法也是隐式抽象的,接口中的方法会被隐式的指定为 <span><strong>public abstract</strong><span class="md-plain">（只能是 public abstract，其他修饰符都会报错）。</span></span></span></p>
+</li>
+<li class="md-list-item">
+<p class="md-end-block md-p"><span class="md-plain">接口中可以含有变量，但是接口中的变量会被隐式的指定为 <span><strong>public static final</strong><span class="md-plain"> 变量（并且只能是 public，用 private 修饰会报编译错误）。</span></span></span></p>
+</li>
+<li class="md-list-item">
+<p class="md-end-block md-p"><span class="md-plain">接口中的方法是不能在接口中实现的，只能由实现接口的类来实现接口中的方法。</span></p>
+</li>
+<li class="md-list-item">
+<p class="md-end-block md-p"><span class="md-plain">接口中的方法都是公有的。</span></p>
+</li>
+<li class="md-list-item">
+<p class="md-end-block md-p"><span class="md-plain">一个接口能继承另一个接口。</span></p>
+</li>
+</ul>
+<h4 class="md-end-block md-heading"><span class="md-plain">抽象类和接口的区别</span></h4>
+<ul class="ul-list" data-mark="-">
+<li class="md-list-item">
+<p class="md-end-block md-p"><span class="md-plain">抽象类中的方法可以有方法体，就是能实现方法的具体功能，但是接口中的方法不行。（<span><em>JDK 1.8 以后，接口里可以有静态方法和方法体了。</em><span class="md-plain">）</span></span></span></p>
+</li>
+<li class="md-list-item">
+<p class="md-end-block md-p"><span class="md-plain">抽象类中的成员变量可以是各种类型的，而接口中的成员变量只能是 <span><strong>public static final</strong><span class="md-plain"> 类型的。</span></span></span></p>
+</li>
+<li class="md-list-item">
+<p class="md-end-block md-p"><span class="md-plain">接口中不能含有静态代码块以及静态方法(用 static 修饰的方法)，而抽象类是可以有静态代码块和静态方法。</span></p>
+</li>
+<li class="md-list-item">
+<p class="md-end-block md-p"><span class="md-plain">一个类只能继承一个抽象类，而一个类却可以实现多个接口。</span></p>
+</li>
+</ul>
+<h2 class="md-end-block md-heading"><span class="md-plain">标记接口</span></h2>
+<ul class="ul-list" data-mark="-">
+<li class="md-list-item">
+<p class="md-end-block md-p"><span class="md-plain">最常用的继承接口是没有包含任何方法的接口。</span></p>
+</li>
+</ul>
+<ul class="ul-list" data-mark="-">
+<li class="md-list-item">
+<p class="md-end-block md-p"><span class="md-plain">标记接口是没有任何方法和属性的接口.它仅仅表明它的类属于一个特定的类型,供其他代码来测试允许做一些事情。</span></p>
+</li>
+</ul>
+<ul class="ul-list" data-mark="-">
+<li class="md-list-item">
+<p class="md-end-block md-p"><span class="md-plain">标记接口作用：简单形象的说就是给某个对象打个标（盖个戳），使对象拥有某个或某些特权。</span></p>
+</li>
+</ul>
+<h5 class="md-end-block md-heading md-focus"><span class="md-plain md-expand" style="font-size: 16px;">Java 使用包（package）这种机制是为了防止命名冲突，访问控制，提供搜索和定位类（class）、接口、枚举（enumerations）和注释（annotation）等。</span></h5>
+<ul class="ul-list" data-mark="-">
+<li class="md-list-item">
+<p class="md-end-block md-p"><span class="md-plain">如果在一个包中，一个类想要使用本包中的另一个类，那么该包名可以省略。</span></p>
+</li>
+</ul>
+<h4 class="md-end-block md-heading"><span class="md-plain">包名起名规范：</span></h4>
+<ul class="ul-list" data-mark="-">
+<li class="md-list-item">
+<p class="md-end-block md-p"><span class="md-plain">通常，一个公司使用它互联网域名的颠倒形式来作为它的包名.例如：互联网域名是 bobozz.cn，所有的包名都以 cn.bobozz 开头。包名中的每一个部分对应一个子目录。</span></p>
+</li>
+</ul>
+
+</div><hr><script charset='utf-8' src='../../js/sming.js'></script></body></html>

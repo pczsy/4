@@ -1,0 +1,144 @@
+<html><head><meta charset='utf-8'><meta name='viewport' content='width=device-width, initial-scale=1'>
+<meta name='applicable-device' content='pc'><meta name='keywords' content='电脑,电脑讲解,电脑技术,编程,电脑故障维修Nginx+keepalived(高可用主备模式)' />
+<script src='../../highlight/highlight.pack.js'></script>
+<link rel='stylesheet' type='text/css' href='../../highlight/styles/monokai.css'/>
+
+<link rel='stylesheet' href='../../fenxiang/dist/css/share.min.css'>
+<script src='../../fenxiang/src/js/social-share.js'></script>
+<script src='../../fenxiang/src/js/qrcode.js'></script>
+
+</head><body><script>hljs.initHighlightingOnLoad();</script><script>
+var system ={};  
+var p = navigator.platform;       
+system.win = p.indexOf('Win') == 0;  
+system.mac = p.indexOf('Mac') == 0;  
+system.x11 = (p == 'X11') || (p.indexOf('Linux') == 0);     
+if(system.win||system.mac||system.xll){
+document.write("<link href='../css/3.css' rel='stylesheet' type='text/css'>");}else{ document.write("<link href='../css/3wap.css' rel='stylesheet' type='text/css'>");}</script><script src='../../js/3.js'></script><div class='div2'><div class='heading_nav'><ul><div><li><a href='../../index.html'>首页</a></li>
+</div><div onclick='hidden1()' >分享</div>
+</ul></div></div>
+<div id='heading_nav2'> 
+<li class='row' >
+<div class='social-share' data-mode='prepend'><a href='javascript:' class='social-share-icon icon-heart'></a></div></li></div><script charset='utf-8' src='../../3/js/hengfu.js'></script><script charset='utf-8' src='../../3/js/hengfu2.js'></script><hr><div class='div1'><div class='biaoti'><center>Nginx+keepalived(高可用主备模式)</center></div><div class='banquan'>原文出处:本文由博客园博主VincentYew提供。<br/>
+原文连接:https://www.cnblogs.com/vincentYw/p/11708617.html</div><br>
+    <h1 style="text-align: center;">Nginx+keepalived(高可用主备模式)</h1>
+<p>环境：centos6.7</p>
+<p>准备：两台服务器（虚拟机）、两台应用（Tomcat）、Nginx、keepalived</p>
+<p>server1:192.168.237.128&nbsp; 安装上Nginx和keepalived&nbsp; &nbsp; &nbsp; &nbsp; <span style="color: #808000; font-size: 18px;"><strong>VIP 192.168.237.10（同网段）</strong></span></p>
+<p>server2:192.168.237.129&nbsp;&nbsp;安装上Nginx和keepalived</p>
+<p>安装keepalived ： yum install&nbsp;keepalived<img src="./images/Nginx+keepalived(高可用主备模式)0.png" alt="" /></p>
+<p><span style="font-size: 18px;">&nbsp;keepalived 配置文件路径&nbsp; &nbsp;<span style="text-decoration: underline;"> /etc/keepalived/keepalived.conf</span></span></p>
+<p>&nbsp;1.分别开启NginxA和NginxB ，使两台Nginx都能分发请求至TA、TB</p>
+<p><span style="font-size: 14pt;"><strong>keepalivedA配置文件</strong></span></p>
+<src class="cnblogs_code">
+<pre><code><span style="color: #000000;">! Configuration File for keepalived
+
+global_defs {
+router_id 192.168.237.128
+}
+
+vrrp_script chk_nginx { 
+script "/operation/nginx_check.sh" 
+interval 5 
+weight -5 
+}
+
+vrrp_instance VI_1 {
+state MASTER
+interface eth0
+virtual_router_id 51
+priority 110
+authentication {
+auth_type PASS
+auth_pass 1111
+}
+
+virtual_ipaddress {
+192.168.237.10
+}
+
+track_script {
+chk_nginx 
+}
+}</span></code></pre>
+
+<p>&nbsp;</p>
+<p>启动keepalivedA : <span style="text-decoration: underline; font-size: 15px;">service keepalived start</span>;启动成功keepalivedA后查看 <span style="text-decoration: underline;">ip addr</span>&nbsp; &nbsp; &nbsp;<span style="text-decoration: underline; font-size: 14px;"><em><strong>keepalived日志路径&nbsp; /var/log/messages</strong></em></span></p>
+<p><img src="./images/Nginx+keepalived(高可用主备模式)1.png" alt="" width="531" height="177" /></p>
+<p>&nbsp;</p>
+<p><span style="font-size: 14pt;"><strong>&nbsp;keepalivedB文件配置</strong></span></p>
+<src class="cnblogs_code">
+<pre><code><span style="color: #000000;">! Configuration File for keepalived
+
+global_defs {
+router_id 192.168.237.129
+}
+
+vrrp_script chk_nginx { 
+script "/operation/nginx_check.sh" 
+interval 5 
+weight -5 
+}
+
+
+vrrp_instance VI_1 {
+state BACKUP  #备机
+interface eth0
+virtual_router_id 51
+priority 100  #优先级  小于主机
+authentication {
+auth_type PASS
+auth_pass 1111
+}
+
+virtual_ipaddress {
+192.168.237.10
+}
+
+track_script {
+chk_nginx 
+}
+}</span></code></pre>
+
+<p>&nbsp;</p>
+<p><span style="text-decoration: underline;"><span style="font-size: 16px;"><strong><em>检测Shell脚本 nginx_check.sh</em></strong></span></span></p>
+<src class="cnblogs_code">
+<pre><code><span style="color: #000000;">#!/bin/bash
+A=`ps -C nginx &ndash;no-header |wc -l`
+if [ $A -eq 0 ];then
+/usr/local/nginx/sbin/nginx
+sleep 2
+if [ `ps -C nginx --no-header |wc -l` -eq 0 ];then
+killall keepalived
+fi
+fi</span></code></pre>
+
+<p>&nbsp;</p>
+<p><em>启动keepalivedA：根据日志可知，配置生效 检测脚本已生效</em></p>
+<p><img src="./images/Nginx+keepalived(高可用主备模式)2.png" alt="" width="1042" height="118" /></p>
+<p><img src="./images/Nginx+keepalived(高可用主备模式)3.png" alt="" /></p>
+<p>&nbsp;</p>
+<p><em>&nbsp;启动keepalivedB：根据日志可知，配置生效 检测脚本已生效</em></p>
+<p><img src="./images/Nginx+keepalived(高可用主备模式)4.png" alt="" width="1034" height="131" /></p>
+<p><strong>停止主机MASTER的nginxA，根据监控日志可知keepalivedA已停止，KA绑定的VIP自动移除；备机自动转换为MAster，绑定VIP，接替主机正常工作</strong></p>
+<p><strong><img src="./images/Nginx+keepalived(高可用主备模式)5.png" alt="" /></strong></p>
+<p>&nbsp;</p>
+<p><img src="./images/Nginx+keepalived(高可用主备模式)6.png" alt="" /></p>
+<p>&nbsp;</p>
+<p><strong>&nbsp;重新启动NA和KA，NA重新恢复工作，充当MASTER，NB则转换为备机</strong></p>
+<p><strong><img src="./images/Nginx+keepalived(高可用主备模式)7.png" alt="" /></strong></p>
+<p>&nbsp;</p>
+<p>&nbsp;至此，Nginx+keepalived的主从高可用配置已经演示完成。</p>
+<p><span style="font-size: 18px;"><strong>总结 &lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;配置过程遇到的问题以及解决方案&gt;&gt;&gt;&gt;&gt;&gt;&gt;&gt;&gt;&gt;&gt;</strong></span></p>
+<p>问题1：Process [42305] didn't respond to SIGTERM&nbsp; 启动keepalived出现此报错&nbsp; &nbsp; <strong>&nbsp;解决方案 ：interval 5 调整检测脚本间隔时间 -----相应调大</strong></p>
+<p>问题2：<img src="./images/Nginx+keepalived(高可用主备模式)8.png" alt="" width="815" height="113" /></p>
+<p>&nbsp;</p>
+<p><strong>&nbsp;解决方案 ： 关闭防火墙&nbsp; service iptables stop</strong></p>
+<p>问题3：一般防火墙是开启的，如何解决问题二？&nbsp; &nbsp;</p>
+<p><span style="font-size: 14px;"><strong>解决方案：<strong>防火墙设置开放<strong><strong>VRRP协议</strong></strong></strong></strong></span></p>
+<p><strong>vim&nbsp; /etc/sysconfig/iptables</strong></p>
+<p><strong>-A INPUT -i eth0 -d 224.0.0.0/8 -p vrrp -j ACCEPT</strong><br /><strong>-A OUTPUT -o eth0 -d 224.0.0.0/8 -p vrrp -j ACCEPT</strong></p>
+<p>问题4：运行检测脚本报错&nbsp;/bin/bash^M: bad interpreter&nbsp; &nbsp;<strong>解决方案：检测脚本更改为linux环境编码</strong></p>
+<p>&nbsp;</p>
+
+</div><hr><script charset='utf-8' src='../../js/sming.js'></script></body></html>

@@ -1,0 +1,81 @@
+<html><head><meta charset='utf-8'><meta name='viewport' content='width=device-width, initial-scale=1'>
+<meta name='applicable-device' content='pc'><meta name='keywords' content='电脑,电脑讲解,电脑技术,编程,电脑故障维修Redis实战--Redis整合SpringBoot示例' />
+<script src='../../highlight/highlight.pack.js'></script>
+<link rel='stylesheet' type='text/css' href='../../highlight/styles/monokai.css'/>
+
+<link rel='stylesheet' href='../../fenxiang/dist/css/share.min.css'>
+<script src='../../fenxiang/src/js/social-share.js'></script>
+<script src='../../fenxiang/src/js/qrcode.js'></script>
+
+</head><body><script>hljs.initHighlightingOnLoad();</script><script>
+var system ={};  
+var p = navigator.platform;       
+system.win = p.indexOf('Win') == 0;  
+system.mac = p.indexOf('Mac') == 0;  
+system.x11 = (p == 'X11') || (p.indexOf('Linux') == 0);     
+if(system.win||system.mac||system.xll){
+document.write("<link href='../css/3.css' rel='stylesheet' type='text/css'>");}else{ document.write("<link href='../css/3wap.css' rel='stylesheet' type='text/css'>");}</script><script src='../../js/3.js'></script><div class='div2'><div class='heading_nav'><ul><div><li><a href='../../index.html'>首页</a></li>
+</div><div onclick='hidden1()' >分享</div>
+</ul></div></div>
+<div id='heading_nav2'> 
+<li class='row' >
+<div class='social-share' data-mode='prepend'><a href='javascript:' class='social-share-icon icon-heart'></a></div></li></div><script charset='utf-8' src='../../3/js/hengfu.js'></script><script charset='utf-8' src='../../3/js/hengfu2.js'></script><hr><div class='div1'><div class='biaoti'><center>Redis实战--Redis整合SpringBoot示例</center></div><div class='banquan'>原文出处:本文由博客园博主xlecho提供。<br/>
+原文连接:https://www.cnblogs.com/xlecho/p/11832114.html</div><br>
+    <p>echo编辑整理，欢迎转载，转载请声明文章来源。欢迎添加echo微信(微信号：t2421499075)交流学习。 百战不败，依不自称常胜，百败不颓，依能奋力前行。——这才是真正的堪称强大！！！</p>
+<hr />
+<blockquote>
+<p>该文章是对应前面Redis的使用，基本数据类型在SpringBoot项目的实现和使用。网上有很多的文章来描述了Redis的使用和整合，但是这里重新编写这一片文章主要是为了记录自己的学习代码，仅供交流学习SpringBoot整合Redis，熟悉整合和基本操作的可以直接跳过。</p>
+</blockquote>
+<h3 id="开发准备">开发准备</h3>
+<ul>
+<li>开发工具IDEA</li>
+<li>Redis服务器一台</li>
+</ul>
+<h3 id="创建springboot工程">创建SpringBoot工程</h3>
+<p>在创建该工程的时候，pom依赖这一块的选项我们只需要选择Spring Data Redis和junit即可，这里仅实现连接Redis，不连接数据库，不写前端接口，所有的用例，直接使用Junit来测试。我们看到界面上有两个Redis的依赖，我们选择第一个即可，第二个是响应式的redis，它内部包含了我们的第一个依赖，但是会涉及其他的功能，这里不讲解。<br />
+<img src="./images/Redis实战--Redis整合SpringBoot示例0.png" alt="在这里插入图片描述" /></p>
+<h3 id="创建项目完成之后我们就需要配置redis的连接了">创建项目完成之后，我们就需要配置Redis的连接了</h3>
+<p>redis的配置连接其实关键在于配置文件，搞定配置文件，基本就已经完成了redis的整合，我这里的配置如下：</p>
+<pre><code><code># Redis数据库索引（默认为0,它总共有16个数据库，我们使用第一个就是0）
+spring.redis.database=0
+# Redis服务器地址
+spring.redis.host=192.168.222.135
+# Redis服务器连接端口
+spring.redis.port=6379
+# Redis服务器连接密码（默认为空）
+spring.redis.password=48835a9c-7a5a-4ec8-af6a-80af3e87b194
+# 连接池最大连接数（使用负值表示没有限制）
+spring.redis.pool.max-active=200
+# 连接池最大阻塞等待时间（使用负值表示没有限制）
+spring.redis.pool.max-wait=-1
+# 连接池中的最大空闲连接
+spring.redis.pool.max-idle=10
+# 连接池中的最小空闲连接
+spring.redis.pool.min-idle=1
+# 连接超时时间（毫秒）
+spring.redis.timeout=3000</code></code></pre>
+<h3 id="编写一个测试类测试一下是否能够成功">编写一个测试类，测试一下是否能够成功</h3>
+<pre class="java"><code>@RunWith(SpringRunner.class)
+@SpringBootTest
+public class RedisConnectionTest {
+
+    @Autowired
+    private RedisTemplate&lt;String,String&gt; redisTemplate;
+
+    @Test
+    public void set(){
+        redisTemplate.opsForValue().set(&quot;name&quot;,&quot;echo&quot;);
+        System.out.println(redisTemplate.opsForValue().get(&quot;name&quot;));
+    }
+
+}</code></code></pre>
+<p>图片里面是使用的一个redis的windows连接端，名字叫做：Redis Desktop Manager，这里我们可以看到我们刚刚是否成功存入了值。<br />
+<img src="./images/Redis实战--Redis整合SpringBoot示例1.png" alt="在这里插入图片描述" /></p>
+<blockquote>
+<p>到这里，我们SpringBoot整合Redis就已经成功了，接下来我们一起来使用一下Redis的基本类型。</p>
+</blockquote>
+<h2 id="项目源码地址httpscoding.netuxlsorrypspringbootredisgit">项目源码地址：https://coding.net/u/xlsorry/p/SpringBootRedis/git</h2>
+<p>做一个有底线的博客主</p>
+
+
+</div><hr><script charset='utf-8' src='../../js/sming.js'></script></body></html>

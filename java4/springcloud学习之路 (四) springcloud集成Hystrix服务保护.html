@@ -1,0 +1,57 @@
+<html><head><meta charset='utf-8'><meta name='viewport' content='width=device-width, initial-scale=1'>
+<meta name='applicable-device' content='pc'><meta name='keywords' content='电脑,电脑讲解,电脑技术,编程,电脑故障维修springcloud学习之路 (四) springcloud集成Hystrix服务保护' />
+<script src='../../highlight/highlight.pack.js'></script>
+<link rel='stylesheet' type='text/css' href='../../highlight/styles/monokai.css'/>
+
+<link rel='stylesheet' href='../../fenxiang/dist/css/share.min.css'>
+<script src='../../fenxiang/src/js/social-share.js'></script>
+<script src='../../fenxiang/src/js/qrcode.js'></script>
+
+</head><body><script>hljs.initHighlightingOnLoad();</script><script>
+var system ={};  
+var p = navigator.platform;       
+system.win = p.indexOf('Win') == 0;  
+system.mac = p.indexOf('Mac') == 0;  
+system.x11 = (p == 'X11') || (p.indexOf('Linux') == 0);     
+if(system.win||system.mac||system.xll){
+document.write("<link href='../css/3.css' rel='stylesheet' type='text/css'>");}else{ document.write("<link href='../css/3wap.css' rel='stylesheet' type='text/css'>");}</script><script src='../../js/3.js'></script><div class='div2'><div class='heading_nav'><ul><div><li><a href='../../index.html'>首页</a></li>
+</div><div onclick='hidden1()' >分享</div>
+</ul></div></div>
+<div id='heading_nav2'> 
+<li class='row' >
+<div class='social-share' data-mode='prepend'><a href='javascript:' class='social-share-icon icon-heart'></a></div></li></div><script charset='utf-8' src='../../3/js/hengfu.js'></script><script charset='utf-8' src='../../3/js/hengfu2.js'></script><hr><div class='div1'><div class='biaoti'><center>springcloud学习之路 (四) springcloud集成Hystrix服务保护</center></div><div class='banquan'>原文出处:本文由博客园博主宅男大咖提供。<br/>
+原文连接:https://www.cnblogs.com/zhainan-blog/p/11641592.html</div><br>
+    <p><span style="font-family: 'Microsoft YaHei';"><code>Hystrix</code>是一套完善的服务保护组件, 可以实现<span style="color: #ff0000;"><code>服务降级</code>,&nbsp;<code>服务熔断</code>,&nbsp;<code>服务隔离</code></span>等保护措施 使用它可以合理的应对高并发的情况 做到保护服务的效果</span></p>
+<p><span style="font-family: 'Microsoft YaHei';">1. 导入依赖</span></p>
+<p><span style="font-family: 'Microsoft YaHei';"><img src="./images/springcloud学习之路 (四) springcloud集成Hystrix服务保护0.png" alt="" /></span></p>
+<src class="cnblogs_code">
+<pre><code><span style="font-family: 'Microsoft YaHei';">&lt;dependency&gt;
+    &lt;groupId&gt;org.springframework.cloud&lt;/groupId&gt;
+    &lt;artifactId&gt;spring-cloud-starter-netflix-hystrix&lt;/artifactId&gt;
+&lt;/dependency&gt;</span></code></pre>
+
+<p><span style="font-family: 'Microsoft YaHei';">2. 在程序启动类添加@EnableHystrix注解, 开启Hystrix</span></p>
+<p><span style="font-family: 'Microsoft YaHei';"><img src="./images/springcloud学习之路 (四) springcloud集成Hystrix服务保护1.png" alt="" /></span></p>
+<p><span style="font-family: 'Microsoft YaHei';">&nbsp;3. 编写方法无法访问时的默认返回数据</span></p>
+<p><span style="font-family: 'Microsoft YaHei';"><img src="./images/springcloud学习之路 (四) springcloud集成Hystrix服务保护2.png" alt="" /></span></p>
+<src class="cnblogs_code">
+<pre><code><span style="font-family: 'Microsoft YaHei';"><span style="color: #000000;">String fallback(){
+        </span><span style="color: #0000ff;">return</span> "服务器繁忙"<span style="color: #000000;">;
+    }</span></span></code></pre>
+
+<p><span style="font-family: 'Microsoft YaHei';">4. 在接口上添加@HystrixCommand(fallbackMethod = "方法名")注解, 开启Hystrix服务保护</span></p>
+<p><span style="font-family: 'Microsoft YaHei';"><img src="./images/springcloud学习之路 (四) springcloud集成Hystrix服务保护3.png" alt="" /></span></p>
+<p><span style="font-family: 'Microsoft YaHei';">&nbsp;5.&nbsp;&nbsp;配置<code>application.yml文件,&nbsp;</code></span>忽略hystrix的超时时间</p>
+<src class="cnblogs_code">
+<pre><code><span style="font-family: 'Microsoft YaHei';"><span style="color: #000000;">hystrix:
+  command:
+    </span><span style="color: #0000ff;">default</span><span style="color: #000000;">:
+      execution:
+        timeout:
+          enabled: </span><span style="color: #0000ff;">false</span></span></code></pre>
+
+<p><span style="font-family: 'Microsoft YaHei';">6. 开启压力测试</span></p>
+<p><span style="font-family: 'Microsoft YaHei';"><img src="./images/springcloud学习之路 (四) springcloud集成Hystrix服务保护4.png" alt="" /></span></p>
+<p><span style="font-family: 'Microsoft YaHei';">&nbsp;<img src="./images/springcloud学习之路 (四) springcloud集成Hystrix服务保护5.png" alt="" /></span></p>
+
+</div><hr><script charset='utf-8' src='../../js/sming.js'></script></body></html>

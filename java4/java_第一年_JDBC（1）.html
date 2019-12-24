@@ -1,0 +1,115 @@
+<html><head><meta charset='utf-8'><meta name='viewport' content='width=device-width, initial-scale=1'>
+<meta name='applicable-device' content='pc'><meta name='keywords' content='电脑,电脑讲解,电脑技术,编程,电脑故障维修java_第一年_JDBC（1）' />
+<script src='../../highlight/highlight.pack.js'></script>
+<link rel='stylesheet' type='text/css' href='../../highlight/styles/monokai.css'/>
+
+<link rel='stylesheet' href='../../fenxiang/dist/css/share.min.css'>
+<script src='../../fenxiang/src/js/social-share.js'></script>
+<script src='../../fenxiang/src/js/qrcode.js'></script>
+
+</head><body><script>hljs.initHighlightingOnLoad();</script><script>
+var system ={};  
+var p = navigator.platform;       
+system.win = p.indexOf('Win') == 0;  
+system.mac = p.indexOf('Mac') == 0;  
+system.x11 = (p == 'X11') || (p.indexOf('Linux') == 0);     
+if(system.win||system.mac||system.xll){
+document.write("<link href='../css/3.css' rel='stylesheet' type='text/css'>");}else{ document.write("<link href='../css/3wap.css' rel='stylesheet' type='text/css'>");}</script><script src='../../js/3.js'></script><div class='div2'><div class='heading_nav'><ul><div><li><a href='../../index.html'>首页</a></li>
+</div><div onclick='hidden1()' >分享</div>
+</ul></div></div>
+<div id='heading_nav2'> 
+<li class='row' >
+<div class='social-share' data-mode='prepend'><a href='javascript:' class='social-share-icon icon-heart'></a></div></li></div><script charset='utf-8' src='../../3/js/hengfu.js'></script><script charset='utf-8' src='../../3/js/hengfu2.js'></script><hr><div class='div1'><div class='biaoti'><center>java_第一年_JDBC（1）</center></div><div class='banquan'>原文出处:本文由博客园博主xiao兆提供。<br/>
+原文连接:https://www.cnblogs.com/lzj-learn/p/11584487.html</div><br>
+    <p>　　JDBC（Java Data Base Connectivity）,用于实现java语言编程与数据库连接的API。</p>
+<p>数据库驱动：应用程序并不能直接使用数据库，而需要通过相应的数据库驱动程序后再操作数据库；而JDBC就是实现应用程序去加载具体的驱动；</p>
+<p>应用程序---JDBC---&gt;驱动程序--&gt;数据库</p>
+<p><strong>建立JDBC连接：</strong></p>
+<ul>
+<li>导入JDBC包：</li>
+</ul>
+<src class="cnblogs_code _mce_tagged_br">
+<pre><code><span style="color: #0000ff;">import</span> java.sql.*</code></pre>
+
+<p>&nbsp;</p>
+<ul>
+<li>注册JDBC驱动程序并创建连接对象conn：</li>
+</ul>
+<src class="cnblogs_code _mce_tagged_br">
+<pre><code>Class.forName("com.mysql.jdbc.Driver"<span style="color: #000000;">);//加载驱动
+Connection conn </span>= <span style="color: #0000ff;">null</span><span style="color: #000000;">;
+conn </span>= DriverManager.getConnection("jdbc:mysql://hostname:port/db_name","db_username","db_password"<span style="color: #000000;">);//获取链接
+conn.close();</span></code></pre>
+
+<p>这样，我们的JDBC连接即已建好。</p>
+<p><strong>交互</strong></p>
+<p>连接建立后，通常通过JDBC Statement、CallableStatement和PrepareStatement这3个接口进行交互。</p>
+<p>而创建这3种接口的方法分别是Connection类中的createStatement()、prepareStatement(sql)、prepareCall(sql)方法；除了这3种方法外，Connection类还提供了</p>
+<p>setAutoCommit（boolean autoCommit）方法：是否事务自动提交；</p>
+<p>commit（）方法：提交事务；</p>
+<p>roolback（）方法：回滚事务</p>
+<ul>
+<li>Statement：用于使用静态SQL语句，不能接受参数；</li>
+</ul>
+<p>创建Statement对象：</p>
+<src class="cnblogs_code">
+<pre><code>Statement stmt = <span style="color: #0000ff;">null</span><span style="color: #000000;">;
+</span><span style="color: #0000ff;">try</span><span style="color: #000000;">{
+    stmt </span>=<span style="color: #000000;"> conn.createStatement();               
+}</span><span style="color: #0000ff;">catch</span><span style="color: #000000;">(SQLException e){
+     ...
+}</span><span style="color: #0000ff;">finally</span><span style="color: #000000;">{
+     ...    
+}    </span></code></pre>
+
+<p>该对象常用的方法：</p>
+<p>boolean execute(String SQL )：检索SQL运行后结果是否存在，有则返回true，没有则返回false；</p>
+<p>int executeUpdate（String SQL）：检索SQL语句所影响的行数，常用于会影响多行改动的SQL语句，如INSERT、UPDATE、DELETE;</p>
+<p>ResultSet executeQuery（String SQL）：返回运行后的结果集合，常用于SELECT；</p>
+<p>addBatch（String sql）：把多条sql语句放到一个批处理中；</p>
+<p>executeBatch（）：批量处理一批sql语句；</p>
+<p>关闭Statement对象：</p>
+<src class="cnblogs_code">
+<pre><code><span style="color: #0000ff;">finally</span><span style="color: #000000;">{
+    stmt.close();     
+}</span></code></pre>
+
+<ul>
+<li>PreparedStatement：扩展了Statement接口，可支持动态，可接受参数，参数类型只使用IN;</li>
+</ul>
+<p>创建PreparedStatement对象：</p>
+<src class="cnblogs_code">
+<pre><code>PreparedStatement pstmt = <span style="color: #0000ff;">null</span><span style="color: #000000;">;
+</span><span style="color: #0000ff;">try</span><span style="color: #000000;">{
+    String SQL </span>= "Update employees SET age = ? WHERE id = ?"<span style="color: #000000;">;
+    pstmt </span>=<span style="color: #000000;"> conn.prepareStatement(SQL);
+    ...        
+}</span><span style="color: #0000ff;">catch</span><span style="color: #000000;">{
+    ...
+}</span><span style="color: #0000ff;">finally</span><span style="color: #000000;">{
+    pstmt.close();
+}</span></code></pre>
+
+<p>其中？即表示要输入的参数。通过stmt.setXXX(number,value);输入参数，其中XXX表示参数数值类型，number表示？在程序出现的位置，从1开始计数；value表示输入参数的值；</p>
+<p>Statement对象可用的方法都可以使用。</p>
+<ul>
+<li>CallableStatement：相比于PreparedStatement对象，其参数类型有IN、OUT、INOUT三种；</li>
+</ul>
+<p>创建CallableStatement对象：</p>
+<src class="cnblogs_code">
+<pre><code>CallableStatement cstmt = <span style="color: #0000ff;">null</span><span style="color: #000000;">;
+</span><span style="color: #0000ff;">try</span><span style="color: #000000;">{
+    String strSQL </span>= "{call getEmpName(?,?)}"<span style="color: #000000;">;
+    cstmte </span>=<span style="color: #000000;"> conn.prepareCall(SQL);
+    ...
+}</span><span style="color: #0000ff;">catch</span><span style="color: #000000;">(SQLException e){
+     ...  
+}</span><span style="color: #0000ff;">finally</span><span style="color: #000000;">{
+     cstmt.close();
+}</span></code></pre>
+
+<p>对比前面的3种方法，CallcbleStatement多了一种方法：registerOutParameter（），该方法将JDBC数据类型绑定到存储过程并返回预期数据类型。</p>
+<src>当调用存储过程，可以使用适当的<code>getXXX()</code>方法从<code>OUT</code>参数中检索该值。 此方法将检索到的SQL类型的值转换为对应的Java数据类型。<br /><br />
+<src>Jdbc程序运行完后，切记要释放程序在运行过程中，创建的那些与数据库进行交互的对象，这些对象通常是ResultSet, Statement和Connection对象，特别是Connection对象，它是非常稀有的资源，用完后必须马上释放，如果Connection不能及时、正确的关闭，极易导致系统宕机。Connection的使用原则是尽量晚创建，尽量早的释放。
+
+</div><hr><script charset='utf-8' src='../../js/sming.js'></script></body></html>

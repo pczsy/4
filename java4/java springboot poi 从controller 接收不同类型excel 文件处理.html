@@ -1,0 +1,397 @@
+<html><head><meta charset='utf-8'><meta name='viewport' content='width=device-width, initial-scale=1'>
+<meta name='applicable-device' content='pc'><meta name='keywords' content='电脑,电脑讲解,电脑技术,编程,电脑故障维修java springboot poi 从controller 接收不同类型excel 文件处理' />
+<script src='../../highlight/highlight.pack.js'></script>
+<link rel='stylesheet' type='text/css' href='../../highlight/styles/monokai.css'/>
+
+<link rel='stylesheet' href='../../fenxiang/dist/css/share.min.css'>
+<script src='../../fenxiang/src/js/social-share.js'></script>
+<script src='../../fenxiang/src/js/qrcode.js'></script>
+
+</head><body><script>hljs.initHighlightingOnLoad();</script><script>
+var system ={};  
+var p = navigator.platform;       
+system.win = p.indexOf('Win') == 0;  
+system.mac = p.indexOf('Mac') == 0;  
+system.x11 = (p == 'X11') || (p.indexOf('Linux') == 0);     
+if(system.win||system.mac||system.xll){
+document.write("<link href='../css/3.css' rel='stylesheet' type='text/css'>");}else{ document.write("<link href='../css/3wap.css' rel='stylesheet' type='text/css'>");}</script><script src='../../js/3.js'></script><div class='div2'><div class='heading_nav'><ul><div><li><a href='../../index.html'>首页</a></li>
+</div><div onclick='hidden1()' >分享</div>
+</ul></div></div>
+<div id='heading_nav2'> 
+<li class='row' >
+<div class='social-share' data-mode='prepend'><a href='javascript:' class='social-share-icon icon-heart'></a></div></li></div><script charset='utf-8' src='../../3/js/hengfu.js'></script><script charset='utf-8' src='../../3/js/hengfu2.js'></script><hr><div class='div1'><div class='biaoti'><center>java springboot poi 从controller 接收不同类型excel 文件处理</center></div><div class='banquan'>原文出处:本文由博客园博主爱睡懒觉的派大星提供。<br/>
+原文连接:https://www.cnblogs.com/wei57960/p/11763020.html</div><br>
+    <h2>根据poi接收controller层的excel文件导入</h2>
+<p>&nbsp; &nbsp; &nbsp; &nbsp;可使用后缀名xls或xlsx格式的excel。</p>
+<h3>1.pom引入</h3>
+<src>
+<src class="cnblogs_code">
+<pre><code>        <span style="color: #008000;">&lt;!--</span><span style="color: #008000;"> poi 操作Excel </span><span style="color: #008000;">--&gt;</span>
+        <span style="color: #0000ff;">&lt;</span><span style="color: #800000;">dependency</span><span style="color: #0000ff;">&gt;</span>
+            <span style="color: #0000ff;">&lt;</span><span style="color: #800000;">groupId</span><span style="color: #0000ff;">&gt;</span>org.apache.poi<span style="color: #0000ff;">&lt;/</span><span style="color: #800000;">groupId</span><span style="color: #0000ff;">&gt;</span>
+            <span style="color: #0000ff;">&lt;</span><span style="color: #800000;">artifactId</span><span style="color: #0000ff;">&gt;</span>poi<span style="color: #0000ff;">&lt;/</span><span style="color: #800000;">artifactId</span><span style="color: #0000ff;">&gt;</span>
+            <span style="color: #0000ff;">&lt;</span><span style="color: #800000;">version</span><span style="color: #0000ff;">&gt;</span>3.17<span style="color: #0000ff;">&lt;/</span><span style="color: #800000;">version</span><span style="color: #0000ff;">&gt;</span>
+        <span style="color: #0000ff;">&lt;/</span><span style="color: #800000;">dependency</span><span style="color: #0000ff;">&gt;</span>
+        <span style="color: #0000ff;">&lt;</span><span style="color: #800000;">dependency</span><span style="color: #0000ff;">&gt;</span>
+            <span style="color: #0000ff;">&lt;</span><span style="color: #800000;">groupId</span><span style="color: #0000ff;">&gt;</span>org.apache.poi<span style="color: #0000ff;">&lt;/</span><span style="color: #800000;">groupId</span><span style="color: #0000ff;">&gt;</span>
+            <span style="color: #0000ff;">&lt;</span><span style="color: #800000;">artifactId</span><span style="color: #0000ff;">&gt;</span>poi-ooxml<span style="color: #0000ff;">&lt;/</span><span style="color: #800000;">artifactId</span><span style="color: #0000ff;">&gt;</span>
+            <span style="color: #0000ff;">&lt;</span><span style="color: #800000;">version</span><span style="color: #0000ff;">&gt;</span>3.17<span style="color: #0000ff;">&lt;/</span><span style="color: #800000;">version</span><span style="color: #0000ff;">&gt;</span>
+        <span style="color: #0000ff;">&lt;/</span><span style="color: #800000;">dependency</span><span style="color: #0000ff;">&gt;</span></code></pre>
+
+
+<h3>2.ExcelImportUtil 工具类创建　</h3>
+<src class="cnblogs_code" onclick="cnblogs_code_show('596b3090-22a4-42a5-93b0-1076f1e38e86')"><img id="code_img_closed_596b3090-22a4-42a5-93b0-1076f1e38e86" class="code_img_closed" src="./images/java springboot poi 从controller 接收不同类型excel 文件处理0.png" alt="" /><img id="code_img_opened_596b3090-22a4-42a5-93b0-1076f1e38e86" class="code_img_opened" style="display: none;" onclick="cnblogs_code_hide('596b3090-22a4-42a5-93b0-1076f1e38e86',event)" src="./images/java springboot poi 从controller 接收不同类型excel 文件处理1.png" alt="" />
+<src id="cnblogs_code_open_596b3090-22a4-42a5-93b0-1076f1e38e86" class="cnblogs_code_hide">
+<pre><code><span style="color: #0000ff;">import</span><span style="color: #000000;"> com.guard.biz.common.util.excel.ExcelIn;
+</span><span style="color: #0000ff;">import</span><span style="color: #000000;"> org.apache.commons.beanutils.BeanUtilsBean;
+</span><span style="color: #0000ff;">import</span><span style="color: #000000;"> org.apache.commons.lang3.StringUtils;
+</span><span style="color: #0000ff;">import</span><span style="color: #000000;"> org.apache.commons.lang3.reflect.FieldUtils;
+</span><span style="color: #0000ff;">import</span><span style="color: #000000;"> org.apache.poi.hssf.usermodel.HSSFDateUtil;
+</span><span style="color: #0000ff;">import</span><span style="color: #000000;"> org.apache.poi.ss.usermodel.Cell;
+</span><span style="color: #0000ff;">import</span><span style="color: #000000;"> org.apache.poi.ss.usermodel.Row;
+</span><span style="color: #0000ff;">import</span><span style="color: #000000;"> org.apache.poi.ss.usermodel.Sheet;
+</span><span style="color: #0000ff;">import</span><span style="color: #000000;"> org.apache.poi.ss.usermodel.Workbook;
+</span><span style="color: #0000ff;">import</span><span style="color: #000000;"> org.apache.poi.ss.usermodel.WorkbookFactory;
+</span><span style="color: #0000ff;">import</span><span style="color: #000000;"> org.slf4j.Logger;
+</span><span style="color: #0000ff;">import</span><span style="color: #000000;"> org.slf4j.LoggerFactory;
+
+</span><span style="color: #0000ff;">import</span><span style="color: #000000;"> java.io.FileNotFoundException;
+</span><span style="color: #0000ff;">import</span><span style="color: #000000;"> java.io.IOException;
+</span><span style="color: #0000ff;">import</span><span style="color: #000000;"> java.io.InputStream;
+</span><span style="color: #0000ff;">import</span><span style="color: #000000;"> java.lang.reflect.Field;
+</span><span style="color: #0000ff;">import</span><span style="color: #000000;"> java.lang.reflect.InvocationTargetException;
+</span><span style="color: #0000ff;">import</span><span style="color: #000000;"> java.math.BigDecimal;
+</span><span style="color: #0000ff;">import</span><span style="color: #000000;"> java.util.ArrayList;
+</span><span style="color: #0000ff;">import</span><span style="color: #000000;"> java.util.HashMap;
+</span><span style="color: #0000ff;">import</span><span style="color: #000000;"> java.util.List;
+</span><span style="color: #0000ff;">import</span><span style="color: #000000;"> java.util.Map;
+
+</span><span style="color: #008000;">/**</span><span style="color: #008000;">
+ * </span><span style="color: #808080;">@author</span><span style="color: #008000;"> Wei
+ * @time 2019/10/29
+ * @Description excel 导入工具类
+ </span><span style="color: #008000;">*/</span>
+<span style="color: #0000ff;">public</span> <span style="color: #0000ff;">class</span> ExcelImportUtil&lt;T&gt;<span style="color: #000000;"> {
+
+    </span><span style="color: #0000ff;">private</span> <span style="color: #0000ff;">static</span> <span style="color: #0000ff;">final</span> Logger log = LoggerFactory.getLogger(ExcelImportUtil.<span style="color: #0000ff;">class</span><span style="color: #000000;">);
+
+    </span><span style="color: #0000ff;">private</span> <span style="color: #0000ff;">static</span> BeanUtilsBean beanUtilsBean = <span style="color: #0000ff;">new</span><span style="color: #000000;"> BeanUtilsBean();
+
+    </span><span style="color: #0000ff;">static</span><span style="color: #000000;"> {
+        beanUtilsBean.getConvertUtils().register(</span><span style="color: #0000ff;">new</span> org.apache.commons.beanutils.converters.DateConverter(<span style="color: #0000ff;">null</span>), java.util.Date.<span style="color: #0000ff;">class</span><span style="color: #000000;">);
+    }
+
+    </span><span style="color: #008000;">/**</span><span style="color: #008000;">
+     * 表头名字和对应所在第几列的下标，用于根据title取到对应的值
+     </span><span style="color: #008000;">*/</span>
+    <span style="color: #0000ff;">private</span> <span style="color: #0000ff;">final</span> Map&lt;String, Integer&gt; title_to_index = <span style="color: #0000ff;">new</span> HashMap&lt;&gt;<span style="color: #000000;">();
+    </span><span style="color: #008000;">/**</span><span style="color: #008000;">
+     * 所有带有ExcelIn注解的字段
+     </span><span style="color: #008000;">*/</span>
+    <span style="color: #0000ff;">private</span> <span style="color: #0000ff;">final</span> List&lt;Field&gt; fields = <span style="color: #0000ff;">new</span> ArrayList&lt;&gt;<span style="color: #000000;">();
+
+    </span><span style="color: #008000;">/**</span><span style="color: #008000;">
+     * 统计表格的行和列数量用来遍历表格
+     </span><span style="color: #008000;">*/</span>
+    <span style="color: #0000ff;">private</span> <span style="color: #0000ff;">int</span> firstCellNum = 0<span style="color: #000000;">;
+    </span><span style="color: #0000ff;">private</span> <span style="color: #0000ff;">int</span> lastCellNum = 0<span style="color: #000000;">;
+    </span><span style="color: #0000ff;">private</span> <span style="color: #0000ff;">int</span> firstRowNum = 0<span style="color: #000000;">;
+    </span><span style="color: #0000ff;">private</span> <span style="color: #0000ff;">int</span> lastRowNum = 0<span style="color: #000000;">;
+
+    </span><span style="color: #0000ff;">private</span><span style="color: #000000;"> String sheetName;
+
+    </span><span style="color: #0000ff;">private</span><span style="color: #000000;"> Sheet sheet;
+
+    </span><span style="color: #0000ff;">public</span> List&lt;T&gt; read(InputStream in, Class clazz) <span style="color: #0000ff;">throws</span><span style="color: #000000;"> Exception {
+        gatherAnnotationFields(clazz);
+        configSheet(in);
+        configHeader();
+        List rList </span>= <span style="color: #0000ff;">null</span><span style="color: #000000;">;
+        </span><span style="color: #0000ff;">try</span><span style="color: #000000;"> {
+            rList </span>=<span style="color: #000000;"> readContent(clazz);
+        } </span><span style="color: #0000ff;">catch</span><span style="color: #000000;"> (IllegalAccessException e) {
+            </span><span style="color: #0000ff;">throw</span> <span style="color: #0000ff;">new</span><span style="color: #000000;"> Exception(e);
+        } </span><span style="color: #0000ff;">catch</span><span style="color: #000000;"> (InstantiationException e) {
+            </span><span style="color: #0000ff;">throw</span> <span style="color: #0000ff;">new</span><span style="color: #000000;"> Exception(e);
+        } </span><span style="color: #0000ff;">catch</span><span style="color: #000000;"> (InvocationTargetException e) {
+            </span><span style="color: #0000ff;">throw</span> <span style="color: #0000ff;">new</span><span style="color: #000000;"> Exception(e);
+        }
+        </span><span style="color: #0000ff;">return</span><span style="color: #000000;"> rList;
+    }
+
+    </span><span style="color: #0000ff;">private</span> List readContent(Class clazz) <span style="color: #0000ff;">throws</span><span style="color: #000000;"> IllegalAccessException, InstantiationException, InvocationTargetException {
+        Object o </span>= <span style="color: #0000ff;">null</span><span style="color: #000000;">;
+        Row row </span>= <span style="color: #0000ff;">null</span><span style="color: #000000;">;
+        List</span>&lt;Object&gt; rsList = <span style="color: #0000ff;">new</span> ArrayList&lt;&gt;<span style="color: #000000;">();
+        Object value </span>= <span style="color: #0000ff;">null</span><span style="color: #000000;">;
+        </span><span style="color: #0000ff;">for</span> (<span style="color: #0000ff;">int</span> i = (firstRowNum + 1); i &lt;= lastRowNum; i++<span style="color: #000000;">) {
+            o </span>=<span style="color: #000000;"> clazz.newInstance();
+            row </span>=<span style="color: #000000;"> sheet.getRow(i);
+            Cell cell </span>= <span style="color: #0000ff;">null</span><span style="color: #000000;">;
+            </span><span style="color: #0000ff;">for</span><span style="color: #000000;"> (Field field : fields) {
+                </span><span style="color: #008000;">//</span><span style="color: #008000;">根据注解中的title，取到表格中该列所对应的的值</span>
+                Integer column = title_to_index.get(field.getAnnotation(ExcelIn.<span style="color: #0000ff;">class</span><span style="color: #000000;">).title());
+                </span><span style="color: #0000ff;">if</span> (column == <span style="color: #0000ff;">null</span><span style="color: #000000;">) {
+                    </span><span style="color: #0000ff;">continue</span><span style="color: #000000;">;
+                }
+                cell </span>=<span style="color: #000000;"> row.getCell(column);
+                value </span>=<span style="color: #000000;"> getCellValue(cell);
+                </span><span style="color: #0000ff;">if</span> (<span style="color: #0000ff;">null</span> != value &amp;&amp;<span style="color: #000000;"> StringUtils.isNotBlank(value.toString())) {
+                    beanUtilsBean.setProperty(o, field.getName(), value);
+                }
+            }
+            rsList.add(o);
+        }
+        </span><span style="color: #0000ff;">return</span><span style="color: #000000;"> rsList;
+    }
+
+    </span><span style="color: #0000ff;">private</span> <span style="color: #0000ff;">void</span> configSheet(InputStream in) <span style="color: #0000ff;">throws</span><span style="color: #000000;"> Exception {
+        </span><span style="color: #008000;">//</span><span style="color: #008000;"> 根据文件类型来分别创建合适的Workbook对象</span>
+        <span style="color: #0000ff;">try</span> (Workbook wb =<span style="color: #000000;"> WorkbookFactory.create(in)) {
+            getSheetByName(wb);
+        } </span><span style="color: #0000ff;">catch</span><span style="color: #000000;"> (FileNotFoundException e) {
+            </span><span style="color: #0000ff;">throw</span> <span style="color: #0000ff;">new</span><span style="color: #000000;"> Exception(e);
+        } </span><span style="color: #0000ff;">catch</span><span style="color: #000000;"> (IOException e) {
+            </span><span style="color: #0000ff;">throw</span> <span style="color: #0000ff;">new</span><span style="color: #000000;"> Exception(e);
+        }
+    }
+
+
+    </span><span style="color: #008000;">/**</span><span style="color: #008000;">
+     * 根据sheet获取对应的行列值，和表头对应的列值映射
+     </span><span style="color: #008000;">*/</span>
+    <span style="color: #0000ff;">private</span> <span style="color: #0000ff;">void</span><span style="color: #000000;"> configHeader() {
+        </span><span style="color: #0000ff;">this</span>.firstRowNum =<span style="color: #000000;"> sheet.getFirstRowNum();
+        </span><span style="color: #0000ff;">this</span>.lastRowNum =<span style="color: #000000;"> sheet.getLastRowNum();
+        </span><span style="color: #008000;">//</span><span style="color: #008000;">第一行为表头，拿到表头对应的列值</span>
+        Row row =<span style="color: #000000;"> sheet.getRow(firstRowNum);
+        </span><span style="color: #0000ff;">this</span>.firstCellNum =<span style="color: #000000;"> row.getFirstCellNum();
+        </span><span style="color: #0000ff;">this</span>.lastCellNum =<span style="color: #000000;"> row.getLastCellNum();
+        </span><span style="color: #0000ff;">for</span> (<span style="color: #0000ff;">int</span> i = firstCellNum; i &lt; lastCellNum; i++<span style="color: #000000;">) {
+            title_to_index.put(row.getCell(i).getStringCellValue(), i);
+        }
+    }
+
+    </span><span style="color: #008000;">/**</span><span style="color: #008000;">
+     * 根据sheet名称获取sheet
+     *
+     * </span><span style="color: #808080;">@param</span><span style="color: #008000;"> workbook
+     * </span><span style="color: #808080;">@return</span><span style="color: #008000;">
+     * </span><span style="color: #808080;">@throws</span><span style="color: #008000;"> Exception
+     </span><span style="color: #008000;">*/</span>
+    <span style="color: #0000ff;">private</span> <span style="color: #0000ff;">void</span> getSheetByName(Workbook workbook) <span style="color: #0000ff;">throws</span><span style="color: #000000;"> Exception { 
+        </span><span style="color: #0000ff;">int</span> sheetNumber =<span style="color: #000000;"> workbook.getNumberOfSheets();
+        </span><span style="color: #0000ff;">for</span> (<span style="color: #0000ff;">int</span> i = 0; i &lt; sheetNumber; i++<span style="color: #000000;">) {
+            String name </span>=<span style="color: #000000;"> workbook.getSheetName(i);
+            </span><span style="color: #0000ff;">if</span> (StringUtils.equals(<span style="color: #0000ff;">this</span><span style="color: #000000;">.sheetName, name)) {
+                </span><span style="color: #0000ff;">this</span>.sheet =<span style="color: #000000;"> workbook.getSheetAt(i);
+                </span><span style="color: #0000ff;">return</span><span style="color: #000000;">;
+            }
+        }
+        </span><span style="color: #0000ff;">throw</span> <span style="color: #0000ff;">new</span> Exception("excel中未找到名称为" + <span style="color: #0000ff;">this</span>.sheetName + "的sheet"<span style="color: #000000;">);
+    }
+
+    </span><span style="color: #008000;">/**</span><span style="color: #008000;">
+     * 根据自定义注解，获取所要导入表格的sheet名称和需要导入的字段名称
+     *
+     * </span><span style="color: #808080;">@param</span><span style="color: #008000;"> clazz
+     * </span><span style="color: #808080;">@throws</span><span style="color: #008000;"> Exception
+     </span><span style="color: #008000;">*/</span>
+    <span style="color: #0000ff;">private</span> <span style="color: #0000ff;">void</span> gatherAnnotationFields(Class clazz) <span style="color: #0000ff;">throws</span><span style="color: #000000;"> Exception {
+        </span><span style="color: #0000ff;">if</span> (!clazz.isAnnotationPresent(ExcelIn.<span style="color: #0000ff;">class</span><span style="color: #000000;">)) {
+            </span><span style="color: #0000ff;">throw</span> <span style="color: #0000ff;">new</span> Exception(clazz.getName() + "类上没有ExcelIn注解"<span style="color: #000000;">);
+        }
+        ExcelIn excelIn </span>= (ExcelIn) clazz.getAnnotation(ExcelIn.<span style="color: #0000ff;">class</span><span style="color: #000000;">);
+        </span><span style="color: #0000ff;">this</span>.sheetName =<span style="color: #000000;"> excelIn.sheetName();
+        </span><span style="color: #008000;">//</span><span style="color: #008000;"> 得到所有定义字段</span>
+        Field[] allFields =<span style="color: #000000;"> FieldUtils.getAllFields(clazz);
+        </span><span style="color: #008000;">//</span><span style="color: #008000;"> 得到所有field并存放到一个list中</span>
+        <span style="color: #0000ff;">for</span><span style="color: #000000;"> (Field field : allFields) {
+            </span><span style="color: #0000ff;">if</span> (field.isAnnotationPresent(ExcelIn.<span style="color: #0000ff;">class</span><span style="color: #000000;">)) {
+                fields.add(field);
+            }
+        }
+        </span><span style="color: #0000ff;">if</span><span style="color: #000000;"> (fields.isEmpty()) {
+            </span><span style="color: #0000ff;">throw</span> <span style="color: #0000ff;">new</span> Exception(clazz.getName() + "中没有ExcelIn注解字段"<span style="color: #000000;">);
+        }
+    }
+
+    </span><span style="color: #0000ff;">private</span><span style="color: #000000;"> Object getCellValue(Cell cell) {
+        </span><span style="color: #0000ff;">if</span> (cell == <span style="color: #0000ff;">null</span><span style="color: #000000;">) {
+            </span><span style="color: #0000ff;">return</span> ""<span style="color: #000000;">;
+        }
+        Object obj </span>= <span style="color: #0000ff;">null</span><span style="color: #000000;">;
+        </span><span style="color: #0000ff;">switch</span><span style="color: #000000;"> (cell.getCellTypeEnum()) {
+            </span><span style="color: #0000ff;">case</span><span style="color: #000000;"> BOOLEAN:
+                obj </span>=<span style="color: #000000;"> cell.getBooleanCellValue();
+                </span><span style="color: #0000ff;">break</span><span style="color: #000000;">;
+            </span><span style="color: #0000ff;">case</span><span style="color: #000000;"> ERROR:
+                obj </span>=<span style="color: #000000;"> cell.getErrorCellValue();
+                </span><span style="color: #0000ff;">break</span><span style="color: #000000;">;
+            </span><span style="color: #0000ff;">case</span><span style="color: #000000;"> FORMULA:
+                </span><span style="color: #0000ff;">try</span><span style="color: #000000;"> {
+                    obj </span>=<span style="color: #000000;"> String.valueOf(cell.getStringCellValue());
+                } </span><span style="color: #0000ff;">catch</span><span style="color: #000000;"> (IllegalStateException e) {
+                    obj </span>=<span style="color: #000000;"> numericToBigDecimal(cell);
+                }
+                </span><span style="color: #0000ff;">break</span><span style="color: #000000;">;
+            </span><span style="color: #0000ff;">case</span><span style="color: #000000;"> NUMERIC:
+                obj </span>=<span style="color: #000000;"> getNumericValue(cell);
+                </span><span style="color: #0000ff;">break</span><span style="color: #000000;">;
+            </span><span style="color: #0000ff;">case</span><span style="color: #000000;"> STRING:
+                String value </span>=<span style="color: #000000;"> String.valueOf(cell.getStringCellValue());
+                value </span>= value.replace(" ", ""<span style="color: #000000;">);
+                value </span>= value.replace("\n", ""<span style="color: #000000;">);
+                value </span>= value.replace("\t", ""<span style="color: #000000;">);
+                obj </span>=<span style="color: #000000;"> value;
+                </span><span style="color: #0000ff;">break</span><span style="color: #000000;">;
+            </span><span style="color: #0000ff;">default</span><span style="color: #000000;">:
+                </span><span style="color: #0000ff;">break</span><span style="color: #000000;">;
+        }
+        </span><span style="color: #0000ff;">return</span><span style="color: #000000;"> obj;
+    }
+
+    </span><span style="color: #0000ff;">private</span><span style="color: #000000;"> Object getNumericValue(Cell cell) {
+        </span><span style="color: #008000;">//</span><span style="color: #008000;"> 处理日期格式、时间格式</span>
+        <span style="color: #0000ff;">if</span><span style="color: #000000;"> (HSSFDateUtil.isCellDateFormatted(cell)) {
+            </span><span style="color: #0000ff;">return</span><span style="color: #000000;"> cell.getDateCellValue();
+        } </span><span style="color: #0000ff;">else</span> <span style="color: #0000ff;">if</span> (cell.getCellStyle().getDataFormat() == 58<span style="color: #000000;">) {
+            </span><span style="color: #008000;">//</span><span style="color: #008000;"> 处理自定义日期格式：m月d日(通过判断单元格的格式id解决，id的值是58)</span>
+            <span style="color: #0000ff;">double</span> value =<span style="color: #000000;"> cell.getNumericCellValue();
+            </span><span style="color: #0000ff;">return</span><span style="color: #000000;"> org.apache.poi.ss.usermodel.DateUtil.getJavaDate(value);
+        } </span><span style="color: #0000ff;">else</span><span style="color: #000000;"> {
+            </span><span style="color: #0000ff;">return</span><span style="color: #000000;"> numericToBigDecimal(cell);
+        }
+    }
+
+    </span><span style="color: #0000ff;">private</span><span style="color: #000000;"> Object numericToBigDecimal(Cell cell) {
+        String valueOf </span>=<span style="color: #000000;"> String.valueOf(cell.getNumericCellValue());
+        BigDecimal bd </span>= <span style="color: #0000ff;">new</span><span style="color: #000000;"> BigDecimal(valueOf);
+        </span><span style="color: #0000ff;">return</span><span style="color: #000000;"> bd;
+    }
+}</span></code></pre>
+
+<span class="cnblogs_code_collapse">View Code</span>
+<h3>&nbsp;3.ExcelIn注解&nbsp;</h3>
+<src class="cnblogs_code" onclick="cnblogs_code_show('ea9a8521-483c-4155-b652-9d653fa377bb')"><img id="code_img_closed_ea9a8521-483c-4155-b652-9d653fa377bb" class="code_img_closed" src="./images/java springboot poi 从controller 接收不同类型excel 文件处理0.png" alt="" /><img id="code_img_opened_ea9a8521-483c-4155-b652-9d653fa377bb" class="code_img_opened" style="display: none;" onclick="cnblogs_code_hide('ea9a8521-483c-4155-b652-9d653fa377bb',event)" src="./images/java springboot poi 从controller 接收不同类型excel 文件处理1.png" alt="" />
+<src id="cnblogs_code_open_ea9a8521-483c-4155-b652-9d653fa377bb" class="cnblogs_code_hide">
+<pre><code><span style="color: #0000ff;">import</span><span style="color: #000000;"> java.lang.annotation.ElementType;
+</span><span style="color: #0000ff;">import</span><span style="color: #000000;"> java.lang.annotation.Retention;
+</span><span style="color: #0000ff;">import</span><span style="color: #000000;"> java.lang.annotation.RetentionPolicy;
+</span><span style="color: #0000ff;">import</span><span style="color: #000000;"> java.lang.annotation.Target;
+
+</span><span style="color: #008000;">/**</span><span style="color: #008000;">
+ * </span><span style="color: #808080;">@author</span><span style="color: #008000;"> Lei
+ * @time 2019/10/29
+ * @Description
+ </span><span style="color: #008000;">*/</span><span style="color: #000000;">
+@Retention(value </span>=<span style="color: #000000;"> RetentionPolicy.RUNTIME)
+@Target(value </span>=<span style="color: #000000;"> {ElementType.TYPE, ElementType.FIELD})
+</span><span style="color: #0000ff;">public</span> @<span style="color: #0000ff;">interface</span><span style="color: #000000;"> ExcelIn {
+
+    </span><span style="color: #008000;">/**</span><span style="color: #008000;">
+     * 导入sheet名称
+     *
+     * </span><span style="color: #808080;">@return</span>
+     <span style="color: #008000;">*/</span><span style="color: #000000;">
+    String sheetName() </span><span style="color: #0000ff;">default</span> ""<span style="color: #000000;">;
+
+    </span><span style="color: #008000;">/**</span><span style="color: #008000;">
+     * 字段对应的表头名称
+     *
+     * </span><span style="color: #808080;">@return</span>
+     <span style="color: #008000;">*/</span><span style="color: #000000;">
+    String title() </span><span style="color: #0000ff;">default</span> ""<span style="color: #000000;">;
+}</span></code></pre>
+
+<span class="cnblogs_code_collapse">View Code</span>
+<h3>&nbsp;4.创建excel中的对象</h3>
+<src class="cnblogs_code" onclick="cnblogs_code_show('7fb30a24-6c8f-4b6a-9056-01d449e8a779')"><img id="code_img_closed_7fb30a24-6c8f-4b6a-9056-01d449e8a779" class="code_img_closed" src="./images/java springboot poi 从controller 接收不同类型excel 文件处理0.png" alt="" /><img id="code_img_opened_7fb30a24-6c8f-4b6a-9056-01d449e8a779" class="code_img_opened" style="display: none;" onclick="cnblogs_code_hide('7fb30a24-6c8f-4b6a-9056-01d449e8a779',event)" src="./images/java springboot poi 从controller 接收不同类型excel 文件处理1.png" alt="" />
+<src id="cnblogs_code_open_7fb30a24-6c8f-4b6a-9056-01d449e8a779" class="cnblogs_code_hide">
+<pre><code><span style="color: #0000ff;">import</span><span style="color: #000000;"> lombok.Data;
+</span><span style="color: #0000ff;">import</span><span style="color: #000000;"> lombok.ToString;
+
+</span><span style="color: #0000ff;">import</span><span style="color: #000000;"> java.util.Date;
+
+</span><span style="color: #008000;">/**</span><span style="color: #008000;">
+ * </span><span style="color: #808080;">@author</span><span style="color: #008000;"> Lei
+ * @time 2019/10/29
+ * @Description
+ </span><span style="color: #008000;">*/</span><span style="color: #000000;">
+@ToString
+@Data
+@ExcelIn(sheetName </span>= "用户"<span style="color: #000000;">)
+</span><span style="color: #0000ff;">public</span> <span style="color: #0000ff;">class</span><span style="color: #000000;"> User {
+    </span><span style="color: #0000ff;">private</span><span style="color: #000000;"> String id;
+
+    @ExcelIn(title </span>= "姓名"<span style="color: #000000;">)
+    </span><span style="color: #0000ff;">private</span><span style="color: #000000;"> String name;
+
+    @ExcelIn(title </span>= "年龄"<span style="color: #000000;">)
+    </span><span style="color: #0000ff;">private</span><span style="color: #000000;"> Integer age;
+
+    @ExcelIn(title </span>= "出生日期"<span style="color: #000000;">)
+    </span><span style="color: #0000ff;">private</span><span style="color: #000000;"> Date birthDate;
+
+}</span></code></pre>
+
+<span class="cnblogs_code_collapse">View Code</span>
+<h3>&nbsp;5.controller层接收</h3>
+<src class="cnblogs_code" onclick="cnblogs_code_show('bbd16af0-9a1e-4262-9db8-90fe4dd1f769')">
+<pre><code>@PostMapping("/batch/excel")<br />@ApiOperation(value = "根据excel文件批量导入")<br />public ResponseVO batchAddDeviceByExcelImport(@RequestParam(value = "file") MultipartFile multipartFile) {<br />    return new ResponseVO(deviceService.addDeviceByExcelImport(multipartFile));<br />}</code></pre>
+
+<h3>&nbsp;6.service处理(此处仅打印)</h3>
+<src class="cnblogs_code" onclick="cnblogs_code_show('f49ae31c-e733-4886-987c-716bd39da839')"><img id="code_img_closed_f49ae31c-e733-4886-987c-716bd39da839" class="code_img_closed" src="./images/java springboot poi 从controller 接收不同类型excel 文件处理0.png" alt="" /><img id="code_img_opened_f49ae31c-e733-4886-987c-716bd39da839" class="code_img_opened" style="display: none;" onclick="cnblogs_code_hide('f49ae31c-e733-4886-987c-716bd39da839',event)" src="./images/java springboot poi 从controller 接收不同类型excel 文件处理1.png" alt="" />
+<src id="cnblogs_code_open_f49ae31c-e733-4886-987c-716bd39da839" class="cnblogs_code_hide">
+<pre><code> <span style="color: #0000ff;">public</span> <span style="color: #0000ff;">boolean</span><span style="color: #000000;"> addDeviceByExcelImport(MultipartFile multipartFile) {
+        File file </span>= <span style="color: #0000ff;">null</span><span style="color: #000000;">;
+        </span><span style="color: #0000ff;">try</span><span style="color: #000000;"> {
+            file </span>= File.createTempFile("temp", <span style="color: #0000ff;">null</span><span style="color: #000000;">);
+        } </span><span style="color: #0000ff;">catch</span><span style="color: #000000;"> (IOException e) {
+            e.printStackTrace();
+        }
+        </span><span style="color: #0000ff;">try</span><span style="color: #000000;"> {
+            multipartFile.transferTo(file);
+        } </span><span style="color: #0000ff;">catch</span><span style="color: #000000;"> (IOException e) {
+            e.printStackTrace();
+        }
+        file.deleteOnExit();
+        InputStream inputStream </span>= <span style="color: #0000ff;">null</span><span style="color: #000000;">;
+        </span><span style="color: #0000ff;">try</span><span style="color: #000000;"> {
+            inputStream </span>= <span style="color: #0000ff;">new</span><span style="color: #000000;"> FileInputStream(file);
+        } </span><span style="color: #0000ff;">catch</span><span style="color: #000000;"> (FileNotFoundException e) {
+            e.printStackTrace();
+        }
+
+        ExcelImportUtil</span>&lt;User&gt; reader = <span style="color: #0000ff;">new</span> ExcelImportUtil&lt;&gt;<span style="color: #000000;">();
+        List</span>&lt;User&gt; userList = <span style="color: #0000ff;">null</span><span style="color: #000000;">;
+        </span><span style="color: #0000ff;">try</span><span style="color: #000000;"> {
+            userList </span>= reader.read(inputStream, User.<span style="color: #0000ff;">class</span><span style="color: #000000;">);
+        } </span><span style="color: #0000ff;">catch</span><span style="color: #000000;"> (Exception e) {
+            log.error(e.getMessage());
+            </span><span style="color: #0000ff;">throw</span> <span style="color: #0000ff;">new</span> CodeException("51302"<span style="color: #000000;">, e.getMessage());
+        }
+        
+            userList.stream().forEach(e </span>-&gt;<span style="color: #000000;"> log.info(e.toString()));
+        
+        </span><span style="color: #0000ff;">return</span> <span style="color: #0000ff;">true</span><span style="color: #000000;">;
+    }</span></code></pre>
+
+<span class="cnblogs_code_collapse">View Code</span>
+<h3>&nbsp;7.测试</h3>
+<p>（1）两种文件类型的excel</p>
+<p><img src="./images/java springboot poi 从controller 接收不同类型excel 文件处理8.png" alt="" /></p>
+<p>&nbsp;</p>
+<p>&nbsp;（2）excel中格式如下，注意红色箭头所指的地方 对应user对象中的字段以及sheet名</p>
+<p><img src="./images/java springboot poi 从controller 接收不同类型excel 文件处理9.png" alt="" /></p>
+<p>&nbsp;</p>
+<p>&nbsp;（3）swagger测试</p>
+<p><img src="./images/java springboot poi 从controller 接收不同类型excel 文件处理10.png" alt="" /></p>
+<p>&nbsp;</p>
+<p>&nbsp;</p>
+<p>&nbsp;（4）成功打印</p>
+<p><img src="./images/java springboot poi 从controller 接收不同类型excel 文件处理11.png" alt="" /></p>
+<p>&nbsp;</p>
+<p>&nbsp; 最后，欢迎留言交流吐槽。。。</p>
+
+</div><hr><script charset='utf-8' src='../../js/sming.js'></script></body></html>

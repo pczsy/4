@@ -1,0 +1,103 @@
+<html><head><meta charset='utf-8'><meta name='viewport' content='width=device-width, initial-scale=1'>
+<meta name='applicable-device' content='pc'><meta name='keywords' content='电脑,电脑讲解,电脑技术,编程,电脑故障维修Java微服务（一）：dubbo-admin控制台的使用' />
+<script src='../../highlight/highlight.pack.js'></script>
+<link rel='stylesheet' type='text/css' href='../../highlight/styles/monokai.css'/>
+
+<link rel='stylesheet' href='../../fenxiang/dist/css/share.min.css'>
+<script src='../../fenxiang/src/js/social-share.js'></script>
+<script src='../../fenxiang/src/js/qrcode.js'></script>
+
+</head><body><script>hljs.initHighlightingOnLoad();</script><script>
+var system ={};  
+var p = navigator.platform;       
+system.win = p.indexOf('Win') == 0;  
+system.mac = p.indexOf('Mac') == 0;  
+system.x11 = (p == 'X11') || (p.indexOf('Linux') == 0);     
+if(system.win||system.mac||system.xll){
+document.write("<link href='../css/3.css' rel='stylesheet' type='text/css'>");}else{ document.write("<link href='../css/3wap.css' rel='stylesheet' type='text/css'>");}</script><script src='../../js/3.js'></script><div class='div2'><div class='heading_nav'><ul><div><li><a href='../../index.html'>首页</a></li>
+</div><div onclick='hidden1()' >分享</div>
+</ul></div></div>
+<div id='heading_nav2'> 
+<li class='row' >
+<div class='social-share' data-mode='prepend'><a href='javascript:' class='social-share-icon icon-heart'></a></div></li></div><script charset='utf-8' src='../../3/js/hengfu.js'></script><script charset='utf-8' src='../../3/js/hengfu2.js'></script><hr><div class='div1'><div class='biaoti'><center>Java微服务（一）：dubbo-admin控制台的使用</center></div><div class='banquan'>原文出处:本文由博客园博主从入门到到放弃提供。<br/>
+原文连接:https://www.cnblogs.com/dz-boss/p/11479717.html</div><br>
+    <p><span style="font-size: 18pt;"><strong>1.环境准备</strong></span></p>
+<p>　　使用CentOS7+Docker+Zookeeper3.4.10搭建dubbo微服务</p>
+<p><strong><span style="font-size: 14pt;">1.1.安装docker容器</span></strong></p>
+<p>　　(1).uname -r：docker要求CentOS的内核版本高于3.10，所以推荐使用CentOS7及以上版本。可以通过命令uname -r查看系统的内核版本</p>
+<p>　　<img src="./images/Java微服务（一）：dubbo-admin控制台的使用0.png" alt="" /></p>
+<p>&nbsp;</p>
+<p>　　</p>
+<p>　　(2).sudo yum update:确保yum包更新到最新</p>
+<p>　　</p>
+<p>　　(3).subo yum install docker-ce-17.12.0.ce:安装docker</p>
+<p>　　这种安装方式直接从centos中拉取，如果网络不好，很难拉取下来。那么可以通过设置安装源的方式从指定的位置下载</p>
+<p>　　例如：sudo yum-config-manager --add-repo https://download.docker.com/linux/centos/docker-ce.repo。如果本地以及安装了docker，如果需要安装最新的docker，需要把原有的删掉，否则安装不上，删除旧版本命令：sudo yum remove docker&nbsp; docker-common docker-selinux docker-engine。</p>
+<p>　　</p>
+<p>　　(4).sudo systemctl start docker：启动docker</p>
+<p>　　启动后，建议设置开机自启docker：sudo systemctl enable docker，并通过命令docker version验证docker是否安装成功，如果出现以下界面，就安装成功</p>
+<p>　　<img src="./images/Java微服务（一）：dubbo-admin控制台的使用1.png" alt="" /></p>
+<p>&nbsp;</p>
+<p>&nbsp;</p>
+<p><span style="font-size: 14pt;"><strong>&nbsp;1.2.安装zookeeper</strong></span></p>
+<p>　　zookeeper主要用作服务中心，而dubbo官网最新的demo对zk的版本有要求，我试过最新的zk，是不兼容dubbo官网的demo的，所以我下载了zk3.4.10</p>
+<p>　　</p>
+<p>　　(1).docker pull zookeeper:3.4.10:拉取zk</p>
+<p>　　这里也可能存在无法拉取下来的，有2种方式解决，</p>
+<p>　　a.自己下载一个zk，然后上传到centos上，再安装。</p>
+<p>　　b.设置zk的源</p>
+<p>　&nbsp; &nbsp;</p>
+<p>　　(2).安装zk</p>
+<p>　　因为一个一个地启动 ZK 太麻烦了, 所以为了方便起见, 我直接使用 docker-compose 来启动 ZK 集群.在user/local下创建docker/zookeeper目录，然后创建一个名为 docker-compose.yml 的文件, 其内容如下:</p>
+<p>　　<img src="./images/Java微服务（一）：dubbo-admin控制台的使用2.png" alt="" /></p>
+<p>&nbsp;</p>
+<p>&nbsp;</p>
+<p>&nbsp;　　查看刚刚拉取的zk镜像，并启动</p>
+<p>　　<img src="./images/Java微服务（一）：dubbo-admin控制台的使用3.png" alt="" /></p>
+<p>　　<img src="./images/Java微服务（一）：dubbo-admin控制台的使用4.png" alt="" /></p>
+<p>&nbsp;</p>
+<p>　　这里docker-compose命令可能没有，那么需要安装：</p>
+<p>　　利用pip安装：</p>
+<p>　　　　1.安装pip:</p>
+<p>&nbsp;</p>
+<p>　　　　　　yum -y install epel-release<br />　　　　　　yum -y install python-pip</p>
+<p>　　　　2.安装docker-compose</p>
+<p>　　　　　　pip install docker-compose</p>
+<p>　</p>
+<p>　　(3).docker ps:查看docker容器中启动的zk</p>
+<p>　　<img src="./images/Java微服务（一）：dubbo-admin控制台的使用5.png" alt="" /></p>
+<p>　　zookeeper端口号说明：<br />　　2181：客户端连接zookeeper集群使用的监听端口号<br />　　3888：选择leader使用<br />　　2888：集群内机器通讯使用（leader和follower之间数据同步使用的端口号，leader监听此端口）</p>
+<p>　　</p>
+<p>　　(4).查看docker的运行状态</p>
+<p>&nbsp;</p>
+<p>&nbsp;</p>
+<p>　　<img src="./images/Java微服务（一）：dubbo-admin控制台的使用6.png" alt="" /></p>
+<p>　　<span style="color: #ff0000;">*主从节点是通过zk的选举机制选定的，这里2183的zNode设置的最大，所以被选为主节点是意料之中。</span></p>
+<p>　　状态和上述图片一致，就证明启动成功了。如果没有启动成功，需要手动设置配置文件，第一次安装zk，存在配置文件不会自动创建的情形，可以进入docker容器，查看zk的配置文件是否存在缺失</p>
+<p>　　<img src="./images/Java微服务（一）：dubbo-admin控制台的使用7.png" alt="" /></p>
+<p>　　docker中很多命令需要安装，否则没法使用。所以需要更新源apt-get update，但是docker的内核采用的是debian，服务器不在中国，基本上无法更新成功，那么这里就需要修改源，这里列举2个源，目前还能用：具体操作</p>
+<p>　　先要更新系统的软件源：<br />　　sudo cp /etc/apt/sources.list /etc/apt/sources.list_bak #备份一下软件源<br />　　sudo vi /etc/apt/sources.list（这列vi可能也没法用，可以使用cat &gt; &lt;&lt; EOF强制写入，记得备份）</p>
+<p>　　网易163更新服务器：<br />　　deb http://mirrors.163.com/debian/ squeeze main non-free contrib<br />　　deb http://mirrors.163.com/debian/ squeeze-proposed-updates main non-free contrib<br />　　deb-src http://mirrors.163.com/debian/ squeeze main non-free contrib<br />　　deb-src http://mirrors.163.com/debian/ squeeze-proposed-updates main non-free contrib</p>
+<p>　　sohu 更新服务器：<br />　　deb http://mirrors.sohu.com/debian/ lenny main non-free contrib<br />　　deb http://mirrors.sohu.com/debian/ lenny-proposed-updates main non-free contrib<br />　　deb-src http://mirrors.sohu.com/debian/ lenny main non-free contrib<br />　　deb-src http://mirrors.sohu.com/debian/ lenny-proposed-updates main non-free contrib</p>
+<p>&nbsp;</p>
+<p><strong><span style="font-size: 18pt;">2.使用dubbo-admin控制台</span></strong></p>
+<p>　　进入dubbo官网：<a href="http://dubbo.apache.org/zh-cn/docs/user/quick-start.html">http://dubbo.apache.org/zh-cn/docs/user/quick-start.html</a></p>
+<p><img src="./images/Java微服务（一）：dubbo-admin控制台的使用8.png" alt="" /></p>
+<p>&nbsp;</p>
+<p>&nbsp;</p>
+<p>&nbsp;</p>
+<p>　　安装官网文档，下载并启动dubbo-admin:</p>
+<p><img src="./images/Java微服务（一）：dubbo-admin控制台的使用9.png" alt="" /></p>
+<p>&nbsp;</p>
+<p>&nbsp;</p>
+<p>&nbsp;　　<span style="color: #ff0000;">这个地方，dubbo-admin仓库很难下载，花了一周，把所有的jar包下下来了，我已经上传至百度云，欢迎下载</span></p>
+<p>　　链接：https://pan.baidu.com/s/1-JnuKgpMk3qRL-61oEF0xg <br />　　提取码：o1bh <br /><br /></p>
+<p>　　在dos下启动，如下图，启动成功</p>
+<p><img src="./images/Java微服务（一）：dubbo-admin控制台的使用10.png" alt="" /></p>
+<p>&nbsp;</p>
+<p>&nbsp;</p>
+<p>&nbsp;访问控制台：</p>
+<p><img src="./images/Java微服务（一）：dubbo-admin控制台的使用11.png" alt="" /></p>
+<p>&nbsp;</p>
+
+</div><hr><script charset='utf-8' src='../../js/sming.js'></script></body></html>

@@ -1,0 +1,34 @@
+<html><head><meta charset='utf-8'><meta name='viewport' content='width=device-width, initial-scale=1'>
+<meta name='applicable-device' content='pc'><meta name='keywords' content='电脑,电脑讲解,电脑技术,编程,电脑故障维修Spring源码解析之ConfigurableApplicationContext' />
+<script src='../../highlight/highlight.pack.js'></script>
+<link rel='stylesheet' type='text/css' href='../../highlight/styles/monokai.css'/>
+
+<link rel='stylesheet' href='../../fenxiang/dist/css/share.min.css'>
+<script src='../../fenxiang/src/js/social-share.js'></script>
+<script src='../../fenxiang/src/js/qrcode.js'></script>
+
+</head><body><script>hljs.initHighlightingOnLoad();</script><script>
+var system ={};  
+var p = navigator.platform;       
+system.win = p.indexOf('Win') == 0;  
+system.mac = p.indexOf('Mac') == 0;  
+system.x11 = (p == 'X11') || (p.indexOf('Linux') == 0);     
+if(system.win||system.mac||system.xll){
+document.write("<link href='../css/3.css' rel='stylesheet' type='text/css'>");}else{ document.write("<link href='../css/3wap.css' rel='stylesheet' type='text/css'>");}</script><script src='../../js/3.js'></script><div class='div2'><div class='heading_nav'><ul><div><li><a href='../../index.html'>首页</a></li>
+</div><div onclick='hidden1()' >分享</div>
+</ul></div></div>
+<div id='heading_nav2'> 
+<li class='row' >
+<div class='social-share' data-mode='prepend'><a href='javascript:' class='social-share-icon icon-heart'></a></div></li></div><script charset='utf-8' src='../../3/js/hengfu.js'></script><script charset='utf-8' src='../../3/js/hengfu2.js'></script><hr><div class='div1'><div class='biaoti'><center>Spring源码解析之ConfigurableApplicationContext</center></div><div class='banquan'>原文出处:本文由博客园博主let_me_tell_you提供。<br/>
+原文连接:https://www.cnblogs.com/ttlx/p/11474911.html</div><br>
+    <h2 id="uml图">UML图</h2>
+<p><img src="./images/Spring源码解析之ConfigurableApplicationContext0.png" alt="ConfigurableApplicationContext类关系图.png" /></p>
+<h2 id="接口的作用">接口的作用</h2>
+<p>从上面的UML图中，可以看到 <code>ConfigurableApplicationContext</code> 直接继承了 <code>ApplicationContext</code>, <code>Lifecycle</code>, <code>Closeable</code> 接口，所以 ApplicationContext 是 ApplicationContext 的子类。用过Spring或者看过Spring源码的，肯定都知道ApplicationContext这个接口。它的作用和名字一样，就是应用程序上下文（说明起一个好名字是多么重要），包含了程序上下文唯一ID，应用程序名称等信息。</p>
+<p><code>Lifecycle</code> 接口则是负责对 context 的生命周期进行管理，提供了 <code>start()</code> 和 <code>stop()</code> 以及 <code>isRunning()</code> 方法。</p>
+<p><code>Closeable</code> 接口是JDK提供的接口，用于关闭组件，释放资源。</p>
+<p>所以 <code>ConfigurableApplicationContext</code> 接口的作用就是设置上下文 ID，设置父应用上下文，添加监听器，刷新容器，关闭，判断是否活跃等方法。其实简单看一下 ApplicationContext 接口就会发现里面之后get方法，没有set方法，所以子接口就提供了set方法。<br />
+<img src="./images/Spring源码解析之ConfigurableApplicationContext1.png" /></p>
+
+
+</div><hr><script charset='utf-8' src='../../js/sming.js'></script></body></html>

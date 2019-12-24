@@ -1,0 +1,268 @@
+<html><head><meta charset='utf-8'><meta name='viewport' content='width=device-width, initial-scale=1'>
+<meta name='applicable-device' content='pc'><meta name='keywords' content='电脑,电脑讲解,电脑技术,编程,电脑故障维修Spring Boot核心(基本配置)' />
+<script src='../../highlight/highlight.pack.js'></script>
+<link rel='stylesheet' type='text/css' href='../../highlight/styles/monokai.css'/>
+
+<link rel='stylesheet' href='../../fenxiang/dist/css/share.min.css'>
+<script src='../../fenxiang/src/js/social-share.js'></script>
+<script src='../../fenxiang/src/js/qrcode.js'></script>
+
+</head><body><script>hljs.initHighlightingOnLoad();</script><script>
+var system ={};  
+var p = navigator.platform;       
+system.win = p.indexOf('Win') == 0;  
+system.mac = p.indexOf('Mac') == 0;  
+system.x11 = (p == 'X11') || (p.indexOf('Linux') == 0);     
+if(system.win||system.mac||system.xll){
+document.write("<link href='../css/3.css' rel='stylesheet' type='text/css'>");}else{ document.write("<link href='../css/3wap.css' rel='stylesheet' type='text/css'>");}</script><script src='../../js/3.js'></script><div class='div2'><div class='heading_nav'><ul><div><li><a href='../../index.html'>首页</a></li>
+</div><div onclick='hidden1()' >分享</div>
+</ul></div></div>
+<div id='heading_nav2'> 
+<li class='row' >
+<div class='social-share' data-mode='prepend'><a href='javascript:' class='social-share-icon icon-heart'></a></div></li></div><script charset='utf-8' src='../../3/js/hengfu.js'></script><script charset='utf-8' src='../../3/js/hengfu2.js'></script><hr><div class='div1'><div class='biaoti'><center>Spring Boot核心(基本配置)</center></div><div class='banquan'>原文出处:本文由博客园博主喜讯XiCent提供。<br/>
+原文连接:https://www.cnblogs.com/xicent/p/11570535.html</div><br>
+    <blockquote>
+<p>上一篇Spring Boot我们简单讲了如何快速创建一个SpringBoot项目。大家都知道SpringBoot非常强大，可以轻松与各种工具集成，但是我们知其然，也必须知其所以然。今天开始就和大家一起学习一下SpringBoot核心，核心由于过于重要，需要分成好几章，今天我们先来看看基本配置。</p>
+</blockquote>
+<h1 id="入口类和springbootapplication">入口类和@SpringBootApplication</h1>
+<pre><code><code>使用过或者瞄过一眼Spring Boot工程的小伙伴都知道，
+SpringBoot有一个特别显著的特点，
+就是每个SpringBoot工程都会有一个入口类，
+在这个入口类上都会有这么一个注解@SpringBootApplication。
+
+这个类中有一个main方法，main方法中使用
+SpringApplication.run(*Application.class,args)，
+用来启动SpringBoot项目。如下所示：</code></code></pre>
+<pre><code><code>    public static void main(String[] args) {
+        SpringApplication.run(Createproject2Application.class, args);
+    }</code></code></pre>
+<h2 id="springbootapplication">@SpringBootApplication</h2>
+<pre><code><code>@SpringBootApplication是Spring Boot的核心注解，
+它是一个组合注解
+(通常我们称由多个注解组成的注解叫组合注解)。点进去瞧一眼</code></code></pre>
+<pre><code><code>@Target({ElementType.TYPE})
+@Retention(RetentionPolicy.RUNTIME)
+@Documented
+@Inherited
+@SpringBootConfiguration
+@EnableAutoConfiguration
+@ComponentScan(
+    excludeFilters = {@Filter(
+    type = FilterType.CUSTOM,
+    classes = {TypeExcludeFilter.class}
+), @Filter(
+    type = FilterType.CUSTOM,
+    classes = {AutoConfigurationExcludeFilter.class}
+)}
+)
+public @interface SpringBootApplication {</code></code></pre>
+<pre><code><code>@SpringBootApplication注解主要(我这里说了主要喔)组合了
+@Configuration,@EnableAutoConfiguration,@ComponentScan
+言外之意就是可以将这三个注解直接替换@SpringBootApplication</code></code></pre>
+<p><img src="./images/Spring Boot核心(基本配置)0.png" alt="image" /></p>
+<blockquote>
+<ol>
+<li>@EnableAutoCOnfiguration让Spring Boot根据类路径中的jar包依赖为当前项目进行自动配置。例如添加了spring-boot-starter-web依赖，会自动添加Tomcat和Spring MVC的依赖，Spring Boot就会对Tomcat和Spring MVC进行自动配置。</li>
+</ol>
+</blockquote>
+<blockquote>
+<p>2.@ComponentScan 让Spring Boot去扫描与入口类同级以及以下包的Bean(使用注解配置的)，把他们添加到Spring容器，若为JPA项目还可以扫描标注@Entity的实体类。</p>
+</blockquote>
+<blockquote>
+<p>3.@Configuration 表示当前是一个配置类，也会被Spring进行加载</p>
+</blockquote>
+<h2 id="关闭特定的自动配置">关闭特定的自动配置</h2>
+<pre><code><code>SpringBoot为我们提供了自动化配置，但是在某些特定的场景下，
+我们可能不需要某个自动配置，
+这时可以在@SpringBootApplication中配置</code></code></pre>
+<pre><code><code>@SpringBootApplication(exclude = {DataSourceAutoConfiguration.class})</code></code></pre>
+<h1 id="定制banner">定制Banner</h1>
+<pre><code><code>什么是Banner呢，
+就是在Spring Boot项目启动的时候最开始显示的横幅。
+我记得我第一次启动Spring Boot项目的时候印象最深的就是这个横幅
+内心不断OS(wc这么酷炫的吗)。
+
+下面我们看看怎么自定义横幅吧。如果不自定义，默认显示下面图案</code></code></pre>
+<p><img src="./images/Spring Boot核心(基本配置)1.png" alt="image" /></p>
+<h2 id="修改banner">修改Banner</h2>
+<ol>
+<li>我们在src/main/sources下新建一个banner.txt</li>
+<li>登录http://patorjk.com/software/taag 生成我们自己想要的图案<br />
+<img src="./images/Spring Boot核心(基本配置)2.png" alt="image" /></li>
+<li>复制图案到banner.txt中<br />
+<img src="./images/Spring Boot核心(基本配置)3.png" alt="image" /></li>
+<li>启动项目验证<br />
+<img src="./images/Spring Boot核心(基本配置)4.png" alt="image" /></li>
+</ol>
+<h2 id="关闭banner">关闭banner</h2>
+<pre><code><code>当然了，这个banner也不是必须要显示的，我们可以手动关闭它。</code></code></pre>
+<ul>
+<li><pre><code><code>修改启动类中的main方法</code></code></pre></li>
+</ul>
+<pre><code><code>  SpringApplication app = new SpringApplication(Createproject2Application.class);
+        app.setBannerMode(Banner.Mode.OFF);
+        app.run(args);</code></code></pre>
+<h1 id="spring-boot的配置文件">Spring Boot的配置文件</h1>
+<pre><code><code>Spring Boot在src/main/resources下有一个全局的配置文件
+application.properties或application.yml
+
+说到yml这种配置文件，是有点东西的。全称为yaml，是以数据为中心，
+支持多种数据格式(如数组)，在配置数据的时候具有面向对象的特征。</code></code></pre>
+<h2 id="简单示例">简单示例</h2>
+<pre><code><code>在两种配置文件中配置Tomcat的端口号和默认的访问路径</code></code></pre>
+<ul>
+<li>application.properties中可以如下配置:</li>
+</ul>
+<pre><code><code>server.port=8888
+server.servlet.context-path=/xicent</code></code></pre>
+<ul>
+<li>application.yml中可以如下配置:</li>
+</ul>
+<pre><code><code>server:
+  port: 8888
+  servlet:
+    context-path: /xicent</code></code></pre>
+<p>其实我们从简单的实例中可以看出，yaml的格式更加清晰，所有配置看过去一目了然。并且它是有序的。<br />
+在以前idea中是不支持yml提示的，现在也都支持了。<br />
+但是yaml却引来了另一个问题，yaml格式有严格的要求，稍有配错都有可能出现问题。<br />
+因此在项目中看我们如何去取舍了，目前默认还是以properties为主。</p>
+<h1 id="使用xml配置">使用xml配置</h1>
+<pre><code><code>Spring Boot提倡的是0配置，即无xml配置，但是在实际开发中，
+我们有时难免会需要加载xml配置，
+这时我们就可以通过Spring提供的@ImportResource来加载xml配置
+例如:</code></code></pre>
+<pre><code><code>@ImportResource({&quot;classpath:some-context.xml&quot;})</code></code></pre>
+<pre><code><code>这样我们就成功加载xml配置啦。</code></code></pre>
+<h1 id="命令行参数配置">命令行参数配置</h1>
+<pre><code><code>在Spring Boot中，我们大部分配置都写在了配置文件中，
+但是有些配置我们可能需要启动时才能确定，
+因此Spring Boot还提供了一种命令行配置方式
+下面演示如何在运行jar包的时候，配置Tomcat的端口号</code></code></pre>
+<pre><code><code>    java -jar xx.jar --server.port=8888</code></code></pre>
+<h1 id="常规属性配置">常规属性配置</h1>
+<pre><code><code>在常规的Spring环境中，如果我们想加载某个properties文件，
+获取其中的配置。通常的做法是在类上加注解@PropertiesSource()
+指定配置文件的位置。
+然后在类中使用@Value()加载属性。
+
+在Spring Boot中，
+我们只需在application.properties中定义属性，
+直接用@Value注入即可。</code></code></pre>
+<p>1.application.properties增加属性</p>
+<pre><code><code>xicent.author=kris
+xicent.age=1</code></code></pre>
+<p>2.修改入口类</p>
+<pre><code><code>@Value(&quot;${xicent.author}&quot;)
+String name;
+
+@Value(&quot;${xicent.age}&quot;)
+int age;
+
+@RequestMapping(&quot;/&quot;)
+String index(){
+    return &quot;author is&quot;+name+&quot;,age is&quot;+age;
+}</code></code></pre>
+<h2 id="获取其他属性">获取其他属性</h2>
+<pre><code><code>通用我们用@Value都是获取properties配置文件中配置的属性，
+但是@Value的功能可不远远不止这一点喔。
+通过@Value注解，
+我们还能获取系统属性，url，随机数，文字流等等。</code></code></pre>
+<pre><code><code>//  普通字符串
+    @Value(&quot;xicent&quot;)
+    private String str;
+
+//  操作系统名称
+    @Value(&quot;#{systemProperties[&#39;os.name&#39;]}&quot;)
+    private String osName;
+
+//    随机数
+    @Value(&quot;#{T(java.lang.Math).random()*168.0}&quot;)
+    private double randomNumber;
+
+//  其他bean的属性
+    @Value(&quot;#{demoService.another}&quot;)
+    private String fromAnother;
+
+//  获取文件资源
+    @Value(&quot;classpath:banner.txt&quot;)
+    private Resource file;
+
+//   获取地址资源
+    @Value(&quot;http://www.baidu.com&quot;)
+    private Resource url;
+
+    public void testValue() throws IOException {
+        System.out.println(getStr());
+        System.out.println(getOsName());
+        System.out.println(getRandomNumber());
+        System.out.println(getFromAnother());
+        System.out.println(IOUtils.toString(file.getInputStream(),&quot;UTF-8&quot;));
+        System.out.println(IOUtils.toString(url.getInputStream()));
+    }
+
+//省略getter,setter方法</code></code></pre>
+<p>访问接口</p>
+<pre><code><code>    @RequestMapping(&quot;/testvalue&quot;)
+    void testValue() throws IOException {
+        xicentBean.testValue();
+    }</code></code></pre>
+<p><img src="./images/Spring Boot核心(基本配置)5.png" alt="image" /></p>
+<h1 id="类型安全的配置基于properties">类型安全的配置(基于properties)</h1>
+<pre><code><code>上面的例子，我们每个属性都要使用@Value注解会显得格外的麻烦，
+我们配置的属性通常会是许多个。
+在Spring Boot中使用@ConfigurationProperties
+将配置与bean相关联，
+这就是所谓的类型安全的配置。
+
+这里将配置配在一个专门的properties文件中，
+当然也能直接配置在application.properties中</code></code></pre>
+<p>1.resources文件夹下新增xicent.properties文件，添加如下属性</p>
+<pre><code><code>xicent.author=kris
+xicent.age=1</code></code></pre>
+<p>2.创建一个类</p>
+<pre><code><code>@Component
+@PropertySource(&quot;classpath:xicent.properties&quot;)
+@ConfigurationProperties(prefix = &quot;xicent&quot;)
+public class XicentBean {
+    private String author;
+    private int age;</code></code></pre>
+<blockquote>
+<p>代码解释:@PropertySource可以指定我们需要加载的文件的路径。@ConfigurationProperties指定我们属性配置的前缀</p>
+</blockquote>
+<p>3.创建接口访问</p>
+<pre><code><code>    @Autowired
+    XicentBean xicentBean;
+
+    @RequestMapping(&quot;/xicent&quot;)
+    XicentBean getXicent(){
+        return xicentBean;
+    }</code></code></pre>
+<p>4.请求接口</p>
+<p><img src="./images/Spring Boot核心(基本配置)6.png" alt="image" /></p>
+<h1 id="profile配置">Profile配置</h1>
+<pre><code><code>Profile是Spring用来针对不同环境使用不同的配置文件。
+一般命名为:application-{profile}.properties
+(如application-prod.properties)。
+
+然后在application.properties中
+设置spring.profiles.active=prod来指定活动的Profile。
+下面演示生产环境(prod)使用8888端口，
+开发环境(dev)使用9999端口</code></code></pre>
+<p>1.创建application-prod.properties,配置生产环境的端口</p>
+<pre><code><code>server.port=8888</code></code></pre>
+<p>2.创建application-dev.properties，配置开发环境的端口</p>
+<pre><code><code>server.port=9999</code></code></pre>
+<p>3.application.properties中指定生效的profile</p>
+<pre><code><code>spring.profiles.active=prod</code></code></pre>
+<p><img src="./images/Spring Boot核心(基本配置)7.png" alt="image" /></p>
+<p>4.启动项目，可以看到prod配置文件生效了，绑定端口为8888</p>
+<p><img src="./images/Spring Boot核心(基本配置)8.png" alt="image" /></p>
+<blockquote>
+<p>疑问：如果我application.properties和application-prod.properties都配了端口，哪个会生效呢？ 答案是prod的会生效</p>
+</blockquote>
+<p>ok，今天就暂时分享这么多啦，以上讲的是Spring Boot中的基本配置，其中有很多地方都是可以深挖单独拿出来讲的。<br />
+今天这里只讲了一些基本的，比较常用的基本配置，后续我们还会再详细分享。</p>
+<p>喜欢的小伙伴可以关注公众号:喜讯XiCent 有任何问题可以随时问我喔～</p>
+
+
+</div><hr><script charset='utf-8' src='../../js/sming.js'></script></body></html>

@@ -1,0 +1,210 @@
+<html><head><meta charset='utf-8'><meta name='viewport' content='width=device-width, initial-scale=1'>
+<meta name='applicable-device' content='pc'><meta name='keywords' content='电脑,电脑讲解,电脑技术,编程,电脑故障维修java反射机制详解' />
+<script src='../../highlight/highlight.pack.js'></script>
+<link rel='stylesheet' type='text/css' href='../../highlight/styles/monokai.css'/>
+
+<link rel='stylesheet' href='../../fenxiang/dist/css/share.min.css'>
+<script src='../../fenxiang/src/js/social-share.js'></script>
+<script src='../../fenxiang/src/js/qrcode.js'></script>
+
+</head><body><script>hljs.initHighlightingOnLoad();</script><script>
+var system ={};  
+var p = navigator.platform;       
+system.win = p.indexOf('Win') == 0;  
+system.mac = p.indexOf('Mac') == 0;  
+system.x11 = (p == 'X11') || (p.indexOf('Linux') == 0);     
+if(system.win||system.mac||system.xll){
+document.write("<link href='../css/3.css' rel='stylesheet' type='text/css'>");}else{ document.write("<link href='../css/3wap.css' rel='stylesheet' type='text/css'>");}</script><script src='../../js/3.js'></script><div class='div2'><div class='heading_nav'><ul><div><li><a href='../../index.html'>首页</a></li>
+</div><div onclick='hidden1()' >分享</div>
+</ul></div></div>
+<div id='heading_nav2'> 
+<li class='row' >
+<div class='social-share' data-mode='prepend'><a href='javascript:' class='social-share-icon icon-heart'></a></div></li></div><script charset='utf-8' src='../../3/js/hengfu.js'></script><script charset='utf-8' src='../../3/js/hengfu2.js'></script><hr><div class='div1'><div class='biaoti'><center>java反射机制详解</center></div><div class='banquan'>原文出处:本文由博客园博主MyRichard提供。<br/>
+原文连接:https://www.cnblogs.com/myRichard/p/11742194.html</div><br>
+    <h2>一、什么是反射</h2>
+<p>JAVA反射机制是在运行状态中，对于任何一个类，都能够知道这个类的所有属性和方法；对于任何一个对象，都能够调用它的任意方法和属性；这种动态获取信息以及动态调用对象方法的功能称为java语言的反射机制。</p>
+<p>想要使用反射机制，就必须要先获取到该类的字节码文件对象（.class），通过字节码文件对象，就能够通过该类中的方法获取到我们想要的所有信息(方法，属性，类名，父类名，实现的所有接口等等)，每一个类对应着一个字节码文件也就对应着一个Class类型的对象，也就是字节码文件对象。</p>
+<p>获取字节码文件对象（获取class对象的方式）的三种方式:</p>
+<p>1、根据类名：类名.class</p>
+<p>2、根据对象：对象.getClass()</p>
+<p>3、根据全限定类名：Class.forName(全限定类名)</p>
+<h2>二、通过反射机制获取信息</h2>
+<h3>1、构造函数</h3>
+<src class="cnblogs_code">
+<pre><code><span style="color: #008000;">//</span><span style="color: #008000;">获取字节码文件</span>
+Class classs = Class.forName("com.zcbq.reflect.User"<span style="color: #000000;">);
+</span><span style="color: #008000;">//</span><span style="color: #008000;">先获取有参构造，parameterTypes：表述参数列表，也可以不写</span>
+Constructor constructor = classs.getConstructor(<span style="color: #0000ff;">int</span>.<span style="color: #0000ff;">class</span>,String.<span style="color: #0000ff;">class</span>,<span style="color: #0000ff;">int</span>.<span style="color: #0000ff;">class</span>,String.<span style="color: #0000ff;">class</span><span style="color: #000000;">);
+</span><span style="color: #008000;">//</span><span style="color: #008000;">通过构造器来实例化对象，将实际的参数传进去</span>
+User user = (User) constructor.newInstance(01,"小轩",13,"打球");</code></pre>
+
+<h4>获取全部构造函数：</h4>
+<src class="cnblogs_code">
+<pre><code><span style="color: #008000;">//</span><span style="color: #008000;">获取字节码文件</span>
+Class classs = Class.forName("com.zcbq.reflect.User"<span style="color: #000000;">);
+</span><span style="color: #008000;">//</span><span style="color: #008000;">获取所有构造函数</span>
+Constructor constructor[] =<span style="color: #000000;"> classs.getConstructors();
+</span><span style="color: #008000;">//</span><span style="color: #008000;">遍历所有构造函数</span>
+<span style="color: #0000ff;">for</span>(<span style="color: #0000ff;">int</span> i=0;i&lt;constructor.length;i++<span style="color: #000000;">){
+    </span><span style="color: #008000;">//</span><span style="color: #008000;">获取每个构造函数中的参数类型字节码对象</span>
+    Class[] parameterTypes =<span style="color: #000000;"> constructor[i].getParameterTypes();
+    System.out.println(</span>"第"+i+"个构造函数："<span style="color: #000000;">);
+    </span><span style="color: #0000ff;">for</span> (<span style="color: #0000ff;">int</span> j = 0; j &lt; parameterTypes.length; j++<span style="color: #000000;">) {
+        System.out.println(parameterTypes[j].getName()</span>+","<span style="color: #000000;">);
+    }
+}</span></code></pre>
+
+<p>console：</p>
+<p><img class="alignnone size-medium wp-image-248" src="./images/java反射机制详解0.png" alt="" width="300" height="110" /></p>
+<h3>2、属性</h3>
+<p>在学习spring ioc之时，对未提供set方法的private属性依然可以注入感到神奇万分，现在看来，这神奇的根源自然是来自于java的反射，常用的方法如下：</p>
+<h4>2.1获取指定成员变量</h4>
+<src class="cnblogs_code">
+<pre><code><span style="color: #008000;">//</span><span style="color: #008000;">获取字节码文件</span>
+Class classs = Class.forName("com.zcbq.reflect.User"<span style="color: #000000;">);
+</span><span style="color: #008000;">//</span><span style="color: #008000;">获取其实例对象</span>
+User user =<span style="color: #000000;"> (User) classs.newInstance();
+</span><span style="color: #008000;">//</span><span style="color: #008000;">获取成员变量classs.getField(name);通过name来获取指定成员变量
+</span><span style="color: #008000;">//</span><span style="color: #008000;">如果该成员变量是私有的，则应该使用getDeclaredField(name);</span>
+Field declaredField = classs.getDeclaredField("userName"<span style="color: #000000;">);
+</span><span style="color: #008000;">//</span><span style="color: #008000;">因为属性是私有的，获得其对象后，还要让打开可见权限</span>
+declaredField.setAccessible(<span style="color: #0000ff;">true</span><span style="color: #000000;">);
+</span><span style="color: #008000;">//</span><span style="color: #008000;">对成员变量进行操作
+</span><span style="color: #008000;">//</span><span style="color: #008000;">赋值操作</span>
+declaredField.set(user, "Richard"<span style="color: #000000;">);
+System.out.println(user.getUserName());</span></code></pre>
+
+<h4>2.2获取全部属性</h4>
+<src class="cnblogs_code">
+<pre><code><span style="color: #008000;">//</span><span style="color: #008000;">获取字节码文件</span>
+Class classs = Class.forName("com.zcbq.reflect.User"<span style="color: #000000;">);
+</span><span style="color: #008000;">//</span><span style="color: #008000;">获取其实例对象</span>
+User user =<span style="color: #000000;"> (User) classs.newInstance();
+</span><span style="color: #008000;">//</span><span style="color: #008000;">赋值操作</span>
+user.setUserNum(01<span style="color: #000000;">);
+user.setUserName(</span>"小轩"<span style="color: #000000;">);
+</span><span style="color: #008000;">//</span><span style="color: #008000;">将私有属性一并获得</span>
+Field[] fields =<span style="color: #000000;"> classs.getDeclaredFields();
+</span><span style="color: #008000;">//</span><span style="color: #008000;">遍历所有属性</span>
+<span style="color: #0000ff;">for</span> (<span style="color: #0000ff;">int</span> i = 0; i &lt; fields.length; i++<span style="color: #000000;">) {
+</span><span style="color: #008000;">//</span><span style="color: #008000;">打开可见权限</span>
+fields[i].setAccessible(<span style="color: #0000ff;">true</span><span style="color: #000000;">);
+System.out.println(fields[i].get(user));
+}</span></code></pre>
+
+<h3>3、方法</h3>
+<h4>3.1不带参数的方法</h4>
+<src class="cnblogs_code">
+<pre><code><span style="color: #008000;">//</span><span style="color: #008000;">获取字节码文件</span>
+Class classs = Class.forName("com.zcbq.reflect.User"<span style="color: #000000;">);
+</span><span style="color: #008000;">//</span><span style="color: #008000;">获取其实例对象</span>
+User user =<span style="color: #000000;"> (User) classs.newInstance();
+</span><span style="color: #008000;">//</span><span style="color: #008000;">不带参数的方法，name为不带参数的方法</span><span style="color: #008000;">
+/*</span><span style="color: #008000;">
+* classs.getMethod(name,paraMeterTypes)
+* name:方法的名称
+* paraMeterTypes：方法的参数类型，没有则什么都不填 例如：String.class 
+</span><span style="color: #008000;">*/</span><span style="color: #000000;">
+Method method </span>= classs.getMethod("name"<span style="color: #000000;">);
+</span><span style="color: #008000;">//</span><span style="color: #008000;">调用方法</span><span style="color: #008000;">
+/*</span><span style="color: #008000;">
+* method.invoke(obj,args)
+* obj:方法的对象
+* args:实际的参数值，没有则不填
+</span><span style="color: #008000;">*/</span><span style="color: #000000;">
+method.invoke(user);</span></code></pre>
+
+<h4>3.2带参数的方法</h4>
+<src class="cnblogs_code">
+<pre><code><span style="color: #008000;">//</span><span style="color: #008000;">获取字节码文件</span>
+Class classs = Class.forName("com.zcbq.reflect.User"<span style="color: #000000;">);
+</span><span style="color: #008000;">//</span><span style="color: #008000;">获取其实例对象
+</span><span style="color: #008000;">//</span><span style="color: #008000;"> User user = (User) classs.newInstance();
+</span><span style="color: #008000;">//</span><span style="color: #008000;">获取带参数的方法，为方法名
+</span><span style="color: #008000;">//</span><span style="color: #008000;"> Method method = classs.getDeclaredMethod("namess", String.class);
+</span><span style="color: #008000;">//</span><span style="color: #008000;">设置可见性
+</span><span style="color: #008000;">//</span><span style="color: #008000;"> method.setAccessible(true);
+</span><span style="color: #008000;">//</span><span style="color: #008000;">调用方法
+</span><span style="color: #008000;">//</span><span style="color: #008000;"> method.invoke(user, "text");</span></code></pre>
+
+<h4>3.3获取所有的方法</h4>
+<src class="cnblogs_code">
+<pre><code><span style="color: #008000;">//</span><span style="color: #008000;">获取字节码文件</span>
+Class classs = Class.forName("com.zcbq.reflect.User"<span style="color: #000000;">);
+</span><span style="color: #008000;">//</span><span style="color: #008000;">获取其实例对象</span>
+User user =<span style="color: #000000;"> (User) classs.newInstance();
+</span><span style="color: #008000;">//</span><span style="color: #008000;">获取所有的方法</span>
+Method[] methods =<span style="color: #000000;"> classs.getMethods();
+</span><span style="color: #008000;">//</span><span style="color: #008000;">遍历所有方法</span>
+<span style="color: #0000ff;">for</span><span style="color: #000000;"> (Method method : methods) {
+    </span><span style="color: #008000;">//</span><span style="color: #008000;">设置可见性</span>
+    method.setAccessible(<span style="color: #0000ff;">true</span><span style="color: #000000;">);
+    System.out.println(method.getName());
+    </span><span style="color: #008000;">//</span><span style="color: #008000;">获得方法的参数</span>
+    Class&lt;?&gt;[] parameterTypes =<span style="color: #000000;"> method.getParameterTypes();
+    </span><span style="color: #0000ff;">for</span> (<span style="color: #0000ff;">int</span> i = 0; i &lt; parameterTypes.length; i++<span style="color: #000000;">) {
+        </span><span style="color: #008000;">//</span><span style="color: #008000;">获得构造函数中参数类型</span>
+        System.out.println(parameterTypes[i].getName()+","<span style="color: #000000;">);
+    }
+}</span></code></pre>
+
+<h2>三、动态代理的概述及实现</h2>
+<h3>1、动态代理概述</h3>
+<p>动态代理：利用Java的反射技术(Java Reflection)，在运行时<strong>创建一个实现某些给定接口的新类</strong>（也称&ldquo;动态代理类&rdquo;）及其实例（对象）；</p>
+<p>代理的是接口(Interfaces)，不是类(Class)，更不是抽象类。</p>
+<h3>2、动态代理的实现</h3>
+<p>分三步，但是注意JDK提供的代理正能针对接口做代理，也就是下面的第二步返回的必须要是一个接口。</p>
+<h4>2.1&nbsp;new出代理对象，通过实现InvacationHandler接口，然后new出代理对象来。</h4>
+<h4>2.2&nbsp;通过Proxy类中的静态方法newProxyInstance，来将代理对象假装成那个被代理的对象，也就是如果叫人帮我们代买火车票一样，那个代理就假装成我们自己本人。</h4>
+<h4>2.3&nbsp;执行方法，代理成功</h4>
+<p><img class="alignnone size-medium wp-image-254" src="./images/java反射机制详解1.png" alt="" width="300" height="171" /></p>
+<p>附属代码：</p>
+<src class="cnblogs_code">
+<pre><code><span style="color: #0000ff;">package</span><span style="color: #000000;"> com.zcbq.proxy;
+
+</span><span style="color: #0000ff;">import</span><span style="color: #000000;"> java.lang.reflect.InvocationHandler;
+</span><span style="color: #0000ff;">import</span><span style="color: #000000;"> java.lang.reflect.Method;
+
+</span><span style="color: #0000ff;">public</span> <span style="color: #0000ff;">class</span> MyInvocationHander <span style="color: #0000ff;">implements</span><span style="color: #000000;"> InvocationHandler {
+    </span><span style="color: #0000ff;">private</span><span style="color: #000000;"> Object target;
+
+    </span><span style="color: #0000ff;">public</span><span style="color: #000000;"> MyInvocationHander() {
+        </span><span style="color: #0000ff;">super</span><span style="color: #000000;">();
+    }
+
+    </span><span style="color: #0000ff;">public</span><span style="color: #000000;"> MyInvocationHander(Object target) {
+        </span><span style="color: #0000ff;">super</span><span style="color: #000000;">();
+        </span><span style="color: #0000ff;">this</span>.target =<span style="color: #000000;"> target;
+    }
+
+    @Override
+    </span><span style="color: #0000ff;">public</span> Object invoke(Object proxy, Method method, Object[] args) <span style="color: #0000ff;">throws</span><span style="color: #000000;"> Throwable {
+        </span><span style="color: #008000;">//</span><span style="color: #008000;"> TODO Auto-generated method stub</span>
+        System.err.println("开始"<span style="color: #000000;">);
+        method.invoke(target, args); </span><span style="color: #008000;">//</span><span style="color: #008000;">执行被代理的target对象的方法</span>
+        System.out.println("结束"<span style="color: #000000;">);
+       </span><span style="color: #0000ff;">return</span> <span style="color: #0000ff;">null</span><span style="color: #000000;">;
+    }
+
+}</span></code></pre>
+
+<p><img class="alignnone size-medium wp-image-255" src="./images/java反射机制详解2.png" alt="" width="300" height="140" /></p>
+<p><img class="alignnone size-medium wp-image-256" src="./images/java反射机制详解3.png" alt="" width="300" height="225" /></p>
+<p><img class="alignnone size-medium wp-image-257" src="./images/java反射机制详解4.png" alt="" width="300" height="145" /></p>
+<p>附属代码：</p>
+<src class="cnblogs_code">
+<pre><code>Student student = <span style="color: #0000ff;">new</span><span style="color: #000000;"> StuImp();
+MyInvocationHander m </span>= <span style="color: #0000ff;">new</span><span style="color: #000000;"> MyInvocationHander(student);
+</span><span style="color: #008000;">/**</span><span style="color: #008000;">
+* student.getClass().getClassLoader():类加载器
+* student.getClass().getInterfaces()：被代理对象的接口
+* m：代理对象
+</span><span style="color: #008000;">*/</span><span style="color: #000000;">
+Student s </span>=<span style="color: #000000;"> (Student) Proxy.newProxyInstance(student.getClass().getClassLoader(), 
+student.getClass().getInterfaces(), m);
+s.login();
+s.logout();</span></code></pre>
+
+<p>注意newProxyInstance的三个参数，第一个，类加载器，第二个被代理对象的接口，第三个代理对象。</p>
+
+</div><hr><script charset='utf-8' src='../../js/sming.js'></script></body></html>

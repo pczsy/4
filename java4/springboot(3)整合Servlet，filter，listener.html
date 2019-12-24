@@ -1,0 +1,142 @@
+<html><head><meta charset='utf-8'><meta name='viewport' content='width=device-width, initial-scale=1'>
+<meta name='applicable-device' content='pc'><meta name='keywords' content='电脑,电脑讲解,电脑技术,编程,电脑故障维修springboot(3)整合Servlet，filter，listener' />
+<script src='../../highlight/highlight.pack.js'></script>
+<link rel='stylesheet' type='text/css' href='../../highlight/styles/monokai.css'/>
+
+<link rel='stylesheet' href='../../fenxiang/dist/css/share.min.css'>
+<script src='../../fenxiang/src/js/social-share.js'></script>
+<script src='../../fenxiang/src/js/qrcode.js'></script>
+
+</head><body><script>hljs.initHighlightingOnLoad();</script><script>
+var system ={};  
+var p = navigator.platform;       
+system.win = p.indexOf('Win') == 0;  
+system.mac = p.indexOf('Mac') == 0;  
+system.x11 = (p == 'X11') || (p.indexOf('Linux') == 0);     
+if(system.win||system.mac||system.xll){
+document.write("<link href='../css/3.css' rel='stylesheet' type='text/css'>");}else{ document.write("<link href='../css/3wap.css' rel='stylesheet' type='text/css'>");}</script><script src='../../js/3.js'></script><div class='div2'><div class='heading_nav'><ul><div><li><a href='../../index.html'>首页</a></li>
+</div><div onclick='hidden1()' >分享</div>
+</ul></div></div>
+<div id='heading_nav2'> 
+<li class='row' >
+<div class='social-share' data-mode='prepend'><a href='javascript:' class='social-share-icon icon-heart'></a></div></li></div><script charset='utf-8' src='../../3/js/hengfu.js'></script><script charset='utf-8' src='../../3/js/hengfu2.js'></script><hr><div class='div1'><div class='biaoti'><center>springboot(3)整合Servlet，filter，listener</center></div><div class='banquan'>原文出处:本文由博客园博主_ZXP提供。<br/>
+原文连接:https://www.cnblogs.com/z-x-p/p/11499065.html</div><br>
+    <h2>1.springboot整合Servlet（2种方式）</h2>
+<p>添加maven依赖：spring-boot-starter-web</p>
+<h3>1&gt;通过注解扫描完成Servlet组件的注册（方式1）</h3>
+<h4>步骤：需要3步</h4>
+<p>1）自定义一个继承javax.servlet.http.HTTPServlet类的CustomServlet，并实现doGet()或doPost()方法。</p>
+<p>2)在CustomServlet类上添加注解@WebServlet：</p>
+<p>@WebServlet(name="customServlet",urlPatterns={"/"})　</p>
+<p>该注解的作用等同于下面的传统的Servlet配置</p>
+<p><span style="color: #000080;">&lt;servlet&gt;</span></p>
+<src><span style="color: #000080;">&nbsp;　　&lt;servlet-name&gt;customServlet&lt;/servlet-name&gt;</span>
+<src><span style="color: #000080;">　　&lt;servlet-class&gt;zxp.CustomServlet&lt;/servlet-class&gt;</span>
+<src><span style="color: #000080;">&lt;/servlet&gt;</span>
+<src><span style="color: #000080;">&lt;servlet-mapping&gt;</span>
+<src><span style="color: #000080;">&nbsp;　　&lt;servlet-name&gt;customServlet&lt;/servlet-name&gt;</span>
+<src><span style="color: #000080;">&nbsp;　　&lt;url-pattern&gt;/&lt;/url-pattern&gt;</span>
+<src><span style="color: #000080;">&lt;/servlet-mapping&gt;</span>
+<p>3)在启动类上添加注解@ServletConComponentScan，该注解在启动的时候会扫描@WebServlet，并将该类实例化。</p>
+<h3>2&gt;通过配置类注册bean完成Servlet组件的注册（方式2）</h3>
+<h4>步骤：需要2步</h4>
+<p>1）自定义一个继承javax.servlet.http.HTTPServlet类的CustomServlet，并实现doGet()或doPost()方法。</p>
+<p>2）在启动类或自定义配置类中定义以下方法用于注册Servlet：</p>
+<src><span style="color: #000080;">@Bean</span>
+<src><span style="color: #000080;">public ServletRegistrationBean getServletRegistrationBean(){</span>
+<src><span style="color: #000080;">　　ServletRegistrationBean bean = new ServletRegistrationBean(new&nbsp;CustomServlet());</span>
+<src><span style="color: #000080;">　　bean.addUrlMappings("/second");</span>
+<src><span style="color: #000080;">　　return bean;</span>
+<src><span style="color: #000080;">}</span>
+<src>注意：必须使用ServletRegistrationBean。
+<src>&nbsp;
+<src>
+<h2>2.springboot整合Filter（2种方式）</h2>
+<h3>1&gt;通过注解扫描完成Filter组件的注册（方式1）</h3>
+<h4>步骤：需要3步</h4>
+<p>1）自定义一个实现javax.servlet.Filter接口的CustomFilter，并实现doFilter方法。</p>
+<p>2)在CustomServlet类上添加注解@WebFilter。</p>
+<p>@WebFilter(name="customFilter",urlPatterns={"*/user"})　</p>
+<p>该注解的作用等同于下面的传统的Filter配置</p>
+<src><span style="color: #000080;">&lt;filter&gt;</span>
+<src><span style="color: #000080;">　　&nbsp;&lt;filter-name&gt;customFilter&lt;/filter-name&gt;</span>
+<src><span style="color: #000080;">　　&nbsp;&lt;filter-class&gt;zxp.customFilter&lt;/filter-class&gt;</span>
+<src><span style="color: #000080;">&lt;/filter&gt;</span>
+<src><span style="color: #000080;">&lt;filter-mapping&gt;</span>
+<src><span style="color: #000080;">　　&nbsp;&lt;filter-name&gt;customFilter&lt;/filter-name&gt;</span>
+<src><span style="color: #000080;">　　&lt;url-pattern&gt;/user&lt;/url-pattern&gt;</span>
+<src><span style="color: #000080;">&lt;/filter-mapping&gt;</span>
+<p>3)在启动类上添加注解@ServletConComponentScan，该注解在启动的时候会扫描@WebServlet，并将该类实例化。</p>
+<h3>2&gt;通过配置类注册bean完成Servlet组件的注册（方式2）</h3>
+<h4>步骤：需要2步</h4>
+<p>1）自定义一个实现javax.servlet.Filter接口的CustomFilter，并实现doFilter方法。</p>
+<p>2）在启动类或自定义配置类中定义以下方法用于注册Filter：</p>
+<src><span style="color: #000080;">@Bean</span>
+<src><span style="color: #000080;">public FilterRegistrationBean getFilterRegistrationBean(){</span>
+<src><span style="color: #000080;">　　FilterRegistrationBean bean = new FilterRegistrationBean(new&nbsp;CustomFilter());</span>
+<src><span style="color: #000080;">　　bean.addUrlMappings("/user");</span>
+<src><span style="color: #000080;">　　return bean;</span>
+<src><span style="color: #000080;">}</span>
+<src><span style="color: #000080;">注意：了解FilterRegistrationBean类。</span>
+<src>
+<h2>3.springboot整合Listener（2种方式）</h2>
+<p>具体要监听哪些组件就实现相应的监听器接口，这里实现的是ServletContextListener接口。</p>
+<h3>1&gt;通过注解扫描完成Listener组件的注册（方式1）</h3>
+<h4>步骤：需要3步</h4>
+<p>1.自定义一个实现javax.servlet.ServletContextListener接口的CustomListener。</p>
+<p>2)在CustomListener类上添加注解@WebListener，不需要设置参数。</p>
+<p>3)在启动类上添加注解@ServletConComponentScan，该注解在启动的时候会扫描@WebServlet，并将该类实例化。</p>
+<h3>2&gt;通过配置类注册bean完成Listener组件的注册（方式2）</h3>
+<h4>步骤：需要2步</h4>
+<p>1）自定义一个实现javax.servlet.Filter接口的CustomFilter，并实现doFilter方法。</p>
+<p>2）在启动类或自定义配置类中定义以下方法用于注册Listener：</p>
+<src><span style="color: #000080;">@Bean</span>
+<src><span style="color: #000080;">public ServletListenerRegistrationBean getServletListenerRegistrationBean(){</span>
+<src><span style="color: #000080;">　　ServletListenerRegistrationBean bean = new ServletListenerRegistrationBean(new&nbsp;CustomListener());</span>
+<src><span style="color: #000080;">　　return bean;</span>
+<src><span style="color: #000080;">}</span>
+<src>注意：了解ServletListenerRegistrationBean类。
+<src>
+<h2>3.springboot可以直接访问的静态资源</h2>
+<p>springboot可以直接访问的静态资源的路径必须符合以下两种情况：</p>
+<p><strong>1.静态资源位于classpath/static</strong></p>
+<p>该路径在myeclipse的web项目中就是src/main/resources目录下的static文件夹。</p>
+<p>注意：目录名必须为static。</p>
+<p><strong>2.静态资源位于ServletContext的根目录下</strong></p>
+<p>该路径在myeclipse的web项目中就是src/main/webapp目录下。</p>
+<h2>4.文件上传</h2>
+<p>文件上传需要2个jar： commons-fileupload-1.3.3.jar和commons-io-2.6.jar</p>
+<h3>步骤：</h3>
+<p>1.创建控制器Controller。</p>
+<p>由于需要通过访问指定的URL实现文件上传，因此需要创建controller类，在该类在创建处理上传的方法。</p>
+<p>2.定义处理文件上传的方法。</p>
+<src>/*
+<src>* 处理文件上传
+<src>*/
+<src>
+<p><span style="color: #000080;">@RequestMapping(value="/upload")</span><br /><span style="color: #000080;">	public String testUpload(@RequestParam("file") MultipartFile file) throws IOException{</span><br /><span style="color: #000080;">		　　/*将文件上传到服务器的哪里*/</span><br /><span style="color: #000080;">		　　InputStream in=file.getInputStream();</span><br /><span style="color: #000080;">		　　String fileName=file.getOriginalFilename();</span><br /><span style="color: #000080;">		　　byte[] b=new byte[1024];</span></p>
+<p><span style="color: #000080;">		　　OutputStream out=new FileOutputStream("E:\\"+fileName);</span><br /><span style="color: #000080;">		　　int len=-1;</span><br /><span style="color: #000080;">		　　/*将文件以字节流的形式写到文件中*/</span><br /><span style="color: #000080;">		　　while((len=in.read(b))!=-1){</span><br /><span style="color: #000080;">			　　　　out.write(b, 0, len);</span><br /><span style="color: #000080;">		　　}</span><br /><span style="color: #000080;">		　　out.close();</span><br /><span style="color: #000080;">		　　in.close();</span><br /><span style="color: #000080;">		　　System.out.println("上传成功");</span><br /><span style="color: #000080;">		　　return "success";　　//跳转到成功页面</span><br /><span style="color: #000080;">	}</span></p>
+<p>代码中的注解@RequestParam的参数file指的是form表单中的参数，至此文件上传的处理已经完成了。</p>
+<p>3.在HTML或jsp页面中创建上传文件的表单。</p>
+<p><span style="color: #000080;">&lt;h3&gt;以下表单用于测试文件上传功能&lt;/h3&gt;</span><br /><span style="color: #000080;">    	&lt;!-- 文件上传只能使用post方式，且enctype的值必须为multipart/form-data --&gt;</span><br /><span style="color: #000080;">    	&lt;form action="test/upload" method="post" enctype="multipart/form-data"&gt;</span><br /><span style="color: #000080;">    		文件:&lt;input name="file" type="file"&gt;</span><span style="color: #000080;">&lt;br&gt;</span><br /><span style="color: #000080;">    		&lt;input type="submit" value="文件上传"&gt; </span><br /><span style="color: #000080;">    	&lt;/form&gt;</span></p>
+<p>至此文件上传的功能已经完成了。</p>
+<p>上面完成的只是基础的文件上传，并未设置文件单次上传的大小以及上传文件的总量。</p>
+<p>接下来在application.properties配置文件中配置上传的属性：</p>
+<p>#设置单个文件上传的大小</p>
+<p>spring.http.multipart.maxFileSize=200MB</p>
+<p>#设置一次请求上传文件的总容量</p>
+<p>spring.http.multipart.maxRequestSize=400MB</p>
+
+
+
+
+
+
+
+
+
+
+
+
+
+</div><hr><script charset='utf-8' src='../../js/sming.js'></script></body></html>

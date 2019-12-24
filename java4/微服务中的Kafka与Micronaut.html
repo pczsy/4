@@ -1,0 +1,288 @@
+<html><head><meta charset='utf-8'><meta name='viewport' content='width=device-width, initial-scale=1'>
+<meta name='applicable-device' content='pc'><meta name='keywords' content='电脑,电脑讲解,电脑技术,编程,电脑故障维修微服务中的Kafka与Micronaut' />
+<script src='../../highlight/highlight.pack.js'></script>
+<link rel='stylesheet' type='text/css' href='../../highlight/styles/monokai.css'/>
+
+<link rel='stylesheet' href='../../fenxiang/dist/css/share.min.css'>
+<script src='../../fenxiang/src/js/social-share.js'></script>
+<script src='../../fenxiang/src/js/qrcode.js'></script>
+
+</head><body><script>hljs.initHighlightingOnLoad();</script><script>
+var system ={};  
+var p = navigator.platform;       
+system.win = p.indexOf('Win') == 0;  
+system.mac = p.indexOf('Mac') == 0;  
+system.x11 = (p == 'X11') || (p.indexOf('Linux') == 0);     
+if(system.win||system.mac||system.xll){
+document.write("<link href='../css/3.css' rel='stylesheet' type='text/css'>");}else{ document.write("<link href='../css/3wap.css' rel='stylesheet' type='text/css'>");}</script><script src='../../js/3.js'></script><div class='div2'><div class='heading_nav'><ul><div><li><a href='../../index.html'>首页</a></li>
+</div><div onclick='hidden1()' >分享</div>
+</ul></div></div>
+<div id='heading_nav2'> 
+<li class='row' >
+<div class='social-share' data-mode='prepend'><a href='javascript:' class='social-share-icon icon-heart'></a></div></li></div><script charset='utf-8' src='../../3/js/hengfu.js'></script><script charset='utf-8' src='../../3/js/hengfu2.js'></script><hr><div class='div1'><div class='biaoti'><center>微服务中的Kafka与Micronaut</center></div><div class='banquan'>原文出处:本文由博客园博主锅外的大佬提供。<br/>
+原文连接:https://www.cnblogs.com/liululee/p/11943720.html</div><br>
+    <p>今天，我们将通过<code>Apache Kafka</code>主题构建一些彼此异步通信的微服务。我们使用<code>Micronaut</code>框架，它为与<code>Kafka</code>集成提供专门的库。让我们简要介绍一下示例系统的体系结构。我们有四个微型服务：<code>订单服务</code>，<code>行程服务</code>，<code>司机服务</code>和<code>乘客服务</code>。这些应用程序的实现非常简单。它们都有内存存储，并连接到同一个<code>Kafka</code>实例。</p>
+<p>我们系统的主要目标是为客户安排行程。订单服务应用程序还充当网关。它接收来自客户的请求，保存历史记录并将事件发送到<code>orders</code>主题。所有其他微服务都在监听<code>orders</code>这个主题，并处理<code>order-service</code>发送的订单。每个微服务都有自己的专用主题，其中发送包含更改信息的事件。此类事件由其他一些微服务接收。架构如下图所示。</p>
+<p><img src="./images/微服务中的Kafka与Micronaut0.png" alt="在这里插入图片描述" /></p>
+<p>在阅读本文之前，有必要熟悉一下<code>Micronaut</code>框架。您可以阅读之前的一篇文章，该文章描述了通过<code>REST API构建微服务通信的过程</code>:<a href="https://piotrminkowski.wordpress.com/2019/01/25/quick-guide-to-microservices-with-micronaut-framework/">使用microaut框架构建微服务的快速指南</a>。</p>
+<h2 id="运行kafka">1 运行Kafka</h2>
+<p>要在本地机器上运行<code>Apache Kafka</code>，我们可以使用它的Docker映像。最新的镜像是由<a href="https://hub.docker.com/u/wurstmeister" class="uri">https://hub.docker.com/u/wurstmeister</a>共享的。在启动<code>Kafka</code>容器之前，我们必须启动<code>kafka</code>所用使用的<code>ZooKeeper</code>服务器。如果在<code>Windows</code>上运行<code>Docker</code>，其虚拟机的默认地址是<code>192.168.99.100</code>。它还必须设置为<code>Kafka</code>容器的环境。</p>
+<p><code>Zookeeper</code>和<code>Kafka</code>容器都将在同一个网络中启动。在docker中运行Zookeeper以<code>zookeeper</code>的名称提供服务，并在暴露<code>2181</code>端口。<code>Kafka</code>容器需要在环境变量使用<code>KAFKA_ZOOKEEPER_CONNECT</code>的地址。</p>
+<pre><code><code>$ docker network create kafka
+$ docker run -d --name zookeeper --network kafka -p 2181:2181 wurstmeister/zookeeper
+$ docker run -d --name kafka -p 9092:9092 --network kafka --env KAFKA_ADVERTISED_HOST_NAME=192.168.99.100 --env KAFKA_ZOOKEEPER_CONNECT=zookeeper:2181 wurstmeister/kafka</code></code></pre>
+<h2 id="添加micronaut-kafka依赖">2 添加micronaut-kafka依赖</h2>
+<p>使用<code>Kafka</code>构建的<code>microaut</code>应用程序可以在HTTP服务器存在的情况下启动，也可以在不存在HTTP服务器的情况下启动。要启用<code>Micronaut  Kafka</code>，需要添加<code>micronaut-kafka</code>库到依赖项。如果您想暴露<code>HTTP API</code>，您还应该添加<code>micronaut-http-server-netty</code>:</p>
+<pre class="xml"><code>&lt;dependency&gt;
+    &lt;groupId&gt;io.micronaut.configuration&lt;/groupId&gt;
+    &lt;artifactId&gt;micronaut-kafka&lt;/artifactId&gt;
+&lt;/dependency&gt;
+&lt;dependency&gt;
+    &lt;groupId&gt;io.micronaut&lt;/groupId&gt;
+    &lt;artifactId&gt;micronaut-http-server-netty&lt;/artifactId&gt;
+&lt;/dependency&gt;</code></code></pre>
+<h2 id="构建订单微服务">3 构建订单微服务</h2>
+<p><code>订单微服务</code>是唯一一个启动嵌入式HTTP服务器并暴露<code>REST API</code>的应用程序。这就是为什么我们可以为<code>Kafka</code>提供内置<code>Micronaut</code>健康检查。要做到这一点，我们首先应该添加<code>micronaut-management</code>依赖:</p>
+<pre class="xml"><code>&lt;dependency&gt;
+    &lt;groupId&gt;io.micronaut&lt;/groupId&gt;
+    &lt;artifactId&gt;micronaut-management&lt;/artifactId&gt;
+&lt;/dependency&gt;</code></code></pre>
+<p>为了方便起见，我们将通过在<code>application.yml</code>中定义以下配置来启用所有管理端点并禁用它们的HTTP身份验证。</p>
+<pre class="yml"><code>endpoints:
+  all:
+    enabled: true
+    sensitive: false</code></code></pre>
+<p>现在，可以在地址栏<a href="http://localhost:8080/health" class="uri">http://localhost:8080/health</a>下使用<code>health check</code>。我们的示例应用程序还将暴露<code>添加新订单</code>和<code>列出所有以前创建的订单</code>的简单<code>REST API</code>。下面是暴露这些端点的<code>Micronaut</code>控制器实现:</p>
+<pre class="java"><code>@Controller(&quot;orders&quot;)
+public class OrderController {
+
+    @Inject
+    OrderInMemoryRepository repository;
+    @Inject
+    OrderClient client;
+
+    @Post
+    public Order add(@Body Order order) {
+        order = repository.add(order);
+        client.send(order);
+        return order;
+    }
+
+    @Get
+    public Set&lt;Order&gt; findAll() {
+        return repository.findAll();
+    }
+
+}</code></code></pre>
+<p>每个微服务都使用内存存储库实现。以下是<code>订单微服务（Order-Service）</code>中的存储库实现：</p>
+<pre class="java"><code>@Singleton
+public class OrderInMemoryRepository {
+
+    private Set&lt;Order&gt; orders = new HashSet&lt;&gt;();
+
+    public Order add(Order order) {
+        order.setId((long) (orders.size() + 1));
+        orders.add(order);
+        return order;
+    }
+
+    public void update(Order order) {
+        orders.remove(order);
+        orders.add(order);
+    }
+
+    public Optional&lt;Order&gt; findByTripIdAndType(Long tripId, OrderType type) {
+        return orders.stream().filter(order -&gt; order.getTripId().equals(tripId) &amp;&amp; order.getType() == type).findAny();
+    }
+
+    public Optional&lt;Order&gt; findNewestByUserIdAndType(Long userId, OrderType type) {
+        return orders.stream().filter(order -&gt; order.getUserId().equals(userId) &amp;&amp; order.getType() == type)
+                .max(Comparator.comparing(Order::getId));
+    }
+
+    public Set&lt;Order&gt; findAll() {
+        return orders;
+    }
+
+}</code></code></pre>
+<p>内存存储库存储<code>Order</code>对象实例。<code>Order</code>对象还被发送到名为<code>orders</code>的Kafka主题。下面是<code>Order</code>类的实现:</p>
+<pre class="java"><code>public class Order {
+
+    private Long id;
+    private LocalDateTime createdAt;
+    private OrderType type;
+    private Long userId;
+    private Long tripId;
+    private float currentLocationX;
+    private float currentLocationY;
+    private OrderStatus status;
+    
+    // ... GETTERS AND SETTERS
+}
+</code></code></pre>
+<h2 id="使用kafka异步通信">4 使用Kafka异步通信</h2>
+<p>现在，让我们想一个可以通过示例系统实现的用例——<code>添加新的行程</code>。</p>
+<p>我们创建了<code>OrderType.NEW_TRIP</code>类型的新订单。在此之后，(1)<code>订单服务</code>创建一个订单并将其发送到<code>orders</code>主题。订单由三个微服务接收:<code>司机服务</code>、<code>乘客服务</code>和<code>行程服务</code>。<br />
+(2)所有这些应用程序都处理这个新订单。<code>乘客服务</code>应用程序检查乘客帐户上是否有足够的资金。如果没有，它就取消了行程，否则它什么也做不了。<code>司机服务</code>正在寻找最近可用的司机，(3)<code>行程服务</code>创建和存储新的行程。<code>司机服务</code>和<code>行程服务</code>都将事件发送到它们的主题(<code>drivers</code>, <code>trips</code>),其中包含相关更改的信息。</p>
+<p>每一个事件可以被其他<code>microservices</code>访问,例如，(4)<code>行程服务</code>侦听来自<code>司机服务</code>的事件，以便为行程分配一个新的司机</p>
+<p>下图说明了在添加新的行程时，我们的微服务之间的通信过程。<br />
+<img src="./images/微服务中的Kafka与Micronaut1.png" alt="在这里插入图片描述" /><br />
+现在，让我们继续讨论实现细节。</p>
+<h3 id="发送订单">4.1 发送订单</h3>
+<p>首先，我们需要创建Kafka 客户端，负责向主题发送消息。我们创建的一个接口，命名为<code>OrderClient</code>，为它添加<code>@KafkaClient</code>并声明用于发送消息的一个或多个方法。每个方法都应该通过<code>@Topic</code>注解设置目标主题名称。对于方法参数，我们可以使用三个注解<code>@KafkaKey</code>、<code>@Body</code>或<code>@Header</code>。<code>@KafkaKey</code>用于分区，这是我们的示例应用程序所需要的。在下面可用的客户端实现中，我们只使用<code>@Body</code>注解。</p>
+<pre class="java"><code>@KafkaClient
+public interface OrderClient {
+
+    @Topic(&quot;orders&quot;)
+    void send(@Body Order order);
+
+}</code></code></pre>
+<h3 id="接收订单">4.2 接收订单</h3>
+<p>一旦客户端发送了一个订单，它就会被监听<code>orders</code>主题的所有其他微服务接收。下面是<code>司机服务</code>中的监听器实现。监听器类<code>OrderListener</code>应该添加<code>@KafkaListener</code>注解。我们可以声明<code>groupId</code>作为一个注解参数，以防止单个应用程序的多个实例接收相同的消息。然后，我们声明用于处理传入消息的方法。与客户端方法相同，应该通过<code>@Topic</code>注解设置目标主题名称，因为我们正在监听<code>Order</code>对象，所以应该使用<code>@Body</code>注解——与对应的客户端方法相同。</p>
+<pre class="java"><code>@KafkaListener(groupId = &quot;driver&quot;)
+public class OrderListener {
+
+    private static final Logger LOGGER = LoggerFactory.getLogger(OrderListener.class);
+
+    private DriverService service;
+
+    public OrderListener(DriverService service) {
+        this.service = service;
+    }
+
+    @Topic(&quot;orders&quot;)
+    public void receive(@Body Order order) {
+        LOGGER.info(&quot;Received: {}&quot;, order);
+        switch (order.getType()) {
+            case NEW_TRIP -&gt; service.processNewTripOrder(order);
+        }
+    }
+
+}</code></code></pre>
+<h3 id="发送到其他主题">4.3 发送到其他主题</h3>
+<p>现在，让我们看一下<code>司机服务</code>中的<code>processNewTripOrder</code>方法。<code>DriverService</code>注入两个不同的<code>Kafka Client</code><br />
+bean: <code>OrderClient</code>和<code>DriverClient</code>。当处理新订单时，它将试图寻找与发送订单的乘客最近的司机。找到他之后，将该司机的状态更改为<code>UNAVAILABLE</code>，并将带有<code>Driver</code>对象的事件发送到<code>drivers</code>主题。</p>
+<pre class="java"><code>@Singleton
+public class DriverService {
+
+    private static final Logger LOGGER = LoggerFactory.getLogger(DriverService.class);
+
+    private DriverClient client;
+    private OrderClient orderClient;
+    private DriverInMemoryRepository repository;
+
+    public DriverService(DriverClient client, OrderClient orderClient, DriverInMemoryRepository repository) {
+        this.client = client;
+        this.orderClient = orderClient;
+        this.repository = repository;
+    }
+
+    public void processNewTripOrder(Order order) {
+        LOGGER.info(&quot;Processing: {}&quot;, order);
+        Optional&lt;Driver&gt; driver = repository.findNearestDriver(order.getCurrentLocationX(), order.getCurrentLocationY());
+        driver.ifPresent(driverLocal -&gt; {
+            driverLocal.setStatus(DriverStatus.UNAVAILABLE);
+            repository.updateDriver(driverLocal);
+            client.send(driverLocal, String.valueOf(order.getId()));
+            LOGGER.info(&quot;Message sent: {}&quot;, driverLocal);
+        });
+    }
+    
+    // ...
+}</code></code></pre>
+<p>这是<code>Kafka Client</code>在<code>司机服务</code>中的实现，用于向<code>driver</code>主题发送消息。因为我们需要将<code>Driver</code>与<code>Order</code> 关联起来，所以我们使用<code>@Header</code>注解 的<code>orderId</code>参数。没有必要把它包括到<code>Driver</code>类中，将其分配给监听器端的正确行程。</p>
+<pre class="java"><code>@KafkaClient
+public interface DriverClient {
+
+    @Topic(&quot;drivers&quot;)
+    void send(@Body Driver driver, @Header(&quot;Order-Id&quot;) String orderId);
+
+}</code></code></pre>
+<h3 id="服务间通信">4.4 服务间通信</h3>
+<p>由<code>DriverListener</code>收到<code>@KafkaListener</code>在<code>行程服务</code>中声明。它监听传入到<code>trip</code>主题。接收方法的参数和客户端发送方法的类似，如下所示：</p>
+<pre class="java"><code>@KafkaListener(groupId = &quot;trip&quot;)
+public class DriverListener {
+
+    private static final Logger LOGGER = LoggerFactory.getLogger(OrderListener.class);
+
+    private TripService service;
+
+    public DriverListener(TripService service) {
+        this.service = service;
+    }
+
+    @Topic(&quot;drivers&quot;)
+    public void receive(@Body Driver driver, @Header(&quot;Order-Id&quot;) String orderId) {
+        LOGGER.info(&quot;Received: driver-&gt;{}, header-&gt;{}&quot;, driver, orderId);
+        service.processNewDriver(driver);
+    }
+
+}</code></code></pre>
+<p>最后一步，将<code>orderId</code>查询到的行程<code>Trip</code>与<code>driverId</code>关联，这样整个流程就结束。</p>
+<pre class="java"><code>@Singleton
+public class TripService {
+
+    private static final Logger LOGGER = LoggerFactory.getLogger(TripService.class);
+
+    private TripInMemoryRepository repository;
+    private TripClient client;
+
+    public TripService(TripInMemoryRepository repository, TripClient client) {
+        this.repository = repository;
+        this.client = client;
+    }
+
+
+    public void processNewDriver(Driver driver, String orderId) {
+        LOGGER.info(&quot;Processing: {}&quot;, driver);
+        Optional&lt;Trip&gt; trip = repository.findByOrderId(Long.valueOf(orderId));
+        trip.ifPresent(tripLocal -&gt; {
+            tripLocal.setDriverId(driver.getId());
+            repository.update(tripLocal);
+        });
+    }
+    
+    // ... OTHER METHODS
+
+}</code></code></pre>
+<h2 id="跟踪">5 跟踪</h2>
+<p>我们可以使用Micronaut Kafka轻松地启用分布式跟踪。首先，我们需要启用和配置Micronaut跟踪。要做到这一点，首先应该添加一些依赖项：</p>
+<pre class="xml"><code>&lt;dependency&gt;
+    &lt;groupId&gt;io.micronaut&lt;/groupId&gt;
+    &lt;artifactId&gt;micronaut-tracing&lt;/artifactId&gt;
+&lt;/dependency&gt;
+&lt;dependency&gt;
+    &lt;groupId&gt;io.zipkin.brave&lt;/groupId&gt;
+    &lt;artifactId&gt;brave-instrumentation-http&lt;/artifactId&gt;
+    &lt;scope&gt;runtime&lt;/scope&gt;
+&lt;/dependency&gt;
+&lt;dependency&gt;
+    &lt;groupId&gt;io.zipkin.reporter2&lt;/groupId&gt;
+    &lt;artifactId&gt;zipkin-reporter&lt;/artifactId&gt;
+    &lt;scope&gt;runtime&lt;/scope&gt;
+&lt;/dependency&gt;
+&lt;dependency&gt;
+    &lt;groupId&gt;io.opentracing.brave&lt;/groupId&gt;
+    &lt;artifactId&gt;brave-opentracing&lt;/artifactId&gt;
+&lt;/dependency&gt;
+&lt;dependency&gt;
+    &lt;groupId&gt;io.opentracing.contrib&lt;/groupId&gt;
+    &lt;artifactId&gt;opentracing-kafka-client&lt;/artifactId&gt;
+    &lt;version&gt;0.0.16&lt;/version&gt;
+    &lt;scope&gt;runtime&lt;/scope&gt;
+&lt;/dependency&gt;</code></code></pre>
+<p>我们还需要在<code>application.yml</code>配置文件中，配置Zipkin 的追踪的地址等</p>
+<pre class="yml"><code>tracing:
+  zipkin:
+    enabled: true
+    http:
+      url: http://192.168.99.100:9411
+    sampler:
+      probability: 1</code></code></pre>
+<p>在启动应用程序之前，我们必须运行<code>Zipkin</code>容器：</p>
+<pre><code><code>$ docker run -d --name zipkin -p 9411:9411 openzipkin/zipkin</code></code></pre>
+<h2 id="总结">6 总结</h2>
+<p>在本文中，您将了解通过<code>Apache  Kafka</code>使用异步通信构建微服务架构的过程。我已经向大家展示了<code>Microaut Kafka</code>库最重要的特性，它允许您轻松地声明<code>Kafka</code>主题的生产者和消费者，为您的微服务启用<code>健康检查</code>和<code>分布式跟踪</code>。我已经为我们的系统描述了一个简单的场景的实现，包括根据客户的请求添加一个新的行程。本示例系统的整体实现，请查看GitHub上的<a href="https://github.com/piomin/sample-kafka-micronaut-microservices.git.">源代码</a></p>
+
+
+</div><hr><script charset='utf-8' src='../../js/sming.js'></script></body></html>

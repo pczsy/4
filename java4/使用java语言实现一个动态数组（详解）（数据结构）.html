@@ -1,0 +1,267 @@
+<html><head><meta charset='utf-8'><meta name='viewport' content='width=device-width, initial-scale=1'>
+<meta name='applicable-device' content='pc'><meta name='keywords' content='电脑,电脑讲解,电脑技术,编程,电脑故障维修使用java语言实现一个动态数组（详解）（数据结构）' />
+<script src='../../highlight/highlight.pack.js'></script>
+<link rel='stylesheet' type='text/css' href='../../highlight/styles/monokai.css'/>
+
+<link rel='stylesheet' href='../../fenxiang/dist/css/share.min.css'>
+<script src='../../fenxiang/src/js/social-share.js'></script>
+<script src='../../fenxiang/src/js/qrcode.js'></script>
+
+</head><body><script>hljs.initHighlightingOnLoad();</script><script>
+var system ={};  
+var p = navigator.platform;       
+system.win = p.indexOf('Win') == 0;  
+system.mac = p.indexOf('Mac') == 0;  
+system.x11 = (p == 'X11') || (p.indexOf('Linux') == 0);     
+if(system.win||system.mac||system.xll){
+document.write("<link href='../css/3.css' rel='stylesheet' type='text/css'>");}else{ document.write("<link href='../css/3wap.css' rel='stylesheet' type='text/css'>");}</script><script src='../../js/3.js'></script><div class='div2'><div class='heading_nav'><ul><div><li><a href='../../index.html'>首页</a></li>
+</div><div onclick='hidden1()' >分享</div>
+</ul></div></div>
+<div id='heading_nav2'> 
+<li class='row' >
+<div class='social-share' data-mode='prepend'><a href='javascript:' class='social-share-icon icon-heart'></a></div></li></div><script charset='utf-8' src='../../3/js/hengfu.js'></script><script charset='utf-8' src='../../3/js/hengfu2.js'></script><hr><div class='div1'><div class='biaoti'><center>使用java语言实现一个动态数组（详解）（数据结构）</center></div><div class='banquan'>原文出处:本文由博客园博主inu6提供。<br/>
+原文连接:https://www.cnblogs.com/inu6/p/11717129.html</div><br>
+    <p>&nbsp;</p>
+<p><span style="font-size: 16px;"><strong>废话不多说，上代码</strong></span></p>
+<p><strong>1.从类名开始（我真是太贴心了，给自己点个赞）</strong></p>
+<src class="cnblogs_code">
+<pre><code><span style="color: #0000ff;">public</span> <span style="color: #0000ff;">class</span> Array&lt;E&gt;</code></pre>
+
+<p>首先数组类需要带有泛型，这个不多说。需要注意的是<strong>在java中，数组只能存放同一个类型的。</strong></p>
+<p><br /><strong>2.成员变量</strong></p>
+<src class="cnblogs_code">
+<pre><code><span style="color: #0000ff;">private</span> <span style="color: #0000ff;">int</span> size; <span style="color: #008000;">//</span><span style="color: #008000;">数组中元素的个数</span>
+<span style="color: #0000ff;">private</span> E[] data; <span style="color: #008000;">//</span><span style="color: #008000;">数组声明</span></code></pre>
+
+<p><br />插个题外话：<br /> 关于size和索引，最开始学数组时让我很伤神，首先数组的索引是从0开始，而size是指数组中元素的<br /> 的个数，假设数组中有3个元素，那么size=3,而索引则为0,1,2。它们是差一位的，这个神奇的设计让我每次在写循环的界限条件时，<br /> 总要换算一下。<br /> 比如，遍历出数组的所有元素</p>
+<src class="cnblogs_code">
+<pre><code><span style="color: #0000ff;">for</span> (<span style="color: #0000ff;">int</span> i = 0; i &lt; size; i++) { }</code></pre>
+
+<p><br /> <strong>我的心路历程是这样的:</strong><br /> 　　首先，第一步想，从0开始，到最后一位元素的索引位置结束，那么最后一位元素的索引是应该进来for循环的，那么i就应该<br />小于最后一位元素的索引的下一位，那么最后一位元素的索引的下一位是谁呢，对哦，size比索引大一位，那么应该是size，<br /> 所以应该i&lt;size;<br /> 如果每次写for循环的界限时，都要这么想一下，白白消耗脑力阿。是不是只有我这么笨。<br /> <strong>最后我的办法是转化成<span style="font-size: 16px; color: #ff6600;">图</span>来记在脑海里。每次用到的时候，直接脑海里浮现出这个图。</strong></p>
+<p><img src="./images/使用java语言实现一个动态数组（详解）（数据结构）0.png" alt="" width="669" height="163" /></p>
+<p><strong>学习的本质就是将复杂的东西简单化。</strong></p>
+<p>&nbsp;</p>
+<p> <br /> <strong>3.构造方法</strong><br />	一种用户指定初始数组容量<br />	一种用户不指定初始数组容量</p>
+<src class="cnblogs_code">
+<pre><code><span style="color: #0000ff;">public</span> Array (<span style="color: #0000ff;">int</span><span style="color: #000000;"> capacity) {
+data </span>= (E[])<span style="color: #0000ff;">new</span><span style="color: #000000;"> Object[capacity];
+size </span>= 0<span style="color: #000000;">;
+}
+
+</span><span style="color: #0000ff;">public</span><span style="color: #000000;"> Array () {
+</span><span style="color: #0000ff;">this</span>(10); <span style="color: #008000;">//</span><span style="color: #008000;">调用另一个构造方法，并默认初始容量为10</span>
+}</code></pre>
+
+<p><br /><strong>4.居家必备的基本方法</strong></p>
+<src class="cnblogs_code">
+<pre><code><span style="color: #008000;">//</span><span style="color: #008000;">获得数组元素个数</span>
+<span style="color: #0000ff;">public</span> <span style="color: #0000ff;">int</span><span style="color: #000000;"> getSize () {
+</span><span style="color: #0000ff;">return</span><span style="color: #000000;"> size;
+}
+</span><span style="color: #008000;">//</span><span style="color: #008000;">获得数组长度</span>
+<span style="color: #0000ff;">public</span> <span style="color: #0000ff;">int</span><span style="color: #000000;"> getCapacity () {
+</span><span style="color: #0000ff;">return</span><span style="color: #000000;"> data.length;
+}
+</span><span style="color: #008000;">//</span><span style="color: #008000;">获得数组是否为空</span>
+<span style="color: #0000ff;">public</span> <span style="color: #0000ff;">boolean</span><span style="color: #000000;"> isEmpty () {
+</span><span style="color: #0000ff;">return</span> size == 0<span style="color: #000000;">;
+}</span></code></pre>
+
+<p>&nbsp;</p>
+<p><strong>5.添加方法</strong></p>
+<pre><code>数组添加的本质就是：从后往前到指定索引位置，每个元素向后移一个格，给新来的腾出个地方。
+<span>重点：从后往前</span></code></pre>
+<src class="cnblogs_code">
+<pre><code><span style="color: #008000;">//</span><span style="color: #008000;">向数组指定位置添加元素，index为指定索引位置，e为添加的值</span>
+<span style="color: #0000ff;">public</span> <span style="color: #0000ff;">void</span> add (<span style="color: #0000ff;">int</span><span style="color: #000000;"> index, E e) {
+</span><span style="color: #008000;">//</span><span style="color: #008000;">索引位置不能让它瞎插，索引为负数，或者跳格子插，不可以。</span>
+<span style="color: #0000ff;">if</span> (index &lt; 0 || index &gt;<span style="color: #000000;"> size) {
+</span><span style="color: #0000ff;">throw</span> <span style="color: #0000ff;">new</span> IllegalArgumentException("add is fail, require index &lt; 0 || index &gt; size"<span style="color: #000000;">);
+}
+</span><span style="color: #008000;">//</span><span style="color: #008000;">当数组容量满了的时候，调用扩容方法，此处给它扩当前数组长度的两倍。</span>
+<span style="color: #0000ff;">if</span> (data.length ==<span style="color: #000000;"> size) {
+</span><span style="color: #0000ff;">this</span>.resize(data.length * 2<span style="color: #000000;">);
+}</span><span style="color: #0000ff;">for</span> (<span style="color: #0000ff;">int</span> i = size - 1; i &gt;= index; i--<span style="color: #000000;">) {
+data[i</span>+1] =<span style="color: #000000;"> data[i];
+}
+</span><span style="color: #008000;">//</span><span style="color: #008000;">新来的进坑</span>
+data[index] =<span style="color: #000000;"> e;
+</span><span style="color: #008000;">//</span><span style="color: #008000;">维护size</span>
+size ++<span style="color: #000000;">;
+
+}</span></code></pre>
+
+<p>&nbsp;</p>
+<src class="cnblogs_code">
+<pre><code><span style="color: #008000;">//</span><span style="color: #008000;">向数组第一位添加元素</span>
+<span style="color: #0000ff;">public</span> <span style="color: #0000ff;">void</span><span style="color: #000000;"> addFirst (E e) {
+</span><span style="color: #008000;">//</span><span style="color: #008000;">直接复用上一个add方法</span>
+<span style="color: #0000ff;">this</span>.add(0<span style="color: #000000;">, e);
+}
+</span><span style="color: #008000;">//</span><span style="color: #008000;">向数组最后一位添加元素</span>
+<span style="color: #0000ff;">public</span> <span style="color: #0000ff;">void</span><span style="color: #000000;"> addLast (E e) {
+</span><span style="color: #008000;">//</span><span style="color: #008000;">同理</span>
+<span style="color: #0000ff;">this</span><span style="color: #000000;">.add(size, e);
+}</span></code></pre>
+
+<p>&nbsp;</p>
+<p><br /><strong>6.删除方法（我个人分为两种，一种根据索引删除，一种根据值删除）</strong></p>
+<pre><code><span style="font-size: 13px;">删除的本质：和添加相反，从要删除的索引位置的下一位开始，到最后一位元素索引位置结束，依次向前占一个坑。
+重点：遍历的时候从前往后</span></code></pre>
+<src class="cnblogs_code">
+<pre><code><span style="color: #008000;">//</span><span style="color: #008000;">根据索引删除某个元素 返回删除的元素</span>
+<span style="color: #0000ff;">public</span> E remove (<span style="color: #0000ff;">int</span><span style="color: #000000;"> index) {
+</span><span style="color: #0000ff;">if</span> (index &lt; 0 || index &gt;=<span style="color: #000000;"> size) {
+</span><span style="color: #0000ff;">throw</span> <span style="color: #0000ff;">new</span> IllegalArgumentException("remove is fail,require index &lt; 0 || index &gt;= size"<span style="color: #000000;">);
+}
+</span><span style="color: #008000;">//</span><span style="color: #008000;">先把要删除的元素存起来，不然等会就给覆盖了。</span>
+E value =<span style="color: #000000;"> data[index];
+</span><span style="color: #0000ff;">for</span> (<span style="color: #0000ff;">int</span> i = index + 1; i &lt; size; i++<span style="color: #000000;">) {
+data[i</span>-1] =<span style="color: #000000;"> data[i];
+}
+</span><span style="color: #008000;">//</span><span style="color: #008000;">维护size</span>
+size --<span style="color: #000000;">;
+</span><span style="color: #008000;">//</span><span style="color: #008000;">此处为什么设置为null呢，因为泛型的原因，传进来的都是类对象，数组中存的是引用地址，引用不断开的话，垃圾回收器没办法回收。</span>
+data[size] = <span style="color: #0000ff;">null</span><span style="color: #000000;">;
+</span><span style="color: #008000;">//</span><span style="color: #008000;">此处缩容，当数组元素个数等于数组长度四分之一时，进行缩容<br /></span><span style="color: #0000ff;">if</span> (size == data.length/4 &amp;&amp; data.length / 2 != 0<span style="color: #000000;">) {
+</span><span style="color: #008000;">//</span><span style="color: #008000;">缩容为数组长度的二分之一</span>
+<span style="color: #0000ff;">this</span>.resize(data.length /2<span style="color: #000000;">);
+}
+</span><span style="color: #0000ff;">return</span><span style="color: #000000;"> value;
+}</span></code></pre>
+
+<pre><code><span style="font-size: 14px;"><strong><br />问题来了，为什么不在二分之一时就进行缩容呢？而是四分之一呢？<br /></strong>
+此处涉及到复杂度震荡问题，比较极端的一个情况是：
+比如容量为10的一个数组，
+此时该数组满了，此时要进来个元素，然后数组进行扩容，那么添加完元素此时数组的情况为容量为20，
+内部有11个元素。
+此时我再对数组进行删除一个元素，删除之后，数组元素个数变为10个，恰好为数组长度的二分之一，
+那么自动进行缩容，以此类推，反复操作，每次扩容缩容的时间复杂度为O(n)，所以此处应用了lazy的解决方案
+就是等到数组元素个数为数组长度的四分之一时，再进行缩容，就可以避免这个问题。</span></code></pre>
+<p>&nbsp;</p>
+<src class="cnblogs_code">
+<pre><code><span style="color: #008000;">//</span><span style="color: #008000;">根据值删除某个元素</span>
+<span style="color: #0000ff;">public</span> <span style="color: #0000ff;">void</span><span style="color: #000000;"> removeByValue (E e) {
+</span><span style="color: #008000;">//</span><span style="color: #008000;">复用根据值查找元素的方法，返回索引（此方法在下面）</span>
+<span style="color: #0000ff;">int</span> index = <span style="color: #0000ff;">this</span><span style="color: #000000;">.getByElement(e);
+</span><span style="color: #0000ff;">if</span> (index != -1<span style="color: #000000;">) {
+</span><span style="color: #008000;">//</span><span style="color: #008000;">复用根据索引删除的方法</span>
+<span style="color: #0000ff;">this</span><span style="color: #000000;">.remove(index);
+}
+}
+</span><span style="color: #008000;">//</span><span style="color: #008000;">删除第一个元素</span>
+<span style="color: #0000ff;">public</span><span style="color: #000000;"> E removeFirst () {
+</span><span style="color: #0000ff;">return</span> <span style="color: #0000ff;">this</span>.remove(0<span style="color: #000000;">);
+}
+</span><span style="color: #008000;">//</span><span style="color: #008000;">删除最后一个元素</span>
+<span style="color: #0000ff;">public</span><span style="color: #000000;"> E removeLast () {
+</span><span style="color: #0000ff;">return</span> <span style="color: #0000ff;">this</span>.remove(size - 1<span style="color: #000000;">);
+}</span></code></pre>
+
+<p>&nbsp;</p>
+<p><br /><strong>7.查找方法（同样分为两种，一种根据索引，一种根据值</strong>）</p>
+<src class="cnblogs_code">
+<pre><code><span style="color: #008000;">//</span><span style="color: #008000;">根据索引查找数组某个元素,返回值</span>
+<span style="color: #0000ff;">public</span> E getByIndex (<span style="color: #0000ff;">int</span><span style="color: #000000;"> index) {
+
+</span><span style="color: #0000ff;">if</span> (index &lt; 0 || index &gt;=<span style="color: #000000;"> size) {
+</span><span style="color: #0000ff;">throw</span> <span style="color: #0000ff;">new</span> IllegalArgumentException("get is fail, require index &lt; 0 || index &gt;= size"<span style="color: #000000;">);
+}
+
+</span><span style="color: #0000ff;">return</span><span style="color: #000000;"> data[index];
+}</span></code></pre>
+
+<p>&nbsp;</p>
+<src class="cnblogs_code">
+<pre><code><span style="color: #008000;">//</span><span style="color: #008000;">根据值查找数组某个元素,返回索引</span>
+<span style="color: #0000ff;">public</span> <span style="color: #0000ff;">int</span><span style="color: #000000;"> getByElement (E e) {
+</span><span style="color: #008000;">//</span><span style="color: #008000;">本质：遍历数组进行比对</span>
+<span style="color: #0000ff;">for</span> (<span style="color: #0000ff;">int</span> i = 0; i &lt; size; i++<span style="color: #000000;">) {
+</span><span style="color: #0000ff;">if</span><span style="color: #000000;"> (data[i].equals(e) ) {
+</span><span style="color: #0000ff;">return</span><span style="color: #000000;"> i;
+}
+}
+</span><span style="color: #0000ff;">return</span> -1<span style="color: #000000;">;
+}</span></code></pre>
+
+<p>&nbsp;</p>
+<src class="cnblogs_code">
+<pre><code><span style="color: #008000;">//</span><span style="color: #008000;">是否包含该元素</span>
+<span style="color: #0000ff;">public</span> <span style="color: #0000ff;">boolean</span><span style="color: #000000;"> contains (E e) {
+</span><span style="color: #008000;">//</span><span style="color: #008000;">本质：遍历数组进行比对</span>
+<span style="color: #0000ff;">for</span> (<span style="color: #0000ff;">int</span> i = 0; i &lt; size; i++<span style="color: #000000;">) {
+</span><span style="color: #0000ff;">if</span><span style="color: #000000;"> (data[i].equals(e)) {
+</span><span style="color: #0000ff;">return</span> <span style="color: #0000ff;">true</span><span style="color: #000000;">;
+}
+}
+</span><span style="color: #0000ff;">return</span> <span style="color: #0000ff;">false</span><span style="color: #000000;">;
+}</span></code></pre>
+
+<p>&nbsp;</p>
+<p><br /><strong>8.修改方法</strong></p>
+<src class="cnblogs_code">
+<pre><code><span style="color: #008000;">//</span><span style="color: #008000;">修改数组某个元素</span>
+<span style="color: #0000ff;">public</span> <span style="color: #0000ff;">void</span> set (<span style="color: #0000ff;">int</span><span style="color: #000000;"> index, E e) {
+
+</span><span style="color: #0000ff;">if</span> (index &lt; 0 || index &gt;=<span style="color: #000000;"> size) {
+</span><span style="color: #0000ff;">throw</span> <span style="color: #0000ff;">new</span> IllegalArgumentException("set is fail, require index &lt; 0 || index &gt;= size"<span style="color: #000000;">);
+}
+
+data[index] </span>=<span style="color: #000000;"> e;
+}</span></code></pre>
+
+<p>&nbsp;</p>
+<p><br /><strong>9.扩容方法</strong><br />扩容的本质：就是开辟个新数组，把旧数组的内容复制过去</p>
+<src class="cnblogs_code">
+<pre><code><span style="color: #0000ff;">private</span> <span style="color: #0000ff;">void</span> resize (<span style="color: #0000ff;">int</span><span style="color: #000000;"> newCatacity) {
+E[] newData </span>= (E[])<span style="color: #0000ff;">new</span><span style="color: #000000;"> Object[newCatacity];
+</span><span style="color: #0000ff;">for</span> (<span style="color: #0000ff;">int</span> i = 0; i &lt; size; i++<span style="color: #000000;">) {
+newData[i] </span>=<span style="color: #000000;"> data[i];
+}
+//给成员变量data重新赋值新引用（后面有内存图介绍）
+data </span>=<span style="color: #000000;"> newData;
+}</span></code></pre>
+
+<p><span style="font-size: 16px;"><strong>画个扩容引用转换的内存图</strong></span></p>
+<p><span style="font-size: 16px;"><strong>测试代码</strong></span></p>
+<src class="cnblogs_code">
+<pre><code> <span style="color: #0000ff;">public</span> <span style="color: #0000ff;">static</span> <span style="color: #0000ff;">void</span><span style="color: #000000;"> main(String[] args) {
+        Array</span>&lt;Integer&gt; array = <span style="color: #0000ff;">new</span> Array(5<span style="color: #000000;">);
+        array.addLast(</span>1<span style="color: #000000;">);
+        array.addLast(</span>2<span style="color: #000000;">);
+        array.addLast(</span>3<span style="color: #000000;">);
+        array.addLast(</span>4<span style="color: #000000;">);
+        array.addLast(</span>5<span style="color: #000000;">);
+}</span></code></pre>
+
+<p>&nbsp;</p>
+<p><span style="font-size: 16px;"><strong><img src="./images/使用java语言实现一个动态数组（详解）（数据结构）1.png" alt="" width="1148" height="624" /></strong></span></p>
+<p>&nbsp;</p>
+<p>&nbsp;</p>
+<p>&nbsp;</p>
+<p><br /><strong>10.toString方法</strong><br />本质就是：创建一个StringBuilder对象，然后通过append方法，将数组的内容遍历，添加进StringBuilder对象。</p>
+<src class="cnblogs_code">
+<pre><code><span style="color: #000000;">@Override
+</span><span style="color: #0000ff;">public</span><span style="color: #000000;"> String toString () {
+StringBuilder stringBuilder </span>= <span style="color: #0000ff;">new</span><span style="color: #000000;"> StringBuilder();
+</span><span style="color: #008000;">//</span><span style="color: #008000;">Format(String, Object, Object) 将指定的 String 中的格式项替换为两个指定的 Object 实例的值的文本等效项。</span>
+stringBuilder.append(String.format("size =%d ,capacity =%d\n "<span style="color: #000000;">, size, data.length));
+stringBuilder.append(</span>'['<span style="color: #000000;">);
+</span><span style="color: #0000ff;">for</span> (<span style="color: #0000ff;">int</span> i = 0; i &lt; size; i++<span style="color: #000000;">) {
+stringBuilder.append(data[i]);
+</span><span style="color: #0000ff;">if</span> (i != size -1<span style="color: #000000;">) {
+stringBuilder.append(</span>','<span style="color: #000000;">);
+}
+}
+stringBuilder.append(</span>']'<span style="color: #000000;">);
+
+</span><span style="color: #0000ff;">return</span><span style="color: #000000;"> stringBuilder.toString();
+}</span></code></pre>
+
+<p>&nbsp;</p>
+<p><span style="font-size: 16px;"><strong>最后，</strong></span></p>
+<p><span style="font-size: 16px;"><strong>浮于表面看千遍，</strong></span></p>
+<p><span style="font-size: 16px;"><strong>不如自己思一遍，</strong></span></p>
+<p><span style="font-size: 16px;"><strong>希望这篇文章能够对你起到帮助。</strong></span></p>
+
+</div><hr><script charset='utf-8' src='../../js/sming.js'></script></body></html>

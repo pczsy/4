@@ -1,0 +1,263 @@
+<html><head><meta charset='utf-8'><meta name='viewport' content='width=device-width, initial-scale=1'>
+<meta name='applicable-device' content='pc'><meta name='keywords' content='电脑,电脑讲解,电脑技术,编程,电脑故障维修spring web mvc环境搭建' />
+<script src='../../highlight/highlight.pack.js'></script>
+<link rel='stylesheet' type='text/css' href='../../highlight/styles/monokai.css'/>
+
+<link rel='stylesheet' href='../../fenxiang/dist/css/share.min.css'>
+<script src='../../fenxiang/src/js/social-share.js'></script>
+<script src='../../fenxiang/src/js/qrcode.js'></script>
+
+</head><body><script>hljs.initHighlightingOnLoad();</script><script>
+var system ={};  
+var p = navigator.platform;       
+system.win = p.indexOf('Win') == 0;  
+system.mac = p.indexOf('Mac') == 0;  
+system.x11 = (p == 'X11') || (p.indexOf('Linux') == 0);     
+if(system.win||system.mac||system.xll){
+document.write("<link href='../css/3.css' rel='stylesheet' type='text/css'>");}else{ document.write("<link href='../css/3wap.css' rel='stylesheet' type='text/css'>");}</script><script src='../../js/3.js'></script><div class='div2'><div class='heading_nav'><ul><div><li><a href='../../index.html'>首页</a></li>
+</div><div onclick='hidden1()' >分享</div>
+</ul></div></div>
+<div id='heading_nav2'> 
+<li class='row' >
+<div class='social-share' data-mode='prepend'><a href='javascript:' class='social-share-icon icon-heart'></a></div></li></div><script charset='utf-8' src='../../3/js/hengfu.js'></script><script charset='utf-8' src='../../3/js/hengfu2.js'></script><hr><div class='div1'><div class='biaoti'><center>spring web mvc环境搭建</center></div><div class='banquan'>原文出处:本文由博客园博主随彦心MO提供。<br/>
+原文连接:https://www.cnblogs.com/smartrui/p/11686871.html</div><br>
+    <p>这两天在学习spring，哎，没办法呀，成都基本都是java，不喜欢学这个也没有用。多学点多条路。还得生活不是。</p>
+<p>好了，言归正传，我这里记录下我搭建spring mvc的过程，其实过程不算太难，主要是开始我用的xml配置，后面改成java配置的(现在好像都倾向于java代码配置了)，不知道什么时候丢了tomcat的配置，然后一直找不到controller，让我查了好几天。</p>
+<p>搭建之前，需要安装maven且配置正确，我这里也没用的xml配置,用的java的配置。</p>
+<h3 id="一-创建spring-mvc工程我是基本maven骨架弄的选的webapp这个">一 创建spring mvc工程，我是基本maven骨架弄的。选的webapp这个。</h3>
+<p><img src="./images/spring web mvc环境搭建0.png" /></p>
+<h3 id="二-配置pom.xml增加一些依赖">二 配置pom.xml，增加一些依赖</h3>
+<pre><code><code>&lt;properties&gt;
+  &lt;project.build.sourceEncoding&gt;UTF-8&lt;/project.build.sourceEncoding&gt;
+  &lt;maven.compiler.source&gt;1.7&lt;/maven.compiler.source&gt;
+  &lt;maven.compiler.target&gt;1.7&lt;/maven.compiler.target&gt;
+  &lt;spring.version&gt;4.3.18.RELEASE&lt;/spring.version&gt;
+  &lt;spring.jdbc.version&gt;5.2.0.RELEASE&lt;/spring.jdbc.version&gt;
+  &lt;mysql.connector.version&gt;5.1.21&lt;/mysql.connector.version&gt;
+  &lt;servlet.version&gt;3.0.1&lt;/servlet.version&gt;
+  &lt;jsp.version&gt;2.2.1-b03&lt;/jsp.version&gt;
+  &lt;jstl.version&gt;1.2&lt;/jstl.version&gt;
+&lt;/properties&gt;
+
+&lt;dependencies&gt;
+  &lt;dependency&gt;
+    &lt;groupId&gt;junit&lt;/groupId&gt;
+    &lt;artifactId&gt;junit&lt;/artifactId&gt;
+    &lt;version&gt;4.11&lt;/version&gt;
+    &lt;scope&gt;test&lt;/scope&gt;
+  &lt;/dependency&gt;
+
+    &lt;dependency&gt;
+        &lt;groupId&gt;javax.servlet.jsp.jstl&lt;/groupId&gt;
+        &lt;artifactId&gt;jstl-api&lt;/artifactId&gt;
+        &lt;version&gt;1.2&lt;/version&gt;
+    &lt;/dependency&gt;
+
+   &lt;dependency&gt;
+    &lt;groupId&gt;javax.servlet&lt;/groupId&gt;
+    &lt;artifactId&gt;javax.servlet-api&lt;/artifactId&gt;
+    &lt;version&gt;${servlet.version}&lt;/version&gt;
+  &lt;/dependency&gt;
+
+  &lt;dependency&gt;
+    &lt;groupId&gt;javax.servlet.jsp&lt;/groupId&gt;
+    &lt;artifactId&gt;jsp-api&lt;/artifactId&gt;
+    &lt;version&gt;${jsp.version}&lt;/version&gt;
+    &lt;scope&gt;provided&lt;/scope&gt;
+  &lt;/dependency&gt;
+  &lt;dependency&gt;
+    &lt;groupId&gt;javax.servlet&lt;/groupId&gt;
+    &lt;artifactId&gt;jstl&lt;/artifactId&gt;
+    &lt;version&gt;${jstl.version}&lt;/version&gt;
+  &lt;/dependency&gt;
+
+  &lt;!-- https://mvnrepository.com/artifact/org.springframework/spring-core --&gt;
+  &lt;dependency&gt;
+    &lt;groupId&gt;org.springframework&lt;/groupId&gt;
+    &lt;artifactId&gt;spring-core&lt;/artifactId&gt;
+    &lt;version&gt;${spring.version}&lt;/version&gt;
+  &lt;/dependency&gt;
+
+  &lt;dependency&gt;
+    &lt;groupId&gt;org.springframework&lt;/groupId&gt;
+    &lt;artifactId&gt;spring-beans&lt;/artifactId&gt;
+    &lt;version&gt;${spring.version}&lt;/version&gt;
+  &lt;/dependency&gt;
+
+  &lt;!-- https://mvnrepository.com/artifact/org.springframework/spring-test --&gt;
+  &lt;dependency&gt;
+    &lt;groupId&gt;org.springframework&lt;/groupId&gt;
+    &lt;artifactId&gt;spring-test&lt;/artifactId&gt;
+    &lt;version&gt;${spring.version}&lt;/version&gt;
+    &lt;scope&gt;test&lt;/scope&gt;
+  &lt;/dependency&gt;
+
+
+  &lt;!-- https://mvnrepository.com/artifact/org.springframework/spring-context --&gt;
+  &lt;dependency&gt;
+    &lt;groupId&gt;org.springframework&lt;/groupId&gt;
+    &lt;artifactId&gt;spring-context&lt;/artifactId&gt;
+    &lt;version&gt;${spring.version}&lt;/version&gt;
+  &lt;/dependency&gt;
+
+  &lt;dependency&gt;
+    &lt;groupId&gt;org.springframework&lt;/groupId&gt;
+    &lt;artifactId&gt;spring-web&lt;/artifactId&gt;
+    &lt;version&gt;${spring.version}&lt;/version&gt;
+  &lt;/dependency&gt;
+  &lt;dependency&gt;
+    &lt;groupId&gt;org.springframework&lt;/groupId&gt;
+    &lt;artifactId&gt;spring-webmvc&lt;/artifactId&gt;
+    &lt;version&gt;${spring.version}&lt;/version&gt;
+  &lt;/dependency&gt;
+
+&lt;!-- https://mvnrepository.com/artifact/org.thymeleaf/thymeleaf-spring4 --&gt;
+&lt;dependency&gt;
+    &lt;groupId&gt;org.thymeleaf&lt;/groupId&gt;
+    &lt;artifactId&gt;thymeleaf-spring4&lt;/artifactId&gt;
+    &lt;version&gt;3.0.11.RELEASE&lt;/version&gt;
+&lt;/dependency&gt;
+
+  &lt;!-- https://mvnrepository.com/artifact/org.springframework/spring-jdbc --&gt;
+  &lt;dependency&gt;
+    &lt;groupId&gt;org.springframework&lt;/groupId&gt;
+    &lt;artifactId&gt;spring-jdbc&lt;/artifactId&gt;
+    &lt;version&gt;${spring.jdbc.version}&lt;/version&gt;
+  &lt;/dependency&gt;
+  &lt;dependency&gt;
+    &lt;groupId&gt;mysql&lt;/groupId&gt;
+    &lt;artifactId&gt;mysql-connector-java&lt;/artifactId&gt;
+    &lt;version&gt;${mysql.connector.version}&lt;/version&gt;
+  &lt;/dependency&gt;
+
+&lt;/dependencies&gt;</code></code></pre>
+<h3 id="三-创建项目目录结构如下图">三 创建项目目录结构，如下图</h3>
+<p><img src="./images/spring web mvc环境搭建1.png" /></p>
+<h3 id="配置dispatcherservlet">配置DispatcherServlet</h3>
+<p>初始化,继承AbstractAnnotationConfigDispatcherServletInitializer这个类，spring会自动检测到的。</p>
+<pre><code><code>package com.smartrui.common.config;
+
+import org.springframework.web.filter.CharacterEncodingFilter;
+import org.springframework.web.servlet.support.AbstractAnnotationConfigDispatcherServletInitializer;
+
+import javax.servlet.Filter;
+
+public class Initializer extends AbstractAnnotationConfigDispatcherServletInitializer {
+    private static final String CHARACTER_ENCODING = &quot;UTF-8&quot;;
+
+    private static final String DISPATCHER_SERVLET_MAPPING = &quot;/&quot;;
+
+    @Override
+    protected Class&lt;?&gt;[] getRootConfigClasses() {
+        return new Class[]{WebAppConfig.class};
+    }
+
+    @Override
+    protected Class&lt;?&gt;[] getServletConfigClasses() {
+        return null;
+    }
+
+    @Override
+    protected String[] getServletMappings() {
+        return new String[]{DISPATCHER_SERVLET_MAPPING};
+    }
+
+    @Override
+    protected Filter[] getServletFilters() {
+        CharacterEncodingFilter characterEncodingFilter = new CharacterEncodingFilter();
+        characterEncodingFilter.setEncoding(CHARACTER_ENCODING);
+        characterEncodingFilter.setForceEncoding(true);
+        return new Filter[] { characterEncodingFilter };
+    }
+}</code></code></pre>
+<p>增加配置文件，需要添加几个注解 ,@EnableWebMvc, @Configuration,@ComponentScan,其中ComponentScan这里增加需要让spring注入的包。</p>
+<pre><code><code>package com.smartrui.common.config;
+
+
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.ComponentScan;
+import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.Import;
+import org.springframework.web.servlet.ViewResolver;
+import org.springframework.web.servlet.config.annotation.*;
+import org.springframework.web.servlet.view.InternalResourceViewResolver;
+
+@Configuration
+@EnableWebMvc
+@ComponentScan(basePackages = {&quot;com.smartrui.dao&quot;,&quot;com.smartrui.service&quot;,&quot;com.smartrui.controller&quot;})
+public class WebAppConfig extends WebMvcConfigurerAdapter {
+    
+    @Override
+    public void addResourceHandlers( ResourceHandlerRegistry registry) {
+        super.addResourceHandlers(registry);
+        registry.addResourceHandler(&quot;/img/**&quot;).addResourceLocations(&quot;/img/&quot;);
+      
+    }
+
+    
+    @Bean
+    public ViewResolver viewResolver() {
+        InternalResourceViewResolver resolver = new InternalResourceViewResolver();
+        resolver.setPrefix(&quot;/WEB-INF/views/&quot;);
+        resolver.setSuffix(&quot;.jsp&quot;);
+        resolver.setExposeContextBeansAsAttributes(true);
+        return resolver;
+    }
+
+
+    @Override
+    public void configureDefaultServletHandling(DefaultServletHandlerConfigurer configurer) {
+        configurer.enable();
+    }
+
+
+}</code></code></pre>
+<h3 id="五-写一个controller入口">五 写一个controller入口</h3>
+<pre class="java"><code>package com.smartrui.controller;
+
+
+import org.springframework.stereotype.Controller;
+import org.springframework.ui.Model;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestMethod;
+
+import java.util.ArrayList;
+import java.util.List;
+
+@Controller
+@RequestMapping(&quot;/home&quot;)
+public class HomeController {
+
+    @RequestMapping(&quot;/hello&quot;)
+    public String hello(Model model){
+        List&lt;String&gt; s = new ArrayList&lt;&gt;();
+        s.add(&quot;1&quot;);
+        s.add(&quot;2&quot;);
+        model.addAttribute(&quot;mystr&quot;, s);
+        return &quot;hello&quot;; //返回视图名 web-info/views/hello.jsp
+    }
+
+    @RequestMapping(value=&quot;/user/{id}&quot;,method= RequestMethod.GET)
+    public String show(@PathVariable(&quot;id&quot;) long id,Model model) {
+        //接受参数测试  /home/user/33
+        model.addAttribute(&quot;id&quot;,id);
+        return &quot;hello&quot;;
+    }
+
+    @RequestMapping(&quot;/welcome&quot;)
+    public String welcome(){
+
+        return &quot;welcome&quot;; //返回视图名 web-info/views/welcome.html
+    }
+
+}</code></code></pre>
+<h3 id="六-配置-tomcat">六 配置 tomcat</h3>
+<p><img src="./images/spring web mvc环境搭建2.png" /></p>
+<p><img src="./images/spring web mvc环境搭建3.png" /></p>
+<p>这里那个Deploy at the server startup这里要注意配置下，我开始从xml配置换成java配置的时候，这里配置没了。然后就一直找不到controller。</p>
+<p>配置完后，点运行，如果没问题，在浏览器输入 http://localhost:8080/home/hello 应该就能显示了.</p>
+<p>这里只是一个基本的环境配置，像数据库，模板什么的都没有配置，这些后续慢慢配置吧.</p>
+
+
+</div><hr><script charset='utf-8' src='../../js/sming.js'></script></body></html>

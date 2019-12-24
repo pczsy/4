@@ -1,0 +1,113 @@
+<html><head><meta charset='utf-8'><meta name='viewport' content='width=device-width, initial-scale=1'>
+<meta name='applicable-device' content='pc'><meta name='keywords' content='电脑,电脑讲解,电脑技术,编程,电脑故障维修Springboot如何打包部署项目' />
+<script src='../../highlight/highlight.pack.js'></script>
+<link rel='stylesheet' type='text/css' href='../../highlight/styles/monokai.css'/>
+
+<link rel='stylesheet' href='../../fenxiang/dist/css/share.min.css'>
+<script src='../../fenxiang/src/js/social-share.js'></script>
+<script src='../../fenxiang/src/js/qrcode.js'></script>
+
+</head><body><script>hljs.initHighlightingOnLoad();</script><script>
+var system ={};  
+var p = navigator.platform;       
+system.win = p.indexOf('Win') == 0;  
+system.mac = p.indexOf('Mac') == 0;  
+system.x11 = (p == 'X11') || (p.indexOf('Linux') == 0);     
+if(system.win||system.mac||system.xll){
+document.write("<link href='../css/3.css' rel='stylesheet' type='text/css'>");}else{ document.write("<link href='../css/3wap.css' rel='stylesheet' type='text/css'>");}</script><script src='../../js/3.js'></script><div class='div2'><div class='heading_nav'><ul><div><li><a href='../../index.html'>首页</a></li>
+</div><div onclick='hidden1()' >分享</div>
+</ul></div></div>
+<div id='heading_nav2'> 
+<li class='row' >
+<div class='social-share' data-mode='prepend'><a href='javascript:' class='social-share-icon icon-heart'></a></div></li></div><script charset='utf-8' src='../../3/js/hengfu.js'></script><script charset='utf-8' src='../../3/js/hengfu2.js'></script><hr><div class='div1'><div class='biaoti'><center>Springboot如何打包部署项目</center></div><div class='banquan'>原文出处:本文由博客园博主java一号提供。<br/>
+原文连接:https://www.cnblogs.com/javayihao/p/11806771.html</div><br>
+    <p><a href="http://www.javayihao.top/detail/128" data-cke-saved-href="http://www.javayihao.top/detail/128">原文地址</a></p>
+<p id="main-toc"><strong>目录</strong></p>
+<p id="%E5%89%8D%E8%A8%80-toc" style="margin-left: 0px;"><a href="#%E5%89%8D%E8%A8%80" data-cke-saved-href="#%E5%89%8D%E8%A8%80">前言</a></p>
+<p id="1.%20%E5%AF%BC%E5%85%A5%E6%8F%92%E4%BB%B6-toc" style="margin-left: 0px;"><a href="#1.%20%E5%AF%BC%E5%85%A5%E6%8F%92%E4%BB%B6" data-cke-saved-href="#1.%20%E5%AF%BC%E5%85%A5%E6%8F%92%E4%BB%B6">1. 导入插件</a></p>
+<p id="2.idea%E4%B8%AD%E5%BF%AB%E9%80%9F%E6%89%93%E5%8C%85-toc" style="margin-left: 0px;"><a href="#2.idea%E4%B8%AD%E5%BF%AB%E9%80%9F%E6%89%93%E5%8C%85" data-cke-saved-href="#2.idea%E4%B8%AD%E5%BF%AB%E9%80%9F%E6%89%93%E5%8C%85">2.idea中快速打包</a></p>
+<p id="3.java%20%E2%80%93jar%E8%BF%90%E8%A1%8C%E9%A1%B9%E7%9B%AE-toc" style="margin-left: 0px;"><a href="#3.java%20%E2%80%93jar%E8%BF%90%E8%A1%8C%E9%A1%B9%E7%9B%AE" data-cke-saved-href="#3.java%20%E2%80%93jar%E8%BF%90%E8%A1%8C%E9%A1%B9%E7%9B%AE">3.java &ndash;jar运行项目</a></p>
+<p id="4.%E6%AD%A3%E5%B8%B8%E8%AE%BF%E9%97%AE-toc" style="margin-left: 0px;"><a href="#4.%E6%AD%A3%E5%B8%B8%E8%AE%BF%E9%97%AE" data-cke-saved-href="#4.%E6%AD%A3%E5%B8%B8%E8%AE%BF%E9%97%AE">4.访问项目</a></p>
+<p id="5.%E5%8F%91%E5%B8%83%E5%88%B0%E6%9C%8D%E5%8A%A1%E5%99%A8-toc" style="margin-left: 0px;"><a href="#5.%E5%8F%91%E5%B8%83%E5%88%B0%E6%9C%8D%E5%8A%A1%E5%99%A8" data-cke-saved-href="#5.%E5%8F%91%E5%B8%83%E5%88%B0%E6%9C%8D%E5%8A%A1%E5%99%A8">5.发布到服务器</a></p>
+<hr id="hr-toc" />
+<h1 id="%E5%89%8D%E8%A8%80"><span style="color: #86ca5e;">前言</span></h1>
+<p>用心写好每一篇文章，真心对待每一个读者</p>
+<p>文章首发地址： <a href="http://www.javayihao.top" data-cke-saved-href="http://www.javayihao.top">www.javayihao.top</a></p>
+<p>首发公众号： java一号</p>
+<p>项目创建开发完成之后，如何发布呢？如果是boot创建的jar项目，直接可以打包成jar包发布，下面就来看看如何发布</p>
+<h1 id="1.%20%E5%AF%BC%E5%85%A5%E6%8F%92%E4%BB%B6" style="margin-left: 0cm;"><span style="color: #86ca5e;">1. 导入插件</span></h1>
+<src class="cke_widget_wrapper cke_widget_block cke_widget_codeSnippet cke_widget_wrapper_has cke_widget_selected" data-cke-widget-wrapper="1" data-cke-filter="off" data-cke-display-name="代码段" data-cke-widget-id="4">
+<pre><code><code class="hljs">&lt;build&gt;
+    &lt;plugins&gt;
+        &lt;plugin&gt;
+            &lt;groupId&gt;org.springframework.boot&lt;/groupId&gt;
+           &lt;artifactId&gt;spring-boot-maven-plugin&lt;/artifactId&gt;
+        &lt;/plugin&gt;
+    &lt;/plugins&gt;
+&lt;/build&gt;</code></code></pre>
+<span class="cke_reset cke_widget_drag_handler_container" style="background: rgba(220,220,220,0.5); background-image: url('https://csdnimg.cn/release/blog_editor_html/release1.5.5/ckeditor/plugins/widget/images/handle.png');"><img class="cke_reset cke_widget_drag_handler" title="点击并拖拽以移动" src="data:image/gif;base64,R0lGODlhAQABAPABAP///wAAACH5BAEKAAAALAAAAAABAAEAAAICRAEAOw==" alt="" width="15" height="15" data-cke-widget-drag-handler="1" /></span>
+<p style="margin-left: 0cm;">boot使用这个插件可以将项目打包成一个可运行的jar，无需在目标服务器安装tomcat等</p>
+<h1 id="2.idea%E4%B8%AD%E5%BF%AB%E9%80%9F%E6%89%93%E5%8C%85" style="margin-left: 0cm;"><span style="color: #86ca5e;">2.idea中快速打包</span></h1>
+<p style="margin-left: 0cm;"><span class="cke_widget_wrapper cke_widget_inline cke_widget_image cke_image_nocaption cke_widget_selected" data-cke-widget-wrapper="1" data-cke-filter="off" data-cke-display-name="图像" data-cke-widget-id="3"><img class="has cke_widget_element" src="./images/Springboot如何打包部署项目1.png" alt="" width="1200" height="573" data-cke-saved-src="./images/Springboot如何打包部署项目1.png" data-cke-widget-data="{&amp;quot;hasCaption&amp;quot;:false,&amp;quot;src&amp;quot;:&amp;quot;./images/Springboot如何打包部署项目1.png&amp;quot;,&amp;quot;alt&amp;quot;:&amp;quot;&amp;quot;,&amp;quot;width&amp;quot;:&amp;quot;1200&amp;quot;,&amp;quot;height&amp;quot;:&amp;quot;573&amp;quot;,&amp;quot;lock&amp;quot;:true,&amp;quot;align&amp;quot;:&amp;quot;none&amp;quot;,&amp;quot;classes&amp;quot;:{&amp;quot;has&amp;quot;:1}}" data-cke-widget-upcasted="1" data-cke-widget-keep-attr="0" data-widget="image" /><span class="cke_reset cke_widget_drag_handler_container" style="background: rgba(220,220,220,0.5); background-image: url('https://csdnimg.cn/release/blog_editor_html/release1.5.5/ckeditor/plugins/widget/images/handle.png');"><span class="cke_image_resizer" title="点击并拖拽以改变尺寸">​</span></span></span></p>
+<p>&nbsp;</p>
+<h1 id="3.java%20%E2%80%93jar%E8%BF%90%E8%A1%8C%E9%A1%B9%E7%9B%AE" style="margin-left: 0cm;"><span style="color: #86ca5e;">3.java &ndash;jar运行项目</span></h1>
+<p>我们打开刚才打包之后的所在的位置，确实有一个jar包</p>
+<p><span class="cke_widget_wrapper cke_widget_inline cke_widget_image cke_image_nocaption cke_widget_selected" data-cke-widget-wrapper="1" data-cke-filter="off" data-cke-display-name="图像" data-cke-widget-id="2"><img class="has cke_widget_element" src="./images/Springboot如何打包部署项目2.png" alt="" width="686" height="283" data-cke-saved-src="./images/Springboot如何打包部署项目2.png" data-cke-widget-data="{&amp;quot;hasCaption&amp;quot;:false,&amp;quot;src&amp;quot;:&amp;quot;./images/Springboot如何打包部署项目2.png&amp;quot;,&amp;quot;alt&amp;quot;:&amp;quot;&amp;quot;,&amp;quot;width&amp;quot;:&amp;quot;686&amp;quot;,&amp;quot;height&amp;quot;:&amp;quot;283&amp;quot;,&amp;quot;lock&amp;quot;:true,&amp;quot;align&amp;quot;:&amp;quot;none&amp;quot;,&amp;quot;classes&amp;quot;:{&amp;quot;has&amp;quot;:1}}" data-cke-widget-upcasted="1" data-cke-widget-keep-attr="0" data-widget="image" /></span></p>
+<p>在当前文件路径直接使用cmd通过java &ndash;jar运行项目</p>
+<p style="margin-left: 0cm;"><span class="cke_widget_wrapper cke_widget_inline cke_widget_image cke_image_nocaption cke_widget_selected" data-cke-widget-wrapper="1" data-cke-filter="off" data-cke-display-name="图像" data-cke-widget-id="1"><img class="has cke_widget_element" src="./images/Springboot如何打包部署项目3.png" alt="" width="893" height="162" data-cke-saved-src="./images/Springboot如何打包部署项目3.png" data-cke-widget-data="{&amp;quot;hasCaption&amp;quot;:false,&amp;quot;src&amp;quot;:&amp;quot;./images/Springboot如何打包部署项目3.png&amp;quot;,&amp;quot;alt&amp;quot;:&amp;quot;&amp;quot;,&amp;quot;width&amp;quot;:&amp;quot;893&amp;quot;,&amp;quot;height&amp;quot;:&amp;quot;162&amp;quot;,&amp;quot;lock&amp;quot;:true,&amp;quot;align&amp;quot;:&amp;quot;none&amp;quot;,&amp;quot;classes&amp;quot;:{&amp;quot;has&amp;quot;:1}}" data-cke-widget-upcasted="1" data-cke-widget-keep-attr="0" data-widget="image" /><span class="cke_reset cke_widget_drag_handler_container" style="background: rgba(220,220,220,0.5); background-image: url('https://csdnimg.cn/release/blog_editor_html/release1.5.5/ckeditor/plugins/widget/images/handle.png');"><span class="cke_image_resizer" title="点击并拖拽以改变尺寸">​</span></span></span></p>
+<h1 id="4.%E6%AD%A3%E5%B8%B8%E8%AE%BF%E9%97%AE" style="margin-left: 0cm;"><span style="color: #86ca5e;">4.访问项目</span></h1>
+<p style="margin-left: 0cm;"><a href="http://localhost:8080/hello" data-cke-saved-href="http://localhost:8080/hello"><span style="color: #000000;">http://localhost:8080/index</span></a></p>
+<h1 id="5.%E5%8F%91%E5%B8%83%E5%88%B0%E6%9C%8D%E5%8A%A1%E5%99%A8" style="margin-left: 0cm;"><span style="color: #86ca5e;">5.发布到服务器</span></h1>
+<p style="margin-left: 0cm;">通过类似xshell等上传文件将上面的jar文件上传到服务器某个文件夹下，在当前路径下运行下面命令即可在后台启动项目，其中<span style="color: #000000;">hellword-0.0.1-SNAPSHOT.jar是我的项目</span></p>
+<p style="margin-left: 0cm;"><span style="color: #000000;">nohup java -jar hellword-0.0.1-SNAPSHOT.jar &gt; hellword-0.0.1-SNAPSHOT.log&nbsp; 2&gt;&amp;1 &amp;</span></p>
+<p style="margin-left: 0cm;"><span style="color: #000000;">补充：</span></p>
+<p style="margin-left: 0cm;"><span style="color: #548dd4;">nohup java -jar xxx.jar &amp;</span></p>
+<p style="margin-left: 0cm;">这样执行后，nohup会把执行结果中的日志输出到当前文件夹下面的nohup.out文件中，通常情况下我们使用以上命令即可。 也可手动指定一个参数来规定日志文件的输出地点</p>
+<p style="margin-left: 0cm;"><span style="color: #548dd4;">nohup java -jar xxx.jar &gt; catalina.out&nbsp; 2&gt;&amp;1 &amp;</span></p>
+<p style="margin-left: 0cm;">如果不需要输出日志，可以使用如下命令</p>
+<p style="margin-left: 0cm;"><span style="color: #548dd4;">nohup java -jar xxx.jar &gt;/dev/null &amp;</span></p>
+<p style="margin-left: 0cm;">为了方便管理，我们还可以通过Shell来编写一些用于启动应用的脚本，比如关闭应用的脚本：stop.sh</p>
+<p style="margin-left: 0cm;"><span style="color: #548dd4;">#!/bin/bash</span></p>
+<p style="margin-left: 0cm;"><span style="color: #548dd4;">PID=$(ps -ef | grep yourapp.jar | grep -v grep | awk '{ print $2 }')</span></p>
+<p style="margin-left: 0cm;"><span style="color: #548dd4;">if [ -z "$PID" ]</span></p>
+<p style="margin-left: 0cm;"><span style="color: #548dd4;">then</span></p>
+<p style="margin-left: 0cm;"><span style="color: #548dd4;">echo Application is already stopped</span></p>
+<p style="margin-left: 0cm;"><span style="color: #548dd4;">else</span></p>
+<p style="margin-left: 0cm;"><span style="color: #548dd4;">echo kill $PID</span></p>
+<p style="margin-left: 0cm;"><span style="color: #548dd4;">kill $PID</span></p>
+<p style="margin-left: 0cm;"><span style="color: #548dd4;">fi</span></p>
+<p style="margin-left: 0cm;">启动应用的脚本：start.sh</p>
+<p style="margin-left: 0cm;"><span style="color: #548dd4;">#!/bin/bash</span></p>
+<p style="margin-left: 0cm;"><span style="color: #548dd4;">nohup java -jar yourapp.jar --server.port=8888 &amp;</span></p>
+<p style="margin-left: 0cm;">整合了关闭和启动的脚本：run.sh，由于会先执行关闭应用，然后再启动应用，这样不会引起端口冲突等问题，适合在持续集成系统中进行反复调用。</p>
+<p style="margin-left: 0cm;"><span style="color: #548dd4;">#!/bin/bash</span></p>
+<p style="margin-left: 0cm;"><span style="color: #548dd4;">echo stop application</span></p>
+<p style="margin-left: 0cm;"><span style="color: #548dd4;">source stop.sh</span></p>
+<p style="margin-left: 0cm;"><span style="color: #548dd4;">echo start application</span></p>
+<p style="margin-left: 0cm;"><span style="color: #548dd4;">source start.sh</span></p>
+<p style="margin-left: 0cm;">在Spring Boot的Maven插件中，还提供了构建完整可执行程序的功能，什么意思呢？就是说，我们可以不用java -jar，而是直接运行jar来执行程序。这样我们就可以方便的将其创建成系统服务在后台运行了。主要步骤如下：在pom.xml中添加Spring Boot的插件，并注意设置executable配置</p>
+<p style="margin-left: 0cm;">&nbsp;&nbsp;&nbsp; <span style="color: #548dd4;">&lt;build&gt;</span></p>
+<p style="margin-left: 0cm;"><span style="color: #548dd4;">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; &lt;plugins&gt;</span></p>
+<p style="margin-left: 0cm;"><span style="color: #548dd4;">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; &lt;plugin&gt;</span></p>
+<p style="margin-left: 0cm;"><span style="color: #548dd4;">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; &lt;groupId&gt;org.springframework.boot&lt;/groupId&gt; </span></p>
+<p style="margin-left: 0cm;"><span style="color: #548dd4;">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; &lt;artifactId&gt;spring-boot-maven-plugin&lt;/artifactId&gt; </span></p>
+<p style="margin-left: 0cm;"><span style="color: #548dd4;">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; &lt;configuration&gt;</span></p>
+<p style="margin-left: 0cm;"><span style="color: #548dd4;">&nbsp;&nbsp; &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&lt;executable&gt;true&lt;/executable&gt;</span></p>
+<p style="margin-left: 0cm;"><span style="color: #548dd4;">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; &lt;/configuration&gt;</span></p>
+<p style="margin-left: 0cm;"><span style="color: #548dd4;">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; &lt;/plugin&gt;</span></p>
+<p style="margin-left: 0cm;"><span style="color: #548dd4;">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; &lt;/plugins&gt;</span></p>
+<p style="margin-left: 0cm;"><span style="color: #548dd4;">&nbsp;&nbsp;&nbsp; &lt;/build&gt;</span></p>
+<p style="margin-left: 0cm;">在完成上述配置后，使用mvn install进行打包，构建一个可执行的jar包，创建软连接到/etc/init.d/目录下</p>
+<p style="margin-left: 0cm;"><span style="color: #548dd4;">sudo ln -s /var/yourapp/yourapp.jar /etc/init.d/yourapp</span></p>
+<p style="margin-left: 0cm;">在完成软连接创建之后，我们就可以通过如下命令对yourapp.jar应用来控制启动、停止、重启操作了</p>
+<p style="margin-left: 0cm;"><span style="color: #548dd4;">/etc/init.d/yourapp start|stop|restart</span></p>
+<src class="cke_widget_wrapper cke_widget_block cke_widget_image cke_image_nocaption cke_widget_selected" data-cke-widget-wrapper="1" data-cke-filter="off" data-cke-display-name="图像" data-cke-widget-id="0">
+<p class="cke_widget_element" style="text-align: center;" data-cke-widget-data="{&amp;quot;hasCaption&amp;quot;:false,&amp;quot;src&amp;quot;:&amp;quot;./images/Springboot如何打包部署项目4.png&amp;quot;,&amp;quot;alt&amp;quot;:&amp;quot;&amp;quot;,&amp;quot;width&amp;quot;:&amp;quot;137&amp;quot;,&amp;quot;height&amp;quot;:&amp;quot;133&amp;quot;,&amp;quot;lock&amp;quot;:true,&amp;quot;align&amp;quot;:&amp;quot;center&amp;quot;,&amp;quot;classes&amp;quot;:{&amp;quot;has&amp;quot;:1}}" data-cke-widget-upcasted="1" data-cke-widget-keep-attr="0" data-widget="image"><span class="cke_image_resizer_wrapper"><img class="has" src="./images/Springboot如何打包部署项目4.png" alt="" width="137" height="133" data-cke-saved-src="./images/Springboot如何打包部署项目4.png" /><span class="cke_image_resizer" title="点击并拖拽以改变尺寸">​</span></span></p>
+
+<p>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; 公众号 java一号 更多java实战项目资料、技术干活。更重要的是小猿愿成为你编程路上的一个朋友！</p>
+<p>&nbsp;</p>
+<p>用心写好每一篇文章，真心对待每一个读者</p>
+<p>文章首发地址： www.javayihao.top</p>
+<p>首发公众号： java一号</p>
+
+</div><hr><script charset='utf-8' src='../../js/sming.js'></script></body></html>

@@ -1,0 +1,37 @@
+<html><head><meta charset='utf-8'><meta name='viewport' content='width=device-width, initial-scale=1'>
+<meta name='applicable-device' content='pc'><meta name='keywords' content='电脑,电脑讲解,电脑技术,编程,电脑故障维修mybatis中查询结果为空时不同返回类型对应返回值' />
+<script src='../../highlight/highlight.pack.js'></script>
+<link rel='stylesheet' type='text/css' href='../../highlight/styles/monokai.css'/>
+
+<link rel='stylesheet' href='../../fenxiang/dist/css/share.min.css'>
+<script src='../../fenxiang/src/js/social-share.js'></script>
+<script src='../../fenxiang/src/js/qrcode.js'></script>
+
+</head><body><script>hljs.initHighlightingOnLoad();</script><script>
+var system ={};  
+var p = navigator.platform;       
+system.win = p.indexOf('Win') == 0;  
+system.mac = p.indexOf('Mac') == 0;  
+system.x11 = (p == 'X11') || (p.indexOf('Linux') == 0);     
+if(system.win||system.mac||system.xll){
+document.write("<link href='../css/3.css' rel='stylesheet' type='text/css'>");}else{ document.write("<link href='../css/3wap.css' rel='stylesheet' type='text/css'>");}</script><script src='../../js/3.js'></script><div class='div2'><div class='heading_nav'><ul><div><li><a href='../../index.html'>首页</a></li>
+</div><div onclick='hidden1()' >分享</div>
+</ul></div></div>
+<div id='heading_nav2'> 
+<li class='row' >
+<div class='social-share' data-mode='prepend'><a href='javascript:' class='social-share-icon icon-heart'></a></div></li></div><script charset='utf-8' src='../../3/js/hengfu.js'></script><script charset='utf-8' src='../../3/js/hengfu2.js'></script><hr><div class='div1'><div class='biaoti'><center>mybatis中查询结果为空时不同返回类型对应返回值</center></div><div class='banquan'>原文出处:本文由博客园博主壹佰提供。<br/>
+原文连接:https://www.cnblogs.com/xxjcai/p/11664315.html</div><br>
+    <p>今天在别人的代码基础上实现新需求，看到对于mybatis查询结果的判断不是很正确，如果查询结果为空就会异常，不知道大家有没有这样的疑惑：mybatis中resultType有多种返回类型，对于每种不同类型，查询结果为空时dao接口的返回值是一样的吗？接下来我就总结一下常见的几种情况。</p>
+<p><span style="font-size: 16px;"><strong>第一种：resultType为基本类型，如string（在此暂且把string归纳为基本类型）</strong></span></p>
+<p>　　如果select的结果为空，则dao接口返回结果为null</p>
+<p><strong><span style="font-size: 16px;">第二种，resultType为基本类型，如int</span></strong></p>
+<p><span style="color: #ff0000;">后台报异常：</span><br /><span style="color: #ff0000;">org.apache.ibatis.binding.BindingException: Mapper method 'com.fkit.dao.xxDao.getUserById attempted to return null from a method with a primitive return type (int).</span><br /><span style="color: #ff0000;">解释：查询结果为null，试图返回null但是方法定义的返回值是int，null转为int时报错</span><br /><span style="color: #ff0000;">解决办法：修改select的返回值为String</span></p>
+<p><span style="font-size: 16px;"><strong>第三种 resultType为类为map ，如map、hashmap</strong></span></p>
+<p>　　dao层接口返回值为null</p>
+<p><span style="font-size: 16px;"><strong>第四种 resultType 为list ，如list</strong></span></p>
+<p>　　dao层接口返回值为[]，即空集合。</p>
+<p><span style="color: #ff0000;">注意：此时判断查询是否为空就不能用null做判断</span></p>
+<p><span style="font-size: 16px;"><strong>第五种 resultType 为类 ，如com.fkit.pojo.User</strong></span></p>
+<p>　　dao层接口返回值null</p>
+
+</div><hr><script charset='utf-8' src='../../js/sming.js'></script></body></html>

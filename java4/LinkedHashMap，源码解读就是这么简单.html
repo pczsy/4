@@ -1,0 +1,257 @@
+<html><head><meta charset='utf-8'><meta name='viewport' content='width=device-width, initial-scale=1'>
+<meta name='applicable-device' content='pc'><meta name='keywords' content='电脑,电脑讲解,电脑技术,编程,电脑故障维修LinkedHashMap，源码解读就是这么简单' />
+<script src='../../highlight/highlight.pack.js'></script>
+<link rel='stylesheet' type='text/css' href='../../highlight/styles/monokai.css'/>
+
+<link rel='stylesheet' href='../../fenxiang/dist/css/share.min.css'>
+<script src='../../fenxiang/src/js/social-share.js'></script>
+<script src='../../fenxiang/src/js/qrcode.js'></script>
+
+</head><body><script>hljs.initHighlightingOnLoad();</script><script>
+var system ={};  
+var p = navigator.platform;       
+system.win = p.indexOf('Win') == 0;  
+system.mac = p.indexOf('Mac') == 0;  
+system.x11 = (p == 'X11') || (p.indexOf('Linux') == 0);     
+if(system.win||system.mac||system.xll){
+document.write("<link href='../css/3.css' rel='stylesheet' type='text/css'>");}else{ document.write("<link href='../css/3wap.css' rel='stylesheet' type='text/css'>");}</script><script src='../../js/3.js'></script><div class='div2'><div class='heading_nav'><ul><div><li><a href='../../index.html'>首页</a></li>
+</div><div onclick='hidden1()' >分享</div>
+</ul></div></div>
+<div id='heading_nav2'> 
+<li class='row' >
+<div class='social-share' data-mode='prepend'><a href='javascript:' class='social-share-icon icon-heart'></a></div></li></div><script charset='utf-8' src='../../3/js/hengfu.js'></script><script charset='utf-8' src='../../3/js/hengfu2.js'></script><hr><div class='div1'><div class='biaoti'><center>LinkedHashMap，源码解读就是这么简单</center></div><div class='banquan'>原文出处:本文由博客园博主Java博客手留余香提供。<br/>
+原文连接:https://www.cnblogs.com/yuxiang1/p/11474808.html</div><br>
+    <h2>概述</h2>
+<p>LinkedHashMap是HashMap的子类，它的大部分实现与HashMap相同，两者最大的区别在于，HashMap的对哈希表进行迭代时是无序的，而LinkedHashMap对哈希表迭代是有序的，LinkedHashMap默认的规则是，迭代输出的结果保持和插入key-value pair的顺序一致（当然具体迭代规则可以修改）。LinkedHashMap除了像HashMap一样用数组、单链表和红黑树来组织数据外，还额外维护了一个双向链表，每次向linkedHashMap插入键值对，除了将其插入到哈希表的对应位置之外，还要将其插入到双向循环链表的尾部。</p>
+<h2>底层实现</h2>
+<p>先来看一下LinekedHashMap的定义：</p>
+<src class="highlight">
+<src class="cnblogs_code">
+<pre><code><span style="color: #0000ff;">public</span> <span style="color: #0000ff;">class</span> LinkedHashMap&lt;K,V&gt;
+    <span style="color: #0000ff;">extends</span> HashMap&lt;K,V&gt;
+    <span style="color: #0000ff;">implements</span> Map&lt;K,V&gt;</code></pre>
+
+<p>&nbsp;</p>
+
+<p>除了继承自HashMap以外并无太多特殊之处，这里特地标注实现了Map接口应该也只是为了醒目。</p>
+<p>大家最关心的应该是LinkedHashMap如何实现有序迭代，下面将逐步通过源码来解答这一问题。</p>
+<p>先看一下一个重要的静态内部类Entry：</p>
+<src class="highlight">
+<src class="cnblogs_code">
+<pre><code><span style="color: #0000ff;">static</span> <span style="color: #0000ff;">class</span> Entry&lt;K,V&gt; <span style="color: #0000ff;">extends</span> HashMap.Node&lt;K,V&gt;<span style="color: #000000;"> {
+    Entry</span>&lt;K,V&gt;<span style="color: #000000;"> before, after;
+    Entry(</span><span style="color: #0000ff;">int</span> hash, K key, V value, Node&lt;K,V&gt;<span style="color: #000000;"> next) {
+        </span><span style="color: #0000ff;">super</span><span style="color: #000000;">(hash, key, value, next);
+    }
+}</span></code></pre>
+
+<p>&nbsp;</p>
+
+<p>该类继承自HashMap的Node内部类，前面已经介绍过，Node是一个单链表结构，这里Entry添加了前继引用和后继引用，则是一个双向链表的节点。在双向链表中，每个节点可以记录自己前后插入的节点信息，以维持有序性，这也是LinkedHashMap实现有序迭代的关键。</p>
+<h3>按插入顺序有序和按访问顺序有序</h3>
+<p>按插入有序</p>
+<p>按插入有序即先添加的在前面，后添加的在后面，修改操作不影响顺序。以如下代码为例：</p>
+<src class="highlight">
+<src class="cnblogs_code">
+<pre><code>Map&lt;String,Integer&gt; seqMap = <span style="color: #0000ff;">new</span> LinkedHashMap&lt;&gt;<span style="color: #000000;">();
+
+seqMap.put(</span>"c", 100<span style="color: #000000;">);
+seqMap.put(</span>"d", 200<span style="color: #000000;">);
+seqMap.put(</span>"a", 500<span style="color: #000000;">);
+seqMap.put(</span>"d", 300<span style="color: #000000;">);
+
+</span><span style="color: #0000ff;">for</span>(Entry&lt;String,Integer&gt;<span style="color: #000000;"> entry : seqMap.entrySet()){
+    System.out.println(entry.getKey()</span>+" "+<span style="color: #000000;">entry.getValue());
+}</span></code></pre>
+
+<p>&nbsp;</p>
+<pre><code><code class="language-java"><span class="n"><span class="o"><span class="n"><span class="o"><span class="n"><span class="o"><span class="n"><span class="o"><span class="k"><span class="n"><span class="o"><span class="n"><span class="o"><span class="na"><span class="o"><span class="s"><span class="o"><span class="n"><span class="o"><span class="n"><span class="o"><span class="na"><span class="o"><span class="s"><span class="o"><span class="n"><span class="o"><span class="n"><span class="o"><span class="na"><span class="o"><span class="s"><span class="o"><span class="n"><span class="o"><span class="n"><span class="o"><span class="na"><span class="o"><span class="s"><span class="o"><span class="n"><span class="o"><span class="k"><span class="o"><span class="n"><span class="o"><span class="n"><span class="o"><span class="n"><span class="o"><span class="n"><span class="o"><span class="n"><span class="o"><span class="na"><span class="o"><span class="n"><span class="o"><span class="na"><span class="o"><span class="na"><span class="o"><span class="n"><span class="o"><span class="na"><span class="o"><span class="s"><span class="o"><span class="n"><span class="o"><span class="na"><span class="o"><span class="o">
+<span class="n">运行结</span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></code></code></pre>
+
+<p>运行结果是：</p>
+<src class="highlight">
+<src class="cnblogs_code">
+<pre><code>c 100<span style="color: #000000;">
+d </span>300<span style="color: #000000;">
+a </span>500</code></pre>
+
+<p>&nbsp;</p>
+
+<p>可以看到，键是按照&rdquo;c&rdquo;, &ldquo;d&rdquo;, &ldquo;a&rdquo;的顺序插入的，修改&rdquo;d&rdquo;的值不会修改顺序。</p>
+<p>按访问有序</p>
+<p>按访问有序是，序列末尾存放的是最近访问的key-value pair，每次访问一个key-value pair后，就会将其移动到末尾。</p>
+<src class="highlight">
+<src class="cnblogs_code">
+<pre><code>Map&lt;String,Integer&gt; accessMap = <span style="color: #0000ff;">new</span> LinkedHashMap&lt;&gt;(16, 0.75f, <span style="color: #0000ff;">true</span><span style="color: #000000;">);
+
+accessMap.put(</span>"c", 100<span style="color: #000000;">);
+accessMap.put(</span>"d", 200<span style="color: #000000;">);
+accessMap.put(</span>"a", 500<span style="color: #000000;">);
+accessMap.get(</span>"c"<span style="color: #000000;">);
+accessMap.put(</span>"d", 300<span style="color: #000000;">);
+
+</span><span style="color: #0000ff;">for</span>(Entry&lt;String,Integer&gt;<span style="color: #000000;"> entry : accessMap.entrySet()){
+    System.out.println(entry.getKey()</span>+" "+<span style="color: #000000;">entry.getValue());
+}</span></code></pre>
+
+<p>&nbsp;</p>
+
+<p>运行结果为：</p>
+<src class="highlight">
+<src class="cnblogs_code">
+<pre><code>a 500<span style="color: #000000;"> 
+c </span>100<span style="color: #000000;"> 
+d </span>300</code></pre>
+
+<p>&nbsp;</p>
+
+<p>针对不同的应用场景，LinkedHashMap可以在这两种排序方式中进行抉择。</p>
+<hr />
+<p>LinkedHashMap定义了三个重要的字段：</p>
+<src class="highlight">
+<src class="cnblogs_code">
+<pre><code><span style="color: #008000;">//</span><span style="color: #008000;">双链表的头节点</span>
+<span style="color: #0000ff;">transient</span> LinkedHashMap.Entry&lt;K,V&gt;<span style="color: #000000;"> head;
+</span><span style="color: #008000;">//</span><span style="color: #008000;">双链表的尾节点</span>
+<span style="color: #0000ff;">transient</span> LinkedHashMap.Entry&lt;K,V&gt;<span style="color: #000000;"> tail;
+</span><span style="color: #008000;">/**</span><span style="color: #008000;"> * 这个字段表示哈希表的迭代顺序 * true表示按访问顺序迭代 * false表示按插入顺序迭代 * LinkedHashMap的构造函数均将该值设为false，因此默认为false </span><span style="color: #008000;">*/</span>
+<span style="color: #0000ff;">final</span> <span style="color: #0000ff;">boolean</span> accessOrder;</code></pre>
+
+<p>&nbsp;</p>
+
+<p>关于它们的具体作用已在注释中标出。</p>
+<p>LinkedHashMap有五个构造方法，其中有一个可以指定accessOrder的值：</p>
+<src class="highlight">
+<src class="cnblogs_code">
+<pre><code><span style="color: #0000ff;">public</span> LinkedHashMap(<span style="color: #0000ff;">int</span><span style="color: #000000;"> initialCapacity,
+                     </span><span style="color: #0000ff;">float</span><span style="color: #000000;"> loadFactor,
+                     </span><span style="color: #0000ff;">boolean</span><span style="color: #000000;"> accessOrder) {
+    </span><span style="color: #0000ff;">super</span><span style="color: #000000;">(initialCapacity, loadFactor);
+    </span><span style="color: #0000ff;">this</span>.accessOrder =<span style="color: #000000;"> accessOrder;
+}</span></code></pre>
+
+<p>&nbsp;</p>
+
+<h2>重要方法</h2>
+<p>在HashMap中定义了几个&ldquo;钩子&rdquo;方法（关于钩子的详细内容，请参考笔者的博客<a class=" wrap external" href="https://link.zhihu.com/?target=https%3A//crowhawk.github.io/2017/07/21/designpattern_9_template/" rel="nofollow noreferrer" target="_blank" data-za-detail-view-id="1043">设计模式(9)&mdash;&mdash;模板方法模式</a>），这里特地列出其中的三个：</p>
+<ul>
+<li><code>afterNodeRemoval(e)</code></li>
+<li><code>afterNodeInsertion</code></li>
+<li><code>afterNodeInsertion</code></li>
+</ul>
+<p>它们与迭代有序性的实现息息相关。</p>
+<p>此外还有两个重要的API<code>get</code>和<code>containsValue</code>，这里也分析一下它们的源码实现，至于<code>put</code>方法，LinkedHashMap并没有覆写该方法，因此其实现与HashMap相同。</p>
+<h3>afterNodeRemoval(e)方法</h3>
+<src class="highlight">
+<src class="cnblogs_code">
+<pre><code><span style="color: #0000ff;">void</span> afterNodeRemoval(Node&lt;K,V&gt; e) { <span style="color: #008000;">//</span><span style="color: #008000;"> unlink</span>
+    LinkedHashMap.Entry&lt;K,V&gt; p =<span style="color: #000000;">
+        (LinkedHashMap.Entry</span>&lt;K,V&gt;)e, b = p.before, a =<span style="color: #000000;"> p.after;
+    p.before </span>= p.after = <span style="color: #0000ff;">null</span><span style="color: #000000;">;
+    </span><span style="color: #0000ff;">if</span> (b == <span style="color: #0000ff;">null</span><span style="color: #000000;">)
+        head </span>=<span style="color: #000000;"> a;
+    </span><span style="color: #0000ff;">else</span><span style="color: #000000;">
+        b.after </span>=<span style="color: #000000;"> a;
+    </span><span style="color: #0000ff;">if</span> (a == <span style="color: #0000ff;">null</span><span style="color: #000000;">)
+        tail </span>=<span style="color: #000000;"> b;
+    </span><span style="color: #0000ff;">else</span><span style="color: #000000;">
+        a.before </span>=<span style="color: #000000;"> b;
+}</span></code></pre>
+
+<p>&nbsp;</p>
+
+<p>在HashMap的<code>removeNode</code>方法中调用了该钩子方法，对于LinkedHashMap，在执行完对哈希桶中单链表或红黑树节点的删除操作后，还需要调用该方法将双向链表中对应的Entry删除。</p>
+<h3>afterNodeInsertion方法</h3>
+<src class="highlight">
+<src class="cnblogs_code">
+<pre><code><span style="color: #0000ff;">void</span> afterNodeInsertion(<span style="color: #0000ff;">boolean</span> evict) { <span style="color: #008000;">//</span><span style="color: #008000;"> possibly remove eldest</span>
+    LinkedHashMap.Entry&lt;K,V&gt;<span style="color: #000000;"> first;
+    </span><span style="color: #0000ff;">if</span> (evict &amp;&amp; (first = head) != <span style="color: #0000ff;">null</span> &amp;&amp;<span style="color: #000000;"> removeEldestEntry(first)){
+        K key </span>=<span style="color: #000000;"> first.key;
+        removeNode(hash(key), key, </span><span style="color: #0000ff;">null</span>, <span style="color: #0000ff;">false</span>, <span style="color: #0000ff;">true</span><span style="color: #000000;">);
+    }
+}</span></code></pre>
+
+<p>&nbsp;</p>
+
+<p>在HashMap的<code>putVal</code>方法中调用了该方法，可以看出，在判断条件成立的情况下，该方法会删除双链表中的头节点（当然是在哈希桶和双向链表中同步删除该节点）。判断条件涉及了一个<code>removeEldestEntry(first)</code>方法，它的源码如下：</p>
+<src class="highlight">
+<src class="cnblogs_code">
+<pre><code><span style="color: #0000ff;">protected</span> <span style="color: #0000ff;">boolean</span> removeEldestEntry(Map.Entry&lt;K,V&gt;<span style="color: #000000;"> eldest) {
+    </span><span style="color: #0000ff;">return</span> <span style="color: #0000ff;">false</span><span style="color: #000000;">;
+}</span></code></pre>
+
+<p>&nbsp;</p>
+
+<p>可以看到，它默认是返回false的，即不删除头节点。如果需要定义是否需要删除头节点的规则，只需覆盖该方法并提供相关实现即可。该方法的作用在于，它提供了当一个新的entry被添加到linkedHashMap中，删除头节点的机会。这是非常有意义的，可以通过删除头节点来减少内存消耗，避免内存溢出。</p>
+<h3>afterNodeAccess(e)方法</h3>
+<src class="highlight">
+<src class="cnblogs_code">
+<pre><code><span style="color: #0000ff;">void</span> afterNodeAccess(Node&lt;K,V&gt; e) { <span style="color: #008000;">//</span><span style="color: #008000;"> move node to last</span>
+    LinkedHashMap.Entry&lt;K,V&gt;<span style="color: #000000;"> last;
+    </span><span style="color: #0000ff;">if</span> (accessOrder &amp;&amp; (last = tail) !=<span style="color: #000000;"> e) {
+        LinkedHashMap.Entry</span>&lt;K,V&gt; p =<span style="color: #000000;">
+            (LinkedHashMap.Entry</span>&lt;K,V&gt;)e, b = p.before, a =<span style="color: #000000;"> p.after;
+        p.after </span>= <span style="color: #0000ff;">null</span><span style="color: #000000;">;
+        </span><span style="color: #0000ff;">if</span> (b == <span style="color: #0000ff;">null</span><span style="color: #000000;">)
+            head </span>=<span style="color: #000000;"> a;
+        </span><span style="color: #0000ff;">else</span><span style="color: #000000;">
+            b.after </span>=<span style="color: #000000;"> a;
+        </span><span style="color: #0000ff;">if</span> (a != <span style="color: #0000ff;">null</span><span style="color: #000000;">)
+            a.before </span>=<span style="color: #000000;"> b;
+        </span><span style="color: #0000ff;">else</span><span style="color: #000000;">
+            last </span>=<span style="color: #000000;"> b;
+        </span><span style="color: #0000ff;">if</span> (last == <span style="color: #0000ff;">null</span><span style="color: #000000;">)
+            head </span>=<span style="color: #000000;"> p;
+        </span><span style="color: #0000ff;">else</span><span style="color: #000000;"> {
+            p.before </span>=<span style="color: #000000;"> last;
+            last.after </span>=<span style="color: #000000;"> p;
+        }
+        tail </span>=<span style="color: #000000;"> p;
+        </span>++<span style="color: #000000;">modCount;
+    }
+}</span></code></pre>
+
+<p>&nbsp;</p>
+
+<p>该方法在HashMap的<code>putVal</code>方法、LinkedHashMap的<code>get</code>方法中都被调用，它的作用是：如果accessOrder返回值为true（即按照访问顺序迭代），则将最近访问的节点调整至双向队列的队尾，这也就保证了按照访问顺序迭代时Entry的有序性。</p>
+<h3>get(key)方法</h3>
+<src class="highlight">
+<src class="cnblogs_code">
+<pre><code><span style="color: #0000ff;">public</span><span style="color: #000000;"> V get(Object key) {
+    Node</span>&lt;K,V&gt;<span style="color: #000000;"> e;
+    </span><span style="color: #0000ff;">if</span> ((e = getNode(hash(key), key)) == <span style="color: #0000ff;">null</span><span style="color: #000000;">)
+        </span><span style="color: #0000ff;">return</span> <span style="color: #0000ff;">null</span><span style="color: #000000;">;
+    </span><span style="color: #0000ff;">if</span><span style="color: #000000;"> (accessOrder)
+        afterNodeAccess(e);
+    </span><span style="color: #0000ff;">return</span><span style="color: #000000;"> e.value;
+}</span></code></pre>
+
+<p>&nbsp;</p>
+
+<p>该方法增加了按访问顺序或插入顺序进行排序的选择功能，会根据AccessOrder的值调整双向链表中节点的顺序，获取节点的过程与HashMap中一致。</p>
+<h3>containsValue(value)方法</h3>
+<src class="highlight">
+<src class="cnblogs_code">
+<pre><code><span style="color: #0000ff;">public</span> <span style="color: #0000ff;">boolean</span><span style="color: #000000;"> containsValue(Object value) {
+    </span><span style="color: #0000ff;">for</span> (LinkedHashMap.Entry&lt;K,V&gt; e = head; e != <span style="color: #0000ff;">null</span>; e =<span style="color: #000000;"> e.after) {
+        V v </span>=<span style="color: #000000;"> e.value;
+        </span><span style="color: #0000ff;">if</span> (v == value || (value != <span style="color: #0000ff;">null</span> &amp;&amp;<span style="color: #000000;"> value.equals(v)))
+            </span><span style="color: #0000ff;">return</span> <span style="color: #0000ff;">true</span><span style="color: #000000;">;
+    }
+    </span><span style="color: #0000ff;">return</span> <span style="color: #0000ff;">false</span><span style="color: #000000;">;
+}</span></code></pre>
+
+<p>&nbsp;</p>
+
+<p>由于LinkedHashMap维护了一个双向链表，因此它的<code>containsValue(value)</code>方法直接遍历双向链表查找对应的Entry即可，而无需去遍历哈希桶。</p>
+<h2>LinkedHashMap与HashMap</h2>
+<p>LinkedHashMap是HashMap的子类，它们最大的区别是，HashMap的迭代是无序的，而LinkedHashMap是有序的，并且有按插入顺序和按访问顺序两种方式。为了实现有序迭代，LinkedHashMap相比HashMap，额外维护了一个双向链表，因此一般情况下，遍历HashMap比LinkedHashMap效率要高，在没有按序访问key-value pair的情况下，一般建议使用HashMap（当然也有例外，当HashMap容量很大，实际数据较少时，遍历起来可能会比 LinkedHashMap慢，因为LinkedHashMap的遍历速度只和实际数据有关，和容量无关，而HashMap的遍历速度和他的容量有关）。</p>
+<p>&nbsp;</p>
+<h2>------------------------<strong>推荐阅读</strong>------------------------</h2>
+<h3 class="postTitle"><a id="cb_post_title_url" class="postTitle2" title="2019年JVM最新面试题，必须收藏它" href="https://www.cnblogs.com/yuxiang1/p/11394938.html">2019年JVM最新面试题，必须收藏它</a></h3>
+<h3 class="postTitle"><a id="cb_post_title_url" class="postTitle2" href="https://www.cnblogs.com/yuxiang1/p/11389989.html">最全面的阿里多线程面试题，你能回答几个？</a></h3>
+<h3 class="postTitle"><a id="cb_post_title_url" class="postTitle2" href="https://www.cnblogs.com/yuxiang1/p/11384456.html">Java面试题：Java中的集合及其继承关系</a></h3>
+<h3 class="postTitle"><a id="cb_post_title_url" class="postTitle2" href="https://www.cnblogs.com/yuxiang1/p/11378042.html">花了近十年的时间，整理出史上最全面Java面试题</a></h3>
+
+</div><hr><script charset='utf-8' src='../../js/sming.js'></script></body></html>

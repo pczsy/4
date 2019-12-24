@@ -1,0 +1,82 @@
+<html><head><meta charset='utf-8'><meta name='viewport' content='width=device-width, initial-scale=1'>
+<meta name='applicable-device' content='pc'><meta name='keywords' content='电脑,电脑讲解,电脑技术,编程,电脑故障维修String 的 intern() 方法解析' />
+<script src='../../highlight/highlight.pack.js'></script>
+<link rel='stylesheet' type='text/css' href='../../highlight/styles/monokai.css'/>
+
+<link rel='stylesheet' href='../../fenxiang/dist/css/share.min.css'>
+<script src='../../fenxiang/src/js/social-share.js'></script>
+<script src='../../fenxiang/src/js/qrcode.js'></script>
+
+</head><body><script>hljs.initHighlightingOnLoad();</script><script>
+var system ={};  
+var p = navigator.platform;       
+system.win = p.indexOf('Win') == 0;  
+system.mac = p.indexOf('Mac') == 0;  
+system.x11 = (p == 'X11') || (p.indexOf('Linux') == 0);     
+if(system.win||system.mac||system.xll){
+document.write("<link href='../css/3.css' rel='stylesheet' type='text/css'>");}else{ document.write("<link href='../css/3wap.css' rel='stylesheet' type='text/css'>");}</script><script src='../../js/3.js'></script><div class='div2'><div class='heading_nav'><ul><div><li><a href='../../index.html'>首页</a></li>
+</div><div onclick='hidden1()' >分享</div>
+</ul></div></div>
+<div id='heading_nav2'> 
+<li class='row' >
+<div class='social-share' data-mode='prepend'><a href='javascript:' class='social-share-icon icon-heart'></a></div></li></div><script charset='utf-8' src='../../3/js/hengfu.js'></script><script charset='utf-8' src='../../3/js/hengfu2.js'></script><hr><div class='div1'><div class='biaoti'><center>String 的 intern() 方法解析</center></div><div class='banquan'>原文出处:本文由博客园博主JMCui提供。<br/>
+原文连接:https://www.cnblogs.com/jmcui/p/11854685.html</div><br>
+    <h2 id="一概述">一、概述</h2>
+<p>JDK7 之前和之后的版本，String 的 intern() 方法在实现上存在差异，本文的说明环境是 JDK8，会在文末说明 intern() 方法的版本差异性。</p>
+<p>intern() 方法是一个 native 的方法，返回常量池中的字符串引用，主要体现在以下两点：</p>
+<ol>
+<li>如果常量池中已存在该字符串，则直接返回常量池中该对象的引用。</li>
+<li>如果常量池中不存在该字符串，则在常量池中加入该对象引用并返回。</li>
+</ol>
+<h2 id="二示例说明">二、示例说明</h2>
+<p>一般我们创建字符串的方式有以下三种：</p>
+<ol>
+<li>字面量创建方式，例如 String s = &quot;java&quot;</li>
+<li>new String() 创建方式，例如 String s = new String(&quot;java&quot;)</li>
+<li>StringBuilder/StringBuffer 创建方式，例如 String s = new StringBuilder(&quot;ja&quot;).append(&quot;va&quot;).toString()</li>
+</ol>
+<p>字面量创建方式，会在字符串常量池中创建字符串实例，并返回该引用；new String() 和 StringBuilder/StringBuffer 创建方式都是在堆（Heap）上创建字符串实例，并返回该引用。</p>
+<pre><code><code>public class StrIntrenTest {
+    
+    public static void main(String[] args) {
+        // 1. 字面量创建形式
+        String s1 = &quot;jmcui&quot;;
+        //  1. 在字符串常量池中生成字符串【&quot;jmcui&quot;】实例
+        //  2. 将栈中的 s1 指向字符串常量池中的字符串【&quot;jmcui&quot;】实例
+
+        System.out.println(&quot;s1 == s1.intern() ：&quot; + (s1 == s1.intern())); // true
+
+        // 2. new 创建方式
+        String s2 = new String(&quot;jmcui&quot;);
+        //  1. 在Java堆中生成字符串【&quot;jmcui&quot;】实例
+        //  2. 将栈中的 s2 指向Java堆中的字符串【&quot;jmcui&quot;】实例
+
+        System.out.println(&quot;s1 == s2 ：&quot; + (s1 == s2)); // false
+        System.out.println(&quot;s1.equals(s2) ：&quot; + s1.equals(s2)); // true
+        System.out.println(&quot;s1 == s2.intern()：&quot; + (s1 == s2.intern())); // true
+
+        // 3. StringBuilder/StringBuffer 方式和 new 方法类似
+        String s3 = new StringBuilder(&quot;jm&quot;).append(&quot;cui&quot;).toString();
+        //  1. 在Java堆中生成字符串【&quot;jmcui&quot;】实例
+        //  2. 将栈中的 s3 指向Java堆中的字符串【&quot;jmcui&quot;】实例
+        System.out.println(&quot;s1 == s3 ：&quot; + (s1 == s3)); // false
+        System.out.println(&quot;s2 == s3 ：&quot; + (s2 == s3)); // false
+        System.out.println(&quot;s2.intern() == s3.intern() ：&quot; + (s2.intern() == s3.intern())); // true
+    }
+}</code></code></pre>
+<ul>
+<li>s1 == s1.intern() 返回 true，因为字面量的创建方式是在字符串常量池中生成实例，而 intern() 方法返回常量池中的字符串引用，两个引用自然是同一个。</li>
+<li>s1 == s2 返回 false，因为 new String() 的方式是在堆（Heap）上创建实例，二者不是同一个引用。</li>
+<li>s1.equals(s2) 返回 true，equals 方法是用来比较的是两个字符串的内容是否相等。</li>
+<li>s1 == s2.intern() 返回 true，当 s2 调用 intern() 方法的时候，发现常量池中已经存在该字符串，则直接返回了该引用（s1 的引用）。</li>
+<li>s1 == s3 返回 false， StringBuilder/StringBuffer 创建方式是在堆（Heap）上创建字符串实例，二者不是同一个引用。</li>
+<li>s2 == s3 返回 fasle，s2 和 s3 都是 new 出来的字符串实例，在堆（Heap）上存储不同的位置，自然不是同一个实例。</li>
+<li>s2.intern() == s3.intern() 返回 true，前面说明 s2 的 intern() 返回的是 s1 的引用，s3 的 intern() 也是一样的道理，因此 s2 的 intern() 和 s2 的 intern() 返回的都是 s1 的引用，所以相等。</li>
+</ul>
+<h2 id="三和-jdk6-的版本差异">三、和 JDK6 的版本差异</h2>
+<p>JDK7 之后的 intern() 方法和之前版本的差异主要体现在：如果常量池中不存在该字符串时的处理机制。</p>
+<p>JDK7 之后的版本，如果常量池中不存在该字符串，则在常量池中加入该对象引用并返回。注意，关键词 — 加入对象引用！</p>
+<p>JDK7 之前的版本呢？它的处理机制是，如果常量池中不存在该字符串，则在常量池中新建一个字符串实例并返回该实例引用。关键词：新建实例！</p>
+
+
+</div><hr><script charset='utf-8' src='../../js/sming.js'></script></body></html>

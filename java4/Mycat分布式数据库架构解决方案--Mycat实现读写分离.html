@@ -1,0 +1,166 @@
+<html><head><meta charset='utf-8'><meta name='viewport' content='width=device-width, initial-scale=1'>
+<meta name='applicable-device' content='pc'><meta name='keywords' content='电脑,电脑讲解,电脑技术,编程,电脑故障维修Mycat分布式数据库架构解决方案--Mycat实现读写分离' />
+<script src='../../highlight/highlight.pack.js'></script>
+<link rel='stylesheet' type='text/css' href='../../highlight/styles/monokai.css'/>
+
+<link rel='stylesheet' href='../../fenxiang/dist/css/share.min.css'>
+<script src='../../fenxiang/src/js/social-share.js'></script>
+<script src='../../fenxiang/src/js/qrcode.js'></script>
+
+</head><body><script>hljs.initHighlightingOnLoad();</script><script>
+var system ={};  
+var p = navigator.platform;       
+system.win = p.indexOf('Win') == 0;  
+system.mac = p.indexOf('Mac') == 0;  
+system.x11 = (p == 'X11') || (p.indexOf('Linux') == 0);     
+if(system.win||system.mac||system.xll){
+document.write("<link href='../css/3.css' rel='stylesheet' type='text/css'>");}else{ document.write("<link href='../css/3wap.css' rel='stylesheet' type='text/css'>");}</script><script src='../../js/3.js'></script><div class='div2'><div class='heading_nav'><ul><div><li><a href='../../index.html'>首页</a></li>
+</div><div onclick='hidden1()' >分享</div>
+</ul></div></div>
+<div id='heading_nav2'> 
+<li class='row' >
+<div class='social-share' data-mode='prepend'><a href='javascript:' class='social-share-icon icon-heart'></a></div></li></div><script charset='utf-8' src='../../3/js/hengfu.js'></script><script charset='utf-8' src='../../3/js/hengfu2.js'></script><hr><div class='div1'><div class='biaoti'><center>Mycat分布式数据库架构解决方案--Mycat实现读写分离</center></div><div class='banquan'>原文出处:本文由博客园博主xlecho提供。<br/>
+原文连接:https://www.cnblogs.com/xlecho/p/11796644.html</div><br>
+    <p>echo编辑整理，欢迎转载，转载请声明文章来源。欢迎添加echo微信(微信号：t2421499075)交流学习。 百战不败，依不自称常胜，百败不颓，依能奋力前行。——这才是真正的堪称强大！！！</p>
+<hr />
+<blockquote>
+<p>安装完成之后，我们对Mycat的重要配置文件进行了解析，到这里已经对Mycat有了一定的认识，那么我们开始来启动Mycat并连接，做一些简单的配置和使用操作。</p>
+</blockquote>
+<h3 id="mycat快速入门">Mycat快速入门</h3>
+<ul>
+<li>准备工作：</li>
+<li><ul>
+<li>请现在服务器上面安装Mycat，安装教程：<a href="https://blog.csdn.net/xlecho/article/details/102755484" class="uri">https://blog.csdn.net/xlecho/article/details/102755484</a></li>
+</ul></li>
+<li><ul>
+<li>了解一下他的核心配置文件：<a href="https://blog.csdn.net/xlecho/article/details/102758706">Server.xml详解</a>、<a href="https://blog.csdn.net/xlecho/article/details/102758706">schema.xml详解</a>、<a href="https://note.youdao.com/">rule.xml详解</a></li>
+</ul></li>
+<li><ul>
+<li>准备三台服务器，都需要安装mysql</li>
+</ul></li>
+<li><ul>
+<li>搭建一主两从的MySQL读写分离环境：<a href="https://blog.csdn.net/xlecho/article/details/102869048">Mycat分布式数据库架构解决方案--搭建MySQL读写分离环境--一主多从</a></li>
+</ul></li>
+<li><ul>
+<li>下载一份Mycat的原码（在服务器上面编写不方便，本地更改好，替换服务器配置文件更方便）<a href="https://github.com/MyCATApache/Mycat-download/tree/master/1.6-RELEASE">Mycat下载</a></li>
+</ul></li>
+</ul>
+<h3 id="mycat配置所可能使用的命令">Mycat配置所可能使用的命令</h3>
+<ul>
+<li>进入mycat安装的bin目录，启动命令：./startup_nowrap.sh</li>
+<li>进入mycat安装的bin目录，停止命令：./mycat stop</li>
+<li>查看是否存在运行mycat的进程: ps -ef</li>
+<li>查看mycat时时运行日志，进入logs目录：more mycat.log</li>
+<li>配置文件中删除一整行：vi打开配置文件，然后双击d键就会删除光标所在的一行</li>
+<li>配置文件中删除一整块：点击v，然后移动左右键，光标移动就会选中移动区域，再点击x即可删除</li>
+</ul>
+<h3 id="配置mycat">配置Mycat</h3>
+<p>使用Mycat实现读写分离其实比较简单，只要关注他的两个配置文件schema.xml/server.xml。</p>
+<ul>
+<li>schema.xml主要负责数据库的连接配置</li>
+<li>server.xml主要负责Mycat登录连接配置</li>
+</ul>
+<h4 id="schema">schema</h4>
+<pre><code><code>&lt;?xml version=&quot;1.0&quot;?&gt;
+&lt;!DOCTYPE mycat:schema SYSTEM &quot;schema.dtd&quot;&gt;
+&lt;mycat:schema xmlns:mycat=&quot;http://io.mycat/&quot;&gt;
+    &lt;schema name=&quot;userDB&quot; checkSQLschema=&quot;true&quot; sqlMaxLimit=&quot;100&quot;&gt;
+        &lt;table name=&quot;user&quot; primaryKey=&quot;id&quot; dataNode=&quot;dn1&quot; /&gt;
+    &lt;/schema&gt;
+
+    &lt;dataNode name=&quot;dn1&quot; dataHost=&quot;host1&quot; database=&quot;test&quot; /&gt;
+
+    &lt;!-- 读写分离 --&gt;
+    &lt;dataHost name=&quot;host1&quot; maxCon=&quot;1000&quot; minCon=&quot;10&quot; balance=&quot;1&quot; writeType=&quot;0&quot; dbType=&quot;mysql&quot; dbDriver=&quot;native&quot; switchType=&quot;-1&quot;  slaveThreshold=&quot;100&quot;&gt;
+        &lt;heartbeat&gt;select user()&lt;/heartbeat&gt;
+        &lt;writeHost host=&quot;hostM&quot; url=&quot;192.168.222.132:3306&quot; user=&quot;root&quot; password=&quot;123456&quot;&gt;
+            &lt;readHost host=&quot;hostS1&quot; url=&quot;192.168.222.133:3306&quot; user=&quot;root&quot; password=&quot;123456&quot; /&gt;
+            &lt;readHost host=&quot;hostS2&quot; url=&quot;192.168.222.134:3306&quot; user=&quot;root&quot; password=&quot;123456&quot; /&gt;
+        &lt;/writeHost&gt;
+    &lt;/dataHost&gt;
+&lt;/mycat:schema&gt;</code></code></pre>
+<h4 id="server">server</h4>
+<pre><code><code>&lt;?xml version=&quot;1.0&quot; encoding=&quot;UTF-8&quot;?&gt;
+&lt;!-- - - Licensed under the Apache License, Version 2.0 (the &quot;License&quot;);
+        - you may not use this file except in compliance with the License. - You
+        may obtain a copy of the License at - - http://www.apache.org/licenses/LICENSE-2.0
+        - - Unless required by applicable law or agreed to in writing, software -
+        distributed under the License is distributed on an &quot;AS IS&quot; BASIS, - WITHOUT
+        WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. - See the
+        License for the specific language governing permissions and - limitations
+        under the License. --&gt;
+&lt;!DOCTYPE mycat:server SYSTEM &quot;server.dtd&quot;&gt;
+&lt;mycat:server xmlns:mycat=&quot;http://io.mycat/&quot;&gt;
+    &lt;!-- Mycat中有两个重要的标签，分别是user、system --&gt;
+    &lt;!-- system标签与系统配置有关 --&gt;
+    &lt;system&gt;
+        &lt;!-- 配置该属性的时候一定要保证mycat的字符集和mysql 的字符集是一致的。
+        如果需要配置特殊字符集，如：utf8mb4，则可以在index_to_charset.properties中配置，配置格式
+        为“ID=字符集”,例如：“224=utf8mb4”--&gt;
+        &lt;property name=&quot;charset&quot;&gt;utf8&lt;/property&gt;
+        &lt;!-- 1为开启实时统计、0为关闭 --&gt;
+        &lt;property name=&quot;useSqlStat&quot;&gt;0&lt;/property&gt;
+        &lt;!-- 0为需要密码登陆、1为不需要密码登陆 ,默认为0，设置为1则需要指定默认账户--&gt;
+        &lt;property name=&quot;nonePasswordLogin&quot;&gt;0&lt;/property&gt;
+        &lt;property name=&quot;useHandshakeV10&quot;&gt;1&lt;/property&gt;
+        &lt;!-- 1为开启全加班一致性检测、0为关闭 --&gt;
+        &lt;property name=&quot;useGlobleTableCheck&quot;&gt;0&lt;/property&gt;
+        &lt;!-- SQL 执行超时 单位:秒--&gt;
+        &lt;property name=&quot;sqlExecuteTimeout&quot;&gt;300&lt;/property&gt;
+        &lt;!-- 指定使用 Mycat 全局序列的类型。 0 为本地文件方式，1 为数据库方式，2 为时间戳序列方式，3 为分布式ZK ID 生成器，4 为 zk 递增 id 生成。 --&gt;
+        &lt;property name=&quot;sequnceHandlerType&quot;&gt;5&lt;/property&gt;
+        &lt;!-- 必须带有MYCATSEQ_或者 mycatseq_进入序列匹配流程 注意MYCATSEQ_有空格的情况 --&gt;
+        &lt;property name=&quot;sequnceHandlerPattern&quot;&gt;(?:(\s*next\s+value\s+for\s*MYCATSEQ_(\w+))(,|\)|\s)*)+&lt;/property&gt;
+        &lt;!-- 子查询中存在关联查询的情况下,检查关联字段中是否有分片字段 .默认 false --&gt;
+        &lt;property name=&quot;subqueryRelationshipCheck&quot;&gt;false&lt;/property&gt;
+        &lt;property name=&quot;sequenceHanlderClass&quot;&gt;io.mycat.route.sequence.handler.HttpIncrSequenceHandler&lt;/property&gt;
+        &lt;!-- 默认为type 0: DirectByteBufferPool | type 1 ByteBufferArena | type 2 NettyBufferPool --&gt;
+        &lt;property name=&quot;processorBufferPoolType&quot;&gt;0&lt;/property&gt;
+        &lt;!-- 分布式事务开关，0为不过滤分布式事务，1为过滤分布式事务（如果分布式事务内只涉及全局表，则不过滤），2为不过滤分布式事务,但是记录分布式事务日志--&gt;
+        &lt;property name=&quot;handleDistributedTransactions&quot;&gt;0&lt;/property&gt;
+        &lt;!-- off heap for merge/order/group/limit      1开启   0关闭 --&gt;
+        &lt;property name=&quot;useOffHeapForMerge&quot;&gt;0&lt;/property&gt;
+        &lt;!-- 单位为m --&gt;
+        &lt;property name=&quot;memoryPageSize&quot;&gt;64k&lt;/property&gt;
+        &lt;!-- 单位为k --&gt;
+        &lt;property name=&quot;spillsFileBufferSize&quot;&gt;1k&lt;/property&gt;
+        &lt;property name=&quot;useStreamOutput&quot;&gt;0&lt;/property&gt;
+        &lt;!-- 单位为m --&gt;
+        &lt;property name=&quot;systemReserveMemorySize&quot;&gt;384m&lt;/property&gt;
+        &lt;!--是否采用zookeeper协调切换  --&gt;
+        &lt;property name=&quot;useZKSwitch&quot;&gt;false&lt;/property&gt;
+        &lt;!--如果为 true的话 严格遵守隔离级别,不会在仅仅只有select语句的时候在事务中切换连接--&gt;
+        &lt;property name=&quot;strictTxIsolation&quot;&gt;false&lt;/property&gt;
+        &lt;property name=&quot;useZKSwitch&quot;&gt;true&lt;/property&gt;
+    &lt;/system&gt;
+
+        &lt;!-- name=&quot;root&quot; 定义登录用户名 --&gt;
+    &lt;user name=&quot;root&quot;&gt;
+        &lt;!-- 定义了登录密码 --&gt;
+        &lt;property name=&quot;password&quot;&gt;123456&lt;/property&gt;
+        &lt;property name=&quot;schemas&quot;&gt;userDB&lt;/property&gt;
+    &lt;/user&gt;
+&lt;/mycat:server&gt;</code></code></pre>
+<h3 id="配置完成之后我们启动mycat即可">配置完成之后，我们启动Mycat即可：</h3>
+<pre><code><code>进入bin目录
+./mycat start</code></code></pre>
+<h3 id="验证是否已经成功实现读写分离">验证是否已经成功实现读写分离</h3>
+<p>首先我们在主服务器上增加两条数据，由于我们实现mysql主从复制，这个时候增加的两条数据，其他两台从服务器都会同时增加。数据如下：</p>
+<p><img src="./images/Mycat分布式数据库架构解决方案--Mycat实现读写分离0.png" alt="在这里插入图片描述" /></p>
+<blockquote>
+<p>在主服务器上添加的数据由于MySQL主从复制，所以在每一台服务器上看到的都是一样的数据，但是在从服务器上添加的数据主服务器和另外一台服务器上不会有，我们就利用这个特性添加。</p>
+</blockquote>
+<p>在从服务器192.168.222.134上添加一条数据，如下：</p>
+<p><img src="./images/Mycat分布式数据库架构解决方案--Mycat实现读写分离1.png" alt="在这里插入图片描述" /></p>
+<p>134服务器上就具备了其他服务器不具备的数据，由于我们在schema中配置了写功能服务器132、读133/134两台，所以Mycat读取数据的时候应该是随机读取133/134中的某一台，我们登陆Mycat然后打开user表，多刷新几次就可以看到id为5的那条数据时有时无</p>
+<p>登陆Mycat报错，先检查Mycat是否已经成功启动，如果没有启动可以进入mycat文件下logs目录中，打开wrapper.log查看原因<br />
+<img src="./images/Mycat分布式数据库架构解决方案--Mycat实现读写分离2.png" alt="在这里插入图片描述" /></p>
+<h3 id="注意">注意：</h3>
+<ul>
+<li>配置登录用户的时候，我们的server要对应上我们schemas中的逻辑库，不然会报错。</li>
+<li><h2 id="访问不到mycat的时候检查端口8066查看是否开放了端口">访问不到Mycat的时候检查端口8066，查看是否开放了端口</h2>
+做一个有底线的博客主</li>
+</ul>
+
+
+</div><hr><script charset='utf-8' src='../../js/sming.js'></script></body></html>

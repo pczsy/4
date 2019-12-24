@@ -1,0 +1,141 @@
+<html><head><meta charset='utf-8'><meta name='viewport' content='width=device-width, initial-scale=1'>
+<meta name='applicable-device' content='pc'><meta name='keywords' content='电脑,电脑讲解,电脑技术,编程,电脑故障维修Java学习笔记 - 类方法与代码块的执行顺序' />
+<script src='../../highlight/highlight.pack.js'></script>
+<link rel='stylesheet' type='text/css' href='../../highlight/styles/monokai.css'/>
+
+<link rel='stylesheet' href='../../fenxiang/dist/css/share.min.css'>
+<script src='../../fenxiang/src/js/social-share.js'></script>
+<script src='../../fenxiang/src/js/qrcode.js'></script>
+
+</head><body><script>hljs.initHighlightingOnLoad();</script><script>
+var system ={};  
+var p = navigator.platform;       
+system.win = p.indexOf('Win') == 0;  
+system.mac = p.indexOf('Mac') == 0;  
+system.x11 = (p == 'X11') || (p.indexOf('Linux') == 0);     
+if(system.win||system.mac||system.xll){
+document.write("<link href='../css/3.css' rel='stylesheet' type='text/css'>");}else{ document.write("<link href='../css/3wap.css' rel='stylesheet' type='text/css'>");}</script><script src='../../js/3.js'></script><div class='div2'><div class='heading_nav'><ul><div><li><a href='../../index.html'>首页</a></li>
+</div><div onclick='hidden1()' >分享</div>
+</ul></div></div>
+<div id='heading_nav2'> 
+<li class='row' >
+<div class='social-share' data-mode='prepend'><a href='javascript:' class='social-share-icon icon-heart'></a></div></li></div><script charset='utf-8' src='../../3/js/hengfu.js'></script><script charset='utf-8' src='../../3/js/hengfu2.js'></script><hr><div class='div1'><div class='biaoti'><center>Java学习笔记 - 类方法与代码块的执行顺序</center></div><div class='banquan'>原文出处:本文由博客园博主CamWang提供。<br/>
+原文连接:https://www.cnblogs.com/camwang/p/11726819.html</div><br>
+    <h2 id="类的初始化顺序">类的初始化顺序</h2>
+<p>使用一个简单的父子类例子来做示范，代码执行顺序在代码后有标注。</p>
+<pre><code><code>class Parent {
+
+    public static String p_StaticField = &quot;父类-静态变量&quot;;
+
+    public String    p_Field = &quot;父类-变量&quot;;
+    protected int    i = 9;
+    protected int    j = 0;
+
+    static {
+        System.out.println( p_StaticField );    // 1. 
+        System.out.println( &quot;父类-静态初始化块&quot; );  //2. 
+    }
+
+    {
+        System.out.println( p_Field );  // 7.
+        System.out.println( &quot;父类-初始化块&quot; );  // 8.
+    }
+
+    public Parent()
+    {
+        System.out.println( &quot;父类-构造器&quot; );    // 9.
+        System.out.println( &quot;i=&quot; + i + &quot;, j=&quot; + j );    // 10.
+        j = 20;
+    }
+}
+
+public class SubClass extends Parent {
+
+    public static String s_StaticField = &quot;子类-静态变量&quot;;
+
+    public String s_Field = &quot;子类-变量&quot;;
+
+    static {
+        System.out.println( s_StaticField );    // 3.
+        System.out.println( &quot;子类-静态初始化块&quot; );  // 4.
+    }
+
+    {
+        System.out.println( s_Field );  // 11.
+        System.out.println( &quot;子类-初始化块&quot; );  // 12.
+    }
+
+    public SubClass()
+    {
+        System.out.println( &quot;子类-构造器&quot; );    // 13.
+        System.out.println( &quot;i=&quot; + i + &quot;,j=&quot; + j ); //14.
+    }
+
+    public static void main( String[] args )
+    {
+        System.out.println( &quot;子类main方法&quot; );   // 5.
+        new SubClass(); // 6.
+    }
+}</code></code></pre>
+<ul>
+<li>静态初始化块位于类的第一次初始化最前端执行，先父类后子类，是类的初始化块。<br />
+</li>
+<li>初始化块位于每次对象被构造器初始化前执行，是对象的初始化块。</li>
+<li>类的装载不论是否会被创建对象都会发生，装载会触发静态初始化块执行，扫描到了extends的类先被执行，构造时顺序相同</li>
+<li>总体顺序：new 子类() -&gt; 父类静态初始化块 -&gt; 子类静态初始化块 -&gt; 子类main方法 -&gt; 父类初始化块 -&gt; 父类构造器 -&gt; 子类初始化块 -&gt; 子类构造器</li>
+</ul>
+<h2 id="继承关系方法执行顺序以及this作用域">继承关系方法执行顺序以及this作用域</h2>
+<pre><code><code>public class ClassInitSequence {
+
+    public static void main(String[] args) {
+        System.out.println(new B().getValue());
+    }
+
+    static class A {
+        protected int value;
+
+        public A(int v) {
+            setValue(v);    // 若A的构造函数是子函数调用的则执行函数会先在子类里找同名函数执行
+        }
+
+        public void setValue(int value) {
+            this.value = value;
+        }
+
+        public int getValue() {
+            try {
+                value++;
+                return value;
+            } catch (Exception e) {
+                System.out.println(e.toString());
+            } finally {
+                this.setValue(value);       // 若此方法起初为子类调用则this指向子类作用域
+                System.out.println(value);
+            }
+            return value;
+        }
+    }
+
+    static class B extends A {
+        public B() {
+            super(5);
+            setValue(getValue() - 3);
+        }
+
+        public void setValue(int value) {
+            super.setValue(2 * value);
+        }
+    }
+}</code></code></pre>
+<ol>
+<li>子类方法调用父类方法，若父类方法调用方法，会先检查子类是否有重写的方法，先执行子类的重写方法</li>
+<li>子类方法调用父类方法，this指向的作用域依然在子类</li>
+<li>try、catch、finally块中return后没有报错会继续执行finally块内代码而非直接返回，但此时函数返回值已为return的值</li>
+</ol>
+<pre><code><code>// 结果为
+22
+34
+17</code></code></pre>
+
+
+</div><hr><script charset='utf-8' src='../../js/sming.js'></script></body></html>

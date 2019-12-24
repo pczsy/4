@@ -1,0 +1,441 @@
+<html><head><meta charset='utf-8'><meta name='viewport' content='width=device-width, initial-scale=1'>
+<meta name='applicable-device' content='pc'><meta name='keywords' content='电脑,电脑讲解,电脑技术,编程,电脑故障维修如何更规范化编写Java 代码' />
+<script src='../../highlight/highlight.pack.js'></script>
+<link rel='stylesheet' type='text/css' href='../../highlight/styles/monokai.css'/>
+
+<link rel='stylesheet' href='../../fenxiang/dist/css/share.min.css'>
+<script src='../../fenxiang/src/js/social-share.js'></script>
+<script src='../../fenxiang/src/js/qrcode.js'></script>
+
+</head><body><script>hljs.initHighlightingOnLoad();</script><script>
+var system ={};  
+var p = navigator.platform;       
+system.win = p.indexOf('Win') == 0;  
+system.mac = p.indexOf('Mac') == 0;  
+system.x11 = (p == 'X11') || (p.indexOf('Linux') == 0);     
+if(system.win||system.mac||system.xll){
+document.write("<link href='../css/3.css' rel='stylesheet' type='text/css'>");}else{ document.write("<link href='../css/3wap.css' rel='stylesheet' type='text/css'>");}</script><script src='../../js/3.js'></script><div class='div2'><div class='heading_nav'><ul><div><li><a href='../../index.html'>首页</a></li>
+</div><div onclick='hidden1()' >分享</div>
+</ul></div></div>
+<div id='heading_nav2'> 
+<li class='row' >
+<div class='social-share' data-mode='prepend'><a href='javascript:' class='social-share-icon icon-heart'></a></div></li></div><script charset='utf-8' src='../../3/js/hengfu.js'></script><script charset='utf-8' src='../../3/js/hengfu2.js'></script><hr><div class='div1'><div class='biaoti'><center>如何更规范化编写Java 代码</center></div><div class='banquan'>原文出处:本文由博客园博主涛姐涛哥提供。<br/>
+原文连接:https://www.cnblogs.com/taojietaoge/p/11575376.html</div><br>
+    <p style="text-align: center;"><span style="color: #ff00ff;"><em><strong><span style="font-size: 18pt;">如何更规范化编写Java 代码</span></strong></em></span></p>
+<p><span style="font-size: 15px;">&nbsp;</span></p>
+<p><span style="color: #800080;"><strong><em><span style="font-size: 18px;">Many of the happiest people are those who own the least. But are we really so happy with our IPhones, our big houses, our fancy cars?</span></em></strong></span></p>
+<p><span style="color: #800080; font-size: 18px;"><strong><em>忘川如斯，拥有一切的人才更怕失去。</em></strong></span></p>
+<p>&nbsp;</p>
+<p><span style="font-size: 15px;"><span style="font-size: 16px;"><em><strong>背景：</strong></em></span>如何更规范化编写Java 代码的重要性想必毋需多言，其中最重要的几点当属提高代码性能、使代码远离Bug、令代码更优雅。</span></p>
+<p><span style="text-decoration: underline; font-size: 18px;"><span style="color: #0000ff; text-decoration: underline;"><strong><em>一、MyBatis 不要为了多个查询条件而写 1 = 1</em></strong></span></span></p>
+<p><span style="font-size: 15px;">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; 当遇到多个查询条件，使用where 1=1 可以很方便的解决我们的问题，但是这样很可能会造成非常大的性能损失，因为添加了 &ldquo;where 1=1 &rdquo;的过滤条件之后，数据库系统就无法使用索引等查询优化策略，数据库系统将会被迫对每行数据进行扫描（即全表扫描） 以比较此行是否满足过滤条件，当表中的数据量较大时查询速度会非常慢；此外，还会存在SQL 注入的风险。</span></p>
+<p><span style="color: #008000;"><strong><em><span style="font-size: 16px;">反例：</span></em></strong></span></p>
+<src class="cnblogs_code">
+<pre><code><span style="font-size: 15px;"><span style="color: #0000ff;">&lt;</span><span style="color: #800000;">select </span><span style="color: #ff0000;">id</span><span style="color: #0000ff;">="queryBookInfo"</span><span style="color: #ff0000;"> parameterType</span><span style="color: #0000ff;">="com.tjt.platform.entity.BookInfo"</span><span style="color: #ff0000;"> resultType</span><span style="color: #0000ff;">="java.lang.Integer"</span><span style="color: #0000ff;">&gt;</span><span style="color: #000000;">
+ select count(*) from t_rule_BookInfo t where 1=1
+</span><span style="color: #0000ff;">&lt;</span><span style="color: #800000;">if </span><span style="color: #ff0000;">test</span><span style="color: #0000ff;">="title !=null and title !='' "</span><span style="color: #0000ff;">&gt;</span><span style="color: #000000;">
+ AND title = #{title} 
+</span><span style="color: #0000ff;">&lt;/</span><span style="color: #800000;">if</span><span style="color: #0000ff;">&gt;</span> 
+<span style="color: #0000ff;">&lt;</span><span style="color: #800000;">if </span><span style="color: #ff0000;">test</span><span style="color: #0000ff;">="author !=null and author !='' "</span><span style="color: #0000ff;">&gt;</span><span style="color: #000000;">
+ <span style="color: #000000;">AND</span> author = #{author}
+</span><span style="color: #0000ff;">&lt;/</span><span style="color: #800000;">if</span><span style="color: #0000ff;">&gt;</span> 
+<span style="color: #0000ff;">&lt;/</span><span style="color: #800000;">select</span><span style="color: #0000ff;">&gt;</span></span></code></pre>
+
+<p><span style="color: #008000;"><strong><em><span style="font-size: 16px;">正例：</span></em></strong></span></p>
+<src class="cnblogs_code">
+<pre><code><span style="font-size: 15px;"><span style="color: #0000ff;">&lt;</span><span style="color: #800000;">select </span><span style="color: #ff0000;">id</span><span style="color: #0000ff;">="queryBookInfo"</span><span style="color: #ff0000;"> parameterType</span><span style="color: #0000ff;">="com.tjt.platform.entity.BookInfo"</span><span style="color: #ff0000;"> resultType</span><span style="color: #0000ff;">="java.lang.Integer"</span><span style="color: #0000ff;">&gt;</span><span style="color: #000000;">
+ select count(*) from t_rule_BookInfo t
+</span><span style="color: #0000ff;">&lt;</span><span style="color: #800000;">where</span><span style="color: #0000ff;">&gt;</span>
+<span style="color: #0000ff;">&lt;</span><span style="color: #800000;">if </span><span style="color: #ff0000;">test</span><span style="color: #0000ff;">="title !=null and title !='' "</span><span style="color: #0000ff;">&gt;</span><span style="color: #000000;">
+ title = #{title} 
+</span><span style="color: #0000ff;">&lt;/</span><span style="color: #800000;">if</span><span style="color: #0000ff;">&gt;</span>
+<span style="color: #0000ff;">&lt;</span><span style="color: #800000;">if </span><span style="color: #ff0000;">test</span><span style="color: #0000ff;">="author !=null and author !='' "</span><span style="color: #0000ff;">&gt; </span><span style="color: #000000;">
+ <span style="color: #000000;">AND</span> author = #{author}
+</span><span style="color: #0000ff;">&lt;/</span><span style="color: #800000;">if</span><span style="color: #0000ff;">&gt;</span>
+<span style="color: #0000ff;">&lt;/</span><span style="color: #800000;">where</span><span style="color: #0000ff;">&gt;</span> 
+<span style="color: #0000ff;">&lt;/</span><span style="color: #800000;">select</span><span style="color: #0000ff;">&gt;</span></span></code></pre>
+
+<p><span style="font-size: 15px;">UPDATE 操作也一样，可以用&lt;set&gt; 标记代替 1=1。</span></p>
+<p><span style="text-decoration: underline; font-size: 18px;"><span style="color: #0000ff; text-decoration: underline;"><em><strong>二、 迭代entrySet() 获取Map 的key 和value</strong></em></span></span></p>
+<p><span style="font-size: 15px;">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; 当循环中只需要获取Map 的主键key时，迭代keySet() 是正确的；但是，当需要主键key 和取值value 时，迭代entrySet() 才是更高效的做法，其比先迭代keySet() 后再去通过get 取值性能更佳。</span></p>
+<p><span style="color: #008000;"><strong><em><span style="font-size: 16px;">反例：</span></em></strong></span></p>
+<src class="cnblogs_code">
+<pre><code><span style="font-size: 15px;"><span style="color: #008080;">1</span> <span style="color: #008000;">//</span><span style="color: #008000;">Map 获取value 反例:</span>
+<span style="color: #008080;">2</span>         HashMap&lt;String, String&gt; map = <span style="color: #0000ff;">new</span> HashMap&lt;&gt;<span style="color: #000000;">();
+</span><span style="color: #008080;">3</span>         <span style="color: #0000ff;">for</span><span style="color: #000000;"> (String key : map.keySet()){
+</span><span style="color: #008080;">4</span>             String value =<span style="color: #000000;"> map.get(key);
+</span><span style="color: #008080;">5</span>         }</span></code></pre>
+
+<p><span style="font-size: 16px;"><em><strong><span style="color: #008000;">正例：</span></strong></em></span></p>
+<src class="cnblogs_code">
+<pre><code><span style="font-size: 15px;"><span style="color: #008080;">1</span>  <span style="color: #008000;">//</span><span style="color: #008000;">Map 获取key &amp; value 正例:</span>
+<span style="color: #008080;">2</span>         HashMap&lt;String, String&gt; map = <span style="color: #0000ff;">new</span> HashMap&lt;&gt;<span style="color: #000000;">();
+</span><span style="color: #008080;">3</span>         <span style="color: #0000ff;">for</span> (Map.Entry&lt;String,String&gt;<span style="color: #000000;"> entry : map.entrySet()){
+</span><span style="color: #008080;">4</span>             String key =<span style="color: #000000;"> entry.getKey();
+</span><span style="color: #008080;">5</span>             String value =<span style="color: #000000;"> entry.getValue();
+</span><span style="color: #008080;">6</span>         }</span></code></pre>
+
+<p><span style="text-decoration: underline; font-size: 18px;"><span style="color: #0000ff; text-decoration: underline;"><strong><em>三、使用Collection.isEmpty() 检测空</em></strong></span></span></p>
+<p><span style="font-size: 15px;">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; 使用Collection.size() 来检测是否为空在逻辑上没有问题，但是使用Collection.isEmpty() 使得代码更易读，并且可以获得更好的性能；除此之外，任何Collection.isEmpty() 实现的时间复杂度都是O(1) ，不需要多次循环遍历，但是某些通过Collection.size() 方法实现的时间复杂度可能是O(n)。<a id="cb_post_title_url" class="postTitle2" href="https://www.cnblogs.com/taojietaoge/p/10947214.html">O(1)纬度减少循环次数 例子</a></span></p>
+<p><span style="font-size: 16px;"><em><strong><span style="color: #008000;">反例：</span></strong></em></span></p>
+<src class="cnblogs_code">
+<pre><code><span style="font-size: 15px;"><span style="color: #008080;">1</span> LinkedList&lt;Object&gt; collection = <span style="color: #0000ff;">new</span> LinkedList&lt;&gt;<span style="color: #000000;">();
+</span><span style="color: #008080;">2</span>         <span style="color: #0000ff;">if</span> (collection.size() == 0<span style="color: #000000;">){
+</span><span style="color: #008080;">3</span>             System.out.println("collection is empty."<span style="color: #000000;">);
+</span><span style="color: #008080;">4</span>         }</span></code></pre>
+
+<p><span style="color: #008000;"><strong><em><span style="font-size: 16px;">正例：</span></em></strong></span></p>
+<src class="cnblogs_code">
+<pre><code><span style="font-size: 15px;"><span style="color: #008080;"> 1</span>  LinkedList&lt;Object&gt; collection = <span style="color: #0000ff;">new</span> LinkedList&lt;&gt;<span style="color: #000000;">();
+</span><span style="color: #008080;"> 2</span>         <span style="color: #0000ff;">if</span><span style="color: #000000;"> (collection.isEmpty()){
+</span><span style="color: #008080;"> 3</span>             System.out.println("collection is empty."<span style="color: #000000;">);
+</span><span style="color: #008080;"> 4</span> <span style="color: #000000;">        }
+</span><span style="color: #008080;"> 5</span>         
+<span style="color: #008080;"> 6</span>         <span style="color: #008000;">//</span><span style="color: #008000;">检测是否为null 可以使用CollectionUtils.isEmpty()</span>
+<span style="color: #008080;"> 7</span>         <span style="color: #0000ff;">if</span><span style="color: #000000;"> (CollectionUtils.isEmpty(collection)){
+</span><span style="color: #008080;"> 8</span>             System.out.println("collection is null."<span style="color: #000000;">);
+</span><span style="color: #008080;"> 9</span> 
+<span style="color: #008080;">10</span>         }</span></code></pre>
+
+<p><span style="text-decoration: underline; font-size: 18px;"><span style="color: #0000ff; text-decoration: underline;"><strong><em>四、初始化集合时尽量指定其大小</em></strong></span></span></p>
+<p><span style="font-size: 15px;">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; 尽量在初始化时指定集合的大小，能有效减少集合的扩容次数，因为集合每次扩容的时间复杂度很可能时O(n)，耗费时间和性能。</span></p>
+<p><span style="font-size: 15px;"><span style="font-size: 16px;"><em><strong><span style="color: #008000;">反例：</span></strong></em></span></span></p>
+<src class="cnblogs_code">
+<pre><code><span style="font-size: 15px;"><span style="color: #008080;">1</span> <span style="color: #008000;">//</span><span style="color: #008000;">初始化list，往list 中添加元素反例：</span>
+<span style="color: #008080;">2</span>         <span style="color: #0000ff;">int</span>[] arr = <span style="color: #0000ff;">new</span> <span style="color: #0000ff;">int</span>[]{1,2,3,4<span style="color: #000000;">};
+</span><span style="color: #008080;">3</span>         List&lt;Integer&gt; list = <span style="color: #0000ff;">new</span> ArrayList&lt;&gt;<span style="color: #000000;">();
+</span><span style="color: #008080;">4</span>         <span style="color: #0000ff;">for</span> (<span style="color: #0000ff;">int</span><span style="color: #000000;"> i : arr){
+</span><span style="color: #008080;">5</span> <span style="color: #000000;">            list.add(i);
+</span><span style="color: #008080;">6</span>         }</span></code></pre>
+
+<p><span style="color: #008000;"><strong><em><span style="font-size: 16px;">正例：</span></em></strong></span></p>
+<src class="cnblogs_code">
+<pre><code><span style="font-size: 15px;"><span style="color: #008080;">1</span>  <span style="color: #008000;">//</span><span style="color: #008000;">初始化list，往list 中添加元素正例：</span>
+<span style="color: #008080;">2</span>         <span style="color: #0000ff;">int</span>[] arr = <span style="color: #0000ff;">new</span> <span style="color: #0000ff;">int</span>[]{1,2,3,4<span style="color: #000000;">};
+</span><span style="color: #008080;">3</span>         <span style="color: #008000;">//</span><span style="color: #008000;">指定集合list 的容量大小</span>
+<span style="color: #008080;">4</span>         List&lt;Integer&gt; list = <span style="color: #0000ff;">new</span> ArrayList&lt;&gt;<span style="color: #000000;">(arr.length);
+</span><span style="color: #008080;">5</span>         <span style="color: #0000ff;">for</span> (<span style="color: #0000ff;">int</span><span style="color: #000000;"> i : arr){
+</span><span style="color: #008080;">6</span> <span style="color: #000000;">            list.add(i);
+</span><span style="color: #008080;">7</span>         }</span></code></pre>
+
+<p><span style="text-decoration: underline; font-size: 18px;"><span style="color: #0000ff; text-decoration: underline;"><em><strong>五、使用StringBuilder 拼接字符串</strong></em></span></span></p>
+<p><span style="font-size: 15px;">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; 一般的字符串拼接在编译期Java 会对其进行优化，但是在循环中字符串的拼接Java 编译期无法执行优化，所以需要使用StringBuilder 进行替换。</span></p>
+<p><span style="font-size: 15px;"><span style="font-size: 16px;"><em><strong><span style="color: #008000;">反例：</span></strong></em></span></span></p>
+<src class="cnblogs_code">
+<pre><code><span style="font-size: 15px;"><span style="color: #008080;">1</span>  <span style="color: #008000;">//</span><span style="color: #008000;">在循环中拼接字符串反例</span>
+<span style="color: #008080;">2</span>        String str = ""<span style="color: #000000;">;
+</span><span style="color: #008080;">3</span>        <span style="color: #0000ff;">for</span> (<span style="color: #0000ff;">int</span> i = 0; i &lt; 10; i++<span style="color: #000000;">){
+</span><span style="color: #008080;">4</span>            <span style="color: #008000;">//</span><span style="color: #008000;">在循环中字符串拼接Java 不会对其进行优化</span>
+<span style="color: #008080;">5</span>            str +=<span style="color: #000000;"> i;
+</span><span style="color: #008080;">6</span>        }</span></code></pre>
+
+<p><span style="color: #008000;"><strong><em><span style="font-size: 16px;">正例：</span></em></strong></span></p>
+<src class="cnblogs_code">
+<pre><code><span style="font-size: 15px;"><span style="color: #008080;">1</span>   <span style="color: #008000;">//</span><span style="color: #008000;">在循环中拼接字符串正例</span>
+<span style="color: #008080;">2</span>        String str1 = "Love"<span style="color: #000000;">;
+</span><span style="color: #008080;">3</span>        String str2 = "Courage"<span style="color: #000000;">;
+</span><span style="color: #008080;">4</span>        String strConcat = str1 + str2;  <span style="color: #008000;">//</span><span style="color: #008000;">Java 编译器会对该普通模式的字符串拼接进行优化</span>
+<span style="color: #008080;">5</span>         StringBuilder sb = <span style="color: #0000ff;">new</span><span style="color: #000000;"> StringBuilder();
+</span><span style="color: #008080;">6</span>         <span style="color: #0000ff;">for</span> (<span style="color: #0000ff;">int</span> i = 0; i &lt; 10; i++<span style="color: #000000;">){
+</span><span style="color: #008080;">7</span>            <span style="color: #008000;">//</span><span style="color: #008000;">在循环中，Java 编译器无法进行优化，所以要手动使用StringBuilder</span>
+<span style="color: #008080;">8</span> <span style="color: #000000;">            sb.append(i);
+</span><span style="color: #008080;">9</span>         }</span></code></pre>
+
+<p><span style="text-decoration: underline; font-size: 18px;"><span style="color: #0000ff; text-decoration: underline;"><em><strong>&nbsp;六、若需频繁调用Collection.contains 方法则使用Set</strong></em></span></span></p>
+<p><span style="font-size: 15px;">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; 在Java 集合类库中，List的contains 方法普遍时间复杂度为O(n)，若代码中需要频繁调用contains 方法查找数据则先将集合list 转换成HashSet 实现，将O(n) 的时间复杂度将为O(1)。</span></p>
+<p><span style="font-size: 15px;"><span style="font-size: 16px;"><em><strong><span style="color: #008000;">反例：</span></strong></em></span></span></p>
+<src class="cnblogs_code">
+<pre><code><span style="font-size: 15px;"><span style="color: #008080;">1</span> <span style="color: #008000;">//</span><span style="color: #008000;">频繁调用Collection.contains() 反例</span>
+<span style="color: #008080;">2</span>         List&lt;Object&gt; list = <span style="color: #0000ff;">new</span> ArrayList&lt;&gt;<span style="color: #000000;">();
+</span><span style="color: #008080;">3</span>         <span style="color: #0000ff;">for</span> (<span style="color: #0000ff;">int</span> i = 0; i &lt;= Integer.MAX_VALUE; i++<span style="color: #000000;">){
+</span><span style="color: #008080;">4</span>             <span style="color: #008000;">//</span><span style="color: #008000;">时间复杂度为O(n)</span>
+<span style="color: #008080;">5</span>             <span style="color: #0000ff;">if</span><span style="color: #000000;"> (list.contains(i))
+</span><span style="color: #008080;">6</span>             System.out.println("list contains "+<span style="color: #000000;"> i);
+</span><span style="color: #008080;">7</span>         }</span></code></pre>
+
+<p><span style="color: #008000;"><strong><em><span style="font-size: 16px;">正例：</span></em></strong></span></p>
+<src class="cnblogs_code">
+<pre><code><span style="font-size: 15px;"><span style="color: #008080;">1</span> <span style="color: #008000;">//</span><span style="color: #008000;">频繁调用Collection.contains() 正例</span>
+<span style="color: #008080;">2</span>         List&lt;Object&gt; list = <span style="color: #0000ff;">new</span> ArrayList&lt;&gt;<span style="color: #000000;">();
+</span><span style="color: #008080;">3</span>         Set&lt;Object&gt; set = <span style="color: #0000ff;">new</span> HashSet&lt;&gt;<span style="color: #000000;">();
+</span><span style="color: #008080;">4</span>         <span style="color: #0000ff;">for</span> (<span style="color: #0000ff;">int</span> i = 0; i &lt;= Integer.MAX_VALUE; i++<span style="color: #000000;">){
+</span><span style="color: #008080;">5</span>             <span style="color: #008000;">//</span><span style="color: #008000;">时间复杂度为O(1)</span>
+<span style="color: #008080;">6</span>             <span style="color: #0000ff;">if</span><span style="color: #000000;"> (set.contains(i)){
+</span><span style="color: #008080;">7</span>                 System.out.println("list contains "+<span style="color: #000000;"> i);
+</span><span style="color: #008080;">8</span> <span style="color: #000000;">            }
+</span><span style="color: #008080;">9</span>         }</span></code></pre>
+
+<p><span style="text-decoration: underline; font-size: 18px;"><em><strong><span style="color: #0000ff; text-decoration: underline;">七、使用静态代码块实现赋值静态成员变量</span></strong></em></span></p>
+<p><span style="font-size: 15px;">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; 对于集合类型的静态成员变量，应该使用静态代码块赋值，而不是使用集合实现来赋值。</span></p>
+<p><span style="font-size: 15px;"><span style="font-size: 16px;"><em><strong><span style="color: #008000;">反例：</span></strong></em></span></span></p>
+<src class="cnblogs_code">
+<pre><code><span style="font-size: 15px;"><span style="color: #008080;"> 1</span> <span style="color: #008000;">//</span><span style="color: #008000;">赋值静态成员变量反例</span>
+<span style="color: #008080;"> 2</span>     <span style="color: #0000ff;">private</span> <span style="color: #0000ff;">static</span> Map&lt;String, Integer&gt; map = <span style="color: #0000ff;">new</span> HashMap&lt;String, Integer&gt;<span style="color: #000000;">(){
+</span><span style="color: #008080;"> 3</span> <span style="color: #000000;">        {
+</span><span style="color: #008080;"> 4</span>             map.put("Leo",1<span style="color: #000000;">);
+</span><span style="color: #008080;"> 5</span>             map.put("Family-loving",2<span style="color: #000000;">);
+</span><span style="color: #008080;"> 6</span>             map.put("Cold on the out side passionate on the inside",3<span style="color: #000000;">);
+</span><span style="color: #008080;"> 7</span> <span style="color: #000000;">        }
+</span><span style="color: #008080;"> 8</span> <span style="color: #000000;">    };
+</span><span style="color: #008080;"> 9</span>     <span style="color: #0000ff;">private</span> <span style="color: #0000ff;">static</span> List&lt;String&gt; list = <span style="color: #0000ff;">new</span> ArrayList&lt;&gt;<span style="color: #000000;">(){
+</span><span style="color: #008080;">10</span> <span style="color: #000000;">        {
+</span><span style="color: #008080;">11</span>             list.add("Sagittarius"<span style="color: #000000;">);
+</span><span style="color: #008080;">12</span>             list.add("Charming"<span style="color: #000000;">);
+</span><span style="color: #008080;">13</span>             list.add("Perfectionist"<span style="color: #000000;">);
+</span><span style="color: #008080;">14</span> <span style="color: #000000;">        }
+</span><span style="color: #008080;">15</span>     };</span></code></pre>
+
+<p><span style="color: #008000;"><strong><em><span style="font-size: 16px;">正例：</span></em></strong></span></p>
+<src class="cnblogs_code">
+<pre><code><span style="font-size: 15px;"><span style="color: #008080;"> 1</span>  <span style="color: #008000;">//</span><span style="color: #008000;">赋值静态成员变量正例</span>
+<span style="color: #008080;"> 2</span>     <span style="color: #0000ff;">private</span> <span style="color: #0000ff;">static</span> Map&lt;String, Integer&gt; map = <span style="color: #0000ff;">new</span> HashMap&lt;String, Integer&gt;<span style="color: #000000;">();
+</span><span style="color: #008080;"> 3</span>         <span style="color: #0000ff;">static</span><span style="color: #000000;"> {
+</span><span style="color: #008080;"> 4</span>             map.put("Leo",1<span style="color: #000000;">);
+</span><span style="color: #008080;"> 5</span>             map.put("Family-loving",2<span style="color: #000000;">);
+</span><span style="color: #008080;"> 6</span>             map.put("Cold on the out side passionate on the inside",3<span style="color: #000000;">);
+</span><span style="color: #008080;"> 7</span> <span style="color: #000000;">        }
+</span><span style="color: #008080;"> 8</span>         
+<span style="color: #008080;"> 9</span>     <span style="color: #0000ff;">private</span> <span style="color: #0000ff;">static</span> List&lt;String&gt; list = <span style="color: #0000ff;">new</span> ArrayList&lt;&gt;<span style="color: #000000;">();
+</span><span style="color: #008080;">10</span>         <span style="color: #0000ff;">static</span><span style="color: #000000;"> {
+</span><span style="color: #008080;">11</span>             list.add("Sagittarius"<span style="color: #000000;">);
+</span><span style="color: #008080;">12</span>             list.add("Charming"<span style="color: #000000;">);
+</span><span style="color: #008080;">13</span>             list.add("Perfectionist"<span style="color: #000000;">);
+</span><span style="color: #008080;">14</span>         }</span></code></pre>
+
+<p><span style="text-decoration: underline; font-size: 18px;"><span style="color: #0000ff; text-decoration: underline;"><strong><em>八、删除未使用的局部变量、方法参数、私有方法、字段和<span style="text-decoration: underline;"><span style="color: #0000ff; text-decoration: underline;"><strong><em>多余的括号</em></strong></span></span>。</em></strong></span></span></p>
+<p><span style="text-decoration: underline; font-size: 18px;"><em><strong><span style="color: #0000ff; text-decoration: underline;">九、工具类中屏蔽构造函数</span></strong></em></span></p>
+<p><span style="font-size: 15px;">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; 工具类是一堆静态字段和函数的集合，其不应该被实例化；但是，Java 为每个没有明确定义构造函数的类添加了一个隐式公有构造函数，为了避免不必要的<span style="font-size: 15px;">实例化</span>，应该显式定义私有构造函数来屏蔽这个隐式公有构造函数。</span></p>
+<p><span style="font-size: 15px;"><span style="font-size: 16px;"><em><strong><span style="color: #008000;">反例：</span></strong></em></span></span></p>
+<src class="cnblogs_code">
+<pre><code><span style="font-size: 15px;"><span style="color: #008080;">1</span> <span style="color: #0000ff;">public</span> <span style="color: #0000ff;">class</span><span style="color: #000000;"> PasswordUtils {
+</span><span style="color: #008080;">2</span>     <span style="color: #008000;">//</span><span style="color: #008000;">工具类构造函数反例</span>
+<span style="color: #008080;">3</span>     <span style="color: #0000ff;">private</span> <span style="color: #0000ff;">static</span> <span style="color: #0000ff;">final</span> Logger LOG = LoggerFactory.getLogger(PasswordUtils.<span style="color: #0000ff;">class</span><span style="color: #000000;">);
+</span><span style="color: #008080;">4</span> 
+<span style="color: #008080;">5</span>     <span style="color: #0000ff;">public</span> <span style="color: #0000ff;">static</span> <span style="color: #0000ff;">final</span> String DEFAULT_CRYPT_ALGO = "PBEWithMD5AndDES"<span style="color: #000000;">;
+</span><span style="color: #008080;">6</span> 
+<span style="color: #008080;">7</span>     <span style="color: #0000ff;">public</span> <span style="color: #0000ff;">static</span> String encryptPassword(String aPassword) <span style="color: #0000ff;">throws</span><span style="color: #000000;"> IOException {
+</span><span style="color: #008080;">8</span>         <span style="color: #0000ff;">return</span> <span style="color: #0000ff;">new</span><span style="color: #000000;"> PasswordUtils(aPassword).encrypt();
+</span><span style="color: #008080;">9</span>     }</span></code></pre>
+
+<p><span style="color: #008000;"><strong><em><span style="font-size: 16px;">正例：</span></em></strong></span></p>
+<src class="cnblogs_code">
+<pre><code><span style="font-size: 15px;"><span style="color: #008080;"> 1</span> <span style="color: #0000ff;">public</span> <span style="color: #0000ff;">class</span><span style="color: #000000;"> PasswordUtils {
+</span><span style="color: #008080;"> 2</span>     <span style="color: #008000;">//</span><span style="color: #008000;">工具类构造函数正例</span>
+<span style="color: #008080;"> 3</span>     <span style="color: #0000ff;">private</span> <span style="color: #0000ff;">static</span> <span style="color: #0000ff;">final</span> Logger LOG = LoggerFactory.getLogger(PasswordUtils.<span style="color: #0000ff;">class</span><span style="color: #000000;">);
+</span><span style="color: #008080;"> 4</span> 
+<span style="color: #008080;"> 5</span>     <span style="color: #008000;">//</span><span style="color: #008000;">定义私有构造函数来屏蔽这个隐式公有构造函数</span>
+<span style="color: #008080;"> 6</span>     <span style="color: #0000ff;">private</span><span style="color: #000000;"> PasswordUtils(){}
+</span><span style="color: #008080;"> 7</span>     
+<span style="color: #008080;"> 8</span>     <span style="color: #0000ff;">public</span> <span style="color: #0000ff;">static</span> <span style="color: #0000ff;">final</span> String DEFAULT_CRYPT_ALGO = "PBEWithMD5AndDES"<span style="color: #000000;">;
+</span><span style="color: #008080;"> 9</span> 
+<span style="color: #008080;">10</span>     <span style="color: #0000ff;">public</span> <span style="color: #0000ff;">static</span> String encryptPassword(String aPassword) <span style="color: #0000ff;">throws</span><span style="color: #000000;"> IOException {
+</span><span style="color: #008080;">11</span>         <span style="color: #0000ff;">return</span> <span style="color: #0000ff;">new</span><span style="color: #000000;"> PasswordUtils(aPassword).encrypt();
+</span><span style="color: #008080;">12</span>     }</span></code></pre>
+
+<p><span style="text-decoration: underline; color: #0000ff; font-size: 18px;"><em><strong>十、删除多余的异常捕获并抛出</strong></em></span></p>
+<p><span style="font-size: 15px;">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; 用catch 语句捕获异常后，若什么也不进行处理，就只是让异常重新抛出，这跟不捕获异常的效果一样，可以删除这块代码或添加别的处理。</span></p>
+<p><span style="font-size: 16px;"><em><strong><span style="color: #008000;">反例：</span></strong></em></span></p>
+<src class="cnblogs_code">
+<pre><code><span style="font-size: 15px;"><span style="color: #008080;"> 1</span> <span style="color: #008000;">//</span><span style="color: #008000;">多余异常反例</span>
+<span style="color: #008080;"> 2</span>     <span style="color: #0000ff;">private</span> <span style="color: #0000ff;">static</span> String fileReader(String fileName)<span style="color: #0000ff;">throws</span><span style="color: #000000;"> IOException{
+</span><span style="color: #008080;"> 3</span> 
+<span style="color: #008080;"> 4</span>         <span style="color: #0000ff;">try</span> (BufferedReader reader = <span style="color: #0000ff;">new</span> BufferedReader(<span style="color: #0000ff;">new</span><span style="color: #000000;"> FileReader(fileName))) {
+</span><span style="color: #008080;"> 5</span> <span style="color: #000000;">            String line;
+</span><span style="color: #008080;"> 6</span>             StringBuilder builder = <span style="color: #0000ff;">new</span><span style="color: #000000;"> StringBuilder();
+</span><span style="color: #008080;"> 7</span>             <span style="color: #0000ff;">while</span> ((line = reader.readLine()) != <span style="color: #0000ff;">null</span><span style="color: #000000;">) {
+</span><span style="color: #008080;"> 8</span> <span style="color: #000000;">                builder.append(line);
+</span><span style="color: #008080;"> 9</span> <span style="color: #000000;">            }
+</span><span style="color: #008080;">10</span>             <span style="color: #0000ff;">return</span><span style="color: #000000;"> builder.toString();
+</span><span style="color: #008080;">11</span>         } <span style="color: #0000ff;">catch</span><span style="color: #000000;"> (Exception e) {
+</span><span style="color: #008080;">12</span>             <span style="color: #008000;">//</span><span style="color: #008000;">仅仅是重复抛异常 未作任何处理</span>
+<span style="color: #008080;">13</span>             <span style="color: #0000ff;">throw</span><span style="color: #000000;"> e;
+</span><span style="color: #008080;">14</span> <span style="color: #000000;">        }
+</span><span style="color: #008080;">15</span>     }</span></code></pre>
+
+<p><span style="color: #008000;"><strong><em><span style="font-size: 16px;">正例：</span></em></strong></span></p>
+<src class="cnblogs_code">
+<pre><code><span style="font-size: 15px;"><span style="color: #008080;"> 1</span> <span style="color: #008000;">//</span><span style="color: #008000;">多余异常正例</span>
+<span style="color: #008080;"> 2</span>     <span style="color: #0000ff;">private</span> <span style="color: #0000ff;">static</span> String fileReader(String fileName)<span style="color: #0000ff;">throws</span><span style="color: #000000;"> IOException{
+</span><span style="color: #008080;"> 3</span> 
+<span style="color: #008080;"> 4</span>         <span style="color: #0000ff;">try</span> (BufferedReader reader = <span style="color: #0000ff;">new</span> BufferedReader(<span style="color: #0000ff;">new</span><span style="color: #000000;"> FileReader(fileName))) {
+</span><span style="color: #008080;"> 5</span> <span style="color: #000000;">            String line;
+</span><span style="color: #008080;"> 6</span>             StringBuilder builder = <span style="color: #0000ff;">new</span><span style="color: #000000;"> StringBuilder();
+</span><span style="color: #008080;"> 7</span>             <span style="color: #0000ff;">while</span> ((line = reader.readLine()) != <span style="color: #0000ff;">null</span><span style="color: #000000;">) {
+</span><span style="color: #008080;"> 8</span> <span style="color: #000000;">                builder.append(line);
+</span><span style="color: #008080;"> 9</span> <span style="color: #000000;">            }
+</span><span style="color: #008080;">10</span>             <span style="color: #0000ff;">return</span><span style="color: #000000;"> builder.toString();
+</span><span style="color: #008080;">11</span>             <span style="color: #008000;">//</span><span style="color: #008000;">删除多余的抛异常，或增加其他处理：</span>
+<span style="color: #008080;">12</span>             <span style="color: #008000;">/*</span><span style="color: #008000;">catch (Exception e) {
+</span><span style="color: #008080;">13</span> <span style="color: #008000;">                return "fileReader exception";
+</span><span style="color: #008080;">14</span> <span style="color: #008000;">            }</span><span style="color: #008000;">*/</span>
+<span style="color: #008080;">15</span> <span style="color: #000000;">        }
+</span><span style="color: #008080;">16</span>     }</span></code></pre>
+
+<p><span style="text-decoration: underline; font-size: 18px;"><em><strong><span style="color: #0000ff; text-decoration: underline;">十一、字符串转化使用String.valueOf(value) 代替 " " + value</span></strong></em></span></p>
+<p><span style="font-size: 15px;">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; 把其它对象或类型转化为字符串时，使用String.valueOf(value) 比 ""+value 的效率更高。</span></p>
+<p><span style="font-size: 16px;"><em><strong><span style="color: #008000;">反例：</span></strong></em></span></p>
+<src class="cnblogs_code">
+<pre><code><span style="font-size: 15px;"><span style="color: #008080;">1</span> <span style="color: #008000;">//</span><span style="color: #008000;">把其它对象或类型转化为字符串反例：</span>
+<span style="color: #008080;">2</span>             <span style="color: #0000ff;">int</span> num = 520<span style="color: #000000;">;
+</span><span style="color: #008080;">3</span>             <span style="color: #008000;">//</span><span style="color: #008000;"> "" + value</span>
+<span style="color: #008080;">4</span>             String strLove = "" + num;</span></code></pre>
+
+<p><span style="color: #008000;"><strong><em><span style="font-size: 16px;">正例：</span></em></strong></span></p>
+<src class="cnblogs_code">
+<pre><code><span style="font-size: 15px;"><span style="color: #008080;">1</span> <span style="color: #008000;">//</span><span style="color: #008000;">把其它对象或类型转化为字符串正例：</span>
+<span style="color: #008080;">2</span>             <span style="color: #0000ff;">int</span> num = 520<span style="color: #000000;">;
+</span><span style="color: #008080;">3</span>             <span style="color: #008000;">//</span><span style="color: #008000;"> String.valueOf() 效率更高</span>
+<span style="color: #008080;">4</span>             String strLove = String.valueOf(num);</span></code></pre>
+
+<p><span style="text-decoration: underline; font-size: 18px;"><span style="color: #0000ff; text-decoration: underline;"><em><strong>十二、避免使用BigDecimal(double)</strong></em></span></span></p>
+<p><span style="color: #6897bb; font-size: 15px;"><span style="color: #000000;">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; BigDecimal(double) 存在精度损失风险，在精确计算或值比较的场景中可能会导致业务逻辑异常。</span><br /></span></p>
+<p><span style="font-size: 16px;"><em><strong><span style="color: #008000;">反例：</span></strong></em></span></p>
+<src class="cnblogs_code">
+<pre><code><span style="font-size: 15px;"><span style="color: #008080;">1</span> <span style="color: #008000;">//</span><span style="color: #008000;"> BigDecimal 反例    </span>
+<span style="color: #008080;">2</span>         BigDecimal bigDecimal = <span style="color: #0000ff;">new</span> BigDecimal(0.11D);</span></code></pre>
+
+<p><span style="color: #008000;"><strong><em><span style="font-size: 16px;">正例：</span></em></strong></span></p>
+<src class="cnblogs_code">
+<pre><code><span style="font-size: 15px;"><span style="color: #008080;">1</span> <span style="color: #008000;">//</span><span style="color: #008000;"> BigDecimal 正例</span>
+<span style="color: #008080;">2</span>         BigDecimal bigDecimal1 = bigDecimal.valueOf(0.11D);</span></code></pre>
+
+<p style="text-align: center;"><span style="color: #008000;"><strong><span style="font-size: 14px;">图1. BigDecimal 精度丢失</span></strong></span></p>
+<p><span style="font-size: 15px;"><img style="display: block; margin-left: auto; margin-right: auto;" src="./images/如何更规范化编写Java 代码0.png" alt="" /></span></p>
+<p><span style="text-decoration: underline; font-size: 18px;"><em><strong><span style="color: #0000ff; text-decoration: underline;">十三、返回空数组和集合而非 null</span></strong></em></span></p>
+<p><span style="font-size: 15px;">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; 若程序运行返回null，需要调用方强制检测null，否则就会抛出空指针异常；返回空数组或空集合，有效地避免了调用方因为未检测null 而抛出空指针异常的情况，还可以删除调用方检测null 的语句使代码更简洁。</span></p>
+<p><span style="font-size: 16px;"><em><strong><span style="color: #008000;">反例：</span></strong></em></span></p>
+<src class="cnblogs_code">
+<pre><code><span style="font-size: 15px;"><span style="color: #008080;"> 1</span>  <span style="color: #008000;">//</span><span style="color: #008000;">返回null 反例</span>
+<span style="color: #008080;"> 2</span>     <span style="color: #0000ff;">public</span> <span style="color: #0000ff;">static</span><span style="color: #000000;"> Result[] getResults() {
+</span><span style="color: #008080;"> 3</span>         <span style="color: #0000ff;">return</span> <span style="color: #0000ff;">null</span><span style="color: #000000;">;
+</span><span style="color: #008080;"> 4</span> <span style="color: #000000;">    }
+</span><span style="color: #008080;"> 5</span> 
+<span style="color: #008080;"> 6</span>     <span style="color: #0000ff;">public</span> <span style="color: #0000ff;">static</span> List&lt;Result&gt;<span style="color: #000000;"> getResultList() {
+</span><span style="color: #008080;"> 7</span>         <span style="color: #0000ff;">return</span> <span style="color: #0000ff;">null</span><span style="color: #000000;">;
+</span><span style="color: #008080;"> 8</span> <span style="color: #000000;">    }
+</span><span style="color: #008080;"> 9</span> 
+<span style="color: #008080;">10</span>     <span style="color: #0000ff;">public</span> <span style="color: #0000ff;">static</span> Map&lt;String, Result&gt;<span style="color: #000000;"> getResultMap() {
+</span><span style="color: #008080;">11</span>         <span style="color: #0000ff;">return</span> <span style="color: #0000ff;">null</span><span style="color: #000000;">;
+</span><span style="color: #008080;">12</span>     }</span></code></pre>
+
+<p><span style="color: #008000;"><strong><em><span style="font-size: 16px;">正例：</span></em></strong></span></p>
+<src class="cnblogs_code">
+<pre><code><span style="font-size: 15px;"><span style="color: #008080;"> 1</span>  <span style="color: #008000;">//</span><span style="color: #008000;">返回空数组和空集正例</span>
+<span style="color: #008080;"> 2</span>     <span style="color: #0000ff;">public</span> <span style="color: #0000ff;">static</span><span style="color: #000000;"> Result[] getResults() {
+</span><span style="color: #008080;"> 3</span>         <span style="color: #0000ff;">return</span> <span style="color: #0000ff;">new</span> Result[0<span style="color: #000000;">];
+</span><span style="color: #008080;"> 4</span> <span style="color: #000000;">    }
+</span><span style="color: #008080;"> 5</span> 
+<span style="color: #008080;"> 6</span>     <span style="color: #0000ff;">public</span> <span style="color: #0000ff;">static</span> List&lt;Result&gt;<span style="color: #000000;"> getResultList() {
+</span><span style="color: #008080;"> 7</span>         <span style="color: #0000ff;">return</span><span style="color: #000000;"> Collections.emptyList();
+</span><span style="color: #008080;"> 8</span> <span style="color: #000000;">    }
+</span><span style="color: #008080;"> 9</span> 
+<span style="color: #008080;">10</span>     <span style="color: #0000ff;">public</span> <span style="color: #0000ff;">static</span> Map&lt;String, Result&gt;<span style="color: #000000;"> getResultMap() {
+</span><span style="color: #008080;">11</span>         <span style="color: #0000ff;">return</span><span style="color: #000000;"> Collections.emptyMap();
+</span><span style="color: #008080;">12</span>     }</span></code></pre>
+
+<p><span style="text-decoration: underline; color: #0000ff; font-size: 18px;"><strong><em>十四、优先使用常量或确定值调用equals 方法</em></strong></span></p>
+<p><span style="font-size: 15px;">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; 对象的equals 方法容易抛空指针异常，应使用常量或确定有值的对象来调用equals 方法。</span></p>
+<p><span style="font-size: 16px;"><em><strong><span style="color: #008000;">反例：</span></strong></em></span></p>
+<src class="cnblogs_code">
+<pre><code><span style="font-size: 15px;"><span style="color: #008080;">1</span> <span style="color: #008000;">//</span><span style="color: #008000;">调用 equals 方法反例</span>
+<span style="color: #008080;">2</span>     <span style="color: #0000ff;">private</span> <span style="color: #0000ff;">static</span> <span style="color: #0000ff;">boolean</span> fileReader(String fileName)<span style="color: #0000ff;">throws</span><span style="color: #000000;"> IOException{
+</span><span style="color: #008080;">3</span> 
+<span style="color: #008080;">4</span>         <span style="color: #008000;">//</span><span style="color: #008000;"> 可能抛空指针异常</span>
+<span style="color: #008080;">5</span>         <span style="color: #0000ff;">return</span> fileName.equals("Charming"<span style="color: #000000;">);
+</span><span style="color: #008080;">6</span>  }</span></code></pre>
+
+<p><span style="color: #008000;"><strong><em><span style="font-size: 16px;">正例：</span></em></strong></span></p>
+<src class="cnblogs_code">
+<pre><code><span style="font-size: 15px;"><span style="color: #008080;">1</span> <span style="color: #008000;">//</span><span style="color: #008000;">调用 equals 方法正例</span>
+<span style="color: #008080;">2</span>     <span style="color: #0000ff;">private</span> <span style="color: #0000ff;">static</span> <span style="color: #0000ff;">boolean</span> fileReader(String fileName)<span style="color: #0000ff;">throws</span><span style="color: #000000;"> IOException{
+</span><span style="color: #008080;">3</span> 
+<span style="color: #008080;">4</span>         <span style="color: #008000;">//</span><span style="color: #008000;"> 使用常量或确定有值的对象来调用 equals 方法</span>
+<span style="color: #008080;">5</span>         <span style="color: #0000ff;">return</span> "Charming"<span style="color: #000000;">.equals(fileName);
+</span><span style="color: #008080;">6</span>         
+<span style="color: #008080;">7</span>         <span style="color: #008000;">//</span><span style="color: #008000;">或使用： java.util.Objects.equals() 方法</span>
+<span style="color: #008080;">8</span>        <span style="color: #0000ff;">return</span> Objects.equals("Charming"<span style="color: #000000;">,fileName);
+</span><span style="color: #008080;">9</span>  }</span></code></pre>
+
+<p><span style="text-decoration: underline; font-size: 18px;"><span style="color: #0000ff; text-decoration: underline;"><em><strong>十五、枚举的属性字段必须是私有且不可变</strong></em></span></span></p>
+<p><span style="font-size: 15px;">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; 枚举通常被当做常量使用，如果枚举中存在公共属性字段或设置字段方法，那么这些枚举常量的属性很容易被修改；理想情况下，枚举中的属性字段是私有的，并在私有构造函数中赋值，没有对应的Setter 方法，最好加上final 修饰符。</span></p>
+<p><span style="font-size: 16px;"><em><strong><span style="color: #008000;">反例：</span></strong></em></span></p>
+<src class="cnblogs_code">
+<pre><code><span style="font-size: 15px;"><span style="color: #008080;"> 1</span> <span style="color: #0000ff;">public</span> <span style="color: #0000ff;">enum</span><span style="color: #000000;"> SwitchStatus {
+</span><span style="color: #008080;"> 2</span>     // 枚举的属性字段反例
+<span style="color: #008080;"> 3</span>     DISABLED(0, "禁用"<span style="color: #000000;">),
+</span><span style="color: #008080;"> 4</span>     ENABLED(1, "启用"<span style="color: #000000;">);
+</span><span style="color: #008080;"> 5</span> 
+<span style="color: #008080;"> 6</span>     <span style="color: #0000ff;">public</span> <span style="color: #0000ff;">int</span><span style="color: #000000;"> value;
+</span><span style="color: #008080;"> 7</span>     <span style="color: #0000ff;">private</span><span style="color: #000000;"> String description;
+</span><span style="color: #008080;"> 8</span> 
+<span style="color: #008080;"> 9</span>     <span style="color: #0000ff;">private</span> SwitchStatus(<span style="color: #0000ff;">int</span><span style="color: #000000;"> value, String description) {
+</span><span style="color: #008080;">10</span>         <span style="color: #0000ff;">this</span>.value =<span style="color: #000000;"> value;
+</span><span style="color: #008080;">11</span>         <span style="color: #0000ff;">this</span>.description =<span style="color: #000000;"> description;
+</span><span style="color: #008080;">12</span> <span style="color: #000000;">    }
+</span><span style="color: #008080;">13</span> 
+<span style="color: #008080;">14</span>     <span style="color: #0000ff;">public</span><span style="color: #000000;"> String getDescription() {
+</span><span style="color: #008080;">15</span>         <span style="color: #0000ff;">return</span><span style="color: #000000;"> description;
+</span><span style="color: #008080;">16</span> <span style="color: #000000;">    }
+</span><span style="color: #008080;">17</span> 
+<span style="color: #008080;">18</span>     <span style="color: #0000ff;">public</span> <span style="color: #0000ff;">void</span><span style="color: #000000;"> setDescription(String description) {
+</span><span style="color: #008080;">19</span>         <span style="color: #0000ff;">this</span>.description =<span style="color: #000000;"> description;
+</span><span style="color: #008080;">20</span> <span style="color: #000000;">    }
+</span><span style="color: #008080;">21</span> }</span></code></pre>
+
+<p><span style="color: #008000;"><strong><em><span style="font-size: 16px;">正例：</span></em></strong></span></p>
+<src class="cnblogs_code">
+<pre><code><span style="font-size: 15px;"><span style="color: #008080;"> 1</span> <span style="color: #0000ff;">public</span> <span style="color: #0000ff;">enum</span><span style="color: #000000;"> SwitchStatus {
+</span><span style="color: #008080;"> 2</span>     <span style="color: #008000;">//</span><span style="color: #008000;"> 枚举的属性字段正例</span>
+<span style="color: #008080;"> 3</span>     DISABLED(0, "禁用"<span style="color: #000000;">),
+</span><span style="color: #008080;"> 4</span>     ENABLED(1, "启用"<span style="color: #000000;">);
+</span><span style="color: #008080;"> 5</span> 
+<span style="color: #008080;"> 6</span>     <span style="color: #008000;">//</span><span style="color: #008000;"> final 修饰</span>
+<span style="color: #008080;"> 7</span>     <span style="color: #0000ff;">private</span> <span style="color: #0000ff;">final</span> <span style="color: #0000ff;">int</span><span style="color: #000000;"> value;
+</span><span style="color: #008080;"> 8</span>     <span style="color: #0000ff;">private</span> <span style="color: #0000ff;">final</span><span style="color: #000000;"> String description;
+</span><span style="color: #008080;"> 9</span> 
+<span style="color: #008080;">10</span>     <span style="color: #0000ff;">private</span> SwitchStatus(<span style="color: #0000ff;">int</span><span style="color: #000000;"> value, String description) {
+</span><span style="color: #008080;">11</span>         <span style="color: #0000ff;">this</span>.value =<span style="color: #000000;"> value;
+</span><span style="color: #008080;">12</span>         <span style="color: #0000ff;">this</span>.description =<span style="color: #000000;"> description;
+</span><span style="color: #008080;">13</span> <span style="color: #000000;">    }
+</span><span style="color: #008080;">14</span> 
+<span style="color: #008080;">15</span>     <span style="color: #008000;">//</span><span style="color: #008000;"> 没有Setter 方法</span>
+<span style="color: #008080;">16</span>     <span style="color: #0000ff;">public</span> <span style="color: #0000ff;">int</span><span style="color: #000000;"> getValue() {
+</span><span style="color: #008080;">17</span>         <span style="color: #0000ff;">return</span><span style="color: #000000;"> value;
+</span><span style="color: #008080;">18</span> <span style="color: #000000;">    }
+</span><span style="color: #008080;">19</span> 
+<span style="color: #008080;">20</span>     <span style="color: #0000ff;">public</span><span style="color: #000000;"> String getDescription() {
+</span><span style="color: #008080;">21</span>         <span style="color: #0000ff;">return</span><span style="color: #000000;"> description;
+</span><span style="color: #008080;">22</span> <span style="color: #000000;">    }
+</span><span style="color: #008080;">23</span> }</span></code></pre>
+
+<p><span style="color: #0000ff;"><strong><em><span style="text-decoration: underline;"><span style="font-size: 18px;">十六、tring.split(String regex)部分关键字需要转译</span></span></em></strong></span></p>
+<p><span style="font-size: 15px;">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; 使用字符串String 的plit 方法时，传入的分隔字符串是正则表达式，则部分关键字（比如 .[]()\| 等）需要转义。</span></p>
+<p><span style="font-size: 16px;"><em><strong><span style="color: #008000;">反例：</span></strong></em></span></p>
+<src class="cnblogs_code">
+<pre><code><span style="font-size: 15px;"><span style="color: #008080;">1</span> <span style="color: #008000;">//</span><span style="color: #008000;"> String.split(String regex) 反例</span>
+<span style="color: #008080;">2</span>         String[] split = "a.ab.abc".split("."<span style="color: #000000;">);
+</span><span style="color: #008080;">3</span>         System.out.println(Arrays.toString(split));   <span style="color: #008000;">//</span><span style="color: #008000;"> 结果为[]</span>
+<span style="color: #008080;">4</span> 
+<span style="color: #008080;">5</span>         String[] split1 = "a|ab|abc".split("|"<span style="color: #000000;">);
+</span><span style="color: #008080;">6</span>         System.out.println(Arrays.toString(split1));  <span style="color: #008000;">//</span><span style="color: #008000;"> 结果为["a", "|", "a", "b", "|", "a", "b", "c"]</span></span></code></pre>
+
+<p><span style="color: #008000;"><strong><em><span style="font-size: 16px;">正例：</span></em></strong></span></p>
+<src class="cnblogs_code">
+<pre><code><span style="font-size: 15px;"><span style="color: #008080;">1</span>  <span style="color: #008000;">//</span><span style="color: #008000;"> String.split(String regex) 正例
+</span><span style="color: #008080;">2</span>         <span style="color: #008000;">//</span><span style="color: #008000;"> . 需要转译</span>
+<span style="color: #008080;">3</span>         String[] split2 = "a.ab.abc".split("\\."<span style="color: #000000;">);
+</span><span style="color: #008080;">4</span>         System.out.println(Arrays.toString(split2));  <span style="color: #008000;">//</span><span style="color: #008000;"> 结果为["a", "ab", "abc"]
+</span><span style="color: #008080;">5</span> 
+<span style="color: #008080;">6</span>         <span style="color: #008000;">//</span><span style="color: #008000;"> | 需要转译</span>
+<span style="color: #008080;">7</span>         String[] split3 = "a|ab|abc".split("\\|"<span style="color: #000000;">);
+</span><span style="color: #008080;">8</span>         System.out.println(Arrays.toString(split3));  <span style="color: #008000;">//</span><span style="color: #008000;"> 结果为["a", "ab", "abc"]</span></span></code></pre>
+
+<p style="text-align: center;"><span style="color: #008000; font-size: 14px;"><strong>图2. String.split(String regex) 正反例</strong></span></p>
+<p><span style="font-size: 15px;"><img style="display: block; margin-left: auto; margin-right: auto;" src="./images/如何更规范化编写Java 代码1.png" alt="" /></span></p>
+<p>&nbsp;</p>
+<p>&nbsp;</p>
+<p style="text-align: center;"><span style="color: #333300; font-size: 18pt;"><strong><em>拥有一切的人才更怕失去</em></strong></span></p>
+<p>&nbsp;</p>
+<p><span style="font-size: 15px;">&nbsp;</span></p>
+
+</div><hr><script charset='utf-8' src='../../js/sming.js'></script></body></html>

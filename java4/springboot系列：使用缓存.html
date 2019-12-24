@@ -1,0 +1,47 @@
+<html><head><meta charset='utf-8'><meta name='viewport' content='width=device-width, initial-scale=1'>
+<meta name='applicable-device' content='pc'><meta name='keywords' content='电脑,电脑讲解,电脑技术,编程,电脑故障维修springboot系列：使用缓存' />
+<script src='../../highlight/highlight.pack.js'></script>
+<link rel='stylesheet' type='text/css' href='../../highlight/styles/monokai.css'/>
+
+<link rel='stylesheet' href='../../fenxiang/dist/css/share.min.css'>
+<script src='../../fenxiang/src/js/social-share.js'></script>
+<script src='../../fenxiang/src/js/qrcode.js'></script>
+
+</head><body><script>hljs.initHighlightingOnLoad();</script><script>
+var system ={};  
+var p = navigator.platform;       
+system.win = p.indexOf('Win') == 0;  
+system.mac = p.indexOf('Mac') == 0;  
+system.x11 = (p == 'X11') || (p.indexOf('Linux') == 0);     
+if(system.win||system.mac||system.xll){
+document.write("<link href='../css/3.css' rel='stylesheet' type='text/css'>");}else{ document.write("<link href='../css/3wap.css' rel='stylesheet' type='text/css'>");}</script><script src='../../js/3.js'></script><div class='div2'><div class='heading_nav'><ul><div><li><a href='../../index.html'>首页</a></li>
+</div><div onclick='hidden1()' >分享</div>
+</ul></div></div>
+<div id='heading_nav2'> 
+<li class='row' >
+<div class='social-share' data-mode='prepend'><a href='javascript:' class='social-share-icon icon-heart'></a></div></li></div><script charset='utf-8' src='../../3/js/hengfu.js'></script><script charset='utf-8' src='../../3/js/hengfu2.js'></script><hr><div class='div1'><div class='biaoti'><center>springboot系列：使用缓存</center></div><div class='banquan'>原文出处:本文由博客园博主_ZXP提供。<br/>
+原文连接:https://www.cnblogs.com/z-x-p/p/11495880.html</div><br>
+    <p>前言：springboot已经为我们实现了抽象的api接口，因此当我们使用不同的缓存时，只是配置有可能有点区别（比如ehcache和Redis），但是在程序中使用缓存的方法是一样的。</p>
+<p>&nbsp;</p>
+<h1>1.springboot使用ehcache缓存</h1>
+<h2>1.步骤：　　　</h2>
+<p>1.在pom.xml中配置2个依赖，添加spring-boot-starter-cache启动器，以及ehcache。</p>
+<p>　　<span style="color: #666699;">&lt;!-- ehcache --&gt;</span><br /><span style="color: #666699;">		　　&lt;dependency&gt;	</span><br /><span style="color: #666699;">    		　　　　&lt;groupId&gt;net.sf.ehcache&lt;/groupId&gt;</span><br /><span style="color: #666699;">    		　　　　&lt;artifactId&gt;ehcache&lt;/artifactId&gt;</span><br /><span style="color: #666699;">    		　　　　&lt;version&gt;2.10.4&lt;/version&gt;</span><br /><span style="color: #666699;">		　　&lt;/dependency&gt;</span></p>
+<p><span style="color: #666699;">　　&lt;!-- 缓存支持启动器 --&gt;</span><br /><span style="color: #666699;">		　　&lt;dependency&gt;</span><br /><span style="color: #666699;">			　　　　&lt;groupId&gt;org.springframework.boot&lt;/groupId&gt;</span><br /><span style="color: #666699;">			　　　　&lt;artifactId&gt;spring-boot-starter-cache&lt;/artifactId&gt;</span><br /><span style="color: #666699;">		　　&lt;/dependency&gt;</span></p>
+<p><br />2.在resources目录下创建ehcache.xml配置文件。</p>
+<p>　　ehcache.xml配置文件格式如下（该配置文件没有文档约束）：</p>
+<p>　　<span style="color: #3366ff;">&lt;ehcache&gt;</span></p>
+<p>&nbsp;</p>
+<p><span style="color: #3366ff;">    　　　　&lt;diskStore path="java.io.tmpdir"/&gt;</span></p>
+<p><span style="color: #3366ff;">    　　　　&lt;defaultCache</span><br /><span style="color: #3366ff;">        　　　　　　maxElementsInMemory="10000"</span><br /><span style="color: #3366ff;">        　　　　　　eternal="false"</span><br /><span style="color: #3366ff;">        　　　　　　timeToIdleSeconds="120"</span><br /><span style="color: #3366ff;">        　　　　　　timeToLiveSeconds="120"</span><br /><span style="color: #3366ff;">        　　　　　　overflowToDisk="true"</span><br /><span style="color: #3366ff;">        　　　　/&gt;</span></p>
+<p><span style="color: #3366ff;">    　　　　&lt;cache name="sampleCache1"</span><br /><span style="color: #3366ff;">        　　　　　　maxElementsInMemory="10000"</span><br /><span style="color: #3366ff;">        　　　　　　eternal="false"</span><br /><span style="color: #3366ff;">        　　　　　　timeToIdleSeconds="300"</span><br /><span style="color: #3366ff;">        　　　　　　timeToLiveSeconds="600"</span><br /><span style="color: #3366ff;">        　　　　　　overflowToDisk="true"</span><br /><span style="color: #3366ff;">        　　　　/&gt;</span></p>
+<p><span style="color: #3366ff;">　　&lt;ehcache&gt;</span><br />3.在application.properties文件中指定ehcache的配置文件ehcache.xml，设置spring.cache.ehcache.config=ehcache.xml。</p>
+<p>　　<span style="color: #008080;">spring.cache.ehcache.config=ehcache.xml</span><br />4.在主类上添加自动配置并启动缓存的注解@EnableCaching。</p>
+<p>5.在类上配置缓存策略（通常在service层）。</p>
+<p>　　<span style="color: #ff0000;">@CacheConfig</span>：配置用于指定ehcache.xml文件配置的缓存策略；该注解用在类上。</p>
+<p>　　<span style="color: #ff0000;">@Cacheable</span>：存取缓存；主要用在查找方法上。</p>
+<p>　　<span style="color: #ff0000;">@CachePut</span>：修改缓存，如果不存在就创建；主要用在修改方法上。</p>
+<p>　　<span style="color: #ff0000;">@CacheEvict</span>：删除缓存，当数据删除时，如果缓存还在，就必须删除；主要用在删除方法上。</p>
+<p>　<span style="color: #ff0000;"><strong>　注意：缓存的pojo类需要实现序列化</strong></span></p>
+
+</div><hr><script charset='utf-8' src='../../js/sming.js'></script></body></html>

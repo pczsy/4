@@ -1,0 +1,215 @@
+<html><head><meta charset='utf-8'><meta name='viewport' content='width=device-width, initial-scale=1'>
+<meta name='applicable-device' content='pc'><meta name='keywords' content='电脑,电脑讲解,电脑技术,编程,电脑故障维修Spring Boot 2 使用自定义配置' />
+<script src='../../highlight/highlight.pack.js'></script>
+<link rel='stylesheet' type='text/css' href='../../highlight/styles/monokai.css'/>
+
+<link rel='stylesheet' href='../../fenxiang/dist/css/share.min.css'>
+<script src='../../fenxiang/src/js/social-share.js'></script>
+<script src='../../fenxiang/src/js/qrcode.js'></script>
+
+</head><body><script>hljs.initHighlightingOnLoad();</script><script>
+var system ={};  
+var p = navigator.platform;       
+system.win = p.indexOf('Win') == 0;  
+system.mac = p.indexOf('Mac') == 0;  
+system.x11 = (p == 'X11') || (p.indexOf('Linux') == 0);     
+if(system.win||system.mac||system.xll){
+document.write("<link href='../css/3.css' rel='stylesheet' type='text/css'>");}else{ document.write("<link href='../css/3wap.css' rel='stylesheet' type='text/css'>");}</script><script src='../../js/3.js'></script><div class='div2'><div class='heading_nav'><ul><div><li><a href='../../index.html'>首页</a></li>
+</div><div onclick='hidden1()' >分享</div>
+</ul></div></div>
+<div id='heading_nav2'> 
+<li class='row' >
+<div class='social-share' data-mode='prepend'><a href='javascript:' class='social-share-icon icon-heart'></a></div></li></div><script charset='utf-8' src='../../3/js/hengfu.js'></script><script charset='utf-8' src='../../3/js/hengfu2.js'></script><hr><div class='div1'><div class='biaoti'><center>Spring Boot 2 使用自定义配置</center></div><div class='banquan'>原文出处:本文由博客园博主gdjlc提供。<br/>
+原文连接:https://www.cnblogs.com/gdjlc/p/11588350.html</div><br>
+    <p>在application.yml定义配置后，可以使用Environment来读取配置，也可以使用@Value注解让业务代码去读取配置。<br />如果属性较多，可以定义属性映射对象。</p>
+<p><span style="font-size: 13px; color: #888888;">开发环境：IntelliJ IDEA 2019.2.2</span><br /><span style="font-size: 13px; color: #888888;">Spring Boot版本：2.1.8</span></p>
+<p>新建一个名称为demo的Spring Boot项目。</p>
+<p><span style="font-size: 16px;"><strong>一、使用@Value注解</strong></span></p>
+<p><span style="color: #0000ff;">1、application.yml配置为</span></p>
+<src class="cnblogs_code">
+<pre><code>jdbc:
+  url: localhost:3306</code></pre>
+
+<p><span style="color: #0000ff;">2、添加一个类 ValueProp.java</span></p>
+<p>注解@Component把类ValueProp注册到Spring容器中，@Value的值对应application.yml中的配置。</p>
+<src class="cnblogs_code">
+<pre><code><span style="color: #0000ff;">package</span><span style="color: #000000;"> com.example.demo;
+
+</span><span style="color: #0000ff;">import</span><span style="color: #000000;"> org.springframework.beans.factory.annotation.Value;
+</span><span style="color: #0000ff;">import</span><span style="color: #000000;"> org.springframework.stereotype.Component;
+
+@Component
+</span><span style="color: #0000ff;">public</span> <span style="color: #0000ff;">class</span><span style="color: #000000;"> ValueProp {
+
+    @Value(</span>"${jdbc.url}"<span style="color: #000000;">)
+    </span><span style="color: #0000ff;">private</span><span style="color: #000000;"> String jdbcUrl;
+
+    </span><span style="color: #0000ff;">public</span><span style="color: #000000;"> String getJdbcUrl() {
+        </span><span style="color: #0000ff;">return</span><span style="color: #000000;"> jdbcUrl;
+    }
+}</span></code></pre>
+
+<p><span style="color: #0000ff;">3、修改启动类代码 DemoApplication.java</span></p>
+<src class="cnblogs_code">
+<pre><code><span style="color: #0000ff;">package</span><span style="color: #000000;"> com.example.demo;
+
+</span><span style="color: #0000ff;">import</span><span style="color: #000000;"> org.springframework.beans.factory.annotation.Autowired;
+</span><span style="color: #0000ff;">import</span><span style="color: #000000;"> org.springframework.boot.SpringApplication;
+</span><span style="color: #0000ff;">import</span><span style="color: #000000;"> org.springframework.boot.autoconfigure.SpringBootApplication;
+</span><span style="color: #0000ff;">import</span><span style="color: #000000;"> org.springframework.web.bind.annotation.RequestMapping;
+</span><span style="color: #0000ff;">import</span><span style="color: #000000;"> org.springframework.web.bind.annotation.RestController;
+
+@SpringBootApplication
+@RestController
+</span><span style="color: #0000ff;">public</span> <span style="color: #0000ff;">class</span><span style="color: #000000;"> DemoApplication  {
+
+    </span><span style="color: #0000ff;">public</span> <span style="color: #0000ff;">static</span> <span style="color: #0000ff;">void</span><span style="color: #000000;"> main(String[] args) {
+        SpringApplication.run(DemoApplication.</span><span style="color: #0000ff;">class</span><span style="color: #000000;">, args);
+    }
+
+    @Autowired
+    </span><span style="color: #0000ff;">private</span><span style="color: #000000;"> ValueProp valueProp;
+
+    @RequestMapping(</span>"/"<span style="color: #000000;">)
+    </span><span style="color: #0000ff;">public</span><span style="color: #000000;"> String index(){
+        </span><span style="color: #0000ff;">return</span><span style="color: #000000;"> valueProp.getJdbcUrl();
+    }
+}</span></code></pre>
+
+<p>项目结构图</p>
+<p><img src="./images/Spring Boot 2 使用自定义配置0.png" alt="" />&nbsp;</p>
+<p>访问：http://localhost:8080/<br />页面显示：localhost:3306</p>
+<p><span style="font-size: 16px;"><strong>二、定义属性映射对象</strong></span></p>
+<p>如果上面例子application.yml里面的jdbc下面有多个属性时，直接使用@Value会造成代码冗余。<br />可以新建一个属性映射类来指定配置前缀jdbc。</p>
+<p><span style="color: #0000ff;">1、application.yml配置为</span></p>
+<p>备注：roles下面是一个字符串集合，需要使用 - 格式。</p>
+<src class="cnblogs_code">
+<pre><code>jdbc:
+  url: localhost:3306
+  user: root
+  password: 123456
+  db:
+    name: mysql
+    version: 1.0
+    roles:
+      - manager
+      - client</code></pre>
+
+<p><span style="color: #0000ff;">2、新建一个属性映射类 JdbcProp.cs</span></p>
+<p>使用注解@ConfigurationProperties声明该类的配置前缀为&ldquo;jdbc&rdquo;。</p>
+<src class="cnblogs_code">
+<pre><code><span style="color: #0000ff;">package</span><span style="color: #000000;"> com.example.demo;
+
+</span><span style="color: #0000ff;">import</span><span style="color: #000000;"> org.springframework.boot.context.properties.ConfigurationProperties;
+
+</span><span style="color: #0000ff;">import</span><span style="color: #000000;"> java.util.List;
+
+@ConfigurationProperties(prefix </span>= "jdbc"<span style="color: #000000;">)
+</span><span style="color: #0000ff;">public</span> <span style="color: #0000ff;">class</span><span style="color: #000000;"> JdbcProp {
+    </span><span style="color: #0000ff;">private</span><span style="color: #000000;"> String url;
+    </span><span style="color: #0000ff;">private</span><span style="color: #000000;"> String user;
+    </span><span style="color: #0000ff;">private</span><span style="color: #000000;"> String password;
+    </span><span style="color: #0000ff;">private</span><span style="color: #000000;"> Database db;
+
+    </span><span style="color: #0000ff;">public</span><span style="color: #000000;"> String getUrl() {
+        </span><span style="color: #0000ff;">return</span><span style="color: #000000;"> url;
+    }
+    </span><span style="color: #0000ff;">public</span> <span style="color: #0000ff;">void</span><span style="color: #000000;"> setUrl(String url) {
+        </span><span style="color: #0000ff;">this</span>.url =<span style="color: #000000;"> url;
+    }
+    </span><span style="color: #0000ff;">public</span><span style="color: #000000;"> String getUser() {
+        </span><span style="color: #0000ff;">return</span><span style="color: #000000;"> user;
+    }
+    </span><span style="color: #0000ff;">public</span> <span style="color: #0000ff;">void</span><span style="color: #000000;"> setUser(String user) {
+        </span><span style="color: #0000ff;">this</span>.user =<span style="color: #000000;"> user;
+    }
+    </span><span style="color: #0000ff;">public</span><span style="color: #000000;"> String getPassword() {
+        </span><span style="color: #0000ff;">return</span><span style="color: #000000;"> password;
+    }
+    </span><span style="color: #0000ff;">public</span> <span style="color: #0000ff;">void</span><span style="color: #000000;"> setPassword(String password) {
+        </span><span style="color: #0000ff;">this</span>.password =<span style="color: #000000;"> password;
+    }
+    </span><span style="color: #0000ff;">public</span><span style="color: #000000;"> Database getDb() {
+        </span><span style="color: #0000ff;">return</span><span style="color: #000000;"> db;
+    }
+    </span><span style="color: #0000ff;">public</span> <span style="color: #0000ff;">void</span><span style="color: #000000;"> setDb(Database db) {
+        </span><span style="color: #0000ff;">this</span>.db =<span style="color: #000000;"> db;
+    }
+
+    </span><span style="color: #0000ff;">public</span> <span style="color: #0000ff;">static</span> <span style="color: #0000ff;">class</span><span style="color: #000000;"> Database{
+        </span><span style="color: #0000ff;">private</span><span style="color: #000000;"> String name;
+        </span><span style="color: #0000ff;">private</span><span style="color: #000000;"> String version;
+        </span><span style="color: #0000ff;">private</span> List&lt;String&gt;<span style="color: #000000;"> roles;
+
+        </span><span style="color: #0000ff;">public</span><span style="color: #000000;"> String getName() {
+            </span><span style="color: #0000ff;">return</span><span style="color: #000000;"> name;
+        }
+        </span><span style="color: #0000ff;">public</span> <span style="color: #0000ff;">void</span><span style="color: #000000;"> setName(String name) {
+            </span><span style="color: #0000ff;">this</span>.name =<span style="color: #000000;"> name;
+        }
+        </span><span style="color: #0000ff;">public</span><span style="color: #000000;"> String getVersion() {
+            </span><span style="color: #0000ff;">return</span><span style="color: #000000;"> version;
+        }
+        </span><span style="color: #0000ff;">public</span> <span style="color: #0000ff;">void</span><span style="color: #000000;"> setVersion(String version) {
+            </span><span style="color: #0000ff;">this</span>.version =<span style="color: #000000;"> version;
+        }
+        </span><span style="color: #0000ff;">public</span> List&lt;String&gt;<span style="color: #000000;"> getRoles() {
+            </span><span style="color: #0000ff;">return</span><span style="color: #000000;"> roles;
+        }
+        </span><span style="color: #0000ff;">public</span> <span style="color: #0000ff;">void</span> setRoles(List&lt;String&gt;<span style="color: #000000;"> roles) {
+            </span><span style="color: #0000ff;">this</span>.roles =<span style="color: #000000;"> roles;
+        }
+    }
+}</span></code></pre>
+
+<p><span style="color: #0000ff;">3、新建一个配置类 JdbcConfig.java</span></p>
+<p>目的是让Spring容器知道有这么一个自定义的属性映射对象。</p>
+<src class="cnblogs_code">
+<pre><code><span style="color: #0000ff;">package</span><span style="color: #000000;"> com.example.demo;
+
+</span><span style="color: #0000ff;">import</span><span style="color: #000000;"> org.springframework.boot.context.properties.EnableConfigurationProperties;
+</span><span style="color: #0000ff;">import</span><span style="color: #000000;"> org.springframework.context.annotation.Configuration;
+
+@Configuration
+@EnableConfigurationProperties(value </span>= JdbcProp.<span style="color: #0000ff;">class</span><span style="color: #000000;">)
+</span><span style="color: #0000ff;">public</span> <span style="color: #0000ff;">class</span><span style="color: #000000;"> JdbcConfig {
+}</span></code></pre>
+
+<p>4、修改启动类代码 DemoApplication.java</p>
+<src class="cnblogs_code">
+<pre><code><span style="color: #0000ff;">package</span><span style="color: #000000;"> com.example.demo;
+
+</span><span style="color: #0000ff;">import</span><span style="color: #000000;"> org.springframework.beans.factory.annotation.Autowired;
+</span><span style="color: #0000ff;">import</span><span style="color: #000000;"> org.springframework.boot.SpringApplication;
+</span><span style="color: #0000ff;">import</span><span style="color: #000000;"> org.springframework.boot.autoconfigure.SpringBootApplication;
+</span><span style="color: #0000ff;">import</span><span style="color: #000000;"> org.springframework.http.MediaType;
+</span><span style="color: #0000ff;">import</span><span style="color: #000000;"> org.springframework.web.bind.annotation.RequestMapping;
+</span><span style="color: #0000ff;">import</span><span style="color: #000000;"> org.springframework.web.bind.annotation.RestController;
+
+@SpringBootApplication
+@RestController
+</span><span style="color: #0000ff;">public</span> <span style="color: #0000ff;">class</span><span style="color: #000000;"> DemoApplication  {
+
+    </span><span style="color: #0000ff;">public</span> <span style="color: #0000ff;">static</span> <span style="color: #0000ff;">void</span><span style="color: #000000;"> main(String[] args) {
+        SpringApplication.run(DemoApplication.</span><span style="color: #0000ff;">class</span><span style="color: #000000;">, args);
+    }
+
+    @Autowired
+    </span><span style="color: #0000ff;">private</span><span style="color: #000000;"> JdbcProp jdbcProp;
+
+    @RequestMapping(value </span>= "/", produces =<span style="color: #000000;"> MediaType.APPLICATION_JSON_VALUE)
+    </span><span style="color: #0000ff;">public</span><span style="color: #000000;"> JdbcProp index(){
+        </span><span style="color: #0000ff;">return</span><span style="color: #000000;"> jdbcProp;
+    }
+}</span></code></pre>
+
+<p>项目结构图</p>
+<p><img src="./images/Spring Boot 2 使用自定义配置1.png" alt="" />&nbsp;&nbsp;</p>
+<p>访问：http://localhost:8080/</p>
+<p>页面显示：</p>
+<src class="cnblogs_code">
+<pre><code>{"url":"localhost:3306","user":"root","password":"123456","db":{"name":"mysql","version":"1.0","roles":["manager","client"]}}</code></pre>
+
+<p>&nbsp;</p>
+
+</div><hr><script charset='utf-8' src='../../js/sming.js'></script></body></html>

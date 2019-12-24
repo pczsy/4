@@ -1,0 +1,195 @@
+<html><head><meta charset='utf-8'><meta name='viewport' content='width=device-width, initial-scale=1'>
+<meta name='applicable-device' content='pc'><meta name='keywords' content='电脑,电脑讲解,电脑技术,编程,电脑故障维修千万级流量架构下的负载均衡解析' />
+<script src='../../highlight/highlight.pack.js'></script>
+<link rel='stylesheet' type='text/css' href='../../highlight/styles/monokai.css'/>
+
+<link rel='stylesheet' href='../../fenxiang/dist/css/share.min.css'>
+<script src='../../fenxiang/src/js/social-share.js'></script>
+<script src='../../fenxiang/src/js/qrcode.js'></script>
+
+</head><body><script>hljs.initHighlightingOnLoad();</script><script>
+var system ={};  
+var p = navigator.platform;       
+system.win = p.indexOf('Win') == 0;  
+system.mac = p.indexOf('Mac') == 0;  
+system.x11 = (p == 'X11') || (p.indexOf('Linux') == 0);     
+if(system.win||system.mac||system.xll){
+document.write("<link href='../css/3.css' rel='stylesheet' type='text/css'>");}else{ document.write("<link href='../css/3wap.css' rel='stylesheet' type='text/css'>");}</script><script src='../../js/3.js'></script><div class='div2'><div class='heading_nav'><ul><div><li><a href='../../index.html'>首页</a></li>
+</div><div onclick='hidden1()' >分享</div>
+</ul></div></div>
+<div id='heading_nav2'> 
+<li class='row' >
+<div class='social-share' data-mode='prepend'><a href='javascript:' class='social-share-icon icon-heart'></a></div></li></div><script charset='utf-8' src='../../3/js/hengfu.js'></script><script charset='utf-8' src='../../3/js/hengfu2.js'></script><hr><div class='div1'><div class='biaoti'><center>千万级流量架构下的负载均衡解析</center></div><div class='banquan'>原文出处:本文由博客园博主Java博客手留余香提供。<br/>
+原文连接:https://www.cnblogs.com/yuxiang1/p/11726920.html</div><br>
+    <blockquote>
+<p><span style="font-size: 16px;"><span style="color: #ff6600;">本人免费整理了Java高级资料，涵盖了Java、Redis、MongoDB、MySQL、Zookeeper、Spring Cloud、Dubbo高并发分布式等教程，一共30G，需要自己领取。</span><br /><span style="color: #ff6600;">传送门：</span><a class=" wrap external" href="https://link.zhihu.com/?target=https%3A//links.jianshu.com/go%3Fto%3Dhttps%253A%252F%252Flink.zhihu.com%252F%253Ftarget%253Dhttps%25253A%252F%252Fmp.weixin.qq.com%252Fs%252FJzddfH-7yNudmkjT0IRL8Q" rel="nofollow noreferrer" target="_blank" data-za-detail-view-id="1043">https://mp.weixin.qq.com/s/JzddfH-7yNudmkjT0IRL8Q</a></span></p>
+</blockquote>
+<ul>
+<li></li>
+<li><span style="font-size: 16px;">一、负载均衡</span></li>
+<li><span style="font-size: 16px;">负载均衡算法</span></li>
+<li><span style="font-size: 16px;">转发实现</span></li>
+<li><span style="font-size: 16px;">二、集群下的 Session 管理</span></li>
+<li><span style="font-size: 16px;">Sticky Session</span></li>
+<li><span style="font-size: 16px;">Session Replication</span></li>
+<li><span style="font-size: 16px;">Session Server</span></li>
+</ul>
+<h2><span style="font-size: 16px;">一、负载均衡</span></h2>
+<p><span style="font-size: 16px;">集群中的应用服务器（节点）通常被设计成无状态，用户可以请求任何一个节点。</span></p>
+<p><span style="font-size: 16px;">负载均衡器会根据集群中每个节点的负载情况，将用户请求转发到合适的节点上。</span></p>
+<p><span style="font-size: 16px;">负载均衡器可以用来实现高可用以及伸缩性：</span></p>
+<ul>
+<li><span style="font-size: 16px;">高可用：当某个节点故障时，负载均衡器会将用户请求转发到另外的节点上，从而保证所有服务持续可用；</span></li>
+<li><span style="font-size: 16px;">伸缩性：根据系统整体负载情况，可以很容易地添加或移除节点。</span></li>
+</ul>
+<p><span style="font-size: 16px;">负载均衡器运行过程包含两个部分：</span></p>
+<ol>
+<li><span style="font-size: 16px;">根据负载均衡算法得到转发的节点；</span></li>
+<li><span style="font-size: 16px;">进行转发。</span></li>
+</ol>
+<h2><span style="font-size: 16px;">负载均衡算法</span></h2>
+<h3><span style="font-size: 16px;">1. 轮询（Round Robin）</span></h3>
+<p><span style="font-size: 16px;">轮询算法把每个请求轮流发送到每个服务器上。</span></p>
+<p><span style="font-size: 16px;">下图中，一共有 6 个客户端产生了 6 个请求，这 6 个请求按 (1, 2, 3, 4, 5, 6) 的顺序发送。(1, 3, 5) 的请求会被发送到服务器 1，(2, 4, 6) 的请求会被发送到服务器 2。</span></p>
+<p class="ztext-empty-paragraph"><span style="font-size: 16px;">&nbsp;</span></p>
+<p><span style="font-size: 16px;"><img class="origin_image zh-lightbox-thumb lazy" src="./images/千万级流量架构下的负载均衡解析0.png" alt="" width="768" data-caption="" data-size="normal" data-rawwidth="768" data-rawheight="594" data-original="https://pic3.zhimg.com/v2-2f862b91c4512171653a95b7707e838a_r.jpg" data-actualsrc="https://pic3.zhimg.com/v2-2f862b91c4512171653a95b7707e838a_b.jpg" data-lazy-status="ok" /></span></p>
+<p class="ztext-empty-paragraph"><span style="font-size: 16px;">&nbsp;</span></p>
+<p class="ztext-empty-paragraph"><span style="font-size: 16px;">&nbsp;</span></p>
+<p><span style="font-size: 16px;">该算法比较适合每个服务器的性能差不多的场景，如果有性能存在差异的情况下，那么性能较差的服务器可能无法承担过大的负载（下图的 Server 2）。</span></p>
+<p class="ztext-empty-paragraph"><span style="font-size: 16px;">&nbsp;</span></p>
+<p><span style="font-size: 16px;"><img class="origin_image zh-lightbox-thumb lazy" src="./images/千万级流量架构下的负载均衡解析1.png" alt="" width="728" data-caption="" data-size="normal" data-rawwidth="728" data-rawheight="570" data-original="https://pic1.zhimg.com/v2-ba9f9fc4b23a9174ef3d99837cd7afb0_r.jpg" data-actualsrc="https://pic1.zhimg.com/v2-ba9f9fc4b23a9174ef3d99837cd7afb0_b.jpg" data-lazy-status="ok" /></span></p>
+<p class="ztext-empty-paragraph"><span style="font-size: 16px;">&nbsp;</span></p>
+<p class="ztext-empty-paragraph"><span style="font-size: 16px;">&nbsp;</span></p>
+<h3><span style="font-size: 16px;">2. 加权轮询（Weighted Round Robbin）</span></h3>
+<p><span style="font-size: 16px;">加权轮询是在轮询的基础上，根据服务器的性能差异，为服务器赋予一定的权值，性能高的服务器分配更高的权值。</span></p>
+<p><span style="font-size: 16px;">例如下图中，服务器 1 被赋予的权值为 5，服务器 2 被赋予的权值为 1，那么 (1, 2, 3, 4, 5) 请求会被发送到服务器 1，(6) 请求会被发送到服务器 2。</span></p>
+<p class="ztext-empty-paragraph"><span style="font-size: 16px;">&nbsp;</span></p>
+<p><span style="font-size: 16px;"><img class="origin_image zh-lightbox-thumb lazy" src="./images/千万级流量架构下的负载均衡解析2.png" alt="" width="733" data-caption="" data-size="normal" data-rawwidth="733" data-rawheight="561" data-original="https://pic1.zhimg.com/v2-2ddaa4eb66eaa6f439e10d87eb2ce29c_r.jpg" data-actualsrc="https://pic1.zhimg.com/v2-2ddaa4eb66eaa6f439e10d87eb2ce29c_b.jpg" data-lazy-status="ok" /></span></p>
+<p class="ztext-empty-paragraph"><span style="font-size: 16px;">&nbsp;</span></p>
+<p class="ztext-empty-paragraph"><span style="font-size: 16px;">&nbsp;</span></p>
+<h3><span style="font-size: 16px;">3. 最少连接（least Connections）</span></h3>
+<p><span style="font-size: 16px;">由于每个请求的连接时间不一样，使用轮询或者加权轮询算法的话，可能会让一台服务器当前连接数过大，而另一台服务器的连接过小，造成负载不均衡。</span></p>
+<p><span style="font-size: 16px;">例如下图中，(1, 3, 5) 请求会被发送到服务器 1，但是 (1, 3) 很快就断开连接，此时只有 (5) 请求连接服务器 1；(2, 4, 6) 请求被发送到服务器 2，只有 (2) 的连接断开，此时 (6, 4) 请求连接服务器 2。该系统继续运行时，服务器 2 会承担过大的负载。</span></p>
+<p class="ztext-empty-paragraph"><span style="font-size: 16px;">&nbsp;</span></p>
+<p><span style="font-size: 16px;"><img class="origin_image zh-lightbox-thumb lazy" src="./images/千万级流量架构下的负载均衡解析3.png" alt="" width="718" data-caption="" data-size="normal" data-rawwidth="718" data-rawheight="591" data-original="https://pic3.zhimg.com/v2-a3e9655ba8fae1e7dd42cba5204a8e9e_r.jpg" data-actualsrc="https://pic3.zhimg.com/v2-a3e9655ba8fae1e7dd42cba5204a8e9e_b.jpg" data-lazy-status="ok" /></span></p>
+<p class="ztext-empty-paragraph"><span style="font-size: 16px;">&nbsp;</span></p>
+<p class="ztext-empty-paragraph"><span style="font-size: 16px;">&nbsp;</span></p>
+<p><span style="font-size: 16px;">最少连接算法就是将请求发送给当前最少连接数的服务器上。</span></p>
+<p><span style="font-size: 16px;">例如下图中，服务器 1 当前连接数最小，那么新到来的请求 6 就会被发送到服务器 1 上。</span></p>
+<p class="ztext-empty-paragraph"><span style="font-size: 16px;">&nbsp;</span></p>
+<p><span style="font-size: 16px;"><img class="origin_image zh-lightbox-thumb lazy" src="./images/千万级流量架构下的负载均衡解析4.png" alt="" width="721" data-caption="" data-size="normal" data-rawwidth="721" data-rawheight="560" data-original="https://pic3.zhimg.com/v2-ecf53e6a50fe8cf788f363ed99feb202_r.jpg" data-actualsrc="https://pic3.zhimg.com/v2-ecf53e6a50fe8cf788f363ed99feb202_b.jpg" data-lazy-status="ok" /></span></p>
+<p class="ztext-empty-paragraph"><span style="font-size: 16px;">&nbsp;</span></p>
+<p class="ztext-empty-paragraph"><span style="font-size: 16px;">&nbsp;</span></p>
+<h3><span style="font-size: 16px;">4. 加权最少连接（Weighted Least Connection）</span></h3>
+<p><span style="font-size: 16px;">在最少连接的基础上，根据服务器的性能为每台服务器分配权重，再根据权重计算出每台服务器能处理的连接数。</span></p>
+<h3><span style="font-size: 16px;">5. 随机算法（Random）</span></h3>
+<p><span style="font-size: 16px;">把请求随机发送到服务器上。</span></p>
+<p><span style="font-size: 16px;">和轮询算法类似，该算法比较适合服务器性能差不多的场景。</span></p>
+<p class="ztext-empty-paragraph"><span style="font-size: 16px;">&nbsp;</span></p>
+<p><span style="font-size: 16px;"><img class="origin_image zh-lightbox-thumb lazy" src="./images/千万级流量架构下的负载均衡解析5.png" alt="" width="700" data-caption="" data-size="normal" data-rawwidth="700" data-rawheight="566" data-original="https://pic3.zhimg.com/v2-21615afca09929e3d04d3570aea736ae_r.jpg" data-actualsrc="https://pic3.zhimg.com/v2-21615afca09929e3d04d3570aea736ae_b.jpg" data-lazy-status="ok" /></span></p>
+<p class="ztext-empty-paragraph"><span style="font-size: 16px;">&nbsp;</span></p>
+<p class="ztext-empty-paragraph"><span style="font-size: 16px;">&nbsp;</span></p>
+<h3><span style="font-size: 16px;">6. 源地址哈希法 (IP Hash)</span></h3>
+<p><span style="font-size: 16px;">源地址哈希通过对客户端 IP 计算哈希值之后，再对服务器数量取模得到目标服务器的序号。</span></p>
+<p><span style="font-size: 16px;">可以保证同一 IP 的客户端的请求会转发到同一台服务器上，用来实现会话粘滞（Sticky Session）</span></p>
+<p class="ztext-empty-paragraph"><span style="font-size: 16px;">&nbsp;</span></p>
+<p><span style="font-size: 16px;"><img class="origin_image zh-lightbox-thumb lazy" src="./images/千万级流量架构下的负载均衡解析6.png" alt="" width="777" data-caption="" data-size="normal" data-rawwidth="777" data-rawheight="595" data-original="https://pic4.zhimg.com/v2-625323ed977e431fa022c06d34484593_r.jpg" data-actualsrc="https://pic4.zhimg.com/v2-625323ed977e431fa022c06d34484593_b.jpg" data-lazy-status="ok" /></span></p>
+<p class="ztext-empty-paragraph"><span style="font-size: 16px;">&nbsp;</span></p>
+<p class="ztext-empty-paragraph"><span style="font-size: 16px;">&nbsp;</span></p>
+<h2><span style="font-size: 16px;">转发实现</span></h2>
+<h3><span style="font-size: 16px;">1. HTTP 重定向</span></h3>
+<p><span style="font-size: 16px;">HTTP 重定向负载均衡服务器使用某种负载均衡算法计算得到服务器的 IP 地址之后，将该地址写入 HTTP 重定向报文中，状态码为 302。客户端收到重定向报文之后，需要重新向服务器发起请求。</span></p>
+<p><span style="font-size: 16px;">缺点：</span></p>
+<ul>
+<li><span style="font-size: 16px;">需要两次请求，因此访问延迟比较高；</span></li>
+<li><span style="font-size: 16px;">HTTP 负载均衡器处理能力有限，会限制集群的规模。</span></li>
+</ul>
+<p><span style="font-size: 16px;">该负载均衡转发的缺点比较明显，实际场景中很少使用它。</span></p>
+<p class="ztext-empty-paragraph"><span style="font-size: 16px;">&nbsp;</span></p>
+<p><span style="font-size: 16px;"><img class="origin_image zh-lightbox-thumb lazy" src="./images/千万级流量架构下的负载均衡解析7.png" alt="" width="821" data-caption="" data-size="normal" data-rawwidth="821" data-rawheight="399" data-original="https://pic2.zhimg.com/v2-f4511e161bdfb650d1dd0fc6362c7319_r.jpg" data-actualsrc="https://pic2.zhimg.com/v2-f4511e161bdfb650d1dd0fc6362c7319_b.jpg" data-lazy-status="ok" /></span></p>
+<p class="ztext-empty-paragraph"><span style="font-size: 16px;">&nbsp;</span></p>
+<p class="ztext-empty-paragraph"><span style="font-size: 16px;">&nbsp;</span></p>
+<h3><span style="font-size: 16px;">2. DNS 域名解析</span></h3>
+<p><span style="font-size: 16px;">在 DNS 解析域名的同时使用负载均衡算法计算服务器 IP 地址。</span></p>
+<p><span style="font-size: 16px;">优点：</span></p>
+<ul>
+<li><span style="font-size: 16px;">DNS 能够根据地理位置进行域名解析，返回离用户最近的服务器 IP 地址。</span></li>
+</ul>
+<p><span style="font-size: 16px;">缺点：</span></p>
+<ul>
+<li><span style="font-size: 16px;">由于 DNS 具有多级结构，每一级的域名记录都可能被缓存，当下线一台服务器需要修改 DNS 记录时，需要过很长一段时间才能生效。</span></li>
+</ul>
+<p><span style="font-size: 16px;">大型网站基本使用了 DNS 做为第一级负载均衡手段，然后在内部使用其它方式做第二级负载均衡。也就是说，域名解析的结果为内部的负载均衡服务器 IP 地址。</span></p>
+<p class="ztext-empty-paragraph"><span style="font-size: 16px;">&nbsp;</span></p>
+<p><span style="font-size: 16px;"><img class="origin_image zh-lightbox-thumb lazy" src="./images/千万级流量架构下的负载均衡解析8.png" alt="" width="820" data-caption="" data-size="normal" data-rawwidth="820" data-rawheight="416" data-original="https://pic3.zhimg.com/v2-3dac4d9639eb1388249c37af16b795f2_r.jpg" data-actualsrc="https://pic3.zhimg.com/v2-3dac4d9639eb1388249c37af16b795f2_b.jpg" data-lazy-status="ok" /></span></p>
+<p class="ztext-empty-paragraph"><span style="font-size: 16px;">&nbsp;</span></p>
+<p class="ztext-empty-paragraph"><span style="font-size: 16px;">&nbsp;</span></p>
+<h3><span style="font-size: 16px;">3. 反向代理服务器</span></h3>
+<p><span style="font-size: 16px;">反向代理服务器位于源服务器前面，用户的请求需要先经过反向代理服务器才能到达源服务器。反向代理可以用来进行缓存、日志记录等，同时也可以用来做为负载均衡服务器。</span></p>
+<p><span style="font-size: 16px;">在这种负载均衡转发方式下，客户端不直接请求源服务器，因此源服务器不需要外部 IP 地址，而反向代理需要配置内部和外部两套 IP 地址。</span></p>
+<p><span style="font-size: 16px;">优点：</span></p>
+<ul>
+<li><span style="font-size: 16px;">与其它功能集成在一起，部署简单。</span></li>
+</ul>
+<p><span style="font-size: 16px;">缺点：</span></p>
+<ul>
+<li><span style="font-size: 16px;">所有请求和响应都需要经过反向代理服务器，它可能会成为性能瓶颈。</span></li>
+</ul>
+<h3><span style="font-size: 16px;">4. 网络层</span></h3>
+<p><span style="font-size: 16px;">在操作系统内核进程获取网络数据包，根据负载均衡算法计算源服务器的 IP 地址，并修改请求数据包的目的 IP 地址，最后进行转发。</span></p>
+<p><span style="font-size: 16px;">源服务器返回的响应也需要经过负载均衡服务器，通常是让负载均衡服务器同时作为集群的网关服务器来实现。</span></p>
+<p><span style="font-size: 16px;">优点：</span></p>
+<ul>
+<li><span style="font-size: 16px;">在内核进程中进行处理，性能比较高。</span></li>
+</ul>
+<p><span style="font-size: 16px;">缺点：</span></p>
+<ul>
+<li><span style="font-size: 16px;">和反向代理一样，所有的请求和响应都经过负载均衡服务器，会成为性能瓶颈。</span></li>
+</ul>
+<h3><span style="font-size: 16px;">5. 链路层</span></h3>
+<p><span style="font-size: 16px;">在链路层根据负载均衡算法计算源服务器的 MAC 地址，并修改请求数据包的目的 MAC 地址，并进行转发。</span></p>
+<p><span style="font-size: 16px;">通过配置源服务器的虚拟 IP 地址和负载均衡服务器的 IP 地址一致，从而不需要修改 IP 地址就可以进行转发。也正因为 IP 地址一样，所以源服务器的响应不需要转发回负载均衡服务器，可以直接转发给客户端，避免了负载均衡服务器的成为瓶颈。</span></p>
+<p><span style="font-size: 16px;">这是一种三角传输模式，被称为直接路由。对于提供下载和视频服务的网站来说，直接路由避免了大量的网络传输数据经过负载均衡服务器。</span></p>
+<p><span style="font-size: 16px;">这是目前大型网站使用最广负载均衡转发方式，在 Linux 平台可以使用的负载均衡服务器为 LVS（Linux Virtual Server）。</span></p>
+<p><span style="font-size: 16px;">参考：</span></p>
+<ul>
+<li><span style="font-size: 16px;"><a class=" wrap external" href="https://link.zhihu.com/?target=http%3A//www.jscape.com/blog/load-balancing-algorithms" rel="nofollow noreferrer" target="_blank" data-za-detail-view-id="1043">Comparing Load Balancing Algorithms</a></span></li>
+<li><span style="font-size: 16px;"><a class=" wrap external" href="https://link.zhihu.com/?target=http%3A//slideplayer.com/slide/6599069/%23" rel="nofollow noreferrer" target="_blank" data-za-detail-view-id="1043">Redirection and Load Balancing</a></span></li>
+</ul>
+<h2><span style="font-size: 16px;">二、集群下的 Session 管理</span></h2>
+<p><span style="font-size: 16px;">一个用户的 Session 信息如果存储在一个服务器上，那么当负载均衡器把用户的下一个请求转发到另一个服务器，由于服务器没有用户的 Session 信息，那么该用户就需要重新进行登录等操作。</span></p>
+<h2><span style="font-size: 16px;">Sticky Session</span></h2>
+<p><span style="font-size: 16px;">需要配置负载均衡器，使得一个用户的所有请求都路由到同一个服务器，这样就可以把用户的 Session 存放在该服务器中。</span></p>
+<p><span style="font-size: 16px;">缺点：</span></p>
+<ul>
+<li><span style="font-size: 16px;">当服务器宕机时，将丢失该服务器上的所有 Session。</span></li>
+</ul>
+<p class="ztext-empty-paragraph"><span style="font-size: 16px;">&nbsp;</span></p>
+<p><span style="font-size: 16px;"><img class="origin_image zh-lightbox-thumb lazy" src="./images/千万级流量架构下的负载均衡解析9.png" alt="" width="716" data-caption="" data-size="normal" data-rawwidth="716" data-rawheight="520" data-original="https://pic4.zhimg.com/v2-08f5d5c6e71edabadb5557937bb118c3_r.jpg" data-actualsrc="https://pic4.zhimg.com/v2-08f5d5c6e71edabadb5557937bb118c3_b.jpg" data-lazy-status="ok" /></span></p>
+<p class="ztext-empty-paragraph"><span style="font-size: 16px;">&nbsp;</span></p>
+<p class="ztext-empty-paragraph"><span style="font-size: 16px;">&nbsp;</span></p>
+<h2><span style="font-size: 16px;">Session Replication</span></h2>
+<p><span style="font-size: 16px;">在服务器之间进行 Session 同步操作，每个服务器都有所有用户的 Session 信息，因此用户可以向任何一个服务器进行请求。</span></p>
+<p><span style="font-size: 16px;">缺点：</span></p>
+<ul>
+<li><span style="font-size: 16px;">占用过多内存；</span></li>
+<li><span style="font-size: 16px;">同步过程占用网络带宽以及服务器处理器时间。</span></li>
+</ul>
+<p class="ztext-empty-paragraph"><span style="font-size: 16px;">&nbsp;</span></p>
+<p><span style="font-size: 16px;"><img class="origin_image zh-lightbox-thumb lazy" src="./images/千万级流量架构下的负载均衡解析10.png" alt="" width="701" data-caption="" data-size="normal" data-rawwidth="701" data-rawheight="683" data-original="https://pic4.zhimg.com/v2-3d343d94f466681e46883a206455d71f_r.jpg" data-actualsrc="https://pic4.zhimg.com/v2-3d343d94f466681e46883a206455d71f_b.jpg" data-lazy-status="ok" /></span></p>
+<p class="ztext-empty-paragraph"><span style="font-size: 16px;">&nbsp;</span></p>
+<p class="ztext-empty-paragraph"><span style="font-size: 16px;">&nbsp;</span></p>
+<h2><span style="font-size: 16px;">Session Server</span></h2>
+<p><span style="font-size: 16px;">使用一个单独的服务器存储 Session 数据，可以使用传统的 MySQL，也使用 Redis 或者 Memcached 这种内存型数据库。</span></p>
+<p><span style="font-size: 16px;">优点：</span></p>
+<ul>
+<li><span style="font-size: 16px;">为了使得大型网站具有伸缩性，集群中的应用服务器通常需要保持无状态，那么应用服务器不能存储用户的会话信息。Session Server 将用户的会话信息单独进行存储，从而保证了应用服务器的无状态。</span></li>
+</ul>
+<p><span style="font-size: 16px;">缺点：</span></p>
+<ul>
+<li><span style="font-size: 16px;">需要去实现存取 Session 的代码。</span></li>
+</ul>
+<p class="ztext-empty-paragraph"><span style="font-size: 16px;">&nbsp;</span></p>
+<p><span style="font-size: 16px;"><img class="origin_image zh-lightbox-thumb lazy" src="./images/千万级流量架构下的负载均衡解析11.png" alt="" width="1046" data-caption="" data-size="normal" data-rawwidth="1046" data-rawheight="547" data-original="https://pic2.zhimg.com/v2-032f9b77075faa28ea0a37f4428566dd_r.jpg" data-actualsrc="https://pic2.zhimg.com/v2-032f9b77075faa28ea0a37f4428566dd_b.jpg" data-lazy-status="ok" /></span></p>
+
+</div><hr><script charset='utf-8' src='../../js/sming.js'></script></body></html>

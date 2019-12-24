@@ -1,0 +1,155 @@
+<html><head><meta charset='utf-8'><meta name='viewport' content='width=device-width, initial-scale=1'>
+<meta name='applicable-device' content='pc'><meta name='keywords' content='电脑,电脑讲解,电脑技术,编程,电脑故障维修SpringBoot系列-整合Mybatis（注解方式）' />
+<script src='../../highlight/highlight.pack.js'></script>
+<link rel='stylesheet' type='text/css' href='../../highlight/styles/monokai.css'/>
+
+<link rel='stylesheet' href='../../fenxiang/dist/css/share.min.css'>
+<script src='../../fenxiang/src/js/social-share.js'></script>
+<script src='../../fenxiang/src/js/qrcode.js'></script>
+
+</head><body><script>hljs.initHighlightingOnLoad();</script><script>
+var system ={};  
+var p = navigator.platform;       
+system.win = p.indexOf('Win') == 0;  
+system.mac = p.indexOf('Mac') == 0;  
+system.x11 = (p == 'X11') || (p.indexOf('Linux') == 0);     
+if(system.win||system.mac||system.xll){
+document.write("<link href='../css/3.css' rel='stylesheet' type='text/css'>");}else{ document.write("<link href='../css/3wap.css' rel='stylesheet' type='text/css'>");}</script><script src='../../js/3.js'></script><div class='div2'><div class='heading_nav'><ul><div><li><a href='../../index.html'>首页</a></li>
+</div><div onclick='hidden1()' >分享</div>
+</ul></div></div>
+<div id='heading_nav2'> 
+<li class='row' >
+<div class='social-share' data-mode='prepend'><a href='javascript:' class='social-share-icon icon-heart'></a></div></li></div><script charset='utf-8' src='../../3/js/hengfu.js'></script><script charset='utf-8' src='../../3/js/hengfu2.js'></script><hr><div class='div1'><div class='biaoti'><center>SpringBoot系列-整合Mybatis（注解方式）</center></div><div class='banquan'>原文出处:本文由博客园博主Java碎碎念提供。<br/>
+原文连接:https://www.cnblogs.com/haha12/p/11847433.html</div><br>
+    <src class="toc">
+    <p class="toc-title">目录</p>
+    <src class="toc-list">
+        <ul>
+        <li><a href="#一常用注解说明">一、常用注解说明</a></li>
+        <li><a href="#二实战">二、实战</a></li>
+        <li><a href="#三测试">三、测试</a></li>
+        <li><a href="#四注意事项">四、注意事项</a></li>
+        </ul>
+    
+
+<blockquote>
+<p>上一篇文章<a href="https://www.cnblogs.com/haha12/p/11839872.html">《SpringBoot系列-整合Mybatis（XML配置方式）》</a>介绍了XML配置方式整合的过程，本文介绍下SpringBoot通过注解方式整合Mybatis的过程。</p>
+</blockquote>
+<h3 id="一常用注解说明">一、常用注解说明</h3>
+<ul>
+<li>@Mapper</li>
+</ul>
+<p>可以给接口自动生成一个实现类，让spring对mapper接口的bean进行管理，并且可以省略去写复杂的xml文件。</p>
+<ul>
+<li>@Options</li>
+</ul>
+<p>配置映射语句的属性。例如：@Options(useGeneratedKeys = true, keyColumn = &quot;id&quot;)：指定表的自增主键并自动绑定到实体类对象。</p>
+<ul>
+<li>@Result</li>
+</ul>
+<p>修饰返回的结果集，关联实体类属性和数据库字段一一对应，如果实体类属性和数据库属性名保持一致，就不需要这个属性来修饰。</p>
+<ul>
+<li>@Param</li>
+</ul>
+<p>如果你的映射方法的形参有多个，这个注解使用在映射方法的参数上就能为它们取自定义名字。若不给出自定义名字，多参数（不包括 RowBounds 参数）则先以 &quot;param&quot; 作前缀，再加上它们的参数位置作为参数别名。例如 #{param1}, #{param2}。</p>
+<ul>
+<li>@Select、@Delete、@Insert、@Update</li>
+</ul>
+<p>这四个注解分别代表将会被执行的 SQL 语句。它们用字符串数组（或单个字符串）作为参数。如果传递的是字符串数组，字符串之间先会被填充一个空格再连接成单个完整的字符串。</p>
+<h3 id="二实战">二、实战</h3>
+<p>新建一个spring boot项目spring-boot-mybatis-annotation，其他代码上一篇文章已经有了，下面列下注解版本的主要代码：</p>
+<p>1.映射类UserMapper</p>
+<pre><code><code>@Mapper
+public interface UserMapper {
+
+    /*
+    * 查询 所有用户
+    */
+    @Select(&quot;SELECT * FROM user &quot;)
+    List&lt;User&gt; queryAllUsers();
+
+
+    /*
+     * 新增数据，并把主键绑定到User实体类
+     */
+    @Options(useGeneratedKeys = true, keyProperty = &quot;id&quot;)
+    @Insert(&quot;insert into User(name,password) values (#{name},#{password})&quot;)
+    public int add(User user);
+}</code></code></pre>
+<p>2.添加访问控制层</p>
+<p>UserController代码如下：</p>
+<pre><code><code>/**
+ * UserController
+ *
+ * @Author: java_suisui
+ */
+@Slf4j
+@RestController
+@RequestMapping(&quot;/user&quot;)
+public class UserController {
+    @Autowired
+    private UserService userService;
+
+    /**
+     * 查询 所有用户
+     */
+    @GetMapping(&quot;/queryAllUsers&quot;)
+    public List&lt;User&gt; queryAllUsers() {
+        return userService.queryAllUsers();
+    }
+
+    @GetMapping(&quot;/add&quot;)
+    public User add(User user) {
+        int num =  userService.add(user);
+        return user;
+    }
+}</code></code></pre>
+<h3 id="三测试">三、测试</h3>
+<p>1.测试查询所有用户</p>
+<p>本地打开浏览器，访问http://localhost:8080/user/queryAllUsers,成功后返回如下结果：</p>
+<pre><code><code>[{&quot;id&quot;:1,&quot;name&quot;:&quot;张三&quot;,&quot;password&quot;:&quot;123456&quot;,&quot;sex&quot;:0,&quot;des&quot;:&quot;无备注&quot;},
+{&quot;id&quot;:2,&quot;name&quot;:&quot;李四&quot;,&quot;password&quot;:&quot;123456&quot;,&quot;sex&quot;:0,&quot;des&quot;:&quot;无备注&quot;}]</code></code></pre>
+<p>2.测试新增用户</p>
+<p>本地打开浏览器，访问http://localhost:8080/user/add?name=test1&amp;password=123456,成功后返回如下结果：</p>
+<pre><code><code>{&quot;id&quot;:13,&quot;name&quot;:&quot;test1&quot;,&quot;password&quot;:&quot;123456&quot;,&quot;sex&quot;:null,&quot;des&quot;:null}</code></code></pre>
+<h3 id="四注意事项">四、注意事项</h3>
+<p>1.如果有很多Mapper接口如何一次性扫描</p>
+<p>直接在程序启动类添加@MapperScan注解即可。</p>
+<p>例如：</p>
+<pre><code><code>@MapperScan(basePackages= {&quot;com.example.springboot.mybatisannotation.dao.mapper&quot;})</code></code></pre>
+<p>2.SpringBoot Mybatis增加驼峰命名规则</p>
+<p>因为是注解版，没有配置文件，所以SpringBoot增加驼峰命名需要增加一个自定义配置类（ConfigurationCustomizer）。</p>
+<p>例如：</p>
+<pre><code><code>/**
+ * mybatis 注解版
+ */
+@Configuration
+public class MybatisConfig {
+
+    @Bean
+    public ConfigurationCustomizer configurationCustomizer() {
+        return new ConfigurationCustomizer() {
+
+            @Override
+            public void customize(org.apache.ibatis.session.Configuration configuration) {
+                configuration.setMapUnderscoreToCamelCase(true);//设置驼峰命名规则  
+            }
+        };
+    }
+}  </code></code></pre>
+<p>到此SpringBoot整合Mybatis（XML配置方式）的功能已经全部实现，有问题欢迎留言沟通哦！</p>
+<p>完整源码地址： <a href="https://github.com/suisui2019/springboot-study" class="uri">https://github.com/suisui2019/springboot-study</a></p>
+<p><strong>推荐阅读</strong></p>
+<p><a href="https://mp.weixin.qq.com/s/Ad8aKvyTgjFlzjOcadO1xQ">1.SpringBoot系列-整合Mybatis（XML配置方式）</a></p>
+<p><a href="https://mp.weixin.qq.com/s/Y1S_SogYOpY-oxF0KXNZig">1.Java中打印日志，这4点很重要！</a></p>
+<p><a href="https://mp.weixin.qq.com/s/49JC9pgdfWYd7P2a53wA_g">3.SpringBoot集成JWT实现权限认证</a></p>
+<p><a href="https://mp.weixin.qq.com/s/4mQsN3cZjYtjmn333thSQg">4.一分钟带你了解JWT认证！</a></p>
+<p><a href="https://mp.weixin.qq.com/s/ikyLQu3bqzk_OyejE4tGRQ">5.SpringBoot中如何优雅的读取yml配置文件？</a></p>
+<hr />
+<blockquote>
+<p>限时领取免费Java相关资料，涵盖了Java、Redis、MongoDB、MySQL、Zookeeper、Spring Cloud、Dubbo/Kafka、Hadoop、Hbase、Flink等高并发分布式、大数据、机器学习等技术。<br />
+关注下方公众号即可免费领取：</p>
+</blockquote>
+<p><img src="./images/SpringBoot系列-整合Mybatis（注解方式）0.png" alt="Java碎碎念公众号" /></p>
+
+</div><hr><script charset='utf-8' src='../../js/sming.js'></script></body></html>

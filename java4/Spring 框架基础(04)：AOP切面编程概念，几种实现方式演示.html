@@ -1,0 +1,332 @@
+<html><head><meta charset='utf-8'><meta name='viewport' content='width=device-width, initial-scale=1'>
+<meta name='applicable-device' content='pc'><meta name='keywords' content='电脑,电脑讲解,电脑技术,编程,电脑故障维修Spring 框架基础(04)：AOP切面编程概念，几种实现方式演示' />
+<script src='../../highlight/highlight.pack.js'></script>
+<link rel='stylesheet' type='text/css' href='../../highlight/styles/monokai.css'/>
+
+<link rel='stylesheet' href='../../fenxiang/dist/css/share.min.css'>
+<script src='../../fenxiang/src/js/social-share.js'></script>
+<script src='../../fenxiang/src/js/qrcode.js'></script>
+
+</head><body><script>hljs.initHighlightingOnLoad();</script><script>
+var system ={};  
+var p = navigator.platform;       
+system.win = p.indexOf('Win') == 0;  
+system.mac = p.indexOf('Mac') == 0;  
+system.x11 = (p == 'X11') || (p.indexOf('Linux') == 0);     
+if(system.win||system.mac||system.xll){
+document.write("<link href='../css/3.css' rel='stylesheet' type='text/css'>");}else{ document.write("<link href='../css/3wap.css' rel='stylesheet' type='text/css'>");}</script><script src='../../js/3.js'></script><div class='div2'><div class='heading_nav'><ul><div><li><a href='../../index.html'>首页</a></li>
+</div><div onclick='hidden1()' >分享</div>
+</ul></div></div>
+<div id='heading_nav2'> 
+<li class='row' >
+<div class='social-share' data-mode='prepend'><a href='javascript:' class='social-share-icon icon-heart'></a></div></li></div><script charset='utf-8' src='../../3/js/hengfu.js'></script><script charset='utf-8' src='../../3/js/hengfu2.js'></script><hr><div class='div1'><div class='biaoti'><center>Spring 框架基础(04)：AOP切面编程概念，几种实现方式演示</center></div><div class='banquan'>原文出处:本文由博客园博主知了一笑提供。<br/>
+原文连接:https://www.cnblogs.com/cicada-smile/p/11750221.html</div><br>
+    <p>本文源码：<a href="https://github.com/cicadasmile/spring-mvc-parent">GitHub·点这里</a> || <a href="https://gitee.com/cicadasmile/spring-mvc-parent">GitEE·点这里</a></p>
+<h1 id="一aop基础简介">一、AOP基础简介</h1>
+<h2 id="切面编程简介">1、切面编程简介</h2>
+<blockquote>
+<p>AOP全称：Aspect Oriented Programming，面向切面编程。通过预编译方式和运行期动态代理实现程序功能的统一维护的一种技术。核心作用：可以对业务逻辑的各个部分进行隔离，从而使得业务逻辑各部分之间的耦合度降低，提高程序的复用性和开发效率。AOP提供了取代继承和委托的一种新的方案，而且使用起来更加简洁清晰，是软件开发中的一个热点理念。</p>
+</blockquote>
+<h2 id="aop术语">2、AOP术语</h2>
+<p><img src="./images/Spring 框架基础(04)：AOP切面编程概念，几种实现方式演示0.png" /></p>
+<p>(1)、通知类型:Advice</p>
+<pre><code><code>前置通知[Before]：目标方法被调用之前;
+返回通知[After-returning]：目标方法执行成功之后;
+异常通知[After-throwing]：在目标方法抛出异常之后; 
+后置通知[After]：目标方法完成之后;
+环绕通知[Around]：在目标方法执行前后环绕通知;</code></code></pre>
+<p>(2)、连接点：JoinPoint</p>
+<p>程序执行的某一个特定位置，如类初始前后，方法的运行前后。</p>
+<p>(3)、切点:Pointcut</p>
+<p>连接点是指那些在指定策略下可能被拦截到的方法。</p>
+<p>(4)、切面：Aspect</p>
+<p>切面由切点和通知的结合。</p>
+<p>(5)、引入：Introduction</p>
+<p>特殊的增强,为类添加一些属性和方法。</p>
+<p>(6)、织入：Weaving</p>
+<p>将增强添加到目标类的具体连接点上的过程。编译期织入，这要求使用特殊编译器；类装载期织入，这要求使用特殊的类加载器；动态代理织入，在运行期为目标类添加增强生成子类的方式，Spring采用的是动态代理织入，而AspectJ采用编译期织入和类装载期织入。</p>
+<p>(7)、代理：Proxy</p>
+<p>类被AOP织入后生成一个结果类，它是融合了原类和增强逻辑的代理类。</p>
+<h1 id="二aop编程实现方式">二、AOP编程实现方式</h1>
+<p>案例基于如下类进行：</p>
+<pre><code><code>public class Book {
+    private String bookName ;
+    private String author ;
+}
+public interface BookService {
+    void addBook (Book book) ;
+}
+public class BookServiceImpl implements BookService {
+    @Override
+    public void addBook(Book book) {
+        System.out.println(book.getBookName());
+        System.out.println(book.getAuthor());
+    }
+}</code></code></pre>
+<h2 id="jdk动态代理">1、JDK动态代理</h2>
+<pre><code><code>public class BookAopProxyFactory {
+    public static BookService createService() {
+        // 目标类
+        final BookService bookService = new BookServiceImpl() ;
+        // 切面类
+        final BookAspect bookAspect = new BookAspect();
+        /*
+         * 代理类：将目标类（切入点）和 切面类（通知） 结合
+         */
+        BookService proxyBookService = (BookService) Proxy.newProxyInstance(
+                BookAopProxyFactory.class.getClassLoader(),
+                bookService.getClass().getInterfaces(),
+                new InvocationHandler() {
+                    public Object invoke(Object proxy, Method method,
+                                         Object[] args) throws Throwable {
+                        // 前执行
+                        bookAspect.before();
+                        // 执行目标类的方法
+                        Object obj = method.invoke(bookService, args);
+                        // 后执行
+                        bookAspect.after();
+                        return obj;
+                    }
+                });
+        return proxyBookService ;
+    }
+}</code></code></pre>
+<h2 id="cglib字节码增强">2、CgLib字节码增强</h2>
+<p>采用字节码增强框架cglib，在运行时创建目标类的子类，从而对目标类进行增强。</p>
+<pre><code><code>public class BookAopCgLibFactory {
+    public static BookService createService() {
+        // 目标类
+        final BookService bookService = new BookServiceImpl() ;
+        // 切面类
+        final BookAspect bookAspect = new BookAspect();
+        // 核心代理类
+        Enhancer enhancer = new Enhancer();
+        // 确定父类
+        enhancer.setSuperclass(bookService.getClass());
+        // 设置回调函数
+        enhancer.setCallback(new MethodInterceptor() {
+            public Object intercept(Object proxy, Method method,
+                                    Object[] args,
+                                    MethodProxy methodProxy) throws Throwable {
+                bookAspect.before();
+                Object obj = method.invoke(bookService, args);
+                bookAspect.after();
+                return obj;
+            }
+        });
+        BookServiceImpl proxyService = (BookServiceImpl) enhancer.create();
+        return proxyService ;
+    }
+}</code></code></pre>
+<h2 id="spring半自动代理">3、Spring半自动代理</h2>
+<p>spring 创建代理对象，从spring容器中手动的获取代理对象。</p>
+<ul>
+<li>配置文件</li>
+</ul>
+<pre><code><code>&lt;!-- 创建目标类 --&gt;
+&lt;bean id=&quot;bookService&quot; class=&quot;com.spring.mvc.service.impl.BookServiceImpl&quot; /&gt;
+&lt;!-- 创建切面类 --&gt;
+&lt;bean id=&quot;myAspect&quot; class=&quot;com.spring.mvc.config.BookAopSpringHalf&quot; /&gt;
+&lt;!-- 创建代理类 --&gt;
+&lt;bean id=&quot;proxyFactory&quot; class=&quot;org.springframework.aop.framework.ProxyFactoryBean&quot;&gt;
+    &lt;property name=&quot;interfaces&quot; value=&quot;com.spring.mvc.service.BookService&quot; /&gt;
+    &lt;property name=&quot;target&quot; ref=&quot;bookService&quot; /&gt;
+    &lt;property name=&quot;interceptorNames&quot; value=&quot;myAspect&quot; /&gt;
+&lt;/bean&gt;</code></code></pre>
+<ul>
+<li>切面类</li>
+</ul>
+<pre><code><code>public class BookAopSpringHalf implements MethodInterceptor {
+    @Override
+    public Object invoke(MethodInvocation methodInvocation) throws Throwable {
+        System.out.println(&quot;Method Before ...&quot;);
+        Object obj = methodInvocation.proceed();
+        System.out.println(&quot;Method After ...&quot;);
+        return obj;
+    }
+}</code></code></pre>
+<h2 id="spring全自动代理">4、Spring全自动代理</h2>
+<p>从spring容器获得目标类，如果配置Aop，spring将自动生成代理。</p>
+<ul>
+<li>配置文件</li>
+</ul>
+<pre><code><code>&lt;!-- 创建目标类 --&gt;
+&lt;bean id=&quot;bookService&quot; class=&quot;com.spring.mvc.service.impl.BookServiceImpl&quot; /&gt;
+&lt;!-- 创建切面类 --&gt;
+&lt;bean id=&quot;myAspect&quot; class=&quot;com.spring.mvc.config.BookAopSpringHalf&quot; /&gt;
+&lt;!-- AOP编程配置 --&gt;
+&lt;aop:config proxy-target-class=&quot;true&quot;&gt;
+    &lt;aop:pointcut expression=&quot;execution(* com.spring.mvc.service.*.*(..))&quot;
+                  id=&quot;myPointCut&quot;/&gt;
+    &lt;aop:advisor advice-ref=&quot;myAspect&quot; pointcut-ref=&quot;myPointCut&quot;/&gt;
+&lt;/aop:config&gt;</code></code></pre>
+<h2 id="综合测试">5、综合测试</h2>
+<pre><code><code>@Test
+public void test1 (){
+    BookService bookService = BookAopProxyFactory.createService() ;
+    Book book = new Book() ;
+    book.setBookName(&quot;Spring实战&quot;);
+    book.setAuthor(&quot;Craig Walls&quot;);
+    bookService.addBook(book);
+}
+@Test
+public void test2 (){
+    BookService bookService = BookAopCgLibFactory.createService() ;
+    Book book = new Book() ;
+    book.setBookName(&quot;MySQL&quot;);
+    book.setAuthor(&quot;Baron&quot;);
+    bookService.addBook(book);
+}
+@Test
+public void test3 (){
+    String xmlPath = &quot;spring-aop-half.xml&quot;;
+    ClassPathXmlApplicationContext context = new ClassPathXmlApplicationContext(xmlPath);
+    BookService bookService = (BookService) context.getBean(&quot;proxyFactory&quot;);
+    Book book = new Book() ;
+    book.setBookName(&quot;红楼梦&quot;);
+    book.setAuthor(&quot;曹雪芹&quot;);
+    bookService.addBook(book);
+}
+@Test
+public void test4 (){
+    String xmlPath = &quot;spring-aop-all.xml&quot;;
+    ClassPathXmlApplicationContext context = new ClassPathXmlApplicationContext(xmlPath);
+    BookService bookService = (BookService) context.getBean(&quot;bookService&quot;);
+    Book book = new Book() ;
+    book.setBookName(&quot;西游记&quot;);
+    book.setAuthor(&quot;吴承恩&quot;);
+    bookService.addBook(book);
+}</code></code></pre>
+<h1 id="三aspectj切面编程">三、AspectJ切面编程</h1>
+<h2 id="基础简介">1、基础简介</h2>
+<blockquote>
+<p>AspectJ是一个基于Java语言的AOP框架，Spring2.0以后新增了对AspectJ切点表达式支持，通过JDK5注解技术，允许直接在类中定义切面，新版本Spring框架，推荐使用AspectJ方式来开发AOP编程。</p>
+</blockquote>
+<h2 id="xml配置方式">2、XML配置方式</h2>
+<ul>
+<li>切面类</li>
+</ul>
+<pre><code><code>public class BookAopAspectJ {
+    public void myBefore(JoinPoint joinPoint){
+        System.out.println(&quot;前置通知：&quot; + joinPoint.getSignature().getName());
+    }
+    public void myAfterReturning(JoinPoint joinPoint,Object ret){
+        System.out.println(&quot;后置通知：&quot; + joinPoint.getSignature().getName() + &quot; , --&gt;&quot; + ret);
+    }
+    public Object myAround(ProceedingJoinPoint joinPoint) throws Throwable{
+        System.out.println(&quot;环绕通知前&quot;);
+        Object obj = joinPoint.proceed();
+        System.out.println(&quot;环绕通知前后&quot;);
+        return obj;
+    }
+    public void myAfterThrowing(JoinPoint joinPoint,Throwable e){
+        System.out.println(&quot;抛出异常通知 ： &quot; + e.getMessage());
+    }
+    public void myAfter(JoinPoint joinPoint){
+        System.out.println(&quot;最终通知&quot;);
+    }
+}</code></code></pre>
+<ul>
+<li>配置文件</li>
+</ul>
+<pre><code><code>&lt;!-- 创建目标类 --&gt;
+&lt;bean id=&quot;bookService&quot; class=&quot;com.spring.mvc.service.impl.BookServiceImpl&quot; /&gt;
+&lt;!-- 创建切面类 --&gt;
+&lt;bean id=&quot;myAspect&quot; class=&quot;com.spring.mvc.config.BookAopAspectJ&quot; /&gt;
+&lt;!-- 配置AOP编程 --&gt;
+&lt;aop:config&gt;
+    &lt;aop:aspect ref=&quot;myAspect&quot;&gt;
+        &lt;aop:pointcut expression=&quot;execution(* com.spring.mvc.service.impl.BookServiceImpl.*(..))&quot; id=&quot;myPointCut&quot;/&gt;
+        &lt;!-- 前置通知--&gt;
+        &lt;aop:before method=&quot;myBefore&quot; pointcut-ref=&quot;myPointCut&quot;/&gt;
+        &lt;!-- 后置通知 --&gt;
+        &lt;aop:after-returning method=&quot;myAfterReturning&quot; pointcut-ref=&quot;myPointCut&quot; returning=&quot;ret&quot; /&gt;
+        &lt;!-- 环绕通知 --&gt;
+        &lt;aop:around method=&quot;myAround&quot; pointcut-ref=&quot;myPointCut&quot;/&gt;
+        &lt;!-- 抛出异常 --&gt;
+        &lt;aop:after-throwing method=&quot;myAfterThrowing&quot; pointcut-ref=&quot;myPointCut&quot; throwing=&quot;e&quot;/&gt;
+        &lt;!-- 最终通知 --&gt;
+        &lt;aop:after method=&quot;myAfter&quot; pointcut-ref=&quot;myPointCut&quot;/&gt;
+    &lt;/aop:aspect&gt;
+&lt;/aop:config&gt;</code></code></pre>
+<ul>
+<li>测试方法</li>
+</ul>
+<pre><code><code>@Test
+public void test1 (){
+    String xmlPath = &quot;spring-aop-aspectj-01.xml&quot;;
+    ClassPathXmlApplicationContext context = new ClassPathXmlApplicationContext(xmlPath);
+    BookService bookService = (BookService) context.getBean(&quot;bookService&quot;);
+    Book book = new Book() ;
+    book.setBookName(&quot;三国演义&quot;);
+    book.setAuthor(&quot;罗贯中&quot;);
+    bookService.addBook(book);
+}</code></code></pre>
+<h2 id="注解扫描方式">3、注解扫描方式</h2>
+<ul>
+<li>配置文件</li>
+</ul>
+<pre><code><code>&lt;!-- 开启类注解的扫描 --&gt;
+&lt;context:component-scan base-package=&quot;com.spring.mvc.service.impl&quot; /&gt;
+&lt;!-- 确定AOP注解生效 --&gt;
+&lt;aop:aspectj-autoproxy /&gt;
+&lt;!-- 声明切面 --&gt;
+&lt;bean id=&quot;myAspect&quot; class=&quot;com.spring.mvc.config.AuthorAopAspectJ&quot; /&gt;
+&lt;aop:config&gt;
+    &lt;aop:aspect ref=&quot;myAspect&quot; /&gt;
+&lt;/aop:config&gt;</code></code></pre>
+<ul>
+<li>注解切面类</li>
+</ul>
+<pre><code><code>@Component
+@Aspect
+public class AuthorAopAspectJ {
+    @Pointcut(&quot;execution(* com.spring.mvc.service.impl.AuthorServiceImpl.*(..))&quot;)
+    private void myPointCut(){
+    }
+    @Before(&quot;execution(* com.spring.mvc.service.impl.AuthorServiceImpl.*(..))&quot;)
+    public void myBefore(JoinPoint joinPoint){
+        System.out.println(&quot;前置通知：&quot; + joinPoint.getSignature().getName());
+    }
+    @AfterReturning(value=&quot;myPointCut()&quot; ,returning=&quot;ret&quot;)
+    public void myAfterReturning(JoinPoint joinPoint,Object ret){
+        System.out.println(&quot;后置通知：&quot; +
+                joinPoint.getSignature().getName() + &quot; , --&gt;&quot; + ret);
+    }
+    @Around(value = &quot;myPointCut()&quot;)
+    public Object myAround(ProceedingJoinPoint joinPoint) throws Throwable{
+        System.out.println(&quot;环绕通知前&quot;);
+        Object obj = joinPoint.proceed();
+        System.out.println(&quot;环绕通知前后&quot;);
+        return obj;
+    }
+    @AfterThrowing(
+            value=&quot;execution(* com.spring.mvc.service.impl.AuthorServiceImpl.*(..))&quot;,
+            throwing=&quot;e&quot;)
+    public void myAfterThrowing(JoinPoint joinPoint,Throwable e){
+        System.out.println(&quot;抛出异常通知 ： &quot; + e.getMessage());
+    }
+    @After(&quot;myPointCut()&quot;)
+    public void myAfter(JoinPoint joinPoint){
+        System.out.println(&quot;最终通知&quot;);
+    }
+}</code></code></pre>
+<ul>
+<li>测试方法</li>
+</ul>
+<pre><code><code>@Test
+public void test2 (){
+    String xmlPath = &quot;spring-aop-aspectj-02.xml&quot;;
+    ClassPathXmlApplicationContext context = new ClassPathXmlApplicationContext(xmlPath);
+    AuthorService authorService = (AuthorService) context.getBean(&quot;authorService&quot;);
+    System.out.println(&quot;作者：&quot;+authorService.getAuthor());
+}</code></code></pre>
+<h1 id="四源代码地址">四、源代码地址</h1>
+<pre><code><code>GitHub·地址
+https://github.com/cicadasmile/spring-mvc-parent
+GitEE·地址
+https://gitee.com/cicadasmile/spring-mvc-parent</code></code></pre>
+<p><img src="./images/Spring 框架基础(04)：AOP切面编程概念，几种实现方式演示1.png" /></p>
+
+
+</div><hr><script charset='utf-8' src='../../js/sming.js'></script></body></html>

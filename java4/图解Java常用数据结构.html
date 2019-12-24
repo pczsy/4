@@ -1,0 +1,215 @@
+<html><head><meta charset='utf-8'><meta name='viewport' content='width=device-width, initial-scale=1'>
+<meta name='applicable-device' content='pc'><meta name='keywords' content='电脑,电脑讲解,电脑技术,编程,电脑故障维修图解Java常用数据结构' />
+<script src='../../highlight/highlight.pack.js'></script>
+<link rel='stylesheet' type='text/css' href='../../highlight/styles/monokai.css'/>
+
+<link rel='stylesheet' href='../../fenxiang/dist/css/share.min.css'>
+<script src='../../fenxiang/src/js/social-share.js'></script>
+<script src='../../fenxiang/src/js/qrcode.js'></script>
+
+</head><body><script>hljs.initHighlightingOnLoad();</script><script>
+var system ={};  
+var p = navigator.platform;       
+system.win = p.indexOf('Win') == 0;  
+system.mac = p.indexOf('Mac') == 0;  
+system.x11 = (p == 'X11') || (p.indexOf('Linux') == 0);     
+if(system.win||system.mac||system.xll){
+document.write("<link href='../css/3.css' rel='stylesheet' type='text/css'>");}else{ document.write("<link href='../css/3wap.css' rel='stylesheet' type='text/css'>");}</script><script src='../../js/3.js'></script><div class='div2'><div class='heading_nav'><ul><div><li><a href='../../index.html'>首页</a></li>
+</div><div onclick='hidden1()' >分享</div>
+</ul></div></div>
+<div id='heading_nav2'> 
+<li class='row' >
+<div class='social-share' data-mode='prepend'><a href='javascript:' class='social-share-icon icon-heart'></a></div></li></div><script charset='utf-8' src='../../3/js/hengfu.js'></script><script charset='utf-8' src='../../3/js/hengfu2.js'></script><hr><div class='div1'><div class='biaoti'><center>图解Java常用数据结构</center></div><div class='banquan'>原文出处:本文由博客园博主Java知己提供。<br/>
+原文连接:https://www.cnblogs.com/java-friend/p/11579386.html</div><br>
+    <p>最近在整理数据结构方面的知识, 系统化看了下 Java 中常用数据结构, 突发奇想用动画来绘制数据流转过程.</p>
+<p>主要基于 jdk8, 可能会有些特性与 jdk7 之前不相同, 例如 LinkedList LinkedHashMap 中的双向列表不再是回环的.</p>
+<p>HashMap 中的单链表是尾插, 而不是头插入等等, 后文不再赘叙这些差异, 本文目录结构如下:</p>
+<p><img src="//upload-images.jianshu.io/upload_images/15369595-e75a317ad0ace752" /></p>
+<p><strong>LinkedList</strong></p>
+<p>经典的双链表结构, 适用于乱序插入, 删除. 指定序列操作则性能不如 ArrayList, 这也是其数据结构决定的.</p>
+<p><strong>add(E) / addLast(E)</strong></p>
+<p><img src="//upload-images.jianshu.io/upload_images/15369595-436c245e33d38645" /></p>
+<p><strong>add(index, E)</strong></p>
+<p>这边有个小的优化, 他会先判断 index 是靠近队头还是队尾, 来确定从哪个方向遍历链入.</p>
+<pre><code><code>if(index&lt;(size&gt;&gt;1))
+    Node x = first;
+    for (inti = 0; i &lt; index; i++) {
+        x = x.next;
+    }
+    return x;
+}else{
+    Node x = last;
+    for (int i = size - 1; i &gt; index; i--) {
+        x = x.prev;
+    }
+    return x;
+}</code></code></pre>
+<p><img src="//upload-images.jianshu.io/upload_images/15369595-c42f26ebf13c1a7f" /></p>
+<p><strong>靠队尾</strong></p>
+<p><img src="//upload-images.jianshu.io/upload_images/15369595-9080f84ae46161d7" /></p>
+<p><strong>get(index)</strong></p>
+<p>也是会先判断 index, 不过性能依然不好, 这也是为什么不推荐用 for(int i = 0; i &lt; lengh; i++) 的方式遍历 linkedlist, 而是使用 iterator 的方式遍历.</p>
+<p><img src="//upload-images.jianshu.io/upload_images/15369595-6bafdb35afe91ee5" /></p>
+<p><img src="//upload-images.jianshu.io/upload_images/15369595-b7414650e9927cc9" /></p>
+<p><strong>remove(E)</strong></p>
+<p><strong>ArrayList</strong></p>
+<p>底层就是一个数组, 因此按序查找快, 乱序插入, 删除因为涉及到后面元素移位所以性能慢.</p>
+<p><strong>add(index, E)</strong></p>
+<p><img src="//upload-images.jianshu.io/upload_images/15369595-670fccc77123b909" /></p>
+<p><strong>扩容</strong></p>
+<p>一般默认容量是 10, 扩容后, 会 length*1.5.</p>
+<p><img src="//upload-images.jianshu.io/upload_images/15369595-43e5554a96b450aa" /></p>
+<p><strong>remove(E)</strong></p>
+<p>循环遍历数组, 判断 E 是否 equals 当前元素, 删除性能不如 LinkedList.</p>
+<p><img src="//upload-images.jianshu.io/upload_images/15369595-03fb9510052d880c" /></p>
+<p><strong>Stack</strong></p>
+<p>经典的数据结构, 底层也是数组, 继承自 Vector, 先进后出 FILO, 默认 new Stack() 容量为 10, 超出自动扩容.</p>
+<p><strong>push(E)</strong></p>
+<p><img src="//upload-images.jianshu.io/upload_images/15369595-ee8d5b03ad92649a" /></p>
+<p><strong>pop()</strong></p>
+<p><img src="//upload-images.jianshu.io/upload_images/15369595-6c01b3e29ab773c9" /></p>
+<p><strong>后缀表达式</strong></p>
+<p>Stack 的一个典型应用就是计算表达式如 9 + (3 - 1) * 3 + 10 / 2, 计算机将中缀表达式转为后缀表达式, 再对后缀表达式进行计算.</p>
+<p><strong>中缀转后缀</strong></p>
+<p>数字直接输出</p>
+<p>栈为空时，遇到运算符，直接入栈</p>
+<p>遇到左括号, 将其入栈</p>
+<p>遇到右括号, 执行出栈操作，并将出栈的元素输出，直到弹出栈的是左括号，左括号不输出。</p>
+<p>遇到运算符 (加减乘除)：弹出所有优先级大于或者等于该运算符的栈顶元素，然后将该运算符入栈</p>
+<p>最终将栈中的元素依次出栈，输出。</p>
+<p><img src="//upload-images.jianshu.io/upload_images/15369595-ae7fb05e8b3656f5" /></p>
+<p><strong>计算后缀表达</strong></p>
+<p>遇到数字时，将数字压入堆栈</p>
+<p>遇到运算符时，弹出栈顶的两个数，用运算符对它们做相应的计算, 并将结果入栈</p>
+<p>重复上述过程直到表达式最右端</p>
+<p>运算得出的值即为表达式的结果</p>
+<p><img src="//upload-images.jianshu.io/upload_images/15369595-4a3dfecbc91af7fb" /></p>
+<p><strong>队列</strong></p>
+<p>与 Stack 的区别在于, Stack 的删除与添加都在队尾进行, 而 Queue 删除在队头, 添加在队尾.</p>
+<p><strong>ArrayBlockingQueue</strong></p>
+<p>生产消费者中常用的阻塞有界队列, FIFO.</p>
+<p><strong>put(E)</strong></p>
+<p><img src="//upload-images.jianshu.io/upload_images/15369595-54e4de03236ddd98" /></p>
+<p><strong>put(E) 队列满了</strong></p>
+<pre><code><code>final ReentrantLocklock=this.lock;
+
+lock.lockInterruptibly();
+
+try{
+
+  while(count == items.length)
+
+  notFull.await();
+
+  enqueue(e);
+
+}finally{
+
+  lock.unlock();
+
+}</code></code></pre>
+<p><strong>take()</strong></p>
+<p>当元素被取出后, 并没有对数组后面的元素位移, 而是更新 takeIndex 来指向下一个元素.</p>
+<p>takeIndex 是一个环形的增长, 当移动到队列尾部时, 会指向 0, 再次循环.</p>
+<pre><code><code>private E dequeue() {
+    // assert lock.getHoldCount() == 1;
+    // assert items[takeIndex] != null;
+
+    final Object[] items = this.items;
+    
+    @SuppressWarnings(&quot;unchecked&quot;)
+    E x = (E) items[takeIndex];
+
+    items[takeIndex] = null;
+
+    if (++takeIndex == items.length){
+         takeIndex = 0;
+    }
+    count--;
+
+    if (itrs != null){
+        itrs.elementDequeued();
+    }
+    notFull.signal();
+    return x;
+}</code></code></pre>
+<p><img src="//upload-images.jianshu.io/upload_images/15369595-92b322a355d70094" /></p>
+<p><strong>HashMap</strong></p>
+<p>最常用的哈希表, 面试的童鞋必备知识了, 内部通过数组 + 单链表的方式实现. jdk8 中引入了红黑树对长度 &gt; 8 的链表进行优化, 我们另外篇幅再讲.</p>
+<p><strong>put(K, V)</strong></p>
+<p><img src="//upload-images.jianshu.io/upload_images/15369595-1bce60836e88e04a" /></p>
+<p><strong>put(K, V) 相同 hash 值</strong></p>
+<p><img src="//upload-images.jianshu.io/upload_images/15369595-cdf9be2730946666" /></p>
+<p><strong>resize 动态扩容</strong></p>
+<p>当 map 中元素超出设定的阈值后, 会进行 resize (length * 2) 操作, 扩容过程中对元素一通操作, 并放置到新的位置.</p>
+<p>具体操作如下:</p>
+<p>在 jdk7 中对所有元素直接 rehash, 并放到新的位置.</p>
+<p>在 jdk8 中判断元素原 hash 值新增的 bit 位是 0 还是 1, 0 则索引不变, 1 则索引变成 &quot;原索引 + oldTable.length&quot;.</p>
+<pre><code><code>// 定义两条链
+// 原来的 hash 值新增的 bit 为 0 的链，头部和尾部
+Node loHead =null, loTail =null;
+
+// 原来的 hash 值新增的 bit 为 1 的链，头部和尾部
+Node hiHead =null, hiTail =null;
+Node next;
+
+// 循环遍历出链条链
+
+do{
+    next = e.next;
+    if((e.hash &amp; oldCap) ==0) {
+     if(loTail ==null){
+        loHead = e;
+       }else{
+        loTail.next = e;
+       }
+       loTail = e;
+
+    }else{
+     if(hiTail ==null){
+         hiHead = e;
+       }else{
+         hiTail.next = e;
+      }
+     hiTail = e;
+    }
+
+}while((e = next) !=null);
+
+// 扩容前后位置不变的链
+if(loTail !=null) {
+    loTail.next =null;
+    newTab[j] = loHead;
+ }
+
+// 扩容后位置加上原数组长度的链
+if(hiTail !=null) {
+    hiTail.next =null;
+    newTab[j + oldCap] = hiHead;
+ }</code></code></pre>
+<p><img src="//upload-images.jianshu.io/upload_images/15369595-270bbe40d8e3b215" /></p>
+<p><strong>LinkedHashMap</strong></p>
+<p>继承自 HashMap, 底层额外维护了一个双向链表来维持数据有序. 可以通过设置 accessOrder 来实现 FIFO(插入有序) 或者 LRU(访问有序) 缓存.</p>
+<p><strong>put(K, V)</strong></p>
+<p><img src="//upload-images.jianshu.io/upload_images/15369595-2db9919b0511864e" /></p>
+<p><strong>get(K)</strong></p>
+<p>accessOrder 为 false 的时候, 直接返回元素就行了, 不需要调整位置. </p>
+<p>accessOrder 为 true 的时候, 需要将最近访问的元素, 放置到队尾.</p>
+<p><strong>removeEldestEntry 删除最老的元素</strong></p>
+<p><img src="//upload-images.jianshu.io/upload_images/15369595-1ae241a5f6442fc8" /></p>
+<p><strong> 为了让学习变得轻松、高效，今天给大家免费分享一套 Java 教学资源。帮助大家在成为 Java 架构师的道路上披荆斩棘。需要资料的欢迎关注微信公众号：Java知己</strong></p>
+<hr />
+<blockquote>
+<p>“不积跬步，无以至千里”，希望未来的你能：有梦为马 随处可栖！加油，少年！</p>
+</blockquote>
+<p>关注公众号:<strong>「Java 知己」</strong>，每天更新Java知识哦，期待你的到来！</p>
+<ul>
+<li>发送「<strong>Group</strong>」，与 10 万程序员一起进步。</li>
+<li>发送「<strong>面试</strong>」，领取BATJ面试资料、面试视频攻略。</li>
+<li>发送「<strong>玩转算法</strong>」，领取《玩转算法》系列视频教程。</li>
+<li>千万不要发送「<strong>1024</strong>」...</li>
+</ul>
+<p><img src="./images/图解Java常用数据结构20.png" /></p>
+
+
+</div><hr><script charset='utf-8' src='../../js/sming.js'></script></body></html>

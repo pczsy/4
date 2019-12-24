@@ -1,0 +1,266 @@
+<html><head><meta charset='utf-8'><meta name='viewport' content='width=device-width, initial-scale=1'>
+<meta name='applicable-device' content='pc'><meta name='keywords' content='电脑,电脑讲解,电脑技术,编程,电脑故障维修图解Java数据结构之队列' />
+<script src='../../highlight/highlight.pack.js'></script>
+<link rel='stylesheet' type='text/css' href='../../highlight/styles/monokai.css'/>
+
+<link rel='stylesheet' href='../../fenxiang/dist/css/share.min.css'>
+<script src='../../fenxiang/src/js/social-share.js'></script>
+<script src='../../fenxiang/src/js/qrcode.js'></script>
+
+</head><body><script>hljs.initHighlightingOnLoad();</script><script>
+var system ={};  
+var p = navigator.platform;       
+system.win = p.indexOf('Win') == 0;  
+system.mac = p.indexOf('Mac') == 0;  
+system.x11 = (p == 'X11') || (p.indexOf('Linux') == 0);     
+if(system.win||system.mac||system.xll){
+document.write("<link href='../css/3.css' rel='stylesheet' type='text/css'>");}else{ document.write("<link href='../css/3wap.css' rel='stylesheet' type='text/css'>");}</script><script src='../../js/3.js'></script><div class='div2'><div class='heading_nav'><ul><div><li><a href='../../index.html'>首页</a></li>
+</div><div onclick='hidden1()' >分享</div>
+</ul></div></div>
+<div id='heading_nav2'> 
+<li class='row' >
+<div class='social-share' data-mode='prepend'><a href='javascript:' class='social-share-icon icon-heart'></a></div></li></div><script charset='utf-8' src='../../3/js/hengfu.js'></script><script charset='utf-8' src='../../3/js/hengfu2.js'></script><hr><div class='div1'><div class='biaoti'><center>图解Java数据结构之队列</center></div><div class='banquan'>原文出处:本文由博客园博主#Temptation提供。<br/>
+原文连接:https://www.cnblogs.com/blizzawang/p/11411586.html</div><br>
+    <p>本篇文章，将对队列进行一个深入的解析。</p>
+<h5 id="使用场景">使用场景</h5>
+<p>队列在日常生活中十分常见，例如：银行排队办理业务、食堂排队打饭等等，这些都是队列的应用。那么队列有什么特点呢？<br />
+我们知道排队的原则就是先来后到，排在前面的人就可以优先办理业务，那么队列也一样，队列遵循先进先出的原则。</p>
+<h5 id="队列介绍">队列介绍</h5>
+<p>刚才通过生活中的例子大致了解了一下队列，那么从数据结构的角度来讲，队列到底是什么呢？</p>
+<ul>
+<li>队列是一个有序列表，可以用数组或是链表来实现</li>
+<li>遵循先进先出的原则，即：先存入队列的数据，先取出；后存入队列的数据，后取出</li>
+</ul>
+<h5 id="数组模拟队列">数组模拟队列</h5>
+<p>刚才说到，队列可以用数组或是链表来实现。<br />
+那我们先来看看用数组如何模拟队列？<br />
+<img src="./images/图解Java数据结构之队列0.png" alt="在这里插入图片描述" /><br />
+队列本身是有序列表，若使用数组的结构来存储队列的数据，则队列数组的声明如上图，其中MaxSize是该队列的最大容量。<br />
+因为队列的输出、输入是分别从前后端来处理的，因此需要两个变量front和rear分别记录队列前后端的下标，如上图所示，front会随着数据的输出改变；而rear则是随着数据的输入改变。<br />
+继续深入分析：</p>
+<ul>
+<li>当我们将数据存入队列时，称为&quot;addQueue&quot;，addQueue的处理需要有两个步骤：<br />
+a)将尾指针往后移：rear + 1<br />
+b)若尾指针rear小于队列的最大下标MaxSize - 1，则将数据存入rear所指的数组元素中，否则无法存入数据。rear == MaxSize - 1 时，表示队列已满</li>
+</ul>
+<p>分析过后，我们用代码来实现数组模拟队列：</p>
+<pre><code><code>//使用数组模拟队列——编写一个ArrayQueue类
+class ArrayQueue {
+    private int maxSize; // 表示数组的最大容量
+    private int front; // 队列头
+    private int rear; // 队列尾
+    private int[] arr; // 该数组用于存放数据
+
+    // 创建队列的构造器
+    public ArrayQueue(int maxSize) {
+        this.maxSize = maxSize;
+        arr = new int[maxSize];
+        front = -1; // 指向队列头部(指向的是队列头的前一个位置)
+        rear = -1;// 指向队列尾部(指向的是队列尾的数据)
+    }
+
+    // 判断队列是否满
+    public boolean isFull() {
+        return rear == maxSize - 1;
+    }
+
+    // 判断队列是否为空
+    public boolean isEmpty() {
+        return rear == front;
+    }
+
+    // 添加数据到队列
+    public void addQueue(int n) {
+        // 判断队列是否满
+        if (isFull()) {
+            System.out.println(&quot;队列满，不能加入数据&quot;);
+            return;
+        }
+        rear++;// 让rear后移
+        arr[rear] = n;
+    }
+
+    // 获取队列的数据
+    public int getQueue() {
+        // 判断队列是否空
+        if (isEmpty()) {
+            // 抛出异常
+            throw new RuntimeException(&quot;队列空，不能取出数据&quot;);
+        }
+        front++;// 让front后移
+        return arr[front];
+    }
+
+    // 显示队列的所有数据
+    public void showQueue() {
+        // 遍历
+        if (isEmpty()) {
+            System.out.println(&quot;队列为空&quot;);
+            return;
+        }
+        for (int i : arr) {
+            System.out.printf(&quot;%d\t&quot;, i);
+        }
+    }
+}</code></code></pre>
+<p>经过分析后再来编写代码，会觉得非常简单，现在一个数组模拟的队列就编写完成了。接下来编写测试代码：</p>
+<pre><code><code>public static void main(String[] args) {
+        // 创建一个队列
+        ArrayQueue arrayQueue = new ArrayQueue(3);
+        int key;// 接收用户输入
+        Scanner sc = new Scanner(System.in);
+        boolean loop = true;
+        // 输出一个菜单
+        while (loop) {
+            System.out.println();
+            System.out.println(&quot;1:显示队列&quot;);
+            System.out.println(&quot;2:添加数据到队列&quot;);
+            System.out.println(&quot;3:从队列获取数据&quot;);
+            key = sc.nextInt();// 接收一个字符
+            switch (key) {
+            case 1:
+                arrayQueue.showQueue();
+                break;
+            case 2:
+                System.out.println(&quot;输入一个数:&quot;);
+                int value = sc.nextInt();
+                arrayQueue.addQueue(value);
+                break;
+            case 3:
+                try {
+                    int res = arrayQueue.getQueue();
+                    System.out.println(&quot;取出的数据是:&quot; + res);
+                } catch (Exception e) {
+                    System.out.println(e.getMessage());
+                }
+                break;
+            }
+        }
+    }</code></code></pre>
+<p>运行效果如下：<br />
+<img src="./images/图解Java数据结构之队列1.png" alt="在这里插入图片描述" /><br />
+但是，这个程序有一个很大的问题，就是当你把队列中的元素取出来之后，再添加发现添加不了，一直提示队列为空，因为此时指向队列前后端的两个变量相等，而判断队列是否为空就是依靠这两个变量来判断的。</p>
+<h5 id="数组模拟环形队列">数组模拟环形队列</h5>
+<p>刚才我们说到这个程序是有问题的，数组只能使用一次，那我们可以对前面的数组模拟队列进行优化，为了能够充分利用数组，我们可将数组看成是一个环形的。<br />
+我们先来分析一下(还是看这张图)：<br />
+<img src="./images/图解Java数据结构之队列2.png" alt="在这里插入图片描述" /></p>
+<ol>
+<li>首先我们将front的含义做一个调整：front就指向队列的第一个元素，也就是说arr[front]就是队列的第一个元素，front的初始值为0</li>
+<li>将rear的含义也做一个调整：rear指向队列的最后一个元素的后一个位置，这样调整的目的是希望空出一个空间作为一个约定，rear的初始值也为0</li>
+<li>当队列满时，条件是(rear + 1) % MaxSize == front，那么条件依据是什么呢？我们举个例子，假设现在rear指向的是数组的倒数第二个元素，因为我们要预留出一个空间，所以此时队列应该就是满的，而事实上倒数第二个元素的下标加1然后取模MaxSize确实等于front，因为此时的front为0，就证明该队列已满</li>
+<li>当队列空时，条件是rear == front</li>
+</ol>
+<p>那么如果按照上面的分析实现，队列中的有效元素个数即为：(rear + MaxSize - front) % MaxSize。<br />
+接下来在原来的代码上进行一个优化：</p>
+<pre><code><code>public class CircleArrayQueueDemo {
+
+    public static void main(String[] args) {
+        // 创建一个队列
+        CircleArrayQueue arrayQueue = new CircleArrayQueue(3);
+        int key;// 接收用户输入
+        Scanner sc = new Scanner(System.in);
+        boolean loop = true;
+        // 输出一个菜单
+        while (loop) {
+            System.out.println();
+            System.out.println(&quot;1:显示队列&quot;);
+            System.out.println(&quot;2:添加数据到队列&quot;);
+            System.out.println(&quot;3:从队列获取数据&quot;);
+            key = sc.nextInt();// 接收一个字符
+            switch (key) {
+            case 1:
+                arrayQueue.showQueue();
+                break;
+            case 2:
+                System.out.println(&quot;输入一个数:&quot;);
+                int value = sc.nextInt();
+                arrayQueue.addQueue(value);
+                break;
+            case 3:
+                try {
+                    int res = arrayQueue.getQueue();
+                    System.out.println(&quot;取出的数据是:&quot; + res);
+                } catch (Exception e) {
+                    System.out.println(e.getMessage());
+                }
+                break;
+            }
+        }
+    }
+}
+
+//使用数组模拟队列——编写一个ArrayQueue类
+class CircleArrayQueue {
+    private int maxSize; // 表示数组的最大容量
+    private int front; // 队列的第一个元素
+    private int rear; // 队列的最后一个元素的后一个位置
+    private int[] arr; // 该数组用于存放数据
+
+    // 创建队列的构造器
+    public CircleArrayQueue(int maxSize) {
+        this.maxSize = maxSize;
+        arr = new int[maxSize];
+    }
+
+    // 判断队列是否满
+    public boolean isFull() {
+        return (rear + 1) % maxSize == front;
+    }
+
+    // 判断队列是否为空
+    public boolean isEmpty() {
+        return rear == front;
+    }
+
+    // 添加数据到队列
+    public void addQueue(int n) {
+        // 判断队列是否满
+        if (isFull()) {
+            System.out.println(&quot;队列满，不能加入数据&quot;);
+            return;
+        }
+        // 直接将数据加入
+        arr[rear] = n;
+        rear = (rear + 1) % maxSize;// 将rear后移，必须考虑取模(当rear指向最后时，可以通过取模将rear指向队列起始位置)
+    }
+
+    // 获取队列的数据
+    public int getQueue() {
+        // 判断队列是否空
+        if (isEmpty()) {
+            // 抛出异常
+            throw new RuntimeException(&quot;队列空，不能取出数据&quot;);
+        }
+        // 需要分析出front是指向队列的第一个元素
+        // 1、先把front对应的值保存到一个临时变量中
+        int value = arr[front];
+        // 2、将front后移，考虑取模
+        front = (front + 1) % maxSize;
+        // 3、将临时保存的变量返回
+        return value;
+    }
+
+    // 显示队列的所有数据
+    public void showQueue() {
+        // 遍历
+        if (isEmpty()) {
+            System.out.println(&quot;队列为空&quot;);
+            return;
+        }
+        // 从front开始遍历
+        for (int i = front; i &lt; front + size(); i++) {
+            System.out.printf(&quot;%d\t&quot;, arr[i % maxSize]);
+        }
+    }
+
+    // 求出当前队列有效数据个数
+    public int size() {
+        return (rear + maxSize - front) % maxSize;
+    }
+}</code></code></pre>
+<p>运行效果如下：<br />
+<img src="./images/图解Java数据结构之队列3.png" alt="在这里插入图片描述" /><br />
+现在我们就能够循环利用这个队列了。</p>
+
+
+</div><hr><script charset='utf-8' src='../../js/sming.js'></script></body></html>

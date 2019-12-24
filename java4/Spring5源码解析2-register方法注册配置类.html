@@ -1,0 +1,196 @@
+<html><head><meta charset='utf-8'><meta name='viewport' content='width=device-width, initial-scale=1'>
+<meta name='applicable-device' content='pc'><meta name='keywords' content='电脑,电脑讲解,电脑技术,编程,电脑故障维修Spring5源码解析2-register方法注册配置类' />
+<script src='../../highlight/highlight.pack.js'></script>
+<link rel='stylesheet' type='text/css' href='../../highlight/styles/monokai.css'/>
+
+<link rel='stylesheet' href='../../fenxiang/dist/css/share.min.css'>
+<script src='../../fenxiang/src/js/social-share.js'></script>
+<script src='../../fenxiang/src/js/qrcode.js'></script>
+
+</head><body><script>hljs.initHighlightingOnLoad();</script><script>
+var system ={};  
+var p = navigator.platform;       
+system.win = p.indexOf('Win') == 0;  
+system.mac = p.indexOf('Mac') == 0;  
+system.x11 = (p == 'X11') || (p.indexOf('Linux') == 0);     
+if(system.win||system.mac||system.xll){
+document.write("<link href='../css/3.css' rel='stylesheet' type='text/css'>");}else{ document.write("<link href='../css/3wap.css' rel='stylesheet' type='text/css'>");}</script><script src='../../js/3.js'></script><div class='div2'><div class='heading_nav'><ul><div><li><a href='../../index.html'>首页</a></li>
+</div><div onclick='hidden1()' >分享</div>
+</ul></div></div>
+<div id='heading_nav2'> 
+<li class='row' >
+<div class='social-share' data-mode='prepend'><a href='javascript:' class='social-share-icon icon-heart'></a></div></li></div><script charset='utf-8' src='../../3/js/hengfu.js'></script><script charset='utf-8' src='../../3/js/hengfu2.js'></script><hr><div class='div1'><div class='biaoti'><center>Spring5源码解析2-register方法注册配置类</center></div><div class='banquan'>原文出处:本文由博客园博主Coder小黑提供。<br/>
+原文连接:https://www.cnblogs.com/coderxiaohei/p/11631413.html</div><br>
+    <p>接上回已经讲完了<code>this()</code>方法，现在来看<code>register(annotatedClasses);</code>方法。</p>
+<pre><code><code>// new AnnotationConfigApplicationContext(AppConfig.class); 源码
+public AnnotationConfigApplicationContext(Class&lt;?&gt;... annotatedClasses) {
+    //调用默认无参构造器,里面有一大堆初始化逻辑
+    this();
+
+    //把传入的Class进行注册,Class既可以有@Configuration注解,也可以没有@Configuration注解
+    //怎么注册? 委托给了 org.springframework.context.annotation.AnnotatedBeanDefinitionReader.register 方法进行注册
+    // 传入Class 生成  BeanDefinition , 然后通过 注册到 BeanDefinitionRegistry
+    register(annotatedClasses);
+
+    //刷新容器上下文
+    refresh();
+}</code></code></pre>
+<hr />
+<h2 id="registerannotatedclasses-方法">register(annotatedClasses) 方法</h2>
+<p><code>register(annotatedClasses);</code>方法最后其实是调用了<code>reader</code>的<code>doRegisterBean(annotatedClass, null, null, null);</code>方法。</p>
+<pre><code><code>&lt;T&gt; void doRegisterBean(Class&lt;T&gt; annotatedClass, @Nullable Supplier&lt;T&gt; instanceSupplier, @Nullable String name,
+                        @Nullable Class&lt;? extends Annotation&gt;[] qualifiers, BeanDefinitionCustomizer... definitionCustomizers) {
+    //根据传入的Class对象生成  AnnotatedGenericBeanDefinition ,
+    // AnnotatedGenericBeanDefinition 是 BeanDefinition 的 一个实现类
+    AnnotatedGenericBeanDefinition abd = new AnnotatedGenericBeanDefinition(annotatedClass);
+    //根据 @Conditional 注解,判断是否需要跳过解析
+    if (this.conditionEvaluator.shouldSkip(abd.getMetadata())) {
+        return;
+    }
+
+    abd.setInstanceSupplier(instanceSupplier);
+    ScopeMetadata scopeMetadata = this.scopeMetadataResolver.resolveScopeMetadata(abd);
+    abd.setScope(scopeMetadata.getScopeName());
+    String beanName = (name != null ? name : this.beanNameGenerator.generateBeanName(abd, this.registry));
+
+    //解析 Class&lt;T&gt; annotatedClass 是否有通用注解: @Lazy，@Primary，@DependsOn，@Role，@Description
+    // 并把解决结果放入 AnnotatedBeanDefinition 中
+    AnnotationConfigUtils.processCommonDefinitionAnnotations(abd);
+
+    //Class&lt;? extends Annotation&gt;[] qualifiers 是通过方法调用传入的
+    // 上一步是解析Class中是否有注解,这一步是调用方作为参数传入的
+    if (qualifiers != null) {
+        for (Class&lt;? extends Annotation&gt; qualifier : qualifiers) {
+            if (Primary.class == qualifier) {
+                abd.setPrimary(true);
+            } else if (Lazy.class == qualifier) {
+                abd.setLazyInit(true);
+            } else {
+                //org.springframework.beans.factory.support.AbstractBeanDefinition.qualifiers
+                //Map&lt;String, AutowireCandidateQualifier&gt; qualifiers = new LinkedHashMap&lt;&gt;();
+                //直接放入map中
+                abd.addQualifier(new AutowireCandidateQualifier(qualifier));
+            }
+        }
+    }
+    for (BeanDefinitionCustomizer customizer : definitionCustomizers) {
+        customizer.customize(abd);
+    }
+
+    BeanDefinitionHolder definitionHolder = new BeanDefinitionHolder(abd, beanName);
+    definitionHolder = AnnotationConfigUtils.applyScopedProxyMode(scopeMetadata, definitionHolder, this.registry);
+
+    //将该Class&lt;T&gt; annotatedClass 转为 BeanDefinition 后, 通过再封装为 BeanDefinitionHolder 对象,进行 registerBeanDefinition
+    //AnnotatedBeanDefinitionReader 中有一个 BeanDefinitionRegistry registry 是通过构造方法传入的
+    //new AnnotationConfigApplicationContext(AppConfig.class); AnnotationConfigApplicationContext extends GenericApplicationContext
+    // GenericApplicationContext 类 实现了 BeanDefinitionRegistry ,registry 即为 AnnotationConfigApplicationContext
+    // GenericApplicationContext 类 内部 是 通过 DefaultListableBeanFactory 来实现 BeanDefinitionRegistry 接口的
+    BeanDefinitionReaderUtils.registerBeanDefinition(definitionHolder, this.registry);
+}</code></code></pre>
+<ol>
+<li>根据传入的<code>class</code>对象创建<code>AnnotatedGenericBeanDefinition</code>，<code>AnnotatedGenericBeanDefinition</code> 是 <code>BeanDefinition</code> 的一个实现类。</li>
+<li>根据<code>@Conditional</code> 注解，判断是否需要跳过解析，很明显这里不需要，返回false，代码继续向下执行。</li>
+<li>根据传入的参数，设置<code>BeanDefinition</code> 的属性</li>
+<li>解析传入的<code>class</code>对象是否有通用注解（<code>@Lazy</code>、<code>@Primary</code> 、<code>@DependsOn</code>、<code>@Role</code>、<code>@Description</code>），并把解析结果放入 <code>AnnotatedBeanDefinition</code>中。</li>
+<li>判断是否有传入<code>Class&lt;? extends Annotation&gt;[] qualifiers</code>参数，如果不为null，则将传入的<code>qualifiers</code>参数设置到<code>BeanDefinition</code>中。注意，第4步解析的是class中是否带有通用注解。而这步判断的注解是调用方手动传入的。</li>
+<li>将传入的<code>class</code>对象转化为 <code>BeanDefinition</code>后，再将<code>BeanDefinition</code>封装到<code>BeanDefinitionHolder</code>中（为了方便传参），然后调用<code>BeanDefinitionReaderUtils.registerBeanDefinition(definitionHolder, this.registry);</code>注册该 <code>BeanDefinition</code>。</li>
+<li>调用<code>registerBeanDefinition</code>方法时传入的<code>this.registry</code>对象是<code>AnnotatedBeanDefinitionReader</code>的一个属性，它是在构造方法中被初始化的。这个<code>this.registry</code>对象其实就是<code>AnnotationConfigApplicationContext</code>对象。<code>AnnotationConfigApplicationContext</code> 继承了<code>GenericApplicationContext</code>，<code>GenericApplicationContext</code>类实现了<code>BeanDefinitionRegistry</code>接口。而在<code>GenericApplicationContext</code>类中其实是委托给成员变量<code>beanFactory</code>来实现<code>BeanDefinitionRegistry</code>接口的。</li>
+</ol>
+<pre><code><code>public class GenericApplicationContext extends AbstractApplicationContext implements BeanDefinitionRegistry {
+
+    private final DefaultListableBeanFactory beanFactory;</code></code></pre>
+<ol>
+<li>再来看<code>registerBeanDefinition</code>方法。主要是通过<code>registry.registerBeanDefinition(beanName, definitionHolder.getBeanDefinition());</code>方法将<code>BeanDefinition</code>注册到<code>DefaultListableBeanFactory</code>中，也就是spring容器中。</li>
+</ol>
+<pre><code><code>public static void registerBeanDefinition(
+        BeanDefinitionHolder definitionHolder, BeanDefinitionRegistry registry)
+        throws BeanDefinitionStoreException {
+
+    // Register bean definition under primary name.
+    String beanName = definitionHolder.getBeanName();
+    registry.registerBeanDefinition(beanName, definitionHolder.getBeanDefinition());
+
+    // Register aliases for bean name, if any.
+    String[] aliases = definitionHolder.getAliases();
+    if (aliases != null) {
+        for (String alias : aliases) {
+            registry.registerAlias(beanName, alias);
+        }
+    }
+}</code></code></pre>
+<p>而所谓的注册<code>BeanDefinition</code>，简单理解就是将<code>BeanDefinition</code>放到<code>DefaultListableBeanFactory</code>对象的<code>beanDefinitionMap</code>中。</p>
+<pre><code><code>//org.springframework.beans.factory.support.DefaultListableBeanFactory#registerBeanDefinition方法源码
+public void registerBeanDefinition(String beanName, BeanDefinition beanDefinition)
+        throws BeanDefinitionStoreException {
+
+    Assert.hasText(beanName, &quot;Bean name must not be empty&quot;);
+    Assert.notNull(beanDefinition, &quot;BeanDefinition must not be null&quot;);
+
+    if (beanDefinition instanceof AbstractBeanDefinition) {
+        try {
+            ((AbstractBeanDefinition) beanDefinition).validate();
+        } catch (BeanDefinitionValidationException ex) {
+            throw new BeanDefinitionStoreException(beanDefinition.getResourceDescription(), beanName,
+                    &quot;Validation of bean definition failed&quot;, ex);
+        }
+    }
+
+    BeanDefinition existingDefinition = this.beanDefinitionMap.get(beanName);
+    //第一次进来existingDefinition肯定为null
+    if (existingDefinition != null) {
+        if (!isAllowBeanDefinitionOverriding()) {
+            throw new BeanDefinitionOverrideException(beanName, beanDefinition, existingDefinition);
+        } else if (existingDefinition.getRole() &lt; beanDefinition.getRole()) {
+            // e.g. was ROLE_APPLICATION, now overriding with ROLE_SUPPORT or ROLE_INFRASTRUCTURE
+            if (logger.isInfoEnabled()) {
+                logger.info(&quot;Overriding user-defined bean definition for bean &#39;&quot; + beanName +
+                        &quot;&#39; with a framework-generated bean definition: replacing [&quot; +
+                        existingDefinition + &quot;] with [&quot; + beanDefinition + &quot;]&quot;);
+            }
+        } else if (!beanDefinition.equals(existingDefinition)) {
+            if (logger.isDebugEnabled()) {
+                logger.debug(&quot;Overriding bean definition for bean &#39;&quot; + beanName +
+                        &quot;&#39; with a different definition: replacing [&quot; + existingDefinition +
+                        &quot;] with [&quot; + beanDefinition + &quot;]&quot;);
+            }
+        } else {
+            if (logger.isTraceEnabled()) {
+                logger.trace(&quot;Overriding bean definition for bean &#39;&quot; + beanName +
+                        &quot;&#39; with an equivalent definition: replacing [&quot; + existingDefinition +
+                        &quot;] with [&quot; + beanDefinition + &quot;]&quot;);
+            }
+        }
+        this.beanDefinitionMap.put(beanName, beanDefinition);
+    } else {
+        if (hasBeanCreationStarted()) {
+            // Cannot modify startup-time collection elements anymore (for stable iteration)
+            synchronized (this.beanDefinitionMap) {
+                this.beanDefinitionMap.put(beanName, beanDefinition);
+                List&lt;String&gt; updatedDefinitions = new ArrayList&lt;&gt;(this.beanDefinitionNames.size() + 1);
+                updatedDefinitions.addAll(this.beanDefinitionNames);
+                updatedDefinitions.add(beanName);
+                this.beanDefinitionNames = updatedDefinitions;
+                removeManualSingletonName(beanName);
+            }
+        } else {
+            // Still in startup registration phase
+            this.beanDefinitionMap.put(beanName, beanDefinition);
+            this.beanDefinitionNames.add(beanName);
+            removeManualSingletonName(beanName);
+        }
+        this.frozenBeanDefinitionNames = null;
+    }
+
+    if (existingDefinition != null || containsSingleton(beanName)) {
+        resetBeanDefinition(beanName);
+    }
+}</code></code></pre>
+<p>运行完<code>register(annotatedClasses);</code>方法之后，spring容器中还没有实例化bean，而只是注册了一些<code>BeanDefinition</code>。（注册的是Spring内部一些postProcessor和我们代码传入的AppConfig类）。</p>
+<p><img src="./images/Spring5源码解析2-register方法注册配置类0.png" alt="this.beanFactory.beanDefinitionMap" /></p>
+<hr />
+<p>源码学习笔记GITHUB仓库地址：https://github.com/shenjianeng/spring-code-study</p>
+<p>欢迎各位关注公众号：</p>
+<p><img src="./images/Spring5源码解析2-register方法注册配置类1.png" alt="Coder小黑" /></p>
+
+
+</div><hr><script charset='utf-8' src='../../js/sming.js'></script></body></html>

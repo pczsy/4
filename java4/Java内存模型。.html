@@ -1,0 +1,33 @@
+<html><head><meta charset='utf-8'><meta name='viewport' content='width=device-width, initial-scale=1'>
+<meta name='applicable-device' content='pc'><meta name='keywords' content='电脑,电脑讲解,电脑技术,编程,电脑故障维修Java内存模型。' />
+<script src='../../highlight/highlight.pack.js'></script>
+<link rel='stylesheet' type='text/css' href='../../highlight/styles/monokai.css'/>
+
+<link rel='stylesheet' href='../../fenxiang/dist/css/share.min.css'>
+<script src='../../fenxiang/src/js/social-share.js'></script>
+<script src='../../fenxiang/src/js/qrcode.js'></script>
+
+</head><body><script>hljs.initHighlightingOnLoad();</script><script>
+var system ={};  
+var p = navigator.platform;       
+system.win = p.indexOf('Win') == 0;  
+system.mac = p.indexOf('Mac') == 0;  
+system.x11 = (p == 'X11') || (p.indexOf('Linux') == 0);     
+if(system.win||system.mac||system.xll){
+document.write("<link href='../css/3.css' rel='stylesheet' type='text/css'>");}else{ document.write("<link href='../css/3wap.css' rel='stylesheet' type='text/css'>");}</script><script src='../../js/3.js'></script><div class='div2'><div class='heading_nav'><ul><div><li><a href='../../index.html'>首页</a></li>
+</div><div onclick='hidden1()' >分享</div>
+</ul></div></div>
+<div id='heading_nav2'> 
+<li class='row' >
+<div class='social-share' data-mode='prepend'><a href='javascript:' class='social-share-icon icon-heart'></a></div></li></div><script charset='utf-8' src='../../3/js/hengfu.js'></script><script charset='utf-8' src='../../3/js/hengfu2.js'></script><hr><div class='div1'><div class='biaoti'><center>Java内存模型。</center></div><div class='banquan'>原文出处:本文由博客园博主张玉昊提供。<br/>
+原文连接:https://www.cnblogs.com/zhangyuhao/p/11767066.html</div><br>
+    <p>&nbsp;</p>
+<p><strong>Java内存模型：</strong></p>
+<p>准备知识：缓存，缓存一致性，硬件缓冲区：写缓冲区、无效化队列，内存重排序，内存屏障。</p>
+<p>　　1、Java内存模型概念。</p>
+<p>　　　　首先，在并发的情况下，计算机系统必须解决这样两个问题：第一，一个处理器对共享变量的更新在什么时候或者什么情况下才能被其他处理器读取，即可见性问题。第二，一个处理器先后更新多个共享变量的情况下，其他处理器是以何种顺序读取到这些更新的，即有序性问题。而用于解决这两个问题的模型，就称为内存模型。而不同的处理器或者操作系统又有着不同的内存模型，Java作为一个跨平台的语言，为了屏蔽这种差异，并针对并发情况下的原子性、可见性、有序性问题，定义了自己的内存模型，这个模型就叫Java内存模型。</p>
+<p>　　　　Java内存模型规定了所有的变量都存储在主内存中，每条线程还有自己的工作内存，线程的工作内存中，保存的是被该线程使用到的变量的主内存的拷贝，线程对变量的所有操作都在工作内存中进行。</p>
+<p><strong>volatile、synchronized、final。</strong></p>
+<p>　　1、volatile：当一个变量被volatile修饰，它将具有两个特性。第一：可见性，即某一线程对该变量作了修改，其他线程会立刻得知。原理：对volatile修饰的变量进行写操作时，会将修改后的数据立即写回内存，并使其他线程的工作内存中的数据无效，其他线程在使用时，会从主内存中获取数据，这样得到的就是最新值。 第二：禁止指令重排序。原理：当对volatile修饰的变量操作时，会多执行一条以lock开头的指令，它的作用相当于一个内存屏障，用来禁止指令重排序。</p>
+
+</div><hr><script charset='utf-8' src='../../js/sming.js'></script></body></html>

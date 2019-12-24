@@ -1,0 +1,503 @@
+<html><head><meta charset='utf-8'><meta name='viewport' content='width=device-width, initial-scale=1'>
+<meta name='applicable-device' content='pc'><meta name='keywords' content='电脑,电脑讲解,电脑技术,编程,电脑故障维修软件文档写作-plantuml画用例图和时序图' />
+<script src='../../highlight/highlight.pack.js'></script>
+<link rel='stylesheet' type='text/css' href='../../highlight/styles/monokai.css'/>
+
+<link rel='stylesheet' href='../../fenxiang/dist/css/share.min.css'>
+<script src='../../fenxiang/src/js/social-share.js'></script>
+<script src='../../fenxiang/src/js/qrcode.js'></script>
+
+</head><body><script>hljs.initHighlightingOnLoad();</script><script>
+var system ={};  
+var p = navigator.platform;       
+system.win = p.indexOf('Win') == 0;  
+system.mac = p.indexOf('Mac') == 0;  
+system.x11 = (p == 'X11') || (p.indexOf('Linux') == 0);     
+if(system.win||system.mac||system.xll){
+document.write("<link href='../css/3.css' rel='stylesheet' type='text/css'>");}else{ document.write("<link href='../css/3wap.css' rel='stylesheet' type='text/css'>");}</script><script src='../../js/3.js'></script><div class='div2'><div class='heading_nav'><ul><div><li><a href='../../index.html'>首页</a></li>
+</div><div onclick='hidden1()' >分享</div>
+</ul></div></div>
+<div id='heading_nav2'> 
+<li class='row' >
+<div class='social-share' data-mode='prepend'><a href='javascript:' class='social-share-icon icon-heart'></a></div></li></div><script charset='utf-8' src='../../3/js/hengfu.js'></script><script charset='utf-8' src='../../3/js/hengfu2.js'></script><hr><div class='div1'><div class='biaoti'><center>软件文档写作-plantuml画用例图和时序图</center></div><div class='banquan'>原文出处:本文由博客园博主春天springcarter提供。<br/>
+原文连接:https://www.cnblogs.com/snidget/p/11928599.html</div><br>
+    <h1 id="背景">背景</h1>
+<blockquote>
+<p>当下的软件开发人员，不可避免的需要输出一些软件设计文档，作为一个软件工程专业毕业的工程师，最常用的设计工具就是UML，使用UML工具绘制一些软件相关的图，是必备技能，也是输出的技术文档中的重要组成部分。不关注逆向工程，这里只关注快速的绘制对应的图，plantuml是一款比较不错的工具。本节先初步熟悉用例图和时序图。</p>
+</blockquote>
+<h1 id="plantuml介绍">plantuml介绍</h1>
+<p><a href="http://plantuml.com/zh/index">官网主页</a></p>
+<p><strong>功能介绍：</strong></p>
+<blockquote>
+<p>支持快速绘制</p>
+</blockquote>
+<ul>
+<li>时序图</li>
+<li>用例图</li>
+<li>活动图</li>
+<li>类图</li>
+<li>组件图</li>
+<li>状态图</li>
+<li>对象图</li>
+<li>部署图</li>
+<li>定时图</li>
+</ul>
+<p>还支持非UML图：</p>
+<ul>
+<li>架构图</li>
+<li>甘特图</li>
+<li>思维导图</li>
+<li>ER图</li>
+</ul>
+<p>以及不常用的的图：</p>
+<ul>
+<li>SDL（规范描述语言）</li>
+<li>线框图形界面</li>
+<li>Ditaa</li>
+<li>数学公式</li>
+</ul>
+<blockquote>
+<p>画完图之后，可以生成PNG,SVG,Latex格式的图片;</p>
+</blockquote>
+<h1 id="业务场景">业务场景</h1>
+<blockquote>
+<p>x项目的用户后端服务,包括用户登录，用户积分模块；</p>
+</blockquote>
+<h1 id="用例图">用例图</h1>
+<blockquote>
+<p>用户角度描述系统功能</p>
+</blockquote>
+<h2 id="语法">语法</h2>
+<table>
+<thead>
+<tr class="header">
+<th>基本对象</th>
+<th>语法</th>
+<th>说明</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>用例</td>
+<td>usecase 详细名称 as 简称</td>
+<td>定义一个用例</td>
+</tr>
+<tr class="even">
+<td>用例带自描述</td>
+<td>usecase 详细名称 as “详细描述可分行”</td>
+<td>定义一个用例并详细描述</td>
+</tr>
+<tr class="odd">
+<td>角色</td>
+<td>actor :角色全称: as 角色简称</td>
+<td>定义一个角色</td>
+</tr>
+<tr class="even">
+<td>角色和用例建立联系并设置关系</td>
+<td>角色简称--&gt;usercase简称:关系名称</td>
+<td>建立角色和用例的关系</td>
+</tr>
+<tr class="odd">
+<td>继承</td>
+<td>角色&lt;竖线--角色 或者 用例&lt;竖线用例</td>
+<td>描述角色跟角色之间的继承关系或者用例跟用例之间的继承关系</td>
+</tr>
+<tr class="even">
+<td>单行注释</td>
+<td>note 位置 of 用例或者角色简称 : 注释内容</td>
+<td>增加单行注释</td>
+</tr>
+<tr class="odd">
+<td>多行注释</td>
+<td>note 位置 of 用例或者角色简称 换行 注释内容 换行 end note</td>
+<td>添加多行注释</td>
+</tr>
+<tr class="even">
+<td>构造类型</td>
+<td>《父类》</td>
+<td>定义角色或者用例的构造类型，即父类</td>
+</tr>
+<tr class="odd">
+<td>简单箭头</td>
+<td>-&gt;水平， --&gt;垂直线,箭头也可以改变方向或者是双向的</td>
+<td>不用指明方向的箭头</td>
+</tr>
+<tr class="even">
+<td>方位箭头</td>
+<td>-位置-&gt;</td>
+<td>带位置的箭头， 位置是 right left down up 上下左右</td>
+</tr>
+<tr class="odd">
+<td>分割图</td>
+<td>newpage</td>
+<td>把一页分成两页</td>
+</tr>
+<tr class="even">
+<td>定义默认方向</td>
+<td>left to right direction</td>
+<td>设置默认方向</td>
+</tr>
+</tbody>
+</table>
+<hr />
+<h2 id="系统用例图">系统用例图</h2>
+<h3 id="内部系统用例">内部系统用例</h3>
+<pre><code><code>@startuml
+
+left to right direction
+
+actor : 其它LX提供给TA的后端系统: as otherLxTaBackendService
+
+note top of otherLxTaBackendService
+比如tianansp
+负责活动和文章的服务
+比如tiananseason
+负责西游活动的服务
+通过dubbo的rpc方法调用
+end note
+
+usecase 修改用户积分 as changeUserPoint
+usecase 查询用户总积分 as getUserTotalPoint
+usecase 登录校验 as getRestContextByAccessToken
+
+
+otherLxTaBackendService --&gt; getRestContextByAccessToken:获取用户的登录态[RPC]
+otherLxTaBackendService --&gt; changeUserPoint:活动增加或者扣减积分[RPC]
+otherLxTaBackendService --&gt; getUserTotalPoint: 查询用户当前总积分[RPC]
+
+
+@enduml</code></code></pre>
+<p>生成的图：</p>
+<p><img src="./images/软件文档写作-plantuml画用例图和时序图0.png" alt="file" /></p>
+<h3 id="外部系统用例">外部系统用例</h3>
+<pre><code><code>@startuml
+
+&#39;left to right default
+
+actor : ta用户: as taUser
+
+usecase  用户登录  as  userLogin
+usecase 查询积分明细 as findUserPointDetail
+usecase 改变积分 as changeUserPointDetail
+
+
+note bottom of userLogin
+TA用户登录
+LX交互的后端系统
+LX的saas系统
+构造登录态
+end note
+
+taUser -right-&gt; userLogin: 登录进LX交付的功能[REST]
+taUser --&gt; changeUserPointDetail : 修改积分\n阅读文章\n分享文章\n参加活动[REST]
+taUser --&gt; findUserPointDetail : 查询积分\n消费获取\n明细[REST]
+
+@enduml</code></code></pre>
+<p><img src="./images/软件文档写作-plantuml画用例图和时序图1.png" alt="file" /></p>
+<h1 id="时序图顺序图">时序图（顺序图）</h1>
+<blockquote>
+<p>展示对象跟对象之间的协作关系</p>
+</blockquote>
+<h2 id="语法-1">语法</h2>
+<table>
+<thead>
+<tr class="header">
+<th>对象</th>
+<th>语法</th>
+<th>说明</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>箭头和线</td>
+<td>-&gt; &lt;-实线箭头 &lt;-- --&gt;虚线箭头</td>
+<td>标识参与者之间的消息传递</td>
+</tr>
+<tr class="even">
+<td>参与者</td>
+<td>actor 角色 boundary 带边界 control控制 entity 实体 database 数据库 collections 集合 participant 参与者</td>
+<td>标识参与者</td>
+</tr>
+<tr class="odd">
+<td>重命名</td>
+<td>participant 参与者详细名称 as 简称</td>
+<td>重命名参与者</td>
+</tr>
+<tr class="even">
+<td>定义顺序</td>
+<td>participant 参与者详细名称 order 排序号</td>
+<td>序号越小越靠前</td>
+</tr>
+<tr class="odd">
+<td>参与者含有特殊字符</td>
+<td>“参与者”</td>
+<td>双引号包围</td>
+</tr>
+<tr class="even">
+<td>箭头样式</td>
+<td>丢失的消息 -&gt;x 实心箭头 -&gt; 虚箭头 -&gt;&gt; 半实心箭头 -  半虚箭头 -\ 箭头末尾加0 -&gt;o</td>
+<td>各种箭头</td>
+</tr>
+<tr class="odd">
+<td>箭头颜色</td>
+<td>参与者1-[颜色定义]-&gt;参与者</td>
+<td>改变箭头颜色</td>
+</tr>
+<tr class="even">
+<td>消息自动编号</td>
+<td>autonumber</td>
+<td>放在开始的位置</td>
+</tr>
+<tr class="odd">
+<td>设置</td>
+<td>title,header,footer</td>
+<td>header footer title在开始的地方定义</td>
+</tr>
+<tr class="even">
+<td>组合消息条件分支</td>
+<td>alt/else end</td>
+<td>条件分支</td>
+</tr>
+<tr class="odd">
+<td>组合消息循环分支分支</td>
+<td>loop end</td>
+<td>循环</td>
+</tr>
+<tr class="even">
+<td>组合消息 group</td>
+<td>group end</td>
+<td>分组</td>
+</tr>
+<tr class="odd">
+<td>单行注释</td>
+<td>note 位置 ：注释内容</td>
+<td>给消息增加备注</td>
+</tr>
+<tr class="even">
+<td>多行注释</td>
+<td>note 位置（right,left,over） 换行 注释内容 换行 end note</td>
+<td>给消息增加备注</td>
+</tr>
+<tr class="odd">
+<td>改变注释的形状</td>
+<td>hnote 六边形 rnote 四边形</td>
+<td>注释的形状</td>
+</tr>
+<tr class="even">
+<td>分隔符</td>
+<td>==分割备注内容==</td>
+<td>横向划分模块</td>
+</tr>
+<tr class="odd">
+<td>引用</td>
+<td>ref over 参与者1 参与者2 : 引用内容</td>
+<td>引用</td>
+</tr>
+<tr class="even">
+<td>延迟</td>
+<td>···标识延迟 ···</td>
+<td>消息固定延迟</td>
+</tr>
+<tr class="odd">
+<td>空间</td>
+<td>3根竖线</td>
+<td>间隔</td>
+</tr>
+<tr class="even">
+<td>激活生命线</td>
+<td>activate 参与者</td>
+<td>激活生命线</td>
+</tr>
+<tr class="odd">
+<td>取消激活生命线</td>
+<td>deactivate 参与者</td>
+<td>激活生命线</td>
+</tr>
+<tr class="even">
+<td>返回</td>
+<td>return 参与者</td>
+<td>返回</td>
+</tr>
+<tr class="odd">
+<td>创建参与者</td>
+<td>create 参与者</td>
+<td>标识创建对象</td>
+</tr>
+<tr class="even">
+<td>快捷键</td>
+<td>++ 激活参与者 --取消激活参与者 ** 创建参与者 ！！销毁参与者</td>
+<td>见语法说明</td>
+</tr>
+<tr class="odd">
+<td>创建盒子</td>
+<td>box &quot;box的命名&quot; #背景色 换行 参与者1 参与者2 end box</td>
+<td>纵向划分模块</td>
+</tr>
+</tbody>
+</table>
+<hr />
+<h2 id="登录接口时序图">登录接口时序图</h2>
+<pre><code><code>@startuml
+
+autonumber &quot;&lt;b&gt;[00]&quot;
+
+title 登录接口时序图
+
+actor &quot;TA用户&quot; as User #white
+participant &quot;TAAPP&quot; as TAAPP #gold
+box &quot;LX交付&quot; #gray
+participant &quot;LX交付SDK&quot; as LXSDK #orange
+participant &quot;LX交付后端\ntiananuser&quot; as LXServer #red
+participant &quot;LXsaas后端&quot; as LXSaasServer #gray
+end box
+participant &quot;TA后端&quot; as TAServer #green
+
+activate User
+
+User -&gt; TAAPP ++:  登录TAAPP\n打开健康TAP页面
+==sdk对接==
+TAAPP -&gt; LXSDK ++:  userId\n或者加密信息
+
+==后端对接==
+
+LXSDK -&gt; LXServer ++: 登录转换为LX登录态接口
+==TA后端对接==
+LXServer &lt;-&gt; TAServer ++: 用户信息校验\n
+==对接saas==
+LXServer &lt;-&gt; LXSaasServer ++: 注册并登录\n到LXSaas
+==构造LX专属登录态==
+LXServer -&gt; LXServer ++: 登记用户信息\n保存登录令牌到redis
+
+LXServer -&gt; LXSDK ++: 构造LX专属登录态(token)
+==后端对接完成==
+
+LXSDK --&gt; TAAPP ++: 正常使用LX交互功能
+
+TAAPP --&gt; User ++: 看到LX交互功能
+
+
+@enduml</code></code></pre>
+<p><img src="./images/软件文档写作-plantuml画用例图和时序图2.png" alt="file" /></p>
+<h2 id="改变用户积分">改变用户积分</h2>
+<pre><code><code>@startuml
+
+autonumber &quot;&lt;b&gt;[#]&quot;
+
+actor TAapp用户 as taUser
+
+control 网关 as nginx
+box 接口程序 #green
+boundary Web服务器 as tomcat
+end box
+collections Redis as redis
+database Mysql as mysql
+
+taUser -&gt; nginx  ++ : 看文章，增加积分
+
+nginx -&gt;&gt; tomcat ++ : 负载均衡策略遭到一台tomcat
+
+==接口处理流程开始==
+tomcat --&gt; tomcat ++ : 参数判断
+alt 参数判断不合法
+    tomcat -[#red]&gt; taUser ++ : 参数传错误
+else 参数合法
+
+tomcat -&gt; mysql ++ : 插入积分改变的明细记录
+return 表记录id
+
+tomcat -&gt;redis ++ : 获取缓存中用户对应的记录id
+
+alt 缓存中userId对应的积分id存在
+    tomcat -&gt; mysql ++ : 更新用户的总积分
+else 缓存中userId对应的积分id不存在
+    tomcat -&gt; mysql ++ : 查询得到用户对应的id
+    alt 用户的总积分记录在数据库中存在
+        tomcat -&gt; mysql ++ :更新用户的总积分
+    else userId对应的积分记录id不存在
+        tomcat -&gt; mysql ++ :插入用户的总积分记录
+    end
+    return 用户积分记录对应的记录id
+    tomcat -&gt; redis ++: 用户积分记录对应的记录id保存到redis
+    return 无返回值
+end
+tomcat -&gt;redis: 清除掉总积分缓存，分页缓存，总条数缓存
+
+return  用户增加积分明细记录id
+
+end
+
+tomcat -[#green]&gt; taUser ++ : 改变积分成功
+@enduml</code></code></pre>
+<p><img src="./images/软件文档写作-plantuml画用例图和时序图3.png" alt="file" /></p>
+<h2 id="查询用户积分">查询用户积分</h2>
+<pre><code><code>@startuml
+
+title 查询用户积分明细接口时序图
+
+autonumber
+
+actor TA用户 as taUser
+boundary Web服务 as tomcat
+collections Redis as redis
+database Mysql as mysql
+
+
+taUser -&gt; tomcat ++ : 请求查询总积分和明细
+|||
+
+tomcat -&gt; tomcat ++: 参数校验
+
+opt 参数校验不通过
+tomcat -&gt; taUser --:   参数校验不通过
+end
+... ...
+tomcat &lt;-&gt; redis ++: 明细总数
+
+opt 明细总数不存在
+ tomcat &lt;-&gt; mysql ++: 查询明细总数
+ tomcat &lt;-&gt; redis ++: 保存明细总数
+end 
+
+
+opt 明细总条数为 0 
+    tomcat -&gt; taUser ++: 查询成功，记录为空
+end
+
+tomcat &lt;-&gt; redis ++: 查询明细记录
+opt 明细记录为空
+tomcat &lt;-&gt; mysql ++: 查询明细记录
+tomcat &lt;-&gt; redis ++: 保存明细记录
+end
+
+tomcat -&gt; tomcat ++: 明细记录组装到返回对象中
+
+tomcat -&gt; redis ++: 查询用户的总积分
+opt 用户的总积分
+tomcat &lt;-&gt; mysql ++: 查询用户的总积分
+tomcat &lt;-&gt; redis ++: 保存用户的总积分
+
+tomcat -&gt; tomcat ++: 用户的总积分组装到返回对象中
+
+
+tomcat -&gt; taUser ++: 返回积分明细
+
+end
+
+
+@enduml</code></code></pre>
+<p><img src="./images/软件文档写作-plantuml画用例图和时序图4.png" alt="file" /></p>
+<h1 id="小结">小结</h1>
+<blockquote>
+<ol>
+<li>plantuml可以绘制很多软件设计文档中的图，包括架构图，ER图，UML图；</li>
+<li>用例图宏观的描述了系统的功能；</li>
+<li>时序图比较细致的描述了单个接口的内部处理流程；</li>
+<li>接受老项目的时候，按照UML图去一个一个画出来，可以尽快的hold老系统</li>
+</ol>
+</blockquote>
+<blockquote>
+<p>原创不易，转载请注明出处。</p>
+</blockquote>
+
+
+</div><hr><script charset='utf-8' src='../../js/sming.js'></script></body></html>

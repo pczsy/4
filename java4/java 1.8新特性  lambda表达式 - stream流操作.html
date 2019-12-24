@@ -1,0 +1,144 @@
+<html><head><meta charset='utf-8'><meta name='viewport' content='width=device-width, initial-scale=1'>
+<meta name='applicable-device' content='pc'><meta name='keywords' content='电脑,电脑讲解,电脑技术,编程,电脑故障维修java 1.8新特性  lambda表达式 - stream流操作' />
+<script src='../../highlight/highlight.pack.js'></script>
+<link rel='stylesheet' type='text/css' href='../../highlight/styles/monokai.css'/>
+
+<link rel='stylesheet' href='../../fenxiang/dist/css/share.min.css'>
+<script src='../../fenxiang/src/js/social-share.js'></script>
+<script src='../../fenxiang/src/js/qrcode.js'></script>
+
+</head><body><script>hljs.initHighlightingOnLoad();</script><script>
+var system ={};  
+var p = navigator.platform;       
+system.win = p.indexOf('Win') == 0;  
+system.mac = p.indexOf('Mac') == 0;  
+system.x11 = (p == 'X11') || (p.indexOf('Linux') == 0);     
+if(system.win||system.mac||system.xll){
+document.write("<link href='../css/3.css' rel='stylesheet' type='text/css'>");}else{ document.write("<link href='../css/3wap.css' rel='stylesheet' type='text/css'>");}</script><script src='../../js/3.js'></script><div class='div2'><div class='heading_nav'><ul><div><li><a href='../../index.html'>首页</a></li>
+</div><div onclick='hidden1()' >分享</div>
+</ul></div></div>
+<div id='heading_nav2'> 
+<li class='row' >
+<div class='social-share' data-mode='prepend'><a href='javascript:' class='social-share-icon icon-heart'></a></div></li></div><script charset='utf-8' src='../../3/js/hengfu.js'></script><script charset='utf-8' src='../../3/js/hengfu2.js'></script><hr><div class='div1'><div class='biaoti'><center>java 1.8新特性  lambda表达式 - stream流操作</center></div><div class='banquan'>原文出处:本文由博客园博主九涯提供。<br/>
+原文连接:https://www.cnblogs.com/jiuya/p/11420343.html</div><br>
+    <src class="cnblogs_code">
+<pre><code><span style="font-size: 16px;">1<span style="color: #000000;">.8新特性
+
+lambda表达式
+    资料:
+        </span>1<span style="color: #000000;">. Consumer接口
+            <a title="https://blog.csdn.net/qq_28410283/article/details/80618456" href="https://blog.csdn.net/qq_28410283/article/details/80618456" target="_blank">https:</a></span><a title="https://blog.csdn.net/qq_28410283/article/details/80618456" href="https://blog.csdn.net/qq_28410283/article/details/80618456" target="_blank"><span style="color: #008000;">//</span><span style="color: #008000;">blog.csdn.net/qq_28410283/article/details/80618456</span></a>
+        2<span style="color: #000000;">.java8 Lambda表达式简介    
+            <a title="https://blog.csdn.net/qq_28410283/article/details/80961022" href="https://blog.csdn.net/qq_28410283/article/details/80961022" target="_blank">https:</a></span><a title="https://blog.csdn.net/qq_28410283/article/details/80961022" href="https://blog.csdn.net/qq_28410283/article/details/80961022" target="_blank"><span style="color: #008000;">//</span><span style="color: #008000;">blog.csdn.net/qq_28410283/article/details/80961022</span></a>
+        3.菜鸟教程  Java 8<span style="color: #000000;"> Lambda 表达式
+            <a title="https://www.runoob.com/java/java8-lambda-expressions.html" href="https://www.runoob.com/java/java8-lambda-expressions.html" target="_blank">https:</a></span><a title="https://www.runoob.com/java/java8-lambda-expressions.html" href="https://www.runoob.com/java/java8-lambda-expressions.html" target="_blank"><span style="color: #008000;">//</span><span style="color: #008000;">www.runoob.com/java/java8-lambda-expressions.html</span></a>
+<span style="color: #000000;">            
+            
+    Consumer  语义是消费的意思，
+        </span><span style="color: #0000ff;">public</span> <span style="color: #0000ff;">interface</span> Consumer&lt;T&gt;<span style="color: #000000;"> {
+            </span><span style="color: #0000ff;">void</span><span style="color: #000000;"> accept(T t);  
+                </span><span style="color: #008000;">//</span><span style="color: #008000;">消费  
+                </span><span style="color: #008000;">//</span><span style="color: #008000;">主要是对入参做一些列的操作，在stream里，主要是用于forEach；内部迭代的时候，对传入的参数，做一系列的业务操作，没有返回值；</span>
+            <span style="color: #0000ff;">default</span> Consumer&lt;T&gt; andThen(Consumer&lt;? <span style="color: #0000ff;">super</span> T&gt;<span style="color: #000000;"> after)
+                </span><span style="color: #008000;">//</span><span style="color: #008000;">传入一个Consumer类型的参数，它的泛型类型，
+                </span><span style="color: #008000;">//</span><span style="color: #008000;">跟本接口是一致的T，先做本接口的accept操作，
+                </span><span style="color: #008000;">//</span><span style="color: #008000;">然后在做传入的Consumer类型的参数的accept操作</span>
+<span style="color: #000000;">
+    Lambda 表达式的简单例子:
+        </span>1. 不需要参数,返回值为 5<span style="color: #000000;">  
+            () </span>-&gt; 5  
+        2<span style="color: #000000;">. 接收一个参数(数字类型),返回其2倍的值  
+            x </span>-&gt; 2 *<span style="color: #000000;"> x        
+        </span>3<span style="color: #000000;">. 接受2个参数(数字),并返回他们的差值  
+            (x, y) </span>-&gt;<span style="color: #000000;"> x &ndash; y   
+        </span>4<span style="color: #000000;">. 接收2个int型整数,返回他们的和  
+            (</span><span style="color: #0000ff;">int</span> x, <span style="color: #0000ff;">int</span> y) -&gt; x +<span style="color: #000000;"> y   
+        </span>5<span style="color: #000000;">. 接受一个 string 对象,并在控制台打印,不返回任何值(看起来像是返回void)  
+            (String s) </span>-&gt;<span style="color: #000000;"> System.out.print(s)        
+    使用 Lambda 表达式需要注意以下两点：
+        Lambda 表达式主要用来定义行内执行的方法类型接口，例如，一个简单方法接口。在上面例子中，我们使用各种类型的Lambda表达式来定义MathOperation接口的方法。然后我们定义了sayMessage的执行。
+        Lambda 表达式免去了使用匿名方法的麻烦，并且给予Java简单但是强大的函数化的编程能力。
+    变量作用域
+        lambda 表达式只能引用标记了 </span><span style="color: #0000ff;">final</span><span style="color: #000000;"> 的外层局部变量，这就是说不能在 lambda 内部修改定义在域外的局部变量，否则会编译错误。
+        lambda 表达式的局部变量可以不用声明为 </span><span style="color: #0000ff;">final</span>，但是必须不可被后面的代码修改（即隐性的具有 <span style="color: #0000ff;">final</span><span style="color: #000000;"> 的语义）
+
+    
+    
+stream流操作
+    资料:
+        </span>1<span style="color: #000000;">.Java的Stream流式处理
+            <a title="https://blog.csdn.net/qq_20989105/article/details/81234175" href="https://blog.csdn.net/qq_20989105/article/details/81234175" target="_blank">https:</a></span><a title="https://blog.csdn.net/qq_20989105/article/details/81234175" href="https://blog.csdn.net/qq_20989105/article/details/81234175" target="_blank"><span style="color: #008000;">//</span><span style="color: #008000;">blog.csdn.net/qq_20989105/article/details/81234175</span></a>
+        2.Java 8 Stream | 菜鸟教程   <span style="color: #008000;">//</span><span style="color: #008000;">实际使用教程</span>
+            <a title="https://www.runoob.com/java/java8-streams.html" href="https://www.runoob.com/java/java8-streams.html" target="_blank">https://www.runoob.com/java/java8-streams.html</a><br />
+<span style="color: #000000;">        
+        
+    简介:
+    Java </span>8<span style="color: #000000;"> 中的 Stream 是对集合（Collection）对象功能的增强，它专注于对集合对象进行各种非常便利、高效的聚合操作（aggregate operation），
+    或者大批量数据操作 (bulk data operation)。Stream API 借助于同样新出现的Lambda表达式，极大的提高编程效率和程序可读性。同时它提供串行
+    和并行两种模式进行汇聚操作，并发模式能够充分利用多核处理器的优势，使用fork</span>/<span style="color: #000000;">join并行方式来拆分任务和加速处理过程。通常编写并行代码很
+    难而且容易出错, 但使用Stream API无需编写一行多线程的代码，就可以很方便地写出高性能的并发程序。所以说，Java </span>8<span style="color: #000000;"> 中首次出现的
+    java.util.stream 是一个函数式语言</span>+<span style="color: #000000;">多核时代综合影响的产物。
+
+    顺序: </span>| stream of elements +-----&gt; |filter+-&gt; |sorted+-&gt; |map+-&gt; |collect|<span style="color: #000000;">
+
+    生成流
+    集合接口有两个方法来生成流：
+        stream() &minus; 为集合创建串行流。
+        parallelStream() &minus; 为集合创建并行流。
+        例:
+            List</span>&lt;String&gt; strings = Arrays.asList("abc", "", "bc", "efg", "abcd","", "jkl"<span style="color: #000000;">);
+            List</span>&lt;String&gt; filtered = strings.stream().filter(string -&gt; !<span style="color: #000000;">string.isEmpty()).collect(Collectors.toList());
+
+    forEach
+        Random random </span>= <span style="color: #0000ff;">new</span><span style="color: #000000;"> Random();
+        random.ints().limit(</span>10<span style="color: #000000;">).forEach(System.out::println);
+        
+    map
+        List</span>&lt;Integer&gt; numbers = Arrays.asList(3, 2, 2, 3, 7, 3, 5<span style="color: #000000;">);
+        </span><span style="color: #008000;">//</span><span style="color: #008000;"> 获取对应的平方数</span>
+        List&lt;Integer&gt; squaresList = numbers.stream().map( i -&gt; i*<span style="color: #000000;">i).distinct().collect(Collectors.toList());
+    filter
+        方法用于通过设置的条件过滤出元素。以下代码片段使用 filter 方法过滤出空字符串：
+
+    limit
+        方法用于获取指定数量的流。 以下代码片段使用 limit 方法打印出 </span>10<span style="color: #000000;"> 条数据：
+
+    sorted
+        方法用于对流进行排序。以下代码片段使用 sorted 方法对输出的 </span>10<span style="color: #000000;"> 个随机数进行排序：
+        Random random </span>= <span style="color: #0000ff;">new</span><span style="color: #000000;"> Random();
+        random.ints().limit(</span>10<span style="color: #000000;">).sorted().forEach(System.out::println);
+    
+    parallelStream 
+        并行程序  流并行处理程序的代替方法。以下实例我们使用 parallelStream 来输出空字符串的数量
+        List</span>&lt;String&gt; strings = Arrays.asList("abc", "", "bc", "efg", "abcd","", "jkl"<span style="color: #000000;">);
+        </span><span style="color: #008000;">//</span><span style="color: #008000;"> 获取空字符串的数量</span>
+        <span style="color: #0000ff;">int</span> count = strings.parallelStream().filter(string -&gt;<span style="color: #000000;"> string.isEmpty()).count();
+    Collectors
+        Collectors 类实现了很多归约操作，例如将流转换成集合和聚合元素。Collectors 可用于返回列表或字符串：
+
+        List</span>&lt;String&gt;strings = Arrays.asList("abc", "", "bc", "efg", "abcd","", "jkl"<span style="color: #000000;">);
+        List</span>&lt;String&gt; filtered = strings.stream().filter(string -&gt; !<span style="color: #000000;">string.isEmpty()).collect(Collectors.toList());
+         
+        System.out.println(</span>"筛选列表: " +<span style="color: #000000;"> filtered);
+        String mergedString </span>= strings.stream().filter(string -&gt; !string.isEmpty()).collect(Collectors.joining(", "<span style="color: #000000;">));
+        System.out.println(</span>"合并字符串: " +<span style="color: #000000;"> mergedString);
+    统计
+        另外，一些产生统计结果的收集器也非常有用。它们主要用于int、</span><span style="color: #0000ff;">double</span><span style="color: #000000;">、long等基本类型上，它们可以用来产生类似如下的统计结果。
+
+        List</span>&lt;Integer&gt; numbers = Arrays.asList(3, 2, 2, 3, 7, 3, 5<span style="color: #000000;">);
+         
+        IntSummaryStatistics stats </span>= numbers.stream().mapToInt((x) -&gt;<span style="color: #000000;"> x).summaryStatistics();
+         
+        System.out.println(</span>"列表中最大的数 : " +<span style="color: #000000;"> stats.getMax());
+        System.out.println(</span>"列表中最小的数 : " +<span style="color: #000000;"> stats.getMin());
+        System.out.println(</span>"所有数之和 : " +<span style="color: #000000;"> stats.getSum());
+        System.out.println(</span>"平均数 : " +<span style="color: #000000;"> stats.getAverage());
+            
+    
+   
+    </span></span></code></pre>
+
+<p>&nbsp;</p>
+<p><br /><br /><br /><br /><br /><br /><br /><br /><br /><br /><br /></p>
+
+</div><hr><script charset='utf-8' src='../../js/sming.js'></script></body></html>

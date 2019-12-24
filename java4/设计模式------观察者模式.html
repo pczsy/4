@@ -1,0 +1,46 @@
+<html><head><meta charset='utf-8'><meta name='viewport' content='width=device-width, initial-scale=1'>
+<meta name='applicable-device' content='pc'><meta name='keywords' content='电脑,电脑讲解,电脑技术,编程,电脑故障维修设计模式------观察者模式' />
+<script src='../../highlight/highlight.pack.js'></script>
+<link rel='stylesheet' type='text/css' href='../../highlight/styles/monokai.css'/>
+
+<link rel='stylesheet' href='../../fenxiang/dist/css/share.min.css'>
+<script src='../../fenxiang/src/js/social-share.js'></script>
+<script src='../../fenxiang/src/js/qrcode.js'></script>
+
+</head><body><script>hljs.initHighlightingOnLoad();</script><script>
+var system ={};  
+var p = navigator.platform;       
+system.win = p.indexOf('Win') == 0;  
+system.mac = p.indexOf('Mac') == 0;  
+system.x11 = (p == 'X11') || (p.indexOf('Linux') == 0);     
+if(system.win||system.mac||system.xll){
+document.write("<link href='../css/3.css' rel='stylesheet' type='text/css'>");}else{ document.write("<link href='../css/3wap.css' rel='stylesheet' type='text/css'>");}</script><script src='../../js/3.js'></script><div class='div2'><div class='heading_nav'><ul><div><li><a href='../../index.html'>首页</a></li>
+</div><div onclick='hidden1()' >分享</div>
+</ul></div></div>
+<div id='heading_nav2'> 
+<li class='row' >
+<div class='social-share' data-mode='prepend'><a href='javascript:' class='social-share-icon icon-heart'></a></div></li></div><script charset='utf-8' src='../../3/js/hengfu.js'></script><script charset='utf-8' src='../../3/js/hengfu2.js'></script><hr><div class='div1'><div class='biaoti'><center>设计模式------观察者模式</center></div><div class='banquan'>原文出处:本文由博客园博主haibiscuit提供。<br/>
+原文连接:https://www.cnblogs.com/haibiscuit/p/11722516.html</div><br>
+    <p><strong><span style="font-size: 14pt;">观察者模式:</span></strong><br />    定义对象之间的一对多依赖关系,使得每当一个对象状态发生改变时,其相关依赖对象都得到通知并被自动更新.<br />    <br /><strong><span style="font-size: 14pt;">观察者模式的四个角色:</span></strong><br />    1.Subject(目标)<br />    2.ConcreteSubject(具体目标)<br />    3.Observer(观察者)<br />    4.ConcreteObserver(具体观察者)<br />    <br /><strong><span style="font-size: 14pt;">举例说明:</span></strong><br />    多人联机对战中,一个队友遭受攻击将给其他的盟友发送通知.<br />    </p>
+<p><strong><span style="font-size: 14pt;">具体实现:</span></strong></p>
+<p>/**<br /> * <br />  * @ClassName: ControlCenter<br />  * @Description: 指挥部,充当目标抽象类<br />  * @author haibiscuit<br />  * @date 2019年10月22日 下午6:02:49<br />  *<br /> */<br />public abstract class ControlCenter {<br />    protected  String name;  //队伍名称<br />    protected  List&lt;Observer&gt; list = new ArrayList&lt;&gt;();<br />    <br />    public String getName() {<br />		return name;<br />	}</p>
+<p>	public void setName(String name) {<br />		this.name = name;<br />	}<br />	<br />	//加入战队<br />	public void join(Observer observer) {<br />		list.add(observer);<br />	}<br />	//撤出战队<br />    public void quit(Observer observer) {<br />    	list.remove(observer);<br />    }<br />    <br />    <br />	//抽象方法<br />    public abstract void notifyObserver(String name);<br />}</p>
+<p>/**<br /> * <br />  * @ClassName: ConcreteControllCenter<br />  * @Description: 具体目标类<br />  * @author haibiscuit<br />  * @date 2019年10月22日 下午8:50:23<br />  *<br /> */<br />public class ConcreteControllCenter extends ControlCenter{</p>
+<p>	public ConcreteControllCenter(String name) {<br />		System.out.println("战队-"+name+"-创建成功!");<br />		this.name = name;<br />	}<br />	<br />	@Override<br />	public void notifyObserver(String name) {<br />        System.out.println(name+"遭受攻击!");<br />		for (Observer observer : list) {<br />			if(!((Player)observer).getName().equals(name)) {<br />				observer.help();<br />			}<br />		}<br />	}</p>
+<p>}</p>
+<p>&nbsp;</p>
+<p>/**<br /> * <br />  * @ClassName: Observer<br />  * @Description: 抽象观察者类<br />  * @author haibiscuit<br />  * @date 2019年10月22日 下午6:16:54<br />  *<br /> */<br />public abstract class Observer {<br />    protected abstract void help();<br />    protected abstract void beAttacked(ControlCenter controlCenter);<br />}</p>
+<p>&nbsp;</p>
+<p>/**<br /> * <br />  * @ClassName: Player<br />  * @Description: 具体观察者类<br />  * @author haibiscuit<br />  * @date 2019年10月22日 下午6:20:30<br />  *<br /> */<br />public class Player extends Observer{<br />    private String name ;<br />    <br />    <br />    public Player(String name) {<br />    	this.name = name;<br />	}<br />	@Override<br />	protected void help() {<br />		System.out.println(name+"来救你!");<br />	}</p>
+<p>	@Override<br />	protected void beAttacked(ControlCenter controlCenter) {<br />		controlCenter.notifyObserver(name);		<br />	}</p>
+<p>	<br />	<br />	public String getName() {<br />		return name;<br />	}</p>
+<p>	public void setName(String name) {<br />		this.name = name;<br />	}<br />	</p>
+<p>}</p>
+<p>&nbsp;</p>
+<p>/**<br /> * <br />  * @ClassName: ObserverTest<br />  * @Description: 观察者模式的测试类<br />  * @author haibiscuit<br />  * @date 2019年10月22日 下午8:51:05<br />  *<br /> */<br />public class ObserverTest {<br />    public static void main(String args[]) {<br />    	ControlCenter controlCenter = new ConcreteControllCenter("英雄战队!");<br />        Observer observer1,observer2,observer3,observer4;<br />        <br />        observer1 = new Player("猪队友1");<br />        observer2 = new Player("猪队友2");<br />        observer3 = new Player("猪队友3");<br />        observer4 = new Player("猪队友4");<br />        <br />        controlCenter.join(observer1);<br />        controlCenter.join(observer2);<br />        controlCenter.join(observer3);<br />        controlCenter.join(observer4);<br />        <br />        <br />        observer1.beAttacked(controlCenter);//一个队友被攻击,呼唤其他队友<br />    }</p>
+<p><strong><span style="font-size: 14pt;">总结:</span></strong></p>
+<p>&nbsp; &nbsp; 可以看到,观察者模式和中介者模式非常的相像,两者在原有代码的基础上稍微变动就可以相互转换,只是代码实现的</p>
+<p>方式不同.</p>
+<p>&nbsp; 至于具体的使用场景肯定是完成组件与组件之间的通信了.</p>
+
+</div><hr><script charset='utf-8' src='../../js/sming.js'></script></body></html>

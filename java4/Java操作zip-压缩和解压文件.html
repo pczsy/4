@@ -1,0 +1,173 @@
+<html><head><meta charset='utf-8'><meta name='viewport' content='width=device-width, initial-scale=1'>
+<meta name='applicable-device' content='pc'><meta name='keywords' content='电脑,电脑讲解,电脑技术,编程,电脑故障维修Java操作zip-压缩和解压文件' />
+<script src='../../highlight/highlight.pack.js'></script>
+<link rel='stylesheet' type='text/css' href='../../highlight/styles/monokai.css'/>
+
+<link rel='stylesheet' href='../../fenxiang/dist/css/share.min.css'>
+<script src='../../fenxiang/src/js/social-share.js'></script>
+<script src='../../fenxiang/src/js/qrcode.js'></script>
+
+</head><body><script>hljs.initHighlightingOnLoad();</script><script>
+var system ={};  
+var p = navigator.platform;       
+system.win = p.indexOf('Win') == 0;  
+system.mac = p.indexOf('Mac') == 0;  
+system.x11 = (p == 'X11') || (p.indexOf('Linux') == 0);     
+if(system.win||system.mac||system.xll){
+document.write("<link href='../css/3.css' rel='stylesheet' type='text/css'>");}else{ document.write("<link href='../css/3wap.css' rel='stylesheet' type='text/css'>");}</script><script src='../../js/3.js'></script><div class='div2'><div class='heading_nav'><ul><div><li><a href='../../index.html'>首页</a></li>
+</div><div onclick='hidden1()' >分享</div>
+</ul></div></div>
+<div id='heading_nav2'> 
+<li class='row' >
+<div class='social-share' data-mode='prepend'><a href='javascript:' class='social-share-icon icon-heart'></a></div></li></div><script charset='utf-8' src='../../3/js/hengfu.js'></script><script charset='utf-8' src='../../3/js/hengfu2.js'></script><hr><div class='div1'><div class='biaoti'><center>Java操作zip-压缩和解压文件</center></div><div class='banquan'>原文出处:本文由博客园博主贺刘芳提供。<br/>
+原文连接:https://www.cnblogs.com/helf/p/11889973.html</div><br>
+    <h2 id="一说明">一、说明</h2>
+<p>rar格式的压缩包收费，java支持zip格式的压缩和解压</p>
+<h2 id="二工具类">二、工具类</h2>
+<pre><code><code>import java.io.*;
+import java.util.Enumeration;
+import java.util.List;
+import java.util.zip.ZipEntry;
+import java.util.zip.ZipFile;
+import java.util.zip.ZipOutputStream;
+public class ZipUtils {
+    private static final int  BUFFER_SIZE = 2 * 1024;
+    /**
+     * zip解压
+     * @param srcFile        zip源文件
+     * @param destDirPath     解压后的目标文件夹
+     * @throws RuntimeException 解压失败会抛出运行时异常
+     */
+    public static void unZip(File srcFile, String destDirPath) throws RuntimeException {
+        long start = System.currentTimeMillis();
+        // 判断源文件是否存在
+        if (!srcFile.exists()) {
+            throw new RuntimeException(srcFile.getPath() + &quot;所指文件不存在&quot;);
+        }
+        // 开始解压
+        ZipFile zipFile = null;
+        try {
+            zipFile = new ZipFile(srcFile);
+            Enumeration&lt;?&gt; entries = zipFile.entries();
+            while (entries.hasMoreElements()) {
+                ZipEntry entry = (ZipEntry) entries.nextElement();
+                System.out.println(&quot;解压&quot; + entry.getName());
+                // 如果是文件夹，就创建个文件夹
+                if (entry.isDirectory()) {
+                    String dirPath = destDirPath + &quot;/&quot; + entry.getName();
+                    File dir = new File(dirPath);
+                    dir.mkdirs();
+                } else {
+                    // 如果是文件，就先创建一个文件，然后用io流把内容copy过去
+                    File targetFile = new File(destDirPath + &quot;/&quot; + entry.getName());
+                    // 保证这个文件的父文件夹必须要存在
+                    if(!targetFile.getParentFile().exists()){
+                        targetFile.getParentFile().mkdirs();
+                    }
+                    targetFile.createNewFile();
+                    // 将压缩文件内容写入到这个文件中
+                    InputStream is = zipFile.getInputStream(entry);
+                    FileOutputStream fos = new FileOutputStream(targetFile);
+                    int len;
+                    byte[] buf = new byte[BUFFER_SIZE];
+                    while ((len = is.read(buf)) != -1) {
+                        fos.write(buf, 0, len);
+                    }
+                    // 关流顺序，先打开的后关闭
+                    fos.close();
+                    is.close();
+                }
+            }
+            long end = System.currentTimeMillis();
+            System.out.println(&quot;解压完成，耗时：&quot; + (end - start) +&quot; ms&quot;);
+        } catch (Exception e) {
+            throw new RuntimeException(&quot;unzip error from ZipUtils&quot;, e);
+        } finally {
+            if(zipFile != null){
+                try {
+                    zipFile.close();
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+            }
+        }
+    }
+
+    /**
+     * 压缩成ZIP 方法
+     * @param srcFiles 需要压缩的文件列表
+     * @param out           压缩文件输出流
+     * @throws RuntimeException 压缩失败会抛出运行时异常
+     */
+    public static void toZip(List&lt;File&gt; srcFiles , OutputStream out)throws Exception {
+        long start = System.currentTimeMillis();
+        ZipOutputStream zos = null ;
+        try {
+            zos = new ZipOutputStream(out);
+            for (File srcFile : srcFiles) {
+                byte[] buf = new byte[BUFFER_SIZE];
+                zos.putNextEntry(new ZipEntry(srcFile.getName()));
+                int len;
+                FileInputStream in = new FileInputStream(srcFile);
+                while ((len = in.read(buf)) != -1){
+                    zos.write(buf, 0, len);
+                }
+                zos.closeEntry();
+                in.close();
+            }
+            long end = System.currentTimeMillis();
+            System.out.println(&quot;压缩完成，耗时：&quot; + (end - start) +&quot; ms&quot;);
+        } catch (Exception e) {
+            throw new RuntimeException(&quot;zip error from ZipUtils&quot;,e);
+        }finally{
+            if(zos != null){
+                try {
+                    zos.close();
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
+            }
+        }
+    }
+}</code></code></pre>
+<h2 id="三使用工具类压缩和解压文件">三、使用工具类压缩和解压文件</h2>
+<pre><code><code>import com.szfore.utils.ZipUtils;
+import java.io.File;
+import java.io.FileOutputStream;
+import java.io.OutputStream;
+import java.util.ArrayList;
+import java.util.List;
+
+public class TestZip {
+
+    public static void main(String[] args) throws Exception{
+        //testToZip();
+        testUnzip();
+    }
+
+    /**
+     * 测试压缩文件
+     */
+    public static void testToZip() throws Exception {
+        File file1 = new File(&quot;c:\\1.txt&quot;);
+        File file2 = new File(&quot;c:\\2.txt&quot;);
+        List&lt;File&gt; files = new ArrayList&lt;File&gt;();
+        files.add(file1);
+        files.add(file2);
+        OutputStream out = new FileOutputStream(&quot;c:\\1.zip&quot;);
+        ZipUtils.toZip(files,out);
+    }
+
+    /**
+     * 测试解压文件
+     * @throws Exception
+     */
+    public static void testUnzip() throws Exception{
+        File srcFile = new File(&quot;c:\\2.zip&quot;);
+        String destDirPath = &quot;c:\\&quot;;
+        ZipUtils.unZip(srcFile,destDirPath);
+    }
+}</code></code></pre>
+
+
+</div><hr><script charset='utf-8' src='../../js/sming.js'></script></body></html>

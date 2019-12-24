@@ -1,0 +1,131 @@
+<html><head><meta charset='utf-8'><meta name='viewport' content='width=device-width, initial-scale=1'>
+<meta name='applicable-device' content='pc'><meta name='keywords' content='电脑,电脑讲解,电脑技术,编程,电脑故障维修rocketmq学习(一)  rocketmq介绍与安装' />
+<script src='../../highlight/highlight.pack.js'></script>
+<link rel='stylesheet' type='text/css' href='../../highlight/styles/monokai.css'/>
+
+<link rel='stylesheet' href='../../fenxiang/dist/css/share.min.css'>
+<script src='../../fenxiang/src/js/social-share.js'></script>
+<script src='../../fenxiang/src/js/qrcode.js'></script>
+
+</head><body><script>hljs.initHighlightingOnLoad();</script><script>
+var system ={};  
+var p = navigator.platform;       
+system.win = p.indexOf('Win') == 0;  
+system.mac = p.indexOf('Mac') == 0;  
+system.x11 = (p == 'X11') || (p.indexOf('Linux') == 0);     
+if(system.win||system.mac||system.xll){
+document.write("<link href='../css/3.css' rel='stylesheet' type='text/css'>");}else{ document.write("<link href='../css/3wap.css' rel='stylesheet' type='text/css'>");}</script><script src='../../js/3.js'></script><div class='div2'><div class='heading_nav'><ul><div><li><a href='../../index.html'>首页</a></li>
+</div><div onclick='hidden1()' >分享</div>
+</ul></div></div>
+<div id='heading_nav2'> 
+<li class='row' >
+<div class='social-share' data-mode='prepend'><a href='javascript:' class='social-share-icon icon-heart'></a></div></li></div><script charset='utf-8' src='../../3/js/hengfu.js'></script><script charset='utf-8' src='../../3/js/hengfu2.js'></script><hr><div class='div1'><div class='biaoti'><center>rocketmq学习(一)  rocketmq介绍与安装</center></div><div class='banquan'>原文出处:本文由博客园博主小熊餐馆提供。<br/>
+原文连接:https://www.cnblogs.com/xiaoxiongcanguan/p/11510366.html</div><br>
+    <h1>1.消息队列介绍</h1>
+<p>　　消息队列本质上来说是一个符合先进先出原则的单向队列：一方发送消息并存入消息队列尾部(<strong>生产者投递消息</strong>)，一方从消息队列的头部取出消息(<strong>消费者消费消息</strong>)。但对于一个成熟可靠的消息队列来说，所需要解决的主要问题还包括：<strong>高效可靠的消息投递、存储；能承受高并发的流量冲击，可通过集群部署来解决单点故障</strong>等等。</p>
+<p>　　由于消息队列具备了以上特点，因此在如今的微服务架构中能够作为一种中间件，提供许多重要的功能以解决微服务架构中的诸多痛点：</p>
+<h3><strong>1.应用解耦</strong></h3>
+<p>　　微服务架构中，存在着众多子系统，共同完成对外部用户的服务。</p>
+<p>　　举个例子：当用户在订单系统下单时，订单子系统除了需要执行自己系统的业务逻辑之外，可能还需要调用库存子系统去扣减库存；调用会员子系统去增加用户的积分；调用数据分析子系统去插入用户下单的分析数据等等。用户的一个下单行为横跨了N个业务子系统，如果按照传统的同步串行方式一个接一个的调用，用户的下单操作将会执行较长的时间，对用户不友好。同时，由于是同步调用，一旦某一个子系统出现了宕机，访问超时等问题，整个下单业务都将陷入瘫痪。</p>
+<p>　　<strong>消息队列可以将同步的系统调用转为异步的消息投递，一定程度上解除业务子系统间的耦合。</strong>当订单子系统执行完本地逻辑后，只需发送一个标识下单成功的消息，让下游依赖的子系统订阅此消息，消费处理消息来完成对应的业务。这样，用户的下单操作将很快完成，也不必担心下游子系统的故障会波及到订单系统。</p>
+<p>　　虽然消息队列解除了业务子系统间的耦合，但同时也让业务子系统对消息队列系统有了很强的依赖关系，如果消息队列出现了故障，业务系统将会出现严重故障。</p>
+<p>　　但由于消息队列在设计之初的目的十分简单明确：就是为了可靠的收发消息。因此其可用性，稳定性比绝大多数业务系统要高的多。天下没有免费的午餐，在微服务系统中引入消息队列依然是利大于弊的。</p>
+<h3>2.流量削峰</h3>
+<p>　　<strong>大多数系统的访问流量并不是一天24小时均匀稳定的，而是存在着一定的突发性。</strong>例如电商的秒杀活动，系统配置在平时能承受住500qps，可在进行秒杀活动时，瞬时的qps可能达到了5000，为平常的10倍，如果不进行处理防护，将会导致服务瘫痪。</p>
+<p>　　可以选择扩容服务器来应对可能的高峰流量，但扩容的服务器在秒杀活动过去之后多数会被闲置，从而造成很大的浪费；也可以设定并发的阈值，在访问并发数达到一定程度时就进行熔断限流，拒绝手慢的秒杀用户下单，可这样会让用户体验很差。</p>
+<p>　　这时，消息队列就能派上用场了。我们可以在系统中使用消息队列作为缓冲，将每一个用户下单请求都作为一条消息存入消息队列，消息队列会根据消费者的消费速度以一种稳定的方式将流量传递给下游消费者系统，在消费者系统处理完下单操作后异步的通知用户下单结果。虽然用户可能会延迟一段时间才能得到反馈，但无论如何也比无法下单要好。</p>
+<p>　　<strong>消息队列就像一个漏桶，可以将瞬时的尖峰流量缓存起来，并以一种稳定的速度传递给下游消费者，从而达到流量削峰的目的。</strong></p>
+<h3><strong>3.消息分发</strong></h3>
+<p><strong>　　</strong>沿用之前的例子，订单子系统的下单成功操作在业务上可能有许多其它系统需要对其做出响应(扣库存，加积分，核销优惠券等等)。</p>
+<p>　　按照传统的方式，需要订单系统挨个调用其它子系统的接口。随着业务的变化，每当有新的子系统需要对下单成功操作做出响应时，就需要改动订单系统的代码逻辑去适应新的需求。</p>
+<p>&nbsp;　　而如果引入了消息队列，则可以在下单成功之后由订单系统发送一条消息，让感兴趣的其它子系统去订阅下单成功消息。如果新的系统也出现了依赖下单成功动作的需求，自行订阅对应消息即可，并不需要订单系统做出任何的改变。</p>
+<p>　　<strong>可以利用消息分发机制可以实现代码逻辑的解耦。</strong></p>
+<h1>2.Rocketmq介绍</h1>
+<p>　　rocketmq是阿里巴巴团队使用java语言开发的一款分布式消息中间件，是一款低延迟，高可用，拥有海量消息堆积能力和灵活拓展性的消息队列。</p>
+<h2>2.1 rocketmq组成部分</h2>
+<p>　　rocketmq由四大核心模块组成：<strong>producer、consumer、brokerServer、nameServer</strong>。其中brokerServer和nameServer是rocketmq的服务端，两者一起独立的对外提供服务；而producer和consumer可看做是rocketmq的客户端，一般依附于业务应用程序。</p>
+<h3>1. Producer</h3>
+<p>　　<strong>producer负责发送消息</strong>。使用producer将消息发送到brokerServer，由brokerServer统一进行消息的分发。</p>
+<p>　　rocketmq支持多种消息发送方式，如<strong>同步消息发送</strong>、<strong>异步回调消息发送</strong>、<strong>顺序消息发送</strong>以及<strong>单向消息发送(异步无回调)</strong>。除了单向消息发送，其余的发送方式均需要brokerServer返回发送结果的确认消息。</p>
+<p>　　特别的，rocketmq的一大特色是支持<strong>发送事务消息(半消息)</strong>，能一定程度上解决分布式事务的问题。</p>
+<h3>2. Consumer</h3>
+<p>　　<strong>consumer 负责消费producer发送的消息</strong>。consumer会从brokerServer获取消息，并传递给应用程序。</p>
+<p>　　<strong>rocketMQ使用的消息原语是At Least Once(至少一次成功消费)，</strong>如果一定时间内没有接收到consumer消息确认消费的响应结果，会将同一条消息再次投递给consumer。rocketmq采用ack机制保证消息的消费成功<strong>，</strong>所以consumer可能会多次收到同一条消息，需要consumer的业务方做好幂等防护。</p>
+<p>　　从使用者的角度来看，consumer分为两种方式来获取信息。一种是<strong>推模式(push consume)</strong>，推模式看起来像是brokerServer将消息推给了consumer；另一种是<strong>拉模式(pull consume)</strong>，拉模式看起来像是consumer主动的去brokerServer拉取消息(实际上，推模式是基于拉模式实现的)。</p>
+<h3>3. BrokerServer</h3>
+<p>　　<strong>brokerServer负责消息的接收，存储和分发，</strong>是rocketmq最核心，最重量级的组成部分。</p>
+<p>　　为实现高可用和高吞吐，brokerServer通常采用集群部署，共同对外提供服务。</p>
+<h3>4. NameServer</h3>
+<p>&nbsp;　　<strong>nameServer负责提供路由元数据</strong>。例如，brokerServer通常是集群部署的，其拓扑结构会经常的发生变化。如果每次集群中broker机器的上下线都需要通知所有的消费者、生产者，效率太低。</p>
+<p>　　因此，rocketmq引入了nameServer作为brokerServer路由信息的维护者，broker的每次上下线都和nameServer通信，由nameServer来维护broker的路由信息，而producer和consumer通过访问nameServer获得对应broker的访问地址后，再向对应的broker发起请求。<strong>nameServer解除了broker和客户端的耦合依赖关系，大大提高了效率。</strong></p>
+<p>　　在其它主流消息队列中也存在着类似的维护元信息功能的组件，如zookeeper等。rocketmq的设计者认为zk的功能过于强大，杀鸡焉用牛刀，通过一个精简版的元数据服务nameServer，以减少对外部系统的耦合依赖，得以提供更可靠的服务。</p>
+<p>　　nameServer同样能以集群形式对外提供服务。但和zk集群不同的是，集群内的nameServer服务器并不会互相通信，而是保持相互独立。</p>
+<p><strong>　　<img src="./images/rocketmq学习(一)  rocketmq介绍与安装0.png" alt="" /></strong></p>
+<h2><strong>2.2 rocketmq基本概念模型</strong></h2>
+<p>　　介绍完rocketmq的组成部分之后，还需要再引入一些相关概念才能更好的理解rocketmq：　　</p>
+<h3>1.topic 主题</h3>
+<p>　　topic主题，代表一系列消息的集合，任何消息只能属于一个topic主题，主题是rocketmq进行消息发布订阅的最小单位。业务方可以通过创建并订阅各式各样的主题来满足自身的业务要求。<strong>不同主题之间的消息在逻辑上没有关联。</strong></p>
+<h3>2.tag 标签</h3>
+<p>　　tag标签，tag从属于topic主题，主要用于对同一主题下的消息进行进一步区分。标签可以简单的认为是二级主题，通过tag标签功能，业务方可以方便的实现对各种二级主题的消费需求。</p>
+<h3>3.group 组</h3>
+<p>　　group组，代表着同一类客户端的集合。具体可分为<strong>消费者组（<strong>consumer&nbsp;group</strong>）和<strong>生产者组（<strong>producer&nbsp;group</strong>）</strong></strong>两种。<strong>消费者组和生产者组之间没有任何关联(即使组名一样)。</strong></p>
+<p><strong>消费者组：</strong></p>
+<p>　　<strong>消费者组代表着同一类型的消费者集群。</strong>同一消费者组内的消费者通常消费同样的消息且消息消费逻辑一致。消费者组的概念使得consumer集群在消费消息时，rocketmq可以通过负载均衡来做到消费消息时的高可用和容错。消费者组的更多作用将会在后面的<strong>集群/广播消费模式</strong>中继续讲解。</p>
+<p><strong>生产者组：</strong></p>
+<p>　　<strong>生产者组代表着同一类型的生产者集群。</strong>一般来说，消息的生产者在发出了消息得到确认之后便完成了任务，似乎没有必要为此抽象出生产者集群的概念。</p>
+<p>　　前面说到，<strong>rocketmq具有发送事务消息的特性</strong>，发送事务消息简单来说就是生产者先发送出一个<strong>半消息(预消息)，然后执行本地的事务，在事务完成提交之后再跟着发送一个事务确认消息</strong>。半消息和普通消息的最大区别在于，半消息在投递给broker之后，broker不会马上让消费者进行消费，而是等待。只有当接收到生产者后续对应的的事务确认消息后，预消息和确认消息合二为一，才将对应的事务消息交给消费者去消费；而如果最终没有接收到事务确认消息，则会将消息直接删除不投递给消费者，以达到类似事务回滚的效果。事务消息对消费者来说是透明无感知的。</p>
+<p>　　可如果生产者在发送了预消息之后挂了怎么办？为解决这个问题，broker会在一定时间没有收到确认消息后，定时的回查生产者当前事务消息的状态，回查的范围是整个生产者组中的某一个在线节点。这种情况下，生产者和消费者一样，也构成了一个集群监听来自broker的回查。这样，即使发送消息的生产者发生了故障，在一定条件下整个生产者集群的事务消息发送功能依然可以正常运转。</p>
+<p>　　通过生产者组的概念，rocketmq实现了事务消息投递的高可用。</p>
+<h3>4.message&nbsp;消息</h3>
+<p>　　message消息是rocketmq中传递消息的主体，消息具有全局唯一的messageID属性，用户可以根据messageID查询进行消息的精确查询。</p>
+<p>　　消息的内容可以是不超过rocketmq限制的、二进制的任意数据，rocketmq不会对消息承载的数据内容做任何干预。</p>
+<h3>5.&nbsp;集群(Clustering)/广播(Broadcasting)消费</h3>
+<p><strong>集群消费：</strong></p>
+<p>　　对于任意一条被订阅的消息，同一消费者组下的节点只有一个节点对其进行消费；一个消费者组中的全部节点分摊所有消息。</p>
+<p>　　<img src="./images/rocketmq学习(一)  rocketmq介绍与安装1.png" alt="" /></p>
+<p><strong>广播消费：</strong></p>
+<p>　　对于任意一条被订阅的消息，同一消费者组下的所有节点都会对其进行消费；一个消费者组中的全部节点都能接收到全量的消息。</p>
+<p>　　<img src="./images/rocketmq学习(一)  rocketmq介绍与安装2.png" alt="" /></p>
+<p><strong>混合模式消费：</strong></p>
+<p>　　实质上是前两者的综合。同一应用集群构成一个消费者组，不同应用集群之间构成多个不同的消费者组，但却可以订阅同一个topic/tag下的消息。</p>
+<p>　　对于任意一条被订阅的消息，同一消费者组之间只会有一个节点对其进行消费，不同消费者组都会进行全量消息的消费。</p>
+<p>　　<img src="./images/rocketmq学习(一)  rocketmq介绍与安装3.png" alt="" /></p>
+<h1>3.Rocketmq下载与安装</h1>
+<p>　　介绍了rocketmq的一些基本概念之后，下面进行rocketmq的下载和安装，并进行基本的功能测试。简单起见，nameServer，broker都以单机模式启动。</p>
+<p>　　<strong>注意：示例中新版本的rocketmq要求jvm的最低版本是1.8。</strong></p>
+<h2>3.1 从官网下载资源</h2>
+<p>　　首先在<a href="http://rocketmq.apache.org/release_notes/release-notes-4.4.0/" target="_blank">rocketmq的官网</a>可以找到下载资源，其中有已经编译完成的二进制资源<strong>(binary)</strong>和需要用户自己编译的源代码资源<strong>(source)</strong>两种。在这里选择下载已经编译完成的，更容易上手的二进制资源进行安装。</p>
+<p>&nbsp;　　<img src="./images/rocketmq学习(一)  rocketmq介绍与安装4.png" alt="" /></p>
+<h2>3.2 配置rocketmq环境变量</h2>
+<p>　　将下载好的资源解压缩到任意目录，可以看到如下文件夹和文件，其中命令行的脚本文件都集中放在bin文件夹下。（这里是windows环境下的操作，资源包中也包含了linux下同样功能的shell脚本文件，操作并没有明显差异）</p>
+<p>&nbsp; &nbsp;&nbsp;<img src="./images/rocketmq学习(一)  rocketmq介绍与安装5.png" alt="" />　　</p>
+<p>　　由于脚本文件依赖一个叫做ROCKETMQ_HOME的环境变量，代指rocketmq安装的主目录，因此我们需要配置ROCKETMQ_HOME环境变量。</p>
+<p>　　&nbsp;<img src="./images/rocketmq学习(一)  rocketmq介绍与安装6.png" alt="" /></p>
+<h2>3.3 启动nameServer</h2>
+<p>　　开启一个新的命令行窗口用于启动nameServer，将命令行路径指向bin文件目录，后续新开启的命令行窗口需要做同样的操作(也可以选择配置path路径，一劳永逸)。</p>
+<p>　　执行<strong>"mqnamesrv.cmd"</strong>，看到如下图的日志信息代表着nameServer已经启动成功。保持nameServer窗口开启，不要关闭。nameServer默认的启动端口是9876。</p>
+<p>　　<img src="./images/rocketmq学习(一)  rocketmq介绍与安装7.png" alt="" /></p>
+<p>&nbsp;　　rocketmq 4.4.0版本的默认配置文件内存设置的比较大，如果启动时出现了jvm内存不足之类的错误，可以打开runserver.cmd对其进行编辑，将默认的jvm内存分配参数设置的小一点。</p>
+<p><img src="./images/rocketmq学习(一)  rocketmq介绍与安装8.png" alt="" /></p>
+<h2>3.4 启动broker</h2>
+<p>　　开启一个新的命令行窗口，执行<strong>"mqbroker.cmd -n localhost:9876"</strong>，用于启动broker。前面提到，nameServer作为维护路由元数据的中心，broker会在启动时会先在nameServer进行注册，使得生产者和消费者能够及时获得broker相关的信息。命令后面的-n localhost:9876参数就是用于指定对应nameServer的地址。</p>
+<p>　　当看到如下图所示日志信息时，说明broker已经启动完成。保持broker窗口开启，不要关闭。</p>
+<p>　　<img src="./images/rocketmq学习(一)  rocketmq介绍与安装9.png" alt="" /></p>
+<p>　　和nameServer启动一样，如果出现了内存不足的问题，可以修改<strong>runbroker.cmd</strong>中的jvm启动参数以符合要求。</p>
+<p>　　<strong>当nameServer和broker都启动完成后，rocketmq的服务端就已经可以对外提供服务了。</strong></p>
+<h2>3.5 启动consumer和producer测试消息收发功能</h2>
+<p>　　rocketmq的开发人员在rocketmq中添加了简单的demo消息收发测试程序，我们可以通过tools.cmd调用来进行测试（<strong>和前面一样，其启动时的jvm参数直接在tools.cmd中修改即可</strong>）。</p>
+<p>　　<strong>首先开启一个新的命令行窗口用于启动consumer</strong>，先执行<strong>"set NAMESRV_ADDR=localhost:9876"</strong>设定命令行窗口级别的环境变量，然后执行<strong>"tools.cmd&nbsp; org.apache.rocketmq.example.quickstart.Consumer"</strong>，看到如下图所示提示信息时，代表consumer已经启动成功。保持窗口开启状态，此时consumer正在监听对应的消息，等待消费。</p>
+<p>　　<img src="./images/rocketmq学习(一)  rocketmq介绍与安装10.png" alt="" /></p>
+<p>　　<strong>再开启一个新的命令行窗口用于启动producer</strong>，依然先执行<strong>"set NAMESRV_ADDR=localhost:9876"</strong>，设定命令行窗口级别的环境变量，为生产者指定nameServer的地址。</p>
+<p>　　接着执行<strong>"tools.cmd&nbsp; org.apache.rocketmq.example.quickstart.Producer"</strong>，如无意外，会看到发送消息的刷屏日志，producer在一瞬间就发送了N条普通消息(1000条)；</p>
+<p>　　与此同时，consumer也接收到消息，并在控制台中打印出了消息消费日志。</p>
+<p>　　<img src="./images/rocketmq学习(一)  rocketmq介绍与安装11.png" alt="" /></p>
+<p>　　至此，rocketmq的安装与基本功能的简单测试宣告完成。</p>
+<h1>总结</h1>
+<p>　　这是"rocketmq学习"系列的第一篇博客，所以先以rockemq概念的介绍和安装入手。后续的博客内容将会有诸如rocketmq集群部署、图形化控制台安装等，并结合rocketmq的源码进一步理解rocketmq的工作原理。</p>
+<p>　　写"rocketmq学习"系列博客的主要目的还是为了巩固并加深自己对rocketmq的理解。因为对于一些知识点只有在写作的过程中才会发现对其了解的并不透彻，通过写博客可以很好的查漏补缺。</p>
+<p>　　如有理解不到位的地方，欢迎指正。</p>
+<p>　　</p>
+
+</div><hr><script charset='utf-8' src='../../js/sming.js'></script></body></html>

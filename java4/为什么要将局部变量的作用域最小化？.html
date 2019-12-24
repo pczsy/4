@@ -1,0 +1,57 @@
+<html><head><meta charset='utf-8'><meta name='viewport' content='width=device-width, initial-scale=1'>
+<meta name='applicable-device' content='pc'><meta name='keywords' content='电脑,电脑讲解,电脑技术,编程,电脑故障维修为什么要将局部变量的作用域最小化？' />
+<script src='../../highlight/highlight.pack.js'></script>
+<link rel='stylesheet' type='text/css' href='../../highlight/styles/monokai.css'/>
+
+<link rel='stylesheet' href='../../fenxiang/dist/css/share.min.css'>
+<script src='../../fenxiang/src/js/social-share.js'></script>
+<script src='../../fenxiang/src/js/qrcode.js'></script>
+
+</head><body><script>hljs.initHighlightingOnLoad();</script><script>
+var system ={};  
+var p = navigator.platform;       
+system.win = p.indexOf('Win') == 0;  
+system.mac = p.indexOf('Mac') == 0;  
+system.x11 = (p == 'X11') || (p.indexOf('Linux') == 0);     
+if(system.win||system.mac||system.xll){
+document.write("<link href='../css/3.css' rel='stylesheet' type='text/css'>");}else{ document.write("<link href='../css/3wap.css' rel='stylesheet' type='text/css'>");}</script><script src='../../js/3.js'></script><div class='div2'><div class='heading_nav'><ul><div><li><a href='../../index.html'>首页</a></li>
+</div><div onclick='hidden1()' >分享</div>
+</ul></div></div>
+<div id='heading_nav2'> 
+<li class='row' >
+<div class='social-share' data-mode='prepend'><a href='javascript:' class='social-share-icon icon-heart'></a></div></li></div><script charset='utf-8' src='../../3/js/hengfu.js'></script><script charset='utf-8' src='../../3/js/hengfu2.js'></script><hr><div class='div1'><div class='biaoti'><center>为什么要将局部变量的作用域最小化？</center></div><div class='banquan'>原文出处:本文由博客园博主沉默王二提供。<br/>
+原文连接:https://www.cnblogs.com/qing-gee/p/11616726.html</div><br>
+    <p>嗨，本篇文章来说说 Java 的一个小细节：为什么要将局部变量的作用域最小化？</p>
+<p>明人不说暗话啊。这篇文章的灵感来源于《Effective Java》，这本书我买了有好长好长一段时间了，书页都已经泛黄，烙下了时间的痕迹，但我仍然还没有把这本书读完。说来惭愧啊。</p>
+<p>为什么呢？总感觉这本书的中文翻译有点拙劣，读起来烦闷枯燥。明明感觉作者说得非常有道理，但就是提不起半点兴致。</p>
+<p>（说完这句话，总觉得有点对不住这本书的译者，毕竟吐槽容易，分享难啊。）</p>
+<p>为什么要说这些废话呢，因为怕大家觉得这是不值一提的细节，但往往细节决定成败啊。大家不妨换一种比较轻松的心态来读一读。反正我是不怎么喜欢高谈阔论的文章，读完后往往只能感慨一句：&ldquo;说得不错啊&rdquo;，但也仅此而已。</p>
+<p>好了，来步入正题。</p>
+<pre><code><code class="java language-java hljs">String&nbsp;[]&nbsp;strs&nbsp;=&nbsp;{<span class="hljs-string">"洛阳",<span class="hljs-string">"牡丹",<span class="hljs-string">"甲天下"};<br />List&lt;String&gt;&nbsp;list&nbsp;=&nbsp;Arrays.asList(strs);<br /><br />Iterator&lt;String&gt;&nbsp;iterator&nbsp;=&nbsp;list.iterator();<br /><span class="hljs-keyword">while&nbsp;(iterator.hasNext())&nbsp;{<br />&nbsp;&nbsp;&nbsp;&nbsp;String&nbsp;s&nbsp;=&nbsp;(String)&nbsp;iterator.next();<br />&nbsp;&nbsp;&nbsp;&nbsp;System.out.println(s);<br />}<br /><br />list.add(<span class="hljs-string">"沉默王二");<br />Iterator&lt;String&gt;&nbsp;iterator1&nbsp;=&nbsp;list.iterator();<br /><span class="hljs-keyword">while&nbsp;(iterator.hasNext())&nbsp;{<br />&nbsp;&nbsp;&nbsp;&nbsp;String&nbsp;s&nbsp;=&nbsp;(String)&nbsp;iterator1.next();<br />&nbsp;&nbsp;&nbsp;&nbsp;System.out.println(s);<br />}<br /></span></span></span></span></span></span></code></code></pre>
+<p>大家用&ldquo;肉眼&rdquo;看完上面这段代码后，会觉得有问题吗？</p>
+<p>如果不细心的话，好像真的很难发现&ldquo;复制-粘贴&rdquo;引发的这个问题：第二个 while 循环的条件中使用了之前的变量 iterator，而不是它应该使用的 iterator1（粘贴后遗漏了变量的修改）。这个问题将会导致代码在运行的时候抛出 <code>java.lang.UnsupportedOperationException</code> 的错误。</p>
+<p>说句实在话，在敲代码的这十年来，没少复制粘贴，没少因为粘贴后变量没有修改彻底，而导致出现了各种意料之外的 bug。</p>
+<p>假如把变量的作用域最小化的话，还真的能够减少这种因为&ldquo;复制-粘贴&rdquo;而导致出现的错误。比如说把 while 循环改造成 for 循环。</p>
+<pre><code><code class="java language-java hljs"><span class="hljs-keyword">for&nbsp;(Iterator&lt;String&gt;&nbsp;iterator&nbsp;=&nbsp;list.iterator();iterator.hasNext();)&nbsp;{<br />&nbsp;&nbsp;&nbsp;&nbsp;String&nbsp;s&nbsp;=&nbsp;(String)&nbsp;iterator.next();<br />&nbsp;&nbsp;&nbsp;&nbsp;System.out.println(s);<br />}<br /><br />list.add(<span class="hljs-string">"沉默王二");<br /><span class="hljs-keyword">for&nbsp;(Iterator&lt;String&gt;&nbsp;iterator&nbsp;=&nbsp;list.iterator();iterator.hasNext();)&nbsp;{<br />&nbsp;&nbsp;&nbsp;&nbsp;String&nbsp;s&nbsp;=&nbsp;(String)&nbsp;iterator.next();<br />&nbsp;&nbsp;&nbsp;&nbsp;System.out.println(s);<br />}<br /></span></span></span></code></code></pre>
+<p>第二个 for 循环使用了和第一个 for 循环一模一样的代码，连 iterator 这个变量也不需要修改了。</p>
+<p>从另一方面来看的话，for 循环比 while 循环更简短，可读性更好。for 循环还有另外一种最常用的写法，示例如下。</p>
+<pre><code><code class="java language-java hljs"><span class="hljs-keyword">for&nbsp;(<span class="hljs-keyword">int&nbsp;i&nbsp;=&nbsp;<span class="hljs-number">0;&nbsp;i&nbsp;&lt;&nbsp;list.size();&nbsp;i++)&nbsp;{<br />&nbsp;&nbsp;&nbsp;&nbsp;System.out.println(list.get(i));<br />}<br /></span></span></span></code></code></pre>
+<p>但这种写法仍有改进的地方，因为从字节码的角度来看，每次循环都要调用一次 <code>size()</code> 方法。</p>
+<pre><code><code class="hljs makefile"><span class="hljs-section">2:&nbsp;iload_1<br /><span class="hljs-section">3:&nbsp;aload_0<br /><span class="hljs-section">4:&nbsp;getfield&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;#4&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;//&nbsp;Field&nbsp;list:Ljava/util/List;<br /><span class="hljs-section">7:&nbsp;invokeinterface&nbsp;#5,&nbsp;&nbsp;1&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;//&nbsp;InterfaceMethod&nbsp;java/util/List.size:()I<br /><span class="hljs-section">12:&nbsp;if_icmpge&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;40<br /><span class="hljs-section">15:&nbsp;getstatic&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;#6&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;//&nbsp;Field&nbsp;java/lang/System.out:Ljava/io/PrintStream;<br /><span class="hljs-section">18:&nbsp;aload_0<br /><span class="hljs-section">19:&nbsp;getfield&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;#4&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;//&nbsp;Field&nbsp;list:Ljava/util/List;<br /><span class="hljs-section">22:&nbsp;iload_1<br /><span class="hljs-section">23:&nbsp;invokeinterface&nbsp;#7,&nbsp;&nbsp;2&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;//&nbsp;InterfaceMethod&nbsp;java/util/List.get:(I)Ljava/lang/Object;<br /><span class="hljs-section">28:&nbsp;checkcast&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;#8&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;//&nbsp;class&nbsp;java/lang/String<br /><span class="hljs-section">31:&nbsp;invokevirtual&nbsp;#9&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;//&nbsp;Method&nbsp;java/io/PrintStream.println:(Ljava/lang/String;)V<br /><span class="hljs-section">34:&nbsp;iinc&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;1,&nbsp;1<br /><span class="hljs-section">37:&nbsp;goto&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;2<br /><span class="hljs-section">40:&nbsp;return<br /></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></code></code></pre>
+<p><code>size()</code> 方法虽然简短，但也有消耗啊。都有什么消耗呢？说几个专业名词大家感受一下，比如说：创建栈帧、调用方法时保护现场、调用方法完毕后恢复现场。</p>
+<p>（容许我尴尬一下，在写这篇文章之前，我一直用的上面这种 for 循环格式。看来写文章还是能够督促自己进步啊。）</p>
+<p>怎么改进呢，看下面这种写法（强烈推荐啊）。</p>
+<pre><code><code class="java language-java hljs"><span class="hljs-keyword">for&nbsp;(<span class="hljs-keyword">int&nbsp;i&nbsp;=&nbsp;<span class="hljs-number">0,&nbsp;n&nbsp;=&nbsp;list.size();&nbsp;i&nbsp;&lt;&nbsp;n;&nbsp;i++)&nbsp;{<br />&nbsp;&nbsp;&nbsp;&nbsp;System.out.println(list.get(i));<br />}<br /></span></span></span></code></code></pre>
+<p>在 for 循环内部声明两个变量：i 和 n，n 用来保存 i 的极限值，这样就减少了 <code>size()</code> 方法的调用次数（仅有一次了）。</p>
+<p>再来看一段代码。</p>
+<pre><code><code class="java language-java hljs">String&nbsp;pre_name&nbsp;=&nbsp;<span class="hljs-string">"沉默";<br />String&nbsp;last_name&nbsp;=&nbsp;<span class="hljs-string">"王二";<br /><br />System.out.println(pre_name);<br />System.out.println(last_name);<br /></span></span></code></code></pre>
+<p>上面这段代码看起来挺规整的，没什么问题，对吧？它没有遵守约定&mdash;&mdash;将局部变量的作用域最小化。</p>
+<p>pre_name 变量的作用域结束的有点晚；last_name 变量的作用域开始的有点早。假如第一个 <code>System.out.println()</code> 出错的话，last_name 的声明就变得毫无意义了。</p>
+<p>（这只是一个例子，变量的处理方法可能比 <code>System.out.println()</code> 复杂得多。）</p>
+<p>好的写法应该是下面这样子。</p>
+<pre><code><code class="java language-java hljs">String&nbsp;pre_name&nbsp;=&nbsp;<span class="hljs-string">"沉默";<br />System.out.println(pre_name);<br /><br />String&nbsp;last_name&nbsp;=&nbsp;<span class="hljs-string">"王二";<br />System.out.println(last_name);<br /></span></span></code></code></pre>
+<p>有人可能觉得这不是在吹毛求疵吗？真不是的，<strong>变量就应该是在第一次使用它的时候声明</strong>。否则的话，变量的作用域要么开始的太早，要么结束的太晚。</p>
+<p>好了，这篇文章到此就结束了，非常的简短，但讲清楚了&ldquo;为什么要将局部变量的作用域最小化&rdquo;。</p>
+<p>&nbsp;</p>
+
+</div><hr><script charset='utf-8' src='../../js/sming.js'></script></body></html>

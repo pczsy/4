@@ -1,0 +1,234 @@
+<html><head><meta charset='utf-8'><meta name='viewport' content='width=device-width, initial-scale=1'>
+<meta name='applicable-device' content='pc'><meta name='keywords' content='电脑,电脑讲解,电脑技术,编程,电脑故障维修spring boot 2 + shiro 实现简单的身份验证例子' />
+<script src='../../highlight/highlight.pack.js'></script>
+<link rel='stylesheet' type='text/css' href='../../highlight/styles/monokai.css'/>
+
+<link rel='stylesheet' href='../../fenxiang/dist/css/share.min.css'>
+<script src='../../fenxiang/src/js/social-share.js'></script>
+<script src='../../fenxiang/src/js/qrcode.js'></script>
+
+</head><body><script>hljs.initHighlightingOnLoad();</script><script>
+var system ={};  
+var p = navigator.platform;       
+system.win = p.indexOf('Win') == 0;  
+system.mac = p.indexOf('Mac') == 0;  
+system.x11 = (p == 'X11') || (p.indexOf('Linux') == 0);     
+if(system.win||system.mac||system.xll){
+document.write("<link href='../css/3.css' rel='stylesheet' type='text/css'>");}else{ document.write("<link href='../css/3wap.css' rel='stylesheet' type='text/css'>");}</script><script src='../../js/3.js'></script><div class='div2'><div class='heading_nav'><ul><div><li><a href='../../index.html'>首页</a></li>
+</div><div onclick='hidden1()' >分享</div>
+</ul></div></div>
+<div id='heading_nav2'> 
+<li class='row' >
+<div class='social-share' data-mode='prepend'><a href='javascript:' class='social-share-icon icon-heart'></a></div></li></div><script charset='utf-8' src='../../3/js/hengfu.js'></script><script charset='utf-8' src='../../3/js/hengfu2.js'></script><hr><div class='div1'><div class='biaoti'><center>spring boot 2 + shiro 实现简单的身份验证例子</center></div><div class='banquan'>原文出处:本文由博客园博主gdjlc提供。<br/>
+原文连接:https://www.cnblogs.com/gdjlc/p/12006635.html</div><br>
+    <p>Shiro是一个功能强大且易于使用的Java安全框架，官网：https://shiro.apache.org/。</p>
+<p>主要功能有身份验证、授权、加密和会话管理。<br />其它特性有Web支持、缓存、测试支持、允许一个用户用另一个用户的身份进行访问、记住我。</p>
+<p><img src="./images/spring boot 2 + shiro 实现简单的身份验证例子0.png" alt="" width="357" height="184" /></p>
+<p>Shiro有三个核心组件：Subject，SecurityManager和 Realm。</p>
+<p><img src="./images/spring boot 2 + shiro 实现简单的身份验证例子1.png" alt="" width="361" height="195" /></p>
+<p><span style="color: #333399;">Subject</span>：即当前操作&ldquo;用户&rdquo;，&ldquo;用户&rdquo;并不仅仅指人，也可以是第三方进程、后台帐户或其他类似事物。<br /><span style="color: #333399;">SecurityManager</span>：安全管理器，Shiro框架的核心，通过SecurityManager来管理所有Subject，并通过它来提供安全管理的各种服务。<br /><span style="color: #333399;">Realm</span>：域，充当了Shiro与应用安全数据间的&ldquo;桥梁&rdquo;或者&ldquo;连接器&rdquo;。也就是说，当对用户执行认证（登录）和授权（访问控制）验证时，Shiro会从应用配置的Realm中查找用户及其权限信息。当配置Shiro时，必须至少指定一个Realm，用于认证和（或）授权。</p>
+<p> Spring Boot 中整合Shiro，根据引入的依赖包<strong><span style="color: #333399;">shiro-spring</span></strong>和<strong><span style="color: #333399;">shiro-spring-boot-web-starter</span></strong>（当前版本都是1.4.2）不同有两种不同方法。</p>
+<p><span style="font-size: 15px;"><strong>方法一：引入依赖包shiro-spring</strong></span></p>
+<p><span style="color: #333399;"> 1、IDEA中创建一个新的SpringBoot项目，pom.xml引用的依赖包如下：</span></p>
+<src class="cnblogs_code">
+<pre><code>        <span style="color: #0000ff;">&lt;</span><span style="color: #800000;">dependency</span><span style="color: #0000ff;">&gt;</span>
+            <span style="color: #0000ff;">&lt;</span><span style="color: #800000;">groupId</span><span style="color: #0000ff;">&gt;</span>org.springframework.boot<span style="color: #0000ff;">&lt;/</span><span style="color: #800000;">groupId</span><span style="color: #0000ff;">&gt;</span>
+            <span style="color: #0000ff;">&lt;</span><span style="color: #800000;">artifactId</span><span style="color: #0000ff;">&gt;</span>spring-boot-starter-web<span style="color: #0000ff;">&lt;/</span><span style="color: #800000;">artifactId</span><span style="color: #0000ff;">&gt;</span>
+        <span style="color: #0000ff;">&lt;/</span><span style="color: #800000;">dependency</span><span style="color: #0000ff;">&gt;</span>
+
+        <span style="color: #0000ff;">&lt;</span><span style="color: #800000;">dependency</span><span style="color: #0000ff;">&gt;</span>
+            <span style="color: #0000ff;">&lt;</span><span style="color: #800000;">groupId</span><span style="color: #0000ff;">&gt;</span>org.apache.shiro<span style="color: #0000ff;">&lt;/</span><span style="color: #800000;">groupId</span><span style="color: #0000ff;">&gt;</span>
+            <span style="color: #0000ff;">&lt;</span><span style="color: #800000;">artifactId</span><span style="color: #0000ff;">&gt;</span>shiro-spring<span style="color: #0000ff;">&lt;/</span><span style="color: #800000;">artifactId</span><span style="color: #0000ff;">&gt;</span>
+            <span style="color: #0000ff;">&lt;</span><span style="color: #800000;">version</span><span style="color: #0000ff;">&gt;</span>1.4.2<span style="color: #0000ff;">&lt;/</span><span style="color: #800000;">version</span><span style="color: #0000ff;">&gt;</span>
+        <span style="color: #0000ff;">&lt;/</span><span style="color: #800000;">dependency</span><span style="color: #0000ff;">&gt;</span>
+        </code></pre>
+
+<p><span style="color: #333399;">2、创建Realm和配置shiro</span></p>
+<p>（1）创建Realm</p>
+<src class="cnblogs_code">
+<pre><code><span style="color: #0000ff;">package</span><span style="color: #000000;"> com.example.demo.config;
+
+</span><span style="color: #0000ff;">import</span> org.apache.shiro.authc.*<span style="color: #000000;">;
+</span><span style="color: #0000ff;">import</span><span style="color: #000000;"> org.apache.shiro.authz.AuthorizationInfo;
+</span><span style="color: #0000ff;">import</span><span style="color: #000000;"> org.apache.shiro.realm.AuthorizingRealm;
+</span><span style="color: #0000ff;">import</span><span style="color: #000000;"> org.apache.shiro.subject.PrincipalCollection;
+
+</span><span style="color: #0000ff;">public</span> <span style="color: #0000ff;">class</span> MyRealm <span style="color: #0000ff;">extends</span><span style="color: #000000;"> AuthorizingRealm {
+
+    </span><span style="color: #008000;">/**</span><span style="color: #008000;">权限信息，暂不实现</span><span style="color: #008000;">*/</span><span style="color: #000000;">
+    @Override
+    </span><span style="color: #0000ff;">protected</span><span style="color: #000000;"> AuthorizationInfo doGetAuthorizationInfo(PrincipalCollection principalCollection) {
+        </span><span style="color: #0000ff;">return</span> <span style="color: #0000ff;">null</span><span style="color: #000000;">;
+    }
+
+    </span><span style="color: #008000;">/**</span><span style="color: #008000;">身份认证:验证用户输入的账号和密码是否正确。</span><span style="color: #008000;">*/</span><span style="color: #000000;">
+    @Override
+    </span><span style="color: #0000ff;">protected</span> AuthenticationInfo doGetAuthenticationInfo(AuthenticationToken token) <span style="color: #0000ff;">throws</span><span style="color: #000000;"> AuthenticationException {
+        </span><span style="color: #008000;">//</span><span style="color: #008000;">获取用户输入的账号</span>
+        String userName =<span style="color: #000000;"> (String) token.getPrincipal();
+        </span><span style="color: #008000;">//</span><span style="color: #008000;">验证用户admin和密码123456是否正确</span>
+        <span style="color: #0000ff;">if</span> (!"admin"<span style="color: #000000;">.equals(userName)) {
+            </span><span style="color: #0000ff;">throw</span> <span style="color: #0000ff;">new</span> UnknownAccountException("账户不存在!"<span style="color: #000000;">);
+        }
+        SimpleAuthenticationInfo authenticationInfo </span>= <span style="color: #0000ff;">new</span> SimpleAuthenticationInfo(userName, "123456"<span style="color: #000000;">, getName());
+        </span><span style="color: #0000ff;">return</span><span style="color: #000000;"> authenticationInfo;
+        </span><span style="color: #008000;">//</span><span style="color: #008000;">实际项目中，上面账号从数据库中获取用户对象，再判断是否存在</span>
+        <span style="color: #008000;">/*</span><span style="color: #008000;">User user = userService.findByUserName(userName);
+        if (user == null) {
+            throw new UnknownAccountException("账户不存在!");
+        }
+        SimpleAuthenticationInfo authenticationInfo = new SimpleAuthenticationInfo(user,user.getPassword(), getName());
+        return authenticationInfo;
+        </span><span style="color: #008000;">*/</span><span style="color: #000000;">
+    }
+}</span></code></pre>
+
+<p>（2）配置Shiro</p>
+<src class="cnblogs_code">
+<pre><code><span style="color: #0000ff;">package</span><span style="color: #000000;"> com.example.demo.config;
+
+</span><span style="color: #0000ff;">import</span><span style="color: #000000;"> org.apache.shiro.spring.web.ShiroFilterFactoryBean;
+</span><span style="color: #0000ff;">import</span><span style="color: #000000;"> org.apache.shiro.web.mgt.DefaultWebSecurityManager;
+</span><span style="color: #0000ff;">import</span><span style="color: #000000;"> org.springframework.context.annotation.Bean;
+</span><span style="color: #0000ff;">import</span><span style="color: #000000;"> org.springframework.context.annotation.Configuration;
+
+</span><span style="color: #0000ff;">import</span><span style="color: #000000;"> java.util.LinkedHashMap;
+</span><span style="color: #0000ff;">import</span><span style="color: #000000;"> java.util.Map;
+
+@Configuration
+</span><span style="color: #0000ff;">public</span> <span style="color: #0000ff;">class</span><span style="color: #000000;"> ShiroConfig {
+    @Bean
+    MyRealm myRealm() {
+        </span><span style="color: #0000ff;">return</span> <span style="color: #0000ff;">new</span><span style="color: #000000;"> MyRealm();
+    }
+
+    @Bean
+    DefaultWebSecurityManager securityManager() {
+        DefaultWebSecurityManager manager </span>= <span style="color: #0000ff;">new</span><span style="color: #000000;"> DefaultWebSecurityManager();
+        manager.setRealm(myRealm());
+        </span><span style="color: #0000ff;">return</span><span style="color: #000000;"> manager;
+    }
+
+    @Bean
+    ShiroFilterFactoryBean shiroFilterFactoryBean() {
+        ShiroFilterFactoryBean bean </span>= <span style="color: #0000ff;">new</span><span style="color: #000000;"> ShiroFilterFactoryBean();
+        bean.setSecurityManager(securityManager());
+        </span><span style="color: #008000;">//</span><span style="color: #008000;">如果不设置默认会自动寻找Web工程根目录下的"/login.jsp"页面</span>
+        bean.setLoginUrl("/login"<span style="color: #000000;">);
+        </span><span style="color: #008000;">//</span><span style="color: #008000;">登录成功后要跳转的链接</span>
+        bean.setSuccessUrl("/index"<span style="color: #000000;">);
+        </span><span style="color: #008000;">//</span><span style="color: #008000;">未授权界面</span>
+        bean.setUnauthorizedUrl("/403"<span style="color: #000000;">);
+        </span><span style="color: #008000;">//</span><span style="color: #008000;">配置不会被拦截的链接</span>
+        Map&lt;String, String&gt; map = <span style="color: #0000ff;">new</span> LinkedHashMap&lt;&gt;<span style="color: #000000;">();
+        map.put(</span>"/doLogin", "anon"<span style="color: #000000;">);
+        map.put(</span>"/**", "authc"<span style="color: #000000;">);
+        bean.setFilterChainDefinitionMap(map);
+        </span><span style="color: #0000ff;">return</span><span style="color: #000000;"> bean;
+    }
+}</span></code></pre>
+
+<p><span style="color: #333399;">3、控制器测试方法</span></p>
+<src class="cnblogs_code">
+<pre><code><span style="color: #0000ff;">package</span><span style="color: #000000;"> com.example.demo.controller;
+
+</span><span style="color: #0000ff;">import</span><span style="color: #000000;"> org.apache.shiro.SecurityUtils;
+</span><span style="color: #0000ff;">import</span><span style="color: #000000;"> org.apache.shiro.authc.AuthenticationException;
+</span><span style="color: #0000ff;">import</span><span style="color: #000000;"> org.apache.shiro.authc.UnknownAccountException;
+</span><span style="color: #0000ff;">import</span><span style="color: #000000;"> org.apache.shiro.authc.UsernamePasswordToken;
+</span><span style="color: #0000ff;">import</span><span style="color: #000000;"> org.apache.shiro.subject.Subject;
+</span><span style="color: #0000ff;">import</span><span style="color: #000000;"> org.springframework.web.bind.annotation.GetMapping;
+</span><span style="color: #0000ff;">import</span><span style="color: #000000;"> org.springframework.web.bind.annotation.PostMapping;
+</span><span style="color: #0000ff;">import</span><span style="color: #000000;"> org.springframework.web.bind.annotation.RestController;
+
+@RestController
+</span><span style="color: #0000ff;">public</span> <span style="color: #0000ff;">class</span><span style="color: #000000;"> LoginController {
+
+    @GetMapping(</span>"/login"<span style="color: #000000;">)
+    </span><span style="color: #0000ff;">public</span><span style="color: #000000;"> String  login() {
+        </span><span style="color: #0000ff;">return</span> "登录页面..."<span style="color: #000000;">;
+    }
+
+    @PostMapping(</span>"/doLogin"<span style="color: #000000;">)
+    </span><span style="color: #0000ff;">public</span><span style="color: #000000;"> String doLogin(String userName, String password) {
+        Subject subject </span>=<span style="color: #000000;"> SecurityUtils.getSubject();
+        </span><span style="color: #0000ff;">try</span><span style="color: #000000;"> {
+            subject.login(</span><span style="color: #0000ff;">new</span><span style="color: #000000;"> UsernamePasswordToken(userName, password));
+            </span><span style="color: #0000ff;">return</span> "登录成功!"<span style="color: #000000;">;
+        } </span><span style="color: #0000ff;">catch</span><span style="color: #000000;"> (UnknownAccountException e) {
+            </span><span style="color: #0000ff;">return</span><span style="color: #000000;"> e.getMessage();
+        } </span><span style="color: #0000ff;">catch</span><span style="color: #000000;"> (AuthenticationException e) {
+            </span><span style="color: #0000ff;">return</span> "登陆失败，密码错误!"<span style="color: #000000;">;
+        }
+    }
+
+    </span><span style="color: #008000;">//</span><span style="color: #008000;">如果没有先登陆，访问会跳到/login</span>
+    @GetMapping("/index"<span style="color: #000000;">)
+    </span><span style="color: #0000ff;">public</span><span style="color: #000000;"> String index() {
+        </span><span style="color: #0000ff;">return</span> "index"<span style="color: #000000;">;
+    }
+
+    @GetMapping(</span>"/403"<span style="color: #000000;">)
+    </span><span style="color: #0000ff;">public</span><span style="color: #000000;"> String unauthorizedRole(){
+        </span><span style="color: #0000ff;">return</span> "没有权限"<span style="color: #000000;">;
+    }
+}</span></code></pre>
+
+<p><strong style="font-size: 15px;">方法二：引入依赖包shiro-spring-boot-web-starter</strong></p>
+<p><span style="color: #333399;">1、pom.xml中删除shiro-spring，引入shiro-spring-boot-web-starter</span></p>
+<src class="cnblogs_code">
+<pre><code>        <span style="color: #0000ff;">&lt;</span><span style="color: #800000;">dependency</span><span style="color: #0000ff;">&gt;</span>
+            <span style="color: #0000ff;">&lt;</span><span style="color: #800000;">groupId</span><span style="color: #0000ff;">&gt;</span>org.springframework.boot<span style="color: #0000ff;">&lt;/</span><span style="color: #800000;">groupId</span><span style="color: #0000ff;">&gt;</span>
+            <span style="color: #0000ff;">&lt;</span><span style="color: #800000;">artifactId</span><span style="color: #0000ff;">&gt;</span>spring-boot-starter-web<span style="color: #0000ff;">&lt;/</span><span style="color: #800000;">artifactId</span><span style="color: #0000ff;">&gt;</span>
+        <span style="color: #0000ff;">&lt;/</span><span style="color: #800000;">dependency</span><span style="color: #0000ff;">&gt;</span>
+
+        <span style="color: #0000ff;">&lt;</span><span style="color: #800000;">dependency</span><span style="color: #0000ff;">&gt;</span>
+            <span style="color: #0000ff;">&lt;</span><span style="color: #800000;">groupId</span><span style="color: #0000ff;">&gt;</span>org.apache.shiro<span style="color: #0000ff;">&lt;/</span><span style="color: #800000;">groupId</span><span style="color: #0000ff;">&gt;</span>
+            <span style="color: #0000ff;">&lt;</span><span style="color: #800000;">artifactId</span><span style="color: #0000ff;">&gt;</span>shiro-spring-boot-web-starter<span style="color: #0000ff;">&lt;/</span><span style="color: #800000;">artifactId</span><span style="color: #0000ff;">&gt;</span>
+            <span style="color: #0000ff;">&lt;</span><span style="color: #800000;">version</span><span style="color: #0000ff;">&gt;</span>1.4.2<span style="color: #0000ff;">&lt;/</span><span style="color: #800000;">version</span><span style="color: #0000ff;">&gt;</span>
+        <span style="color: #0000ff;">&lt;/</span><span style="color: #800000;">dependency</span><span style="color: #0000ff;">&gt;</span></code></pre>
+
+<p><span style="color: #333399;">2、创建Realm和配置shiro</span></p>
+<p> （1）创建Realm，代码和方法一的一样。<br /> （2）配置Shiro</p>
+<src class="cnblogs_code">
+<pre><code><span style="color: #0000ff;">package</span><span style="color: #000000;"> com.example.demo.config;
+
+</span><span style="color: #0000ff;">import</span><span style="color: #000000;"> org.apache.shiro.spring.web.config.DefaultShiroFilterChainDefinition;
+</span><span style="color: #0000ff;">import</span><span style="color: #000000;"> org.apache.shiro.spring.web.config.ShiroFilterChainDefinition;
+</span><span style="color: #0000ff;">import</span><span style="color: #000000;"> org.apache.shiro.web.mgt.DefaultWebSecurityManager;
+</span><span style="color: #0000ff;">import</span><span style="color: #000000;"> org.springframework.context.annotation.Bean;
+</span><span style="color: #0000ff;">import</span><span style="color: #000000;"> org.springframework.context.annotation.Configuration;
+
+@Configuration
+</span><span style="color: #0000ff;">public</span> <span style="color: #0000ff;">class</span><span style="color: #000000;"> ShiroConfig {
+    @Bean
+    MyRealm myRealm() {
+        </span><span style="color: #0000ff;">return</span> <span style="color: #0000ff;">new</span><span style="color: #000000;"> MyRealm();
+    }
+
+    @Bean
+    DefaultWebSecurityManager securityManager() {
+        DefaultWebSecurityManager manager </span>= <span style="color: #0000ff;">new</span><span style="color: #000000;"> DefaultWebSecurityManager();
+        manager.setRealm(myRealm());
+        </span><span style="color: #0000ff;">return</span><span style="color: #000000;"> manager;
+    }
+
+    @Bean
+    ShiroFilterChainDefinition shiroFilterChainDefinition() {
+        DefaultShiroFilterChainDefinition definition </span>= <span style="color: #0000ff;">new</span><span style="color: #000000;"> DefaultShiroFilterChainDefinition();
+        definition.addPathDefinition(</span>"/doLogin", "anon"<span style="color: #000000;">);
+        definition.addPathDefinition(</span>"/**", "authc"<span style="color: #000000;">);
+        </span><span style="color: #0000ff;">return</span><span style="color: #000000;"> definition;
+    }
+}</span></code></pre>
+
+<p>（3）application.yml配置</p>
+<src class="cnblogs_code">
+<pre><code><span style="color: #000000;">shiro:
+  unauthorizedUrl: </span>/403<span style="color: #000000;">
+  successUrl: </span>/<span style="color: #000000;">index
+  loginUrl: </span>/login</code></pre>
+
+<p>&nbsp;</p>
+
+</div><hr><script charset='utf-8' src='../../js/sming.js'></script></body></html>

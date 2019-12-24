@@ -1,0 +1,140 @@
+<html><head><meta charset='utf-8'><meta name='viewport' content='width=device-width, initial-scale=1'>
+<meta name='applicable-device' content='pc'><meta name='keywords' content='电脑,电脑讲解,电脑技术,编程,电脑故障维修Java 爬虫遇上数据异步加载，试试这两种办法！' />
+<script src='../../highlight/highlight.pack.js'></script>
+<link rel='stylesheet' type='text/css' href='../../highlight/styles/monokai.css'/>
+
+<link rel='stylesheet' href='../../fenxiang/dist/css/share.min.css'>
+<script src='../../fenxiang/src/js/social-share.js'></script>
+<script src='../../fenxiang/src/js/qrcode.js'></script>
+
+</head><body><script>hljs.initHighlightingOnLoad();</script><script>
+var system ={};  
+var p = navigator.platform;       
+system.win = p.indexOf('Win') == 0;  
+system.mac = p.indexOf('Mac') == 0;  
+system.x11 = (p == 'X11') || (p.indexOf('Linux') == 0);     
+if(system.win||system.mac||system.xll){
+document.write("<link href='../css/3.css' rel='stylesheet' type='text/css'>");}else{ document.write("<link href='../css/3wap.css' rel='stylesheet' type='text/css'>");}</script><script src='../../js/3.js'></script><div class='div2'><div class='heading_nav'><ul><div><li><a href='../../index.html'>首页</a></li>
+</div><div onclick='hidden1()' >分享</div>
+</ul></div></div>
+<div id='heading_nav2'> 
+<li class='row' >
+<div class='social-share' data-mode='prepend'><a href='javascript:' class='social-share-icon icon-heart'></a></div></li></div><script charset='utf-8' src='../../3/js/hengfu.js'></script><script charset='utf-8' src='../../3/js/hengfu2.js'></script><hr><div class='div1'><div class='biaoti'><center>Java 爬虫遇上数据异步加载，试试这两种办法！</center></div><div class='banquan'>原文出处:本文由博客园博主平头哥的技术博文提供。<br/>
+原文连接:https://www.cnblogs.com/jamaler/p/11661350.html</div><br>
+    <p>这是 Java 爬虫系列博文的第三篇，在上一篇 <a href="https://www.cnblogs.com/jamaler/p/11645569.html">Java 爬虫遇到需要登录的网站，该怎么办？</a> 中，我们简单的讲解了爬虫时遇到登录问题的解决办法，在这篇文章中我们一起来聊一聊爬虫时遇到数据异步加载的问题，这也是爬虫中常见的问题。</p>
+<p>现在很多都是前后端分离项目，这会使得数据异步加载问题更加突出，所以你在爬虫时遇到这类问题不必惊讶，不必慌张。对于这类问题的解决办法总体来说有以下两种：</p>
+<p><strong>1、内置一个浏览器内核</strong></p>
+<p>内置浏览器就是在抓取的程序中，启动一个浏览器内核，使我们获取到 js 渲染后的页面，这样我们就跟采集静态页面一样了。这种工具常用的有以下三种：</p>
+<ul>
+<li>Selenium</li>
+<li>HtmlUnit</li>
+<li>PhantomJs</li>
+</ul>
+<p>这些工具都能帮助我们解决数据异步加载的问题，但是他们都存在缺陷，那就是效率不高而且不稳定。</p>
+<p><strong>2、反向解析法</strong></p>
+<p>什么是反向解析法呢？我们 js 渲染页面的数据是通过 Ajax 的方式从后端获取的，我们只需要找到对应的 Ajax 请求连接就 OK，这样我们就获取到了我们需要的数据，反向解析法的好处就是这种方式获取的数据都是 json 格式的数据，解析起来也比较方便，另一个好处就是相对页面来说，接口的变化概率更小。同样它有两个不足之处，一个是在 Ajax 时你需要有耐心有技巧，因为你需要在一大推请求中找到你想要的，另一个不足的地方就是对 JavaScript 渲染的页面束手无策。</p>
+<p>上面就是异步数据加载的两种解决办法，为了加深大家的理解和在项目中如何使用，我以采集网易要闻为例，网易新闻地址：<code>https://news.163.com/</code> 。利用上诉的两种方式来获取网易要闻的新闻列表。网易要闻如下：</p>
+<p><img src="./images/Java 爬虫遇上数据异步加载，试试这两种办法！0.png" /></p>
+<h3 id="内置浏览器-selenium-方式">内置浏览器 Selenium 方式</h3>
+<p>Selenium 是一个模拟浏览器，进行自动化测试的工具，它提供一组 API 可以与真实的浏览器内核交互。在自动化测试上使用的比较多，爬虫时解决异步加载也经常使用它，我们要在项目中使用 Selenium ，需要做两件事：</p>
+<ul>
+<li>1、引入 Selenium 的依赖包，在 pom.xml 中添加</li>
+</ul>
+<pre><code><code>&lt;!-- https://mvnrepository.com/artifact/org.seleniumhq.selenium/selenium-java --&gt;
+&lt;dependency&gt;
+    &lt;groupId&gt;org.seleniumhq.selenium&lt;/groupId&gt;
+    &lt;artifactId&gt;selenium-java&lt;/artifactId&gt;
+    &lt;version&gt;3.141.59&lt;/version&gt;
+&lt;/dependency&gt;</code></code></pre>
+<ul>
+<li>2、下载对应的 driver，例如我下载的 chromedriver，下载地址为：<code>https://npm.taobao.org/mirrors/chromedriver/</code>，下载后，需要将 driver 的位置写到 Java 的环境变量里，例如我直接放在项目下，所以我的代码为：</li>
+</ul>
+<pre><code><code>    System.getProperties().setProperty(&quot;webdriver.chrome.driver&quot;, &quot;chromedriver.exe&quot;);</code></code></pre>
+<p>完成上面两步之后，我们就可以来编写使用 Selenium 采集网易要闻啦。具体代码如下：</p>
+<pre><code><code>/**
+ * selenium 解决数据异步加载问题
+ * https://npm.taobao.org/mirrors/chromedriver/
+ *
+ * @param url
+ */
+public void selenium(String url) {
+    // 设置 chromedirver 的存放位置
+    System.getProperties().setProperty(&quot;webdriver.chrome.driver&quot;, &quot;chromedriver.exe&quot;);
+    // 设置无头浏览器，这样就不会弹出浏览器窗口
+    ChromeOptions chromeOptions = new ChromeOptions();
+    chromeOptions.addArguments(&quot;--headless&quot;);
+
+    WebDriver webDriver = new ChromeDriver(chromeOptions);
+    webDriver.get(url);
+    // 获取到要闻新闻列表
+    List&lt;WebElement&gt; webElements = webDriver.findElements(By.xpath(&quot;//div[@class=&#39;news_title&#39;]/h3/a&quot;));
+    for (WebElement webElement : webElements) {
+        // 提取新闻连接
+        String article_url = webElement.getAttribute(&quot;href&quot;);
+        // 提取新闻标题
+        String title = webElement.getText();
+        if (article_url.contains(&quot;https://news.163.com/&quot;)) {
+            System.out.println(&quot;文章标题：&quot; + title + &quot; ,文章链接：&quot; + article_url);
+        }
+    }
+    webDriver.close();
+}</code></code></pre>
+<p>运行该方法，得到结果如下：</p>
+<p><img src="./images/Java 爬虫遇上数据异步加载，试试这两种办法！1.png" /></p>
+<p>我们使用 Selenium 已经正确的提取到了网易要闻的列表新闻。</p>
+<h3 id="反向解析法">反向解析法</h3>
+<p>反向解析法就是获取到 Ajax 异步获取数据的链接，直接获取到新闻数据。如果没有技巧的话，查找 Ajax 的过程将非常痛苦，因为一个页面加载的链接太多了，看看网易要闻的 network：</p>
+<p><img src="./images/Java 爬虫遇上数据异步加载，试试这两种办法！2.png" /></p>
+<p>有几百条的请求，该如何查找到是哪条请求获取的要闻数据呢？你不嫌麻烦的话，可以一个一个的去点，肯定能够查找到的，另一种快捷的办法是利用 network 的搜索功能，如果你不知道搜索按钮，我在上图已经圈出来啦，我们在要闻中随便复制一个新闻标题，然后检索一下，就可以获取到结果，如下图所示：</p>
+<p><img src="./images/Java 爬虫遇上数据异步加载，试试这两种办法！3.png" /></p>
+<p>这样我们就快速的获取到了要闻数据的请求链接，链接为：<code>https://temp.163.com/special/00804KVA/cm_yaowen.js?callback=data_callback</code>，访问该链接，查看该链接返回的数据，如下图所示：</p>
+<p><img src="./images/Java 爬虫遇上数据异步加载，试试这两种办法！4.png" /></p>
+<p>从数据我们可以看出，我们需要的数据都在这里啦，所以我们只需要解析这段数据接可以啦，要从这段数据中解析出新闻标题和新闻链接，有两种方式，一种是正则表达式，另一种是将该数据转成 json 或者 list。这里我选择第二种方式，利用 fastjson 将返回的数据转换成 JSONArray 。所以我们是要引入 fastjson ，在 pom.xml 中引入 fastjson 依赖：</p>
+<pre class="xml"><code>&lt;dependency&gt;
+    &lt;groupId&gt;com.alibaba&lt;/groupId&gt;
+    &lt;artifactId&gt;fastjson&lt;/artifactId&gt;
+    &lt;version&gt;1.2.59&lt;/version&gt;
+&lt;/dependency&gt;</code></code></pre>
+<p>除了引入 fastjson 依赖外，我们在转换前还需要对数据进行简单的处理，因为现在的数据并不符合 list 的格式，我们需要去掉 <code>data_callback(</code> 和最后面的 <code>)</code>。具体反向解析获取网易要闻的代码如下：</p>
+<pre><code><code>/**
+ * 使用反向解析法 解决数据异步加载的问题
+ *
+ * @param url
+ */
+public void httpclientMethod(String url) throws IOException {
+
+    CloseableHttpClient httpclient = HttpClients.createDefault();
+    HttpGet httpGet = new HttpGet(url);
+    CloseableHttpResponse response = httpclient.execute(httpGet);
+    if (response.getStatusLine().getStatusCode() == 200) {
+        HttpEntity entity = response.getEntity();
+        String body = EntityUtils.toString(entity, &quot;GBK&quot;);
+        // 先替换掉最前面的 data_callback(
+        body = body.replace(&quot;data_callback(&quot;, &quot;&quot;);
+        // 过滤掉最后面一个 ）右括号
+        body = body.substring(0, body.lastIndexOf(&quot;)&quot;));
+        // 将 body 转换成 JSONArray
+        JSONArray jsonArray = JSON.parseArray(body);
+        for (int i = 0; i &lt; jsonArray.size(); i++) {
+            JSONObject data = jsonArray.getJSONObject(i);
+            System.out.println(&quot;文章标题：&quot; + data.getString(&quot;title&quot;) + &quot; ,文章链接：&quot; + data.getString(&quot;docurl&quot;));
+        }
+    } else {
+        System.out.println(&quot;处理失败！！！返回状态码：&quot; + response.getStatusLine().getStatusCode());
+    }
+
+}</code></code></pre>
+<p>编写 main 方法，执行上面的方法，需要注意的地方是：这时候传入的链接为<code>https://temp.163.com/special/00804KVA/cm_yaowen.js?callback=data_callback</code> 而不是 <code>https://news.163.com/</code>。得到如下结果:<br />
+<img src="./images/Java 爬虫遇上数据异步加载，试试这两种办法！5.png" /></p>
+<p>两种方法都成功的获取到了网易要闻异步加载的新闻列表，对于这两种方法的选取，我个人的倾向是使用反向解析法，因为它的性能和稳定是都要比内置浏览器内核靠谱，但是对于一些使用 JavaScript 片段渲染的页面，内置浏览器又更加靠谱。所以根据具体情况选择吧。</p>
+<p>希望这篇文章对你有所帮助，下一篇是关于 爬虫IP 被封的问题。如果你对爬虫感兴趣，不妨关注一波，相互学习，相互进步</p>
+<p>源代码：<a href="https://github.com/BinaryBall/java-base/blob/master/crawler/src/main/java/com/jamal/crawler/CrawlerNews.java">源代码</a></p>
+<blockquote>
+<p>文章不足之处，望大家多多指点，共同学习，共同进步</p>
+</blockquote>
+<h3 id="最后">最后</h3>
+<p>打个小广告，欢迎扫码关注微信公众号：「平头哥的技术博文」，一起进步吧。<br />
+<img src="./images/Java 爬虫遇上数据异步加载，试试这两种办法！6.png" alt="平头哥的技术博文" /></p>
+
+
+</div><hr><script charset='utf-8' src='../../js/sming.js'></script></body></html>

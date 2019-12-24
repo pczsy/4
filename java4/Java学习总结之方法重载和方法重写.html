@@ -1,0 +1,180 @@
+<html><head><meta charset='utf-8'><meta name='viewport' content='width=device-width, initial-scale=1'>
+<meta name='applicable-device' content='pc'><meta name='keywords' content='电脑,电脑讲解,电脑技术,编程,电脑故障维修Java学习总结之方法重载和方法重写' />
+<script src='../../highlight/highlight.pack.js'></script>
+<link rel='stylesheet' type='text/css' href='../../highlight/styles/monokai.css'/>
+
+<link rel='stylesheet' href='../../fenxiang/dist/css/share.min.css'>
+<script src='../../fenxiang/src/js/social-share.js'></script>
+<script src='../../fenxiang/src/js/qrcode.js'></script>
+
+</head><body><script>hljs.initHighlightingOnLoad();</script><script>
+var system ={};  
+var p = navigator.platform;       
+system.win = p.indexOf('Win') == 0;  
+system.mac = p.indexOf('Mac') == 0;  
+system.x11 = (p == 'X11') || (p.indexOf('Linux') == 0);     
+if(system.win||system.mac||system.xll){
+document.write("<link href='../css/3.css' rel='stylesheet' type='text/css'>");}else{ document.write("<link href='../css/3wap.css' rel='stylesheet' type='text/css'>");}</script><script src='../../js/3.js'></script><div class='div2'><div class='heading_nav'><ul><div><li><a href='../../index.html'>首页</a></li>
+</div><div onclick='hidden1()' >分享</div>
+</ul></div></div>
+<div id='heading_nav2'> 
+<li class='row' >
+<div class='social-share' data-mode='prepend'><a href='javascript:' class='social-share-icon icon-heart'></a></div></li></div><script charset='utf-8' src='../../3/js/hengfu.js'></script><script charset='utf-8' src='../../3/js/hengfu2.js'></script><hr><div class='div1'><div class='biaoti'><center>Java学习总结之方法重载和方法重写</center></div><div class='banquan'>原文出处:本文由博客园博主Ryan277提供。<br/>
+原文连接:https://www.cnblogs.com/ryanskc/p/11834644.html</div><br>
+    <p class="p"><span style="font-family: 宋体;">在学习方法的阶段我学习了方法重载（</span>Overload<span style="font-family: 宋体;">），而在学习面向对象三大特性之继承的时候我又学习了方法重写（</span><span style="font-family: Calibri;">Override</span><span style="font-family: 宋体;">）。</span></p>
+<h3><strong>&nbsp;</strong></h3>
+<h2><strong>概念：</strong></h2>
+<p class="p"><strong><span style="font-family: 宋体;">方法重载：</span></strong><span style="font-family: 宋体;">在同一个类中，允许存在一个以上的同名方法，只要它们的参数个数不同或者类型不同即可。</span></p>
+<p class="p"><strong><span style="font-family: 宋体;">方法重写：</span></strong>&nbsp;<span style="font-family: 宋体;">子类中出现和父类中一模一样的方法声明，方法的名称和参数列表都相同。</span></p>
+<h3><strong>&nbsp;</strong></h3>
+<h2><strong>特点：</strong></h2>
+<p class="p"><strong><span style="font-family: 宋体;">方法重载：</span></strong><span style="font-family: 宋体;">与返回值类型无关，只看方法名和参数列表</span> <span style="font-family: 宋体;">在调用时，虚拟机通过参数列表的不同来区分同名方法。</span></p>
+<p class="p"><strong><span style="font-family: 宋体;">方法重写</span><span style="font-family: 宋体;">：</span></strong>&nbsp;<span style="font-family: 宋体;">创建子类对象时方法名相同就调用子类的。</span></p>
+<h2 class="p">&nbsp;</h2>
+<h2>&nbsp;</h2>
+<h2><strong>使用场景：</strong></h2>
+<p class="p"><strong>方法重载：</strong>在同一个类需要定义两个或者多个方法，方法功能相似但参数类型不同时，使用方法重载使方法名相同。</p>
+<p class="p"><strong>方法重写：</strong>当子类需要父类的功能，而功能主体子类又有自己特有的功能时，可以重写父类的方法。这样即沿袭了父类的功能，也定义了子类特有的功能（使用super关键字）</p>
+<h2><strong><span style="font-family: 宋体;">&nbsp;</span></strong></h2>
+<p class="p">&nbsp;</p>
+<h2><strong>注意事项：</strong></h2>
+<p class="p"><strong><span style="font-family: 宋体;">方法重载：</span></strong></p>
+<p class="p"><span style="font-family: 宋体;">　　方法重载参数列表的不同可以分为：</span>1<span style="font-family: 宋体;">、参数个数不同；　　</span><span style="font-family: Calibri;">2</span><span style="font-family: 宋体;">、参数类型不同，　　</span><span style="font-family: Calibri;">3</span><span style="font-family: 宋体;">、参数的多类型顺序不同。</span></p>
+<p class="p"><span style="font-family: 宋体;">　　举例:</span><span style="font-family: 宋体;">1、　　(</span><span style="font-family: 宋体;">int a, int b) 　　 　　 (int a, int b, int c)</span></p>
+<p class="p"><span style="font-family: 宋体;">　　&nbsp; &nbsp;2、　　(int a, int b)　　　　　 (double a, doule b)</span><span style="font-family: 宋体;">&nbsp;</span></p>
+<p class="p"><span style="font-family: 宋体;">　　　　 3、　　(int a, doule b)　　　　 (doulbe a, int b)<br /></span></p>
+<p class="p"><span style="font-family: 宋体;">　　无关因素：1、与参数名无关　　2、与返回值类型无关</span></p>
+<p class="p"><strong><span style="font-family: 宋体;">方法重写：</span></strong></p>
+<p class="p"><span style="font-family: 宋体;">　　1、父类的私有方法不能被子类重写。</span></p>
+<p class="p"><span style="font-family: 宋体;">　　2、子类重写父类的方法访问权限不能更低（</span>Java <span style="font-family: 宋体;">中一共有四种访问权限控制，其权限控制的大小情况是这样的：</span><span style="font-family: Calibri;">public&nbsp; &gt;&nbsp; protected&nbsp; &gt;&nbsp; </span><span style="font-family: 宋体;">（</span><span style="font-family: Calibri;">default</span><span style="font-family: 宋体;">）</span><span style="font-family: Calibri;">&nbsp; &gt;&nbsp; private</span>&nbsp;<span style="font-family: 宋体;">）。</span></p>
+<p class="p" align="center"><strong><span style="font-family: 宋体;">权限修饰符</span></strong></p>
+<src align="center">
+<table style="height: 193px; width: 1034px;" border="1" cellspacing="0">
+<tbody>
+<tr>
+<td valign="center">
+<p><strong>&nbsp;</strong></p>
+
+</td>
+<td valign="center">
+<p class="p" align="center"><strong>public</strong></p>
+
+</td>
+<td valign="center">
+<p class="p" align="center"><strong>protected</strong></p>
+
+</td>
+<td valign="center">
+<p align="center"><strong>default</strong></p>
+
+</td>
+<td valign="center">
+<p class="p" align="center"><strong>private</strong></p>
+
+</td>
+
+</tr>
+<tr>
+<td valign="center">
+<p class="p" align="center"><strong>同一类中</strong></p>
+
+</td>
+<td valign="center">
+<p align="center"><strong>&radic;</strong></p>
+
+</td>
+<td valign="center">
+<p align="center"><strong>&nbsp;&radic;</strong></p>
+
+</td>
+<td valign="center">
+<p align="center"><strong>&nbsp;&radic;</strong></p>
+
+</td>
+<td valign="center">
+<p align="center"><strong>&nbsp;&radic;</strong></p>
+
+</td>
+
+</tr>
+<tr>
+<td valign="center">
+<p class="p" align="center"><strong>同一包子类<span style="font-family: Verdana;">,</span><span style="font-family: 宋体;">其他类</span></strong></p>
+
+</td>
+<td valign="center">
+<p align="center"><strong>&nbsp;&radic;</strong></p>
+
+</td>
+<td valign="center">
+<p align="center"><strong>&nbsp;&radic;</strong></p>
+
+</td>
+<td valign="center">
+<p align="center"><strong>&nbsp;&radic;</strong></p>
+
+</td>
+<td valign="center">
+<p><strong>&nbsp;</strong></p>
+
+</td>
+
+</tr>
+<tr>
+<td valign="center">
+<p class="p" align="center"><strong>不同包 子类</strong></p>
+
+</td>
+<td valign="center">
+<p align="center"><strong>&nbsp;&radic;</strong></p>
+
+</td>
+<td valign="center">
+<p align="center"><strong>&nbsp;&radic;</strong></p>
+
+</td>
+<td valign="center">
+<p><strong>&nbsp;</strong></p>
+
+</td>
+<td valign="center">
+<p><strong>&nbsp;</strong></p>
+
+</td>
+
+</tr>
+<tr>
+<td valign="center">
+<p class="p" align="center"><strong>不同包 其他类</strong></p>
+
+</td>
+<td valign="center">
+<p align="center"><strong>&nbsp;&radic;</strong></p>
+
+</td>
+<td valign="center">
+<p><strong>&nbsp;</strong></p>
+
+</td>
+<td valign="center">
+<p><strong>&nbsp;</strong></p>
+
+</td>
+<td valign="center">
+<p><strong>&nbsp;</strong></p>
+
+</td>
+
+</tr>
+
+</tbody>
+
+</table>
+
+
+<p class="p"><span style="font-family: 宋体;">　　3、子类方法的返回值必须小于等于父类方法的返回值范围。</span></p>
+<p class="p"><span style="font-family: 宋体;">　　4、静态的方法也要使用静态方式书写。</span></p>
+<p class="p">&nbsp;</p>
+<p>&nbsp;</p>
+
+</div><hr><script charset='utf-8' src='../../js/sming.js'></script></body></html>

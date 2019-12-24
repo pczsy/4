@@ -1,0 +1,180 @@
+<html><head><meta charset='utf-8'><meta name='viewport' content='width=device-width, initial-scale=1'>
+<meta name='applicable-device' content='pc'><meta name='keywords' content='电脑,电脑讲解,电脑技术,编程,电脑故障维修servlet和response' />
+<script src='../../highlight/highlight.pack.js'></script>
+<link rel='stylesheet' type='text/css' href='../../highlight/styles/monokai.css'/>
+
+<link rel='stylesheet' href='../../fenxiang/dist/css/share.min.css'>
+<script src='../../fenxiang/src/js/social-share.js'></script>
+<script src='../../fenxiang/src/js/qrcode.js'></script>
+
+</head><body><script>hljs.initHighlightingOnLoad();</script><script>
+var system ={};  
+var p = navigator.platform;       
+system.win = p.indexOf('Win') == 0;  
+system.mac = p.indexOf('Mac') == 0;  
+system.x11 = (p == 'X11') || (p.indexOf('Linux') == 0);     
+if(system.win||system.mac||system.xll){
+document.write("<link href='../css/3.css' rel='stylesheet' type='text/css'>");}else{ document.write("<link href='../css/3wap.css' rel='stylesheet' type='text/css'>");}</script><script src='../../js/3.js'></script><div class='div2'><div class='heading_nav'><ul><div><li><a href='../../index.html'>首页</a></li>
+</div><div onclick='hidden1()' >分享</div>
+</ul></div></div>
+<div id='heading_nav2'> 
+<li class='row' >
+<div class='social-share' data-mode='prepend'><a href='javascript:' class='social-share-icon icon-heart'></a></div></li></div><script charset='utf-8' src='../../3/js/hengfu.js'></script><script charset='utf-8' src='../../3/js/hengfu2.js'></script><hr><div class='div1'><div class='biaoti'><center>servlet和response</center></div><div class='banquan'>原文出处:本文由博客园博主cheng_blog提供。<br/>
+原文连接:https://www.cnblogs.com/cheng5350/p/11445274.html</div><br>
+    <h2>servlet基础知识</h2>
+<src class="cnblogs_code">
+<pre><code>Servlet在内存中是单例----<span style="color: #000000;">单实例对象一个Servlet类 在内存中最多有一个对象<br /></span></code></pre>
+<p><span style="font-family: 宋体;">　</span>一个项目有多少功能，将来就有多少Servlet。</p>
+<p>　servlet是自启动的,就是可以在服务器启动时，创建Servlet对象</p>
+
+<h2>servlet的生命周期</h2>
+<src class="cnblogs_code">
+<pre><code><span style="color: #000000;">Servlet对象的生命周期是由服务器管理的。在第一次访问时，服务器创建Servlet对象并调用init方法一次。每一个访问，服务器会开启一个新的线程
+调用service()方法,根据请求方式</span><span style="font-family: 宋体;">调用</span>doGet()<span style="font-family: 宋体;">和</span><span style="font-family: 'Times New Roman';">doPost()</span><span style="font-family: 宋体;">方法。</span><span>在服务器关闭时（正常关闭）销毁servlet对象，在销毁之前调用destroy方法一次</span></code></pre>
+
+<h2>servlet的相关配置</h2>
+<src class="cnblogs_code">
+<pre><code>url-<span style="color: #000000;">pattern配置<br />
+    完全路径匹配 例如:     </span>/demo1 , /aaa/demo2 , /aaa/bbb/<span style="color: #000000;">demo3
+    目录匹配    例如:</span> /*  （所有） ,/aaa/* （aaa目录下的所有）
+    扩展名匹配  例如: *.do , *.action 、*.jsp 、*.jpg
+    缺省路径/缺省匹配    /
+    优先级顺序：完全匹配 &gt; 目录匹配 &gt; 扩展名匹配 &gt; 缺省匹配
+
+ServletConfig配置
+    </code></pre>
+
+<h2>ServletContext对象</h2>
+<src class="cnblogs_code">
+<pre><code>ServletContext context = <span style="color: #0000ff;">this</span>.getServletConfig();<span style="color: #008000;">//</span><span style="color: #008000;">获ServletContext对象,域对象</span>
+<span style="color: #000000;">context.setAttribute(String name,Object object);
+context.getAttribute(String name)
+只要是在同一个项目中，任意Servlet获取到的都是同一个ServletContext对象。<br /></span></code></pre>
+<p>　整个项目的初始化参数（全局初始化参数）, 通过ServletContext对象获得</p>
+
+<p>&nbsp;</p>
+<h2>response对象操作响应行</h2>
+<src class="cnblogs_code">
+<pre><code>    setStatus(<span style="color: #0000ff;">int</span><span style="color: #000000;"> status);设置状态码
+    sendError(</span><span style="color: #0000ff;">int</span> sc,String errorMsg);发送表示错误信息状态码</code></pre>
+
+<p>&nbsp;</p>
+<h2>response对象操作响应头</h2>
+<src class="cnblogs_code">
+<pre><code><span style="color: #0000ff;">void</span><span style="color: #000000;"> addHeader(String&nbsp;name, String&nbsp;value)    这两个方法都是用来设置HTTP协议的响应头字段，其中，参数name用于指定响应头字段的名称，参数value用于指定响应头字段的值。不同的是，addHeader()方法可以增加同名的响应头字段，而setHeader()方法则会覆盖同名的头字段
+</span><span style="color: #0000ff;">void</span><span style="color: #000000;"> setHeader(String&nbsp;name, String&nbsp;value)    
+</span><span style="color: #0000ff;">void</span> setCharacterEncoding(String charset)    该方法用于设置输出内容使用的字符编码，对HTTP 协议来说，就是设置Content-<span style="color: #000000;">Type头字段中的字符集编码部分。
+</span><span style="color: #0000ff;">void</span> setContentType(String type)    该方法用于设置Servlet输出内容的MIME类型，对于HTTP协议来说，就是设置Content-Type响应头字段的值。例如，如果发送到客户端的内容是jpeg格式的图像数据，就需要将响应头字段的类型设置为&ldquo;image/jpeg&rdquo;。需要注意的是，如果响应的内容为文本，setContentType()方法的还可以设置字符编码，如：text/html;charset=UTF-8<span style="color: #0000ff;">void</span><span style="color: #000000;"> addIntHeader(String name,</span><span style="color: #0000ff;">int</span><span style="color: #000000;"> value)    这两个方法专门用于设置包含整数值的响应头。避免了使用addHeader()与setHeader()方法时，需要将int类型的设置值转换为String类型的麻烦
+</span><span style="color: #0000ff;">void</span><span style="color: #000000;"> setIntHeader(String&nbsp;name,</span><span style="color: #0000ff;">int</span><span style="color: #000000;">&nbsp;value)    
+</span><span style="color: #0000ff;">void</span> setContentLength(<span style="color: #0000ff;">int</span> len)    该方法用于设置响应消息的实体内容的大小，单位为字节。对于HTTP协议来说，这个方法就是设置Content-<span style="color: #000000;">Length响应头字段的值无需手动设置，由服务器自行设置</span></code></pre>
+
+<p>&nbsp;</p>
+<h2>response对象操作响应体</h2>
+<src class="cnblogs_code">
+<pre><code><span style="color: #000000;">getOutputStream()   向响应体输出二进制字节流信息。【文件下载】
+getWriter()   向响应体输出字符流信息。【字符串及前端代码输出】<br /></span></code></pre>
+<p><span style="font-family: 宋体;">　乱码解决</span></p>
+<p><span style="font-family: 宋体;">　　</span><strong>setContentType</strong><strong>(</strong><strong>"text/html;charset=UTF-8"</strong><strong>)</strong><strong>;</strong></p>
+<p>　一个响应体不可以同时被两种流操作<span>&nbsp;</span></p>
+
+<p>&nbsp;</p>
+<h2>资源重定向和请求转发</h2>
+<src class="cnblogs_code">
+<pre><code>response.sendRedirect("客户端绝对路径"<span style="color: #000000;">);
+response.setHeader(</span>"refresh","X秒;url=客户端绝对路径")</code></pre>
+
+<p>&nbsp;</p>
+<h2>案例: servlet文件下载</h2>
+<p>&nbsp;</p>
+<src class="cnblogs_code">
+<pre><code><span style="color: #008080;"> 1</span> @WebServlet(name = "DownloadServlet",urlPatterns = "/DownloadServlet"<span style="color: #000000;">)
+</span><span style="color: #008080;"> 2</span> <span style="color: #0000ff;">public</span> <span style="color: #0000ff;">class</span> DownloadServlet <span style="color: #0000ff;">extends</span><span style="color: #000000;"> HttpServlet {
+</span><span style="color: #008080;"> 3</span>     
+<span style="color: #008080;"> 4</span>     <span style="color: #0000ff;">protected</span> <span style="color: #0000ff;">void</span> doGet(HttpServletRequest request, HttpServletResponse response) <span style="color: #0000ff;">throws</span><span style="color: #000000;"> ServletException, IOException {
+</span><span style="color: #008080;"> 5</span>         <span style="color: #0000ff;">this</span><span style="color: #000000;">.doPost(request, response);
+</span><span style="color: #008080;"> 6</span> <span style="color: #000000;">    }
+</span><span style="color: #008080;"> 7</span> 
+<span style="color: #008080;"> 8</span>     <span style="color: #0000ff;">protected</span> <span style="color: #0000ff;">void</span> doPost(HttpServletRequest request, HttpServletResponse response) <span style="color: #0000ff;">throws</span><span style="color: #000000;"> ServletException, IOException {
+</span><span style="color: #008080;"> 9</span> 
+<span style="color: #008080;">10</span>         String filename =request.getParameter("filename"<span style="color: #000000;">);</span>
+<span style="color: #008080;">12</span>         String folderPath = <span style="color: #0000ff;">this</span>.getServletContext().getRealPath("/download"<span style="color: #000000;">);</span>
+<span style="color: #008080;">14</span>         InputStream is = <span style="color: #0000ff;">new</span> FileInputStream(folderPath+"/"+<span style="color: #000000;">filename);</span>
+<span style="color: #008080;">16</span>         filename = <span style="color: #0000ff;">new</span> String(filename.getBytes("UTF-8"),"iso-8859-1"<span style="color: #000000;">);</span>
+<span style="color: #008080;">18</span>         response.addHeader("Content-Disposition","attachment;filename="+<span style="color: #000000;">filename);</span>
+<span style="color: #008080;">20</span>         OutputStream os =<span style="color: #000000;"> response.getOutputStream();</span>
+<span style="color: #008080;">22</span>         <span style="color: #0000ff;">int</span> len=0<span style="color: #000000;">;
+</span><span style="color: #008080;">23</span>         <span style="color: #0000ff;">byte</span>[] b = <span style="color: #0000ff;">new</span> <span style="color: #0000ff;">byte</span>[1024<span style="color: #000000;">];</span>
+<span style="color: #008080;">25</span>         <span style="color: #0000ff;">while</span>((len=is.read(b))!=-1<span style="color: #000000;">){
+</span><span style="color: #008080;">26</span>             os.write(b,0<span style="color: #000000;">, len);
+</span><span style="color: #008080;">27</span> <span style="color: #000000;">        }</span> 
+<span style="color: #008080;">29</span> <span style="color: #000000;">        is.close();
+</span><span style="color: #008080;">30</span> <span style="color: #000000;">        os.close();
+</span><span style="color: #008080;">31</span> <span style="color: #000000;">    }
+</span><span style="color: #008080;">32</span> 
+<span style="color: #008080;">33</span> }</code></pre>
+
+<p>&nbsp;</p>
+<h2>案例: servlet生成验证码</h2>
+<src class="cnblogs_code">
+<pre><code><span style="color: #008080;"> 1</span> @WebServlet(name = "CheckCodeServlet",urlPatterns = "/CheckCodeServlet"<span style="color: #000000;">)
+</span><span style="color: #008080;"> 2</span> <span style="color: #0000ff;">public</span> <span style="color: #0000ff;">class</span> CheckCodeServlet <span style="color: #0000ff;">extends</span><span style="color: #000000;"> HttpServlet {
+</span><span style="color: #008080;"> 3</span>     
+<span style="color: #008080;"> 4</span>     <span style="color: #0000ff;">protected</span> <span style="color: #0000ff;">void</span> doGet(HttpServletRequest request, HttpServletResponse response) <span style="color: #0000ff;">throws</span><span style="color: #000000;"> ServletException, IOException {
+</span><span style="color: #008080;"> 5</span>         <span style="color: #0000ff;">this</span><span style="color: #000000;">.doPost(request, response);
+</span><span style="color: #008080;"> 6</span> <span style="color: #000000;">    }
+</span><span style="color: #008080;"> 7</span> 
+<span style="color: #008080;"> 8</span>     <span style="color: #0000ff;">protected</span> <span style="color: #0000ff;">void</span> doPost(HttpServletRequest request, HttpServletResponse response) <span style="color: #0000ff;">throws</span><span style="color: #000000;"> ServletException, IOException {
+</span><span style="color: #008080;"> 9</span>                 <span style="color: #008000;">//</span><span style="color: #008000;"> 1 生成图片的高度和宽度    </span>
+<span style="color: #008080;">10</span>                 <span style="color: #0000ff;">int</span> height = 30<span style="color: #000000;">;
+</span><span style="color: #008080;">11</span>                 <span style="color: #0000ff;">int</span> width = 60<span style="color: #000000;">;
+</span><span style="color: #008080;">12</span>                 <span style="color: #008000;">//</span><span style="color: #008000;">从这个字符串中选几个字符组成图片的内容</span>
+<span style="color: #008080;">13</span>                 String data = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789abcdefghijklmnopqrstuvwxyz"<span style="color: #000000;">;
+</span><span style="color: #008080;">14</span>                 Random random = <span style="color: #0000ff;">new</span><span style="color: #000000;"> Random();
+</span><span style="color: #008080;">15</span>                 <span style="color: #008000;">//</span><span style="color: #008000;">2 创建一个图片</span>
+<span style="color: #008080;">16</span>                 BufferedImage image = <span style="color: #0000ff;">new</span><span style="color: #000000;"> BufferedImage(width,height,BufferedImage.TYPE_INT_RGB);
+</span><span style="color: #008080;">17</span>                 
+<span style="color: #008080;">18</span>                 <span style="color: #008000;">//</span><span style="color: #008000;">3 获得画板</span>
+<span style="color: #008080;">19</span>                 Graphics g =<span style="color: #000000;"> image.getGraphics();
+</span><span style="color: #008080;">20</span>                 
+<span style="color: #008080;">21</span>                 
+<span style="color: #008080;">22</span>                 <span style="color: #008000;">//</span><span style="color: #008000;">4 填充一个矩形
+</span><span style="color: #008080;">23</span>                 <span style="color: #008000;">//</span><span style="color: #008000;"> * 设置颜色</span>
+<span style="color: #008080;">24</span> <span style="color: #000000;">                g.setColor(Color.BLACK);
+</span><span style="color: #008080;">25</span>                 g.fillRect(0, 0<span style="color: #000000;">, width, height);
+</span><span style="color: #008080;">26</span>                         
+<span style="color: #008080;">27</span> <span style="color: #000000;">                g.setColor(Color.WHITE);
+</span><span style="color: #008080;">28</span>                 g.fillRect(1, 1, width-2, height-2<span style="color: #000000;">);
+</span><span style="color: #008080;">29</span>                 <span style="color: #008000;">//</span><span style="color: #008000;"> * 设置字体</span>
+<span style="color: #008080;">30</span>                 g.setFont(<span style="color: #0000ff;">new</span> Font("宋体", Font.BOLD|Font.ITALIC, 25<span style="color: #000000;">));
+</span><span style="color: #008080;">31</span>                 
+<span style="color: #008080;">32</span>                 <span style="color: #0000ff;">for</span>(<span style="color: #0000ff;">int</span> i = 0 ; i &lt; 4 ; i ++<span style="color: #000000;">){
+</span><span style="color: #008080;">33</span>                     
+<span style="color: #008080;">34</span>                     <span style="color: #008000;">//</span><span style="color: #008000;"> 设置颜色--随机数</span>
+<span style="color: #008080;">35</span>                     g.setColor(<span style="color: #0000ff;">new</span> Color(random.nextInt(255), random.nextInt(255), random.nextInt(255<span style="color: #000000;">)));
+</span><span style="color: #008080;">36</span>                     
+<span style="color: #008080;">37</span>                     <span style="color: #008000;">//</span><span style="color: #008000;"> 获得随机字</span>
+<span style="color: #008080;">38</span>                     <span style="color: #0000ff;">int</span> index =<span style="color: #000000;"> random.nextInt(data.length());
+</span><span style="color: #008080;">39</span>                     String str = data.substring(index, index + 1<span style="color: #000000;">);
+</span><span style="color: #008080;">40</span>                     <span style="color: #008000;">//</span><span style="color: #008000;"> 写入</span>
+<span style="color: #008080;">41</span>                     g.drawString(str, width/6 * (i + 1), 20<span style="color: #000000;">);
+</span><span style="color: #008080;">42</span> <span style="color: #000000;">                }
+</span><span style="color: #008080;">43</span>                 
+<span style="color: #008080;">44</span>                 <span style="color: #008000;">//</span><span style="color: #008000;">6 干扰线</span>
+<span style="color: #008080;">45</span>                 <span style="color: #0000ff;">for</span>(<span style="color: #0000ff;">int</span> i = 0 ; i &lt; 3 ; i ++<span style="color: #000000;">){
+</span><span style="color: #008080;">46</span>                     <span style="color: #008000;">//</span><span style="color: #008000;"> 设置颜色--随机数</span>
+<span style="color: #008080;">47</span>                     g.setColor(<span style="color: #0000ff;">new</span> Color(random.nextInt(255), random.nextInt(255), random.nextInt(255<span style="color: #000000;">)));
+</span><span style="color: #008080;">48</span>                     <span style="color: #008000;">//</span><span style="color: #008000;"> 随机绘制线</span>
+<span style="color: #008080;">49</span> <span style="color: #000000;">                    g.drawLine(random.nextInt(width), random.nextInt(height), random.nextInt(width),random.nextInt(height));
+</span><span style="color: #008080;">50</span>                     <span style="color: #008000;">//</span><span style="color: #008000;"> 随机点</span>
+<span style="color: #008080;">51</span>                     g.drawOval(random.nextInt(width), random.nextInt(height), 2, 2<span style="color: #000000;">);
+</span><span style="color: #008080;">52</span> <span style="color: #000000;">                }
+</span><span style="color: #008080;">53</span>                 
+<span style="color: #008080;">54</span>                 <span style="color: #008000;">//</span><span style="color: #008000;">end 将图片响应给浏览器</span>
+<span style="color: #008080;">55</span>                 ImageIO.write(image, "jpg"<span style="color: #000000;">, response.getOutputStream());
+</span><span style="color: #008080;">56</span> <span style="color: #000000;">    }
+</span><span style="color: #008080;">57</span> 
+<span style="color: #008080;">58</span> }</code></pre>
+
+<p>&nbsp;</p>
+
+</div><hr><script charset='utf-8' src='../../js/sming.js'></script></body></html>

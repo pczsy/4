@@ -1,0 +1,269 @@
+<html><head><meta charset='utf-8'><meta name='viewport' content='width=device-width, initial-scale=1'>
+<meta name='applicable-device' content='pc'><meta name='keywords' content='电脑,电脑讲解,电脑技术,编程,电脑故障维修【JVM 知识体系框架总结】' />
+<script src='../../highlight/highlight.pack.js'></script>
+<link rel='stylesheet' type='text/css' href='../../highlight/styles/monokai.css'/>
+
+<link rel='stylesheet' href='../../fenxiang/dist/css/share.min.css'>
+<script src='../../fenxiang/src/js/social-share.js'></script>
+<script src='../../fenxiang/src/js/qrcode.js'></script>
+
+</head><body><script>hljs.initHighlightingOnLoad();</script><script>
+var system ={};  
+var p = navigator.platform;       
+system.win = p.indexOf('Win') == 0;  
+system.mac = p.indexOf('Mac') == 0;  
+system.x11 = (p == 'X11') || (p.indexOf('Linux') == 0);     
+if(system.win||system.mac||system.xll){
+document.write("<link href='../css/3.css' rel='stylesheet' type='text/css'>");}else{ document.write("<link href='../css/3wap.css' rel='stylesheet' type='text/css'>");}</script><script src='../../js/3.js'></script><div class='div2'><div class='heading_nav'><ul><div><li><a href='../../index.html'>首页</a></li>
+</div><div onclick='hidden1()' >分享</div>
+</ul></div></div>
+<div id='heading_nav2'> 
+<li class='row' >
+<div class='social-share' data-mode='prepend'><a href='javascript:' class='social-share-icon icon-heart'></a></div></li></div><script charset='utf-8' src='../../3/js/hengfu.js'></script><script charset='utf-8' src='../../3/js/hengfu2.js'></script><hr><div class='div1'><div class='biaoti'><center>【JVM 知识体系框架总结】</center></div><div class='banquan'>原文出处:本文由博客园博主mousycoder提供。<br/>
+原文连接:https://www.cnblogs.com/mousycoder/p/11612448.html</div><br>
+    <h2 id="jvm-内存分布">JVM 内存分布</h2>
+<ul>
+<li>线程共享数据区：<br />
+方法区-&gt;类信息，静态变量<br />
+堆-&gt;数组对象</li>
+<li>线程隔离区<br />
+虚拟机栈-&gt; 方法<br />
+本地方法栈-&gt;本地方法库 native</li>
+<li>堆、程序计数器</li>
+<li>JVM 运行数据<br />
+<img src="./images/【JVM 知识体系框架总结】0.png" /></li>
+</ul>
+<h2 id="程序计数器">程序计数器</h2>
+<p>线程隔离 ，比较小的内存空间，当前线程所执行的字节码的行号<br />
+线程是一个独立的执行单元，由 CPU执行<br />
+唯一没有 OOM 的地方，由虚拟机维护，所以不会出现 OOM</p>
+<h2 id="虚拟机栈">虚拟机栈</h2>
+<p>执行的是Java方法</p>
+<p>方法的调用就是栈帧入虚拟机栈的过程<br />
+栈帧：局部变量表（变量） 、操作数栈（存放a+b的结果 ）、 动态链接（对对象引用的地址），方法出口（return的值）<br />
+线程请求的栈深度大于虚拟机所允许的深度StackOverflowError</p>
+<h2 id="本地方法栈">本地方法栈</h2>
+<p>执行的是 native 方法的一块 java内存区域，一样有 栈帧<br />
+hotspot将 Java 虚拟机栈和本地方法栈合二为一<br />
+jvm标准是 java 虚拟机栈和本地方法栈分开</p>
+<h2 id="堆">堆</h2>
+<p>java内存中存放对象实例的区域，几乎所有的对象实例都在这里分配<br />
+所有线程共享<br />
+新生代、老年代<br />
+jmap -heap pid;</p>
+<h2 id="方法区">方法区</h2>
+<p>各个线程共享的内存区域<br />
+存储已被虚拟机加载的类的信息、常量、静态变量、即时编译器编译后的代码等数据<br />
+Hotspot用永久代实现方法区（让垃圾回收器可以管理方法区），对常量池的回收和卸载<br />
+方法区会抛出 OOM，当他无法满足内存分配需求时</p>
+<h2 id="运行时常量池">运行时常量池</h2>
+<p>运行时常量池是方法区的一部分，Class 中除了字段、方法、接口的 常量池，存放编译器生成的字面量和符号引用，这部分内容由类加载后进入方法区的运行时常量池中存放。</p>
+<p>StringTable是HashSet结构<br />
+方法区的一部分，受到方法区的限制，依然会 OOM</p>
+<h2 id="java-对象创建过程">Java 对象创建过程</h2>
+<p><img src="./images/【JVM 知识体系框架总结】1.png" /><br />
+<init> -&gt; static方法 static代码块</p>
+<ol>
+<li>new 指令，判断在常量池中有没符号引用，有则已被加载过</li>
+<li>判断类是否被加载、解析、初始化</li>
+<li>为新生对象在java堆里分配内存空间<br />
+1) 指针碰撞（内存比较整齐）<br />
+<img src="./images/【JVM 知识体系框架总结】2.png" /><br />
+步骤：1. 分配内存 2. 移动指针，非原子步骤可能出现并发问题，Java虚拟机采用 CAS 配上失败重试的方式保证更新操作的原子性<br />
+2）空闲列表（内存比较乱）<br />
+存储堆内存空闲地址<br />
+步骤：1.分配内存 2. 修改空闲列表地址 非原子步骤可能出现并发问题，Java虚拟机采用 CAS 配上失败重试的方式保证更新操作的原子性</li>
+<li>将分配到内存空间都初始化零值</li>
+<li>设置对象头相关信息 （GC分代年龄、对象的HashCode、元数据信息）</li>
+<li><p>执行<init>方法</p>
+<h2 id="java-对象内存布局">Java 对象内存布局</h2>
+<p>对象属性的值-&gt;实例数据<br />
+对象头 64 位机器存 64 位，32 位机器存 32 位，8 的倍数<br />
+<img src="./images/【JVM 知识体系框架总结】3.png" /></p></li>
+</ol>
+<h2 id="java-对象的访问">Java 对象的访问</h2>
+<ol>
+<li>直接指针访问<br />
+<img src="./images/【JVM 知识体系框架总结】4.png" /></li>
+<li>句柄访问<br />
+<img src="./images/【JVM 知识体系框架总结】5.png" /><br />
+对比：</li>
+<li>访问效率：直接指针访问效率高（hotspot采用这种方式）</li>
+<li>垃圾回收：句柄访问效率高，垃圾回收只用更新句柄池，而直接指针访问方式则要更新 reference地址</li>
+</ol>
+<h2 id="垃圾回收算法">垃圾回收算法</h2>
+<ol>
+<li><p>引用计数器<br />
+<img src="./images/【JVM 知识体系框架总结】6.png" /><br />
+当对象实例分配给一个变量时，该变量计数设置为 1，当任何其他变量被赋值为这个对象的引用的时，计数+1 （a =b,则b的引用对象实例计数器+1），当一个对象实例的某个引用超过了生命周期（方法执行完）或者被设置为一个新值，则该对象的实例引用计数器 -1<br />
+无法解决循环引用<br />
+可达性分析<br />
+GC Root （虚拟机栈中的引用的对象、本地方法栈中引用的对象、方法区静态属性引用的对象、方法区常量引用的对象）</p></li>
+<li><p>标记-清除<br />
+<img src="./images/【JVM 知识体系框架总结】7.png" /><br />
+标记需要回收的对象，在标记完成后统一回收<br />
+不足：<br />
+1.效率问题，标记清除 2 个过程效率都不高<br />
+2.空间问题，标记清除后产生大量不连续的内存碎片，碎片过多当程序需要分配较大的对象时，无法找到足够的连续内存而不得不提前触发一次垃圾回收动作</p></li>
+<li><p>标记-复制<br />
+<img src="./images/【JVM 知识体系框架总结】8.png" /><br />
+内存块 A存活的对象复制到内存块 B （Survivor to）里，然后将内存块A （Eden + Survivor from）清空，<br />
+只有少部分对象移动，更多的对象是要被回收的<br />
+Eden:Survivor from:Survivor to=8:1:1<br />
+98%对象“朝生夕亡”，新生代可用内存容量 90%（80%+10%），98%的对象可回收是一般情况，当小于 90%的对象被回收的时候（10%以上的对象存活时），则 Survivor to 空间不够，则需要依赖老年代进行分配担保</p></li>
+<li>标记-整理<br />
+<img src="./images/【JVM 知识体系框架总结】9.png" /><br />
+老年代不适合复制算法</li>
+<li><p>复制操作增多 2. 额外 50%空间浪费 3. 经常需要额外的空间分配担保 4.可能老年代中对象 100% 存活</p></li>
+</ol>
+<p>步骤：</p>
+<ol>
+<li>标记</li>
+<li>整理 将存活的对象移动到一端（左上方），从不规整变成规整，然后直接清理掉边界以外的内存</li>
+</ol>
+<h2 id="serial-收集器">Serial 收集器</h2>
+<p><img src="./images/【JVM 知识体系框架总结】10.png" /><br />
+单线程垃圾回收器,用户线程到安全点先暂定，然后 GC 线程单线程串行进行，等 GC 线程回收完，然后用户线程再继续<br />
+特点：Stop the world<br />
+场景：桌面应用 （gc时间短）<br />
+用于新生代，client 端</p>
+<h2 id="parnew-收集器">ParNew 收集器</h2>
+<p>Serial收集器的多线程版本<br />
+<img src="./images/【JVM 知识体系框架总结】11.png" /><br />
+用于新生代，唯一能和CMS 收集器配合工作，运行在 server 模式下<br />
+-XX:ParallelGCThreads 限制垃圾收集器线程数 = CPU 核数（过多会导致上下文切换消耗）<br />
+并行：多条垃圾收集线程并行工作，用户线程仍然处于等待状态<br />
+并发：用户线程与垃圾收集器同时执行，用户线程和垃圾线程在不同 CPU 上执行</p>
+<h2 id="parallel-scavenge-收集器">Parallel Scavenge 收集器</h2>
+<p>新生代收集器，复制算法，并行的多线程收集器<br />
+关注吞吐量优先的收集器（吞吐量 = CPU 运行用户代码执行时间/CPU 执行总时间 ，比如： 99%时间执行用户线程，1%时间回收垃圾，这时吞吐量为 99%）高吞吐量可以高效率利用 CPU 时间，尽快完成程序的运算任务，适合在后台运算而不需要太多的交互任务<br />
+CMS 关注缩短垃圾回收停顿时间，适合与用户交互的程序，良好的响应速度能提升用户体验<br />
+-XX:MaxGCPauseMillis 参数 GC 停顿时间，参数过小会频繁 GC<br />
+-XX:GCTimeRatio 参数，默认 99%（用户线程时间占 CPU 总时间的 99%）</p>
+<h2 id="serial-old-收集器">Serial Old 收集器</h2>
+<p>是Serial 收集器的老年代版本<br />
+单线程老年代收集器，采用“标记-整理”算法</p>
+<h2 id="parallel-old-收集器">Parallel Old 收集器</h2>
+<p>是 Parallel Scavenge收集器的老年代版本<br />
+多线程老年代收集器，采用“标记-整理”算法</p>
+<h2 id="cms-收集器">CMS 收集器</h2>
+<p>获取最短回收停顿时间为目标的收集器，采用“标记-清除”算法，用于互联网、B/S 系统重视响应的系统<br />
+<img src="./images/【JVM 知识体系框架总结】12.png" /></p>
+<p>步骤：</p>
+<ol>
+<li>初始标记（不和用户线程一起运行，耗时短）—— 标记一下 GC Roots 能直接关联到的对象，速度很快</li>
+<li>并发标记（和用户线程一起运行，耗时长） —— 并发标记阶段就是进行 GC RootsTracing，寻找 GC 引用链</li>
+<li>重新标记（不和用户线程一起运行，耗时短）—— 为了修正并发标记期间因用户线程导致标记产生变动的标记记录</li>
+<li>并发清除（和用户线程一起运行，耗时长）—— 扫描整个内存区域</li>
+</ol>
+<p>缺点 ：</p>
+<ol>
+<li>对 CPU 资源非常敏感（并发标记阶段时间长，占用用户线程 CPU 时间）</li>
+<li>无法处理浮动垃圾（程序在进行并发清除时，用户线程所产生的新垃圾）</li>
+<li>标记-清除产生空间碎片</li>
+</ol>
+<h2 id="g1-收集器">G1 收集器</h2>
+<p>面向服务端应用的垃圾收集器<br />
+<img src="./images/【JVM 知识体系框架总结】13.png" /><br />
+Region-&gt;Remembered Set （解决 循环引用 ）<br />
+检查 Reference （程序对reference类型写操作，检查 reference 引用类型）<br />
+步骤：</p>
+<ol>
+<li>初始标记 —— 标记 GC Roots 能直接关联到的对象</li>
+<li>并发标记 —— 从 GC Root 开始对堆中对象进行可达性分析，找出存活对象 ，这一阶段耗时较长，但可与用户程序并发执行</li>
+<li>最终标记（Remembered Set Logs-&gt;Remembered Set）—— 修正在并发标记期间因用户程序继续运作而导致标记产生变动的那一部分标记记录，虚拟机将这段时间对象变化记录在线程 Remembered Set Logs里面，最终标记阶段需要把 Remembered Set Logs的数据合并到 Remembered Set中</li>
+<li>筛选回收（Live Data Counting and Evacuation）—— 只需要扫描 Remembered Set<br />
+优势：</li>
+<li>基于“标记-整理” 为主和 Region 之间采用复制算法实现</li>
+<li>可预测停顿，降低停顿时间，但G1 除了追求低停顿外，还能建立可预测的停顿时间模型</li>
+<li>G1 直接对 Java 堆中的 Region 进行回收（新生代、老年代不再物理隔离，他们都是一部分 Region）</li>
+<li>可预测的停顿时间模型，G1 跟踪各个 Regions 里面的垃圾堆积的价值大小（回收所获得的空间大小以及回收所需时间的经验值），在后台维护一个优先列表，每次根据允许的收集时间，优先回收价值最大的 Region</li>
+</ol>
+<h2 id="堆内存分配">堆内存分配</h2>
+<p>Java 堆分布图<br />
+<img src="./images/【JVM 知识体系框架总结】14.png" /></p>
+<p>对象分配的规则：</p>
+<ol>
+<li>对象主要分配在新生代的 Eden 区 （ Eden区，From 区存活对象复制到 To区，Eden区，From区被回收，然后 To区对象拷贝到From区，再进行下一次垃圾回收 ）</li>
+<li>如果启动了本地线程分配缓冲，将按线程优先在 TLAB 上分配</li>
+<li>少数情况下也可能直接分配到老年代 （放不下From和To区的都直接放到老年代）</li>
+</ol>
+<h2 id="大对象分配">大对象分配</h2>
+<p>大对象是指需要大量连续内存空间的 Java 对象，最典型的大对象是是那种很长的字符串以及数组<br />
+-XX:PretenureSizeThreshold 设置大于该值的对象直接分配在老年代，避免在 Eden 区以及 2 个Survivior区之间发生大量的内存复制</p>
+<h2 id="逃逸分析和栈上分配">逃逸分析和栈上分配</h2>
+<p>逃逸分析：分析对象动态作用域，当一个对象在方法中被定义后，它可能被外部方法所引用，称为方法逃逸。甚至还有可能被外部线程访问到，比如赋值给类变量或其他线程中访问的实例变量，称为线程逃逸。<br />
+栈上分配：把方法中的变量和对象直接分配到栈上，方法执行完后自动销毁，不需要垃圾回收介入，从而提高系统性能<br />
+-XX:+DoEscapeAnalysis 开启逃逸分析（jdk1.8默认开启 ）<br />
+-XX:-DoEscapeAnalysis 关闭逃逸分析</p>
+<h2 id="命令">命令</h2>
+<ol>
+<li>ps -ef | grep java</li>
+<li>jps -m（启动参数） -l（类名） -v （JVM 参数）</li>
+<li>jstat -gc 27660 250 20 监视虚拟机各种运行状态信息<br />
+<img src="./images/【JVM 知识体系框架总结】15.png" /></li>
+<li>jinfo 27660 查看和调整进程虚拟机（未被显示指定的）参数信息</li>
+<li>jmap 生成堆转储快照 -XX:+HeapDumpOnOutOfMemoryError<br />
+jmap -heap 9366;<br />
+jmap -histo 9366 | more; 显示堆中对象统计<br />
+jmap -dump:format=b,file=/Users/mousycoder/Desktop/a.bin 9366 生成dump文件<br />
+-Xmx20m -XX:+HeapDumpOnOutOfMemoryError -XX:HeapDumpPath=/Users/mousycoder/Desktop/<br />
+jhat /Users/mousycoder/Desktop/java_pid9783.hprof 图形分析Heap<br />
+select s.toString() from java.lang.String s where (s.value != null &amp;&amp; s.value.length &gt; 1000 )</li>
+<li>jstack 线程快照（虚拟机内每一条线程正在执行的方法堆栈的集合，主要用于定位线程问题）<br />
+shutdownHook 在关闭之前执行的任务<br />
+jstack -l -F pid 强制输出</li>
+</ol>
+<h2 id="线程状态">线程状态</h2>
+<ol>
+<li>NEW</li>
+<li>RUNNABLE</li>
+<li>BLOCKED 一个正在阻塞等待一个监视器的线程处于这个状态（Entry Set）被动的阻塞</li>
+<li>WAITING 一个正在无限期等待另一个线程执行一个特别的动作的线程处于这一状态 （Wait Set）主动显式申请的阻塞</li>
+<li>TIMED_WAITING 一个正在限时等待另一个线程执行一个动作的线程处于这一状态</li>
+<li>TERMINATED 线程完成一个excution</li>
+</ol>
+<p><img src="./images/【JVM 知识体系框架总结】16.png" /></p>
+<h2 id="jconsole">JConsole</h2>
+<p>基于 JMX 的可视化监视、管理工具<br />
+开启 JMX 端口<br />
+nohup java -Xms800m -Xmx800m -Djava.rmi.server.hostname=192.168.1.250 -Dcom.sun.management.jmx<br />
+remote.port=1111 -Dcom.sun.management.jmxremote.ssl=false -Dcom.sun.management.jmxremote.authenticate=false -jar hc-charging-<br />
+server.jar &amp;</p>
+<p>互联网开发流程<br />
+<img src="./images/【JVM 知识体系框架总结】17.png" /><br />
+Jconsole 内存分析思考过程<br />
+<img src="./images/【JVM 知识体系框架总结】18.png" /></p>
+<h2 id="fullgc">FullGC</h2>
+<p>Minor GC：当 Eden 区满，触发 Minor GC<br />
+FullGC:</p>
+<ol>
+<li>调用System.gc() 建议虚拟机进行 Full GC,可通过 -XX:+DisableExplicitGC 来进制 RMI 调用System.gc()</li>
+<li>老年代空间不足 大对象直接进入老年代，长期存活的对象进入老年代，当执行 Full GC后空间仍然不足，则抛出 OutOfMemoryError，为了避免上面原因引起 Full GC,调优时尽量做到让对象在 Minor GC 阶段被回收，让对象在新生代多存活一段时间以及不要创建过大的对象和数组</li>
+<li>空间分配担保失败 使用复制算法的 Minor GC 需要老年代的内存空间作为担保，如果出现了 HandlePromotionFailure 担保失败，则会触发 Full GC<br />
+建议：</li>
+<li>减少-Xmx大小，缩短 GC 时间（堆内存设置越大，Full GC 时间越长，停顿时间也会越长）</li>
+<li>集群部署</li>
+</ol>
+<h2 id="互联网问题">互联网问题</h2>
+<ol>
+<li>白名单问题<br />
+解决方法：list.contain-&gt;set.contain-&gt;布隆过滤器（用户量大和用户量小系统解决方案不一样）</li>
+<li>死锁<br />
+解决方法：jstack 以及 new thread带上名称</li>
+<li>堆内存泄露<br />
+FullGC 出现正常频率为一天 1~2 次<br />
+解决方案：jmap , heap dump on oom + jhat</li>
+<li>堆外内存泄露<br />
+heap堆使用率很低，但是有 OOM 以及 Full GC<br />
+解决方法：btrace</li>
+</ol>
+<h2 id="学习秘籍">学习秘籍</h2>
+<ol>
+<li>知识体系</li>
+<li>面试前看下知识体系导图</li>
+<li>坚持就胜利</li>
+</ol>
+
+
+</div><hr><script charset='utf-8' src='../../js/sming.js'></script></body></html>

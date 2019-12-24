@@ -1,0 +1,27 @@
+<html><head><meta charset='utf-8'><meta name='viewport' content='width=device-width, initial-scale=1'>
+<meta name='applicable-device' content='pc'><meta name='keywords' content='电脑,电脑讲解,电脑技术,编程,电脑故障维修手把手教你猜字小游戏' />
+<script src='../../highlight/highlight.pack.js'></script>
+<link rel='stylesheet' type='text/css' href='../../highlight/styles/monokai.css'/>
+
+<link rel='stylesheet' href='../../fenxiang/dist/css/share.min.css'>
+<script src='../../fenxiang/src/js/social-share.js'></script>
+<script src='../../fenxiang/src/js/qrcode.js'></script>
+
+</head><body><script>hljs.initHighlightingOnLoad();</script><script>
+var system ={};  
+var p = navigator.platform;       
+system.win = p.indexOf('Win') == 0;  
+system.mac = p.indexOf('Mac') == 0;  
+system.x11 = (p == 'X11') || (p.indexOf('Linux') == 0);     
+if(system.win||system.mac||system.xll){
+document.write("<link href='../css/3.css' rel='stylesheet' type='text/css'>");}else{ document.write("<link href='../css/3wap.css' rel='stylesheet' type='text/css'>");}</script><script src='../../js/3.js'></script><div class='div2'><div class='heading_nav'><ul><div><li><a href='../../index.html'>首页</a></li>
+</div><div onclick='hidden1()' >分享</div>
+</ul></div></div>
+<div id='heading_nav2'> 
+<li class='row' >
+<div class='social-share' data-mode='prepend'><a href='javascript:' class='social-share-icon icon-heart'></a></div></li></div><script charset='utf-8' src='../../3/js/hengfu.js'></script><script charset='utf-8' src='../../3/js/hengfu2.js'></script><hr><div class='div1'><div class='biaoti'><center>手把手教你猜字小游戏</center></div><div class='banquan'>原文出处:本文由博客园博主宗策提供。<br/>
+原文连接:https://www.cnblogs.com/xingsir/p/11947438.html</div><br>
+    <p>package test07;<br />import java.util.Scanner;<br />//猜字符游戏<br />public class Guessing {<br />//主方法<br />public static void main(String[] args) {<br />Scanner scan = new Scanner(System.in);<br />char[] chs = generate(); //获取随机字符数组<br />System.out.println(chs); //作弊<br />int count = 0; //猜错的次数<br />while(true){ //自造死循环<br />System.out.println("猜吧!");<br />String str = scan.nextLine().toUpperCase(); //接收用户输入的字符串并转换为大写字母<br />if(str.equals("EXIT")) { //判断字符串内容是否是EXIT<br />System.out.println("下次再来吧!");<br />break;<br />}<br />char[] input = str.toCharArray(); //将字符串转换为字符数组<br />int[] result = check(chs,input); //对比:随机字符数组与用户输入的字符数组<br />if(result[0]==chs.length) { //对<br />int score = 100*chs.length-10*count; //1个字符100分，猜错一次扣10分<br />System.out.println("恭喜你猜对了，得分为:"+score);<br />break;&nbsp;<br />}else { //错<br />count++; //猜错次数增1<br />System.out.println("字符对个数为:"+result[1]+"，位置对个数为:"+result[0]);<br />}<br />}<br />}<br /><br />//生成随机字符数组chs<br />public static char[] generate() {<br />char[] chs = new char[5]; //随机字符数组<br />char[] letters = { 'A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J',<br />'K', 'L', 'M', 'N', 'O', 'P', 'Q', 'R', 'S', 'T', 'U', 'V',<br />'W', 'X', 'Y', 'Z' }; //随机字符范围数组<br />boolean[] flags = new boolean[letters.length]; //标记数组<br />for(int i=0;i&lt;chs.length;i++) { //遍历随机字符数组<br />int index;<br />do {<br />index = (int)(Math.random()*letters.length); //随机下标(0到25之间)<br />}while(flags[index]==true); //下标index对应的标记为true，表示对应字符已经使用过，则重新生成index下标<br />//下标index对应的标记为false时，表示对应字符未用过，则循环结束<br />chs[i] = letters[index]; //基于下标index获取对应的字符并赋值给chs中的每一个元素<br />flags[index] = true; //将下标index对应的标记修改为true，表示对应字符已存过<br />}<br />return chs;<br />/*<br />* i=0 index=0 chs[0]='A' flags[0]=true<br />* i=1 index=25 chs[1]='Z' flags[25]=true<br />* i=2 index=0/25/0/1 chs[2]='B' flags[1]=true<br />* ...<br />*/<br />}<br /><br />//对比:随机字符数组chs与用户输入的字符数组input<br />public static int[] check(char[] chs,char[] input) {<br />int[] result = new int[2]; //对比结果(0,0)--假设result[1]为字符对，result[0]为位置对<br />for(int i=0;i&lt;chs.length;i++) { //遍历随机字符数组<br />for(int j=0;j&lt;input.length;j++) { //遍历用户输入的字符数组<br />if(chs[i]==input[j]) { //字符对<br />result[1]++; //字符对个数增1<br />if(i==j) { //位置对<br />result[0]++; //位置对个数增1<br />}<br />break; //剩余input元素不再参与比较了<br />}<br />}<br />}<br />return result;<br />}<br /><br />}</p>
+<p>&nbsp;</p>
+
+</div><hr><script charset='utf-8' src='../../js/sming.js'></script></body></html>

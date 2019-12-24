@@ -1,0 +1,252 @@
+<html><head><meta charset='utf-8'><meta name='viewport' content='width=device-width, initial-scale=1'>
+<meta name='applicable-device' content='pc'><meta name='keywords' content='电脑,电脑讲解,电脑技术,编程,电脑故障维修死磕 java同步系列之mysql分布式锁' />
+<script src='../../highlight/highlight.pack.js'></script>
+<link rel='stylesheet' type='text/css' href='../../highlight/styles/monokai.css'/>
+
+<link rel='stylesheet' href='../../fenxiang/dist/css/share.min.css'>
+<script src='../../fenxiang/src/js/social-share.js'></script>
+<script src='../../fenxiang/src/js/qrcode.js'></script>
+
+</head><body><script>hljs.initHighlightingOnLoad();</script><script>
+var system ={};  
+var p = navigator.platform;       
+system.win = p.indexOf('Win') == 0;  
+system.mac = p.indexOf('Mac') == 0;  
+system.x11 = (p == 'X11') || (p.indexOf('Linux') == 0);     
+if(system.win||system.mac||system.xll){
+document.write("<link href='../css/3.css' rel='stylesheet' type='text/css'>");}else{ document.write("<link href='../css/3wap.css' rel='stylesheet' type='text/css'>");}</script><script src='../../js/3.js'></script><div class='div2'><div class='heading_nav'><ul><div><li><a href='../../index.html'>首页</a></li>
+</div><div onclick='hidden1()' >分享</div>
+</ul></div></div>
+<div id='heading_nav2'> 
+<li class='row' >
+<div class='social-share' data-mode='prepend'><a href='javascript:' class='social-share-icon icon-heart'></a></div></li></div><script charset='utf-8' src='../../3/js/hengfu.js'></script><script charset='utf-8' src='../../3/js/hengfu2.js'></script><hr><div class='div1'><div class='biaoti'><center>死磕 java同步系列之mysql分布式锁</center></div><div class='banquan'>原文出处:本文由博客园博主彤哥读源码提供。<br/>
+原文连接:https://www.cnblogs.com/tong-yuan/p/11616782.html</div><br>
+    <h2 id="问题">问题</h2>
+<p>（1）什么是分布式锁？</p>
+<p>（2）为什么需要分布式锁？</p>
+<p>（3）mysql如何实现分布式锁？</p>
+<p>（4）mysql分布式锁的优点和缺点？</p>
+<h2 id="简介">简介</h2>
+<p>随着并发量的不断增加，单机的服务迟早要向多节点或者微服务进化，这时候原来单机模式下使用的synchronized或者ReentrantLock将不再适用，我们迫切地需要一种分布式环境下保证线程安全的解决方案，今天我们一起来学习一下mysql分布式锁如何实现分布式线程安全。</p>
+<h2 id="基础知识">基础知识</h2>
+<p>mysql中提供了两个函数——<code>get_lock('key', timeout)</code>和<code>release_lock('key')</code>——来实现分布式锁，可以根据<code>key</code>来加锁，这是一个字符串，可以设置超时时间（单位：秒），当调用<code>release_lock('key')</code>或者<code>客户端断线</code>的时候释放锁。</p>
+<p>它们的使用方法如下：</p>
+<pre><code><code>mysql&gt; select get_lock(&#39;user_1&#39;, 10);
+    -&gt; 1
+mysql&gt; select release_lock(&#39;user_1&#39;);
+    -&gt; 1</code></code></pre>
+<p><code>get_lock('user_1', 10)</code>如果10秒之内获取到锁则返回1，否则返回0；</p>
+<p><code>release_lock('user_1')</code>如果该锁是当前客户端持有的则返回1，如果该锁被其它客户端持有着则返回0，如果该锁没有被任何客户端持有则返回null；</p>
+<h2 id="多客户端案例">多客户端案例</h2>
+<p>为了便于举例【本篇文章由“彤哥读源码”原创，请支持原创，谢谢！】，这里的超时时间全部设置为0，也就是立即返回。</p>
+<table>
+<thead>
+<tr class="header">
+<th style="text-align: center;">时刻</th>
+<th style="text-align: center;">客户端A</th>
+<th style="text-align: center;">客户端B</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td style="text-align: center;">1</td>
+<td style="text-align: center;">get_lock('user_1', 0) -&gt; 1</td>
+<td style="text-align: center;">-</td>
+</tr>
+<tr class="even">
+<td style="text-align: center;">2</td>
+<td style="text-align: center;">-</td>
+<td style="text-align: center;">get_lock('user_1', 0) -&gt; 0</td>
+</tr>
+<tr class="odd">
+<td style="text-align: center;">3</td>
+<td style="text-align: center;">-</td>
+<td style="text-align: center;">release_lock('user_1', 0) -&gt; 0</td>
+</tr>
+<tr class="even">
+<td style="text-align: center;">4</td>
+<td style="text-align: center;">release_lock('user_1', 0) -&gt; 1</td>
+<td style="text-align: center;">-</td>
+</tr>
+<tr class="odd">
+<td style="text-align: center;">5</td>
+<td style="text-align: center;">release_lock('user_2', 0) -&gt; null</td>
+<td style="text-align: center;">-</td>
+</tr>
+<tr class="even">
+<td style="text-align: center;">6</td>
+<td style="text-align: center;">-</td>
+<td style="text-align: center;">get_lock('user_1', 0) -&gt; 1</td>
+</tr>
+<tr class="odd">
+<td style="text-align: center;">7</td>
+<td style="text-align: center;">-</td>
+<td style="text-align: center;">release_lock('user_1', 0) -&gt; 1</td>
+</tr>
+</tbody>
+</table>
+<h2 id="java实现">Java实现</h2>
+<p>为了方便快速实现，这里使用 springboot2.1 + mybatis 实现，并且省略spring的配置，只列举主要的几个类。</p>
+<h3 id="定义locker接口">定义Locker接口</h3>
+<p>接口中只有一个方法，入参1为加锁的key，入参2为执行的命令。</p>
+<pre class="java"><code>public interface Locker {
+    void lock(String key, Runnable command);
+}</code></code></pre>
+<h3 id="mysql分布式锁实现">mysql分布式锁实现</h3>
+<p>mysql的实现中要注意以下两点：</p>
+<p>（1）加锁、释放锁必须在同一个session（同一个客户端）中，所以这里不能使用Mapper接口的方式调用，因为Mapper接口有可能会导致不在同一个session。</p>
+<p>（2）可重入性是通过ThreadLocal保证的；</p>
+<pre class="java"><code>@Slf4j
+@Component
+public class MysqlLocker implements Locker {
+
+    private static final ThreadLocal&lt;SqlSessionWrapper&gt; localSession = new ThreadLocal&lt;&gt;();
+
+    @Autowired
+    private SqlSessionFactory sqlSessionFactory;
+
+    @Override
+    public void lock(String key, Runnable command) {
+        // 加锁、释放锁必须使用同一个session
+        SqlSessionWrapper sqlSessionWrapper = localSession.get();
+        if (sqlSessionWrapper == null) {
+            // 第一次获取锁
+            localSession.set(new SqlSessionWrapper(sqlSessionFactory.openSession()));
+        }
+        try {
+            // 【本篇文章由“彤哥读源码”原创，请支持原创，谢谢！】
+            // -1表示没获取到锁一直等待
+            if (getLock(key, -1)) {
+                command.run();
+            }
+        } catch (Exception e) {
+            log.error(&quot;lock error&quot;, e);
+        } finally {
+            releaseLock(key);
+        }
+    }
+
+    private boolean getLock(String key, long timeout) {
+        Map&lt;String, Object&gt; param = new HashMap&lt;&gt;();
+        param.put(&quot;key&quot;, key);
+        param.put(&quot;timeout&quot;, timeout);
+        SqlSessionWrapper sqlSessionWrapper = localSession.get();
+        Integer result = sqlSessionWrapper.sqlSession.selectOne(&quot;LockerMapper.getLock&quot;, param);
+        if (result != null &amp;&amp; result.intValue() == 1) {
+            // 获取到了锁，state加1
+            sqlSessionWrapper.state++;
+            return true;
+        }
+        return false;
+    }
+
+    private boolean releaseLock(String key) {
+        SqlSessionWrapper sqlSessionWrapper = localSession.get();
+        Integer result = sqlSessionWrapper.sqlSession.selectOne(&quot;LockerMapper.releaseLock&quot;, key);
+        if (result != null &amp;&amp; result.intValue() == 1) {
+            // 释放锁成功，state减1
+            sqlSessionWrapper.state--;
+            // 当state减为0的时候说明当前线程获取的锁全部释放了，则关闭session并从ThreadLocal中移除
+            if (sqlSessionWrapper.state == 0) {
+                sqlSessionWrapper.sqlSession.close();
+                localSession.remove();
+            }
+            return true;
+        }
+        return false;
+    }
+
+    private static class SqlSessionWrapper {
+        int state;
+        SqlSession sqlSession;
+
+        public SqlSessionWrapper(SqlSession sqlSession) {
+            this.state = 0;
+            this.sqlSession = sqlSession;
+        }
+    }
+}</code></code></pre>
+<h3 id="lockermapper.xml">LockerMapper.xml</h3>
+<p>定义get_lock()、release_lock()的语句。</p>
+<pre class="xml"><code>&lt;?xml version=&quot;1.0&quot; encoding=&quot;UTF-8&quot;?&gt;
+&lt;!DOCTYPE mapper PUBLIC &quot;-//mybatis.org//DTD Mapper 3.0//EN&quot; &quot;http://mybatis.org/dtd/mybatis-3-mapper.dtd&quot;&gt;
+
+&lt;mapper namespace=&quot;LockerMapper&quot;&gt;
+    &lt;select id=&quot;getLock&quot; resultType=&quot;integer&quot;&gt;
+        select get_lock(#{key}, #{timeout});
+    &lt;/select&gt;
+
+    &lt;select id=&quot;releaseLock&quot; resultType=&quot;integer&quot;&gt;
+        select release_lock(#{key})
+    &lt;/select&gt;
+&lt;/mapper&gt;</code></code></pre>
+<h3 id="测试类">测试类</h3>
+<p>这里启动1000个线程，每个线程打印一句话并睡眠2秒钟。</p>
+<pre class="java"><code>@RunWith(SpringRunner.class)
+@SpringBootTest(classes = Application.class)
+public class MysqlLockerTest {
+
+    @Autowired
+    private Locker locker;
+
+    @Test
+    public void testMysqlLocker() throws IOException {
+        for (int i = 0; i &lt; 1000; i++) {
+            // 多节点测试
+            try {
+                Thread.sleep(2000);
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
+            new Thread(()-&gt;{
+                locker.lock(&quot;lock&quot;, ()-&gt; {
+                    // 可重入性测试
+                    locker.lock(&quot;lock&quot;, ()-&gt; {
+                        System.out.println(String.format(&quot;time: %d, threadName: %s&quot;, System.currentTimeMillis(), Thread.currentThread().getName()));
+                        try {
+                            Thread.sleep(2000);
+                        } catch (InterruptedException e) {
+                            e.printStackTrace();
+                        }
+                    });
+                });
+            }, &quot;Thread-&quot;+i).start();
+        }
+
+        System.in.read();
+    }
+}</code></code></pre>
+<h3 id="运行结果">运行结果</h3>
+<p>查看运行结果发现每隔2秒打印一个线程的信息，说明这个锁是有效的，至于分布式环境下面的验证也很简单，起多个MysqlLockerTest实例即可。</p>
+<pre><code><code>time: 1568715905952, threadName: Thread-3
+time: 1568715907955, threadName: Thread-4
+time: 1568715909966, threadName: Thread-8
+time: 1568715911967, threadName: Thread-0
+time: 1568715913969, threadName: Thread-1
+time: 1568715915972, threadName: Thread-9
+time: 1568715917975, threadName: Thread-6
+time: 1568715919997, threadName: Thread-5
+time: 1568715921999, threadName: Thread-7
+time: 1568715924001, threadName: Thread-2</code></code></pre>
+<h2 id="总结">总结</h2>
+<p>（1）分布式环境下需要使用分布式锁，单机的锁将无法保证线程安全；</p>
+<p>（2）mysql分布式锁是基于<code>get_lock('key', timeout)</code>和<code>release_lock('key')</code>两个函数实现的；</p>
+<p>（3）mysql分布式锁是可重入锁；</p>
+<h2 id="彩蛋">彩蛋</h2>
+<p><strong>使用mysql分布式锁需要注意些什么呢？</strong></p>
+<p>答：必须保证多个服务节点使用的是同一个mysql库【本篇文章由“彤哥读源码”原创，请支持原创，谢谢！】。</p>
+<p><strong>mysql分布式锁具有哪些优点？</strong></p>
+<p>答：1）方便快捷，因为基本每个服务都会连接数据库，但是不是每个服务都会使用redis或者zookeeper；</p>
+<p>2）如果客户端断线了会自动释放锁，不会造成锁一直被占用；</p>
+<p>3）mysql分布式锁是可重入锁，对于旧代码的改造成本低；</p>
+<p><strong>mysql分布式锁具有哪些缺点？</strong></p>
+<p>答：1）加锁直接打到数据库，增加了数据库的压力；</p>
+<p>2）加锁的线程会占用一个session，也就是一个连接数，如果并发量大可能会导致正常执行的sql语句获取不到连接；</p>
+<p>3）服务拆分后如果每个服务使用自己的数据库，则不合适；</p>
+<p>4）相对于redis或者zookeeper分布式锁，效率相对要低一些；</p>
+<hr />
+<p>欢迎关注我的公众号“彤哥读源码”，查看更多源码系列文章, 与彤哥一起畅游源码的海洋。</p>
+<p><img src="./images/死磕 java同步系列之mysql分布式锁0.png" alt="qrcode" /></p>
+
+
+</div><hr><script charset='utf-8' src='../../js/sming.js'></script></body></html>

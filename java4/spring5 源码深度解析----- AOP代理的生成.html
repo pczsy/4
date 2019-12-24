@@ -1,0 +1,806 @@
+<html><head><meta charset='utf-8'><meta name='viewport' content='width=device-width, initial-scale=1'>
+<meta name='applicable-device' content='pc'><meta name='keywords' content='电脑,电脑讲解,电脑技术,编程,电脑故障维修spring5 源码深度解析----- AOP代理的生成' />
+<script src='../../highlight/highlight.pack.js'></script>
+<link rel='stylesheet' type='text/css' href='../../highlight/styles/monokai.css'/>
+
+<link rel='stylesheet' href='../../fenxiang/dist/css/share.min.css'>
+<script src='../../fenxiang/src/js/social-share.js'></script>
+<script src='../../fenxiang/src/js/qrcode.js'></script>
+
+</head><body><script>hljs.initHighlightingOnLoad();</script><script>
+var system ={};  
+var p = navigator.platform;       
+system.win = p.indexOf('Win') == 0;  
+system.mac = p.indexOf('Mac') == 0;  
+system.x11 = (p == 'X11') || (p.indexOf('Linux') == 0);     
+if(system.win||system.mac||system.xll){
+document.write("<link href='../css/3.css' rel='stylesheet' type='text/css'>");}else{ document.write("<link href='../css/3wap.css' rel='stylesheet' type='text/css'>");}</script><script src='../../js/3.js'></script><div class='div2'><div class='heading_nav'><ul><div><li><a href='../../index.html'>首页</a></li>
+</div><div onclick='hidden1()' >分享</div>
+</ul></div></div>
+<div id='heading_nav2'> 
+<li class='row' >
+<div class='social-share' data-mode='prepend'><a href='javascript:' class='social-share-icon icon-heart'></a></div></li></div><script charset='utf-8' src='../../3/js/hengfu.js'></script><script charset='utf-8' src='../../3/js/hengfu2.js'></script><hr><div class='div1'><div class='biaoti'><center>spring5 源码深度解析----- AOP代理的生成</center></div><div class='banquan'>原文出处:本文由博客园博主chen_hao提供。<br/>
+原文连接:https://www.cnblogs.com/java-chen-hao/p/11592242.html</div><br>
+    <p>在获取了所有对应bean的增强后，便可以进行代理的创建了。回到AbstractAutoProxyCreator的wrapIfNecessary方法中，如下所示：&nbsp;</p>
+<src class="cnblogs_code">
+<pre><code><span style="color: #008080;"> 1</span> <span style="color: #0000ff;">protected</span> <span style="color: #0000ff;">static</span> <span style="color: #0000ff;">final</span> Object[] DO_NOT_PROXY = <span style="color: #0000ff;">null</span><span style="color: #000000;">;
+</span><span style="color: #008080;"> 2</span> 
+<span style="color: #008080;"> 3</span> <span style="color: #0000ff;">protected</span><span style="color: #000000;"> Object wrapIfNecessary(Object bean, String beanName, Object cacheKey) {
+</span><span style="color: #008080;"> 4</span>     <span style="color: #0000ff;">if</span> (StringUtils.hasLength(beanName) &amp;&amp; <span style="color: #0000ff;">this</span><span style="color: #000000;">.targetSourcedBeans.contains(beanName)) {
+</span><span style="color: #008080;"> 5</span>         <span style="color: #0000ff;">return</span><span style="color: #000000;"> bean;
+</span><span style="color: #008080;"> 6</span> <span style="color: #000000;">    }
+</span><span style="color: #008080;"> 7</span>     <span style="color: #0000ff;">if</span> (Boolean.FALSE.equals(<span style="color: #0000ff;">this</span><span style="color: #000000;">.advisedBeans.get(cacheKey))) {
+</span><span style="color: #008080;"> 8</span>         <span style="color: #0000ff;">return</span><span style="color: #000000;"> bean;
+</span><span style="color: #008080;"> 9</span> <span style="color: #000000;">    }
+</span><span style="color: #008080;">10</span>     <span style="color: #0000ff;">if</span> (isInfrastructureClass(bean.getClass()) ||<span style="color: #000000;"> shouldSkip(bean.getClass(), beanName)) {
+</span><span style="color: #008080;">11</span>         <span style="color: #0000ff;">this</span><span style="color: #000000;">.advisedBeans.put(cacheKey, Boolean.FALSE);
+</span><span style="color: #008080;">12</span>         <span style="color: #0000ff;">return</span><span style="color: #000000;"> bean;
+</span><span style="color: #008080;">13</span> <span style="color: #000000;">    }
+</span><span style="color: #008080;">14</span> 
+<span style="color: #008080;">15</span>     <span style="color: #008000;">//</span><span style="color: #008000;"> Create proxy if we have advice.</span>
+<span style="color: #008080;">16</span>    <strong> Object[] specificInterceptors = getAdvicesAndAdvisorsForBean(bean.getClass(), beanName, <span style="color: #0000ff;">null</span><span style="color: #000000;">);
+</span></strong><span style="color: #008080;">17</span>     <span style="color: #0000ff;">if</span> (specificInterceptors !=<span style="color: #000000;"> DO_NOT_PROXY) {
+</span><span style="color: #008080;">18</span>         <span style="color: #0000ff;">this</span><span style="color: #000000;">.advisedBeans.put(cacheKey, Boolean.TRUE);
+</span><span style="color: #008080;">19</span>        <strong> Object proxy =<span style="color: #000000;"> createProxy(
+</span><span style="color: #008080;">20</span>                 bean.getClass(), beanName, specificInterceptors, <span style="color: #0000ff;">new</span><span style="color: #000000;"> SingletonTargetSource(bean));
+</span></strong><span style="color: #008080;">21</span>         <span style="color: #0000ff;">this</span><span style="color: #000000;">.proxyTypes.put(cacheKey, proxy.getClass());
+</span><span style="color: #008080;">22</span>         <span style="color: #0000ff;">return</span><span style="color: #000000;"> proxy;
+</span><span style="color: #008080;">23</span> <span style="color: #000000;">    }
+</span><span style="color: #008080;">24</span> 
+<span style="color: #008080;">25</span>     <span style="color: #0000ff;">this</span><span style="color: #000000;">.advisedBeans.put(cacheKey, Boolean.FALSE);
+</span><span style="color: #008080;">26</span>     <span style="color: #0000ff;">return</span><span style="color: #000000;"> bean;
+</span><span style="color: #008080;">27</span> }</code></pre>
+
+<p>我们上一篇文章分析完了第16行，获取到了所有对应bean的增强器，并获取到了此目标bean所有匹配的&nbsp;Advisor，接下来我们要从第17行开始分析，如果&nbsp;specificInterceptors 不为空，则要为当前bean创建代理类，接下来我们来看创建代理类的方法&nbsp;<strong>createProxy：</strong></p>
+<src class="cnblogs_code">
+<pre><code><span style="color: #0000ff;">protected</span> Object createProxy(Class&lt;?&gt;<span style="color: #000000;"> beanClass, @Nullable String beanName,
+        @Nullable Object[] specificInterceptors, TargetSource targetSource) {
+
+    </span><span style="color: #0000ff;">if</span> (<span style="color: #0000ff;">this</span>.beanFactory <span style="color: #0000ff;">instanceof</span><span style="color: #000000;"> ConfigurableListableBeanFactory) {
+        AutoProxyUtils.exposeTargetClass((ConfigurableListableBeanFactory) </span><span style="color: #0000ff;">this</span><span style="color: #000000;">.beanFactory, beanName, beanClass);
+    }
+
+    ProxyFactory proxyFactory </span>= <span style="color: #0000ff;">new</span><span style="color: #000000;"> ProxyFactory();
+    </span><span style="color: #008000;">//</span><span style="color: #008000;"> 获取当前类中相关属性</span>
+    proxyFactory.copyFrom(<span style="color: #0000ff;">this</span><span style="color: #000000;">);
+
+    </span><span style="color: #0000ff;">if</span> (!<span style="color: #000000;">proxyFactory.isProxyTargetClass()) {
+        </span><span style="color: #008000;">//</span><span style="color: #008000;"> 决定对于给定的bean是否应该使用targetClass而不是他的接口代理，
+        </span><span style="color: #008000;">//</span><span style="color: #008000;"> 检査 proxyTargetClass 设置以及 preserveTargetClass 属性</span>
+        <span style="color: #0000ff;">if</span><span style="color: #000000;"> (shouldProxyTargetClass(beanClass, beanName)) {
+            proxyFactory.setProxyTargetClass(</span><span style="color: #0000ff;">true</span><span style="color: #000000;">);
+        }
+        </span><span style="color: #0000ff;">else</span><span style="color: #000000;"> {
+            evaluateProxyInterfaces(beanClass, proxyFactory);
+        }
+    }
+
+    Advisor[] advisors </span>=<span style="color: #000000;"> buildAdvisors(beanName, specificInterceptors);
+    </span><strong><span style="color: #008000;">//</span><span style="color: #008000;"> 加入增强器</span>
+<span style="color: #000000;">    proxyFactory.addAdvisors(advisors);
+    </span><span style="color: #008000;">//</span><span style="color: #008000;"> 设置要代理的目标类</span>
+<span style="color: #000000;">    proxyFactory.setTargetSource(targetSource);
+    </span></strong><span style="color: #008000;">//</span><span style="color: #008000;"> 定制代理</span>
+<span style="color: #000000;">    customizeProxyFactory(proxyFactory);
+    </span><span style="color: #008000;">//</span><span style="color: #008000;"> 用来控制代理工厂被配置之后，是否还允许修改通知。
+    </span><span style="color: #008000;">//</span><span style="color: #008000;"> 缺省值是false (即在代理被配置之后，不允许修改代理的配置)。</span>
+    proxyFactory.setFrozen(<span style="color: #0000ff;">this</span><span style="color: #000000;">.freezeProxy);
+    </span><span style="color: #0000ff;">if</span><span style="color: #000000;"> (advisorsPreFiltered()) {
+        proxyFactory.setPreFiltered(</span><span style="color: #0000ff;">true</span><span style="color: #000000;">);
+    }
+
+    </span><strong><span style="color: #008000;">//</span><span style="color: #008000;">真正创建代理的方法</span>
+    <span style="color: #0000ff;">return</span></strong><span style="color: #000000;"><strong> proxyFactory.getProxy(getProxyClassLoader());</strong>
+}
+
+@Override
+</span><span style="color: #0000ff;">public</span> <span style="color: #0000ff;">void</span><span style="color: #000000;"> setTargetSource(@Nullable TargetSource targetSource) {
+    </span><strong><span style="color: #0000ff;">this</span>.targetSource =</strong> (targetSource != <span style="color: #0000ff;">null</span> ?<span style="color: #000000;"> targetSource : EMPTY_TARGET_SOURCE);
+}
+
+</span><span style="color: #0000ff;">public</span> <span style="color: #0000ff;">void</span> addAdvisors(Collection&lt;Advisor&gt;<span style="color: #000000;"> advisors) {
+    </span><span style="color: #0000ff;">if</span><span style="color: #000000;"> (isFrozen()) {
+        </span><span style="color: #0000ff;">throw</span> <span style="color: #0000ff;">new</span> AopConfigException("Cannot add advisor: Configuration is frozen."<span style="color: #000000;">);
+    }
+    </span><span style="color: #0000ff;">if</span> (!<span style="color: #000000;">CollectionUtils.isEmpty(advisors)) {
+        </span><span style="color: #0000ff;">for</span><span style="color: #000000;"> (Advisor advisor : advisors) {
+            </span><span style="color: #0000ff;">if</span> (advisor <span style="color: #0000ff;">instanceof</span><span style="color: #000000;"> IntroductionAdvisor) {
+                validateIntroductionAdvisor((IntroductionAdvisor) advisor);
+            }
+            Assert.notNull(advisor, </span>"Advisor must not be null"<span style="color: #000000;">);
+            </span><strong><span style="color: #0000ff;">this</span></strong><span style="color: #000000;"><strong>.advisors.add(advisor);</strong>
+        }
+        updateAdvisorArray();
+        adviceChanged();
+    }
+}</span></code></pre>
+
+<p>从上面代码我们看到对于代理类的创建及处理spring是委托给了ProxyFactory处理的</p>
+<h2>创建代理</h2>
+<src class="cnblogs_code">
+<pre><code><span style="color: #0000ff;">public</span><span style="color: #000000;"> Object getProxy(@Nullable ClassLoader classLoader) {
+    </span><span style="color: #0000ff;">return</span><span style="color: #000000;"> createAopProxy().getProxy(classLoader);
+}</span></code></pre>
+
+<p>在上面的getProxy方法中createAopProxy方法，其实现是在DefaultAopProxyFactory中，这个方法的主要功能是，根据optimize、ProxyTargetClass等参数来决定生成Jdk动态代理，还是生成Cglib代理。我们进入到方法内：</p>
+<src class="cnblogs_code">
+<pre><code><span style="color: #0000ff;">protected</span> <span style="color: #0000ff;">final</span> <span style="color: #0000ff;">synchronized</span><span style="color: #000000;"> AopProxy createAopProxy() {
+    </span><span style="color: #0000ff;">if</span> (!<span style="color: #0000ff;">this</span><span style="color: #000000;">.active) {
+        activate();
+    }
+    </span><span style="color: #008000;">//</span><span style="color: #008000;"> 创建代理</span>
+    <span style="color: #0000ff;">return</span> getAopProxyFactory().createAopProxy(<span style="color: #0000ff;">this</span><span style="color: #000000;">);
+}
+
+</span><span style="color: #0000ff;">public</span> AopProxy createAopProxy(AdvisedSupport config) <span style="color: #0000ff;">throws</span><span style="color: #000000;"> AopConfigException {
+    </span><span style="color: #0000ff;">if</span> (config.isOptimize() || config.isProxyTargetClass() ||<span style="color: #000000;"> hasNoUserSuppliedProxyInterfaces(config)) {
+        Class</span>&lt;?&gt; targetClass =<span style="color: #000000;"> config.getTargetClass();
+        </span><span style="color: #0000ff;">if</span> (targetClass == <span style="color: #0000ff;">null</span><span style="color: #000000;">) {
+            </span><span style="color: #0000ff;">throw</span> <span style="color: #0000ff;">new</span> AopConfigException("TargetSource cannot determine target class: " +
+                    "Either an interface or a target is required for proxy creation."<span style="color: #000000;">);
+        }
+        </span><span style="color: #008000;">//</span><span style="color: #008000;">手动设置创建Cglib代理类后，如果目标bean是一个接口，也要创建jdk代理类</span>
+        <span style="color: #0000ff;">if</span> (targetClass.isInterface() ||<span style="color: #000000;"> Proxy.isProxyClass(targetClass)) {
+            </span><span style="color: #0000ff;">return</span> <span style="color: #0000ff;">new</span><span style="color: #000000;"> JdkDynamicAopProxy(config);
+        }
+        </span><span style="color: #008000;">//</span><span style="color: #008000;">创建Cglib代理</span>
+        <span style="color: #0000ff;">return</span> <span style="color: #0000ff;">new</span><span style="color: #000000;"> ObjenesisCglibAopProxy(config);
+    }
+    </span><span style="color: #0000ff;">else</span><span style="color: #000000;"> {
+        </span><span style="color: #008000;">//</span><span style="color: #008000;">默认创建jdk代理</span>
+        <span style="color: #0000ff;">return</span> <span style="color: #0000ff;">new</span><span style="color: #000000;"> JdkDynamicAopProxy(config);
+    }
+}</span></code></pre>
+
+<p>我们知道对于Spring的代理是通过JDKProxy的实现和CglibProxy实现。Spring是如何选取的呢？</p>
+<p>从if的判断条件中可以看到3个方面影响这Spring的判断。</p>
+<ul>
+<li>
+<p>optimize：用来控制通过CGLIB创建的代理是否使用激进的优化策略，除非完全了解AOP代理如何处理优化，否则不推荐用户使用这个设置。目前这个属性仅用于CGLIB 代理，对于JDK动态代理（缺省代理）无效。</p>
+</li>
+<li>
+<p>proxyTargetClass：这个属性为true时，目标类本身被代理而不是目标类的接口。如果这个属性值被设为true，CGLIB代理将被创建，设置方式：<strong>&lt;aop:aspectj-autoproxy proxy-target-class="true"/&gt;。</strong></p>
+</li>
+<li>
+<p>hasNoUserSuppliedProxylnterfaces：是否存在代理接口</p>
+</li>
+</ul>
+<p>下面是对JDK与Cglib方式的总结。</p>
+<ul>
+<li>
+<p><strong>如果目标对象实现了接口，默认情况下会采用JDK的动态代理实现AOP。</strong></p>
+</li>
+<li>
+<p><strong>如果目标对象实现了接口，可以强制使用CGLIB实现AOP。</strong></p>
+</li>
+<li>
+<p><strong>如果目标对象没有实现了接口，必须采用CGLIB库，Spring会自动在JDK动态代理 和CGLIB之间转换。</strong></p>
+</li>
+</ul>
+<p>如何强制使用CGLIB实现AOP?</p>
+<p>（1）添加 CGLIB 库，Spring_HOME/cglib/*.jar。</p>
+<p>（2）在 Spring 配置文件中加人&lt;aop:aspectj-autoproxy proxy-target-class="true"/&gt;。</p>
+<p>JDK动态代理和CGLIB字节码生成的区别？</p>
+<ul>
+<li>JDK动态代理只能对实现了接口的类生成代理，而不能针对类。</li>
+<li>CGLIB是针对类实现代理，主要是对指定的类生成一个子类，覆盖其中的方法，因为是继承，所以该类或方法最好不要声明成final。</li>
+</ul>
+<h2>获取代理</h2>
+<p>本文主要介绍JDK动态代理类的实现，在此之前，有必要熟悉一下JDK代理使用示例，请看我以前的博文，JDK动态代理源码分析文章《<a id="post_title_link_10643744" href="https://www.cnblogs.com/java-chen-hao/p/10643744.html">java基础(十八)----- java动态代理原理源码解析</a>》<a id="post_title_link_10643744" href="https://www.cnblogs.com/java-chen-hao/p/10643744.html"><br /></a></p>
+<p>Spring的AOP实现其实也是用了<strong>Proxy和InvocationHandler</strong>这两个东西的。</p>
+<p>我们再次来回顾一下使用JDK代理的方式，在整个创建过程中，对于InvocationHandler的创建是最为核心的，在自定义的InvocationHandler中需要重写3个函数。</p>
+<ul>
+<li>构造函数，将代理的对象传入。</li>
+<li>invoke方法，此方法中实现了 AOP增强的所有逻辑。</li>
+<li>getProxy方法，此方法千篇一律，但是必不可少。</li>
+
+
+
+
+
+
+</ul>
+<p>那么，我们看看Spring中的JDK代理实现是不是也是这么做的呢？我们来看看简化后的&nbsp;JdkDynamicAopProxy&nbsp;&nbsp;。</p>
+<src class="cnblogs_code">
+<pre><code><span style="color: #008080;">  1</span> <span style="color: #0000ff;">final</span> <span style="color: #0000ff;">class</span> JdkDynamicAopProxy <span style="color: #0000ff;">implements</span><span style="color: #000000;"> AopProxy, <strong>InvocationHandler</strong>, Serializable {
+</span><span style="color: #008080;">  2</span> 
+<span style="color: #008080;">  3</span>     <span style="color: #0000ff;">private</span> <span style="color: #0000ff;">final</span><span style="color: #000000;"> AdvisedSupport advised;
+</span><span style="color: #008080;">  4</span> 
+<span style="color: #008080;">  5</span>     <span style="color: #0000ff;">public</span> JdkDynamicAopProxy(AdvisedSupport config) <span style="color: #0000ff;">throws</span><span style="color: #000000;"> AopConfigException {
+</span><span style="color: #008080;">  6</span>         Assert.notNull(config, "AdvisedSupport must not be null"<span style="color: #000000;">);
+</span><span style="color: #008080;">  7</span>         <span style="color: #0000ff;">if</span> (config.getAdvisors().length == 0 &amp;&amp; config.getTargetSource() ==<span style="color: #000000;"> AdvisedSupport.EMPTY_TARGET_SOURCE) {
+</span><span style="color: #008080;">  8</span>             <span style="color: #0000ff;">throw</span> <span style="color: #0000ff;">new</span> AopConfigException("No advisors and no TargetSource specified"<span style="color: #000000;">);
+</span><span style="color: #008080;">  9</span> <span style="color: #000000;">        }
+</span><span style="color: #008080;"> 10</span>         <span style="color: #0000ff;">this</span>.advised =<span style="color: #000000;"> config;
+</span><span style="color: #008080;"> 11</span> <span style="color: #000000;">    }
+</span><span style="color: #008080;"> 12</span> 
+<span style="color: #008080;"> 13</span> 
+<span style="color: #008080;"> 14</span> <span style="color: #000000;">    @Override
+</span><span style="color: #008080;"> 15</span>     <span style="color: #0000ff;">public</span><span style="color: #000000;"> Object getProxy() {
+</span><span style="color: #008080;"> 16</span>         <span style="color: #0000ff;">return</span><span style="color: #000000;"> getProxy(ClassUtils.getDefaultClassLoader());
+</span><span style="color: #008080;"> 17</span> <span style="color: #000000;">    }
+</span><span style="color: #008080;"> 18</span> 
+<span style="color: #008080;"> 19</span> <span style="color: #000000;">    @Override
+</span><span style="color: #008080;"> 20</span>     <span style="color: #0000ff;">public</span><span style="color: #000000;"> Object getProxy(@Nullable ClassLoader classLoader) {
+</span><span style="color: #008080;"> 21</span>         <span style="color: #0000ff;">if</span><span style="color: #000000;"> (logger.isTraceEnabled()) {
+</span><span style="color: #008080;"> 22</span>             logger.trace("Creating JDK dynamic proxy: " + <span style="color: #0000ff;">this</span><span style="color: #000000;">.advised.getTargetSource());
+</span><span style="color: #008080;"> 23</span> <span style="color: #000000;">        }
+</span><span style="color: #008080;"> 24</span>         Class&lt;?&gt;[] proxiedInterfaces = AopProxyUtils.completeProxiedInterfaces(<span style="color: #0000ff;">this</span>.advised, <span style="color: #0000ff;">true</span><span style="color: #000000;">);
+</span><span style="color: #008080;"> 25</span> <span style="color: #000000;">        findDefinedEqualsAndHashCodeMethods(proxiedInterfaces);
+</span><span style="color: #008080;"> 26</span>      <strong>   <span style="color: #0000ff;">return</span> Proxy.newProxyInstance(classLoader, proxiedInterfaces, <span style="color: #0000ff;">this</span><span style="color: #000000;">);
+</span></strong><span style="color: #008080;"> 27</span> <span style="color: #000000;">    }
+</span><span style="color: #008080;"> 28</span> 
+<span style="color: #008080;"> 29</span> <span style="color: #000000;">    @Override
+</span><span style="color: #008080;"> 30</span> <span style="color: #000000;">    @Nullable
+</span><span style="color: #008080;"> 31</span>     <span style="color: #0000ff;">public</span> Object <strong>invoke</strong>(Object proxy, Method method, Object[] args) <span style="color: #0000ff;">throws</span><span style="color: #000000;"> Throwable {
+</span><span style="color: #008080;"> 32</span>         Object oldProxy = <span style="color: #0000ff;">null</span><span style="color: #000000;">;
+</span><span style="color: #008080;"> 33</span>         <span style="color: #0000ff;">boolean</span> setProxyContext = <span style="color: #0000ff;">false</span><span style="color: #000000;">;
+</span><span style="color: #008080;"> 34</span> 
+<span style="color: #008080;"> 35</span>         TargetSource targetSource = <span style="color: #0000ff;">this</span><span style="color: #000000;">.advised.targetSource;
+</span><span style="color: #008080;"> 36</span>         Object target = <span style="color: #0000ff;">null</span><span style="color: #000000;">;
+</span><span style="color: #008080;"> 37</span> 
+<span style="color: #008080;"> 38</span>         <span style="color: #0000ff;">try</span><span style="color: #000000;"> {
+</span><span style="color: #008080;"> 39</span>             <span style="color: #0000ff;">if</span> (!<span style="color: #0000ff;">this</span>.equalsDefined &amp;&amp;<span style="color: #000000;"> AopUtils.isEqualsMethod(method)) {
+</span><span style="color: #008080;"> 40</span>                 <span style="color: #008000;">//</span><span style="color: #008000;"> The target does not implement the equals(Object) method itself.</span>
+<span style="color: #008080;"> 41</span>                 <span style="color: #0000ff;">return</span> equals(args[0<span style="color: #000000;">]);
+</span><span style="color: #008080;"> 42</span> <span style="color: #000000;">            }
+</span><span style="color: #008080;"> 43</span>             <span style="color: #0000ff;">else</span> <span style="color: #0000ff;">if</span> (!<span style="color: #0000ff;">this</span>.hashCodeDefined &amp;&amp;<span style="color: #000000;"> AopUtils.isHashCodeMethod(method)) {
+</span><span style="color: #008080;"> 44</span>                 <span style="color: #008000;">//</span><span style="color: #008000;"> The target does not implement the hashCode() method itself.</span>
+<span style="color: #008080;"> 45</span>                 <span style="color: #0000ff;">return</span><span style="color: #000000;"> hashCode();
+</span><span style="color: #008080;"> 46</span> <span style="color: #000000;">            }
+</span><span style="color: #008080;"> 47</span>             <span style="color: #0000ff;">else</span> <span style="color: #0000ff;">if</span> (method.getDeclaringClass() == DecoratingProxy.<span style="color: #0000ff;">class</span><span style="color: #000000;">) {
+</span><span style="color: #008080;"> 48</span>                 <span style="color: #008000;">//</span><span style="color: #008000;"> There is only getDecoratedClass() declared -&gt; dispatch to proxy config.</span>
+<span style="color: #008080;"> 49</span>                 <span style="color: #0000ff;">return</span> AopProxyUtils.ultimateTargetClass(<span style="color: #0000ff;">this</span><span style="color: #000000;">.advised);
+</span><span style="color: #008080;"> 50</span> <span style="color: #000000;">            }
+</span><span style="color: #008080;"> 51</span>             <span style="color: #0000ff;">else</span> <span style="color: #0000ff;">if</span> (!<span style="color: #0000ff;">this</span>.advised.opaque &amp;&amp; method.getDeclaringClass().isInterface() &amp;&amp;
+<span style="color: #008080;"> 52</span>                     method.getDeclaringClass().isAssignableFrom(Advised.<span style="color: #0000ff;">class</span><span style="color: #000000;">)) {
+</span><span style="color: #008080;"> 53</span>                 <span style="color: #008000;">//</span><span style="color: #008000;"> Service invocations on ProxyConfig with the proxy config...</span>
+<span style="color: #008080;"> 54</span>                 <span style="color: #0000ff;">return</span> AopUtils.invokeJoinpointUsingReflection(<span style="color: #0000ff;">this</span><span style="color: #000000;">.advised, method, args);
+</span><span style="color: #008080;"> 55</span> <span style="color: #000000;">            }
+</span><span style="color: #008080;"> 56</span> 
+<span style="color: #008080;"> 57</span> <span style="color: #000000;">            Object retVal;
+</span><span style="color: #008080;"> 58</span> 
+<span style="color: #008080;"> 59</span>             <span style="color: #0000ff;">if</span> (<span style="color: #0000ff;">this</span><span style="color: #000000;">.advised.exposeProxy) {
+</span><span style="color: #008080;"> 60</span>                 <span style="color: #008000;">//</span><span style="color: #008000;"> Make invocation available if necessary.</span>
+<span style="color: #008080;"> 61</span>                 oldProxy =<span style="color: #000000;"> AopContext.setCurrentProxy(proxy);
+</span><span style="color: #008080;"> 62</span>                 setProxyContext = <span style="color: #0000ff;">true</span><span style="color: #000000;">;
+</span><span style="color: #008080;"> 63</span> <span style="color: #000000;">            }
+</span><span style="color: #008080;"> 64</span> 
+<span style="color: #008080;"> 65</span>             <span style="color: #008000;">//</span><span style="color: #008000;"> Get as late as possible to minimize the time we "own" the target,
+</span><span style="color: #008080;"> 66</span>             <span style="color: #008000;">//</span><span style="color: #008000;"> in case it comes from a pool.</span>
+<span style="color: #008080;"> 67</span>             target =<span style="color: #000000;"> targetSource.getTarget();
+</span><span style="color: #008080;"> 68</span>             Class&lt;?&gt; targetClass = (target != <span style="color: #0000ff;">null</span> ? target.getClass() : <span style="color: #0000ff;">null</span><span style="color: #000000;">);
+</span><span style="color: #008080;"> 69</span> 
+<span style="color: #008080;"> 70</span>             <span style="color: #008000;">//</span><span style="color: #008000;"> Get the interception chain for this method.</span>
+<span style="color: #008080;"> 71</span>             List&lt;Object&gt; chain = <span style="color: #0000ff;">this</span><span style="color: #000000;">.advised.getInterceptorsAndDynamicInterceptionAdvice(method, targetClass);
+</span><span style="color: #008080;"> 72</span> 
+<span style="color: #008080;"> 73</span>             <span style="color: #008000;">//</span><span style="color: #008000;"> Check whether we have any advice. If we don't, we can fallback on direct
+</span><span style="color: #008080;"> 74</span>             <span style="color: #008000;">//</span><span style="color: #008000;"> reflective invocation of the target, and avoid creating a MethodInvocation.</span>
+<span style="color: #008080;"> 75</span>             <span style="color: #0000ff;">if</span><span style="color: #000000;"> (chain.isEmpty()) {
+</span><span style="color: #008080;"> 76</span>                 <span style="color: #008000;">//</span><span style="color: #008000;"> We can skip creating a MethodInvocation: just invoke the target directly
+</span><span style="color: #008080;"> 77</span>                 <span style="color: #008000;">//</span><span style="color: #008000;"> Note that the final invoker must be an InvokerInterceptor so we know it does
+</span><span style="color: #008080;"> 78</span>                 <span style="color: #008000;">//</span><span style="color: #008000;"> nothing but a reflective operation on the target, and no hot swapping or fancy proxying.</span>
+<span style="color: #008080;"> 79</span>                 Object[] argsToUse =<span style="color: #000000;"> AopProxyUtils.adaptArgumentsIfNecessary(method, args);
+</span><span style="color: #008080;"> 80</span>                 retVal =<span style="color: #000000;"> AopUtils.invokeJoinpointUsingReflection(target, method, argsToUse);
+</span><span style="color: #008080;"> 81</span> <span style="color: #000000;">            }
+</span><span style="color: #008080;"> 82</span>             <span style="color: #0000ff;">else</span><span style="color: #000000;"> {
+</span><span style="color: #008080;"> 83</span>                 <span style="color: #008000;">//</span><span style="color: #008000;"> We need to create a method invocation...</span>
+<span style="color: #008080;"> 84</span>                 MethodInvocation invocation =
+<span style="color: #008080;"> 85</span>                         <span style="color: #0000ff;">new</span><span style="color: #000000;"> ReflectiveMethodInvocation(proxy, target, method, args, targetClass, chain);
+</span><span style="color: #008080;"> 86</span>                 <span style="color: #008000;">//</span><span style="color: #008000;"> Proceed to the joinpoint through the interceptor chain.</span>
+<span style="color: #008080;"> 87</span>                 retVal =<span style="color: #000000;"> invocation.proceed();
+</span><span style="color: #008080;"> 88</span> <span style="color: #000000;">            }
+</span><span style="color: #008080;"> 89</span> 
+<span style="color: #008080;"> 90</span>             <span style="color: #008000;">//</span><span style="color: #008000;"> Massage return value if necessary.</span>
+<span style="color: #008080;"> 91</span>             Class&lt;?&gt; returnType =<span style="color: #000000;"> method.getReturnType();
+</span><span style="color: #008080;"> 92</span>             <span style="color: #0000ff;">if</span> (retVal != <span style="color: #0000ff;">null</span> &amp;&amp; retVal == target &amp;&amp;
+<span style="color: #008080;"> 93</span>                     returnType != Object.<span style="color: #0000ff;">class</span> &amp;&amp; returnType.isInstance(proxy) &amp;&amp;
+<span style="color: #008080;"> 94</span>                     !RawTargetAccess.<span style="color: #0000ff;">class</span><span style="color: #000000;">.isAssignableFrom(method.getDeclaringClass())) {
+</span><span style="color: #008080;"> 95</span>                 <span style="color: #008000;">//</span><span style="color: #008000;"> Special case: it returned "this" and the return type of the method
+</span><span style="color: #008080;"> 96</span>                 <span style="color: #008000;">//</span><span style="color: #008000;"> is type-compatible. Note that we can't help if the target sets
+</span><span style="color: #008080;"> 97</span>                 <span style="color: #008000;">//</span><span style="color: #008000;"> a reference to itself in another returned object.</span>
+<span style="color: #008080;"> 98</span>                 retVal =<span style="color: #000000;"> proxy;
+</span><span style="color: #008080;"> 99</span> <span style="color: #000000;">            }
+</span><span style="color: #008080;">100</span>             <span style="color: #0000ff;">else</span> <span style="color: #0000ff;">if</span> (retVal == <span style="color: #0000ff;">null</span> &amp;&amp; returnType != Void.TYPE &amp;&amp;<span style="color: #000000;"> returnType.isPrimitive()) {
+</span><span style="color: #008080;">101</span>                 <span style="color: #0000ff;">throw</span> <span style="color: #0000ff;">new</span><span style="color: #000000;"> AopInvocationException(
+</span><span style="color: #008080;">102</span>                         "Null return value from advice does not match primitive return type for: " +<span style="color: #000000;"> method);
+</span><span style="color: #008080;">103</span> <span style="color: #000000;">            }
+</span><span style="color: #008080;">104</span>             <span style="color: #0000ff;">return</span><span style="color: #000000;"> retVal;
+</span><span style="color: #008080;">105</span> <span style="color: #000000;">        }
+</span><span style="color: #008080;">106</span>         <span style="color: #0000ff;">finally</span><span style="color: #000000;"> {
+</span><span style="color: #008080;">107</span>             <span style="color: #0000ff;">if</span> (target != <span style="color: #0000ff;">null</span> &amp;&amp; !<span style="color: #000000;">targetSource.isStatic()) {
+</span><span style="color: #008080;">108</span>                 <span style="color: #008000;">//</span><span style="color: #008000;"> Must have come from TargetSource.</span>
+<span style="color: #008080;">109</span> <span style="color: #000000;">                targetSource.releaseTarget(target);
+</span><span style="color: #008080;">110</span> <span style="color: #000000;">            }
+</span><span style="color: #008080;">111</span>             <span style="color: #0000ff;">if</span><span style="color: #000000;"> (setProxyContext) {
+</span><span style="color: #008080;">112</span>                 <span style="color: #008000;">//</span><span style="color: #008000;"> Restore old proxy.</span>
+<span style="color: #008080;">113</span> <span style="color: #000000;">                AopContext.setCurrentProxy(oldProxy);
+</span><span style="color: #008080;">114</span> <span style="color: #000000;">            }
+</span><span style="color: #008080;">115</span> <span style="color: #000000;">        }
+</span><span style="color: #008080;">116</span> <span style="color: #000000;">    }
+</span><span style="color: #008080;">117</span> 
+<span style="color: #008080;">118</span> }</code></pre>
+
+<p>我们看到JdkDynamicAopProxy 也是和我们自定义的<strong>InvocationHandler</strong>一样，实现了InvocationHandler接口，并且提供了一个getProxy方法创建代理类，重写invoke方法。</p>
+<p>我们重点看看代理类的调用<strong>。了解Jdk动态代理的话都会知道，在实现Jdk动态代理功能，要实现InvocationHandler接口的invoke方法（这个方法是一个回调方法）。&nbsp;<strong>被代理类中的方法被调用时，实际上是调用的invoke方法，我们看一看这个方法的实现。</strong></strong></p>
+<src class="cnblogs_code">
+<pre><code><span style="color: #008080;"> 1</span> <span style="color: #000000;">@Override
+</span><span style="color: #008080;"> 2</span> <span style="color: #000000;">@Nullable
+</span><span style="color: #008080;"> 3</span> <span style="color: #0000ff;">public</span> Object invoke(Object proxy, Method method, Object[] args) <span style="color: #0000ff;">throws</span><span style="color: #000000;"> Throwable {
+</span><span style="color: #008080;"> 4</span> <span style="color: #000000;">    MethodInvocation invocation;
+</span><span style="color: #008080;"> 5</span>     Object oldProxy = <span style="color: #0000ff;">null</span><span style="color: #000000;">;
+</span><span style="color: #008080;"> 6</span>     <span style="color: #0000ff;">boolean</span> setProxyContext = <span style="color: #0000ff;">false</span><span style="color: #000000;">;
+</span><span style="color: #008080;"> 7</span> 
+<span style="color: #008080;"> 8</span>     TargetSource targetSource = <span style="color: #0000ff;">this</span><span style="color: #000000;">.advised.targetSource;
+</span><span style="color: #008080;"> 9</span>     Object target = <span style="color: #0000ff;">null</span><span style="color: #000000;">;
+</span><span style="color: #008080;">10</span> 
+<span style="color: #008080;">11</span>     <span style="color: #0000ff;">try</span><span style="color: #000000;"> {
+</span><span style="color: #008080;">12</span>         <span style="color: #0000ff;">if</span> (!<span style="color: #0000ff;">this</span>.equalsDefined &amp;&amp;<span style="color: #000000;"> AopUtils.isEqualsMethod(method)) {
+</span><span style="color: #008080;">13</span>             <span style="color: #0000ff;">return</span> equals(args[0<span style="color: #000000;">]);
+</span><span style="color: #008080;">14</span> <span style="color: #000000;">        }
+</span><span style="color: #008080;">15</span>         <span style="color: #0000ff;">else</span> <span style="color: #0000ff;">if</span> (!<span style="color: #0000ff;">this</span>.hashCodeDefined &amp;&amp;<span style="color: #000000;"> AopUtils.isHashCodeMethod(method)) {
+</span><span style="color: #008080;">16</span>             <span style="color: #0000ff;">return</span><span style="color: #000000;"> hashCode();
+</span><span style="color: #008080;">17</span> <span style="color: #000000;">        }
+</span><span style="color: #008080;">18</span>         <span style="color: #0000ff;">else</span> <span style="color: #0000ff;">if</span> (method.getDeclaringClass() == DecoratingProxy.<span style="color: #0000ff;">class</span><span style="color: #000000;">) {
+</span><span style="color: #008080;">19</span>             <span style="color: #0000ff;">return</span> AopProxyUtils.ultimateTargetClass(<span style="color: #0000ff;">this</span><span style="color: #000000;">.advised);
+</span><span style="color: #008080;">20</span> <span style="color: #000000;">        }
+</span><span style="color: #008080;">21</span>         <span style="color: #0000ff;">else</span> <span style="color: #0000ff;">if</span> (!<span style="color: #0000ff;">this</span>.advised.opaque &amp;&amp; method.getDeclaringClass().isInterface() &amp;&amp;
+<span style="color: #008080;">22</span>                 method.getDeclaringClass().isAssignableFrom(Advised.<span style="color: #0000ff;">class</span><span style="color: #000000;">)) {
+</span><span style="color: #008080;">23</span>             <span style="color: #0000ff;">return</span> AopUtils.invokeJoinpointUsingReflection(<span style="color: #0000ff;">this</span><span style="color: #000000;">.advised, method, args);
+</span><span style="color: #008080;">24</span> <span style="color: #000000;">        }
+</span><span style="color: #008080;">25</span> 
+<span style="color: #008080;">26</span> <span style="color: #000000;">        Object retVal;
+</span><span style="color: #008080;">27</span>         <span style="color: #0000ff;">if</span> (<span style="color: #0000ff;">this</span><span style="color: #000000;">.advised.exposeProxy) {
+</span><span style="color: #008080;">28</span>             <span style="color: #008000;">//</span><span style="color: #008000;"> Make invocation available if necessary.</span>
+<span style="color: #008080;">29</span>             oldProxy =<span style="color: #000000;"> AopContext.setCurrentProxy(proxy);
+</span><span style="color: #008080;">30</span>             setProxyContext = <span style="color: #0000ff;">true</span><span style="color: #000000;">;
+</span><span style="color: #008080;">31</span> <span style="color: #000000;">        }
+</span><span style="color: #008080;">32</span> 
+<span style="color: #008080;">33</span>         target =<span style="color: #000000;"> targetSource.getTarget();
+</span><span style="color: #008080;">34</span>         Class&lt;?&gt; targetClass = (target != <span style="color: #0000ff;">null</span> ? target.getClass() : <span style="color: #0000ff;">null</span><span style="color: #000000;">);
+</span><span style="color: #008080;">35</span> 
+<span style="color: #008080;">36</span>         <strong><span style="color: #008000;">//</span><span style="color: #008000;"> 获取当前方法的拦截器链</span></strong>
+<span style="color: #008080;">37</span>        <strong> List&lt;Object&gt; chain = <span style="color: #0000ff;">this</span><span style="color: #000000;">.advised.getInterceptorsAndDynamicInterceptionAdvice(method, targetClass);
+</span></strong><span style="color: #008080;">38</span> 
+<span style="color: #008080;">39</span>         <span style="color: #0000ff;">if</span><span style="color: #000000;"> (chain.isEmpty()) {
+</span><span style="color: #008080;">40</span>             <span style="color: #008000;">//</span><strong><span style="color: #008000;"> 如果没有发现任何拦截器那么直接调用切点方法</span></strong>
+<span style="color: #008080;">41</span>             Object[] argsToUse =<span style="color: #000000;"> AopProxyUtils.adaptArgumentsIfNecessary(method, args);
+</span><span style="color: #008080;">42</span>             <strong>retVal =<span style="color: #000000;"> AopUtils.invokeJoinpointUsingReflection(target, method, argsToUse);
+</span></strong><span style="color: #008080;">43</span> <span style="color: #000000;">        }
+</span><span style="color: #008080;">44</span>         <span style="color: #0000ff;">else</span><span style="color: #000000;"> {
+</span><span style="color: #008080;">45</span>             <span style="color: #008000;">//</span><span style="color: #008000;"> We need to create a method invocation...
+</span><span style="color: #008080;">46</span>             <span style="color: #008000;">//</span><span style="color: #008000;"> 将拦截器封装在ReflectiveMethodInvocation，
+</span><span style="color: #008080;">47</span>             <span style="color: #008000;">//</span><span style="color: #008000;"> 以便于使用其proceed进行链接表用拦截器</span>
+<span style="color: #008080;">48</span>          <strong>   invocation = <span style="color: #0000ff;">new</span><span style="color: #000000;"> ReflectiveMethodInvocation(proxy, target, method, args, targetClass, chain);
+</span></strong><span style="color: #008080;">49</span>             <span style="color: #008000;">//</span><span style="color: #008000;"> Proceed to the joinpoint through the interceptor chain.
+</span><span style="color: #008080;">50</span>             <span style="color: #008000;">//</span><span style="color: #008000;"> 执行拦截器链</span>
+<span style="color: #008080;">51</span>           <strong>  retVal =<span style="color: #000000;"> invocation.proceed();
+</span></strong><span style="color: #008080;">52</span> <span style="color: #000000;">        }
+</span><span style="color: #008080;">53</span> 
+<span style="color: #008080;">54</span>         Class&lt;?&gt; returnType =<span style="color: #000000;"> method.getReturnType();
+</span><span style="color: #008080;">55</span>         <span style="color: #008000;">//</span><span style="color: #008000;"> 返回结果</span>
+<span style="color: #008080;">56</span>         <span style="color: #0000ff;">if</span> (retVal != <span style="color: #0000ff;">null</span> &amp;&amp; retVal == target &amp;&amp;
+<span style="color: #008080;">57</span>                 returnType != Object.<span style="color: #0000ff;">class</span> &amp;&amp; returnType.isInstance(proxy) &amp;&amp;
+<span style="color: #008080;">58</span>                 !RawTargetAccess.<span style="color: #0000ff;">class</span><span style="color: #000000;">.isAssignableFrom(method.getDeclaringClass())) {
+</span><span style="color: #008080;">59</span>             retVal =<span style="color: #000000;"> proxy;
+</span><span style="color: #008080;">60</span> <span style="color: #000000;">        }
+</span><span style="color: #008080;">61</span>         <span style="color: #0000ff;">else</span> <span style="color: #0000ff;">if</span> (retVal == <span style="color: #0000ff;">null</span> &amp;&amp; returnType != Void.TYPE &amp;&amp;<span style="color: #000000;"> returnType.isPrimitive()) {
+</span><span style="color: #008080;">62</span>             <span style="color: #0000ff;">throw</span> <span style="color: #0000ff;">new</span><span style="color: #000000;"> AopInvocationException(
+</span><span style="color: #008080;">63</span>                     "Null return value from advice does not match primitive return type for: " +<span style="color: #000000;"> method);
+</span><span style="color: #008080;">64</span> <span style="color: #000000;">        }
+</span><span style="color: #008080;">65</span>         <span style="color: #0000ff;">return</span><span style="color: #000000;"> retVal;
+</span><span style="color: #008080;">66</span> <span style="color: #000000;">    }
+</span><span style="color: #008080;">67</span>     <span style="color: #0000ff;">finally</span><span style="color: #000000;"> {
+</span><span style="color: #008080;">68</span>         <span style="color: #0000ff;">if</span> (target != <span style="color: #0000ff;">null</span> &amp;&amp; !<span style="color: #000000;">targetSource.isStatic()) {
+</span><span style="color: #008080;">69</span>             <span style="color: #008000;">//</span><span style="color: #008000;"> Must have come from TargetSource.</span>
+<span style="color: #008080;">70</span> <span style="color: #000000;">            targetSource.releaseTarget(target);
+</span><span style="color: #008080;">71</span> <span style="color: #000000;">        }
+</span><span style="color: #008080;">72</span>         <span style="color: #0000ff;">if</span><span style="color: #000000;"> (setProxyContext) {
+</span><span style="color: #008080;">73</span>             <span style="color: #008000;">//</span><span style="color: #008000;"> Restore old proxy.</span>
+<span style="color: #008080;">74</span> <span style="color: #000000;">            AopContext.setCurrentProxy(oldProxy);
+</span><span style="color: #008080;">75</span> <span style="color: #000000;">        }
+</span><span style="color: #008080;">76</span> <span style="color: #000000;">    }
+</span><span style="color: #008080;">77</span> }</code></pre>
+
+<p>&nbsp;</p>
+<p>我们先来看看第37行，获取目标bean中目标method中的增强器，并将增强器封装成拦截器链</p>
+<src class="cnblogs_code">
+<pre><code><span style="color: #008080;"> 1</span> <span style="color: #000000;">@Override
+</span><span style="color: #008080;"> 2</span> <span style="color: #0000ff;">public</span> List&lt;Object&gt;<span style="color: #000000;"> getInterceptorsAndDynamicInterceptionAdvice(
+</span><span style="color: #008080;"> 3</span>         Advised config, Method method, @Nullable Class&lt;?&gt;<span style="color: #000000;"> targetClass) {
+</span><span style="color: #008080;"> 4</span> 
+<span style="color: #008080;"> 5</span>     <span style="color: #008000;">//</span><span style="color: #008000;"> This is somewhat tricky... We have to process introductions first,
+</span><span style="color: #008080;"> 6</span>     <span style="color: #008000;">//</span><span style="color: #008000;"> but we need to preserve order in the ultimate list.</span>
+<span style="color: #008080;"> 7</span>     AdvisorAdapterRegistry registry =<span style="color: #000000;"> GlobalAdvisorAdapterRegistry.getInstance();
+</span><span style="color: #008080;"> 8</span>     <strong>Advisor[] advisors =<span style="color: #000000;"> config.getAdvisors();
+</span></strong><span style="color: #008080;"> 9</span>     List&lt;Object&gt; interceptorList = <span style="color: #0000ff;">new</span> ArrayList&lt;&gt;<span style="color: #000000;">(advisors.length);
+</span><span style="color: #008080;">10</span>     Class&lt;?&gt; actualClass = (targetClass != <span style="color: #0000ff;">null</span> ?<span style="color: #000000;"> targetClass : method.getDeclaringClass());
+</span><span style="color: #008080;">11</span>     Boolean hasIntroductions = <span style="color: #0000ff;">null</span><span style="color: #000000;">;
+</span><span style="color: #008080;">12</span> 
+<span style="color: #008080;">13</span>     <span style="color: #008000;">//</span><span style="color: #008000;">获取bean中的所有增强器</span>
+<span style="color: #008080;">14</span>     <span style="color: #0000ff;">for</span><span style="color: #000000;"> (Advisor advisor : advisors) {
+</span><span style="color: #008080;">15</span>         <span style="color: #0000ff;">if</span> (advisor <span style="color: #0000ff;">instanceof</span><span style="color: #000000;"> PointcutAdvisor) {
+</span><span style="color: #008080;">16</span>             <span style="color: #008000;">//</span><span style="color: #008000;"> Add it conditionally.</span>
+<span style="color: #008080;">17</span>             PointcutAdvisor pointcutAdvisor =<span style="color: #000000;"> (PointcutAdvisor) advisor;
+</span><span style="color: #008080;">18</span>             <span style="color: #0000ff;">if</span> (config.isPreFiltered() ||<span style="color: #000000;"> pointcutAdvisor.getPointcut().getClassFilter().matches(actualClass)) {
+</span><span style="color: #008080;">19</span>                 MethodMatcher mm =<span style="color: #000000;"> pointcutAdvisor.getPointcut().getMethodMatcher();
+</span><span style="color: #008080;">20</span>                 <span style="color: #0000ff;">boolean</span><span style="color: #000000;"> match;
+</span><span style="color: #008080;">21</span>                 <span style="color: #0000ff;">if</span> (mm <span style="color: #0000ff;">instanceof</span><span style="color: #000000;"> IntroductionAwareMethodMatcher) {
+</span><span style="color: #008080;">22</span>                     <span style="color: #0000ff;">if</span> (hasIntroductions == <span style="color: #0000ff;">null</span><span style="color: #000000;">) {
+</span><span style="color: #008080;">23</span>                         hasIntroductions =<span style="color: #000000;"> hasMatchingIntroductions(advisors, actualClass);
+</span><span style="color: #008080;">24</span> <span style="color: #000000;">                    }
+</span><span style="color: #008080;">25</span>                     match =<span style="color: #000000;"> ((IntroductionAwareMethodMatcher) mm).matches(method, actualClass, hasIntroductions);
+</span><span style="color: #008080;">26</span> <span style="color: #000000;">                }
+</span><span style="color: #008080;">27</span>                 <span style="color: #0000ff;">else</span><span style="color: #000000;"> {
+</span><span style="color: #008080;">28</span>                   <strong>  <span style="color: #008000;">//</span><span style="color: #008000;">根据增强器中的Pointcut判断增强器是否能匹配当前类中的method
+</span><span style="color: #008080;">29</span>                     <span style="color: #008000;">//</span><span style="color: #008000;">我们要知道目标Bean中并不是所有的方法都需要增强，也有一些普通方法</span>
+<span style="color: #008080;">30</span>                     match =<span style="color: #000000;"> mm.matches(method, actualClass);
+</span></strong><span style="color: #008080;">31</span> <span style="color: #000000;">                }
+</span><span style="color: #008080;">32</span>                 <span style="color: #0000ff;">if</span><span style="color: #000000;"> (match) {
+</span><span style="color: #008080;">33</span>                   <strong>  <span style="color: #008000;">//</span><span style="color: #008000;">如果能匹配，就将advisor封装成MethodInterceptor加入到interceptorList中</span>
+<span style="color: #008080;">34</span>                     MethodInterceptor[] interceptors =<span style="color: #000000;"> registry.getInterceptors(advisor);
+</span></strong><span style="color: #008080;">35</span>                     <span style="color: #0000ff;">if</span><span style="color: #000000;"> (mm.isRuntime()) {
+</span><span style="color: #008080;">36</span>                         <span style="color: #008000;">//</span><span style="color: #008000;"> Creating a new object instance in the getInterceptors() method
+</span><span style="color: #008080;">37</span>                         <span style="color: #008000;">//</span><span style="color: #008000;"> isn't a problem as we normally cache created chains.</span>
+<span style="color: #008080;">38</span>                         <span style="color: #0000ff;">for</span><span style="color: #000000;"> (MethodInterceptor interceptor : interceptors) {
+</span><span style="color: #008080;">39</span>                            <strong> interceptorList.add(<span style="color: #0000ff;">new</span><span style="color: #000000;"> InterceptorAndDynamicMethodMatcher(interceptor, mm));
+</span></strong><span style="color: #008080;">40</span> <span style="color: #000000;">                        }
+</span><span style="color: #008080;">41</span> <span style="color: #000000;">                    }
+</span><span style="color: #008080;">42</span>                     <span style="color: #0000ff;">else</span><span style="color: #000000;"> {
+</span><span style="color: #008080;">43</span> <span style="color: #000000;">                        interceptorList.addAll(Arrays.asList(interceptors));
+</span><span style="color: #008080;">44</span> <span style="color: #000000;">                    }
+</span><span style="color: #008080;">45</span> <span style="color: #000000;">                }
+</span><span style="color: #008080;">46</span> <span style="color: #000000;">            }
+</span><span style="color: #008080;">47</span> <span style="color: #000000;">        }
+</span><span style="color: #008080;">48</span>         <span style="color: #0000ff;">else</span> <span style="color: #0000ff;">if</span> (advisor <span style="color: #0000ff;">instanceof</span><span style="color: #000000;"> IntroductionAdvisor) {
+</span><span style="color: #008080;">49</span>             IntroductionAdvisor ia =<span style="color: #000000;"> (IntroductionAdvisor) advisor;
+</span><span style="color: #008080;">50</span>             <span style="color: #0000ff;">if</span> (config.isPreFiltered() ||<span style="color: #000000;"> ia.getClassFilter().matches(actualClass)) {
+</span><span style="color: #008080;">51</span>                 Interceptor[] interceptors =<span style="color: #000000;"> registry.getInterceptors(advisor);
+</span><span style="color: #008080;">52</span> <span style="color: #000000;">                interceptorList.addAll(Arrays.asList(interceptors));
+</span><span style="color: #008080;">53</span> <span style="color: #000000;">            }
+</span><span style="color: #008080;">54</span> <span style="color: #000000;">        }
+</span><span style="color: #008080;">55</span>         <span style="color: #0000ff;">else</span><span style="color: #000000;"> {
+</span><span style="color: #008080;">56</span>             Interceptor[] interceptors =<span style="color: #000000;"> registry.getInterceptors(advisor);
+</span><span style="color: #008080;">57</span> <span style="color: #000000;">            interceptorList.addAll(Arrays.asList(interceptors));
+</span><span style="color: #008080;">58</span> <span style="color: #000000;">        }
+</span><span style="color: #008080;">59</span> <span style="color: #000000;">    }
+</span><span style="color: #008080;">60</span> 
+<span style="color: #008080;">61</span>     <span style="color: #0000ff;">return</span><span style="color: #000000;"> interceptorList;
+</span><span style="color: #008080;">62</span> }</code></pre>
+
+<p>&nbsp;</p>
+<p>我们知道目标Bean中并不是所有的方法都需要增强，所以我们要遍历所有的&nbsp;Advisor ，根据<strong>Pointcut判断增强器是否能匹配当前类中的method，取出能匹配的增强器，封装成&nbsp;</strong><strong>MethodInterceptor，加入到拦截器链中</strong>，我们来看看第34行</p>
+<src class="cnblogs_code">
+<pre><code><span style="color: #000000;">@Override
+</span><span style="color: #0000ff;">public</span> MethodInterceptor[] getInterceptors(Advisor advisor) <span style="color: #0000ff;">throws</span><span style="color: #000000;"> UnknownAdviceTypeException {
+    List</span>&lt;MethodInterceptor&gt; interceptors = <span style="color: #0000ff;">new</span> ArrayList&lt;&gt;(3<span style="color: #000000;">);
+    <strong>Advice advice </strong></span><strong>=<span style="color: #000000;"> advisor.getAdvice();
+    </span></strong><span style="color: #0000ff;">if</span> (advice <span style="color: #0000ff;">instanceof</span><span style="color: #000000;"> MethodInterceptor) {
+        interceptors.add((MethodInterceptor) advice);
+    }
+    </span><span style="color: #008000;">//</span><span style="color: #008000;">这里遍历三个适配器，将对应的advisor转化成Interceptor
+    </span><span style="color: #008000;">//</span><span style="color: #008000;">这三个适配器分别是MethodBeforeAdviceAdapter，AfterReturningAdviceAdapter，ThrowsAdviceAdapter</span>
+    <span style="color: #0000ff;">for</span> (AdvisorAdapter adapter : <span style="color: #0000ff;">this</span><span style="color: #000000;">.adapters) {
+        </span><strong><span style="color: #0000ff;">if</span></strong><span style="color: #000000;"><strong> (adapter.supportsAdvice(advice)) {
+            interceptors.add(adapter.getInterceptor(advisor));
+        }</strong>
+    }
+    </span><span style="color: #0000ff;">if</span><span style="color: #000000;"> (interceptors.isEmpty()) {
+        </span><span style="color: #0000ff;">throw</span> <span style="color: #0000ff;">new</span><span style="color: #000000;"> UnknownAdviceTypeException(advisor.getAdvice());
+    }
+    </span><span style="color: #0000ff;">return</span> interceptors.toArray(<span style="color: #0000ff;">new</span> MethodInterceptor[0<span style="color: #000000;">]);
+}
+
+</span><span style="color: #0000ff;">private</span> <span style="color: #0000ff;">final</span> List&lt;AdvisorAdapter&gt; adapters = <span style="color: #0000ff;">new</span> ArrayList&lt;&gt;(3<span style="color: #000000;">);
+
+</span><span style="color: #008000;">/**</span><span style="color: #008000;">
+ * Create a new DefaultAdvisorAdapterRegistry, registering well-known adapters.
+ </span><span style="color: #008000;">*/</span>
+<span style="color: #0000ff;">public</span><span style="color: #000000;"> DefaultAdvisorAdapterRegistry() {
+    registerAdvisorAdapter(</span><span style="color: #0000ff;">new</span><span style="color: #000000;"><strong> MethodBeforeAdviceAdapter</strong>());
+    registerAdvisorAdapter(</span><span style="color: #0000ff;">new</span><span style="color: #000000;"><strong> AfterReturningAdviceAdapter</strong>());
+    registerAdvisorAdapter(</span><span style="color: #0000ff;">new</span><span style="color: #000000;"> ThrowsAdviceAdapter());
+}
+
+@Override
+</span><span style="color: #0000ff;">public</span> <span style="color: #0000ff;">void</span><span style="color: #000000;"> registerAdvisorAdapter(AdvisorAdapter adapter) {
+    </span><span style="color: #0000ff;">this</span><span style="color: #000000;">.adapters.add(adapter);
+}</span></code></pre>
+
+<p>由于Spring中涉及过多的拦截器，增强器，增强方法等方式来对逻辑进行增强，在上一篇文章中我们知道创建的几个增强器，AspectJAroundAdvice、AspectJAfterAdvice、AspectJAfterThrowingAdvice这几个增强器都实现了&nbsp;MethodInterceptor 接口，AspectJMethodBeforeAdvice 和AspectJAfterReturningAdvice 并没有实现&nbsp;MethodInterceptor 接口，因此AspectJMethodBeforeAdvice 和AspectJAfterReturningAdvice不能满足MethodInterceptor 接口中的invoke方法，所以这里使用适配器模式将AspectJMethodBeforeAdvice 和AspectJAfterReturningAdvice转化成能满足需求的MethodInterceptor实现类。</p>
+<p>遍历adapters，通过adapter.supportsAdvice(advice)找到advice对应的适配器，adapter.getInterceptor(advisor)将advisor转化成对应的interceptor</p>
+<p>我们来看看这几个增强器</p>
+<p><strong>AspectJAroundAdvice</strong></p>
+<src class="cnblogs_code" onclick="cnblogs_code_show('0532208d-0e4d-421b-9470-11d40266728a')"><img id="code_img_closed_0532208d-0e4d-421b-9470-11d40266728a" class="code_img_closed" src="./images/spring5 源码深度解析----- AOP代理的生成0.png" alt="" /><img id="code_img_opened_0532208d-0e4d-421b-9470-11d40266728a" class="code_img_opened" style="display: none;" onclick="cnblogs_code_hide('0532208d-0e4d-421b-9470-11d40266728a',event)" src="./images/spring5 源码深度解析----- AOP代理的生成1.png" alt="" />
+<src id="cnblogs_code_open_0532208d-0e4d-421b-9470-11d40266728a" class="cnblogs_code_hide">
+<pre><code><span style="color: #0000ff;">public</span> <span style="color: #0000ff;">class</span> AspectJAroundAdvice <span style="color: #0000ff;">extends</span> AbstractAspectJAdvice <span style="color: #0000ff;">implements</span><span style="color: #000000;"> MethodInterceptor, Serializable {
+
+    </span><span style="color: #0000ff;">public</span><span style="color: #000000;"> AspectJAroundAdvice(
+            Method aspectJAroundAdviceMethod, AspectJExpressionPointcut pointcut, AspectInstanceFactory aif) {
+
+        </span><span style="color: #0000ff;">super</span><span style="color: #000000;">(aspectJAroundAdviceMethod, pointcut, aif);
+    }
+
+    @Override
+    </span><span style="color: #0000ff;">public</span> <span style="color: #0000ff;">boolean</span><span style="color: #000000;"> isBeforeAdvice() {
+        </span><span style="color: #0000ff;">return</span> <span style="color: #0000ff;">false</span><span style="color: #000000;">;
+    }
+
+    @Override
+    </span><span style="color: #0000ff;">public</span> <span style="color: #0000ff;">boolean</span><span style="color: #000000;"> isAfterAdvice() {
+        </span><span style="color: #0000ff;">return</span> <span style="color: #0000ff;">false</span><span style="color: #000000;">;
+    }
+
+    @Override
+    </span><span style="color: #0000ff;">public</span> Object invoke(MethodInvocation mi) <span style="color: #0000ff;">throws</span><span style="color: #000000;"> Throwable {
+        </span><span style="color: #0000ff;">if</span> (!(mi <span style="color: #0000ff;">instanceof</span><span style="color: #000000;"> ProxyMethodInvocation)) {
+            </span><span style="color: #0000ff;">throw</span> <span style="color: #0000ff;">new</span> IllegalStateException("MethodInvocation is not a Spring ProxyMethodInvocation: " +<span style="color: #000000;"> mi);
+        }
+        ProxyMethodInvocation pmi </span>=<span style="color: #000000;"> (ProxyMethodInvocation) mi;
+        ProceedingJoinPoint pjp </span>=<span style="color: #000000;"> lazyGetProceedingJoinPoint(pmi);
+        JoinPointMatch jpm </span>=<span style="color: #000000;"> getJoinPointMatch(pmi);
+        </span><span style="color: #0000ff;">return</span> invokeAdviceMethod(pjp, jpm, <span style="color: #0000ff;">null</span>, <span style="color: #0000ff;">null</span><span style="color: #000000;">);
+    }
+
+}</span></code></pre>
+
+<span class="cnblogs_code_collapse">View Code</span>
+<p><strong>AspectJMethodBeforeAdvice</strong></p>
+<src class="cnblogs_code" onclick="cnblogs_code_show('d60e53ad-f7e7-4a62-8c93-c760c50b2dd0')"><img id="code_img_closed_d60e53ad-f7e7-4a62-8c93-c760c50b2dd0" class="code_img_closed" src="./images/spring5 源码深度解析----- AOP代理的生成0.png" alt="" /><img id="code_img_opened_d60e53ad-f7e7-4a62-8c93-c760c50b2dd0" class="code_img_opened" style="display: none;" onclick="cnblogs_code_hide('d60e53ad-f7e7-4a62-8c93-c760c50b2dd0',event)" src="./images/spring5 源码深度解析----- AOP代理的生成1.png" alt="" />
+<src id="cnblogs_code_open_d60e53ad-f7e7-4a62-8c93-c760c50b2dd0" class="cnblogs_code_hide">
+<pre><code><span style="color: #0000ff;">public</span> <span style="color: #0000ff;">class</span> AspectJMethodBeforeAdvice <span style="color: #0000ff;">extends</span> AbstractAspectJAdvice <span style="color: #0000ff;">implements</span><span style="color: #000000;"> MethodBeforeAdvice, Serializable {
+
+    </span><span style="color: #0000ff;">public</span><span style="color: #000000;"> AspectJMethodBeforeAdvice(
+            Method aspectJBeforeAdviceMethod, AspectJExpressionPointcut pointcut, AspectInstanceFactory aif) {
+
+        </span><span style="color: #0000ff;">super</span><span style="color: #000000;">(aspectJBeforeAdviceMethod, pointcut, aif);
+    }
+
+    @Override
+    </span><span style="color: #0000ff;">public</span> <span style="color: #0000ff;">void</span> before(Method method, Object[] args, @Nullable Object target) <span style="color: #0000ff;">throws</span><span style="color: #000000;"> Throwable {
+        invokeAdviceMethod(getJoinPointMatch(), </span><span style="color: #0000ff;">null</span>, <span style="color: #0000ff;">null</span><span style="color: #000000;">);
+    }
+
+    @Override
+    </span><span style="color: #0000ff;">public</span> <span style="color: #0000ff;">boolean</span><span style="color: #000000;"> isBeforeAdvice() {
+        </span><span style="color: #0000ff;">return</span> <span style="color: #0000ff;">true</span><span style="color: #000000;">;
+    }
+
+    @Override
+    </span><span style="color: #0000ff;">public</span> <span style="color: #0000ff;">boolean</span><span style="color: #000000;"> isAfterAdvice() {
+        </span><span style="color: #0000ff;">return</span> <span style="color: #0000ff;">false</span><span style="color: #000000;">;
+    }
+
+}</span></code></pre>
+
+<span class="cnblogs_code_collapse">View Code</span>
+<p><strong>AspectJAfterAdvice</strong></p>
+<src class="cnblogs_code" onclick="cnblogs_code_show('48aa8650-34d9-44b9-acf2-456dce056a5a')"><img id="code_img_closed_48aa8650-34d9-44b9-acf2-456dce056a5a" class="code_img_closed" src="./images/spring5 源码深度解析----- AOP代理的生成0.png" alt="" /><img id="code_img_opened_48aa8650-34d9-44b9-acf2-456dce056a5a" class="code_img_opened" style="display: none;" onclick="cnblogs_code_hide('48aa8650-34d9-44b9-acf2-456dce056a5a',event)" src="./images/spring5 源码深度解析----- AOP代理的生成1.png" alt="" />
+<src id="cnblogs_code_open_48aa8650-34d9-44b9-acf2-456dce056a5a" class="cnblogs_code_hide">
+<pre><code><span style="color: #0000ff;">public</span> <span style="color: #0000ff;">class</span> AspectJAfterAdvice <span style="color: #0000ff;">extends</span><span style="color: #000000;"> AbstractAspectJAdvice
+        </span><span style="color: #0000ff;">implements</span><span style="color: #000000;"> MethodInterceptor, AfterAdvice, Serializable {
+
+    </span><span style="color: #0000ff;">public</span><span style="color: #000000;"> AspectJAfterAdvice(
+            Method aspectJBeforeAdviceMethod, AspectJExpressionPointcut pointcut, AspectInstanceFactory aif) {
+
+        </span><span style="color: #0000ff;">super</span><span style="color: #000000;">(aspectJBeforeAdviceMethod, pointcut, aif);
+    }
+
+
+    @Override
+    </span><span style="color: #0000ff;">public</span> Object invoke(MethodInvocation mi) <span style="color: #0000ff;">throws</span><span style="color: #000000;"> Throwable {
+        </span><span style="color: #0000ff;">try</span><span style="color: #000000;"> {
+            </span><span style="color: #0000ff;">return</span><span style="color: #000000;"> mi.proceed();
+        }
+        </span><span style="color: #0000ff;">finally</span><span style="color: #000000;"> {
+            invokeAdviceMethod(getJoinPointMatch(), </span><span style="color: #0000ff;">null</span>, <span style="color: #0000ff;">null</span><span style="color: #000000;">);
+        }
+    }
+
+    @Override
+    </span><span style="color: #0000ff;">public</span> <span style="color: #0000ff;">boolean</span><span style="color: #000000;"> isBeforeAdvice() {
+        </span><span style="color: #0000ff;">return</span> <span style="color: #0000ff;">false</span><span style="color: #000000;">;
+    }
+
+    @Override
+    </span><span style="color: #0000ff;">public</span> <span style="color: #0000ff;">boolean</span><span style="color: #000000;"> isAfterAdvice() {
+        </span><span style="color: #0000ff;">return</span> <span style="color: #0000ff;">true</span><span style="color: #000000;">;
+    }
+
+}</span></code></pre>
+
+<span class="cnblogs_code_collapse">View Code</span>
+<p><strong>AspectJAfterReturningAdvice</strong></p>
+<src class="cnblogs_code" onclick="cnblogs_code_show('f57252a4-f371-407b-9496-9e033d30bb2e')"><img id="code_img_closed_f57252a4-f371-407b-9496-9e033d30bb2e" class="code_img_closed" src="./images/spring5 源码深度解析----- AOP代理的生成0.png" alt="" /><img id="code_img_opened_f57252a4-f371-407b-9496-9e033d30bb2e" class="code_img_opened" style="display: none;" onclick="cnblogs_code_hide('f57252a4-f371-407b-9496-9e033d30bb2e',event)" src="./images/spring5 源码深度解析----- AOP代理的生成1.png" alt="" />
+<src id="cnblogs_code_open_f57252a4-f371-407b-9496-9e033d30bb2e" class="cnblogs_code_hide">
+<pre><code><span style="color: #0000ff;">public</span> <span style="color: #0000ff;">class</span> AspectJAfterReturningAdvice <span style="color: #0000ff;">extends</span><span style="color: #000000;"> AbstractAspectJAdvice
+        </span><span style="color: #0000ff;">implements</span><span style="color: #000000;"> AfterReturningAdvice, AfterAdvice, Serializable {
+
+    </span><span style="color: #0000ff;">public</span><span style="color: #000000;"> AspectJAfterReturningAdvice(
+            Method aspectJBeforeAdviceMethod, AspectJExpressionPointcut pointcut, AspectInstanceFactory aif) {
+
+        </span><span style="color: #0000ff;">super</span><span style="color: #000000;">(aspectJBeforeAdviceMethod, pointcut, aif);
+    }
+
+
+    @Override
+    </span><span style="color: #0000ff;">public</span> <span style="color: #0000ff;">boolean</span><span style="color: #000000;"> isBeforeAdvice() {
+        </span><span style="color: #0000ff;">return</span> <span style="color: #0000ff;">false</span><span style="color: #000000;">;
+    }
+
+    @Override
+    </span><span style="color: #0000ff;">public</span> <span style="color: #0000ff;">boolean</span><span style="color: #000000;"> isAfterAdvice() {
+        </span><span style="color: #0000ff;">return</span> <span style="color: #0000ff;">true</span><span style="color: #000000;">;
+    }
+
+    @Override
+    </span><span style="color: #0000ff;">public</span> <span style="color: #0000ff;">void</span> afterReturning(@Nullable Object returnValue, Method method, Object[] args, @Nullable Object target) <span style="color: #0000ff;">throws</span><span style="color: #000000;"> Throwable {
+        </span><span style="color: #0000ff;">if</span><span style="color: #000000;"> (shouldInvokeOnReturnValueOf(method, returnValue)) {
+            invokeAdviceMethod(getJoinPointMatch(), returnValue, </span><span style="color: #0000ff;">null</span><span style="color: #000000;">);
+        }
+    }
+}</span></code></pre>
+
+<span class="cnblogs_code_collapse">View Code</span>
+<p><strong>AspectJAfterThrowingAdvice</strong></p>
+<src class="cnblogs_code" onclick="cnblogs_code_show('72d86ec1-e9d8-467e-b55d-3ceb0067cbb7')"><img id="code_img_closed_72d86ec1-e9d8-467e-b55d-3ceb0067cbb7" class="code_img_closed" src="./images/spring5 源码深度解析----- AOP代理的生成0.png" alt="" /><img id="code_img_opened_72d86ec1-e9d8-467e-b55d-3ceb0067cbb7" class="code_img_opened" style="display: none;" onclick="cnblogs_code_hide('72d86ec1-e9d8-467e-b55d-3ceb0067cbb7',event)" src="./images/spring5 源码深度解析----- AOP代理的生成1.png" alt="" />
+<src id="cnblogs_code_open_72d86ec1-e9d8-467e-b55d-3ceb0067cbb7" class="cnblogs_code_hide">
+<pre><code><span style="color: #0000ff;">public</span> <span style="color: #0000ff;">class</span> AspectJAfterThrowingAdvice <span style="color: #0000ff;">extends</span><span style="color: #000000;"> AbstractAspectJAdvice
+        </span><span style="color: #0000ff;">implements</span><span style="color: #000000;"> MethodInterceptor, AfterAdvice, Serializable {
+
+    </span><span style="color: #0000ff;">public</span><span style="color: #000000;"> AspectJAfterThrowingAdvice(
+            Method aspectJBeforeAdviceMethod, AspectJExpressionPointcut pointcut, AspectInstanceFactory aif) {
+
+        </span><span style="color: #0000ff;">super</span><span style="color: #000000;">(aspectJBeforeAdviceMethod, pointcut, aif);
+    }
+
+
+    @Override
+    </span><span style="color: #0000ff;">public</span> <span style="color: #0000ff;">boolean</span><span style="color: #000000;"> isBeforeAdvice() {
+        </span><span style="color: #0000ff;">return</span> <span style="color: #0000ff;">false</span><span style="color: #000000;">;
+    }
+
+    @Override
+    </span><span style="color: #0000ff;">public</span> <span style="color: #0000ff;">boolean</span><span style="color: #000000;"> isAfterAdvice() {
+        </span><span style="color: #0000ff;">return</span> <span style="color: #0000ff;">true</span><span style="color: #000000;">;
+    }
+
+    @Override
+    </span><span style="color: #0000ff;">public</span> Object invoke(MethodInvocation mi) <span style="color: #0000ff;">throws</span><span style="color: #000000;"> Throwable {
+        </span><span style="color: #0000ff;">try</span><span style="color: #000000;"> {
+            </span><span style="color: #0000ff;">return</span><span style="color: #000000;"> mi.proceed();
+        }
+        </span><span style="color: #0000ff;">catch</span><span style="color: #000000;"> (Throwable ex) {
+            </span><span style="color: #0000ff;">if</span><span style="color: #000000;"> (shouldInvokeOnThrowing(ex)) {
+                invokeAdviceMethod(getJoinPointMatch(), </span><span style="color: #0000ff;">null</span><span style="color: #000000;">, ex);
+            }
+            </span><span style="color: #0000ff;">throw</span><span style="color: #000000;"> ex;
+        }
+    }
+
+}</span></code></pre>
+
+<span class="cnblogs_code_collapse">View Code</span>
+<p>接下来我们看看MethodBeforeAdviceAdapter和AfterReturningAdviceAdapter这两个适配器，这两个适配器是将MethodBeforeAdvice和AfterReturningAdvice适配成对应的Interceptor</p>
+<p><strong>MethodBeforeAdviceAdapter</strong></p>
+<src class="cnblogs_code">
+<pre><code><span style="color: #0000ff;">class</span> MethodBeforeAdviceAdapter <span style="color: #0000ff;">implements</span><span style="color: #000000;"> AdvisorAdapter, Serializable {
+    @Override
+    </span><span style="color: #0000ff;">public</span> <span style="color: #0000ff;">boolean</span><span style="color: #000000;"> supportsAdvice(Advice advice) {
+        </span><span style="color: #008000;">//</span><span style="color: #008000;">判断是否是MethodBeforeAdvice类型的advice</span>
+        <span style="color: #0000ff;">return</span> (advice <span style="color: #0000ff;">instanceof</span><span style="color: #000000;"> MethodBeforeAdvice);
+    }
+
+    @Override
+    </span><span style="color: #0000ff;">public</span><span style="color: #000000;"> MethodInterceptor getInterceptor(Advisor advisor) {
+        MethodBeforeAdvice advice </span>=<span style="color: #000000;"> (MethodBeforeAdvice) advisor.getAdvice();
+        </span><span style="color: #008000;">//</span><span style="color: #008000;">将advice封装成MethodBeforeAdviceInterceptor</span>
+        <span style="color: #0000ff;">return</span> <span style="color: #0000ff;">new</span><span style="color: #000000;"> MethodBeforeAdviceInterceptor(advice);
+    }
+}
+
+</span><span style="color: #008000;">//</span><span style="color: #008000;">MethodBeforeAdviceInterceptor实现了MethodInterceptor接口，实现了invoke方法，并将advice作为属性</span>
+<span style="color: #0000ff;">public</span> <span style="color: #0000ff;">class</span> MethodBeforeAdviceInterceptor <span style="color: #0000ff;">implements</span><span style="color: #000000;"> MethodInterceptor, BeforeAdvice, Serializable {
+
+    </span><span style="color: #0000ff;">private</span> <span style="color: #0000ff;">final</span><span style="color: #000000;"> MethodBeforeAdvice advice;
+
+    </span><span style="color: #0000ff;">public</span><span style="color: #000000;"> MethodBeforeAdviceInterceptor(MethodBeforeAdvice advice) {
+        Assert.notNull(advice, </span>"Advice must not be null"<span style="color: #000000;">);
+        </span><span style="color: #0000ff;">this</span>.advice =<span style="color: #000000;"> advice;
+    }
+    
+    @Override
+    </span><span style="color: #0000ff;">public</span> Object invoke(MethodInvocation mi) <span style="color: #0000ff;">throws</span><span style="color: #000000;"> Throwable {
+        </span><span style="color: #0000ff;">this</span><span style="color: #000000;">.advice.before(mi.getMethod(), mi.getArguments(), mi.getThis());
+        </span><span style="color: #0000ff;">return</span><span style="color: #000000;"> mi.proceed();
+    }
+
+}</span></code></pre>
+
+<p><strong>AfterReturningAdviceAdapter</strong></p>
+<src class="cnblogs_code">
+<pre><code><span style="color: #0000ff;">class</span> AfterReturningAdviceAdapter <span style="color: #0000ff;">implements</span><span style="color: #000000;"> AdvisorAdapter, Serializable {
+    @Override
+    </span><span style="color: #0000ff;">public</span> <span style="color: #0000ff;">boolean</span><span style="color: #000000;"> supportsAdvice(Advice advice) {
+        </span><span style="color: #0000ff;">return</span> (advice <span style="color: #0000ff;">instanceof</span><span style="color: #000000;"> AfterReturningAdvice);
+    }
+
+    @Override
+    </span><span style="color: #0000ff;">public</span><span style="color: #000000;"> MethodInterceptor getInterceptor(Advisor advisor) {
+        AfterReturningAdvice advice </span>=<span style="color: #000000;"> (AfterReturningAdvice) advisor.getAdvice();
+        </span><span style="color: #0000ff;">return</span> <span style="color: #0000ff;">new</span><span style="color: #000000;"> AfterReturningAdviceInterceptor(advice);
+    }
+}
+
+</span><span style="color: #0000ff;">public</span> <span style="color: #0000ff;">class</span> AfterReturningAdviceInterceptor <span style="color: #0000ff;">implements</span><span style="color: #000000;"> MethodInterceptor, AfterAdvice, Serializable {
+
+    </span><span style="color: #0000ff;">private</span> <span style="color: #0000ff;">final</span><span style="color: #000000;"> AfterReturningAdvice advice;
+
+    </span><span style="color: #0000ff;">public</span><span style="color: #000000;"> AfterReturningAdviceInterceptor(AfterReturningAdvice advice) {
+        Assert.notNull(advice, </span>"Advice must not be null"<span style="color: #000000;">);
+        </span><span style="color: #0000ff;">this</span>.advice =<span style="color: #000000;"> advice;
+    }
+
+    @Override
+    </span><span style="color: #0000ff;">public</span> Object invoke(MethodInvocation mi) <span style="color: #0000ff;">throws</span><span style="color: #000000;"> Throwable {
+        Object retVal </span>=<span style="color: #000000;"> mi.proceed();
+        </span><span style="color: #0000ff;">this</span><span style="color: #000000;">.advice.afterReturning(retVal, mi.getMethod(), mi.getArguments(), mi.getThis());
+        </span><span style="color: #0000ff;">return</span><span style="color: #000000;"> retVal;
+    }
+
+}</span></code></pre>
+
+<p>至此我们获取到了一个拦截器链，链中包括AspectJAroundAdvice、AspectJAfterAdvice、AspectJAfterThrowingAdvice、MethodBeforeAdviceInterceptor、AfterReturningAdviceInterceptor</p>
+<p>接下来&nbsp;ReflectiveMethodInvocation 类进行了链的封装，而在ReflectiveMethodInvocation类的proceed方法中实现了拦截器的逐一调用，那么我们继续来探究，在proceed方法中是怎么实现前置增强在目标方法前调用后置增强在目标方法后调用的逻辑呢？</p>
+<p>我们先来看看ReflectiveMethodInvocation的构造器，只是简单的进行属性赋值，不过我们要注意有一个特殊的变量currentInterceptorIndex，这个变量代表执行Interceptor的下标，从-1开始，Interceptor执行一个，先++this.currentInterceptorIndex</p>
+<src class="cnblogs_code">
+<pre><code><span style="color: #0000ff;">protected</span><span style="color: #000000;"> ReflectiveMethodInvocation(
+        Object proxy, @Nullable Object target, Method method, @Nullable Object[] arguments,
+        @Nullable Class</span>&lt;?&gt; targetClass, List&lt;Object&gt;<span style="color: #000000;"> interceptorsAndDynamicMethodMatchers) {
+
+    </span><span style="color: #0000ff;">this</span>.proxy =<span style="color: #000000;"> proxy;
+    </span><span style="color: #0000ff;">this</span>.target =<span style="color: #000000;"> target;
+    </span><span style="color: #0000ff;">this</span>.targetClass =<span style="color: #000000;"> targetClass;
+    </span><span style="color: #0000ff;">this</span>.method =<span style="color: #000000;"> BridgeMethodResolver.findBridgedMethod(method);
+    </span><span style="color: #0000ff;">this</span>.arguments =<span style="color: #000000;"> AopProxyUtils.adaptArgumentsIfNecessary(method, arguments);
+    </span><span style="color: #0000ff;">this</span>.interceptorsAndDynamicMethodMatchers =<span style="color: #000000;"> interceptorsAndDynamicMethodMatchers;
+}
+
+</span><span style="color: #0000ff;">private</span> <span style="color: #0000ff;">int</span> currentInterceptorIndex = -1;</code></pre>
+
+<p>下面是ReflectiveMethodInvocation类Proceed方法：</p>
+<src class="cnblogs_code">
+<pre><code><span style="color: #0000ff;">public</span> Object proceed() <span style="color: #0000ff;">throws</span><span style="color: #000000;"> Throwable {
+    </span><span style="color: #008000;">//</span><span style="color: #008000;"> 首先，判断是不是所有的interceptor（也可以想像成advisor）都被执行完了。
+    </span><span style="color: #008000;">//</span><span style="color: #008000;"> 判断的方法是看currentInterceptorIndex这个变量的值，增加到Interceptor总个数这个数值没有，
+    </span><span style="color: #008000;">//</span><span style="color: #008000;"> 如果到了，就执行被代理方法(invokeJoinpoint())；如果没到，就继续执行Interceptor。</span>
+    <span style="color: #0000ff;">if</span> (<span style="color: #0000ff;">this</span>.currentInterceptorIndex == <span style="color: #0000ff;">this</span>.interceptorsAndDynamicMethodMatchers.size() - 1<span style="color: #000000;">) {
+        </span><strong><span style="color: #0000ff;">return</span></strong><span style="color: #000000;"><strong> invokeJoinpoint();</strong>
+    }
+
+    </span><span style="color: #008000;">//</span><span style="color: #008000;"> 如果Interceptor没有被全部执行完，就取出要执行的Interceptor，并执行。
+    </span><span style="color: #008000;">//</span><span style="color: #008000;"> currentInterceptorIndex先自增</span>
+    Object interceptorOrInterceptionAdvice =<strong><span style="color: #0000ff;">this</span>.interceptorsAndDynamicMethodMatchers.get(++<span style="color: #0000ff;">this</span><span style="color: #000000;">.currentInterceptorIndex);
+    </span></strong><span style="color: #008000;">//</span><span style="color: #008000;"> 如果Interceptor是PointCut类型</span>
+    <span style="color: #0000ff;">if</span> (interceptorOrInterceptionAdvice <span style="color: #0000ff;">instanceof</span><span style="color: #000000;"> InterceptorAndDynamicMethodMatcher) {
+        InterceptorAndDynamicMethodMatcher dm </span>=<span style="color: #000000;"> (InterceptorAndDynamicMethodMatcher) interceptorOrInterceptionAdvice;
+        </span><span style="color: #008000;">//</span><span style="color: #008000;"> 如果当前方法符合Interceptor的PointCut限制，就执行Interceptor</span>
+        <span style="color: #0000ff;">if</span> (dm.methodMatcher.matches(<span style="color: #0000ff;">this</span>.method, <span style="color: #0000ff;">this</span>.targetClass, <span style="color: #0000ff;">this</span><span style="color: #000000;">.arguments)) {
+        　　 </span><strong><span style="color: #008000;">//</span><span style="color: #008000;"> 这里将this当变量传进去，这是非常重要的一点</span>
+            <span style="color: #0000ff;">return</span> dm.interceptor.invoke(<span style="color: #0000ff;">this</span></strong><span style="color: #000000;"><strong>);</strong>
+        }
+        </span><span style="color: #008000;">//</span><span style="color: #008000;"> 如果不符合，就跳过当前Interceptor，执行下一个Interceptor</span>
+        <span style="color: #0000ff;">else</span><span style="color: #000000;"> {
+            </span><span style="color: #0000ff;">return</span><span style="color: #000000;"> proceed();
+        }
+    }
+    </span><span style="color: #008000;">//</span><span style="color: #008000;"> 如果Interceptor不是PointCut类型，就直接执行Interceptor里面的增强。</span>
+    <span style="color: #0000ff;">else</span><span style="color: #000000;"> {
+        </span><span style="color: #0000ff;">return</span> ((MethodInterceptor) interceptorOrInterceptionAdvice).invoke(<span style="color: #0000ff;">this</span><span style="color: #000000;">);
+    }
+}</span></code></pre>
+
+<p>由于篇幅过程，目标方法和增强方法是如何执行的，我们将重新写一篇文章来讲解</p>
+<p>&nbsp;</p>
+
+</div><hr><script charset='utf-8' src='../../js/sming.js'></script></body></html>

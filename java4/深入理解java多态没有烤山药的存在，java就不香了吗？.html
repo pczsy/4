@@ -1,0 +1,768 @@
+<html><head><meta charset='utf-8'><meta name='viewport' content='width=device-width, initial-scale=1'>
+<meta name='applicable-device' content='pc'><meta name='keywords' content='电脑,电脑讲解,电脑技术,编程,电脑故障维修深入理解java多态没有烤山药的存在，java就不香了吗？' />
+<script src='../../highlight/highlight.pack.js'></script>
+<link rel='stylesheet' type='text/css' href='../../highlight/styles/monokai.css'/>
+
+<link rel='stylesheet' href='../../fenxiang/dist/css/share.min.css'>
+<script src='../../fenxiang/src/js/social-share.js'></script>
+<script src='../../fenxiang/src/js/qrcode.js'></script>
+
+</head><body><script>hljs.initHighlightingOnLoad();</script><script>
+var system ={};  
+var p = navigator.platform;       
+system.win = p.indexOf('Win') == 0;  
+system.mac = p.indexOf('Mac') == 0;  
+system.x11 = (p == 'X11') || (p.indexOf('Linux') == 0);     
+if(system.win||system.mac||system.xll){
+document.write("<link href='../css/3.css' rel='stylesheet' type='text/css'>");}else{ document.write("<link href='../css/3wap.css' rel='stylesheet' type='text/css'>");}</script><script src='../../js/3.js'></script><div class='div2'><div class='heading_nav'><ul><div><li><a href='../../index.html'>首页</a></li>
+</div><div onclick='hidden1()' >分享</div>
+</ul></div></div>
+<div id='heading_nav2'> 
+<li class='row' >
+<div class='social-share' data-mode='prepend'><a href='javascript:' class='social-share-icon icon-heart'></a></div></li></div><script charset='utf-8' src='../../3/js/hengfu.js'></script><script charset='utf-8' src='../../3/js/hengfu2.js'></script><hr><div class='div1'><div class='biaoti'><center>深入理解java多态没有烤山药的存在，java就不香了吗？</center></div><div class='banquan'>原文出处:本文由博客园博主宜春提供。<br/>
+原文连接:https://www.cnblogs.com/yichunguo/p/11870464.html</div><br>
+    <src class="toc">
+    <p class="toc-title">目录</p>
+    <src class="toc-list">
+        <ul>
+        <li><a href="#从吃烤山药重新认识多态">1、 从吃烤山药重新认识多态</a></li>
+        <li><a href="#多态前提条件重点">2、 多态前提条件【重点】</a></li>
+        <li><a href="#多态的体现">3、 多态的体现</a></li>
+        <li><a href="#多态动态绑定与静态绑定">4、 多态动态绑定与静态绑定</a></li>
+        <li><a href="#多态特性的虚方法virtual">5、 多态特性的虚方法（virtual）</a></li>
+        <li><a href="#向上转型">7、 向上转型</a></li>
+        <li><a href="#向下转型">8、 向下转型</a></li>
+        <li><a href="#向上向下转型再次分析加餐不加价">9、 向上向下转型再次分析【加餐不加价】</a></li>
+        <li><a href="#多态与构造器之间的微妙">10、 多态与构造器之间的微妙</a></li>
+        <li><a href="#多态的优点">11、 多态的优点</a></li>
+        <li><a href="#分析开篇的九个问题">12、 分析开篇的九个问题</a></li>
+        <li><a href="#最后我们一起来正式分析那九个题">13、 最后我们一起来正式分析那九个题</a></li>
+        </ul>
+    
+
+<p>@</p>
+<p>我不想知道各位理解java多态没有烤山药的存在，java香不香的问题了，我不要你们认为，我只要我觉得 (感觉要被打....)</p>
+<p>在博主认为多态绝对是面向对象的第三大特性中让很多小白同学以及初学者难以跨越的鸿沟，因为多态有很多细节性的知识，不花点时间，还真不好理解多态。这么说吧，如果你觉得你已经完全理解了多态，你不妨做做下面的程序，如果你能全都答对，那没问题了，多态对你来说真的不是问题！如果在第四个就趴下了，那可以看看这篇文章，或许对你有所帮助，可能会让你重新见识到多态的魅力。</p>
+<pre><code><code>package Polymorphic;
+//爷爷类
+class Ye {
+    public String show(Sun obj) {
+        return (&quot;Ye and Sun&quot;);
+    }
+
+    public String show(Ye obj) {
+        return (&quot;Ye and Ye&quot;);
+    }
+
+}
+//爸爸类
+class Fu extends Ye {
+    public String show(Fu obj) {
+        return (&quot;Fu and Fu&quot;);
+    }
+
+    public String show(Ye obj) {
+        return (&quot;Fu and Ye&quot;);
+    }
+}
+//儿子类
+class Zi extends Fu {
+
+}
+//孙子类
+class Sun extends Fu {
+
+}
+
+public class PolymorphicTest {
+    public static void main(String[] args) {
+         Ye y = new Ye();
+        Ye y2 = new Fu(); //向上
+        Fu f = new Fu();
+        Zi z = new Zi();
+        Sun s = new Sun();
+
+
+        System.out.println(&quot;第一题 &quot; + y.show(f));
+        System.out.println(&quot;第二题 &quot; + y.show(z));
+        System.out.println(&quot;第三题 &quot; + y.show(s));
+        System.out.println(&quot;第四题 &quot; + y2.show(f));  //到这里挂了？？？
+        System.out.println(&quot;第五题 &quot; + y2.show(z));
+        System.out.println(&quot;第六题 &quot; + y2.show(s));
+        System.out.println(&quot;第七题 &quot; + f.show(f));
+        System.out.println(&quot;第八题 &quot; + f.show(z));
+        System.out.println(&quot;第九题 &quot; + f.show(s));
+     
+    }
+}
+</code></code></pre>
+<p>先把答案记在小本本上吧，再对照下面结果看看</p>
+<pre><code><code>第一题 Ye and Ye
+第二题 Ye and Ye
+第三题 Ye and Sun
+第四题 Fu and Ye
+第五题 Fu and Ye
+第六题 Ye and Sun
+第七题 Fu and Fu
+第八题 Fu and Fu
+第九题 Ye and Sun</code></code></pre>
+<p>如果你对上面的结果很意外，或者不解，那么恭喜你，你又能学到新知识了，成功的向架构师前进了一步！好了，让我们一起重新见识见识多态的魅力吧！</p>
+<h1 id="从吃烤山药重新认识多态">1、 从吃烤山药重新认识多态</h1>
+<p>最近不是正火着吃烤山药么，学习就要走有趣化路线，毕竟兴趣永远最好的老师，咋们放开点，怎么有趣怎么来。</p>
+<p>小明妈妈的情绪非常不稳定，心情好的时候巴不得给小明花一个亿，，心情不好的时候巴不得把小明打成麻瓜，可是小明永远不知道妈妈的情绪变化。这不，今天一位老大爷在卖烤山药，边烤还边跳激光雨，嗨得不行，小明特别喜欢激光雨，马上就忍不住了，心里默默想着，刚烤的山药它不香嘛，激光雨烤的山药它不香嘛。于是忍不住对妈妈说：“妈妈，我想吃烤山药”，这个时候，来了,来了,他来了，它真的来了....你激动个锤子啊......是代码来了：</p>
+<pre><code><code>package Polymorphic;
+
+
+     class  Matcher{
+        public void matcherSpeak(){
+            System.out.println(&quot;想吃烤山药？&quot;);
+        }
+    }
+
+     class HappyMother extends Matcher {
+        public void matcherSpeak(){
+            System.out.println(&quot;开心的妈妈说：吃，吃大块的，一火车够吗&quot;);
+        }
+    }
+
+     class SadMother extends Matcher {
+        public void matcherSpeak(){
+            System.out.println(&quot;不开心的妈妈说：吃你个憨皮，看我回家扎不扎你就完事了&quot;);
+        }
+    }
+
+     class VeryHappyMother extends Matcher {
+        public void matcherSpeak(){
+            System.out.println(&quot;异常开心的妈妈说：买买买，烤山药咱全买了，顺便把大爷也买回家，天天给你表演激光雨（大爷懵逼中）&quot;);
+        }
+    }
+
+    public class UnderstandPolymorphic{
+        public static void main(String[] args) {
+            Matcher m = new HappyMother();
+            m.matcherSpeak();
+
+            m = new SadMother();
+            m.matcherSpeak();
+
+            m = new VeryHappyMother();
+            m.matcherSpeak();
+
+        }
+    }
+运行结果：
+
+开心的妈妈说：吃，吃大块的，一火车够吗
+不开心的妈妈说：吃你个憨皮，看我回家扎不扎你就完事了
+异常开心的妈妈说：买买买，烤山药咱全买了，顺便把大爷也买回家，天天给你表演激光雨（大爷懵逼中）</code></code></pre>
+<p>妈妈听到小明想吃烤山药这同一行为，表现出不同的表现形式，这就是多态。多态专业定义则是：<font color=blue>程序中定义的引用变量所指向的具体类型和通过该引用变量发出的方法调用在编程时并不确定，而是在程序运行期间才确定</font>，这种情况叫做多态没错是没错就是脑壳有点大，所以我选择简单点定义多态： <font color=red><strong>多态指同一行为，具有多个不同表现形式</strong></font>。为何会有如此微妙的变化呢，那我们就必须了解进行多态的前提了。</p>
+<h1 id="多态前提条件重点">2、 多态前提条件【重点】</h1>
+<p>如果多态不能满足以下三个前提条件，那还玩犊子的多态【构不成多态，缺一不可】</p>
+<ol>
+<li>继承或者实现【二选一】</li>
+<li>方法的重写【意义体现：不重写，无意义】<br />
+子类对父类中某些方法进行重新定义，在调用这些方法时就会调用子类的方法。</li>
+<li>父类引用指向子类对象（也可以说向上转型）【体现在格式上】</li>
+</ol>
+<p>回过头来看烤山药例子，确实都有继承，同样都重写了<code>motherSpeak（）</code>方法，最关键的代码则是</p>
+<pre><code><code> Matcher m = new HappyMother();</code></code></pre>
+<p>也就是所谓的 父类引用指向子类对象，这其实就是向上转型！对向上转型概念不清晰没事，下面会详细讲解。</p>
+<h1 id="多态的体现">3、 多态的体现</h1>
+<blockquote>
+<p>多态体现的格式： <strong>父类/父接口类型 变量名 = new 子类对象</strong>； <strong>变量名.方法名()</strong>;</p>
+</blockquote>
+<p><font color=red> <strong>当使用多态方式调用方法时，首先检查父类中是否有该方法，如果没有，则编译错误 ,如果有，执行的是子类重写后的方法</strong></font>，也就是向上转型时，<font color=red> <strong>子类单独定义的方法丢失问题</strong></font>。编译报错。 代码如下：</p>
+<pre><code><code>package Demo;
+
+class  Matcher{
+    public void matcherSpeak(){//=========================父类matcherSpeak()方法
+        System.out.println(&quot;吃烤山药？&quot;);
+    }
+}
+
+class HappyMother extends Matcher {
+    public void matcherSpeak(){//=========================子类matcherSpeak()方法
+        System.out.println(&quot;开心的妈妈说：吃，吃大块的，一蛇皮袋够吗&quot;);
+    }
+
+    public void fatherSpeak(){//=========================子类独有的fatherSpeak()方法
+        System.out.println(&quot;开心的妈妈说：吃，吃大块的，一麻袋够吗&quot;);
+    }
+}
+public class Test {
+    public static void main(String[] args) {
+        Matcher m=new HappyMother();
+        m.matcherSpeak();
+        m.fatherSpeak();  //编译失败，无法解析fatherSpeak方法
+    }
+}</code></code></pre>
+<p>分析如下：<br />
+<img src="./images/深入理解java多态没有烤山药的存在，java就不香了吗？0.png" alt="在这里插入图片描述" /><br />
+当然这个例子只是入门级的，接下来看个有点水平的例子</p>
+<pre><code><code>package Demo;
+
+class  Matcher{
+    public void matcherSpeak(){
+        System.out.println(&quot;想吃烤山药？&quot;);
+    }
+
+}
+
+class HappyMother extends Matcher {
+    public void matcherSpeak(){
+        System.out.println(&quot;开心的妈妈说：吃，吃大块的，一火车够吗&quot;);
+    }
+}
+class SadMother extends HappyMother{
+    public void tt(){
+        System.out.println(&quot;ttttttt&quot;);
+    }
+}
+public class Test {
+    public static void main(String[] args) {
+        Matcher mm=new SadMother();
+        mm.matcherSpeak();
+    }
+
+运行结果：开心的妈妈说：吃，吃大块的，一火车够吗
+}</code></code></pre>
+<p>有了第一个基础这个相信不难理解，接着看</p>
+<pre><code><code>package Demo;
+
+class  Matcher{
+    public void matcherSpeak(){
+        System.out.println(&quot;想吃烤山药？&quot;);
+    }
+}
+
+class HappyMother extends Matcher {
+    
+}
+class SadMother extends HappyMother{
+    public void tt(){
+        System.out.println(&quot;ttttttt&quot;);
+    }
+}
+public class Test {
+    public static void main(String[] args) {
+        Matcher mm=new SadMother();
+        mm.matcherSpeak();
+    }
+    
+运行结果：想吃烤山药？
+
+}</code></code></pre>
+<p>到这里，再来回味下这句话：</p>
+<blockquote>
+<p><font color=red> <strong>当使用多态方式调用方法时，首先检查父类中是否有该方法，如果没有，则编译错误 ,如果有，执行的是子类重写后的方法</strong></font></p>
+</blockquote>
+<p>你可能会说子类中都没有这些个方法啊，何来执行子类重写后的方法一说？它好像是去父类中找该方法了。事实上，子类中是有这些方法的，这个方法继承自父类，只不过没有覆盖该方法，所以没有在子类中明确写出来而已，看起来像是调用了父类中的方法，实际上调用的还是子类中的。同学继承方面的知识该补补了，可以参考下面这篇<a href="https://blog.csdn.net/qq_44543508/article/details/102375196">【java基础】java继承从“我爸是李刚”讲起</a></p>
+<h1 id="多态动态绑定与静态绑定">4、 多态动态绑定与静态绑定</h1>
+<p>讲之前博主先来谈谈“<strong>绑定</strong>”的概念：<br />
+绑定指的是一个方法的调用与方法所在的类(方法主体)关联起来，大致可以理解为一个方法调用另一个方法。对java来说，绑定分为静态绑定和动态绑定；或者分别叫做前期绑定和后期绑定。</p>
+<h4 id="静态绑定前期绑定">4、1.静态绑定（前期绑定）</h4>
+<p>在程序执行前方法已经被绑定，==针对java静态绑定简单的可以理解为程序编译期的绑定==；java当中的方法只有<code>final</code>，<code>static</code>，<code>private(不会被继承)</code> 和<code>构造方法</code>是前期绑定【当然可能不止】</p>
+<h4 id="动态绑定后期绑定">4、2.<font color=red>动态绑定</font>（后期绑定）</h4>
+<p>后期绑定：在运行时根据具体对象的类型进行绑定。<br />
+若一种语言实现了后期绑定，同时必须提供一些机制，可在运行期间判断对象的类型，并分别调用适当的方法。也就是说，编译器此时依然不知道对象的类型，但方法调用机制能自己去调查，找到正确的方法主体。不同的语言对后期绑定的实现方法是有所区别的。但我们至少可以这样认为：它们都要在对象中安插某些特殊类型的信息。==<strong>简明的说动态绑定就是指编译器在编译阶段不知道要调用哪个方法，运行期才能确定</strong>==</p>
+<h4 id="静态动态绑定本质区别">4、3.静态、动态绑定本质区别</h4>
+<p>1、静态绑定是发生在编译阶段；而动态绑定是在运行阶段；<br />
+2、静态绑定使用的是类信息，而动态绑定使用的是对象信息<br />
+3、<font color=red><strong>重载方法(overloaded methods)使用的是静态绑定，而重写方法(overridden methods)使用的是动态绑定</strong></font></p>
+<h4 id="静态动态绑定在程序中运行区别">4、4.静态、动态绑定在程序中运行区别</h4>
+<p>这个静态绑定例子以static方法为例，代码程序如下：</p>
+<pre><code><code>package demoee;
+
+class Father5{
+    public void StaticMethod(){
+        System.out.println(&quot;粑粑：我是父类粑粑静态方法&quot;);
+    }
+}
+class Son5 extends Father5{
+    public void StaticMethod(){
+        System.out.println(&quot;熊孩子：我是子类熊孩砸静态方法&quot;);
+    }
+}
+public class demooo {
+    public static void main(String[] args) {
+        Father5 fat=new Father5();
+        Father5 son=new Son5(); //特别注意这里是向上转型  也就是多态！
+
+        fat.StaticMethod();//同时调用StaticMethod方法！
+        son.StaticMethod();
+    }
+}
+</code></code></pre>
+<p>运行结果</p>
+<pre><code><code>粑粑：我是父类粑粑静态方法
+熊孩子：我是子类熊孩砸静态方法</code></code></pre>
+<p>根据上面的运行结果，我们也很好理解！子类重写了父类的一个叫做<code>StaticMethod（）</code>的方法，由于是动态绑定，因此最后执行的是子类重写后的<code>StaticMethod（）</code>方法。</p>
+<p>嗯哼？为了更好的理解静态、动态绑定在程序中运行区别，我们还是得看看下面这个程序：</p>
+<pre><code><code>class Father5{
+    public static void StaticMethod(){
+        System.out.println(&quot;粑粑：我是父类粑粑静态方法&quot;);
+    }
+}
+class Son5 extends Father5{
+    public static void StaticMethod(){
+        System.out.println(&quot;熊孩子：我是子类熊孩砸静态方法&quot;);
+    }
+}
+public class demooo {
+    public static void main(String[] args) {
+        Father5 fat=new Father5();
+        Father5 son=new Son5(); //特别注意这里是向上转型  也就是多态！
+
+        fat.StaticMethod();//同时调用StaticMethod方法！
+        son.StaticMethod();
+    }
+}
+</code></code></pre>
+<blockquote>
+<p>千万注意哦，这个程序与第一个程序唯一不同之处就在于这个程序父类和子类的方法都是static的！</p>
+</blockquote>
+<p>运行结果：</p>
+<pre><code><code>粑粑：我是父类粑粑静态方法
+粑粑：我是父类粑粑静态方法</code></code></pre>
+<p>从运行结果来看，我们可以很清楚的知道，子类静态方法语法上是做到了重写的作用，但实际上并没有做到真正意义上重写作用！只因为该方法是静态绑定！</p>
+<p>OK，get到了咩？如果get到了请点个赞呗，谢谢你~</p>
+<h1 id="多态特性的虚方法virtual">5、 多态特性的虚方法（virtual）</h1>
+<p>虚方法出现在Java的多态特性中。</p>
+<p>父类与子类之间的多态性，对父类的函数进行重新定义。如果在子类中定义某方法与其父类有相同的名称和参数，我们说该方法被重写 (Overriding)。在Java中，子类可继承父类中的方法，而不需要重新编写相同的方法。但有时子类并不想原封不动地继承父类的方法，而是想作一定的修改，这就需要采用方法的重写。方法重写又称方法覆盖。</p>
+<p>当设计类时，被重写的方法的行为怎样影响多态性。方法的重写使得子类能够重写父类的方法。当子类对象调用重写的方法时，调用的是子类的方法，而不是父类中被重写的方法。</p>
+<p>因此简单明了的理解Java虚方法方式你可以理解为java里所有<font color=red><strong>父类中被重写的方法都是虚方法</strong>（virtual）</font>差不多的意思就是该方法不会被子类使用到，使用到的都是子类中重写父类的方法，子类中的重写方法代替了它，因此也就有种名存实亡的感觉！</p>
+<p>在JVM字节码执行引擎中，方法调用会使用invokevirtual字节码指令来调用所有的虚方法。</p>
+<blockquote>
+<p>小白童鞋千万需要注意虚方法和抽象方法并不是同一个概念！</p>
+</blockquote>
+<p># 6、 重载属于多态吗？</p>
+<p>纵观重载与重写，重写是多态的特征体现无疑了！但是对于重载是不是多态的体现网上却议论纷纷！</p>
+<p>多态是基于对抽象方法的覆盖来实现的，用统一的对外接口来完成不同的功能。重载也是用统一的对外接口来完成不同的功能。那么两者有什么区别呢？</p>
+<p><strong>重载</strong><br />
+重载是指允许存在多个同名方法，而这些方法的参数不同。重载的实现是：编译器根据方法不同的参数表，对同名方法的名称做修饰。对于编译器而言，这些同名方法就成了不同的方法。它们的调用地址在编译期就绑定了。</p>
+<p><strong>多态</strong><br />
+多态是指子类重新定义父类的虚方法（virtual,abstract）。当子类重新定义了父类的虚方法后，父类根据赋给它的不同的子类，动态调用属于子类的该方法，这样的方法调用在编译期间是无法确定的。<br />
+不难看出，两者的区别在于编译器何时去寻找所要调用的具体方法，对于重载而言，在方法调用之前，编译器就已经确定了所要调用的方法，这称为“早绑定”或“静态绑定”；而对于多态，只有等到方法调用的那一刻，编译器才会确定所要调用的具体方法，这称为“晚绑定”或“动态绑定”。</p>
+<p>所以，你可以大可认为重载不属于多态，多态是对父类虚函数的重定义，不改变原虚函数的参数列表。重载是函数名相同，但参数列表不同。</p>
+<p>实际上这种问题没有严格的答案，就连教材书上都没提及。严格来说或狭义来讲，重载算多态还是有点牵强，传统的多态就是指父类和子类关系，但实际开发中都是理解重载是多态。这就是一个概念 你子类拥有你很多隐式父类的功能 那么你当然能扮演它们之中的某一个角色。</p>
+<blockquote>
+<p>总的来说，在博主认为，重载是不是多态这个问题以及不重要了，首当其冲的重要任务我觉得还是好好保护头发，然后就是养生了....</p>
+</blockquote>
+<h1 id="向上转型">7、 向上转型</h1>
+<p>向上转型：多态本身是子类类型向父类类型向上转换的过程，其中，这个过程是默认的。你可以把这个过程理解为基本类型的小类型转大类型自动转换，不需要强制转换。 当<font color=red><strong>父类引用指向一个子类对象时，便是向上转型</strong></font>。 向上转型格式：</p>
+<blockquote>
+<p>父类类型 变量名 = new 子类类型(); 如：<code>Father f= new  Son();</code></p>
+</blockquote>
+<p>例子的话，烤山药的例子就是一个典型的向上转型例子</p>
+<h1 id="向下转型">8、 向下转型</h1>
+<p>向下转型：父类类型向子类类型向下转换的过程，这个过程是强制的。同样可以把这个过程理解为基本类型的自动转换，大类型转小类型需要强制转换。一个已经向上转型的子类对象，将父类引用转为子类引用，可以使用强制类型转换的格式，向下转使用格式：</p>
+<blockquote>
+<p><code>Father father = new Son();</code><br />
+子类类型 变量名 = (子类类型) 父类变量名; 如:<code>Son s =(Son) father;</code></p>
+</blockquote>
+<p>不知道你们有没有发现，向下转型的前提是父类对象指向的是子类对象（也就是说，在<font color=red>向下转型之前，它得先向上转型</font>），当然，向下转型还是有它的意义所在，下面就讲解向下转型的意义。</p>
+<p>到这里，我们讲解一下为什么要向下转型？上面已经讲到过当使用多态方式调用方法时，首先检查父类中是否有该方法，如果没有，则编译错误。也就是说，不能调用子类拥有，而父类没有的方法。编译都错误，更别说运行了。这也是多态给我们带来的一点&quot;小麻烦&quot;。所以，<font color=red><strong>想要调用子类特有的方法，必须做向下转型</strong>。 </font></p>
+<pre><code><code>package Demo;
+
+class  Matcher{
+    public void eat(){
+        System.out.println(&quot;想吃烤山药？&quot;);
+    }
+}
+
+class XiongHaiZi extends Matcher {
+    public void eat(){
+        System.out.println(&quot;妈妈，我想吃烤山药&quot;);
+    }
+
+    public void eatSuLi(){//============================子类特有的eatSuLi方法
+        System.out.println(&quot;麻麻，我想吃酥梨，要吃麻瓜那么大的酥梨&quot;);
+    }
+}
+
+public class Test {
+    public static void main(String[] args) {
+        
+        Matcher m = new XiongHaiZi();//向上转型
+        
+        XiongHaiZi x = (XiongHaiZi)m;//向下转型
+        
+        x.eatSuLi();//执行子类特有方法
+
+    }
+    
+    运行结果：麻麻，我想吃酥梨，要吃麻瓜那么大的酥梨
+}</code></code></pre>
+<p>好了向下转型就讲到这里...等等，你真的以为就讲完了？肯定不行喽，向下转型还有一个要说的知识，讲之前先来看个程序先</p>
+<pre><code><code>package Demo;
+
+class  Matcher{
+    public void eat(){
+        System.out.println(&quot;想吃烤山猪？&quot;);
+    }
+
+}
+
+class Boy extends Matcher {
+    public void eatKaoYang(){
+        System.out.println(&quot;妈妈，我想吃烤山猪&quot;);
+    }
+}
+
+class Girl extends Matcher {
+    public void eatKaoYang(){
+        System.out.println(&quot;妈妈，我想吃烤山猪2333&quot;);
+    }
+}
+
+public class Test {
+    public static void main(String[] args) {
+
+        Matcher g = new Girl();//向上转型编译通过
+
+        Boy x = (Boy)g;//向下转型
+
+        x.eatKaoYang();//编译通过,但运行报ClassCastException
+
+    }
+    
+ 运行结果：  运行报ClassCastException
+
+}</code></code></pre>
+<p>这段代码可以通过编译，但是运行时，却报出了 <code>ClassCastException</code> ，类型转换异常！这是因为，明明创建了<code>Girl</code>类型对象，运行时，当然不能转换成<code>Boy</code>对象的。这两个类型并没有任何继承关系，不符合类型转换的定义。 为了避免<code>ClassCastException</code>的发生，Java提供了 <code>instanceof</code> 关键字，给引用变量做类型的校验。</p>
+<h4 id="instanceof的使用">8、1. instanceof的使用</h4>
+<p><code>instanceof</code> 的格式：<br />
+变量名 instanceof 数据类型</p>
+<p><code>instanceof</code> 的使用<br />
+如果变量属于该数据类型，返回true。<br />
+如果变量不属于该数据类型，返回false。</p>
+<p>所以，转换前，我们最好使用<code>instanceof</code> 先做一个判断，代码如下：</p>
+<pre><code><code>package Demo;
+
+class  Matcher{
+    public void eat(){
+        System.out.println(&quot;想吃烤山药？&quot;);
+    }
+
+}
+
+class Boy extends Matcher {
+    public void eatKaoYang(){
+        System.out.println(&quot;Boy：妈妈，我想吃烤羊&quot;);
+    }
+}
+
+class Girl extends Matcher {
+    public void eatKaoYang(){
+        System.out.println(&quot;Girl：妈妈，我想吃烤全羊2333&quot;);
+    }
+}
+
+public class Test {
+    public static void main(String[] args) {
+
+        Matcher g = new Girl();//向上转型
+
+        if(g instanceof Girl){
+            Girl x = (Girl)g;//向下转型
+            x.eatKaoYang();  //=====================调用Girl的eatKaoYang()方法
+        }else if(g instanceof Boy){ //不执行
+            Boy x = (Boy)g;//向下转型
+            x.eatKaoYang();  //=====================调用Boy的eatKaoYang()方法
+        }
+    }
+}
+
+运行结果： Girl：妈妈，我想吃烤全羊2333</code></code></pre>
+<p>好了到这里，你get到了咩？</p>
+<h1 id="向上向下转型再次分析加餐不加价">9、 向上向下转型再次分析【加餐不加价】</h1>
+<p>看完之后是不是还是不够清晰向上向下转型？多态转型问题其实并不复杂，只要记住一句话：<font color=red><strong>父类引用指向子类对象</strong></font>。那什么叫父类引用指向子类对象？看下面例子吧</p>
+<p>有两个类，<code>Father</code> 是父类，<code>Son</code> 类继承自 <code>Father</code>。</p>
+<p>第 1 个例子：</p>
+<pre><code><code>//  f1 引用指向一个Son对象
+Father f1 = new Son();   // 这就叫 upcasting （向上转型)
+// f1 还是指向 Son对象
+Son s1 = (Son)f1;   // 这就叫 downcasting (向下转型)
+</code></code></pre>
+<p>第 2 个例子：</p>
+<pre><code><code>// f1现在指向father对象
+Father f2 = new Father();
+Son s2 = (Son)f2;       // 出错，子类引用不能指向父类对象</code></code></pre>
+<p>你或许会问，第1个例子中：<code>Son s1 = (Son)f1</code>; 为什么是正确的呢。很简单因为 <code>f1</code> 指向一个子类对象，<code>Father f1 = new Son()</code>; 子类 <code>s1</code> 引用当然可以指向子类对象了。</p>
+<p>而 <code>f2</code> 被传给了一个 <code>Father</code> 对象，<code>Father f2 = new Father()</code>; 子类 <code>s2</code> 引用不能指向父类对象。</p>
+<h1 id="多态与构造器之间的微妙">10、 多态与构造器之间的微妙</h1>
+<p>直接上代码：</p>
+<pre><code><code>package Polymorphic;
+
+class EatKaoShanYao {
+    EatKaoShanYao () {
+        System.out.println(&quot;吃烤山药之前...&quot;);
+        eat();
+        System.out.println(&quot;吃烤山药之后(熊孩子懵逼中)....&quot;);
+    }
+    public void eat() {
+        System.out.println(&quot;7岁半就喜欢吃烤山药&quot;);
+    }
+}
+public class KaoShanYao extends EatKaoShanYao {
+    private String Weight = &quot;110斤&quot;;
+    public KaoShanYao(String Weight) {
+        this.Weight = Weight;
+        System.out.println(&quot;熊孩子的体重：&quot; + this.Weight);
+    }
+
+    public void eat() { // 子类覆盖父类方法
+        System.out.println(&quot;熊孩子吃烤山药之前的体重是：&quot; + this.Weight);
+    }
+
+    //Main方法
+    public static void main(String[] args) {
+           EatKaoShanYaok = new KaoShanYao(&quot;250斤&quot;);
+                      
+    }
+}</code></code></pre>
+<p>童鞋们可以试想一下运行结果，再看下面的输出结果</p>
+<pre><code><code> 运行结果：
+                吃烤山药之前...
+                熊孩子吃烤山药之前的体重是：null
+                吃烤山药之后(熊孩子懵逼中)....
+                熊孩子的体重：250斤</code></code></pre>
+<p>是不是很疑惑？结果为啥是这样？你看，熊孩子又懵逼了，Why？</p>
+<p>原因其实很简单，因为在创建子类对象时，会先去调用父类的构造器，而父类构造器中又调用了被子类覆盖的多态方法，由于父类并不清楚子类对象中的属性值是什么（先初始化父类的时候还没开始初始化子类），于是把<code>String</code>类型的属性暂时初始化为默认值<code>null</code>，然后再调用子类的构造器（这个时子类构造器已经初始<code>Weight</code>属性，所以子类构造器知道熊孩子的体重<code>Weight</code>是250）。</p>
+<blockquote>
+<p>如果有什么不理解的可以及时告诉我，楼主一直都在，还有如果楼主哪里写错了或者理解错了，请及时告诉我，一定要告诉我！！！</p>
+</blockquote>
+<h1 id="多态的优点">11、 多态的优点</h1>
+<p>讲了这么久的多态，我觉得其优点已经不明觉厉了。但是还是来聊聊多态在实际开发的过程中的优点。在实际开发中父类类型作为方法形式参数，传递子类对象给方法，进行方法的调用，更能体现出多态的扩展 性与便利。<br />
+为了更好的对比出多态的优点，下面程序不使用多态，代码如下：</p>
+<pre><code><code>package Demo;
+//父类：动物类
+class Animal{
+    public void eat(){
+        System.out.println(&quot;eat&quot;);
+    }
+}
+//猫类
+class Cat {
+    //方法重写
+    public void eat(){
+        System.out.println(&quot;猫吃猫骨头&quot;);
+    }
+    public void call(){
+        System.out.println(&quot;猫叫&quot;);
+    }
+}
+//狗类
+class Dog {
+    public void eat(){
+        System.out.println(&quot;狗吃狗骨头&quot;);
+    }
+    public void call(){
+        System.out.println(&quot;狗叫&quot;);
+    }
+}
+
+//针对动物操作的工具类
+class AnimalTool{
+
+    private AnimalTool(){}//把工具类的构造方法私有，防止别人创建该类的对象。
+
+    //调用猫的功能
+    public static void catLife(Cat c){  //工具类，方法就写成static的，然后直接在测试类：工具类名.方法 使用。
+        c.eat();
+        c.call();
+    }
+    //调用狗的功能
+    public static void dogLife(Dog d){
+        d.eat();
+        d.call();
+    }
+}
+
+public class Test{
+    public static void main(String[] args){
+
+        Cat c= new Cat();
+        AnimalTool.catLife(c);
+
+        Dog d= new Dog();
+        AnimalTool.dogLife(d);
+
+    }
+}
+运行结果：
+        猫吃猫骨头
+        猫叫
+        狗吃狗骨头
+        狗叫</code></code></pre>
+<p>这里只写了两只动物，如果再来一种动物猪，则需要定义个猪类，提供猪的两个方法，再到工具类中添加对应的<code>XXLife</code>方法，这三步都是必须要做的，而且每多一种动物就需要在工具类中添加一种一个对应的<code>XXLife</code>方法，这样维护起来就很麻烦了，毕竟动物种类成千上万！崩溃吧，没事多态来拯救你，如下使用多态代码：</p>
+<pre><code><code>package Demo;
+//父类：动物类
+class Animal{
+    public void eat(){
+        System.out.println(&quot;eat&quot;);
+    }
+    public void call(){
+        System.out.println(&quot;call&quot;);
+    }
+}
+//猫类
+class Cat extends Animal {
+    //方法重写
+    public void eat(){
+        System.out.println(&quot;猫吃猫骨头&quot;);
+    }
+    public void call(){
+        System.out.println(&quot;猫叫&quot;);
+    }
+}
+//狗类
+class Dog extends Animal {
+    public void eat(){
+        System.out.println(&quot;狗吃狗骨头&quot;);
+    }
+    public void call(){
+        System.out.println(&quot;狗叫&quot;);
+    }
+}
+
+//针对动物操作的工具类
+class AnimalTool{
+
+    private AnimalTool(){}//最好把工具类的构造方法私有，防止别人创建该类的对象。该类是工具类。
+
+    //调用所以动物的功能
+    public static void animalLife(Animal a){  //工具类，方法就写成static的，然后直接在测试类：工具类名.方法 使用。
+        a.eat();
+        a.call();
+    }
+
+}
+
+public class Test{
+    public static void main(String[] args){
+
+        Cat c= new Cat();
+        AnimalTool.animalLife(c);
+
+        Dog d= new Dog();
+        AnimalTool.animalLife(d);
+运行结果：
+        猫吃猫骨头
+        猫叫
+        狗吃狗骨头
+        狗叫
+    }
+}</code></code></pre>
+<blockquote>
+<p>注意： 上面动物类都继承了<code>animal</code>父类</p>
+</blockquote>
+<p>这个时候再分析，如果再来一种动物猪，则需要定义个猪类，提供猪的两个方法，再继承<code>Animal</code>父类，这个时候就不需要在工具类中添加对应的<code>XxLife</code>方法，只写一个<code>animalLife</code>方法即可，而且每多一种动物都不需要在工具类中添加对应的<code>XxLife</code>方法，这样维护起来就很乐观了。</p>
+<p>由于多态特性的支持，<code>animalLife</code>方法的Animal类型，是<code>Cat</code>和<code>Dog</code>的父类类型，父类类型接收子类对象，当 然可以把<code>Cat</code>对象和<code>Dog</code>对象传递给方法。 当<code>eat</code>和<code>call</code>方法执行时，多态规定，执行的是子类重写的方法，那么效果自然与<code>Animal</code>的子类中的<code>eat</code>、<code>call</code>方法一致， 所以<code>animalLife</code>完全可以替代以上两方法。 不仅仅是替代，在扩展性方面，无论之后再多的子类出现，我们都不需要编写<code>XxLife</code>方法了，直接使用 <code>animalLife</code>就可以完成。 所以，多态的好处，体现在可以使程序编写的更简单，并有良好的扩展。</p>
+<h1 id="分析开篇的九个问题">12、 分析开篇的九个问题</h1>
+<p>看到这里，相信童鞋们多多少少都应该对多态都一定的了解了，都应该很有信心解决开篇的难题了吧，我可以很负责的告诉你，文章看到这里，你依旧解决不了这几个问题，不要问我为啥知道，你可以试着再做一遍，代码贴在下面：</p>
+<pre><code><code>package Polymorphic;
+//爷爷类
+class Ye {
+    public String show(Sun obj) {
+        return (&quot;Ye and Sun&quot;);
+    }
+
+    public String show(Ye obj) {
+        return (&quot;Ye and Ye&quot;);
+    }
+
+}
+//爸爸类
+class Fu extends Ye {
+    public String show(Fu obj) {
+        return (&quot;Fu and Fu&quot;);
+    }
+
+    public String show(Ye obj) {
+        return (&quot;Fu and Ye&quot;);
+    }
+}
+//儿子类
+class Zi extends Fu {
+
+}
+//孙子类
+class Sun extends Fu {
+
+}
+
+public class PolymorphicTest {
+    public static void main(String[] args) {
+         Ye y = new Ye();
+        Ye y2 = new Fu(); //向上
+        Fu f = new Fu();
+        Zi z = new Zi();
+        Sun s = new Sun();
+
+
+        System.out.println(&quot;第一题 &quot; + y.show(f));
+        System.out.println(&quot;第二题 &quot; + y.show(z));
+        System.out.println(&quot;第三题 &quot; + y.show(s));
+        System.out.println(&quot;第四题 &quot; + y2.show(f));  //到这里挂了？？？
+        System.out.println(&quot;第五题 &quot; + y2.show(z));
+        System.out.println(&quot;第六题 &quot; + y2.show(s));
+        System.out.println(&quot;第七题 &quot; + f.show(f));
+        System.out.println(&quot;第八题 &quot; + f.show(z));
+        System.out.println(&quot;第九题 &quot; + f.show(s));
+     
+    }
+
+打印结果：
+    第一题 Ye and Ye
+    第二题 Ye and Ye
+    第三题 Ye and Sun
+    第四题 Fu and Ye
+    第五题 Fu and Ye
+    第六题 Ye and Sun
+    第七题 Fu and Fu
+    第八题 Fu and Fu
+    第九题 Ye and Sun
+}</code></code></pre>
+<p>要想理解上面这个例子，童鞋们必须读懂这句话：<font color=red><strong>当父类对象引用变量引用子类对象时，被引用对象的类型决定了调用谁的成员方法，引用变量类型决定可调用的方法。首先会先去可调用的方法的父类中寻找，找到了就执行子类中覆盖的该方法，就算子类中有现成的该方法，它同样也会去父类中寻找，早到后未必执行子类中有现成的方法，而是执行重写在父类中找到的方法的子类方法（这里的子类也就是最后决定调用的类方法）。</strong></font>你是不是晕了？读着都觉得拗口，要理解可就拗的不是口了而是拗头 ~啥玩意没听过这个词~ 咳咳，问题不大，楼主来通俗的给大家讲解，让大家理解。</p>
+<p>还记不记得楼主之前定义向上转型是怎么定义的？</p>
+<blockquote>
+<p>【v8提示】 向上转型：多态本身是子类类型向父类类型向上转换的过程，其中，这个过程是默认的。你可以把这个过程理解为基本类型的小类型转大类型自动转换，不需要强制转换。 当<font color=red><strong>父类引用指向一个子类对象时，便是向上转型</strong></font></p>
+</blockquote>
+<p>可是，你真的理解了咩？什么叫做父类对象引用变量引用子类对象？其实还得从下面这句话找头绪</p>
+<blockquote>
+<p>向上转型定义：多态本身是子类类型向父类类型向上转换的过程，其中，这个过程是默认的</p>
+</blockquote>
+<p>就好比<code>Father f = new Son()</code>；有的童鞋就会说这个f也算是父类的对象引用？如果按字面理解是子类的引用只不过该引用的类型为<code>Father</code>类型？这时你就大错特错了。</p>
+<p>我们把向上转型定义简化一下理解一下，简化如下：</p>
+<blockquote>
+<p>子类类型默认向父类类型向上转换的过程</p>
+</blockquote>
+<p>现在明白了咩？这句话可以理解为<code>Father f = new Son()</code>这句代码原本是<code>Father f = （Father ）new Son()</code>这样子的只是这个转换过程是默认自动转的，总的来说也就是 <code>new Son()</code>其实本质就是<code>new Father</code>，所以<code>f</code>其实就是父类对象引用！这个时候再来拆开理解下面这段话</p>
+<blockquote>
+<p><font color=red><strong>当父类对象引用变量引用子类对象时</strong></font></p>
+</blockquote>
+<p>其中<font color=red><strong>父类对象引用变量</strong></font>指的就是<code>f</code>，<font color=red><strong>子类对象</strong></font>指的就是<code>new Son（）</code>，所以加起来就是当f引用<code>new Son（）</code>时</p>
+<blockquote>
+<p><font color=red><strong>被引用对象的类型决定了调用谁的成员方法，引用变量类型决定可调用的方法。</strong></font></p>
+</blockquote>
+<p>这里的 <font color=red><strong>被引用对象的类型</strong></font>则是指<code>new Son（）</code>对象中的<code>Son</code>类型， <font color=red><strong>引用变量类型</strong></font>则是指<code>f</code>的类型<code>Father</code>类型</p>
+<p>好了总结关联起来就是当：<code>f</code>引用<code>new Son（）</code>时，<code>Son</code>决定了调用它的成员方法，<code>Father</code>决定可调用<code>Father</code>中的方法。所以以<code>Father f = new Son()</code>举例，简单来说就是<br />
+<img src="./images/深入理解java多态没有烤山药的存在，java就不香了吗？1.png" alt="在这里插入图片描述" /><br />
+<img src="./images/深入理解java多态没有烤山药的存在，java就不香了吗？2.png" alt="在这里插入图片描述" /></p>
+<h1 id="最后我们一起来正式分析那九个题">13、 最后我们一起来正式分析那九个题</h1>
+<p>前三个并没有涉及到多态（向上转型），所以只会调用<code>yeye</code>本类的方法，这里只要掌握继承的知识就OK了。</p>
+<p>讲解第四题之前，你的答案是不是<code>&quot;Fu and Fu&quot;</code>？来了喔，马上让你巅覆对多态的人生观！</p>
+<p>分析第四题，首先<code>Ye y2 = new Fu()</code>; 向上转型了，所以首先会去<code>Fu</code>类的父类<code>Ye</code>类中找<code>show(f)</code>方法，找到了<code>show(Ye obj)</code>方法，之后回到<code>Fu</code>类中看是否有<code>show(Ye obj)</code>重写方法，发现<code>Fu</code>类有<code>show(Ye obj)</code>方法（重写），所以最后执行了<code>&quot;Fu and Ye&quot;</code>，你get了咩？</p>
+<p>分析第五题，其实第五题和第四题基本差不多，第四题是<code>y2.show(f)</code>；第五题是<code>y2.show(z)</code>；只是<code>show</code>的方法参数不同，相同的是<code>f</code>和<code>z</code>在<code>Ye</code>类中找的都是<code>show(Ye obj)</code>方法，所以，最终第四题和第五题结果一致！</p>
+<p>分析第六题，第六题其实挺有趣，首先<code>y2.show(s)</code>，到Ye类中找到<code>show(Sun obj)</code>，之后在子类中看有没有重写，发现并没有<code>show(Sun obj)</code>重写方法，确定没有咩？别忘了这是继承，子类<code>Fu</code>中默认有着父类<code>Ye</code>的方法，只是没有表面表示出来，从另一角度出发，<code>Fu</code>类中默认重写了一个<code>show(Sun obj)</code>方法，就算不写也是存在的，所以运行结果为<code>&quot;Ye and Sun&quot;</code></p>
+<p>第七、八题就不分析了，毕竟也没有涉及到向上转型（多态）。</p>
+<p>最后分析一下第九题，有的童鞋就要打楼主了，第九题不也是没有涉及到向上转型（多态）吗，楼主你个星星（**），当然，楼主就算背着黑锅也要分析第九题~就是这么傲娇~，确实没有涉及到向上转型（多态），我要讲的原因很简单，因为我觉得还是很有必要！首先<code>f.show(s)</code>不涉及多态，它只会调用自己类（<code>Fu</code>）的方法，但是你会发现<code>Fu</code>中并没有<code>show(s)</code>，唉唉唉，我运行你重新组织下语言，又忘了？这是继承啊，它有默认父类<code>Ye</code>中的<code>show(Sun obj)</code>方法鸭！好了到这里，我总结出一点，你多态以及没得问题了，不过你继承方面知识薄弱啊，不行不行楼主得给你补补，还在犹豫什么鸭，快来补补继承知识！！！<a href="https://blog.csdn.net/qq_44543508/article/details/102375196">【java基础】java继承从“我爸是李刚”讲起</a></p>
+<blockquote>
+<p>本文的最后，我只是个人对多态的理解，楼主只是个java小白，叫我老白也行，不一定全部正确，如果有什么错误请一定要告诉我，感激不尽感激不尽感激不尽！！！欢迎指正~</p>
+</blockquote>
+<p>最后的最后，如果本文对你有所帮助就点个爱心支持一下吧 ~佛系报大腿~</p>
+<p>欢迎各位关注我的公众号，一起探讨技术，向往技术，追求技术...</p>
+<p><img src="./images/深入理解java多态没有烤山药的存在，java就不香了吗？3.png" alt="在这里插入图片描述" /></p>
+
+</div><hr><script charset='utf-8' src='../../js/sming.js'></script></body></html>

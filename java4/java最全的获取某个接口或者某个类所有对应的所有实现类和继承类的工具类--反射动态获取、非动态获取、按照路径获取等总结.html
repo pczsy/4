@@ -1,0 +1,102 @@
+<html><head><meta charset='utf-8'><meta name='viewport' content='width=device-width, initial-scale=1'>
+<meta name='applicable-device' content='pc'><meta name='keywords' content='电脑,电脑讲解,电脑技术,编程,电脑故障维修java最全的获取某个接口或者某个类所有对应的所有实现类和继承类的工具类--反射动态获取、非动态获取、按照路径获取等总结' />
+<script src='../../highlight/highlight.pack.js'></script>
+<link rel='stylesheet' type='text/css' href='../../highlight/styles/monokai.css'/>
+
+<link rel='stylesheet' href='../../fenxiang/dist/css/share.min.css'>
+<script src='../../fenxiang/src/js/social-share.js'></script>
+<script src='../../fenxiang/src/js/qrcode.js'></script>
+
+</head><body><script>hljs.initHighlightingOnLoad();</script><script>
+var system ={};  
+var p = navigator.platform;       
+system.win = p.indexOf('Win') == 0;  
+system.mac = p.indexOf('Mac') == 0;  
+system.x11 = (p == 'X11') || (p.indexOf('Linux') == 0);     
+if(system.win||system.mac||system.xll){
+document.write("<link href='../css/3.css' rel='stylesheet' type='text/css'>");}else{ document.write("<link href='../css/3wap.css' rel='stylesheet' type='text/css'>");}</script><script src='../../js/3.js'></script><div class='div2'><div class='heading_nav'><ul><div><li><a href='../../index.html'>首页</a></li>
+</div><div onclick='hidden1()' >分享</div>
+</ul></div></div>
+<div id='heading_nav2'> 
+<li class='row' >
+<div class='social-share' data-mode='prepend'><a href='javascript:' class='social-share-icon icon-heart'></a></div></li></div><script charset='utf-8' src='../../3/js/hengfu.js'></script><script charset='utf-8' src='../../3/js/hengfu2.js'></script><hr><div class='div1'><div class='biaoti'><center>java最全的获取某个接口或者某个类所有对应的所有实现类和继承类的工具类--反射动态获取、非动态获取、按照路径获取等总结</center></div><div class='banquan'>原文出处:本文由博客园博主张永清提供。<br/>
+原文连接:https://www.cnblogs.com/laoqing/p/11649593.html</div><br>
+    <p>&nbsp;</p>
+<p>我们直接上代码吧，代码中有注释说明。</p>
+<src class="cnblogs_code">
+<pre><code><span style="color: #008000;">//</span><span style="color: #008000;">直接看代码吧</span>
+<span style="color: #0000ff;">import</span><span style="color: #000000;"> java.io.File;
+</span><span style="color: #0000ff;">import</span><span style="color: #000000;"> java.lang.reflect.Field;
+</span><span style="color: #0000ff;">import</span><span style="color: #000000;"> java.net.URL;
+</span><span style="color: #0000ff;">import</span><span style="color: #000000;"> java.util.ArrayList;
+</span><span style="color: #0000ff;">import</span><span style="color: #000000;"> java.util.List;
+</span><span style="color: #0000ff;">import</span><span style="color: #000000;"> java.util.Vector;
+
+</span><span style="color: #008000;">/**</span><span style="color: #008000;">
+ *
+ </span><span style="color: #008000;">*/</span>
+<span style="color: #0000ff;">public</span> <span style="color: #0000ff;">class</span><span style="color: #000000;"> CommonUtil {
+
+    </span><span style="color: #008000;">//</span><span style="color: #008000;">获取某个类的实现类</span>
+    <span style="color: #0000ff;">public</span> <span style="color: #0000ff;">static</span> List&lt;Class&lt;?&gt;&gt; getAllAssignedClass(Class&lt;?&gt; cls) <span style="color: #0000ff;">throws</span><span style="color: #000000;"> Exception {
+        List</span>&lt;Class&lt;?&gt;&gt; classes = <span style="color: #0000ff;">new</span> ArrayList&lt;Class&lt;?&gt;&gt;<span style="color: #000000;">();
+        </span><span style="color: #0000ff;">for</span> (Class&lt;?&gt;<span style="color: #000000;"> c : getClasses(cls)) {
+            </span><span style="color: #0000ff;">if</span> (cls.isAssignableFrom(c) &amp;&amp; !<span style="color: #000000;">cls.equals(c)) {
+                classes.add(c);
+            }
+        }
+        </span><span style="color: #0000ff;">return</span><span style="color: #000000;"> classes;
+    }
+
+    </span><span style="color: #0000ff;">public</span> <span style="color: #0000ff;">static</span> List&lt;Class&lt;?&gt;&gt; getClasses(Class&lt;?&gt; cls) <span style="color: #0000ff;">throws</span><span style="color: #000000;"> Exception {
+        String pk </span>=<span style="color: #000000;"> cls.getPackage().getName();
+        String path </span>= pk.replace('.', '/'<span style="color: #000000;">);
+        ClassLoader classloader </span>=<span style="color: #000000;"> Thread.currentThread().getContextClassLoader();
+        URL url </span>=<span style="color: #000000;"> classloader.getResource(path);
+        </span><span style="color: #0000ff;">return</span> getClasses(<span style="color: #0000ff;">new</span><span style="color: #000000;"> File(url.getFile()), pk);
+    }
+    </span><span style="color: #008000;">//</span><span style="color: #008000;">根据路径获取</span>
+    <span style="color: #0000ff;">public</span> <span style="color: #0000ff;">static</span> List&lt;Class&lt;?&gt;&gt; getClasses(File dir, String pk) <span style="color: #0000ff;">throws</span><span style="color: #000000;"> ClassNotFoundException {
+        List</span>&lt;Class&lt;?&gt;&gt; classes = <span style="color: #0000ff;">new</span> ArrayList&lt;Class&lt;?&gt;&gt;<span style="color: #000000;">();
+        </span><span style="color: #0000ff;">if</span> (!<span style="color: #000000;">dir.exists()) {
+            </span><span style="color: #0000ff;">return</span><span style="color: #000000;"> classes;
+        }
+        </span><span style="color: #0000ff;">for</span><span style="color: #000000;"> (File f : dir.listFiles()) {
+            </span><span style="color: #0000ff;">if</span><span style="color: #000000;"> (f.isDirectory()) {
+                classes.addAll(getClasses(f, pk </span>+ "." +<span style="color: #000000;"> f.getName()));
+            }
+            String name </span>=<span style="color: #000000;"> f.getName();
+            </span><span style="color: #0000ff;">if</span> (name.endsWith(".class"<span style="color: #000000;">)) {
+                classes.add(Class.forName(pk </span>+ "." + name.substring(0, name.length() - 6<span style="color: #000000;">)));
+            }
+        }
+        </span><span style="color: #0000ff;">return</span><span style="color: #000000;"> classes;
+    }
+    </span><span style="color: #008000;">//</span><span style="color: #008000;">动态获取，根据反射，比如获取xx.xx.xx.xx.Action 这个所有的实现类。 xx.xx.xx.xx 表示包名  Action为接口名或者类名</span>
+    <span style="color: #0000ff;">public</span> <span style="color: #0000ff;">static</span> List&lt;Class&lt;?&gt;&gt; getAllActionSubClass(String classPackageAndName) <span style="color: #0000ff;">throws</span><span style="color: #000000;"> Exception {
+        Field field </span>= <span style="color: #0000ff;">null</span><span style="color: #000000;">;
+        Vector v </span>= <span style="color: #0000ff;">null</span><span style="color: #000000;">;
+        Class</span>&lt;?&gt; cls = <span style="color: #0000ff;">null</span><span style="color: #000000;">;
+        List</span>&lt;Class&lt;?&gt;&gt; allSubclass = <span style="color: #0000ff;">new</span> ArrayList&lt;Class&lt;?&gt;&gt;<span style="color: #000000;">();
+        ClassLoader classLoader </span>=<span style="color: #000000;"> Thread.currentThread().getContextClassLoader();
+        Class</span>&lt;?&gt; classOfClassLoader =<span style="color: #000000;"> classLoader.getClass();
+        cls </span>=<span style="color: #000000;"> Class.forName(classPackageAndName);
+        </span><span style="color: #0000ff;">while</span> (classOfClassLoader != ClassLoader.<span style="color: #0000ff;">class</span><span style="color: #000000;">) {
+            classOfClassLoader </span>=<span style="color: #000000;"> classOfClassLoader.getSuperclass();
+        }
+        field </span>= classOfClassLoader.getDeclaredField("classes"<span style="color: #000000;">);
+        field.setAccessible(</span><span style="color: #0000ff;">true</span><span style="color: #000000;">);
+        v </span>=<span style="color: #000000;"> (Vector) field.get(classLoader);
+        </span><span style="color: #0000ff;">for</span> (<span style="color: #0000ff;">int</span> i = 0; i &lt; v.size(); ++<span style="color: #000000;">i) {
+            Class</span>&lt;?&gt; c = (Class&lt;?&gt;<span style="color: #000000;">) v.get(i);
+            </span><span style="color: #0000ff;">if</span> (cls.isAssignableFrom(c) &amp;&amp; !<span style="color: #000000;">cls.equals(c)) {
+                allSubclass.add((Class</span>&lt;?&gt;<span style="color: #000000;">) c);
+            }
+        }
+        </span><span style="color: #0000ff;">return</span><span style="color: #000000;"> allSubclass;
+    }
+}</span></code></pre>
+
+<p>&nbsp;</p>
+
+</div><hr><script charset='utf-8' src='../../js/sming.js'></script></body></html>

@@ -1,0 +1,145 @@
+<html><head><meta charset='utf-8'><meta name='viewport' content='width=device-width, initial-scale=1'>
+<meta name='applicable-device' content='pc'><meta name='keywords' content='电脑,电脑讲解,电脑技术,编程,电脑故障维修Java自学-异常处理 异常分类' />
+<script src='../../highlight/highlight.pack.js'></script>
+<link rel='stylesheet' type='text/css' href='../../highlight/styles/monokai.css'/>
+
+<link rel='stylesheet' href='../../fenxiang/dist/css/share.min.css'>
+<script src='../../fenxiang/src/js/social-share.js'></script>
+<script src='../../fenxiang/src/js/qrcode.js'></script>
+
+</head><body><script>hljs.initHighlightingOnLoad();</script><script>
+var system ={};  
+var p = navigator.platform;       
+system.win = p.indexOf('Win') == 0;  
+system.mac = p.indexOf('Mac') == 0;  
+system.x11 = (p == 'X11') || (p.indexOf('Linux') == 0);     
+if(system.win||system.mac||system.xll){
+document.write("<link href='../css/3.css' rel='stylesheet' type='text/css'>");}else{ document.write("<link href='../css/3wap.css' rel='stylesheet' type='text/css'>");}</script><script src='../../js/3.js'></script><div class='div2'><div class='heading_nav'><ul><div><li><a href='../../index.html'>首页</a></li>
+</div><div onclick='hidden1()' >分享</div>
+</ul></div></div>
+<div id='heading_nav2'> 
+<li class='row' >
+<div class='social-share' data-mode='prepend'><a href='javascript:' class='social-share-icon icon-heart'></a></div></li></div><script charset='utf-8' src='../../3/js/hengfu.js'></script><script charset='utf-8' src='../../3/js/hengfu2.js'></script><hr><div class='div1'><div class='biaoti'><center>Java自学-异常处理 异常分类</center></div><div class='banquan'>原文出处:本文由博客园博主半米高峰提供。<br/>
+原文连接:https://www.cnblogs.com/jeddzd/p/11670673.html</div><br>
+    <h2 id="java-中异常的分类">Java 中异常的分类</h2>
+<p>异常分类： 可查异常，运行时异常和错误3种<br />
+其中，运行时异常和错误又叫非可查异常</p>
+<p>步骤 1 : <strong>可查异常</strong></p>
+<p>可查异常： CheckedException<br />
+可查异常即<strong>必须进行处理的异常</strong>，要么try catch住,要么往外抛，谁调用，谁处理，比如 FileNotFoundException<br />
+如果不处理，编译器，就不让你通过</p>
+<pre><code><code>package exception;
+  
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
+  
+public class TestException {
+  
+    public static void main(String[] args) {
+          
+        File f= new File(&quot;d:/LOL.exe&quot;);
+          
+        try{
+            System.out.println(&quot;试图打开 d:/LOL.exe&quot;);
+            new FileInputStream(f);
+            System.out.println(&quot;成功打开&quot;);
+        }
+        catch(FileNotFoundException e){
+            System.out.println(&quot;d:/LOL.exe不存在&quot;);
+            e.printStackTrace();
+        }
+          
+    }
+}</code></code></pre>
+<p>步骤 2 : <strong>运行时异常</strong></p>
+<p>运行时异常RuntimeException指： <strong>不是必须进行try catch的异常</strong><br />
+<strong>常见运行时异常:</strong><br />
+除数不能为0异常:ArithmeticException<br />
+下标越界异常:ArrayIndexOutOfBoundsException<br />
+空指针异常:NullPointerException</p>
+<p>在编写代码的时候，依然可以使用try catch throws进行处理，与可查异常不同之处在于，<strong>即便不进行try catch，也不会有编译错误</strong><br />
+Java之所以会设计运行时异常的原因之一，是因为下标越界，空指针这些运行时异常<strong>太过于普遍</strong>，如果都需要进行捕捉，代码的可读性就会变得很糟糕。</p>
+<pre><code><code>package exception;
+  
+public class TestException {
+  
+    public static void main(String[] args) {
+         
+        //任何除数不能为0:ArithmeticException
+        int k = 5/0;
+         
+        //下标越界异常：ArrayIndexOutOfBoundsException
+        int j[] = new int[5];
+        j[10] = 10;
+         
+        //空指针异常：NullPointerException
+        String str = null;
+        str.length();
+   }
+}</code></code></pre>
+<p>步骤 3 : <strong>错误</strong></p>
+<p>错误Error，指的是<strong>系统级别的异常</strong>，通常是内存用光了<br />
+在<strong>默认设置下</strong>，一般java程序启动的时候，最大可以使用16m的内存<br />
+如例不停的给StringBuffer追加字符，很快就把内存使用光了。抛出<strong>OutOfMemoryError</strong><br />
+与运行时异常一样，错误也是不要求强制捕捉的</p>
+<pre><code><code>package exception;
+  
+public class TestException {
+  
+    public static void main(String[] args) {
+     
+        StringBuffer sb =new StringBuffer();
+         
+        for (int i = 0; i &lt; Integer.MAX_VALUE; i++) {
+            sb.append(&#39;a&#39;);
+        }
+         
+    }
+ 
+}</code></code></pre>
+<p>步骤 4 : <strong>三种分类</strong></p>
+<p>总体上异常分三类：</p>
+<ol>
+<li>错误</li>
+<li>运行时异常</li>
+<li>可查异常<br />
+<img src="./images/Java自学-异常处理 异常分类0.png" alt="三种分类" /></li>
+</ol>
+<p><strong>练习</strong>： <a href="http://how2j.cn/k/exception/exception-category/333.html?p=43278">Java异常分类</a></p>
+<p>运行时异常 RuntimeException，能否被捕捉？</p>
+<p>错误Error，能否被捕捉？</p>
+<p><strong>面试题</strong>常问题： 运行时异常与非运行时异常的区别</p>
+<p><strong>答案</strong>：</p>
+<p>都可以.</p>
+<pre class="java"><code>package exception;
+ 
+public class TestException {
+ 
+    public static void main(String[] args) {
+ 
+        String str = null;
+ 
+        try {
+            str.toString();
+        } catch (NullPointerException e) {
+            System.out.println(&quot;捕捉到运行时异常: NullPointerException &quot;);
+        }
+ 
+        StringBuffer sb = new StringBuffer(&quot;1234567890&quot;);
+        try {
+            for (int i = 0; i &lt; 100; i++) {
+                sb.append(sb.toString());
+            }
+        } catch (OutOfMemoryError e) {
+            System.out.println(&quot;捕捉到内存用光错误:  OutOfMemoryError&quot;);
+        }
+ 
+    }
+}</code></code></pre>
+<p>运行时异常与非运行时异常的区别：<br />
+运行时异常是不可查异常，不需要进行显式的捕捉<br />
+非运行时异常是可查异常，必须进行显式的捕捉，或者抛出</p>
+
+
+</div><hr><script charset='utf-8' src='../../js/sming.js'></script></body></html>

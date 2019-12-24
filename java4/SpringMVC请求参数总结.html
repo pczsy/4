@@ -1,0 +1,557 @@
+<html><head><meta charset='utf-8'><meta name='viewport' content='width=device-width, initial-scale=1'>
+<meta name='applicable-device' content='pc'><meta name='keywords' content='电脑,电脑讲解,电脑技术,编程,电脑故障维修SpringMVC请求参数总结' />
+<script src='../../highlight/highlight.pack.js'></script>
+<link rel='stylesheet' type='text/css' href='../../highlight/styles/monokai.css'/>
+
+<link rel='stylesheet' href='../../fenxiang/dist/css/share.min.css'>
+<script src='../../fenxiang/src/js/social-share.js'></script>
+<script src='../../fenxiang/src/js/qrcode.js'></script>
+
+</head><body><script>hljs.initHighlightingOnLoad();</script><script>
+var system ={};  
+var p = navigator.platform;       
+system.win = p.indexOf('Win') == 0;  
+system.mac = p.indexOf('Mac') == 0;  
+system.x11 = (p == 'X11') || (p.indexOf('Linux') == 0);     
+if(system.win||system.mac||system.xll){
+document.write("<link href='../css/3.css' rel='stylesheet' type='text/css'>");}else{ document.write("<link href='../css/3wap.css' rel='stylesheet' type='text/css'>");}</script><script src='../../js/3.js'></script><div class='div2'><div class='heading_nav'><ul><div><li><a href='../../index.html'>首页</a></li>
+</div><div onclick='hidden1()' >分享</div>
+</ul></div></div>
+<div id='heading_nav2'> 
+<li class='row' >
+<div class='social-share' data-mode='prepend'><a href='javascript:' class='social-share-icon icon-heart'></a></div></li></div><script charset='utf-8' src='../../3/js/hengfu.js'></script><script charset='utf-8' src='../../3/js/hengfu2.js'></script><hr><div class='div1'><div class='biaoti'><center>SpringMVC请求参数总结</center></div><div class='banquan'>原文出处:本文由博客园博主喜欢与改变提供。<br/>
+原文连接:https://www.cnblogs.com/xiaoeyu/p/11465217.html</div><br>
+    <src class="post">
+    <h1 id="前提">前提</h1>
+<p>在日常使用SpringMVC进行开发的时候，有可能遇到前端各种类型的请求参数，这里做一次相对全面的总结。SpringMVC中处理控制器参数的接口是HandlerMethodArgumentResolver，此接口有众多子类，分别处理不同(注解类型)的参数，下面只列举几个子类：</p>
+<ul>
+<li>RequestParamMethodArgumentResolver：解析处理使用了@RequestParam注解的参数、MultipartFile类型参数和Simple类型(如long、int)参数。</li>
+<li>RequestResponseBodyMethodProcessor：解析处理@RequestBody注解的参数。</li>
+<li>PathVariableMapMethodArgumentResolver：解析处理@PathVariable注解的参数。</li>
+</ul>
+<p>实际上，一般在解析一个控制器的请求参数的时候，用到的是HandlerMethodArgumentResolverComposite，里面装载了所有启用的HandlerMethodArgumentResolver子类。而HandlerMethodArgumentResolver子类在解析参数的时候使用到HttpMessageConverter(实际上也是一个列表，进行遍历匹配解析)子类进行匹配解析，常见的如MappingJackson2HttpMessageConverter。而HandlerMethodArgumentResolver子类到底依赖什么HttpMessageConverter实例实际上是<td bgcolor=yellow><font color=red size=3>由请求头中的ContentType(在SpringMVC中统一命名为MediaType，见org.springframework.http.MediaType)决定的，因此我们在处理控制器的请求参数之前必须要明确外部请求的ContentType到底是什么。</font>上面的逻辑可以直接看源码<code>AbstractMessageConverterMethodArgumentResolver#readWithMessageConverters</code>，思路是比较清晰的。在@RequestMapping注解中，produces和consumes就是和请求或者响应的ContentType相关的：</p>
+<ul>
+<li>consumes：指定处理请求的提交内容类型(ContentType)，例如application/json, text/html，只有命中了才会接受该请求。</li>
+<li>produces：指定返回的内容类型，仅当request请求头中的(Accept)类型中包含该指定类型才返回，如果返回的是JSON数据一般使用application/json;charset=UTF-8。</li>
+</ul>
+<p>另外提一点，SpringMVC中默认使用Jackson作为JSON的工具包，如果不是完全理解透整套源码的运作，一般不是十分建议修改默认使用的MappingJackson2HttpMessageConverter(例如有些人喜欢使用FastJson，实现HttpMessageConverter引入FastJson做转换器)。</p>
+<h1 id="springmvc请求参数接收">SpringMVC请求参数接收</h1>
+<p>其实一般的表单或者JSON数据的请求都是相对简单的，一些复杂的处理主要包括URL路径参数、文件上传、数组或者列表类型数据等。另外，关于参数类型中存在日期类型属性(例如java.util.Date、java.sql.Date、java.time.LocalDate、java.time.LocalDateTime)，解析的时候一般需要自定义实现的逻辑实现String-&gt;日期类型的转换。其实道理很简单，日期相关的类型对于每个国家、每个时区甚至每个使用者来说认知都不一定相同。在演示一些例子主要用到下面的模特类：</p>
+<pre><code><code class="hljs"><span class="hljs-meta">@Data</span>
+<span class="hljs-keyword">public</span> <span class="hljs-class"><span class="hljs-keyword">class</span> <span class="hljs-title">User</span> </span>{
+
+    <span class="hljs-keyword">private</span> String name;
+    <span class="hljs-keyword">private</span> Integer age;
+    <span class="hljs-keyword">private</span> List&lt;Contact&gt; contacts;
+}
+
+<span class="hljs-meta">@Data</span>
+<span class="hljs-keyword">public</span> <span class="hljs-class"><span class="hljs-keyword">class</span> <span class="hljs-title">Contact</span> </span>{
+
+    <span class="hljs-keyword">private</span> String name;
+    <span class="hljs-keyword">private</span> String phone;
+}</code></code></pre>
+<h2 id="表单参数">表单参数</h2>
+<p><strong>非对象类型单个参数接收：</strong></p>
+<p>这种是最常用的表单参数提交，ContentType指定为application/x-www-form-urlencoded，也就是会进行URL编码。</p>
+<p><img src="./images/SpringMVC请求参数总结0.png" alt="spmvc-p-1"></p>
+<p>对应的控制器如下：</p>
+<pre><code><code class="hljs"><span class="hljs-meta">@PostMapping</span>(value = <span class="hljs-string">"/post"</span>)
+<span class="hljs-function"><span class="hljs-keyword">public</span> String <span class="hljs-title">post</span><span class="hljs-params">(@RequestParam(name = <span class="hljs-string">"name"</span>)</span> String name,
+                   @<span class="hljs-title">RequestParam</span><span class="hljs-params">(name = <span class="hljs-string">"age"</span>)</span> Integer age) </span>{
+    String content = String.format(<span class="hljs-string">"name = %s,age = %d"</span>, name, age);
+    log.info(content);
+    <span class="hljs-keyword">return</span> content;
+}</code></code></pre>
+<p>说实话，如果有毅力的话，所有的复杂参数的提交最终都可以转化为多个单参数接收，不过这样做会产生十分多冗余的代码，而且可维护性比较低。这种情况下，用到的参数处理器是RequestParamMapMethodArgumentResolver。</p>
+<p><strong>对象类型参数接收：</strong></p>
+<p>我们接着写一个接口用于提交用户信息，用到的是上面提到的模特类，主要包括用户姓名、年龄和联系人信息列表，这个时候，我们目标的控制器最终编码如下：</p>
+<pre><code><code class="hljs"><span class="hljs-meta">@PostMapping</span>(value = <span class="hljs-string">"/user"</span>)
+<span class="hljs-function"><span class="hljs-keyword">public</span> User <span class="hljs-title">saveUser</span><span class="hljs-params">(User user)</span> </span>{
+    log.info(user.toString());
+    <span class="hljs-keyword">return</span> user;
+}</code></code></pre>
+<p>我们还是指定ContentType为application/x-www-form-urlencoded，接着我们需要构造请求参数：</p>
+<p><img src="./images/SpringMVC请求参数总结1.png" alt="spmvc-p-2"></p>
+<p>因为<font color=red size=3>没有使用注解，最终的参数处理器为ServletModelAttributeMethodProcessor，主要是把HttpServletRequest中的表单参数封装到MutablePropertyValues实例中，再通过参数类型实例化(通过构造反射创建User实例)，反射匹配属性进行值的填充。</font>另外，请求复杂参数里面的列表属性请求参数看起来比较奇葩，实际上和在.properties文件中添加最终映射到Map类型的参数的写法是一致的。那么，能不能把整个请求参数塞在一个字段中提交呢? </p>
+<p><img src="./images/SpringMVC请求参数总结2.png" alt="spmvc-p-3"></p>
+<p>直接这样做是不行的，因为实际提交的form表单，key是user，value实际上是一个字符串，缺少一个String-&gt;User类型的转换器，实际上RequestParamMethodArgumentResolver依赖WebConversionService中Converter列表进行参数转换：</p>
+<p><img src="./images/SpringMVC请求参数总结3.png" alt="spmvc-p-4"></p>
+<p>解决办法还是有的，添加一个org.springframework.core.convert.converter.Converter实现即可：</p>
+<pre><code><code class="hljs"><span class="hljs-meta">@Component</span>
+<span class="hljs-keyword">public</span> <span class="hljs-class"><span class="hljs-keyword">class</span> <span class="hljs-title">StringUserConverter</span> <span class="hljs-keyword">implements</span> <span class="hljs-title">Converter</span>&lt;<span class="hljs-title">String</span>, <span class="hljs-title">User</span>&gt; </span>{
+
+    <span class="hljs-keyword">private</span> <span class="hljs-keyword">static</span> <span class="hljs-keyword">final</span> ObjectMapper MAPPER = <span class="hljs-keyword">new</span> ObjectMapper();
+
+    <span class="hljs-meta">@Override</span>
+    <span class="hljs-function"><span class="hljs-keyword">public</span> User <span class="hljs-title">convert</span><span class="hljs-params">(String source)</span> </span>{
+        <span class="hljs-keyword">try</span> {
+            <span class="hljs-keyword">return</span> MAPPER.readValue(source, User.class);
+        } <span class="hljs-keyword">catch</span> (IOException e) {
+            <span class="hljs-keyword">throw</span> <span class="hljs-keyword">new</span> IllegalArgumentException(e);
+        }
+    }
+}</code></code></pre>
+<p>上面这种做法属于曲线救国的做法，不推荐使用在生产环境，但是如果有些第三方接口的对接无法避免这种参数，可以选择这种实现方式。</p>
+<h2 id="json参数">JSON参数</h2>
+<p>一般来说，直接POST一个JSON字符串这种方式对于SpringMVC来说是比较友好的，只需要把ContentType设置为application/json，提交一个原始的JSON字符串即可：</p>
+<p><img src="./images/SpringMVC请求参数总结4.png" alt="spmvc-p-5"></p>
+<p>后端控制器的代码也比较简单：</p>
+<pre><code><code class="hljs"><span class="hljs-meta">@PostMapping</span>(value = <span class="hljs-string">"/user-2"</span>)
+<span class="hljs-function"><span class="hljs-keyword">public</span> User <span class="hljs-title">saveUser2</span><span class="hljs-params">(@RequestBody User user)</span> </span>{
+    log.info(user.toString());
+    <span class="hljs-keyword">return</span> user;
+}</code></code></pre>
+<p>因为使用了@RequestBody注解，最终使用到的参数处理器为RequestResponseBodyMethodProcessor，实际上会用到MappingJackson2HttpMessageConverter进行参数类型的转换，底层依赖到Jackson相关的包。</p>
+<h2 id="url参数">URL参数</h2>
+<p>URL参数，或者叫请求路径参数是基于URL模板获取到的参数，例如/user/{userId}是一个URL模板(URL模板中的参数占位符是{})，实际请求的URL为/user/1，那么通过匹配实际请求的URL和URL模板就能提取到userId为1。在SpringMVC中，URL模板中的路径参数叫做PathVariable，对应注解@PathVariable，对应的参数处理器为PathVariableMethodArgumentResolver。<strong>注意一点是，@PathVariable的解析是按照value(name)属性进行匹配，和URL参数的顺序是无关的</strong>。举个简单的例子：</p>
+<p><img src="./images/SpringMVC请求参数总结5.png" alt="spmvc-p-6"></p>
+<p>后台的控制器如下：</p>
+<pre><code><code class="hljs"><span class="hljs-meta">@GetMapping</span>(value = <span class="hljs-string">"/user/{name}/{age}"</span>)
+<span class="hljs-function"><span class="hljs-keyword">public</span> String <span class="hljs-title">findUser1</span><span class="hljs-params">(@PathVariable(value = <span class="hljs-string">"age"</span>)</span> Integer age,
+                        @<span class="hljs-title">PathVariable</span><span class="hljs-params">(value = <span class="hljs-string">"name"</span>)</span> String name) </span>{
+    String content = String.format(<span class="hljs-string">"name = %s,age = %d"</span>, name, age);
+    log.info(content);
+    <span class="hljs-keyword">return</span> content;
+}</code></code></pre>
+<p>这种用法被广泛使用于Representational State Transfer(REST)的软件架构风格，个人觉得这种风格是比较灵活和清晰的(从URL和请求方法就能完全理解接口的意义和功能)。下面再介绍两种相对特殊的使用方式。</p>
+<p><strong>带条件的URL参数</strong><br>
+其实路径参数支持正则表达式，例如我们在使用/sex/{sex}接口的时候，要求sex必须是F(Female)或者M(Male)，那么我们的URL模板可以定义为/sex/{sex:M|F}，代码如下：</p>
+<pre><code><code class="hljs"><span class="hljs-meta">@GetMapping</span>(value = <span class="hljs-string">"/sex/{sex:M|F}"</span>)
+<span class="hljs-function"><span class="hljs-keyword">public</span> String <span class="hljs-title">findUser2</span><span class="hljs-params">(@PathVariable(value = <span class="hljs-string">"sex"</span>)</span> String sex)</span>{
+    log.info(sex);
+    <span class="hljs-keyword">return</span> sex;
+}</code></code></pre>
+<p>只有/sex/F或者/sex/M的请求才会进入findUser2控制器方法，其他该路径前缀的请求都是非法的，会返回404状态码。这里仅仅是介绍了一个最简单的URL参数正则表达式的使用方式，更强大的用法可以自行摸索。</p>
+<p><strong>@MatrixVariable的使用</strong><br>
+MatrixVariable也是URL参数的一种，对应注解@MatrixVariable，不过它并不是URL中的一个值(这里的值指定是两个"/"之间的部分)，而是值的一部分，它通过";"进行分隔，通过"="进行K-V设置。说起来有点抽象，举个例子：假如我们需要打电话给一个名字为doge，性别是男，分组是码畜的程序员，GET请求的URL可以表示为：<code>/call/doge;gender=male;group=programmer</code>，我们设计的控制器方法如下：</p>
+<pre><code><code class="hljs"><span class="hljs-meta">@GetMapping</span>(value = <span class="hljs-string">"/call/{name}"</span>)
+<span class="hljs-function"><span class="hljs-keyword">public</span> String <span class="hljs-title">find</span><span class="hljs-params">(@PathVariable(value = <span class="hljs-string">"name"</span>)</span> String name,
+                   @<span class="hljs-title">MatrixVariable</span><span class="hljs-params">(value = <span class="hljs-string">"gender"</span>)</span> String gender,
+                   @<span class="hljs-title">MatrixVariable</span><span class="hljs-params">(value = <span class="hljs-string">"group"</span>)</span> String group) </span>{
+    String content = String.format(<span class="hljs-string">"name = %s,gender = %s,group = %s"</span>, name, gender, group);
+    log.info(content);
+    <span class="hljs-keyword">return</span> content;
+}</code></code></pre>
+<p>当然，如果你按照上面的例子写好代码，尝试请求一下该接口发现是报错的：400 Bad Request - Missing matrix variable 'gender' for method parameter of type String。这是因为@MatrixVariable注解的使用是不安全的，在SpringMVC中默认是关闭对其支持。要开启对@MatrixVariable的支持，需要设置RequestMappingHandlerMapping#setRemoveSemicolonContent方法为false：</p>
+<pre><code><code class="hljs"><span class="hljs-meta">@Configuration</span>
+<span class="hljs-keyword">public</span> <span class="hljs-class"><span class="hljs-keyword">class</span> <span class="hljs-title">CustomMvcConfiguration</span> <span class="hljs-keyword">implements</span> <span class="hljs-title">InitializingBean</span> </span>{
+
+    <span class="hljs-meta">@Autowired</span>
+    <span class="hljs-keyword">private</span> RequestMappingHandlerMapping requestMappingHandlerMapping;
+
+    <span class="hljs-meta">@Override</span>
+    <span class="hljs-function"><span class="hljs-keyword">public</span> <span class="hljs-keyword">void</span> <span class="hljs-title">afterPropertiesSet</span><span class="hljs-params">()</span> <span class="hljs-keyword">throws</span> Exception </span>{
+        requestMappingHandlerMapping.setRemoveSemicolonContent(<span class="hljs-keyword">false</span>);
+    }
+}</code></code></pre>
+<p>除非有很特殊的需要，否则不建议使用@MatrixVariable。</p>
+<h2 id="文件上传">文件上传</h2>
+<p><font color=red size=3>文件上传在使用POSTMAN模拟请求的时候需要选择form-data，POST方式进行提交：</font></p>
+<p><img src="./images/SpringMVC请求参数总结6.png" alt="spmvc-p-8"></p>
+<p>假设我们在D盘有一个图片文件叫doge.jpg，现在要通过本地服务接口把文件上传，控制器的代码如下：</p>
+<pre><code><code class="hljs"><span class="hljs-meta">@PostMapping</span>(value = <span class="hljs-string">"/file1"</span>)
+<span class="hljs-function"><span class="hljs-keyword">public</span> String <span class="hljs-title">file1</span><span class="hljs-params">(@RequestPart(name = <span class="hljs-string">"file1"</span>)</span> MultipartFile multipartFile) </span>{
+    String content = String.format(<span class="hljs-string">"name = %s,originName = %s,size = %d"</span>,
+            multipartFile.getName(), multipartFile.getOriginalFilename(), multipartFile.getSize());
+    log.info(content);
+    <span class="hljs-keyword">return</span> content;
+}</code></code></pre>
+<p>控制台输出是：</p>
+<pre><code><code class="hljs">name = file1,originName = doge.jpg,size = <span class="hljs-number">68727</span></code></code></pre>
+<p>可能有点疑惑，参数是怎么来的，我们可以用Fildder抓个包看下：</p>
+<p><img src="./images/SpringMVC请求参数总结7.png" alt="spmvc-p-7"></p>
+<p>可知MultipartFile实例的主要属性分别来自Content-Disposition、content-type和content-length，另外，InputStream用于读取请求体的最后部分(文件的字节序列)。参数处理器用到的是RequestPartMethodArgumentResolver(记住一点，<font color=red size=3>使用了@RequestPart和MultipartFile一定是使用此参数处理器)。在其他情况下，使用@RequestParam和MultipartFile或者仅仅使用MultipartFile(参数的名字必须和POST表单中的Content-Disposition描述的name一致)也可以接收上传的文件数据，</font>主要是通过RequestParamMethodArgumentResolver进行解析处理的，它的功能比较强大，具体可以看其<code>supportsParameter</code>方法，这两种情况的控制器方法代码如下：</p>
+<pre><code><code class="hljs"><span class="hljs-meta">@PostMapping</span>(value = <span class="hljs-string">"/file2"</span>)
+<span class="hljs-function"><span class="hljs-keyword">public</span> String <span class="hljs-title">file2</span><span class="hljs-params">(MultipartFile file1)</span> </span>{
+    String content = String.format(<span class="hljs-string">"name = %s,originName = %s,size = %d"</span>,
+                file1.getName(), file1.getOriginalFilename(), file1.getSize());
+    log.info(content);
+    <span class="hljs-keyword">return</span> content;
+}
+
+<span class="hljs-meta">@PostMapping</span>(value = <span class="hljs-string">"/file3"</span>)
+<span class="hljs-function"><span class="hljs-keyword">public</span> String <span class="hljs-title">file3</span><span class="hljs-params">(@RequestParam(name = <span class="hljs-string">"file1"</span>)</span> MultipartFile multipartFile) </span>{
+    String content = String.format(<span class="hljs-string">"name = %s,originName = %s,size = %d"</span>,
+            multipartFile.getName(), multipartFile.getOriginalFilename(), multipartFile.getSize());
+    log.info(content);
+    <span class="hljs-keyword">return</span> content;
+}</code></code></pre>
+<h2 id="其他参数">其他参数</h2>
+<p>其他参数主要包括请求头、Cookie、Model、Map等相关参数，还有一些并不是很常用或者一些相对原生的属性值获取(例如HttpServletRequest、HttpServletResponse等)不做讨论。</p>
+<h3 id="请求头">请求头</h3>
+<p>请求头的值主要通过@RequestHeader注解的参数获取，参数处理器是RequestHeaderMethodArgumentResolver，需要在注解中指定请求头的Key。简单实用如下：</p>
+<p><img src="./images/SpringMVC请求参数总结8.png" alt="spmvc-p-9"></p>
+<p>控制器方法代码：</p>
+<pre><code><code class="hljs"><span class="hljs-meta">@PostMapping</span>(value = <span class="hljs-string">"/header"</span>)
+<span class="hljs-function"><span class="hljs-keyword">public</span> String <span class="hljs-title">header</span><span class="hljs-params">(@RequestHeader(name = <span class="hljs-string">"Content-Type"</span>)</span> String contentType) </span>{
+   <span class="hljs-keyword">return</span> contentType;
+}</code></code></pre>
+<h3 id="cookie">Cookie</h3>
+<p>Cookie的值主要通过@CookieValue注解的参数获取，参数处理器为ServletCookieValueMethodArgumentResolver，需要在注解中指定Cookie的Key。控制器方法代码如下：</p>
+<pre><code><code class="hljs"><span class="hljs-meta">@PostMapping</span>(value = <span class="hljs-string">"/cookie"</span>)
+<span class="hljs-function"><span class="hljs-keyword">public</span> String <span class="hljs-title">cookie</span><span class="hljs-params">(@CookieValue(name = <span class="hljs-string">"JSESSIONID"</span>)</span> String sessionId) </span>{
+    <span class="hljs-keyword">return</span> sessionId;
+}</code></code></pre>
+<h3 id="model类型参数">Model类型参数</h3>
+<p>Model类型参数的处理器是ModelMethodProcessor，实际上处理此参数是直接返回ModelAndViewContainer实例中的Model(ModelMap类型)，因为要桥接不同的接口和类的功能，因此回调的实例是BindingAwareModelMap类型，此类型继承自ModelMap同时实现了Model接口。举个例子：</p>
+<pre><code><code class="hljs"><span class="hljs-meta">@GetMapping</span>(value = <span class="hljs-string">"/model"</span>)
+<span class="hljs-function"><span class="hljs-keyword">public</span> String <span class="hljs-title">model</span><span class="hljs-params">(Model model, ModelMap modelMap)</span> </span>{
+    log.info(<span class="hljs-string">"{}"</span>, model == modelMap);
+    <span class="hljs-keyword">return</span> <span class="hljs-string">"success"</span>;
+}</code></code></pre>
+<p>注意调用此接口，控制台输出Info日志内容为：true。ModelMap或者Model中添加的属性项会附加到HttpRequestServlet中带到页面中进行渲染。</p>
+<h3 id="modelattribute参数">@ModelAttribute参数</h3>
+<p>@ModelAttribute注解处理的参数处理器为ModelAttributeMethodProcessor，@ModelAttribute的功能源码的注释如下：</p>
+<pre><code><code class="hljs vhdl">Annotation that binds a method parameter <span class="hljs-keyword">or</span> method <span class="hljs-keyword">return</span> value <span class="hljs-keyword">to</span> a named model <span class="hljs-keyword">attribute</span>, exposed <span class="hljs-keyword">to</span> a web view.</code></code></pre>
+<p>简单来说，就是通过key-value形式绑定方法参数或者方法返回值到Model(Map)中，区别下面三种情况：</p>
+<ul>
+<li>1、@ModelAttribute使用在方法(返回值)上，方法没有返回值(void类型)， Model(Map)参数需要自行设置。</li>
+<li>2、@ModelAttribute使用在方法(返回值)上，方法有返回值(非void类型)，返回值会添加到Model(Map)参数，key由@ModelAttribute的value指定，否则会使用返回值类型字符串(首写字母变为小写)。</li>
+<li>3、@ModelAttribute使用在方法参数中。</li>
+</ul>
+<p>在一个控制器(使用了@Controller)中，如果存在一到多个使用了@ModelAttribute的方法，这些方法总是在进入控制器方法之前执行，并且执行顺序是由加载顺序决定的(具体的顺序是不带参数的优先，并且按照方法首字母升序排序)，举个例子：</p>
+<pre><code><code class="hljs"><span class="hljs-meta">@Slf</span>4j
+<span class="hljs-meta">@RestController</span>
+<span class="hljs-keyword">public</span> <span class="hljs-class"><span class="hljs-keyword">class</span> <span class="hljs-title">ModelAttributeController</span> </span>{
+
+    <span class="hljs-meta">@ModelAttribute</span>
+    <span class="hljs-function"><span class="hljs-keyword">public</span> <span class="hljs-keyword">void</span> <span class="hljs-title">before</span><span class="hljs-params">(Model model)</span> </span>{
+        log.info(<span class="hljs-string">"before.........."</span>);
+        model.addAttribute(<span class="hljs-string">"before"</span>, <span class="hljs-string">"beforeValue"</span>);
+    }
+
+    <span class="hljs-meta">@ModelAttribute</span>(value = <span class="hljs-string">"beforeArg"</span>)
+    <span class="hljs-function"><span class="hljs-keyword">public</span> String <span class="hljs-title">beforeArg</span><span class="hljs-params">()</span> </span>{
+        log.info(<span class="hljs-string">"beforeArg.........."</span>);
+        <span class="hljs-keyword">return</span> <span class="hljs-string">"beforeArgValue"</span>;
+    }
+
+    <span class="hljs-meta">@GetMapping</span>(value = <span class="hljs-string">"/modelAttribute"</span>)
+    <span class="hljs-function"><span class="hljs-keyword">public</span> String <span class="hljs-title">modelAttribute</span><span class="hljs-params">(Model model, @ModelAttribute(value = <span class="hljs-string">"beforeArg"</span>)</span> String beforeArg) </span>{
+        log.info(<span class="hljs-string">"modelAttribute.........."</span>);
+        log.info(<span class="hljs-string">"beforeArg..........{}"</span>, beforeArg);
+        log.info(<span class="hljs-string">"{}"</span>, model);
+        <span class="hljs-keyword">return</span> <span class="hljs-string">"success"</span>;
+    }
+
+    <span class="hljs-meta">@ModelAttribute</span>
+    <span class="hljs-function"><span class="hljs-keyword">public</span> <span class="hljs-keyword">void</span> <span class="hljs-title">after</span><span class="hljs-params">(Model model)</span> </span>{
+        log.info(<span class="hljs-string">"after.........."</span>);
+        model.addAttribute(<span class="hljs-string">"after"</span>, <span class="hljs-string">"afterValue"</span>);
+    }
+
+    <span class="hljs-meta">@ModelAttribute</span>(value = <span class="hljs-string">"afterArg"</span>)
+    <span class="hljs-function"><span class="hljs-keyword">public</span> String <span class="hljs-title">afterArg</span><span class="hljs-params">()</span> </span>{
+        log.info(<span class="hljs-string">"afterArg.........."</span>);
+        <span class="hljs-keyword">return</span> <span class="hljs-string">"afterArgValue"</span>;
+    }
+}</code></code></pre>
+<p>调用此接口，控制台输出日志如下：</p>
+<pre><code><code class="hljs erlang"><span class="hljs-keyword">after</span>..........
+before..........
+<span class="hljs-keyword">after</span>Arg..........
+beforeArg..........
+modelAttribute..........
+beforeArg..........beforeArgValue
+{after=afterValue, before=beforeValue, afterArg=afterArgValue, beforeArg=beforeArgValue}</code></code></pre>
+<p>可以印证排序规则和参数设置、获取。</p>
+<h3 id="errors或者bindingresult参数">Errors或者BindingResult参数</h3>
+<p>Errors其实是BindingResult的父接口，BindingResult主要用于回调JSR参数校验异常的属性项，如果JSR校验异常，一般会抛出MethodArgumentNotValidException异常，并且会返回400(Bad Request)，见全局异常处理器DefaultHandlerExceptionResolver。Errors类型的参数处理器为ErrorsMethodArgumentResolver。举个例子：</p>
+<pre><code><code class="hljs"><span class="hljs-meta">@PostMapping</span>(value = <span class="hljs-string">"/errors"</span>)
+<span class="hljs-function"><span class="hljs-keyword">public</span> String <span class="hljs-title">errors</span><span class="hljs-params">(@RequestBody @Validated ErrorsModel errors, BindingResult bindingResult)</span> </span>{
+    <span class="hljs-keyword">if</span> (bindingResult.hasErrors()) {
+        <span class="hljs-keyword">for</span> (ObjectError objectError : bindingResult.getAllErrors()) {
+            log.warn(<span class="hljs-string">"name={},message={}"</span>, objectError.getObjectName(), objectError.getDefaultMessage());
+        }
+    }
+    <span class="hljs-keyword">return</span> errors.toString();
+}
+
+<span class="hljs-comment">//ErrorsModel</span>
+<span class="hljs-meta">@Data</span>
+<span class="hljs-meta">@NoArgsConstructor</span>
+<span class="hljs-keyword">public</span> <span class="hljs-class"><span class="hljs-keyword">class</span> <span class="hljs-title">ErrorsModel</span> </span>{
+    <span class="hljs-meta">@NotNull</span>(message = <span class="hljs-string">"id must not be null!"</span>)
+    <span class="hljs-keyword">private</span> Integer id;
+    <span class="hljs-meta">@NotEmpty</span>(message = <span class="hljs-string">"errors name must not be empty!"</span>)
+    <span class="hljs-keyword">private</span> String name;
+}</code></code></pre>
+<p>调用接口控制台Warn日志如下：</p>
+<pre><code><code class="hljs delphi"><span class="hljs-keyword">name</span>=errors,<span class="hljs-keyword">message</span>=errors <span class="hljs-keyword">name</span> must <span class="hljs-keyword">not</span> be empty!</code></code></pre>
+<p>一般情况下，不建议用这种方式处理JSR校验异常的属性项，因为会涉及到大量的重复的硬编码工作，建议直接继承ResponseEntityExceptionHandler，覆盖对应的方法。</p>
+<h3 id="value参数">@Value参数</h3>
+<p>控制器方法的参数可以是@Value注解修饰的参数，会从Environment中装配和转换属性值到对应的参数中(也就是参数的来源并不是请求体)，参数处理器为ExpressionValueMethodArgumentResolver。举个例子：</p>
+<pre><code><code class="hljs"><span class="hljs-meta">@GetMapping</span>(value = <span class="hljs-string">"/value"</span>)
+<span class="hljs-function"><span class="hljs-keyword">public</span> String <span class="hljs-title">value</span><span class="hljs-params">(@Value(value = <span class="hljs-string">"${spring.application.name}"</span>)</span> String name) </span>{
+    log.info(<span class="hljs-string">"spring.application.name={}"</span>, name);
+    <span class="hljs-keyword">return</span> name;
+}</code></code></pre>
+<h3 id="map类型参数">Map类型参数</h3>
+<p>Map类型参数的范围相对比较广，对应一系列的参数处理器，注意区别使用了上面提到的部分注解的Map类型和完全不使用注解的Map类型参数，两者的处理方式不相同。下面列举几个相对典型的Map类型参数处理例子。</p>
+<p><strong>不使用任何注解的Map&lt;String,Object&gt;参数</strong><br>
+这种情况下参数实际上直接回调ModelAndViewContainer中的ModelMap实例，参数处理器为MapMethodProcessor，往Map参数中添加的属性将会带到页面中。</p>
+<p><strong>使用@RequestParam注解的Map&lt;String,Object&gt;参数</strong><br>
+这种情况下的参数处理器为RequestParamMapMethodArgumentResolver，使用的请求方式需要指定ContentType为x-www-form-urlencoded，不能使用application/json的方式：</p>
+<p><img src="./images/SpringMVC请求参数总结9.png" alt="spmvc-p-10"></p>
+<p>控制器代码为：</p>
+<pre><code><code class="hljs"><span class="hljs-meta">@PostMapping</span>(value = <span class="hljs-string">"/map"</span>)
+<span class="hljs-function"><span class="hljs-keyword">public</span> String <span class="hljs-title">mapArgs</span><span class="hljs-params">(@RequestParam Map&lt;String, Object&gt; map)</span> </span>{
+    log.info(<span class="hljs-string">"{}"</span>, map);
+    <span class="hljs-keyword">return</span> map.toString();
+}</code></code></pre>
+<p><strong>使用@RequestHeader注解的Map&lt;String,Object&gt;参数</strong><br>
+这种情况下的参数处理器为RequestHeaderMapMethodArgumentResolver，作用是获取请求的所有请求头的Key-Value。</p>
+<p><strong>使用@PathVariable注解的Map&lt;String,Object&gt;参数</strong><br>
+这种情况下的参数处理器为PathVariableMapMethodArgumentResolver，作用是获取所有路径参数封装为Key-Value结构。</p>
+<h3 id="multipartfile集合-批量文件上传">MultipartFile集合-批量文件上传</h3>
+<p>批量文件上传的时候，我们一般需要接收一个MultipartFile集合，可以有两种选择：</p>
+<ul>
+<li>1、使用MultipartHttpServletRequest参数，直接调用<code>getFiles</code>方法获取MultipartFile列表。</li>
+<li>2、使用@RequestParam注解修饰MultipartFile列表，参数处理器是RequestParamMethodArgumentResolver，其实就是第一种的封装而已。</li>
+</ul>
+<p><img src="./images/SpringMVC请求参数总结10.png" alt="spmvc-p-11"></p>
+<p>控制器方法代码如下：</p>
+<pre><code><code class="hljs"><span class="hljs-meta">@PostMapping</span>(value = <span class="hljs-string">"/parts"</span>)
+<span class="hljs-function"><span class="hljs-keyword">public</span> String <span class="hljs-title">partArgs</span><span class="hljs-params">(@RequestParam(name = <span class="hljs-string">"file"</span>)</span> List&lt;MultipartFile&gt; parts) </span>{
+    log.info(<span class="hljs-string">"{}"</span>, parts);
+    <span class="hljs-keyword">return</span> parts.toString();
+}</code></code></pre>
+<h2 id="日期类型参数处理">日期类型参数处理</h2>
+<p>日期处理个人认为是请求参数处理中最复杂的，因为一般日期处理的逻辑不是通用的，过多的定制化处理导致很难有一个统一的标准处理逻辑去处理和转换日期类型的参数。不过，这里介绍几个通用的方法，以应对各种奇葩的日期格式。下面介绍的例子中全部使用Jdk8中引入的日期时间API，围绕java.util.Date为核心的日期时间API的使用方式类同。</p>
+<h3 id="一统一以字符串形式接收">一、统一以字符串形式接收</h3>
+<p>这种是最原始但是最奏效的方式，统一以字符串形式接收，然后自行处理类型转换，下面给个小例子：</p>
+<pre><code><code class="hljs"><span class="hljs-meta">@PostMapping</span>(value = <span class="hljs-string">"/date1"</span>)
+<span class="hljs-function"><span class="hljs-keyword">public</span> String <span class="hljs-title">date1</span><span class="hljs-params">(@RequestBody UserDto userDto)</span> </span>{
+    UserEntity userEntity = <span class="hljs-keyword">new</span> UserEntity();
+    userEntity.setUserId(userDto.getUserId());
+    userEntity.setBirthdayTime(LocalDateTime.parse(userDto.getBirthdayTime(), FORMATTER));
+    userEntity.setGraduationTime(LocalDateTime.parse(userDto.getGraduationTime(), FORMATTER));
+    log.info(userEntity.toString());
+    <span class="hljs-keyword">return</span> <span class="hljs-string">"success"</span>;
+}
+
+<span class="hljs-meta">@Data</span>
+<span class="hljs-keyword">public</span> <span class="hljs-class"><span class="hljs-keyword">class</span> <span class="hljs-title">UserDto</span> </span>{
+
+    <span class="hljs-keyword">private</span> String userId;
+    <span class="hljs-keyword">private</span> String birthdayTime;
+    <span class="hljs-keyword">private</span> String graduationTime;
+}
+
+<span class="hljs-meta">@Data</span>
+<span class="hljs-keyword">public</span> <span class="hljs-class"><span class="hljs-keyword">class</span> <span class="hljs-title">UserEntity</span> </span>{
+
+    <span class="hljs-keyword">private</span> String userId;
+    <span class="hljs-keyword">private</span> LocalDateTime birthdayTime;
+    <span class="hljs-keyword">private</span> LocalDateTime graduationTime;
+}</code></code></pre>
+<p><img src="./images/SpringMVC请求参数总结11.png" alt="spmvc-p-12"></p>
+<h3 id="二使用注解datetimeformat或者jsonformat">二、使用注解@DateTimeFormat或者@JsonFormat</h3>
+<p>@DateTimeFormat注解配合@RequestBody的参数使用的时候，会发现抛出InvalidFormatException异常，提示转换失败，这是因为在处理此注解的时候，只支持form提交(ContentType为x-www-form-urlencoded)，例子如下：</p>
+<p><img src="./images/SpringMVC请求参数总结12.png" alt="spmvc-p-13"></p>
+<pre><code><code class="hljs"><span class="hljs-meta">@Data</span>
+<span class="hljs-keyword">public</span> <span class="hljs-class"><span class="hljs-keyword">class</span> <span class="hljs-title">UserDto2</span> </span>{
+
+    <span class="hljs-keyword">private</span> String userId;
+    <span class="hljs-meta">@DateTimeFormat</span>(pattern = <span class="hljs-string">"yyyy-MM-dd HH:mm:ss"</span>)
+    <span class="hljs-keyword">private</span> LocalDateTime birthdayTime;
+    <span class="hljs-meta">@DateTimeFormat</span>(pattern = <span class="hljs-string">"yyyy-MM-dd HH:mm:ss"</span>)
+    <span class="hljs-keyword">private</span> LocalDateTime graduationTime;
+}
+
+
+<span class="hljs-meta">@PostMapping</span>(value = <span class="hljs-string">"/date2"</span>)
+<span class="hljs-function"><span class="hljs-keyword">public</span> String <span class="hljs-title">date2</span><span class="hljs-params">(UserDto2 userDto2)</span> </span>{
+    log.info(userDto2.toString());
+    <span class="hljs-keyword">return</span> <span class="hljs-string">"success"</span>;
+}
+
+<span class="hljs-comment">//或者像下面这样</span>
+<span class="hljs-meta">@PostMapping</span>(value = <span class="hljs-string">"/date2"</span>)
+<span class="hljs-function"><span class="hljs-keyword">public</span> String <span class="hljs-title">date2</span><span class="hljs-params">(@RequestParam(<span class="hljs-string">"name"</span>=<span class="hljs-string">"userId"</span>)</span>String userId,
+                    @<span class="hljs-title">RequestParam</span><span class="hljs-params">(<span class="hljs-string">"name"</span>=<span class="hljs-string">"birthdayTime"</span>)</span> @<span class="hljs-title">DateTimeFormat</span><span class="hljs-params">(pattern = <span class="hljs-string">"yyyy-MM-dd HH:mm:ss"</span>)</span> LocalDateTime birthdayTime,
+                    @<span class="hljs-title">RequestParam</span><span class="hljs-params">(<span class="hljs-string">"name"</span>=<span class="hljs-string">"graduationTime"</span>)</span> @<span class="hljs-title">DateTimeFormat</span><span class="hljs-params">(pattern = <span class="hljs-string">"yyyy-MM-dd HH:mm:ss"</span>)</span> LocalDateTime graduationTime) </span>{
+    <span class="hljs-keyword">return</span> <span class="hljs-string">"success"</span>;
+}</code></code></pre>
+<p>而@JsonFormat注解可使用在form或者Json请求参数的场景，因此更推荐使用@JsonFormat注解，不过注意需要指定时区(timezone属性，例如在中国是东八区"GMT+8")，否则有可能导致出现"时差"，举个例子：</p>
+<pre><code><code class="hljs"><span class="hljs-meta">@PostMapping</span>(value = <span class="hljs-string">"/date2"</span>)
+<span class="hljs-function"><span class="hljs-keyword">public</span> String <span class="hljs-title">date2</span><span class="hljs-params">(@RequestBody UserDto2 userDto2)</span> </span>{
+    log.info(userDto2.toString());
+    <span class="hljs-keyword">return</span> <span class="hljs-string">"success"</span>;
+}
+
+<span class="hljs-meta">@Data</span>
+<span class="hljs-keyword">public</span> <span class="hljs-class"><span class="hljs-keyword">class</span> <span class="hljs-title">UserDto2</span> </span>{
+
+    <span class="hljs-keyword">private</span> String userId;
+    <span class="hljs-meta">@JsonFormat</span>(pattern = <span class="hljs-string">"yyyy-MM-dd HH:mm:ss"</span>, timezone = <span class="hljs-string">"GMT+8"</span>)
+    <span class="hljs-keyword">private</span> LocalDateTime birthdayTime;
+    <span class="hljs-meta">@JsonFormat</span>(pattern = <span class="hljs-string">"yyyy-MM-dd HH:mm:ss"</span>, timezone = <span class="hljs-string">"GMT+8"</span>)
+    <span class="hljs-keyword">private</span> LocalDateTime graduationTime;
+}</code></code></pre>
+<h3 id="三jackson序列化和反序列化定制">三、Jackson序列化和反序列化定制</h3>
+<p>因为SpringMVC默认使用Jackson处理@RequestBody的参数转换，因此可以通过定制序列化器和反序列化器来实现日期类型的转换，这样我们就可以使用application/json的形式提交请求参数。这里的例子是转换请求Json参数中的字符串为LocalDateTime类型，属于Json反序列化，因此需要定制反序列化器：</p>
+<pre><code><code class="hljs"><span class="hljs-meta">@PostMapping</span>(value = <span class="hljs-string">"/date3"</span>)
+<span class="hljs-function"><span class="hljs-keyword">public</span> String <span class="hljs-title">date3</span><span class="hljs-params">(@RequestBody UserDto3 userDto3)</span> </span>{
+    log.info(userDto3.toString());
+    <span class="hljs-keyword">return</span> <span class="hljs-string">"success"</span>;
+}
+
+<span class="hljs-meta">@Data</span>
+<span class="hljs-keyword">public</span> <span class="hljs-class"><span class="hljs-keyword">class</span> <span class="hljs-title">UserDto3</span> </span>{
+
+    <span class="hljs-keyword">private</span> String userId;
+    <span class="hljs-meta">@JsonDeserialize</span>(using = CustomLocalDateTimeDeserializer.class)
+    <span class="hljs-keyword">private</span> LocalDateTime birthdayTime;
+    <span class="hljs-meta">@JsonDeserialize</span>(using = CustomLocalDateTimeDeserializer.class)
+    <span class="hljs-keyword">private</span> LocalDateTime graduationTime;
+}
+
+<span class="hljs-keyword">public</span> <span class="hljs-class"><span class="hljs-keyword">class</span> <span class="hljs-title">CustomLocalDateTimeDeserializer</span> <span class="hljs-keyword">extends</span> <span class="hljs-title">LocalDateTimeDeserializer</span> </span>{
+
+    <span class="hljs-function"><span class="hljs-keyword">public</span> <span class="hljs-title">CustomLocalDateTimeDeserializer</span><span class="hljs-params">()</span> </span>{
+        <span class="hljs-keyword">super</span>(DateTimeFormatter.ofPattern(<span class="hljs-string">"yyyy-MM-dd HH:mm:ss"</span>));
+    }
+}</code></code></pre>
+<h3 id="四最佳实践">四、最佳实践</h3>
+<p>前面三种方式都存在硬编码等问题，其实最佳实践是直接修改MappingJackson2HttpMessageConverter中的ObjectMapper对于日期类型处理默认的序列化器和反序列化器，这样就能全局生效，不需要再使用其他注解或者定制序列化方案(当然，有些时候需要特殊处理定制)，或者说，在需要特殊处理的场景才使用其他注解或者定制序列化方案。使用钩子接口Jackson2ObjectMapperBuilderCustomizer可以实现ObjectMapper的属性定制：</p>
+<pre><code><code class="hljs"><span class="hljs-meta">@Bean</span>
+<span class="hljs-function"><span class="hljs-keyword">public</span> Jackson2ObjectMapperBuilderCustomizer <span class="hljs-title">jackson2ObjectMapperBuilderCustomizer</span><span class="hljs-params">()</span></span>{
+    <span class="hljs-keyword">return</span> customizer-&gt;{
+        customizer.serializerByType(LocalDateTime.class,<span class="hljs-keyword">new</span> LocalDateTimeSerializer(
+                DateTimeFormatter.ofPattern(<span class="hljs-string">"yyyy-MM-dd HH:mm:ss"</span>)));
+        customizer.deserializerByType(LocalDateTime.class,<span class="hljs-keyword">new</span> LocalDateTimeDeserializer(
+                DateTimeFormatter.ofPattern(<span class="hljs-string">"yyyy-MM-dd HH:mm:ss"</span>)));
+    };
+}</code></code></pre>
+<p>这样就能定制化MappingJackson2HttpMessageConverter中持有的ObjectMapper，上面的LocalDateTime序列化和反序列化器对全局生效。</p>
+<h2 id="请求url匹配">请求URL匹配</h2>
+<p>前面基本介绍完了主流的请求参数处理，其实SpringMVC中还会按照URL的模式进行匹配，使用的是Ant路径风格，处理工具类为<code>org.springframework.util.AntPathMatcher</code>，从此类的注释来看，匹配规则主要包括下面四点：</p>
+<ul>
+<li>1、<code>?</code>匹配1个字符。</li>
+<li>2、<code>*</code>匹配0个或者多个<strong>字符</strong>。</li>
+<li>3、<code>**</code>匹配路径中0个或者多个<strong>目录</strong>。</li>
+<li>4、<code>{spring:[a-z]+}</code>将正则表达式[a-z]+匹配到的值，赋值给名为<strong>spring</strong>的路径变量。</li>
+</ul>
+<p>举些例子：</p>
+<p><strong>?形式的URL</strong>：</p>
+<pre><code><code class="hljs"><span class="hljs-meta">@GetMapping</span>(value = <span class="hljs-string">"/pattern?"</span>)
+<span class="hljs-function"><span class="hljs-keyword">public</span> String <span class="hljs-title">pattern</span><span class="hljs-params">()</span> </span>{
+    <span class="hljs-keyword">return</span> <span class="hljs-string">"success"</span>;
+}
+
+/pattern  <span class="hljs-number">404</span> Not Found
+/patternd  <span class="hljs-number">200</span> OK
+/patterndd  <span class="hljs-number">404</span> Not Found
+/pattern/  <span class="hljs-number">404</span> Not Found
+/patternd/s  <span class="hljs-number">404</span> Not Found</code></code></pre>
+<p><strong>*形式的URL</strong>：</p>
+<pre><code><code class="hljs"><span class="hljs-meta">@GetMapping</span>(value = <span class="hljs-string">"/pattern*"</span>)
+<span class="hljs-function"><span class="hljs-keyword">public</span> String <span class="hljs-title">pattern</span><span class="hljs-params">()</span> </span>{
+    <span class="hljs-keyword">return</span> <span class="hljs-string">"success"</span>;
+}
+
+/pattern  <span class="hljs-number">200</span> OK
+/pattern/  <span class="hljs-number">200</span> OK
+/patternd  <span class="hljs-number">200</span> OK
+/pattern/a  <span class="hljs-number">404</span> Not Found</code></code></pre>
+<p><strong>**形式的URL</strong>：</p>
+<pre><code><code class="hljs"><span class="hljs-meta">@GetMapping</span>(value = <span class="hljs-string">"/pattern/**/p"</span>)
+<span class="hljs-function"><span class="hljs-keyword">public</span> String <span class="hljs-title">pattern</span><span class="hljs-params">()</span> </span>{
+    <span class="hljs-keyword">return</span> <span class="hljs-string">"success"</span>;
+}
+
+/pattern/p  <span class="hljs-number">200</span> OK
+/pattern/x/p  <span class="hljs-number">200</span> OK
+/pattern/x/y/p  <span class="hljs-number">200</span> OK</code></code></pre>
+<p><strong>{spring:[a-z]+}形式的URL</strong>：</p>
+<pre><code><code class="hljs"><span class="hljs-meta">@GetMapping</span>(value = <span class="hljs-string">"/pattern/{key:[a-c]+}"</span>)
+<span class="hljs-function"><span class="hljs-keyword">public</span> String <span class="hljs-title">pattern</span><span class="hljs-params">(@PathVariable(name = <span class="hljs-string">"key"</span>)</span> String key) </span>{
+    <span class="hljs-keyword">return</span> <span class="hljs-string">"success"</span>;
+}
+
+/pattern/a  <span class="hljs-number">200</span> OK
+/pattern/ab  <span class="hljs-number">200</span> OK
+/pattern/abc  <span class="hljs-number">200</span> OK
+/pattern  <span class="hljs-number">404</span> Not Found
+/pattern/abcd  <span class="hljs-number">404</span> Not Found</code></code></pre>
+<p>上面的四种URL模式可以组合使用，千变万化。</p>
+<p>URL匹配还遵循<strong>精确匹配原则</strong>，也就是存在两个模式对同一个URL都能够匹配成功，则选取最精确的URL匹配，进入对应的控制器方法，举个例子：</p>
+<pre><code><code class="hljs"><span class="hljs-meta">@GetMapping</span>(value = <span class="hljs-string">"/pattern/**/p"</span>)
+<span class="hljs-function"><span class="hljs-keyword">public</span> String <span class="hljs-title">pattern1</span><span class="hljs-params">()</span> </span>{
+    <span class="hljs-keyword">return</span> <span class="hljs-string">"success"</span>;
+}
+
+<span class="hljs-meta">@GetMapping</span>(value = <span class="hljs-string">"/pattern/p"</span>)
+<span class="hljs-function"><span class="hljs-keyword">public</span> String <span class="hljs-title">pattern2</span><span class="hljs-params">()</span> </span>{
+    <span class="hljs-keyword">return</span> <span class="hljs-string">"success"</span>;
+}</code></code></pre>
+<p>上面两个控制器，如果请求URL为/pattern/p，最终进入的方法为<code>pattern2</code>。</p>
+<p>最后，<code>org.springframework.util.AntPathMatcher</code>作为一个工具类，可以单独使用，不仅仅可以用于匹配URL，也可以用于匹配系统文件路径，不过需要使用其带参数构造改变内部的pathSeparator变量，例如：</p>
+<pre><code><code class="hljs">AntPathMatcher antPathMatcher = <span class="hljs-keyword">new</span> AntPathMatcher(File.separator);</code></code></pre>
+<h2>附加</h2>
+<p>
+Content-Type（MediaType），即是Internet Media Type，互联网媒体类型，也叫做MIME类型。在互联网中有成百上千中不同的数据类型，HTTP在传输数据对象时会为他们打上称为MIME的数据格式标签，用于区分数据类型。最初MIME是用于电子邮件系统的，后来HTTP也采用了这一方案。<br/>
+在HTTP协议消息头中，使用Content-Type来表示请求和响应中的媒体类型信息。它用来告诉服务端如何处理请求的数据，以及告诉客户端（一般是浏览器）如何解析响应的数据，比如显示图片，解析并展示html等等。<br/>
+<font color=red size=4>下面四种常用的必须记住,仔细研读</font>
+<h4>1. application/x-www-form-urlencoded</h4>
+<p>HTTP会将请求参数用key1=val1&key2=val2的方式进行组织，并放到请求实体里面，注意如果是中文或特殊字符如"/"、","、“:" 等会自动进行URL转码。不支持文件，一般用于表单提交(表单提交默认的就是这种方式,使用表单提交文件的时候需要声明enctype="multipart/form-data",添加这个后Content-Type会转为multipart/form-data,才可以提交文件)。</p>
+<h4>2. multipart/form-data</h4>
+<p>与application/x-www-form-urlencoded不同，这是一个多部分多媒体类型。首先生成了一个 boundary 用于分割不同的字段，在请求实体里每个参数以------boundary开始，然后是附加信息和参数名，然后是空行，最后是参数内容。多个参数将会有多个boundary块。如果参数是文件会有特别的文件域。最后以------boundary–为结束标识。multipart/form-data支持文件上传的格式，一般需要上传文件的表单则用该类型。</p>
+
+<h4>3. application/json</h4>
+<p>JSON 是一种轻量级的数据格式，以“键-值”对的方式组织的数据。使用这个类型，需要参数本身就是json格式的数据，参数会被直接放到请求实体里，不进行任何处理。服务端/客户端会按json格式解析数据（约定好的情况下）。</p>
+
+<h4>4. application/xml 和 text/xml</h4>
+<p>与application/json类似，这里用的是xml格式的数据，text/xml的话，将忽略xml数据里的编码格式，<br/><br/>
+<font color=red size=4>前端的传送的方式已经知道了,后端如何获取数据(测试使用的springboot项目,ssm的话项目上传应该要进行一定的配置)</font>
+</p>
+<h4>1. 根据content-type方面区分</h4>
+<p><ol>
+<li>application/json：json字符串部分可以用@RequestBody；url中的?后面参数可以用@RequestParam(如果两者一起用,@RequestParam用来获取URL中的数据)</li>
+<li>form-data、x-www-form-urlencoded：不可以用@RequestBody；可以用@RequestParam(不用任何注解也可以自动匹配)。如果用@RequestBody,值会合并在一起(form-data格式的时候,Content-Type删掉.在使用postman时,在body中点击了别的格式会把格式保存在headers中,再以form-data发送数据,headers中会有之前保留的格式,要删除掉,否则后台无法使用@RequestParam绑定数据)</li>
+</ol></p>
+
+<h4>2. 根据注解方式区分</h4>
+<p><ol>
+<li>@RequestBody: 该注解常用来处理Content-Type为application/json, application/xml的数据: <br/>
+(@RequestBody Map map), (@RequestBody Object object)<br/>
+application/json时候可用,form-data、x-www-form-urlencoded时候不可用；<br/>
+ps:<br/>1. GET请求没有请求体不能用@RequestBody来接收参数 
+<br/>2. 后台只能有一个@Request注解
+</li>
+<li>@RequestParam: 使用@RequestParm用于绑定controller上的参数,可以是多个参数，也可以是一个Map集合，GET，POST均可<br/>
+ps:<br/>1.(@RequestParam Map map):<br/>
+application/json时候，json字符串部分不可用，url中的?后面添加参数即可用，form-data、x-www-form-urlencoded时候可用，但是要将Headers里的Content-Type删掉
+<br/>2.(@RequestParam String param1,@RequestParam String param2):<br/>
+pplication/json时候，json字符串部分不可用，url中的?后面添加参数即可用。
+form-data、x-www-form-urlencoded时候可用，且参数可以没有顺序（即前端传过来的参数或者url中的参数顺序不必和后台接口中的参数顺序一致，只要字段名相同就可以），但是要将Headers里的Content-Type删掉
+<br/>3. (@RequestParam Object object): <br/>
+不管application/json、form-data、x-www-form-urlencoded都不可用<br/>
+ps:<br/>
+只支持Content-Type: 为 application/x-www-form-urlencoded编码的内容。Http协议中，如果不指定Content-Type，则默认传递的参数就是application/x-www-form-urlencoded类型）
+</li>
+</ol></p>
+
+<h5>提炼(仅post请求方式):<br/>1. 在postman中测试:只有form-data才可以上传文件,Content-Type为form-data时,要把请求头中的Content-Type删除掉,否则请求失败.
+<br/>我觉得 form-data不带Content-Type与application/x-www-form-urlencoded带着Content-Type除了后者不能上传文件,在后端对两者请求体中的数据进行接受效果一样的(不用注解和使用@RequestParam注解,@RequestBody无法处理这两种).
+<br/>2. @RequestBody只能处理请求体中的数据,@RequestBody,会把所有的值合并到一起,方法参数中只能有一个@RequestBody,可以有多个@Requestparam.同时存在的时候,猜想@RequestBody会把请求体中的数据合并到一起,@RequestParam在请求体中找不到处理的数据,要到url中找,这个时候要url和请求体都有数据才可以,因为@RequestParam默认value对应的值请求的数据中是一定要有的.
+<br/>3. @Requestparam: 请求体(post)和url(get)中的参数都可以处理.就算不写@RequestParam也可以匹配(要数据的key与形参完全一致).写了可以通过注解有更多的操作(必须传某些参数,数据的key与注解指定的value进行匹配),如果参数是一个对象也可以.
+<br/>4. 如果后端只是想要接收前端传的任意一个字符串,或者前端只是想给后端一个任意的字符串.<br/>
+ 这时:前端的Content-Type要为application/json 后端通过@RequestBody 注解修饰一个String类型的形参(形参名任意,但只能有一个).这个时候请求体中的字符串就会和唯一的形参匹配.
+<br/>如果想在后端通过对象类型的参数与前端传的数据自动匹配,请求体中的数据一定要严格符合json格式.每对 k v都要以""包起来,数字可以不用.<br/>
+form-data,application/x-www-form-urlencoded 前端穿什么后端就接什么,如果前端传"123a"后端就是""123a"".json的会把""去掉后转为字符串.数字的会把""去掉.
+ </h5>
+
+<h2 id="小结">小结</h2>
+<p>笔者在前一段时间曾经花大量时间梳理和分析过Spring、SpringMVC的源码，但是后面一段很长的时间需要进行业务开发，对架构方面的东西有点生疏了，毕竟东西不用就会生疏，这个是常理。这篇文章基于一些SpringMVC的源码经验总结了请求参数的处理相关的一些知识，希望帮到自己和大家。</p>
+<p>参考资料：</p>
+<ul>
+<li>spring-boot-web-starter:2.0.3.RELEASE源码。</li>
+</ul>
+<p>（本文完）</p>
+
+
+
+</div><hr><script charset='utf-8' src='../../js/sming.js'></script></body></html>

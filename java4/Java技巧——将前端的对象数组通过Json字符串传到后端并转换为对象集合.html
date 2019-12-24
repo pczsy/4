@@ -1,0 +1,57 @@
+<html><head><meta charset='utf-8'><meta name='viewport' content='width=device-width, initial-scale=1'>
+<meta name='applicable-device' content='pc'><meta name='keywords' content='电脑,电脑讲解,电脑技术,编程,电脑故障维修Java技巧——将前端的对象数组通过Json字符串传到后端并转换为对象集合' />
+<script src='../../highlight/highlight.pack.js'></script>
+<link rel='stylesheet' type='text/css' href='../../highlight/styles/monokai.css'/>
+
+<link rel='stylesheet' href='../../fenxiang/dist/css/share.min.css'>
+<script src='../../fenxiang/src/js/social-share.js'></script>
+<script src='../../fenxiang/src/js/qrcode.js'></script>
+
+</head><body><script>hljs.initHighlightingOnLoad();</script><script>
+var system ={};  
+var p = navigator.platform;       
+system.win = p.indexOf('Win') == 0;  
+system.mac = p.indexOf('Mac') == 0;  
+system.x11 = (p == 'X11') || (p.indexOf('Linux') == 0);     
+if(system.win||system.mac||system.xll){
+document.write("<link href='../css/3.css' rel='stylesheet' type='text/css'>");}else{ document.write("<link href='../css/3wap.css' rel='stylesheet' type='text/css'>");}</script><script src='../../js/3.js'></script><div class='div2'><div class='heading_nav'><ul><div><li><a href='../../index.html'>首页</a></li>
+</div><div onclick='hidden1()' >分享</div>
+</ul></div></div>
+<div id='heading_nav2'> 
+<li class='row' >
+<div class='social-share' data-mode='prepend'><a href='javascript:' class='social-share-icon icon-heart'></a></div></li></div><script charset='utf-8' src='../../3/js/hengfu.js'></script><script charset='utf-8' src='../../3/js/hengfu2.js'></script><hr><div class='div1'><div class='biaoti'><center>Java技巧——将前端的对象数组通过Json字符串传到后端并转换为对象集合</center></div><div class='banquan'>原文出处:本文由博客园博主鲨猫提供。<br/>
+原文连接:https://www.cnblogs.com/shamao/p/11853658.html</div><br>
+    <h1>Java技巧&mdash;&mdash;将前端的对象数组通过Json字符串传到后端并转换为对象集合</h1>
+<p>摘要：本文主要记录了如何将将前端的对象数组通过Json字符串传到后端，并在后端将Json字符串转换为对象集合。</p>
+<h2>前端代码</h2>
+<p>前端代码的功能是获取页面上的学生信息，使用对象数组保存，将对象数组转换为Json字符串传递到后端：</p>
+<src class="cnblogs_code">
+<pre><code><span style="color: #008080;"> 1</span> var students = $("#studentList .item"<span style="color: #000000;">);
+</span><span style="color: #008080;"> 2</span> var studentList =<span style="color: #000000;"> [];
+</span><span style="color: #008080;"> 3</span> <span style="color: #0000ff;">for</span> (var i = 0; i &lt; students.length; i++<span style="color: #000000;">) {
+</span><span style="color: #008080;"> 4</span>     var student =<span style="color: #000000;"> {};
+</span><span style="color: #008080;"> 5</span>     student["name"] = $(students[i]).attr("name"<span style="color: #000000;">);
+</span><span style="color: #008080;"> 6</span>     student["sex"] = $(students[i]).attr("sex"<span style="color: #000000;">);
+</span><span style="color: #008080;"> 7</span>     student["age"] = $(students[i]).attr("age"<span style="color: #000000;">);
+</span><span style="color: #008080;"> 8</span> <span style="color: #000000;">    studentList.push(drug);
+</span><span style="color: #008080;"> 9</span> <span style="color: #000000;">}
+</span><span style="color: #008080;">10</span> var drugListStr =<span style="color: #000000;"> JSON.stringify(studentList);
+</span><span style="color: #008080;">11</span> ajaxAsyncUtil(drugListStr, mainpath + "/student/addStudentList.do"<span style="color: #000000;">, function (response) {
+</span><span style="color: #008080;">12</span>     alert("操作成功"<span style="color: #000000;">);
+</span><span style="color: #008080;">13</span> });</code></pre>
+
+<h2>后端代码</h2>
+<p>后端代码的功能是获取前端传入的Json字符串，并解析为对象集合进行遍历：</p>
+<src class="cnblogs_code">
+<pre><code><span style="color: #008080;">1</span> @RequestMapping(value = "addStudents.do"<span style="color: #000000;">)
+</span><span style="color: #008080;">2</span> <span style="color: #0000ff;">public</span> <span style="color: #0000ff;">void</span> addStudents(HttpServletRequest request, HttpServletResponse response, String callback, String studentListStr) <span style="color: #0000ff;">throws</span><span style="color: #000000;"> Exception {
+</span><span style="color: #008080;">3</span>     <span style="color: #008000;">//</span><span style="color: #008000;">String studentListStr = "[{\"name\":\"张三\",\"sex\":\"男\",\"age\":\"20\"},{\"name\":\"李四\",\"sex\":\"女\",\"age\":\"25\"},]";</span>
+<span style="color: #008080;">4</span>     List&lt;Student&gt; studentList = JSONObject.parseArray(studentListStr, Student.<span style="color: #0000ff;">class</span><span style="color: #000000;">);
+</span><span style="color: #008080;">5</span>     <span style="color: #0000ff;">for</span><span style="color: #000000;"> (Student student : studentList) {
+</span><span style="color: #008080;">6</span> <span style="color: #000000;">        System.out.println(student.getName());
+</span><span style="color: #008080;">7</span> <span style="color: #000000;">    }
+</span><span style="color: #008080;">8</span> }</code></pre>
+
+<p>其中，在后端使用的转换是来自于&nbsp;<span class="cnblogs_code">com.alibaba.fastjson</span>&nbsp;包下的类。</p>
+
+</div><hr><script charset='utf-8' src='../../js/sming.js'></script></body></html>

@@ -1,0 +1,114 @@
+<html><head><meta charset='utf-8'><meta name='viewport' content='width=device-width, initial-scale=1'>
+<meta name='applicable-device' content='pc'><meta name='keywords' content='电脑,电脑讲解,电脑技术,编程,电脑故障维修为什么要使用构造方法进行依赖注入' />
+<script src='../../highlight/highlight.pack.js'></script>
+<link rel='stylesheet' type='text/css' href='../../highlight/styles/monokai.css'/>
+
+<link rel='stylesheet' href='../../fenxiang/dist/css/share.min.css'>
+<script src='../../fenxiang/src/js/social-share.js'></script>
+<script src='../../fenxiang/src/js/qrcode.js'></script>
+
+</head><body><script>hljs.initHighlightingOnLoad();</script><script>
+var system ={};  
+var p = navigator.platform;       
+system.win = p.indexOf('Win') == 0;  
+system.mac = p.indexOf('Mac') == 0;  
+system.x11 = (p == 'X11') || (p.indexOf('Linux') == 0);     
+if(system.win||system.mac||system.xll){
+document.write("<link href='../css/3.css' rel='stylesheet' type='text/css'>");}else{ document.write("<link href='../css/3wap.css' rel='stylesheet' type='text/css'>");}</script><script src='../../js/3.js'></script><div class='div2'><div class='heading_nav'><ul><div><li><a href='../../index.html'>首页</a></li>
+</div><div onclick='hidden1()' >分享</div>
+</ul></div></div>
+<div id='heading_nav2'> 
+<li class='row' >
+<div class='social-share' data-mode='prepend'><a href='javascript:' class='social-share-icon icon-heart'></a></div></li></div><script charset='utf-8' src='../../3/js/hengfu.js'></script><script charset='utf-8' src='../../3/js/hengfu2.js'></script><hr><div class='div1'><div class='biaoti'><center>为什么要使用构造方法进行依赖注入</center></div><div class='banquan'>原文出处:本文由博客园博主老韩的异想世界提供。<br/>
+原文连接:https://www.cnblogs.com/hanstrovsky/p/11601010.html</div><br>
+    <h1 class="md-end-block md-heading"><span class="md-plain">一、前言</span></h1>
+<p class="md-end-block md-p"><span class="md-plain">我们在使用Spring框架进行开发时，不可避免的要进行依赖注入（Dependency Injection），也就是把实例从Spring容器中取出来进行使用。Spring的依赖注入方式主要有三种，分别为Constructor、Setter和Field。有了选择的余地，令人纠结的地方就来了，这三种方式哪个更好一些呢？</span></p>
+<h1 class="md-end-block md-heading"><span class="md-plain">二、注入方式对比</span></h1>
+<p><span class="md-plain">接下来我们逐一看下这三种注入方式：</span></p>
+<h2 class="md-end-block md-heading"><span class="md-plain">Field注入</span></h2>
+<src class="cnblogs_code">
+<pre><code><span style="color: #000000;">@Autowired
+</span><span style="color: #0000ff;">private</span> DependencyA dependencyA;</code></pre>
+
+<h3 class="md-end-block md-heading"><span class="md-plain">优点</span></h3>
+<ul>
+<li>注入简单，只需在字段上添加@Autowired或@Resource；</li>
+<li>减少大量冗余代码，美观；</li>
+<li>新增Field时不需要过多代码修改；</li>
+</ul>
+<h3><span class="md-plain">缺点</span></h3>
+<ul class="ul-list" data-mark="-">
+<li class="md-list-item md-focus-container">
+<p class="md-end-block md-p md-focus"><span class="md-plain md-expand">很难测试，因为没有带参构造和set方法，难以在容器以外使用。</span></p>
+</li>
+<li class="md-list-item">
+<p class="md-end-block md-p"><span class="md-plain">依赖不能是final的</span></p>
+</li>
+<li class="md-list-item">
+<p class="md-end-block md-p"><span class="md-plain">容易出现循环依赖</span></p>
+</li>
+</ul>
+<h2 class="md-end-block md-heading"><span class="md-plain">Setter注入</span></h2>
+<src class="cnblogs_code">
+<pre><code><span style="color: #0000ff;">private</span><span style="color: #000000;"> DependencyB dependencyB;
+@Autowired
+</span><span style="color: #0000ff;">public</span> <span style="color: #0000ff;">void</span><span style="color: #000000;"> setDependencyB(DependencyB dependencyB) {
+    </span><span style="color: #0000ff;">this</span>.dependencyB =<span style="color: #000000;"> dependencyB;
+}</span></code></pre>
+
+<h3><span class="md-plain">优点</span></h3>
+<ul>
+<li class="md-end-block md-p"><span class="md-plain">对循环依赖免疫</span></li>
+</ul>
+<ul>
+<li class="md-end-block md-p">在对象的整个生命周期内，可以随时动态的改变依赖。</li>
+</ul>
+<h3 class="md-end-block md-heading"><span class="md-plain">缺点</span></h3>
+<ul>
+<li class="md-list-item">依赖不能是final的</li>
+</ul>
+<h2 class="md-end-block md-heading"><span class="md-plain">Constructor注入</span></h2>
+<src class="cnblogs_code">
+<pre><code><span style="color: #0000ff;">private</span><span style="color: #000000;"> DependencyC dependencyC;
+@Autowired
+</span><span style="color: #0000ff;">public</span><span style="color: #000000;"> DI(DependencyC dependencyC) {
+    </span><span style="color: #0000ff;">this</span>.dependencyC =<span style="color: #000000;"> dependencyC;
+}</span></code></pre>
+
+<h4 class="md-end-block md-heading"><span class="md-plain">优点</span></h4>
+<ul class="ul-list" data-mark="-">
+<li class="md-list-item">
+<p class="md-end-block md-p"><span class="md-plain">依赖可以是final的</span></p>
+</li>
+<li class="md-list-item">
+<p class="md-end-block md-p"><span class="md-plain">高耦合类随着构造参数的增长很容易被识别出来</span></p>
+</li>
+<li class="md-list-item">
+<p class="md-end-block md-p"><span class="md-plain">不需要依赖@Autowired注解（当类中只有一个构造方法时，可以省略@Autowired）</span></p>
+</li>
+</ul>
+<h4 class="md-end-block md-heading"><span class="md-plain">缺点</span></h4>
+<ul>
+<li class="md-end-block md-p"><span class="md-plain">代码显得十分臃肿</span></li>
+</ul>
+<h1 class="md-end-block md-heading"><span class="md-plain">三、选择哪种注入方式</span></h1>
+<p>Spring官方目前推荐的是构造器注入。根据官方的说法，因为它使人们能够将应用程序组件实现为<strong>不可变对象</strong>，并确保所需的<strong>依赖项不为null</strong>。此外，注入构造函数的组件总是以<strong>完全初始化</strong>的状态返回到客户端（调用）代码。</p>
+<ul class="ul-list" data-mark="-">
+<li class="md-list-item">
+<p class="md-end-block md-p"><span class="md-plain"><strong>不可变对象：</strong>说的是可以是字段用final关键字修饰。</span></p>
+</li>
+<li class="md-list-item">
+<p class="md-end-block md-p"><span class="md-plain"><strong>依赖不为null：</strong>因为有了自定义的构造函数，所以程序不再提供默认的空参构造，类在实例化时必须传入所有需要的参数。</span></p>
+</li>
+<li class="md-list-item">
+<p class="md-end-block md-p"><span class="md-plain"><strong>完全初始化的状态：</strong>构造方法的作用就是初始化成员变量，在Java类加载实例化的过程中，构造方法是最后一步，所以返回来的组件都是初始化之后的状态。</span></p>
+</li>
+</ul>
+<h1 class="md-end-block md-heading"><span class="md-plain">四、总结</span></h1>
+<p><span class="md-plain">三种方式各有利弊，从靠谱程度来说，还是构造器注入更好一些，它能有效避免一些比如循环依赖、空指针等异常的发生。另外，Spring中Bean默认为单例的，有可能会出现线程安全问题，这个时候final就更有必要了。当然，其他两种方式也有其自己的发光点，我们可以按实际需要选择使用，或混合使用。</span></p>
+<p><strong><span class="md-plain">========================================================================================</span></strong></p>
+<p><strong><span class="md-plain">不要简单的收集学习资料，知识活在百度云或者书签列表中意义不大。</span></strong></p>
+<p><strong><span class="md-plain">把自己困惑的地方，真正搞懂，写出来。如果别人也能看懂，那才是真的掌握了，坚持下去，应该会有收获。</span></strong></p>
+<p><strong><span class="md-plain">========================================================================================</span></strong></p>
+
+</div><hr><script charset='utf-8' src='../../js/sming.js'></script></body></html>

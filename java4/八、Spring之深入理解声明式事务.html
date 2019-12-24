@@ -1,0 +1,154 @@
+<html><head><meta charset='utf-8'><meta name='viewport' content='width=device-width, initial-scale=1'>
+<meta name='applicable-device' content='pc'><meta name='keywords' content='电脑,电脑讲解,电脑技术,编程,电脑故障维修八、Spring之深入理解声明式事务' />
+<script src='../../highlight/highlight.pack.js'></script>
+<link rel='stylesheet' type='text/css' href='../../highlight/styles/monokai.css'/>
+
+<link rel='stylesheet' href='../../fenxiang/dist/css/share.min.css'>
+<script src='../../fenxiang/src/js/social-share.js'></script>
+<script src='../../fenxiang/src/js/qrcode.js'></script>
+
+</head><body><script>hljs.initHighlightingOnLoad();</script><script>
+var system ={};  
+var p = navigator.platform;       
+system.win = p.indexOf('Win') == 0;  
+system.mac = p.indexOf('Mac') == 0;  
+system.x11 = (p == 'X11') || (p.indexOf('Linux') == 0);     
+if(system.win||system.mac||system.xll){
+document.write("<link href='../css/3.css' rel='stylesheet' type='text/css'>");}else{ document.write("<link href='../css/3wap.css' rel='stylesheet' type='text/css'>");}</script><script src='../../js/3.js'></script><div class='div2'><div class='heading_nav'><ul><div><li><a href='../../index.html'>首页</a></li>
+</div><div onclick='hidden1()' >分享</div>
+</ul></div></div>
+<div id='heading_nav2'> 
+<li class='row' >
+<div class='social-share' data-mode='prepend'><a href='javascript:' class='social-share-icon icon-heart'></a></div></li></div><script charset='utf-8' src='../../3/js/hengfu.js'></script><script charset='utf-8' src='../../3/js/hengfu2.js'></script><hr><div class='div1'><div class='biaoti'><center>八、Spring之深入理解声明式事务</center></div><div class='banquan'>原文出处:本文由博客园博主ねぇ提供。<br/>
+原文连接:https://www.cnblogs.com/lee0527/p/11787742.html</div><br>
+    <h2 id="spring之深入理解声明式事务">Spring之深入理解声明式事务</h2>
+<p><strong>何为事务？</strong></p>
+<p>事务就是把一系列的动作当成一个独立的工作单元，这些动作要么全部完成，要么全部不起作用。</p>
+<p><strong>事务的四个属性</strong>：</p>
+<p>1、原子性（atomicity）</p>
+<p>事务是原子性操作，由一系列动作组成，事务的原子性确保动作要么全部完成，要么完全不起作用</p>
+<p>2、一致性（consistency）</p>
+<p>一旦所有事务动作完成，事务就要被提交。数据和资源处于一种满足业务规则的一致性状态中</p>
+<p>3、隔离性（isolation）</p>
+<p>可能多个事务会同时处理相同的数据，因此每个事务都应该与其他事务隔离开来，防止数据损坏</p>
+<p>4、持久性（durability）</p>
+<p>事务一旦完成，无论系统发生什么错误，结果都不会受到影响。通常情况下，事务的结果被写到持久化存储器中</p>
+<p><strong>Spring中的事务管理</strong></p>
+<p>Spring在不同的事务管理API之上定义了一个抽象层，使得开发人员不必了解底层的事务管理API就可以使用Spring的事务管理机制。Spring支持编程式事务管理和声明式的事务管理。</p>
+<p><strong>编程式事务管理</strong><br />
+将事务管理代码嵌到业务方法中来控制事务的提交和回滚</p>
+<p>缺点：必须在每个事务操作业务逻辑中包含额外的事务管理代码</p>
+<p><strong>声明式事务管理</strong><br />
+将事务管理代码从业务方法中分离出来，以声明的方式来实现事务管理。将事务管理作为横切关注点，通过AOP方法模块化。Spring中通过Spring AOP框架支持声明式事务管理。</p>
+<p><strong>传播行为</strong></p>
+<table>
+<thead>
+<tr class="header">
+<th style="text-align: left;">REQUIRED</th>
+<th>如果有事务在运行，当前的方法就在这个事务内运行，否则就开启一个新的事务，并在自己的事务内运行,默认传播行为</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td style="text-align: left;"><strong>REQUIRED_NEW</strong></td>
+<td><strong>当前方法必须启动新事务，并在自己的事务内运行，如果有事务正在运行，则将它挂起</strong></td>
+</tr>
+<tr class="even">
+<td style="text-align: left;"><strong>SUPPORTS</strong></td>
+<td><strong>如果有事务在运行，当前的方法就在这个事务内运行，否则可以不运行在事务中</strong></td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;"><strong>NOT_SUPPORTED</strong></td>
+<td><strong>表示该方法不应该运行在事务中。如果存在当前事务，在该方法运行期间，当前事务将被挂起。如果使用JTATransactionManager的话，则需要访问TransactionManager</strong></td>
+</tr>
+<tr class="even">
+<td style="text-align: left;"><strong>MANDATORY</strong></td>
+<td><strong>当前的方法必须运行在事务内部，如果没有正在运行的事务，就会抛出异常</strong></td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;"><strong>NEVER</strong></td>
+<td><strong>当前方法不应该运行在事务中，如果有运行的事务，就抛出异常</strong></td>
+</tr>
+<tr class="even">
+<td style="text-align: left;"><strong>NESTED</strong></td>
+<td><strong>如果有事务在运行，当前的方法就应该在这个事务的嵌套事务内运行。嵌套的事务可以独立于当前事务进行单独地提交或回滚。如果当前事务不存在，那么其行为与PROPAGATION_REQUIRED一样。</strong></td>
+</tr>
+</tbody>
+</table>
+<p><strong>示例：基于注解的声明式事务管理</strong></p>
+<p>创建配置类：</p>
+<pre><code><code>@Configuration
+//开启事务支持
+@EnableTransactionManagement
+@ComponentScan(&quot;com.zl.springBase.tx&quot;)
+public class TxConfig {
+    @Bean
+    public DataSource dataSource() throws PropertyVetoException {
+        ComboPooledDataSource dataSource = new ComboPooledDataSource();
+        dataSource.setDriverClass(&quot;com.mysql.jdbc.Driver&quot;);
+        dataSource.setJdbcUrl(&quot;jdbc:mysql:///test&quot;);
+        dataSource.setUser(&quot;root&quot;);
+        dataSource.setPassword(&quot;root&quot;);
+        return dataSource;
+    }
+
+    @Bean
+    public JdbcTemplate jdbcTemplate() throws PropertyVetoException {
+        return new JdbcTemplate(dataSource());
+    }
+
+    //将事务管理器注入到容器中
+    @Bean
+    public PlatformTransactionManager transactionManager() throws PropertyVetoException {
+        return new DataSourceTransactionManager(dataSource());
+    }
+}</code></code></pre>
+<p>持久层</p>
+<pre><code><code>@Repository
+public class UserDao {
+    @Autowired
+    public JdbcTemplate jdbcTemplate;
+
+    public void insertUser(){
+        String sql = &quot;insert into user values(?,?)&quot;;
+        jdbcTemplate.update(sql,&quot;admin&quot;,18);
+    }
+}</code></code></pre>
+<p>业务层</p>
+<pre><code><code>@Service
+public class UserService {
+    @Autowired
+    public UserDao userDao;
+
+    @Transactional
+    public void insertUser(){
+        userDao.insertUser();
+        int a = 1/0;
+    }
+}</code></code></pre>
+<p>测试结果：如果业务层方法没有加@Transactional注解，则即使发生1/0的错误，事务也不会回滚，数据还是会被添加到数据库中。加上@Transactional注解后发生错误，事务就回滚了。</p>
+<p><strong>声明式事务原理分析</strong></p>
+<ol>
+<li>@EnableTransactionManagement利用TransactionManagementConfigurationSelector给容器中导入了两个组件
+<ul>
+<li>AutoProxyRegistrar</li>
+<li>ProxyTransactionManagementConfiguration</li>
+</ul></li>
+<li>AutoProxyRegistrar做了什么？
+<ul>
+<li>给容器中注册了一个InfrastructureAdvisorAutoProxyCreator组件</li>
+<li>这个组件利用后置处理器机制在对象创建以后，包装对象，返回一个代理对象。当代理对象执行目标方法，方法拦截器就会执行拦截。</li>
+</ul></li>
+<li>ProxyTransactionManagementConfiguration做了什么？
+<ul>
+<li>给容器中注册事务增强器
+<ul>
+<li>事务增强器要用到事务注解的信息，来解析事务</li>
+<li>还要用到TransactionInterceptor事务拦截器(保存了事务属性信息，和事务管理器)，它是一个MethodInterceptor。</li>
+<li>在目标方法执行时，事务拦截器先获取事务相关属性，该获取事务管理器，然后执行目标方法，有异常，利用事务管理回滚操作；正常则提交事务。</li>
+</ul></li>
+</ul></li>
+</ol>
+
+
+</div><hr><script charset='utf-8' src='../../js/sming.js'></script></body></html>

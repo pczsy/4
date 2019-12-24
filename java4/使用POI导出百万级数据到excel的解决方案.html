@@ -1,0 +1,315 @@
+<html><head><meta charset='utf-8'><meta name='viewport' content='width=device-width, initial-scale=1'>
+<meta name='applicable-device' content='pc'><meta name='keywords' content='电脑,电脑讲解,电脑技术,编程,电脑故障维修使用POI导出百万级数据到excel的解决方案' />
+<script src='../../highlight/highlight.pack.js'></script>
+<link rel='stylesheet' type='text/css' href='../../highlight/styles/monokai.css'/>
+
+<link rel='stylesheet' href='../../fenxiang/dist/css/share.min.css'>
+<script src='../../fenxiang/src/js/social-share.js'></script>
+<script src='../../fenxiang/src/js/qrcode.js'></script>
+
+</head><body><script>hljs.initHighlightingOnLoad();</script><script>
+var system ={};  
+var p = navigator.platform;       
+system.win = p.indexOf('Win') == 0;  
+system.mac = p.indexOf('Mac') == 0;  
+system.x11 = (p == 'X11') || (p.indexOf('Linux') == 0);     
+if(system.win||system.mac||system.xll){
+document.write("<link href='../css/3.css' rel='stylesheet' type='text/css'>");}else{ document.write("<link href='../css/3wap.css' rel='stylesheet' type='text/css'>");}</script><script src='../../js/3.js'></script><div class='div2'><div class='heading_nav'><ul><div><li><a href='../../index.html'>首页</a></li>
+</div><div onclick='hidden1()' >分享</div>
+</ul></div></div>
+<div id='heading_nav2'> 
+<li class='row' >
+<div class='social-share' data-mode='prepend'><a href='javascript:' class='social-share-icon icon-heart'></a></div></li></div><script charset='utf-8' src='../../3/js/hengfu.js'></script><script charset='utf-8' src='../../3/js/hengfu2.js'></script><hr><div class='div1'><div class='biaoti'><center>使用POI导出百万级数据到excel的解决方案</center></div><div class='banquan'>原文出处:本文由博客园博主佩奇er提供。<br/>
+原文连接:https://www.cnblogs.com/hxun/p/11419006.html</div><br>
+    <h2>1.HSSFWorkbook 和SXSSFWorkbook区别</h2>
+<p>HSSFWorkbook:是操作Excel2003以前（包括2003）的版本，扩展名是.xls，一张表最大支持<strong>65536</strong>行数据，256列，也就是说一个sheet页，最多导出<strong>6w多条数据</strong></p>
+<p>XSSFWorkbook:是操作Excel2007-2010的版本，扩展名是.xlsx对于不同版本的EXCEL文档要使用不同的工具类，如果使用错了，<br />会提示如下错误信息。</p>
+<p>org.apache.poi.openxml4j.exceptions.InvalidOperationException &nbsp; &nbsp;</p>
+<p>org.apache.poi.poifs.filesystem.OfficeXmlFileException</p>
+<p>它的一张表最大支持<strong>1048576</strong>行，16384列，关于两者介绍，对下面导出百万数据很重要，不要使用错了！</p>
+<p>&nbsp;</p>
+<h2>2.使用SXSSFWorkbook对象，导出百万数据</h2>
+<p>SXSSFWorkbook使用方法和&nbsp;HSSFWorkbook差不多，如果你之前和我一样用的HSSFWorkbook，现在想要修改，则只需要将HSSFWorkbook改成SXSSFWorkbook即可，下面有我介绍，具体使用也可参考<a href="http://poi.apache.org/apidocs/org/apache/poi/xssf/streaming/SXSSFWorkbook.html" target="_blank">API</a>。</p>
+<p>因项目业务，需要导出百万级数据到excel，在研究了各种方案后，最终确定了用POI的SXSSFWorkbook。<br /><br />SXSSFWorkbook是POI3.8以上新增的，excel2007后每个sheet支持104万行数据。</p>
+<h2>3.如何将百万数据分成多个sheet页，导出到excel</h2>
+<p>导出百万数据到excel，很简单，只需要将原来的HSSFWorkbook修改成SXSSFWorkbook，或者直接使用SXSSFWorkbook对象，它是直接用来导出大数据用的，<a href="http://poi.apache.org/spreadsheet/how-to.html#user_api%20" target="_blank">官方文档&nbsp;</a>有介绍，但是如果有300w条数据，一下导入一个excel的sheet页中，想想打开excel也需要一段时间吧，慢的话有可能导致程序无法加载，或者直接结束进程的情况发生</p>
+<h2>4.先看导出后的效果</h2>
+<p><img src="./images/使用POI导出百万级数据到excel的解决方案0.png" alt="" /></p>
+<p>由于百万数据太长了，这里只截取尾部效果图</p>
+<p><img src="./images/使用POI导出百万级数据到excel的解决方案1.png" alt="" /></p>
+<p>&nbsp;</p>
+<h2>5.下面是Java代码部分</h2>
+<src class="cnblogs_code">
+<pre><code><span style="color: #008000;">/**</span><span style="color: #008000;">
+     * 使用 SXSSFWorkbook 对象实现excel导出
+     * (一般是导出百万级数据的excel)
+     </span><span style="color: #008000;">*/</span>
+    <span style="color: #0000ff;">public</span> <span style="color: #0000ff;">void</span><span style="color: #000000;"> exportBigDataExcel() {
+        </span><span style="color: #0000ff;">long</span>  startTime = System.currentTimeMillis();    <span style="color: #008000;">//</span><span style="color: #008000;">开始时间</span>
+        System.out.println("start execute time: " +<span style="color: #000000;"> startTime);
+        
+        </span><span style="color: #008000;">//</span><span style="color: #008000;"> 1.创建工作簿
+        </span><span style="color: #008000;">//</span><span style="color: #008000;"> 阈值，内存中的对象数量最大值，超过这个值会生成一个临时文件存放到硬盘中</span>
+        SXSSFWorkbook wb = <span style="color: #0000ff;">new</span> SXSSFWorkbook(1000<span style="color: #000000;">);
+        
+        </span><span style="color: #008000;">//</span><span style="color: #008000;">2.在Workbook中添加一个sheet,对应Excel文件中的sheet</span>
+        Sheet sheet =<span style="color: #000000;"> wb.createSheet();
+        
+        </span><span style="color: #008000;">//</span><span style="color: #008000;">3.设置样式以及字体样式</span>
+        CellStyle titleCellStyle =<span style="color: #000000;"> createTitleCellStyle(wb);
+        CellStyle headCellStyle </span>=<span style="color: #000000;"> createHeadCellStyle(wb);
+        CellStyle cellStyle </span>=<span style="color: #000000;"> createCellStyle(wb);
+        
+        </span><span style="color: #008000;">//</span><span style="color: #008000;">4.创建标题、表头，内容和合并单元格等操作</span>
+        <span style="color: #0000ff;">int</span> rowNum = 0;<span style="color: #008000;">//</span><span style="color: #008000;"> 行号
+        </span><span style="color: #008000;">//</span><span style="color: #008000;"> 创建第一行，索引从0开始</span>
+        Row row0 = sheet.createRow(rowNum++<span style="color: #000000;">);
+        row0.setHeight((</span><span style="color: #0000ff;">short</span>) 800);<span style="color: #008000;">//</span><span style="color: #008000;"> 设置行高</span>
+<span style="color: #000000;">        
+        String title </span>= "这里是标题标题标题"<span style="color: #000000;">;
+        Cell c00 </span>= row0.createCell(0<span style="color: #000000;">);
+        c00.setCellValue(title);
+        c00.setCellStyle(titleCellStyle);
+        </span><span style="color: #008000;">//</span><span style="color: #008000;"> 合并单元格，参数依次为起始行，结束行，起始列，结束列 （索引0开始）</span>
+        sheet.addMergedRegion(<span style="color: #0000ff;">new</span> CellRangeAddress(0, 0, 0, 6));<span style="color: #008000;">//</span><span style="color: #008000;">标题合并单元格操作，6为总列数
+        
+        </span><span style="color: #008000;">//</span><span style="color: #008000;"> 第二行</span>
+        Row row1 = sheet.createRow(rowNum++<span style="color: #000000;">);
+        row1.setHeight((</span><span style="color: #0000ff;">short</span>) 500<span style="color: #000000;">);
+        String[] row_first </span>= {"填表单位：", "", "", "", "", " xxxx年第x季度 ", ""<span style="color: #000000;">};
+        </span><span style="color: #0000ff;">for</span> (<span style="color: #0000ff;">int</span> i = 0; i &lt; row_first.length; i++<span style="color: #000000;">) {
+            Cell tempCell </span>=<span style="color: #000000;"> row1.createCell(i);
+            tempCell.setCellStyle(headCellStyle);
+            </span><span style="color: #0000ff;">if</span> (i == 0<span style="color: #000000;">) {
+                tempCell.setCellValue(row_first[i] </span>+ "测试单位"<span style="color: #000000;">);
+            } </span><span style="color: #0000ff;">else</span> <span style="color: #0000ff;">if</span> (i == 5<span style="color: #000000;">) {
+                tempCell.setCellStyle(headCellStyle);
+                tempCell.setCellValue(row_first[i]);
+            } </span><span style="color: #0000ff;">else</span><span style="color: #000000;"> {
+                tempCell.setCellValue(row_first[i]);
+            }
+        }
+        
+        </span><span style="color: #008000;">//</span><span style="color: #008000;"> 合并</span>
+        sheet.addMergedRegion(<span style="color: #0000ff;">new</span> CellRangeAddress(1, 1, 0, 4<span style="color: #000000;">));
+        sheet.addMergedRegion(</span><span style="color: #0000ff;">new</span> CellRangeAddress(1, 1, 5, 6<span style="color: #000000;">));
+        
+        </span><span style="color: #008000;">//</span><span style="color: #008000;">第三行</span>
+        Row row2 = sheet.createRow(rowNum++<span style="color: #000000;">);
+        row2.setHeight((</span><span style="color: #0000ff;">short</span>) 700<span style="color: #000000;">);
+        String[] row_second </span>= {"名称", "采集情况", "", "", "登记情况", "", "备注"<span style="color: #000000;">};
+        </span><span style="color: #0000ff;">for</span> (<span style="color: #0000ff;">int</span> i = 0; i &lt; row_second.length; i++<span style="color: #000000;">) {
+            Cell tempCell </span>=<span style="color: #000000;"> row2.createCell(i);
+            tempCell.setCellValue(row_second[i]);
+            tempCell.setCellStyle(headCellStyle);
+        }
+        
+        </span><span style="color: #008000;">//</span><span style="color: #008000;"> 合并</span>
+        sheet.addMergedRegion(<span style="color: #0000ff;">new</span> CellRangeAddress(2, 3, 0, 0));<span style="color: #008000;">//</span><span style="color: #008000;">名称</span>
+        sheet.addMergedRegion(<span style="color: #0000ff;">new</span> CellRangeAddress(2, 2, 1, 3));<span style="color: #008000;">//</span><span style="color: #008000;">人数情况</span>
+        sheet.addMergedRegion(<span style="color: #0000ff;">new</span> CellRangeAddress(2, 2, 4, 5));<span style="color: #008000;">//</span><span style="color: #008000;">登记情况</span>
+        sheet.addMergedRegion(<span style="color: #0000ff;">new</span> CellRangeAddress(2, 3, 6, 6));<span style="color: #008000;">//</span><span style="color: #008000;">备注
+        
+        </span><span style="color: #008000;">//</span><span style="color: #008000;">第三行</span>
+        Row row3 = sheet.createRow(rowNum++<span style="color: #000000;">);
+        row3.setHeight((</span><span style="color: #0000ff;">short</span>) 700<span style="color: #000000;">);
+        String[] row_third </span>= {"", "登记数(人)", "办证总数(人)", "办证率(%)", "登记户数(户)", "登记时间", ""<span style="color: #000000;">};
+        </span><span style="color: #0000ff;">for</span> (<span style="color: #0000ff;">int</span> i = 0; i &lt; row_third.length; i++<span style="color: #000000;">) {
+            Cell tempCell </span>=<span style="color: #000000;"> row3.createCell(i);
+            tempCell.setCellValue(row_third[i]);
+            tempCell.setCellStyle(headCellStyle);
+        }
+        
+        </span><span style="color: #008000;">//</span><span style="color: #008000;"> 数据处理(创建100万条测试数据)</span>
+        List&lt;Map&lt;String, Object&gt;&gt; dataList = <span style="color: #0000ff;">new</span> ArrayList&lt;Map&lt;String, Object&gt;&gt;<span style="color: #000000;">();
+        </span><span style="color: #0000ff;">for</span> (<span style="color: #0000ff;">int</span> i = 0; i &lt; 999999; i++<span style="color: #000000;">) {
+            Map</span>&lt;String,Object&gt; map = <span style="color: #0000ff;">new</span> HashMap&lt;String,Object&gt;<span style="color: #000000;">();
+            map.put(</span>"name", "测试名称" +<span style="color: #000000;"> i);
+            map.put(</span>"r1", "111"<span style="color: #000000;">);
+            map.put(</span>"r2", "222"<span style="color: #000000;">);
+            map.put(</span>"r3", "333"<span style="color: #000000;">);
+            map.put(</span>"r4", "444"<span style="color: #000000;">);
+            map.put(</span>"addTime", <span style="color: #0000ff;">new</span><span style="color: #000000;"> DateTime());
+            map.put(</span>"r6", "这里是备注"+<span style="color: #000000;">i);
+            dataList.add(map);
+        }
+        
+        </span><span style="color: #0000ff;">for</span> (Map&lt;String, Object&gt;<span style="color: #000000;"> excelData : dataList) {
+            Row tempRow </span>= sheet.createRow(rowNum++<span style="color: #000000;">);
+            tempRow.setHeight((</span><span style="color: #0000ff;">short</span>) 500<span style="color: #000000;">);
+            </span><span style="color: #008000;">//</span><span style="color: #008000;"> 循环单元格填入数据</span>
+            <span style="color: #0000ff;">for</span> (<span style="color: #0000ff;">int</span> j = 0; j &lt; 7; j++<span style="color: #000000;">) {
+                Cell tempCell </span>=<span style="color: #000000;"> tempRow.createCell(j);
+                tempCell.setCellStyle(cellStyle);
+                String tempValue;
+                </span><span style="color: #0000ff;">if</span> (j == 0<span style="color: #000000;">) {
+                    </span><span style="color: #008000;">//</span><span style="color: #008000;"> 乡镇、街道名称</span>
+                    tempValue = excelData.get("name"<span style="color: #000000;">).toString();
+                } </span><span style="color: #0000ff;">else</span> <span style="color: #0000ff;">if</span> (j == 1<span style="color: #000000;">) {
+                    </span><span style="color: #008000;">//</span><span style="color: #008000;"> 登记数（人）</span>
+                    tempValue = excelData.get("r1"<span style="color: #000000;">).toString();
+                } </span><span style="color: #0000ff;">else</span> <span style="color: #0000ff;">if</span> (j == 2<span style="color: #000000;">) {
+                    </span><span style="color: #008000;">//</span><span style="color: #008000;"> 办证总数（人）</span>
+                    tempValue = excelData.get("r2"<span style="color: #000000;">).toString();
+                } </span><span style="color: #0000ff;">else</span> <span style="color: #0000ff;">if</span> (j == 3<span style="color: #000000;">) {
+                    </span><span style="color: #008000;">//</span><span style="color: #008000;"> 办证率（%）</span>
+                    tempValue = excelData.get("r3"<span style="color: #000000;">).toString();
+                } </span><span style="color: #0000ff;">else</span> <span style="color: #0000ff;">if</span> (j == 4<span style="color: #000000;">) {
+                    </span><span style="color: #008000;">//</span><span style="color: #008000;"> 登记户数（户）</span>
+                    tempValue = excelData.get("r4"<span style="color: #000000;">).toString();
+                } </span><span style="color: #0000ff;">else</span> <span style="color: #0000ff;">if</span> (j == 5<span style="color: #000000;">) {
+                    </span><span style="color: #008000;">//</span><span style="color: #008000;"> 登记日期</span>
+                    tempValue = excelData.get("addTime"<span style="color: #000000;">).toString();
+                } </span><span style="color: #0000ff;">else</span><span style="color: #000000;"> {
+                    </span><span style="color: #008000;">//</span><span style="color: #008000;"> 备注</span>
+                    tempValue = excelData.get("r6"<span style="color: #000000;">).toString();
+                }
+                tempCell.setCellValue(tempValue);
+               
+</span><span style="color: #008000;">//</span><span style="color: #008000;">                sheet.autoSizeColumn(j);</span><span style="color: #008000;">//</span><span style="color: #008000;"> 根据内容自动调整列宽，</span>
+<span style="color: #000000;">            }
+        }
+        </span><span style="color: #008000;">//</span><span style="color: #008000;">设置列宽，必须在单元格设值以后进行</span>
+        sheet.setColumnWidth(0, 4000);<span style="color: #008000;">//</span><span style="color: #008000;">名称</span>
+        sheet.setColumnWidth(1, 3000);<span style="color: #008000;">//</span><span style="color: #008000;">登记数(人)</span>
+        sheet.setColumnWidth(2, 3000);<span style="color: #008000;">//</span><span style="color: #008000;">办证总数(人)</span>
+        sheet.setColumnWidth(3, 3000);<span style="color: #008000;">//</span><span style="color: #008000;">办证率(%)</span>
+        sheet.setColumnWidth(4, 3000);<span style="color: #008000;">//</span><span style="color: #008000;">登记户数(户)</span>
+        sheet.setColumnWidth(5, 6000);<span style="color: #008000;">//</span><span style="color: #008000;">登记时间</span>
+        sheet.setColumnWidth(6, 4000);<span style="color: #008000;">//</span><span style="color: #008000;">备注
+        
+        </span><span style="color: #008000;">//</span><span style="color: #008000;"> 注释行</span>
+        Row remark = sheet.createRow(rowNum++<span style="color: #000000;">);
+        remark.setHeight((</span><span style="color: #0000ff;">short</span>) 500<span style="color: #000000;">);
+        String[] row_remark </span>= {"注：表中的&ldquo;办证率=办证总数&divide;登记数&times;100%&rdquo;", "", "", "", "", "", ""<span style="color: #000000;">};
+        </span><span style="color: #0000ff;">for</span> (<span style="color: #0000ff;">int</span> i = 0; i &lt; row_remark.length; i++<span style="color: #000000;">) {
+            Cell tempCell </span>=<span style="color: #000000;"> remark.createCell(i);
+            </span><span style="color: #0000ff;">if</span> (i == 0<span style="color: #000000;">) {
+                tempCell.setCellStyle(headCellStyle);
+            } </span><span style="color: #0000ff;">else</span><span style="color: #000000;"> {
+                tempCell.setCellStyle(cellStyle);
+            }
+            tempCell.setCellValue(row_remark[i]);
+        }
+        </span><span style="color: #0000ff;">int</span> remarkRowNum = dataList.size() + 4<span style="color: #000000;">;
+        sheet.addMergedRegion(</span><span style="color: #0000ff;">new</span> CellRangeAddress(remarkRowNum, remarkRowNum, 0, 6));<span style="color: #008000;">//</span><span style="color: #008000;">注释行合并单元格
+         
+        </span><span style="color: #008000;">//</span><span style="color: #008000;"> 尾行</span>
+        Row foot = sheet.createRow(rowNum++<span style="color: #000000;">);
+        foot.setHeight((</span><span style="color: #0000ff;">short</span>) 500<span style="color: #000000;">);
+        String[] row_foot </span>= {"审核人：", "", "填表人：", "", "填表时间：", "", ""<span style="color: #000000;">};
+        </span><span style="color: #0000ff;">for</span> (<span style="color: #0000ff;">int</span> i = 0; i &lt; row_foot.length; i++<span style="color: #000000;">) {
+            Cell tempCell </span>=<span style="color: #000000;"> foot.createCell(i);
+            tempCell.setCellStyle(cellStyle);
+            </span><span style="color: #0000ff;">if</span> (i == 0<span style="color: #000000;">) {
+                tempCell.setCellValue(row_foot[i] </span>+ "张三"<span style="color: #000000;">);
+            } </span><span style="color: #0000ff;">else</span> <span style="color: #0000ff;">if</span> (i == 2<span style="color: #000000;">) {
+                tempCell.setCellValue(row_foot[i] </span>+ "李四"<span style="color: #000000;">);
+            } </span><span style="color: #0000ff;">else</span> <span style="color: #0000ff;">if</span> (i == 4<span style="color: #000000;">) {
+                tempCell.setCellValue(row_foot[i] </span>+ "xxxx"<span style="color: #000000;">);
+            } </span><span style="color: #0000ff;">else</span><span style="color: #000000;"> {
+                tempCell.setCellValue(row_foot[i]);
+            }
+        }
+        </span><span style="color: #0000ff;">int</span> footRowNum = dataList.size() + 5<span style="color: #000000;">;
+        </span><span style="color: #008000;">//</span><span style="color: #008000;"> 注</span>
+        sheet.addMergedRegion(<span style="color: #0000ff;">new</span> CellRangeAddress(footRowNum, footRowNum, 0, 1<span style="color: #000000;">));
+        sheet.addMergedRegion(</span><span style="color: #0000ff;">new</span> CellRangeAddress(footRowNum, footRowNum, 2, 3<span style="color: #000000;">));
+        sheet.addMergedRegion(</span><span style="color: #0000ff;">new</span> CellRangeAddress(footRowNum, footRowNum, 4, 6<span style="color: #000000;">));
+        
+        
+        </span><span style="color: #0000ff;">long</span> finishedTime = System.currentTimeMillis();    <span style="color: #008000;">//</span><span style="color: #008000;">处理完成时间</span>
+        System.out.println("finished execute  time: " + (finishedTime - startTime)/1000 + "m"<span style="color: #000000;">);
+        
+        </span><span style="color: #008000;">//</span><span style="color: #008000;">导出</span>
+        HttpServletResponse response = <span style="color: #0000ff;">this</span><span style="color: #000000;">.getResponse();
+        String fileName </span>= "报表文件名称.xlsx"<span style="color: #000000;">;
+        </span><span style="color: #0000ff;">try</span><span style="color: #000000;"> {
+            fileName </span>= <span style="color: #0000ff;">new</span> String(fileName.getBytes("UTF-8"), "ISO-8859-1"<span style="color: #000000;">);
+            response.setHeader(</span>"Content-disposition", "attachment;filename=\"" + fileName + "\""<span style="color: #000000;">);
+            OutputStream stream </span>=<span style="color: #000000;"> response.getOutputStream();
+            </span><span style="color: #0000ff;">if</span> (<span style="color: #0000ff;">null</span> != wb &amp;&amp; <span style="color: #0000ff;">null</span> !=<span style="color: #000000;"> stream) {
+                wb.write(stream);</span><span style="color: #008000;">//</span><span style="color: #008000;"> 将数据写出去  </span>
+<span style="color: #000000;">                wb.close();
+                stream.close();
+                
+                </span><span style="color: #0000ff;">long</span> stopTime = System.currentTimeMillis();        <span style="color: #008000;">//</span><span style="color: #008000;">写文件时间</span>
+                System.out.println("write xlsx file time: " + (stopTime - startTime)/1000 + "m"<span style="color: #000000;">);
+            }
+        } </span><span style="color: #0000ff;">catch</span><span style="color: #000000;"> (Exception e) {
+            e.printStackTrace();
+        }
+        
+    }
+    </span></code></pre>
+
+<p>&nbsp;</p>
+<p>CellStyle标题，表头，内容样式代码：</p>
+<src class="cnblogs_code">
+<pre><code><span style="color: #0000ff;">private</span> <span style="color: #0000ff;">static</span><span style="color: #000000;"> CellStyle createTitleCellStyle(Workbook workbook) {
+        CellStyle cellStyle </span>=<span style="color: #000000;"> workbook.createCellStyle();
+        cellStyle.setAlignment(HorizontalAlignment.CENTER);
+        cellStyle.setVerticalAlignment(VerticalAlignment.CENTER);
+
+        cellStyle.setBorderBottom(BorderStyle.THIN);
+        cellStyle.setBottomBorderColor(IndexedColors.BLACK.index);
+        cellStyle.setBorderLeft(BorderStyle.THIN);
+        cellStyle.setLeftBorderColor(IndexedColors.BLACK.index);
+        cellStyle.setBorderRight(BorderStyle.THIN);
+        cellStyle.setRightBorderColor(IndexedColors.BLACK.index);
+        cellStyle.setBorderTop(BorderStyle.THIN);
+        cellStyle.setTopBorderColor(IndexedColors.BLACK.index);
+
+        cellStyle.setFillForegroundColor(IndexedColors.GREY_40_PERCENT.index);
+        cellStyle.setFillPattern(FillPatternType.SOLID_FOREGROUND);
+
+        </span><span style="color: #0000ff;">return</span><span style="color: #000000;"> cellStyle;
+    }</span></code></pre>
+
+<p>&nbsp;</p>
+<src class="cnblogs_code">
+<pre><code><span style="color: #0000ff;">private</span> <span style="color: #0000ff;">static</span><span style="color: #000000;"> CellStyle createHeadCellStyle(Workbook workbook) {
+        CellStyle cellStyle </span>=<span style="color: #000000;"> workbook.createCellStyle();
+        cellStyle.setAlignment(HorizontalAlignment.CENTER);
+        cellStyle.setVerticalAlignment(VerticalAlignment.CENTER);
+
+        cellStyle.setBorderBottom(BorderStyle.THIN);
+        cellStyle.setBottomBorderColor(IndexedColors.BLACK.index);
+        cellStyle.setBorderLeft(BorderStyle.THIN);
+        cellStyle.setLeftBorderColor(IndexedColors.BLACK.index);
+        cellStyle.setBorderRight(BorderStyle.THIN);
+        cellStyle.setRightBorderColor(IndexedColors.BLACK.index);
+        cellStyle.setBorderTop(BorderStyle.THIN);
+        cellStyle.setTopBorderColor(IndexedColors.BLACK.index);
+
+        cellStyle.setFillForegroundColor(IndexedColors.GREY_25_PERCENT.index);
+        cellStyle.setFillPattern(FillPatternType.SOLID_FOREGROUND);
+
+        </span><span style="color: #0000ff;">return</span><span style="color: #000000;"> cellStyle;
+    }</span></code></pre>
+
+<p>&nbsp;</p>
+<src class="cnblogs_code">
+<pre><code>    <span style="color: #0000ff;">private</span> <span style="color: #0000ff;">static</span><span style="color: #000000;"> CellStyle createCellStyle(Workbook workbook) {
+        CellStyle cellStyle </span>=<span style="color: #000000;"> workbook.createCellStyle();
+        cellStyle.setAlignment(HorizontalAlignment.CENTER);
+        cellStyle.setVerticalAlignment(VerticalAlignment.CENTER);
+
+        cellStyle.setBorderBottom(BorderStyle.THIN);
+        cellStyle.setBottomBorderColor(IndexedColors.BLACK.index);
+        cellStyle.setBorderLeft(BorderStyle.THIN);
+        cellStyle.setLeftBorderColor(IndexedColors.BLACK.index);
+        cellStyle.setBorderRight(BorderStyle.THIN);
+        cellStyle.setRightBorderColor(IndexedColors.BLACK.index);
+        cellStyle.setBorderTop(BorderStyle.THIN);
+        cellStyle.setTopBorderColor(IndexedColors.BLACK.index);
+
+        </span><span style="color: #0000ff;">return</span><span style="color: #000000;"> cellStyle;
+    }
+    </span></code></pre>
+
+<p>&nbsp;</p>
+<p><span style="color: #ff0000;">完毕！good luck！</span></p>
+<p>&nbsp;</p>
+
+</div><hr><script charset='utf-8' src='../../js/sming.js'></script></body></html>

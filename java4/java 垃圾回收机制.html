@@ -1,0 +1,259 @@
+<html><head><meta charset='utf-8'><meta name='viewport' content='width=device-width, initial-scale=1'>
+<meta name='applicable-device' content='pc'><meta name='keywords' content='电脑,电脑讲解,电脑技术,编程,电脑故障维修java 垃圾回收机制' />
+<script src='../../highlight/highlight.pack.js'></script>
+<link rel='stylesheet' type='text/css' href='../../highlight/styles/monokai.css'/>
+
+<link rel='stylesheet' href='../../fenxiang/dist/css/share.min.css'>
+<script src='../../fenxiang/src/js/social-share.js'></script>
+<script src='../../fenxiang/src/js/qrcode.js'></script>
+
+</head><body><script>hljs.initHighlightingOnLoad();</script><script>
+var system ={};  
+var p = navigator.platform;       
+system.win = p.indexOf('Win') == 0;  
+system.mac = p.indexOf('Mac') == 0;  
+system.x11 = (p == 'X11') || (p.indexOf('Linux') == 0);     
+if(system.win||system.mac||system.xll){
+document.write("<link href='../css/3.css' rel='stylesheet' type='text/css'>");}else{ document.write("<link href='../css/3wap.css' rel='stylesheet' type='text/css'>");}</script><script src='../../js/3.js'></script><div class='div2'><div class='heading_nav'><ul><div><li><a href='../../index.html'>首页</a></li>
+</div><div onclick='hidden1()' >分享</div>
+</ul></div></div>
+<div id='heading_nav2'> 
+<li class='row' >
+<div class='social-share' data-mode='prepend'><a href='javascript:' class='social-share-icon icon-heart'></a></div></li></div><script charset='utf-8' src='../../3/js/hengfu.js'></script><script charset='utf-8' src='../../3/js/hengfu2.js'></script><hr><div class='div1'><div class='biaoti'><center>java 垃圾回收机制</center></div><div class='banquan'>原文出处:本文由博客园博主落地成霜提供。<br/>
+原文连接:https://www.cnblogs.com/ldcs/p/11831995.html</div><br>
+    <p>垃圾收集<strong>GC</strong>（Garbage Collection）是Java语言的核心技术之一， 在Java中，程序员不需要去关心内存动态分配和垃圾回收的问题，这一切都交给了<strong>JVM</strong>来处理。</p>
+<p><span style="font-size: 18px;"><strong>一. jvm的内存结构</strong></span></p>
+<p><span style="font-size: 14px;">垃圾回收都是基于内存去回收的，因此，先要对内存结构有一个大概的了解</span></p>
+<p><span style="font-size: 14px;"><img src="./images/java 垃圾回收机制0.png" alt="" /></span></p>
+<p>&nbsp;</p>
+<p>&nbsp;</p>
+<p>&nbsp;Java内存运行时区域大概分了三部分</p>
+<ul>
+<li><span class="bjh-li"><span class="bjh-p">其中PC寄存器、java虚拟机栈、本地方法栈3个区域是所有线程独有的一块区域，随线程而生，随线程而灭。栈中的栈帧随着方法的进入和退出而有条不紊地执行着入栈和出栈操作。每一个栈帧中分配多少内存基本上是在类结构确定下来时就已知的，因此这几个区域的内存分配和回收都具备确定性，在这几个区域内就不需要过多考虑回收的问题，因为方法结束或者线程结束，内存自然就跟随着回收了。</span></span></li>
+<li><span class="bjh-li"><span class="bjh-p"><span class="bjh-li"><span class="bjh-p">而Java堆和方法区则不一样，一个接口中的多个实现类需要的内存可能不一样，一个方法中的多个实现类需要的内存可能不一样，一个方法中的多个分支需要的内存也可能不一样，只有在程序处于运行期间时才能知道会创建哪些对象，这部分内存的分配和回收是动态的，垃圾收集关注的是这部分的内存。</span></span></span></span></li>
+</ul>
+<h3><strong>二</strong>. <span style="font-size: 18px;">内存分配</span></h3>
+<p>在解垃圾回收之前，得先了解JVM是怎么分配内存的，然后识别哪些内存<span style="font-size: 14px;">是垃</span>圾需要回收，最后才是用什么方式回收。</p>
+<p>Java的内存分配原理与C/C++不同，C/C++每次申请内存时都要malloc进行系统调用，而系统调用发生在内核空间，每次都要中断进行切换，这需要一定的开销，而Java虚拟机是先一次性分配一块较大的空间，然后每次new时都在该空间上进行分配和释放，减少了系统调用的次数，节省了一定的开销，这有点类似于内存池的概念；二是有了这块空间过后，如何进行分配和回收就跟GC机制有关了。</p>
+<h4><span style="font-size: 18px;">三. 垃圾检测（标记）算法</span></h4>
+<h4>什么样的对象才是垃圾？</h4>
+<p>如果一个对象没有被其他对象所引用该对象就是无用的，此对象就被称为垃圾，其占用的内存也就要被销毁。那么自然而然的就引出了我们的第二个问题，判断对象为垃圾的算法都有哪些？</p>
+<h4>标记垃圾的算法</h4>
+<p>Java中标记垃圾的算法主要有两种，<strong> 引用计数法</strong>和<strong>可达性分析算法</strong>。我们首先来介绍引用计数法。</p>
+<ul>
+<li>
+<h5>引用计数法</h5>
+</li>
+</ul>
+<p>　　引用计数法就是给对象中添加一个引用计数器，每当有一个地方引用它，计数器就加 1；当引用失效，计数器就减 1；任何时候计数器为 0 的对象就是不可能再被使用的，可以当做垃圾收集。这种方法实现起来很简单而且优缺点都很明显。</p>
+<p>　　</p>
+<ul>
+<li style="list-style-type: none;">
+<ul>
+<li>
+<p><strong>　　优点&nbsp;执行效率高，程序执行受影响较小</strong></p>
+</li>
+<li>
+<p><strong>　　缺点&nbsp;无法检测出循环引用的情况，导致内存泄露</strong></p>
+</li>
+</ul>
+</li>
+</ul>
+<p><strong>　　</strong>什么是循环引用呢？</p>
+<p><strong>　　假设有A和B两个对象之间互相引用，也就是说A对象中的一个属性是B，B中的一个属性时A,这种情况下由于他们的相互引用</strong></p>
+<p><strong>　　</strong>我们举一个简单的例子。</p>
+<src class="cnblogs_code">
+<pre><code><span style="color: #0000ff;">public</span> <span style="color: #0000ff;">class</span><span style="color: #000000;"> MyObject {
+    </span><span style="color: #0000ff;">public</span><span style="color: #000000;"> MyObject childNode;
+}
+
+</span><span style="color: #0000ff;">public</span> <span style="color: #0000ff;">class</span><span style="color: #000000;"> ReferenceCounterProblem {
+    </span><span style="color: #0000ff;">public</span> <span style="color: #0000ff;">static</span> <span style="color: #0000ff;">void</span><span style="color: #000000;"> main(String[] args) {
+        MyObject object1 </span>= <span style="color: #0000ff;">new</span><span style="color: #000000;"> MyObject();
+        MyObject object2 </span>= <span style="color: #0000ff;">new</span><span style="color: #000000;"> MyObject();
+        object1.childNode </span>=<span style="color: #000000;"> object2;
+        object2.childNode </span>=<span style="color: #000000;"> object1;
+    }
+}</span></code></pre>
+
+<ul>
+<li><strong>可达性分析</strong></li>
+</ul>
+<p><span class="bjh-p">可达性分析基本思路是把所有引用的对象想象成一棵树，从树的根结点 GC Roots 出发，持续遍历找出所有连接的树枝对象，这些对象则被称为&ldquo;可达&rdquo;对象，或称&ldquo;存活&rdquo;对象。不能到达的则被可回收对象。</span></p>
+<p><span class="bjh-p">下面这张图就是可达性分析的描述：</span></p>
+<p><span class="bjh-p"><img src="./images/java 垃圾回收机制1.png" alt="" /></span></p>
+<p>&nbsp;</p>
+<p>&nbsp;</p>
+<p>&nbsp;我们发现，GC Roots 本身是一个出发点，也就是说我们每次进行可达性分析的时候都要从这个初始点出发。换句话说，初始点我们一定是可达的。那么，Java 里有哪些对象可以作为GC Roots呢？主要有以下四种：</p>
+<ul>
+<li><span class="bjh-li"><span class="bjh-p">虚拟机栈（帧栈中的本地变量表）中引用的对象。</span></span></li>
+<li><span class="bjh-li"><span class="bjh-p"><span class="bjh-li"><span class="bjh-p">方法区中静态属性引用的对象。</span></span></span></span></li>
+<li><span class="bjh-li"><span class="bjh-p"><span class="bjh-li"><span class="bjh-p"><span class="bjh-li"><span class="bjh-p">方法区中常量引用的对象。</span></span></span></span></span></span></li>
+<li><span class="bjh-li"><span class="bjh-p"><span class="bjh-li"><span class="bjh-p"><span class="bjh-li"><span class="bjh-p"><span class="bjh-li"><span class="bjh-p">本地方法栈中 JNI 引用的对象。</span></span></span></span></span></span></span></span></li>
+</ul>
+<p><span class="bjh-li"><span class="bjh-p"><span class="bjh-li"><span class="bjh-p"><span class="bjh-li"><span class="bjh-p"><span class="bjh-li"><span class="bjh-p">总之，JVM在做垃圾回收的时候，<strong>会检查堆中的所有对象是否会被这些根集对象引用</strong>，不能够被引用的对象就会被垃圾收集器回收。</span></span></span></span></span></span></span></span></p>
+<p><span style="font-size: 18px;"><strong><span class="bjh-li"><span class="bjh-p"><span class="bjh-li"><span class="bjh-p"><span class="bjh-li"><span class="bjh-p"><span class="bjh-li"><span class="bjh-p">四. 垃圾收集（回收）算法</span></span></span></span></span></span></span></span></strong></span></p>
+<p><span style="font-size: 15px;"><span class="bjh-li"><span class="bjh-p"><span class="bjh-li"><span class="bjh-p"><span class="bjh-li"><span class="bjh-p"><span class="bjh-li"><span class="bjh-p">已经能够确定那些对象可以被视为垃圾了。下面我们可以分析一下，如何去回收这些垃圾，同样的，有一系列算法。首先我们定义一个规则确定那些是垃圾、存活对象、空白空间</span></span></span></span></span></span></span></span></span></p>
+<p><span style="font-size: 15px;"><span class="bjh-li"><span class="bjh-p"><span class="bjh-li"><span class="bjh-p"><span class="bjh-li"><span class="bjh-p"><span class="bjh-li"><span class="bjh-p"><img src="./images/java 垃圾回收机制2.png" alt="" /></span></span></span></span></span></span></span></span></span></p>
+<p>&nbsp;</p>
+<p>&nbsp;</p>
+<p>&nbsp;</p>
+<p><span style="font-size: 15px;"><span class="bjh-li"><span class="bjh-p"><span class="bjh-li"><span class="bjh-p"><span class="bjh-li"><span class="bjh-p"><span class="bjh-li"><span class="bjh-p">垃圾收集算法有四种：</span></span></span></span></span></span></span></span></span></p>
+<ul>
+<li>标记-清除算法</li>
+<li>标记-整理算法</li>
+<li>复制算法</li>
+<li>分代收集算法</li>
+</ul>
+<p><strong>1、标记－清理</strong></p>
+<p><span class="bjh-p">第一步（标记），利用可达性遍历内存，把&ldquo;存活&rdquo;对象和&ldquo;垃圾&rdquo;对象进行标记。第二步（清理），我们再遍历一遍，把所有&ldquo;垃圾&rdquo;对象所占的空间直接 清空 即可。</span></p>
+<p><span class="bjh-p">结果如下：</span></p>
+<p><span class="bjh-p"><img src="./images/java 垃圾回收机制3.png" alt="" /></span></p>
+<p>&nbsp;</p>
+<p>&nbsp;</p>
+<p>&nbsp;</p>
+<p><span class="bjh-p">特点：</span></p>
+<ul>
+<li><span class="bjh-ul"><span class="bjh-li"><span class="bjh-p">简单方便</span></span></span></li>
+<li><span class="bjh-ul"><span class="bjh-li"><span class="bjh-p"><span class="bjh-li"><span class="bjh-p">容易</span></span></span></span></span><span class="bjh-ul"><span class="bjh-li"><span class="bjh-p"><span class="bjh-li"><span class="bjh-p">产生内存碎片</span></span></span></span></span></li>
+</ul>
+<p><strong><span class="bjh-ul"><span class="bjh-li"><span class="bjh-p"><span class="bjh-li"><span class="bjh-p">2、标记－整理</span></span></span></span></span></strong></p>
+<p><span class="bjh-p">上面的方法我们发现会产生内存碎片，因此在这个方法中同样为两步：</span></p>
+<p><span class="bjh-p">第一步（标记）：利用可达性遍历内存，把&ldquo;存活&rdquo;对象和&ldquo;垃圾&rdquo;对象进行标记。</span></p>
+<p><span class="bjh-p">第二步（整理）：把所有存活对象堆到同一个地方，这样就没有内存碎片了。</span></p>
+<p><span class="bjh-p">结果如下：</span></p>
+<p><span class="bjh-p"><img src="./images/java 垃圾回收机制4.png" alt="" /></span></p>
+<p>&nbsp;</p>
+<p>&nbsp;</p>
+<p>&nbsp;</p>
+<p><span class="bjh-p">特点：</span></p>
+<ul>
+<li><span class="bjh-ul"><span class="bjh-li"><span class="bjh-p">适合存活对象多，垃圾少的情况</span></span></span></li>
+<li><span class="bjh-ul"><span class="bjh-li"><span class="bjh-p"><span class="bjh-li"><span class="bjh-p">需要整理的过程</span></span></span></span></span></li>
+</ul>
+<p><strong><span class="bjh-ul"><span class="bjh-li"><span class="bjh-p"><span class="bjh-li"><span class="bjh-p">3、复制</span></span></span></span></span></strong></p>
+<p><span class="bjh-p">将内存按照容量划分为大小相等的两块，每次只使用其中的一块。当这一块用完了，就将还活着的对象复制到另一块上，然后再把使用过的内存空间一次性清理掉</span></p>
+<p><span class="bjh-p">过程如下：</span></p>
+<p><span class="bjh-p"><img src="./images/java 垃圾回收机制5.png" alt="" /></span></p>
+<p>&nbsp;</p>
+<p>&nbsp;</p>
+<p>&nbsp;</p>
+<p><span class="bjh-p">特点：</span></p>
+<ul>
+<li><span class="bjh-ul"><span class="bjh-li"><span class="bjh-p">简单</span></span></span></li>
+<li><span class="bjh-ul"><span class="bjh-li"><span class="bjh-p"><span class="bjh-li"><span class="bjh-p">不会产生碎片</span></span></span></span></span></li>
+<li><span class="bjh-ul"><span class="bjh-li"><span class="bjh-p"><span class="bjh-li"><span class="bjh-p"><span class="bjh-li"><span class="bjh-p">内存利用率太低，只用了一半</span></span></span></span></span></span></span></li>
+</ul>
+<p><span style="font-size: 15px;"><strong><span class="bjh-ul"><span class="bjh-li"><span class="bjh-p"><span class="bjh-li"><span class="bjh-p"><span class="bjh-li"><span class="bjh-p">4、分代收集算法</span></span></span></span></span></span></span></strong></span></p>
+<p><span class="bjh-ul" style="font-size: 15px;"><span class="bjh-li"><span class="bjh-p"><span class="bjh-li"><span class="bjh-p"><span class="bjh-li"><span class="bjh-p">java中的垃圾回收大致在两部分，第一个就是堆、第二个就是方法区。为此先看方法区是如何进行垃圾回收的。</span></span></span></span></span></span></span></p>
+<p><span class="bjh-ul" style="font-size: 15px;"><span class="bjh-li"><span class="bjh-p"><span class="bjh-li"><span class="bjh-p"><span class="bjh-li"><span class="bjh-p">1、方法区的垃圾回收</span></span></span></span></span></span></span></p>
+<p><span class="bjh-ul" style="font-size: 15px;"><span class="bjh-li"><span class="bjh-p"><span class="bjh-li"><span class="bjh-p"><span class="bjh-li"><span class="bjh-p">方法区又叫做永久代。永久代的垃圾回收主要有两部分：废弃常量和无用的类。</span></span></span></span></span></span></span></p>
+<ul>
+<li><span class="bjh-ul" style="font-size: 15px;"><span class="bjh-li"><span class="bjh-p"><span class="bjh-li"><span class="bjh-p"><span class="bjh-li"><span class="bjh-p">废弃常量</span></span></span></span></span></span></span></li>
+</ul>
+<p><span class="bjh-p">　　　　第一步：判定一个常量是否是废弃常量：没有任何一个地方对这个常量进行引用就表示是废弃常量。</span></p>
+<p><span class="bjh-p">　　　　第二步：垃圾回收</span></p>
+<ul>
+<li><span class="bjh-p">无用的类</span></li>
+</ul>
+<p><span class="bjh-p">　　　　第一步：判定一个类是否是&ldquo;无用的类&rdquo;：需要满足下面三个条件：</span></p>
+<ul>
+<li style="list-style-type: none;">
+<ul>
+<li style="list-style-type: none;">
+<ul>
+<li><span class="bjh-p"><span class="bjh-li"><span class="bjh-p">Java堆中不存在该类的任何实例，也就是该类的所有实例都被回收</span></span></span></li>
+<li><span class="bjh-p"><span class="bjh-li"><span class="bjh-p"><span class="bjh-li"><span class="bjh-p">加载该类的ClassLoader已经被回收</span></span></span></span></span></li>
+<li><span class="bjh-p"><span class="bjh-li"><span class="bjh-p"><span class="bjh-li"><span class="bjh-p"><span class="bjh-li"><span class="bjh-p">该类对应的Class对象在任何地方没有引用了，也不能通过反射访问该类的方法。</span></span></span></span></span></span></span></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+<p><span class="bjh-p"><span class="bjh-li"><span class="bjh-p"><span class="bjh-li"><span class="bjh-p"><span class="bjh-li"><span class="bjh-p">　　　　第二步：满足上面三个条件就可以回收了，但不是强制的。</span></span></span></span></span></span></span></p>
+<p><span class="bjh-p"><span class="bjh-li"><span class="bjh-p"><span class="bjh-li"><span class="bjh-p"><span class="bjh-li"><span class="bjh-p">注意：《java虚拟机规范》里面曾经说到过，<strong>不要求虚拟机对方法区进行垃圾回收</strong>。而且方法区进行<strong>垃圾回收性价比比较低</strong>。</span></span></span></span></span></span></span></p>
+<p><span class="bjh-p"><span class="bjh-li"><span class="bjh-p"><span class="bjh-li"><span class="bjh-p"><span class="bjh-li"><span class="bjh-p">2、Java 堆的垃圾回收：</span></span></span></span></span></span></span></p>
+<p><span class="bjh-p"><span class="bjh-li"><span class="bjh-p"><span class="bjh-li"><span class="bjh-p"><span class="bjh-li"><span class="bjh-p">先来看一下 Java 堆的结构。</span></span></span></span></span></span></span></p>
+<p><span class="bjh-p"><span class="bjh-li"><span class="bjh-p"><span class="bjh-li"><span class="bjh-p"><span class="bjh-li"><span class="bjh-p"><img src="./images/java 垃圾回收机制6.png" alt="" /></span></span></span></span></span></span></span></p>
+<p>&nbsp;</p>
+<p>&nbsp;</p>
+<p>&nbsp;Java 堆空间分成了三部分，这三部分用来存储三类数据：</p>
+<ul>
+<li><span class="bjh-li"><span class="bjh-p">刚刚创建的对象。</span></span></li>
+<li><span class="bjh-li"><span class="bjh-p"><span class="bjh-li"><span class="bjh-p">存活了一段时间的对象。</span></span></span></span></li>
+<li><span class="bjh-li"><span class="bjh-p"><span class="bjh-li"><span class="bjh-p"><span class="bjh-li"><span class="bjh-p">永久存在的对象。</span></span></span></span></span></span></li>
+</ul>
+<p><span class="bjh-li"><span class="bjh-p"><span class="bjh-li"><span class="bjh-p"><span class="bjh-li"><span class="bjh-p">也就是说，常规的 Java 堆至少包括了 新生代 和 老年代 两块内存区域，而且这两块区域有很明显的特征：</span></span></span></span></span></span></p>
+<ul>
+<li><span class="bjh-li"><span class="bjh-p"><span class="bjh-li"><span class="bjh-p"><span class="bjh-li"><span class="bjh-p"><span class="bjh-li"><span class="bjh-p">新生代：存活对象少、垃圾多</span></span></span></span></span></span></span></span></li>
+<li><span class="bjh-li"><span class="bjh-p"><span class="bjh-li"><span class="bjh-p"><span class="bjh-li"><span class="bjh-p"><span class="bjh-li"><span class="bjh-p"><span class="bjh-li"><span class="bjh-p">老年代：存活对象多、垃圾少</span></span></span></span></span></span></span></span></span></span></li>
+</ul>
+<p><span class="bjh-li"><span class="bjh-p"><span class="bjh-li"><span class="bjh-p"><span class="bjh-li"><span class="bjh-p"><span class="bjh-li"><span class="bjh-p"><span class="bjh-li"><span class="bjh-p">针对这种特点，我们有以下两种方案;</span></span></span></span></span></span></span></span></span></span></p>
+<p><span class="bjh-li"><span class="bjh-p"><span class="bjh-li"><span class="bjh-p"><span class="bjh-li"><span class="bjh-p"><span class="bjh-li"><span class="bjh-p"><span class="bjh-li"><span class="bjh-p">(1)新生代－复制 回收机制</span></span></span></span></span></span></span></span></span></span></p>
+<p><span class="bjh-li"><span class="bjh-p"><span class="bjh-li"><span class="bjh-p"><span class="bjh-li"><span class="bjh-p"><span class="bjh-li"><span class="bjh-p"><span class="bjh-li"><span class="bjh-p">对于新生代区域，由于每次 GC 都会有大量新对象死去，只有少量存活。因此采用 复制 回收算法，GC 时把少量的存活对象复制过去即可。但是从上面我们可以看到，新生代也划分了三个部分比例：Eden：S1：S2=8:1:1。</span></span></span></span></span></span></span></span></span></span></p>
+<p><em><span class="bjh-li"><span class="bjh-p"><span class="bjh-li"><span class="bjh-p"><span class="bjh-li"><span class="bjh-p"><span class="bjh-li"><span class="bjh-p"><span class="bjh-li"><span class="bjh-p"><strong>&ldquo;</strong>其中 Eden 意为伊甸园，形容有很多新生对象在里面创建；S1和S2中的S表示Survivor，为幸存者，即经历 GC 后仍然存活下来的对象。<strong>&rdquo;</strong></span></span></span></span></span></span></span></span></span></span></em></p>
+<p><span class="bjh-li"><span class="bjh-p"><span class="bjh-li"><span class="bjh-p"><span class="bjh-li"><span class="bjh-p"><span class="bjh-li"><span class="bjh-p"><span class="bjh-li"><span class="bjh-p">工作原理如下：</span></span></span></span></span></span></span></span></span></span></p>
+<p><span class="bjh-li"><span class="bjh-p">　　1. 首先，Eden对外提供堆内存。当 Eden区快要满了，触发垃圾回收机制，把存活对象放入 Survivor A 区，清空 Eden 区；</span></span></p>
+<p><span class="bjh-li"><span class="bjh-p"><span class="bjh-li"><span class="bjh-p">　　2. Eden区被清空后，继续对外提供堆内存；</span></span></span></span></p>
+<p><span class="bjh-li"><span class="bjh-p"><span class="bjh-li"><span class="bjh-p"><span class="bjh-li"><span class="bjh-p">　　3. 当 Eden 区再次被填满，对 Eden区和 Survivor A 区同时进行垃圾回收，把存活对象放入 Survivor B区，同时清空 Eden 区和Survivor A 区；</span></span></span></span></span></span></p>
+<p><span class="bjh-li"><span class="bjh-p"><span class="bjh-li"><span class="bjh-p"><span class="bjh-li"><span class="bjh-p"><span class="bjh-li"><span class="bjh-p">　　4. 当某个 Survivor区被填满，把多余对象放到Old 区；</span></span></span></span></span></span></span></span></p>
+<p><span class="bjh-li"><span class="bjh-p"><span class="bjh-li"><span class="bjh-p"><span class="bjh-li"><span class="bjh-p"><span class="bjh-li"><span class="bjh-p"><span class="bjh-li"><span class="bjh-p">　　5. 当 Old 区也被填满时，进行 下一阶段的垃圾回收。</span></span></span></span></span></span></span></span></span></span></p>
+<p><span class="bjh-li"><span class="bjh-p"><span class="bjh-li"><span class="bjh-p"><span class="bjh-li"><span class="bjh-p"><span class="bjh-li"><span class="bjh-p"><span class="bjh-li"><span class="bjh-p">（2）老年代－标记整理 回收机制</span></span></span></span></span></span></span></span></span></span></p>
+<p><span class="bjh-li"><span class="bjh-p"><span class="bjh-li"><span class="bjh-p"><span class="bjh-li"><span class="bjh-p"><span class="bjh-li"><span class="bjh-p"><span class="bjh-li"><span class="bjh-p">老年代的特点是：存活对象多、垃圾少。因此，根据老年代的特点，这里仅仅通过少量地移动对象就能清理垃圾，而且不存在内存碎片化。也就是标记整理的回收机制。既然是标记整理算法，而且老年代内部也不存在着内存划分，所以只需要根据标记整理的具体步骤进行垃圾回收就好了。</span></span></span></span></span></span></span></span></span></span></p>
+<p><span style="font-size: 18px;"><strong><span class="bjh-ul"><span class="bjh-li"><span class="bjh-p"><span class="bjh-li"><span class="bjh-p"><span class="bjh-li"><span class="bjh-p">五.&nbsp;垃圾回收器</span></span></span></span></span></span></span></strong></span></p>
+<p><span class="bjh-p">如果说收集算法是内存回收的方法论，那么垃圾收集器就是内存回收的具体实现。</span></p>
+<p><span class="bjh-p">在了解 垃圾回收器之前，首先得了解一下垃圾回收器的几个名词。</span></p>
+<p><span class="bjh-p">1. 吞吐量</span></p>
+<p><span class="bjh-p">CPU 用于运行用户代码的时间与 CPU 总消耗时间的比值。比如说虚拟机总运行了 100 分钟，用户代码时间 99 分钟，垃圾回收 时间 1 分钟，那么吞吐量就是 99%。</span></p>
+<p><span class="bjh-p">2. 停顿时间</span></p>
+<p><span class="bjh-p">停顿时间 指垃圾回收器正在运行时，应用程序 的 暂停时间。</span></p>
+<p><span class="bjh-p">3. GC的名词</span></p>
+<p><span class="bjh-p">新生代GC：Minor GC</span></p>
+<p><span class="bjh-p">老年代GC：Major GC</span></p>
+<p><span class="bjh-p">4. 并发与并行</span></p>
+<p><span class="bjh-p">（1）串行（Parallel）</span></p>
+<p><span class="bjh-p">垃圾回收线程 进行垃圾回收工作，但此时 用户线程 仍然处于 等待状态。</span></p>
+<p><span class="bjh-p">（2）并发（Concurrent）</span></p>
+<p><span class="bjh-p">这里的并发指 用户线程 与 垃圾回收线程 交替执行。</span></p>
+<p><span class="bjh-p">（3）并行（Parallel）</span></p>
+<p><span class="bjh-p">这里的并行指 用户线程 和多条 垃圾回收线程 分别在不同 CPU 上同时工作。</span></p>
+<p><span class="bjh-p">下面其中垃圾回收器是基于HotSpot虚拟机。先给一张图看一下</span></p>
+<p><span class="bjh-p"><img src="./images/java 垃圾回收机制7.png" alt="" /></span></p>
+<p>&nbsp;</p>
+<p>&nbsp;在 JVM 中，具体实现有 Serial、ParNew、Parallel Scavenge、CMS、Serial Old（MSC）、Parallel Old、G1 等。在上图中，你可以看到 不同垃圾回收器 适合于 不同的内存区域，如果两个垃圾回收器之间 存在连线，那么表示两者可以 配合使用。</p>
+<p>下面对这其中垃圾回收器有一个了解。</p>
+<p><span class="bjh-p">第一种：Serial（单线程）</span></p>
+<p><span class="bjh-p">Serial 回收器是最基本的 新生代垃圾回收器，是单线程的垃圾回收器。采用的是 复制算法。垃圾清理时，Serial回收器不存在线程间的切换，因此，在单 CPU` 的环境下，垃圾清除效率比较高。</span></p>
+<p><span class="bjh-p">第二种：Serial Old（单线程）</span></p>
+<p><span class="bjh-p">Serial Old回收器是 Serial回收器的老生代版本，单线程回收器，使用 标记-整理算法。在 JDK1.5 及其以前，它常与Parallel Scavenge回收器配合使用，达到较好的吞吐量，另外它也是 CMS 回收器在Concurrent Mode Failure时的后备方案。</span></p>
+<p><span class="bjh-p">第三种：ParNew（多线程）</span></p>
+<p><span class="bjh-p">ParNew回收器是在Serial回收器的基础上演化而来的，属于Serial回收器的多线程版本，采用复制算法。运行在新生代区域。在实现上，两者共用很多代码。在不同运行环境下，根据CPU核数，开启不同的线程数，从而达到最优的垃圾回收效果。</span></p>
+<p><span class="bjh-p"><img src="./images/java 垃圾回收机制8.png" alt="" /></span></p>
+<p>&nbsp;</p>
+<p>&nbsp;</p>
+<p><span class="bjh-p">第四种：Parallel Scavenge（多线程）</span></p>
+<p><span class="bjh-p">Parallel Scavenge回收器也是运行在新生代区域，属于多线程的回收器，采用复制算法。与ParNew不同的是，ParNew回收器是通过控制垃圾回收的线程数来进行参数调整，而Parallel Scavenge回收器更关心的是程序运行的吞吐量。即一段时间内用户代码运行时间占总运行时间的百分比。</span></p>
+<p><span class="bjh-p">第五种：Parallel Old（多线程）</span></p>
+<p><span class="bjh-p">Parallel Old回收器是Parallel Scavenge回收器的老生代版本，属于多线程回收器，采用标记-整理算法。Parallel Old回收器和Parallel Scavenge回收器同样考虑了吞吐量优先这一指标，非常适合那些注重吞吐量和CPU资源敏感的场合。</span></p>
+<p><span class="bjh-p"><img src="./images/java 垃圾回收机制9.png" alt="" /></span></p>
+<p>&nbsp;</p>
+<p>&nbsp;</p>
+<p><span class="bjh-p">第六种：CMS（多线程回收）</span></p>
+<p><span class="bjh-p">CMS回收器是在最短回收停顿时间为前提的回收器，属于多线程回收器，采用标记-清除算法。</span></p>
+<p><span class="bjh-p"><img src="./images/java 垃圾回收机制10.png" alt="" /></span></p>
+<p>&nbsp;</p>
+<p>&nbsp;</p>
+<p><span class="bjh-p">第七种：G1回收器</span></p>
+<p><span class="bjh-p">G1是 JDK 1.7中正式投入使用的用于取代CMS的压缩回收器。它虽然没有在物理上隔断新生代与老生代，但是仍然属于分代垃圾回收器。G1仍然会区分年轻代与老年代，年轻代依然分有Eden区与Survivor区。</span></p>
+<p><span class="bjh-p">G1首先将堆分为大小相等的 Region，避免全区域的垃圾回收。G1的分区示例如下图所示：</span></p>
+<p><span class="bjh-p"><img src="./images/java 垃圾回收机制11.png" alt="" /></span></p>
+<p>&nbsp;</p>
+<p>&nbsp;</p>
+<p><span class="bjh-p">这种使用区域划分内存空间以及有优先级的区域回收方式，保证G1回收器在有限的时间内可以获得尽可能高的回收效率。</span></p>
+<p><span class="bjh-p">下面对这几种垃圾回收机制进行一个总结：</span></p>
+<p><span class="bjh-p"><img src="./images/java 垃圾回收机制12.png" alt="" /></span></p>
+<p>&nbsp;</p>
+<p>&nbsp;</p>
+<p>参考：<a href="https://baijiahao.baidu.com/s?id=1636852721632353675&amp;wfr=spider&amp;for=pc">https://baijiahao.baidu.com/s?id=1636852721632353675&amp;wfr=spider&amp;for=pc</a></p>
+
+</div><hr><script charset='utf-8' src='../../js/sming.js'></script></body></html>

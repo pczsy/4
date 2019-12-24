@@ -1,0 +1,101 @@
+<html><head><meta charset='utf-8'><meta name='viewport' content='width=device-width, initial-scale=1'>
+<meta name='applicable-device' content='pc'><meta name='keywords' content='电脑,电脑讲解,电脑技术,编程,电脑故障维修解决vue+springboot前后端分离项目,前端跨域访问sessionID不一致导致的session为null问题' />
+<script src='../../highlight/highlight.pack.js'></script>
+<link rel='stylesheet' type='text/css' href='../../highlight/styles/monokai.css'/>
+
+<link rel='stylesheet' href='../../fenxiang/dist/css/share.min.css'>
+<script src='../../fenxiang/src/js/social-share.js'></script>
+<script src='../../fenxiang/src/js/qrcode.js'></script>
+
+</head><body><script>hljs.initHighlightingOnLoad();</script><script>
+var system ={};  
+var p = navigator.platform;       
+system.win = p.indexOf('Win') == 0;  
+system.mac = p.indexOf('Mac') == 0;  
+system.x11 = (p == 'X11') || (p.indexOf('Linux') == 0);     
+if(system.win||system.mac||system.xll){
+document.write("<link href='../css/3.css' rel='stylesheet' type='text/css'>");}else{ document.write("<link href='../css/3wap.css' rel='stylesheet' type='text/css'>");}</script><script src='../../js/3.js'></script><div class='div2'><div class='heading_nav'><ul><div><li><a href='../../index.html'>首页</a></li>
+</div><div onclick='hidden1()' >分享</div>
+</ul></div></div>
+<div id='heading_nav2'> 
+<li class='row' >
+<div class='social-share' data-mode='prepend'><a href='javascript:' class='social-share-icon icon-heart'></a></div></li></div><script charset='utf-8' src='../../3/js/hengfu.js'></script><script charset='utf-8' src='../../3/js/hengfu2.js'></script><hr><div class='div1'><div class='biaoti'><center>解决vue+springboot前后端分离项目,前端跨域访问sessionID不一致导致的session为null问题</center></div><div class='banquan'>原文出处:本文由博客园博主宅男大咖提供。<br/>
+原文连接:https://www.cnblogs.com/zhainan-blog/p/11711427.html</div><br>
+    <p><span style="font-family: 'Microsoft YaHei';">问题: 前端跨域访问后端接口, 在浏览器的安全策略下默认是不携带cookie的, 所以每次请求都开启了一次新的会话. </span></p>
+<p><span style="font-family: 'Microsoft YaHei';">在后台打印sessionID我们会发现, 每次请求的sessionID都是不同的, 既然每次请求都是一个新的会话, 那我们去获取session的时候自然就是null了.</span></p>
+<p><span style="font-family: 'Microsoft YaHei';">解决办法如下:&nbsp;</span></p>
+<p><span style="font-family: 'Microsoft YaHei';">环境:&nbsp;</span></p>
+<p><span style="font-family: 'Microsoft YaHei';">vue 2.0</span></p>
+<p><span style="font-family: 'Microsoft YaHei';">springboot 2.1.6</span></p>
+<p>&nbsp;</p>
+<h3><span style="font-family: 'Microsoft YaHei';">一、前端部分</span></h3>
+<p><span style="font-family: 'Microsoft YaHei';">1.&nbsp; 在vue引入axios的位置添加以下代码</span></p>
+<src class="cnblogs_code">
+<pre><code><span style="font-family: 'Microsoft YaHei';"><span style="color: #0000ff;">import</span> axios from 'axios'<span style="color: #000000;">
+axios.defaults.withCredentials </span>= <span style="color: #0000ff;">true</span>;<span style="color: #008000;">//</span><span style="color: #008000;"> 允许跨域携带cookie</span></span></code></pre>
+
+<p><span style="font-family: 'Microsoft YaHei';"><img src="./images/解决vue+springboot前后端分离项目,前端跨域访问sessionID不一致导致的session为null问题0.png" alt="" /></span></p>
+<p>&nbsp;&nbsp;</p>
+<h3><span style="font-family: 'Microsoft YaHei';">二、后台部分</span></h3>
+<p><span style="font-family: 'Microsoft YaHei';">1. 新建一个FilterConfig类, 编写一个拦截器类</span></p>
+<src class="cnblogs_code">
+<pre><code><span style="font-family: 'Microsoft YaHei';"><span style="color: #008000;">/**</span><span style="color: #008000;">
+ * 允许跨域请求
+ * </span><span style="color: #808080;">@author</span><span style="color: #008000;"> Administrator
+ *
+ </span><span style="color: #008000;">*/</span>
+<span style="color: #0000ff;">import</span><span style="color: #000000;"> org.springframework.stereotype.Component;
+</span><span style="color: #0000ff;">import</span><span style="color: #000000;"> org.springframework.web.servlet.HandlerInterceptor;
+</span><span style="color: #0000ff;">import</span> javax.servlet.http.*<span style="color: #000000;">;
+@Component
+</span><span style="color: #0000ff;">public</span> <span style="color: #0000ff;">class</span> FilterConfig <span style="color: #0000ff;">implements</span><span style="color: #000000;"> HandlerInterceptor{
+    
+    </span><span style="color: #0000ff;">public</span> <span style="color: #0000ff;">void</span><span style="color: #000000;"> afterCompletion(HttpServletRequest arg0, HttpServletResponse arg1, Object arg2, Exception arg3)
+            </span><span style="color: #0000ff;">throws</span><span style="color: #000000;"> Exception {
+    }
+ 
+    </span><span style="color: #0000ff;">public</span> <span style="color: #0000ff;">void</span><span style="color: #000000;"> postHandle(HttpServletRequest arg0, HttpServletResponse arg1, Object arg2)
+            </span><span style="color: #0000ff;">throws</span><span style="color: #000000;"> Exception {
+    }
+ 
+    </span><span style="color: #0000ff;">public</span> <span style="color: #0000ff;">boolean</span> preHandle(HttpServletRequest request, HttpServletResponse response, Object arg2) <span style="color: #0000ff;">throws</span><span style="color: #000000;"> Exception {
+ 
+        response.setHeader(</span>"Access-Control-Allow-Origin",request.getHeader("Origin"));<span style="color: #008000;">//</span><span style="color: #008000;">支持跨域请求</span>
+        response.setHeader("Access-Control-Allow-Methods", "*"<span style="color: #000000;">);
+        response.setHeader(</span>"Access-Control-Allow-Credentials", "true");<span style="color: #008000;">//</span><span style="color: #008000;">是否支持cookie跨域</span>
+        response.setHeader("Access-Control-Allow-Headers", "Authorization,Origin, X-Requested-With, Content-Type, Accept,Access-Token");<span style="color: #008000;">//</span><span style="color: #008000;">Origin, X-Requested-With, Content-Type, Accept,Access-Token</span>
+        <span style="color: #0000ff;">return</span> <span style="color: #0000ff;">true</span><span style="color: #000000;">;
+    }
+}</span></span></code></pre>
+
+<p><span style="font-family: 'Microsoft YaHei';"><img src="./images/解决vue+springboot前后端分离项目,前端跨域访问sessionID不一致导致的session为null问题1.png" alt="" /></span></p>
+<p>&nbsp;<span style="font-family: 'Microsoft YaHei';">2. 在创建一个SpringMVCConfig类, 请用拦截器</span></p>
+<src class="cnblogs_code">
+<pre><code><span style="font-family: 'Microsoft YaHei';"><span style="color: #008000;">/**</span><span style="color: #008000;">
+ * 启用跨域配置
+ * 编写SpringMVCConfig类使用FilterConfig中的配置
+ * </span><span style="color: #808080;">@author</span><span style="color: #008000;"> Administrator
+ *
+ </span><span style="color: #008000;">*/</span>
+<span style="color: #0000ff;">import</span><span style="color: #000000;"> org.springframework.beans.factory.annotation.Autowired;
+</span><span style="color: #0000ff;">import</span><span style="color: #000000;"> org.springframework.boot.SpringBootConfiguration;
+</span><span style="color: #0000ff;">import</span><span style="color: #000000;"> org.springframework.web.servlet.config.annotation.InterceptorRegistry;
+</span><span style="color: #0000ff;">import</span><span style="color: #000000;"> org.springframework.web.servlet.config.annotation.WebMvcConfigurerAdapter;
+@SuppressWarnings(</span>"deprecation"<span style="color: #000000;">)
+@SpringBootConfiguration
+</span><span style="color: #0000ff;">public</span> <span style="color: #0000ff;">class</span> SpringMVCConfig <span style="color: #0000ff;">extends</span><span style="color: #000000;"> WebMvcConfigurerAdapter{
+    @Autowired
+    </span><span style="color: #0000ff;">private</span><span style="color: #000000;"> FilterConfig filterConfig;
+    
+    </span><span style="color: #0000ff;">public</span> <span style="color: #0000ff;">void</span><span style="color: #000000;"> addInterceptors(InterceptorRegistry registry){
+        registry.addInterceptor(filterConfig).addPathPatterns(</span>"/**"<span style="color: #000000;">);
+    }
+}</span></span></code></pre>
+
+<p><span style="font-family: 'Microsoft YaHei';"><img src="./images/解决vue+springboot前后端分离项目,前端跨域访问sessionID不一致导致的session为null问题2.png" alt="" /></span></p>
+<p>&nbsp;<span style="font-family: 'Microsoft YaHei';">问题解决, 重启工程后我们再次打印每次请求的sessionID就会发现sessionID是一致的, 当然也就可以获取我们存入session的内容了.</span></p>
+<src class="cnblogs_code">
+<pre><code>System.out.println(request.getSession().getId());</code></pre>
+
+
+</div><hr><script charset='utf-8' src='../../js/sming.js'></script></body></html>

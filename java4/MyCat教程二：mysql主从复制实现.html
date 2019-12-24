@@ -1,0 +1,147 @@
+<html><head><meta charset='utf-8'><meta name='viewport' content='width=device-width, initial-scale=1'>
+<meta name='applicable-device' content='pc'><meta name='keywords' content='电脑,电脑讲解,电脑技术,编程,电脑故障维修MyCat教程二：mysql主从复制实现' />
+<script src='../../highlight/highlight.pack.js'></script>
+<link rel='stylesheet' type='text/css' href='../../highlight/styles/monokai.css'/>
+
+<link rel='stylesheet' href='../../fenxiang/dist/css/share.min.css'>
+<script src='../../fenxiang/src/js/social-share.js'></script>
+<script src='../../fenxiang/src/js/qrcode.js'></script>
+
+</head><body><script>hljs.initHighlightingOnLoad();</script><script>
+var system ={};  
+var p = navigator.platform;       
+system.win = p.indexOf('Win') == 0;  
+system.mac = p.indexOf('Mac') == 0;  
+system.x11 = (p == 'X11') || (p.indexOf('Linux') == 0);     
+if(system.win||system.mac||system.xll){
+document.write("<link href='../css/3.css' rel='stylesheet' type='text/css'>");}else{ document.write("<link href='../css/3wap.css' rel='stylesheet' type='text/css'>");}</script><script src='../../js/3.js'></script><div class='div2'><div class='heading_nav'><ul><div><li><a href='../../index.html'>首页</a></li>
+</div><div onclick='hidden1()' >分享</div>
+</ul></div></div>
+<div id='heading_nav2'> 
+<li class='row' >
+<div class='social-share' data-mode='prepend'><a href='javascript:' class='social-share-icon icon-heart'></a></div></li></div><script charset='utf-8' src='../../3/js/hengfu.js'></script><script charset='utf-8' src='../../3/js/hengfu2.js'></script><hr><div class='div1'><div class='biaoti'><center>MyCat教程二：mysql主从复制实现</center></div><div class='banquan'>原文出处:本文由博客园博主HG-93提供。<br/>
+原文连接:https://www.cnblogs.com/cxydmx/p/11734061.html</div><br>
+    <p>  单个mysql数据库在处理业务的时候肯定是有限的，这时我们扩展数据库的第一种方式就是对数据库做<code>读写分离（主从复制）</code>,本文我们就先来介绍下怎么来实现mysql的主从复制操作。</p>
+<h1><a name="t0"></a><a id="1__1"></a>1. 读写分离</h1>
+<p>  原理：需要搭建主从模式，让主数据库（master）处理事务性增、改、删操作（INSERT、UPDATE、DELETE），而从数据库（slave）处理 SELECT 查询操作。<br>
+  Mycat 配合数据库本身的复制功能，可以解决读写分离的问题。</p>
+<h1><a name="t1"></a><a id="2_4"></a>2.主从备份概念</h1>
+<p>什么是主从备份: 就是一种主备模式的数据库应用.<br>
+主库(Master)数据与备库(Slave)数据完全一致.<br>
+实现数据的多重备份, 保证数据的安全.<br>
+可以在 Master[<code>InnoDB</code>]和 Slave[<code>MyISAM</code>]中使用不同的数据库引擎,实现读写的分离<br>
+<code>InnoDB</code>:支持事务处理<br>
+<code>MyISAM</code>:不支持事务处理</p>
+<h2><a name="t2"></a><a id="21MySQL55_56__12"></a>2.1 MySQL5.5, 5.6 版本后本身支持主从备份</h2>
+<p>  在老旧版本的 MySQL 数据库系统中,不支持主从备份,需要安装额外的 RPM 包.如果需要安装 RPM,只能在一个位置节点安装.</p>
+<h2><a name="t3"></a><a id="22_14"></a>2.2 主从备份目的</h2>
+<h3><a name="t4"></a><a id="221__15"></a>2.2.1 实现主备模式</h3>
+<p>  保证数据的安全. 尽量避免数据丢失的可能.</p>
+<h3><a name="t5"></a><a id="222__17"></a>2.2.2 实现读写分离</h3>
+<p>  使用不同的数据库引擎,实现读写分离.提高所有的操作效率.<br>
+  InnoDB 使用 DML 语法操作. MyISAM 使用 DQL 语法操作.</p>
+<h2><a name="t6"></a><a id="23_20"></a>2.3 主从备份效果</h2>
+<h3><a name="t7"></a><a id="231__21"></a>2.3.1 主库操作同步到备库</h3>
+<p>  所有对 Master 的操作,都会同步到 Slave 中.如果 Master 和 Salve 天生上环境不同,那么对 Master 的操作,可能会在 Slave 中出现错误如: 在创建主从模式之前,Master 有 database : db1, db2, db3. Slave 有 database: db1, db2.创建主从模式.现在的情况 Master 和 Slave 天生不同.主从模式创建成功后,在 Master 中 drop database db3. Slave 中抛出数据库 SQL 异常.后续所有的命令不能同步.一旦出现错误. 只能重新实现主从模式.</p>
+<h2><a name="t8"></a><a id="24_23"></a>2.4 主从模式下的逻辑图</h2>
+<p><img src="./images/MyCat教程二：mysql主从复制实现0.png" alt="在这里插入图片描述"></p>
+<h1><a name="t9"></a><a id="3_MySQL_25"></a>3. MySQL主从模式搭建</h1>
+<h2><a name="t10"></a><a id="31_MYSQL_26"></a>3.1 安装MYSQL</h2>
+<p>mysql安装教程:<br>
+https://blog.csdn.net/weixin_45600622/article/details/102647528<br>
+环境地址：<br>
+主节点：192.168.88.180<br>
+从节点：192.168.88.181</p>
+<p><img src="./images/MyCat教程二：mysql主从复制实现1.png" alt="在这里插入图片描述"><br>
+<img src="./images/MyCat教程二：mysql主从复制实现2.png" alt="在这里插入图片描述"></p>
+<h2><a name="t11"></a><a id="32_Master_36"></a>3.2 主库配置修改(Master)</h2>
+<p>路径：/etc/my.cnf</p>
+<h3><a name="t12"></a><a id="321_server_id_38"></a>3.2.1 server_id配置</h3>
+<p>本环境中 server_id 是 1<br>
+MySQL 服务唯一标识<br>
+配置要求：<br>
+server_id 任意配置,只要是数字即可<br>
+server_id Master 唯一标识数字必须小于 Slave 唯一标识数字.</p>
+<p><img src="./images/MyCat教程二：mysql主从复制实现3.png" alt="在这里插入图片描述"></p>
+<h3><a name="t13"></a><a id="322_log_bin_47"></a>3.2.2 log_bin配置</h3>
+<p>本环境中 log_bin 值 : master_log<br>
+开启日志功能以及日志文件命名,log_bin=master_log<br>
+变量的值就是日志文件名称.是日志文件名称的主体.<br>
+MySQL 数据库自动增加文件名后缀和文件类型.</p>
+<p><img src="./images/MyCat教程二：mysql主从复制实现4.png" alt="在这里插入图片描述"></p>
+<h3><a name="t14"></a><a id="323_mysql_54"></a>3.2.3 重启mysql</h3>
+<pre><code><code class="prism language-sh has-numbering" onclick="mdcp.copyCode(event)" style="position: unset;">service mysql restart
+<src class="hljs-button {2}" data-title="复制"></code></code></pre>
+<h3><a name="t15"></a><a id="324_mysql_60"></a>3.2.4 登录mysql</h3>
+<p>从mysql的安装路径下进入</p>
+<pre><code><code class="prism language-sh has-numbering" onclick="mdcp.copyCode(event)" style="position: unset;">./bin/mysql -uroot -h127.0.0.1 -p123456
+<src class="hljs-button {2}" data-title="复制"></code></code></pre>
+<p><img src="./images/MyCat教程二：mysql主从复制实现5.png" alt="在这里插入图片描述"></p>
+<h3><a name="t16"></a><a id="325__68"></a>3.2.5 创建用户</h3>
+<p>在 MySQL 数据库中,为不存在的用户授权,就是同步创建用户并授权.<br>
+此用户是从库访问主库使用的用户<br>
+<code>ip</code> 地址不能写为%. 因为主从备份中,当前创建的用户,是给从库 Slave 访问主库 Master使用的.用户必须有指定的访问地址.不能是通用地址.<br>
+grant all privileges on *.* to ‘username’@’ip’ identified by ‘password’ with grant option;<br>
+flush privileges;</p>
+<pre><code><code class="prism language-bash has-numbering" onclick="mdcp.copyCode(event)" style="position: unset;">grant all privileges on *.* to <span class="token string">'myslave'</span>@<span class="token string">'192.168.88.181'</span> identified by <span class="token string">'myslave'</span> with grant 
+option<span class="token punctuation">;</span>
+flush privileges<span class="token punctuation">;</span>
+<src class="hljs-button {2}" data-title="复制"></code></code></pre>
+<h3><a name="t17"></a><a id="326__81"></a>3.2.6 查看用户</h3>
+<pre><code><code class="prism language-sql has-numbering" onclick="mdcp.copyCode(event)" style="position: unset;"><span class="token keyword">use</span> mysql<span class="token punctuation">;</span>
+<span class="token keyword">select</span> host<span class="token punctuation">,</span> <span class="token keyword">user</span> <span class="token keyword">from</span> <span class="token keyword">user</span><span class="token punctuation">;</span>
+<src class="hljs-button {2}" data-title="复制"></code></code></pre>
+<p><img src="./images/MyCat教程二：mysql主从复制实现6.png" alt="在这里插入图片描述"></p>
+<h3><a name="t18"></a><a id="327__Master__89"></a>3.2.7 查看 Master 信息</h3>
+<p><img src="./images/MyCat教程二：mysql主从复制实现7.png" alt="在这里插入图片描述"></p>
+<p>master_log.00003就是主从复制中从数据库要读取的日志文件。<br>
+<code>注意</code>:关闭防火墙或在防火墙中开放 3306 端口</p>
+<h2><a name="t19"></a><a id="33_slave_95"></a>3.3 从库配置修改(slave)</h2>
+<h3><a name="t20"></a><a id="331_mycnfserver_id_96"></a>3.3.1 修改my.cnf的server_id</h3>
+<p>  从库的 server_id要比主库中的server_id的值要大</p>
+<p><img src="./images/MyCat教程二：mysql主从复制实现8.png" alt="在这里插入图片描述"><br>
+然后重启mysql服务</p>
+<h3><a name="t21"></a><a id="332_mysql_102"></a>3.3.2 连接mysql服务</h3>
+<p><img src="./images/MyCat教程二：mysql主从复制实现9.png" alt="在这里插入图片描述"></p>
+<h3><a name="t22"></a><a id="333__Slave__106"></a>3.3.3 停止 Slave 功能</h3>
+<pre><code><code class="prism language-bash has-numbering" onclick="mdcp.copyCode(event)" style="position: unset;">stop slave
+<src class="hljs-button {2}" data-title="复制"></code></code></pre>
+<h3><a name="t23"></a><a id="334__112"></a>3.3.4 配置主库信息</h3>
+<p>  需要修改的数据是依据 Master 信息修改的.<code>ip</code> 是 Master 所在物理机 IP. 用户名和密码是Master 提供的 Slave 访问用户名和密码. 日志文件是在 Master 中查看的主库信息提供的.在Master 中使用命令 show master status 查看日志文件名称.<br>
+change master to master_host=’<code>ip</code>’, master_user=’<code>username</code>’, master_password=’<code>password</code>’, master_log_file=’<code>log_file_name</code>’;</p>
+<h3><a name="t24"></a><a id="335__Slave__115"></a>3.3.5 启动 Slave 功能</h3>
+<pre><code><code class="prism language-bash has-numbering" onclick="mdcp.copyCode(event)" style="position: unset;">start slave<span class="token punctuation">;</span>
+<src class="hljs-button {2}" data-title="复制"></code></code></pre>
+<h3><a name="t25"></a><a id="336__Slave__120"></a>3.3.6 查看 Slave 配置</h3>
+<pre><code><code class="prism language-bash has-numbering" onclick="mdcp.copyCode(event)" style="position: unset;">show slave status \G<span class="token punctuation">;</span> <span class="token comment"># \G 行转列</span>
+<src class="hljs-button {2}" data-title="复制"></code></code></pre>
+<p><img src="./images/MyCat教程二：mysql主从复制实现10.png" alt="在这里插入图片描述"></p>
+<p><code>注意</code>:如果输出中有如下提示：</p>
+<pre><code><code class="prism language-bash has-numbering" onclick="mdcp.copyCode(event)" style="position: unset;">Last_IO_Error: Fatal error: The slave I/O thread stops because master and slave have equal MySQL server ids<span class="token punctuation">;</span> these ids must be different <span class="token keyword">for</span> replication to work <span class="token punctuation">(</span>or the –replicate-same-server-id option must be used on slave but this does not always <span class="token function">make</span> sense<span class="token punctuation">;</span> please check the manual before using it<span class="token punctuation">)</span>. 
+<src class="hljs-button {2}" data-title="复制"></code></code></pre>
+<p>原因是以为两个数据库是克隆出来的，所以uuid是一致的，这时只需要删除掉一个uuid即可，具体如下：</p>
+<p><img src="./images/MyCat教程二：mysql主从复制实现11.png" alt="在这里插入图片描述"></p>
+<p>把<code>auto.cnf</code> 注释掉或者删除掉，重启mysql就会重新分配！</p>
+<h1><a name="t26"></a><a id="4__139"></a>4. 主从测试</h1>
+<h2><a name="t27"></a><a id="41__140"></a>4.1 创建数据库同步</h2>
+<p>在master上新建一个数据库，然后查看slave中是否也有即可</p>
+<p><img src="./images/MyCat教程二：mysql主从复制实现12.png" alt="在这里插入图片描述"></p>
+<pre><code><code class="prism language-sql has-numbering" onclick="mdcp.copyCode(event)" style="position: unset;"><span class="token keyword">create</span> <span class="token keyword">database</span> demo2 <span class="token keyword">default</span> <span class="token keyword">character</span> <span class="token keyword">set</span> utf8<span class="token punctuation">;</span>
+<src class="hljs-button {2}" data-title="复制"></code></code></pre>
+<p><img src="./images/MyCat教程二：mysql主从复制实现13.png" alt="在这里插入图片描述"></p>
+<h2><a name="t28"></a><a id="42_table_151"></a>4.2 创建table同步</h2>
+<pre><code><code class="prism language-sql has-numbering" onclick="mdcp.copyCode(event)" style="position: unset;"><span class="token keyword">create</span> <span class="token keyword">table</span> t_user <span class="token punctuation">(</span>id <span class="token keyword">varchar</span><span class="token punctuation">(</span><span class="token number">20</span><span class="token punctuation">)</span><span class="token punctuation">,</span>name <span class="token keyword">varchar</span><span class="token punctuation">(</span><span class="token number">20</span><span class="token punctuation">)</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+<src class="hljs-button {2}" data-title="复制"></code></code></pre>
+<p><img src="./images/MyCat教程二：mysql主从复制实现14.png" alt="在这里插入图片描述"></p>
+<h2><a name="t29"></a><a id="43__158"></a>4.3 数据操作同步</h2>
+<pre><code><code class="prism language-sql has-numbering" onclick="mdcp.copyCode(event)" style="position: unset;"><span class="token keyword">insert</span> <span class="token keyword">into</span> t_user <span class="token punctuation">(</span>id<span class="token punctuation">,</span>name<span class="token punctuation">)</span><span class="token keyword">values</span><span class="token punctuation">(</span><span class="token string">'666'</span><span class="token punctuation">,</span><span class="token string">'cxydmx'</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+<src class="hljs-button {2}" data-title="复制"></code></code></pre>
+<p><img src="./images/MyCat教程二：mysql主从复制实现15.png" alt="在这里插入图片描述"></p>
+<p>通过演示我们发现主数据库的修改会及时的同步到从数据库，这样mysql的主从配置就OK了，好了本文就到此，下篇来详细介绍一下MyCat的安装与配置</p>
+<p><br></p>
+<hr>
+<p><font color="Darkorange" size="4px"><b>关注微信公众号【<a style="text-decoration:none" href="http://mp.weixin.qq.com/s?__biz=MzU0OTg3ODQxNA==&mid=100000173&idx=1&sn=1af862786cc9126634f630a5d4d37d17&chksm=7ba86e4c4cdfe75aa0ce43095cbc2babff63affb0a5e18b5e8ff6a8f6fdc4b4bc129d6e7af10#rd">程序员的梦想</a>】，专注于Java，SpringBoot，SpringCloud，微服务，Docker以及前后端分离等全栈技术。</b></font></p>
+<p><img src="./images/MyCat教程二：mysql主从复制实现16.png" alt="在这里插入图片描述" /></p>
+
+
+</div><hr><script charset='utf-8' src='../../js/sming.js'></script></body></html>

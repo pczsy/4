@@ -1,0 +1,87 @@
+<html><head><meta charset='utf-8'><meta name='viewport' content='width=device-width, initial-scale=1'>
+<meta name='applicable-device' content='pc'><meta name='keywords' content='电脑,电脑讲解,电脑技术,编程,电脑故障维修Redis安装--CentOS7上安装Redis' />
+<script src='../../highlight/highlight.pack.js'></script>
+<link rel='stylesheet' type='text/css' href='../../highlight/styles/monokai.css'/>
+
+<link rel='stylesheet' href='../../fenxiang/dist/css/share.min.css'>
+<script src='../../fenxiang/src/js/social-share.js'></script>
+<script src='../../fenxiang/src/js/qrcode.js'></script>
+
+</head><body><script>hljs.initHighlightingOnLoad();</script><script>
+var system ={};  
+var p = navigator.platform;       
+system.win = p.indexOf('Win') == 0;  
+system.mac = p.indexOf('Mac') == 0;  
+system.x11 = (p == 'X11') || (p.indexOf('Linux') == 0);     
+if(system.win||system.mac||system.xll){
+document.write("<link href='../css/3.css' rel='stylesheet' type='text/css'>");}else{ document.write("<link href='../css/3wap.css' rel='stylesheet' type='text/css'>");}</script><script src='../../js/3.js'></script><div class='div2'><div class='heading_nav'><ul><div><li><a href='../../index.html'>首页</a></li>
+</div><div onclick='hidden1()' >分享</div>
+</ul></div></div>
+<div id='heading_nav2'> 
+<li class='row' >
+<div class='social-share' data-mode='prepend'><a href='javascript:' class='social-share-icon icon-heart'></a></div></li></div><script charset='utf-8' src='../../3/js/hengfu.js'></script><script charset='utf-8' src='../../3/js/hengfu2.js'></script><hr><div class='div1'><div class='biaoti'><center>Redis安装--CentOS7上安装Redis</center></div><div class='banquan'>原文出处:本文由博客园博主xlecho提供。<br/>
+原文连接:https://www.cnblogs.com/xlecho/p/11821166.html</div><br>
+    <p>echo编辑整理，欢迎转载，转载请声明文章来源。欢迎添加echo微信(微信号：t2421499075)交流学习。 百战不败，依不自称常胜，百败不颓，依能奋力前行。——这才是真正的堪称强大！！！</p>
+<hr />
+<p>1、Redis运行环境安装（安装gcc依赖）</p>
+<pre><code><code>yum install gcc-c++</code></code></pre>
+<p>2、创建一个文件夹用于安装redis</p>
+<pre><code><code>mkdir /usr/local/redis</code></code></pre>
+<p>3、下载Redis安装包</p>
+<p><a href="http://download.redis.io/releases/" class="uri">http://download.redis.io/releases/</a><br />
+<img src="./images/Redis安装--CentOS7上安装Redis0.png" alt="在这里插入图片描述" /></p>
+<pre><code><code># 移动到指定目录
+mv redis-5.0.6.tar.gz /usr/local/redis/</code></code></pre>
+<p>4、解压安装包</p>
+<pre><code><code>tar -zxvf redis-5.0.6.tar.gz</code></code></pre>
+<p>5、编译安装</p>
+<pre><code><code>d redis-5.0.6make MALLOC=libc
+cd src
+make install</code></code></pre>
+<p>6、修改配置文件</p>
+<pre><code><code>cd redis-5.0.6
+vi redis.conf
+# 除本机外其他机器也可访问
+bind 127.0.0.1
+# 安全机制调整
+protected-mode no
+# 支持后台运行
+daemonize yes</code></code></pre>
+<p>7、开放Redis默认端口</p>
+<pre><code><code>iptables -A INPUT -p tcp --dport 6379 -j ACCEPT </code></code></pre>
+<p>8、启动Redis</p>
+<pre><code><code>redis-server redis.conf</code></code></pre>
+<p>9、查看Redis是否启动</p>
+<pre><code><code>ps -ef | grep redis</code></code></pre>
+<p>10、杀掉进程</p>
+<pre><code><code>kill -9 id</code></code></pre>
+<p>11、配置密码</p>
+<pre><code><code>requirepass 123456</code></code></pre>
+<p>12、连接Redis</p>
+<pre><code><code>./redis-cli -p 6379 -a 123456
+redis-cli -h 192.168.222.135 -p 6379
+auth 密码</code></code></pre>
+<p>13、查看密码是否设置成功</p>
+<pre><code><code>config get requirepass</code></code></pre>
+<p>14、cmd测试远程redis是否能够连接上</p>
+<pre><code><code>telnet 192.168.222.135 6379</code></code></pre>
+<p>15、查看端口是否开放</p>
+<pre><code><code>lsof -i:6379
+或者
+firewall-cmd --query-port=6379/tcp</code></code></pre>
+<p><img src="./images/Redis安装--CentOS7上安装Redis1.png" alt="在这里插入图片描述" /><br />
+返回no就是未开放</p>
+<p>16、查看目前开放的端口</p>
+<pre><code><code>netstat -atu</code></code></pre>
+<p>17、CentOS7下开放端口号</p>
+<pre><code><code>添加指定需要开放的端口：
+firewall-cmd --add-port=123/tcp --permanent
+重载入添加的端口：
+firewall-cmd --reload
+查询指定端口是否开启成功：
+firewall-cmd --query-port=123/tcp</code></code></pre>
+<h2 id="参考地址httpsblog.csdn.netrealjharticledetails82048492">参考地址：<a href="https://blog.csdn.net/realjh/article/details/82048492" class="uri">https://blog.csdn.net/realjh/article/details/82048492</a></h2>
+<p>做一个有底线的博客主</p>
+
+
+</div><hr><script charset='utf-8' src='../../js/sming.js'></script></body></html>

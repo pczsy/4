@@ -1,0 +1,154 @@
+<html><head><meta charset='utf-8'><meta name='viewport' content='width=device-width, initial-scale=1'>
+<meta name='applicable-device' content='pc'><meta name='keywords' content='电脑,电脑讲解,电脑技术,编程,电脑故障维修Java描述设计模式(22)：策略模式' />
+<script src='../../highlight/highlight.pack.js'></script>
+<link rel='stylesheet' type='text/css' href='../../highlight/styles/monokai.css'/>
+
+<link rel='stylesheet' href='../../fenxiang/dist/css/share.min.css'>
+<script src='../../fenxiang/src/js/social-share.js'></script>
+<script src='../../fenxiang/src/js/qrcode.js'></script>
+
+</head><body><script>hljs.initHighlightingOnLoad();</script><script>
+var system ={};  
+var p = navigator.platform;       
+system.win = p.indexOf('Win') == 0;  
+system.mac = p.indexOf('Mac') == 0;  
+system.x11 = (p == 'X11') || (p.indexOf('Linux') == 0);     
+if(system.win||system.mac||system.xll){
+document.write("<link href='../css/3.css' rel='stylesheet' type='text/css'>");}else{ document.write("<link href='../css/3wap.css' rel='stylesheet' type='text/css'>");}</script><script src='../../js/3.js'></script><div class='div2'><div class='heading_nav'><ul><div><li><a href='../../index.html'>首页</a></li>
+</div><div onclick='hidden1()' >分享</div>
+</ul></div></div>
+<div id='heading_nav2'> 
+<li class='row' >
+<div class='social-share' data-mode='prepend'><a href='javascript:' class='social-share-icon icon-heart'></a></div></li></div><script charset='utf-8' src='../../3/js/hengfu.js'></script><script charset='utf-8' src='../../3/js/hengfu2.js'></script><hr><div class='div1'><div class='biaoti'><center>Java描述设计模式(22)：策略模式</center></div><div class='banquan'>原文出处:本文由博客园博主知了一笑提供。<br/>
+原文连接:https://www.cnblogs.com/cicada-smile/p/11925683.html</div><br>
+    <p>本文源码：<a href="https://github.com/cicadasmile/model-arithmetic-parent">GitHub·点这里</a> || <a href="https://gitee.com/cicadasmile/model-arithmetic-parent">GitEE·点这里</a></p>
+<h1 id="一生活场景">一、生活场景</h1>
+<p>每年双十一,各大电商平台会推出不同的满减策略,当用户的消费金额满一定额度后，会进行减去一定的优惠额度，从而来一波清仓甩卖,使用策略模式来描述该流程。</p>
+<pre><code><code>public class C01_InScene {
+    public static void main(String[] args) {
+        // 选择满减策略,走相应的计算方式
+        FullReduce strategy = new Full100 ();
+        Payment price = new Payment(strategy);
+        double quote = price.payment(300);
+        System.out.println(&quot;最终价格为：&quot; + quote);
+    }
+}
+/**
+ * 付款
+ */
+class Payment {
+    private FullReduce fullReduce ;
+    public Payment (FullReduce fullReduce){
+        this.fullReduce = fullReduce ;
+    }
+    public double payment (double totalPrice){
+        return this.fullReduce.getPayMoney(totalPrice) ;
+    }
+}
+/**
+ * 金额满减接口
+ */
+interface FullReduce {
+    double getPayMoney (double totalPrice) ;
+}
+/**
+ * 不同的满减策略
+ */
+class Full100 implements FullReduce {
+    @Override
+    public double getPayMoney(double totalPrice) {
+        if (totalPrice &gt;= 100){
+            totalPrice = totalPrice-20.0 ;
+        }
+        return totalPrice ;
+    }
+}
+class Full500 implements FullReduce {
+    @Override
+    public double getPayMoney(double totalPrice) {
+        if (totalPrice &gt;= 500){
+            totalPrice = totalPrice-120.0 ;
+        }
+        return totalPrice ;
+    }
+}</code></code></pre>
+<h1 id="二策略模式">二、策略模式</h1>
+<h2 id="基础概念">1、基础概念</h2>
+<blockquote>
+<p>策略模式属于对象的行为模式。策略模式中定义算法族，分别封装起来，让他们之间可以互相替换，此模式让算法的变化独立于使用算法的客 户端。</p>
+</blockquote>
+<h2 id="模式图解">2、模式图解</h2>
+<p><img src="./images/Java描述设计模式(22)：策略模式0.png" /></p>
+<h2 id="核心角色">3、核心角色</h2>
+<ul>
+<li>环境角色</li>
+</ul>
+<blockquote>
+<p>持有一个Strategy策略接口角色的引用。</p>
+</blockquote>
+<ul>
+<li>抽象策略角色</li>
+</ul>
+<blockquote>
+<p>通常由一个接口或抽象类实现。此角色给出所有的具体策略类要实现的接口。</p>
+</blockquote>
+<ul>
+<li>具体策略角色</li>
+</ul>
+<blockquote>
+<p>包装相关的算法或业务流程。</p>
+</blockquote>
+<h2 id="源码实现">4、源码实现</h2>
+<pre><code><code>public class C02_Strategy {
+    public static void main(String[] args) {
+        Strategy strategy = new ConcreteStrategyB() ;
+        Context context = new Context(strategy) ;
+        context.userMethod();
+    }
+}
+/** 环境角色类 */
+class Context {
+    //持有一个具体策略的对象
+    private Strategy strategy;
+    /**
+     * 构造函数，传入一个具体策略对象
+     * @param strategy    具体策略对象
+     */
+    public Context(Strategy strategy){
+        this.strategy = strategy;
+    }
+    public void userMethod (){
+        this.strategy.strategyMethod();
+    }
+}
+/** 抽象策略类 */
+interface Strategy {
+    // 策略方法
+    void strategyMethod () ;
+}
+/** 具体策略类 */
+class ConcreteStrategyA implements Strategy {
+    @Override
+    public void strategyMethod() {
+        System.out.println(&quot;策略A方法&quot;);
+    }
+}
+class ConcreteStrategyB implements Strategy {
+    @Override
+    public void strategyMethod() {
+        System.out.println(&quot;策略B方法&quot;);
+    }
+}</code></code></pre>
+<h1 id="三策略模式总结">三、策略模式总结</h1>
+<blockquote>
+<p>策略模式的关键是：变化的与不变分离，体现了“对修改关闭，对扩展开放”原则。客户端增加行为不用修改原有代码，只要添加一种策略即可，易于切换、易于理解、易于扩展。策略过多是会导致类数目庞大，变得难以维护。</p>
+</blockquote>
+<h1 id="四源代码地址">四、源代码地址</h1>
+<pre><code><code>GitHub·地址
+https://github.com/cicadasmile/model-arithmetic-parent
+GitEE·地址
+https://gitee.com/cicadasmile/model-arithmetic-parent</code></code></pre>
+<p><img src="./images/Java描述设计模式(22)：策略模式1.png" /></p>
+
+
+</div><hr><script charset='utf-8' src='../../js/sming.js'></script></body></html>

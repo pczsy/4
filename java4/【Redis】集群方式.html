@@ -1,0 +1,370 @@
+<html><head><meta charset='utf-8'><meta name='viewport' content='width=device-width, initial-scale=1'>
+<meta name='applicable-device' content='pc'><meta name='keywords' content='电脑,电脑讲解,电脑技术,编程,电脑故障维修【Redis】集群方式' />
+<script src='../../highlight/highlight.pack.js'></script>
+<link rel='stylesheet' type='text/css' href='../../highlight/styles/monokai.css'/>
+
+<link rel='stylesheet' href='../../fenxiang/dist/css/share.min.css'>
+<script src='../../fenxiang/src/js/social-share.js'></script>
+<script src='../../fenxiang/src/js/qrcode.js'></script>
+
+</head><body><script>hljs.initHighlightingOnLoad();</script><script>
+var system ={};  
+var p = navigator.platform;       
+system.win = p.indexOf('Win') == 0;  
+system.mac = p.indexOf('Mac') == 0;  
+system.x11 = (p == 'X11') || (p.indexOf('Linux') == 0);     
+if(system.win||system.mac||system.xll){
+document.write("<link href='../css/3.css' rel='stylesheet' type='text/css'>");}else{ document.write("<link href='../css/3wap.css' rel='stylesheet' type='text/css'>");}</script><script src='../../js/3.js'></script><div class='div2'><div class='heading_nav'><ul><div><li><a href='../../index.html'>首页</a></li>
+</div><div onclick='hidden1()' >分享</div>
+</ul></div></div>
+<div id='heading_nav2'> 
+<li class='row' >
+<div class='social-share' data-mode='prepend'><a href='javascript:' class='social-share-icon icon-heart'></a></div></li></div><script charset='utf-8' src='../../3/js/hengfu.js'></script><script charset='utf-8' src='../../3/js/hengfu2.js'></script><hr><div class='div1'><div class='biaoti'><center>【Redis】集群方式</center></div><div class='banquan'>原文出处:本文由博客园博主这个世界~提供。<br/>
+原文连接:https://www.cnblogs.com/haoworld/p/redis-ji-qun-fang-shi.html</div><br>
+    <ul>
+<li>
+<a href="#toc_0">一、概述</a>
+<ul>
+<li>
+<a href="#toc_1">1.1 Redis3.0版本之前</a>
+</li>
+<li>
+<a href="#toc_2">1.2 常见集群方案</a>
+</li>
+</ul>
+</li>
+<li>
+<a href="#toc_3">二、Redis-Cluster原理</a>
+</li>
+<li>
+<a href="#toc_4">三、搭建集群方案</a>
+<ul>
+<li>
+<a href="#toc_5">3.1 准备工作</a>
+</li>
+<li>
+<a href="#toc_6">3.2 创建模拟集群的文件夹</a>
+</li>
+<li>
+<a href="#toc_7">3.3 复制脚本</a>
+</li>
+<li>
+<a href="#toc_8">3.4 复制一个新 Redis 实例</a>
+</li>
+<li>
+<a href="#toc_9">3.5 再复制出五个新 Redis 实例</a>
+</li>
+<li>
+<a href="#toc_10">3.6 修改 9002-9006 的 redis.conf 文件</a>
+</li>
+<li>
+<a href="#toc_11">3.7 启动9001-9006六个节点</a>
+</li>
+<li>
+<a href="#toc_12">3.8 随便找一个节点测试试</a>
+</li>
+<li>
+<a href="#toc_13">3.9 安装集群所需软件</a>
+</li>
+<li>
+<a href="#toc_14">3.10集群环境测试</a>
+</li>
+<li>
+<a href="#toc_15">3.11 验证集群环境</a>
+</li>
+<li>
+<a href="#toc_16">3.12 SpringBoot整合Redis集群</a>
+</li>
+</ul>
+</li>
+<li>
+<a href="#toc_17">四、Redis集群的几个注意事项</a>
+</li>
+<li>
+<a href="#toc_18">五、集群事务</a>
+</li>
+</ul>
+
+
+<h2 id="toc_0">一、概述</h2>
+
+<h3 id="toc_1">1.1 Redis3.0版本之前</h3>
+
+<ol>
+<li>3.0版本之前的redis是不支持集群的，我们的redis如果想要集群的话，就需要一个中间件，然后这个中间件负责将我们需要存入redis中的数据的key通过一套算法计算得出一个值。然后根据这个值找到对应的redis节点，将这些数据存在这个redis的节点中。</li>
+<li>在取值的时候，同样先将key进行计算，得到对应的值，然后就去找对应的redis节点，从对应的节点中取出对应的值。</li>
+<li>这样做有很多不好的地方，比如说我们的这些计算都需要在系统中去进行，所以会增加系统的负担。还有就是这种集群模式下，某个节点挂掉，其他的节点无法知道。而且也不容易对每个节点进行负载均衡。</li>
+</ol>
+
+<h3 id="toc_2">1.2 常见集群方案</h3>
+
+<ol>
+<li>官方方案：redis-cluster（强烈推荐），3.0之后开始实现</li>
+<li>客户端分片技术（不推荐），扩容/缩容时，必须手动调整分片程序，出现故障不能自动转移</li>
+<li>可以使用主从复制方式（不推荐）：数据非常冗余，浪费内存</li>
+<li>使用一些代理工具</li>
+</ol>
+
+<h2 id="toc_3">二、Redis-Cluster原理</h2>
+
+<ul>
+<li>Redis 是一个开源的 key-value 存储系统，由于出众的性能，大部分互联网企业都用来做服务器端缓存。Redis 在3.0版本前只支持单实例模式，虽然支持主从模式、哨兵模式部署来解决单点故障，但是现在互联网企业动辄大几百G的数据，可完全是没法满足业务的需求，所以，Redis 在 3.0 版本以后就推出了集群模式。</li>
+<li>Redis 集群采用了P2P的模式，完全去中心化。Redis 把所有的 Key 分成了 16384 个 slot，每个 Redis 实例负责其中一部分 slot 。集群中的</li>
+<li>所有信息（节点、端口、slot等），都通过节点之间定期的数据交换而更新。</li>
+<li>Redis 客户端可以在任意一个 Redis 实例发出请求，如果所需数据不在该实例中，通过重定向命令引导客户端访问所需的实例。</li>
+</ul>
+
+<p><figure><img src="./images/【Redis】集群方式0.png" alt="原理图"/><figcaption>原理图</figcaption></figure></p>
+
+<p><figure><img src="./images/【Redis】集群方式1.png" alt="原理图"/><figcaption>原理图</figcaption></figure></p>
+
+<ul>
+<li>在这个图中，每一个蓝色的圈都代表着一个redis的服务器节点。它们任何两个节点之间都是相互连通的。客户端可以与任何一个节点相连接，然后就可以访问集群中的任何一个节点。对其进行存取和其他操作。</li>
+<li>那么redis是怎么做到的呢？首先，在redis的每一个节点上，都有这么两个东西，一个是插槽（slot）可以理解为是一个可以存储两个数值的一个变量这个变量的取值范围是：0-16383。还有一个就是cluster我个人把这个cluster理解为是一个集群管理的插件。当我们的存取的key到达的时候，redis会根据crc16的算法得出一个结果，然后把结果对 16384 求余数，这样每个 key 都会对应一个编号在 0-16383 之间的哈希槽，通过这个值，去找到对应的插槽所对应的节点，然后直接自动跳转到这个对应的节点上进行存取操作。</li>
+<li>还有就是因为如果集群的话，是有好多个redis一起工作的，那么，就需要这个集群不是那么容易挂掉，所以呢，理论上就应该给集群中的每个节点至少一个备用的redis服务。这个备用的redis称为从节点（slave）。那么这个集群是如何判断是否有某个节点挂掉了呢？</li>
+<li>首先要说的是，每一个节点都存有这个集群所有主节点以及从节点的信息。</li>
+<li>它们之间通过互相的ping-pong判断是否节点可以连接上。如果有一半以上的节点去ping一个节点的时候没有回应，集群就认为这个节点宕机了，然后去连接它的备用节点。如果某个节点和所有从节点全部挂掉，我们集群就进入faill状态。还有就是如果有一半以上的主节点宕机，那么我们集群同样进入发力了状态。这就是我们的redis的投票机制，具体原理如下图所示：</li>
+</ul>
+
+<p><figure><img src="./images/【Redis】集群方式2.png" alt="15560920746015"/><figcaption>155609</figcaption></figure></p>
+
+<ul>
+<li>这套架构的特点：
+<ul>
+<li>分片算法：基于 slot hash桶；</li>
+<li>分片实例之间相互独立，每组 一个master 实例和多个slave；</li>
+<li>路由信息存放到第三方存储组件，如 zookeeper 或etcd</li>
+<li>旁路组件探活</li>
+</ul></li>
+</ul>
+
+<h2 id="toc_4">三、搭建集群方案</h2>
+
+<h3 id="toc_5">3.1 准备工作</h3>
+
+<p><figure><img src="./images/【Redis】集群方式3.png" alt="" style="width:839px;"/></figure></p>
+
+<ul>
+<li><p>安装部署任何一个应用其实都很简单，只要安装步骤一步一步来就行了。下面说一下 Redis 集群搭建规划，由于集群至少需要6个节点（3主3从模式），所以，如果没有这么多机器，本地也起不了那么多虚拟机（电脑太烂），现在计划是在<strong>一台机器上</strong>模拟一个集群，当然，这和生产环境的集群搭建没本质区别。</p></li>
+</ul>
+
+<ol>
+<li>安装一个Linux虚拟机，开启Linux，连接Linux </li>
+<li>先关闭防火墙</li>
+<li>然后安装纯净版本的redis <a href="https://www.cnblogs.com/haoworld/p/redis-an-zhuang-kai-qi-yi-ji-guan-bi.html#toc_0">Redis安装</a></li>
+<li>修改redis.conf 文件 将 bind 改为当前Linux服务器的ip地址</li>
+<li>并将redis改为后台启动。</li>
+</ol>
+
+<h3 id="toc_6">3.2 创建模拟集群的文件夹</h3>
+
+<p>我们计划集群中 Redis 节点的端口号为 9001-9006 ，端口号即集群下各实例文件夹。数据存放在 端口号/data 文件夹中。</p>
+
+<pre><code><code class="language-text">mkdir /usr/local/redis-cluster
+cd redis-cluster/
+mkdir -p 9001/data 9002/data 9003/data 9004/data 9005/data 9006/data
+</code></code></pre>
+
+<p><figure><img src="./images/【Redis】集群方式4.png" alt="" style="width:723px;"/></figure></p>
+
+<h3 id="toc_7">3.3 复制脚本</h3>
+
+<p>　　在 <strong>/usr/local/redis-cluster</strong> 下创建 <strong>bin</strong> 文件夹，用来存放集群运行脚本，并把安装好的 Redis 的 src 路径下的运行脚本拷贝过来。看命令：</p>
+
+<pre><code><code class="language-shell">cd /usr/local/redis-cluster
+mkdir bin    
+cd /usr/local/redis-3.2.9/src
+cp mkreleasehdr.sh redis-benchmark redis-check-aof  redis-cli redis-server redis-trib.rb /usr/local/redis-cluster/bin    
+</code></code></pre>
+
+<p><figure><img src="./images/【Redis】集群方式5.png" alt="" style="width:725px;"/></figure></p>
+
+<h3 id="toc_8">3.4 复制一个新 Redis 实例</h3>
+
+<pre><code><code class="language-shell">##我们现在从已安装好的 Redis 中复制一个新的实例到 9001 文件夹，并修改 redis.conf 配置。
+
+cp -r /usr/local/redis    /usr/local/redis-cluster/9001
+    
+##注意，修改 redis.conf 配置和单点唯一区别是下面部分，其余还是常规的这几项：
+port 9001（每个节点的端口号）
+daemonize yes
+bind 192.168.140.137（绑定当前机器 IP）
+dir /usr/local/redis-cluster/9001/data/（数据文件存放位置）
+pidfile /var/run/redis_9001.pid（pid 9001和port要对应）
+cluster-enabled yes（启动集群模式）
+cluster-config-file nodes-9001.conf（9001和port要对应）
+cluster-node-timeout 15000
+appendonly yes
+</code></code></pre>
+
+<p><figure><img src="./images/【Redis】集群方式6.png" alt="" style="width:473px;"/></figure></p>
+
+<h3 id="toc_9">3.5 再复制出五个新 Redis 实例</h3>
+
+<p>　　我们已经完成了一个节点了，其实接下来就是机械化的再完成另外五个节点，其实可以这么做：把 9001 实例 复制到另外五个文件夹中，唯一要修改的就是 redis.conf 中的所有和端口的相关的信息即可，其实就那么四个位置。开始操作:</p>
+
+<pre><code><code class="language-shell">\cp -rf /usr/local/redis-cluster/9001/*   /usr/local/redis-cluster/9002
+\cp -rf /usr/local/redis-cluster/9001/*   /usr/local/redis-cluster/9003
+\cp -rf /usr/local/redis-cluster/9001/*   /usr/local/redis-cluster/9004
+\cp -rf /usr/local/redis-cluster/9001/*   /usr/local/redis-cluster/9005
+\cp -rf /usr/local/redis-cluster/9001/*   /usr/local/redis-cluster/9006
+    
+## \cp -rf 命令是不使用别名来复制，因为 cp 其实是别名 cp -i，操作时会有交互式确认，比较烦人。
+</code></code></pre>
+
+<p><figure><img src="./images/【Redis】集群方式7.png" alt="" style="width:725px;"/></figure></p>
+
+<h3 id="toc_10">3.6 修改 9002-9006 的 redis.conf 文件</h3>
+
+<p>其实非常简单了，你通过搜索会发现其实只有四个点需要修改，我们全局替换下吧，进入相应的节点文件夹，做替换就好了。命令非常简单:</p>
+
+<pre><code><code class="language-shell">vim /usr/local/redis-cluster/9002/redis/etc/redis.conf   
+vim /usr/local/redis-cluster/9003/redis/etc/redis.conf
+vim /usr/local/redis-cluster/9004/redis/etc/redis.conf
+vim /usr/local/redis-cluster/9005/redis/etc/redis.conf
+vim /usr/local/redis-cluster/9006/redis/etc/redis.conf
+      
+:%s/9001/9002
+:%s/9001/9003
+:%s/9001/9004
+:%s/9001/9005
+:%s/9001/9006
+    
+    
+## 其实我们也就是替换了下面这四行：
+    
+port 9002
+dir /usr/local/redis-cluster/9002/data/
+cluster-config-file nodes-9002.conf
+pidfile /var/run/redis_9002.pid
+</code></code></pre>
+
+<h3 id="toc_11">3.7 启动9001-9006六个节点</h3>
+
+<pre><code><code class="language-shell">##这里用了/usr/local/redis/bin/ 目录下的redis服务启动的，
+## 也可以使用9001各个目录下的redis服务分别启动
+
+/usr/local/redis/bin/redis-server  /usr/local/redis-cluster/9001/redis/etc/redis.conf
+/usr/local/redis/bin/redis-server  /usr/local/redis-cluster/9002/redis/etc/redis.conf
+/usr/local/redis/bin/redis-server  /usr/local/redis-cluster/9003/redis/etc/redis.conf
+/usr/local/redis/bin/redis-server  /usr/local/redis-cluster/9004/redis/etc/redis.conf
+/usr/local/redis/bin/redis-server  /usr/local/redis-cluster/9005/redis/etc/redis.conf
+/usr/local/redis/bin/redis-server  /usr/local/redis-cluster/9006/redis/etc/redis.conf
+</code></code></pre>
+
+<p><strong>启动成功看下图：</strong></p>
+
+<p><figure><img src="./images/【Redis】集群方式8.png" alt="" style="width:1190px;"/></figure></p>
+
+<h3 id="toc_12">3.8 随便找一个节点测试试</h3>
+
+<pre><code><code class="language-shell">/usr/local/redis-cluster/9001/redis/bin/redis-cli -c -h 192.168.140.137  -p 9001
+</code></code></pre>
+
+<p>**添加数据是会报错：  **  </p>
+
+<p><figure><img src="./images/【Redis】集群方式9.png" alt="" style="width:1120px;"/></figure></p>
+
+<pre><code><code class="language-text"> (error) CLUSTERDOWN Hash slot not served
+</code></code></pre>
+
+<p>　　这是因为虽然我们配置并启动了 Redis 集群服务，<strong>但是他们暂时还并不在一个集群中，互相直接发现不了，而且还没有可存储的位置，就是所谓的slot（槽）。</strong></p>
+
+<h3 id="toc_13">3.9 安装集群所需软件</h3>
+
+<pre><code><code class="language-shell">##由于 Redis 集群需要使用 ruby 命令，所以我们需要安装 ruby 和相关接口。
+yum install ruby
+yum install rubygems
+gem install redis ##执行此行命令会报错， 要使用本地上传方式
+</code></code></pre>
+
+<p><strong>下载地址</strong>： <a href="https://github.com/Hao-World/redis-cluster">安装包GitHub</a></p>
+
+<p><strong>从本地上传到Linux</strong><br/>
+<strong>将此文件拖到usr/local目录下</strong></p>
+
+<p><figure><img src="./images/【Redis】集群方式10.png" alt="" style="width:463px;"/></figure></p>
+
+<p><strong>文件上传到Linux中后 进入/usr/local/到执行下面的命令</strong></p>
+
+<pre><code><code class="language-shell">gem install -l redis-3.2.1.gem
+</code></code></pre>
+
+<p><figure><img src="./images/【Redis】集群方式11.png" alt="" style="width:527px;"/></figure></p>
+
+<h3 id="toc_14">3.10集群环境测试</h3>
+
+<pre><code><code class="language-shell">/usr/local/redis-cluster/bin/redis-trib.rb create --replicas 1 192.168.140.137:9001 192.168.140.137:9002 192.168.140.137:9003 192.168.140.137:9004 192.168.140.137:9005 192.168.140.137:9006
+</code></code></pre>
+
+<p><strong>执行效果如下，发现有三主三备：</strong></p>
+
+<p><figure><img src="./images/【Redis】集群方式12.png" alt="" style="width:775px;"/></figure></p>
+
+<p>　　<strong>目前来看，9001-9003 为主节点，9004-9006 为从节点，并向你确认是否同意这么配置。输入 yes 后，会开始集群创建。</strong></p>
+
+<p><figure><img src="./images/【Redis】集群方式13.png" alt="" style="width:508px;"/></figure></p>
+
+<ul>
+<li>简单解释一下这个命令：调用 ruby 命令来进行创建集群，--replicas 1 表示主从复制比例为 1:1，即一个主节点对应一个从节点；然后，默认给我们分配好了每个主节点和对应从节点服务，以及 solt 的大小，因为在 Redis 集群中有且仅有 16383 个 solt ，默认情况会给我们平均分配，当然你可以指定，后续的增减节点也可以重新分配。</li>
+</ul>
+
+<pre><code><code class="language-shell">M: fbec3c1091ff20adbabf8d144043cc3abae9a7f9  ##为主节点Id
+    
+S: 09726b68f4a1c849e8e188bd45d506aed17fd970 192.168.140.137:9004
+slots: (0 slots) slave
+replicates fbec3c1091ff20adbabf8d144043cc3abae9a7f9 ##从节点下对应主节点Id
+</code></code></pre>
+
+<h3 id="toc_15">3.11 验证集群环境</h3>
+
+<pre><code><code class="language-shell">## 这里要输入-c，表示集群环境
+/usr/local/redis-cluster/9001/redis/bin/redis-cli -c -h 192.168.140.137  -p 9001 
+set name 123456 ## 会发现它自动跳转到9002redis上面
+
+</code></code></pre>
+
+<p><figure><img src="./images/【Redis】集群方式14.png" alt="" style="width:768px;"/></figure></p>
+
+<h3 id="toc_16">3.12 SpringBoot整合Redis集群</h3>
+
+<pre><code><code class="language-yml">spring:
+  redis:
+    database: 0
+#    host: 132.168.44.127
+#    port: 6379
+#    password: 123456
+    jedis:
+      pool:
+        max-active: 8
+        max-wait: -1
+        max-idle: 8
+        min-idle: 0
+    timeout: 10000
+    cluster:
+      nodes:
+        - 192.168.140.137:9001
+        - 192.168.140.137:9002
+        - 192.168.140.137:9003
+        - 192.168.140.137:9004
+        - 192.168.140.137:9005
+        - 192.168.140.137:9006
+###扩展注册方式 代码获取到配置文件 灵活该密码   
+    
+</code></code></pre>
+
+<h2 id="toc_17">四、Redis集群的几个注意事项</h2>
+
+<ul>
+<li>Redis集群使用CRC16对key进行hash，集群固定使用16384对hash出来的值取模。因为取模结果一定在16384之内，所以集群中的sharding（分片）实际就是如何将16384个值在n个主节点间分配（从节点是主节点的近似副本，原因见3），如何分配取决于你的配置。</li>
+<li>Redis生产级集群需要容灾，为此，一般部署为n个主+n*m个从。n大小主要取决于单机性能，m大小主要取决于机器稳定性。</li>
+<li>Redis集群是弱一致性的，此处的一致，主要指主从之间的数据一致性。主要是因为redis在做数据更新时，不要求主从数据同步复制一定要成功。</li>
+<li>集群最小的主数量为3，主数量应为<strong>奇数</strong>，以便做选举判决。</li>
+</ul>
+
+<h2 id="toc_18">五、集群事务</h2>
+
+<p><strong>Redis集群默圦是不支持亊各，但是亊各可以在単独节点上可以支持<br/>
+写插件Redis+Lua</strong></p>
+
+</div><hr><script charset='utf-8' src='../../js/sming.js'></script></body></html>

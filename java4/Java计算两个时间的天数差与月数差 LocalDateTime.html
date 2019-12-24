@@ -1,0 +1,28 @@
+<html><head><meta charset='utf-8'><meta name='viewport' content='width=device-width, initial-scale=1'>
+<meta name='applicable-device' content='pc'><meta name='keywords' content='电脑,电脑讲解,电脑技术,编程,电脑故障维修Java计算两个时间的天数差与月数差 LocalDateTime' />
+<script src='../../highlight/highlight.pack.js'></script>
+<link rel='stylesheet' type='text/css' href='../../highlight/styles/monokai.css'/>
+
+<link rel='stylesheet' href='../../fenxiang/dist/css/share.min.css'>
+<script src='../../fenxiang/src/js/social-share.js'></script>
+<script src='../../fenxiang/src/js/qrcode.js'></script>
+
+</head><body><script>hljs.initHighlightingOnLoad();</script><script>
+var system ={};  
+var p = navigator.platform;       
+system.win = p.indexOf('Win') == 0;  
+system.mac = p.indexOf('Mac') == 0;  
+system.x11 = (p == 'X11') || (p.indexOf('Linux') == 0);     
+if(system.win||system.mac||system.xll){
+document.write("<link href='../css/3.css' rel='stylesheet' type='text/css'>");}else{ document.write("<link href='../css/3wap.css' rel='stylesheet' type='text/css'>");}</script><script src='../../js/3.js'></script><div class='div2'><div class='heading_nav'><ul><div><li><a href='../../index.html'>首页</a></li>
+</div><div onclick='hidden1()' >分享</div>
+</ul></div></div>
+<div id='heading_nav2'> 
+<li class='row' >
+<div class='social-share' data-mode='prepend'><a href='javascript:' class='social-share-icon icon-heart'></a></div></li></div><script charset='utf-8' src='../../3/js/hengfu.js'></script><script charset='utf-8' src='../../3/js/hengfu2.js'></script><hr><div class='div1'><div class='biaoti'><center>Java计算两个时间的天数差与月数差 LocalDateTime</center></div><div class='banquan'>原文出处:本文由博客园博主井盖_0911提供。<br/>
+原文连接:https://www.cnblogs.com/jinggai/p/11588344.html</div><br>
+    <p>&nbsp;/**<br />&nbsp; * 计算两个时间点的天数差<br />&nbsp; * @param dt1 第一个时间点<br />&nbsp; * @param dt2 第二个时间点<br />&nbsp; * @return int，即要计算的天数差<br />&nbsp; */<br />&nbsp;public static int dateDiff(LocalDateTime dt1,LocalDateTime dt2){<br />&nbsp;&nbsp;//获取第一个时间点的时间戳对应的秒数<br />&nbsp;&nbsp;long t1 = dt1.toEpochSecond(ZoneOffset.ofHours(0));<br />&nbsp;&nbsp;//获取第一个时间点在是1970年1月1日后的第几天<br />&nbsp;&nbsp;long day1 = t1 /(60*60*24);<br />&nbsp;&nbsp;//获取第二个时间点的时间戳对应的秒数<br />&nbsp;&nbsp;long t2 = dt2.toEpochSecond(ZoneOffset.ofHours(0));<br />&nbsp;&nbsp;//获取第二个时间点在是1970年1月1日后的第几天<br />&nbsp;&nbsp;long day2 = t2/(60*60*24);<br />&nbsp;&nbsp;//返回两个时间点的天数差<br />&nbsp;&nbsp;return (int)(day2 - day1);<br />&nbsp;}<br />&nbsp;@Test<br />&nbsp;public void testDay(){<br />&nbsp;&nbsp;LocalDateTime of1 = LocalDateTime.of(2018, 9, 25, 1, 1);//2018-9-25 01:01<br />&nbsp;&nbsp;LocalDateTime of2 = LocalDateTime.of(2019, 9, 25, 23, 16); //2019-9-25 23:16<br />&nbsp;&nbsp;System.out.println(dateDiff(of1,of2));//365<br />&nbsp;}</p>
+<p>&nbsp;/**<br />&nbsp; * 获取两个时间点的月份差<br />&nbsp; * @param dt1&nbsp;第一个时间点<br />&nbsp; * @param dt2&nbsp;第二个时间点<br />&nbsp; * @return&nbsp;int，即需求的月数差<br />&nbsp; */<br />&nbsp;public static int monthDiff(LocalDateTime dt1,LocalDateTime dt2){<br />&nbsp;&nbsp;//获取第一个时间点的月份<br />&nbsp;&nbsp;int month1 = dt1.getMonthValue();<br />&nbsp;&nbsp;//获取第一个时间点的年份<br />&nbsp;&nbsp;int year1 = dt1.getYear();<br />&nbsp;&nbsp;//获取第一个时间点的月份<br />&nbsp;&nbsp;int month2 = dt2.getMonthValue();<br />&nbsp;&nbsp;//获取第一个时间点的年份<br />&nbsp;&nbsp;int year2 = dt2.getYear();<br />&nbsp;&nbsp;//返回两个时间点的月数差<br />&nbsp;&nbsp;return (year2 - year1) *12 + (month2 - month1);<br />&nbsp;}<br />&nbsp;&nbsp;@Test<br />&nbsp;public void testMonth(){<br />&nbsp;&nbsp;LocalDateTime of1 = LocalDateTime.of(2018, 9, 25, 1, 1);//2018-9-25 01:01<br />&nbsp;&nbsp;LocalDateTime of2 = LocalDateTime.of(2019, 9, 25, 23, 16); //2019-9-25 23:16<br />&nbsp;&nbsp;System.out.println(monthDiff(of1,of2));//12<br />&nbsp;}</p>
+<p>&nbsp;</p>
+
+</div><hr><script charset='utf-8' src='../../js/sming.js'></script></body></html>

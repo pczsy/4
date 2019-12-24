@@ -1,0 +1,220 @@
+<html><head><meta charset='utf-8'><meta name='viewport' content='width=device-width, initial-scale=1'>
+<meta name='applicable-device' content='pc'><meta name='keywords' content='电脑,电脑讲解,电脑技术,编程,电脑故障维修JAVA 8 新特性Stream初体验' />
+<script src='../../highlight/highlight.pack.js'></script>
+<link rel='stylesheet' type='text/css' href='../../highlight/styles/monokai.css'/>
+
+<link rel='stylesheet' href='../../fenxiang/dist/css/share.min.css'>
+<script src='../../fenxiang/src/js/social-share.js'></script>
+<script src='../../fenxiang/src/js/qrcode.js'></script>
+
+</head><body><script>hljs.initHighlightingOnLoad();</script><script>
+var system ={};  
+var p = navigator.platform;       
+system.win = p.indexOf('Win') == 0;  
+system.mac = p.indexOf('Mac') == 0;  
+system.x11 = (p == 'X11') || (p.indexOf('Linux') == 0);     
+if(system.win||system.mac||system.xll){
+document.write("<link href='../css/3.css' rel='stylesheet' type='text/css'>");}else{ document.write("<link href='../css/3wap.css' rel='stylesheet' type='text/css'>");}</script><script src='../../js/3.js'></script><div class='div2'><div class='heading_nav'><ul><div><li><a href='../../index.html'>首页</a></li>
+</div><div onclick='hidden1()' >分享</div>
+</ul></div></div>
+<div id='heading_nav2'> 
+<li class='row' >
+<div class='social-share' data-mode='prepend'><a href='javascript:' class='social-share-icon icon-heart'></a></div></li></div><script charset='utf-8' src='../../3/js/hengfu.js'></script><script charset='utf-8' src='../../3/js/hengfu2.js'></script><hr><div class='div1'><div class='biaoti'><center>JAVA 8 新特性Stream初体验</center></div><div class='banquan'>原文出处:本文由博客园博主陈彦斌提供。<br/>
+原文连接:https://www.cnblogs.com/chenyanbin/p/11624500.html</div><br>
+    <h1><a name="shwtop"></a>什么是 Stream？</h1>
+<p>Stream（流）是一个来自数据源的元素队列并支持聚合操作</p>
+<ul>
+<li>&lt;strong元素队列&lt; strong=""&gt;元素是特定类型的对象，形成一个队列。 Java中的Stream并不会存储元素，而是按需计算。</li>
+<li><strong>数据源</strong>&nbsp;流的来源。 可以是集合，数组，I/O channel， 产生器generator 等。</li>
+<li><strong>聚合操作</strong>&nbsp;类似SQL语句一样的操作， 比如filter, map, reduce, find, match, sorted等。</li>
+</ul>
+<p>和以前的Collection操作不同， Stream操作还有两个基础的特征：</p>
+<ul>
+<li><strong>Pipelining</strong>: 中间操作都会返回流对象本身。 这样多个操作可以串联成一个管道， 如同流式风格（fluent style）。 这样做可以对操作进行优化， 比如延迟执行(laziness)和短路( short-circuiting)。</li>
+<li><strong>内部迭代</strong>： 以前对集合遍历都是通过Iterator或者For-Each的方式, 显式的在集合外部进行迭代， 这叫做外部迭代。 Stream提供了内部迭代的方式， 通过访问者模式(Visitor)实现。</li>
+</ul>
+<h3>题目：</h3>
+<p>　　有一个集合，里面存放字符串如："小王,98"、"小李,95"、"小陈,87"，要求打印输出所有成绩当中大于90分的数字。</p>
+<h3>常规写法</h3>
+<src class="cnblogs_code">
+<pre><code><span style="color: #008080;"> 1</span>     <span style="color: #0000ff;">public</span> <span style="color: #0000ff;">static</span> <span style="color: #0000ff;">void</span><span style="color: #000000;"> main(String[] args) {
+</span><span style="color: #008080;"> 2</span>         ArrayList&lt;String&gt; arrayList=<span style="color: #0000ff;">new</span> ArrayList&lt;String&gt;<span style="color: #000000;">();
+</span><span style="color: #008080;"> 3</span>         arrayList.add(<span style="color: #800000;">"</span><span style="color: #800000;">小王,98</span><span style="color: #800000;">"</span><span style="color: #000000;">);
+</span><span style="color: #008080;"> 4</span>         arrayList.add(<span style="color: #800000;">"</span><span style="color: #800000;">小李,95</span><span style="color: #800000;">"</span><span style="color: #000000;">);
+</span><span style="color: #008080;"> 5</span>         arrayList.add(<span style="color: #800000;">"</span><span style="color: #800000;">小陈,87</span><span style="color: #800000;">"</span><span style="color: #000000;">);
+</span><span style="color: #008080;"> 6</span>         <span style="color: #0000ff;">for</span> (<span style="color: #0000ff;">int</span> i = <span style="color: #800080;">0</span>; i &lt; arrayList.size(); i++<span style="color: #000000;">) {
+</span><span style="color: #008080;"> 7</span>             String record=arrayList.<span style="color: #0000ff;">get</span><span style="color: #000000;">(i);
+</span><span style="color: #008080;"> 8</span>             String score=record.split(<span style="color: #800000;">"</span><span style="color: #800000;">,</span><span style="color: #800000;">"</span>)[<span style="color: #800080;">1</span><span style="color: #000000;">];
+</span><span style="color: #008080;"> 9</span>             <span style="color: #0000ff;">int</span> num =<span style="color: #000000;">Integer.parseInt(score);
+</span><span style="color: #008080;">10</span>             <span style="color: #0000ff;">if</span> (num&gt;<span style="color: #800080;">90</span><span style="color: #000000;">) {
+</span><span style="color: #008080;">11</span>                 System.<span style="color: #0000ff;">out</span><span style="color: #000000;">.println(num);
+</span><span style="color: #008080;">12</span> <span style="color: #000000;">            }
+</span><span style="color: #008080;">13</span> <span style="color: #000000;">        }
+</span><span style="color: #008080;">14</span>     }</code></pre>
+
+<h3>Stream方式</h3>
+<src class="cnblogs_code">
+<pre><code><span style="color: #008080;">1</span>     <span style="color: #0000ff;">public</span> <span style="color: #0000ff;">static</span> <span style="color: #0000ff;">void</span><span style="color: #000000;"> main(String[] args) {
+</span><span style="color: #008080;">2</span>         ArrayList&lt;String&gt; arrayList=<span style="color: #0000ff;">new</span> ArrayList&lt;String&gt;<span style="color: #000000;">();
+</span><span style="color: #008080;">3</span>         arrayList.add(<span style="color: #800000;">"</span><span style="color: #800000;">小王,98</span><span style="color: #800000;">"</span><span style="color: #000000;">);
+</span><span style="color: #008080;">4</span>         arrayList.add(<span style="color: #800000;">"</span><span style="color: #800000;">小李,95</span><span style="color: #800000;">"</span><span style="color: #000000;">);
+</span><span style="color: #008080;">5</span>         arrayList.add(<span style="color: #800000;">"</span><span style="color: #800000;">小陈,87</span><span style="color: #800000;">"</span><span style="color: #000000;">);
+</span><span style="color: #008080;">6</span>         arrayList.stream().map(s-&gt;s.split(<span style="color: #800000;">"</span><span style="color: #800000;">,</span><span style="color: #800000;">"</span>)[<span style="color: #800080;">1</span><span style="color: #000000;">]).map(Integer::parseInt)
+</span><span style="color: #008080;">7</span>         .filter(n -&gt; n &gt; <span style="color: #800080;">90</span>).forEach(System.<span style="color: #0000ff;">out</span><span style="color: #000000;">::println);
+</span><span style="color: #008080;">8</span>     }</code></pre>
+
+<h1>Stream方法详细介绍</h1>
+<src class="cnblogs_code" onclick="cnblogs_code_show('0bf22dc5-6f7a-4c73-897a-2d9302fde66e')"><img id="code_img_closed_0bf22dc5-6f7a-4c73-897a-2d9302fde66e" class="code_img_closed" src="./images/JAVA 8 新特性Stream初体验0.png" alt="" /><img id="code_img_opened_0bf22dc5-6f7a-4c73-897a-2d9302fde66e" class="code_img_opened" style="display: none;" onclick="cnblogs_code_hide('0bf22dc5-6f7a-4c73-897a-2d9302fde66e',event)" src="./images/JAVA 8 新特性Stream初体验1.png" alt="" />
+<src id="cnblogs_code_open_0bf22dc5-6f7a-4c73-897a-2d9302fde66e" class="cnblogs_code_hide">
+<pre><code><span style="color: #008080;"> 1</span>     <span style="color: #0000ff;">public</span> <span style="color: #0000ff;">static</span> <span style="color: #0000ff;">void</span><span style="color: #000000;"> main(String[] args) {
+</span><span style="color: #008080;"> 2</span>         <span style="color: #008000;">//</span><span style="color: #008000;">1.根据集合获取流</span>
+<span style="color: #008080;"> 3</span>         ArrayList&lt;String&gt; arrayList=<span style="color: #0000ff;">new</span> ArrayList&lt;String&gt;<span style="color: #000000;">();
+</span><span style="color: #008080;"> 4</span>         arrayList.add("小陈"<span style="color: #000000;">);
+</span><span style="color: #008080;"> 5</span>         arrayList.add("小王"<span style="color: #000000;">);
+</span><span style="color: #008080;"> 6</span>         arrayList.add("小李"<span style="color: #000000;">);
+</span><span style="color: #008080;"> 7</span>         Stream&lt;String&gt; streamA=<span style="color: #000000;">arrayList.stream();
+</span><span style="color: #008080;"> 8</span>         
+<span style="color: #008080;"> 9</span>         <span style="color: #008000;">//</span><span style="color: #008000;">2.根据数组获取流，数组当中的元素必须是引用类型才行</span>
+<span style="color: #008080;">10</span>         String[] arrayStr= {"Hello","World","Java"<span style="color: #000000;">};
+</span><span style="color: #008080;">11</span>         Stream&lt;String&gt; streamB=<span style="color: #000000;">Stream.of(arrayStr);
+</span><span style="color: #008080;">12</span>         
+<span style="color: #008080;">13</span>         Integer[] arrayIntegers= {10,20,30<span style="color: #000000;">};
+</span><span style="color: #008080;">14</span>         Stream&lt;Integer&gt; streamC=<span style="color: #000000;">Stream.of(arrayIntegers);
+</span><span style="color: #008080;">15</span>     }</code></pre>
+
+<span class="cnblogs_code_collapse">几种获取流方式</span>
+<h3>一、生成流</h3>
+<ul class="list">
+<li>
+<p><strong>stream()</strong>&nbsp;&minus; 为集合创建串行流。</p>
+</li>
+<li>
+<p><strong>parallelStream()</strong>&nbsp;&minus; 为集合创建并行流。</p>
+</li>
+</ul>
+<p><span style="color: #ff00ff;"><strong>串行流</strong></span></p>
+<src class="cnblogs_code">
+<pre><code><span style="color: #008080;">1</span>     <span style="color: #0000ff;">public</span> <span style="color: #0000ff;">static</span> <span style="color: #0000ff;">void</span><span style="color: #000000;"> main(String[] args) {
+</span><span style="color: #008080;">2</span>         <span style="color: #008000;">//</span><span style="color: #008000;">生成流，并筛选出不是空字符串的集合</span>
+<span style="color: #008080;">3</span>         List&lt;String&gt; strings = Arrays.asList(<span style="color: #800000;">"</span><span style="color: #800000;">abc</span><span style="color: #800000;">"</span>, <span style="color: #800000;">""</span>, <span style="color: #800000;">"</span><span style="color: #800000;">bc</span><span style="color: #800000;">"</span>, <span style="color: #800000;">"</span><span style="color: #800000;">efg</span><span style="color: #800000;">"</span>, <span style="color: #800000;">"</span><span style="color: #800000;">abcd</span><span style="color: #800000;">"</span>, <span style="color: #800000;">""</span>, <span style="color: #800000;">"</span><span style="color: #800000;">jkl</span><span style="color: #800000;">"</span><span style="color: #000000;">);
+</span><span style="color: #008080;">4</span>         List&lt;String&gt; filtered = strings.stream().filter(<span style="color: #0000ff;">string</span> -&gt; !<span style="color: #0000ff;">string</span><span style="color: #000000;">.isEmpty()).collect(Collectors.toList());
+</span><span style="color: #008080;">5</span>         <span style="color: #0000ff;">for</span> (<span style="color: #0000ff;">int</span> i = <span style="color: #800080;">0</span>; i &lt; filtered.size(); i++<span style="color: #000000;">) {
+</span><span style="color: #008080;">6</span>             System.<span style="color: #0000ff;">out</span>.println(filtered.<span style="color: #0000ff;">get</span><span style="color: #000000;">(i));
+</span><span style="color: #008080;">7</span> <span style="color: #000000;">        }
+</span><span style="color: #008080;">8</span>     }</code></pre>
+
+<p><span style="color: #ff00ff;"><strong>并行流</strong></span></p>
+<src class="cnblogs_code">
+<pre><code><span style="color: #008080;">1</span>     <span style="color: #0000ff;">public</span> <span style="color: #0000ff;">static</span> <span style="color: #0000ff;">void</span><span style="color: #000000;"> main(String[] args) {        
+</span><span style="color: #008080;">2</span>         List&lt;String&gt; strings = Arrays.asList(<span style="color: #800000;">"</span><span style="color: #800000;">abc</span><span style="color: #800000;">"</span>, <span style="color: #800000;">""</span>, <span style="color: #800000;">"</span><span style="color: #800000;">bc</span><span style="color: #800000;">"</span>, <span style="color: #800000;">"</span><span style="color: #800000;">efg</span><span style="color: #800000;">"</span>, <span style="color: #800000;">"</span><span style="color: #800000;">abcd</span><span style="color: #800000;">"</span>,<span style="color: #800000;">""</span>, <span style="color: #800000;">"</span><span style="color: #800000;">jkl</span><span style="color: #800000;">"</span><span style="color: #000000;">);
+</span><span style="color: #008080;">3</span>         <span style="color: #008000;">//</span><span style="color: #008000;"> 获取空字符串的数量</span>
+<span style="color: #008080;">4</span>         <span style="color: #0000ff;">long</span> count = strings.parallelStream().filter(<span style="color: #0000ff;">string</span> -&gt; <span style="color: #0000ff;">string</span><span style="color: #000000;">.isEmpty()).count();
+</span><span style="color: #008080;">5</span>         System.<span style="color: #0000ff;">out</span><span style="color: #000000;">.println(count);
+</span><span style="color: #008080;">6</span>     }</code></pre>
+
+<h3>二、forEach</h3>
+<ul>
+<li>Stream 提供了新的方法 'forEach' 来迭代流中的每个数据。</li>
+</ul>
+<src class="cnblogs_code">
+<pre><code><span style="color: #008080;"> 1</span>     <span style="color: #0000ff;">public</span> <span style="color: #0000ff;">static</span> <span style="color: #0000ff;">void</span><span style="color: #000000;"> main(String[] args) {
+</span><span style="color: #008080;"> 2</span>         <span style="color: #008000;">//</span><span style="color: #008000;">使用forEach遍历打印集合中的数字</span>
+<span style="color: #008080;"> 3</span>         ArrayList&lt;Integer&gt; arrayList=<span style="color: #0000ff;">new</span> ArrayList&lt;Integer&gt;<span style="color: #000000;">();
+</span><span style="color: #008080;"> 4</span>         arrayList.add(<span style="color: #800080;">1</span><span style="color: #000000;">);
+</span><span style="color: #008080;"> 5</span>         arrayList.add(<span style="color: #800080;">2</span><span style="color: #000000;">);
+</span><span style="color: #008080;"> 6</span>         arrayList.add(<span style="color: #800080;">3</span><span style="color: #000000;">);
+</span><span style="color: #008080;"> 7</span>         arrayList.add(<span style="color: #800080;">4</span><span style="color: #000000;">);
+</span><span style="color: #008080;"> 8</span>         arrayList.add(<span style="color: #800080;">5</span><span style="color: #000000;">);
+</span><span style="color: #008080;"> 9</span>         arrayList.add(<span style="color: #800080;">6</span><span style="color: #000000;">);
+</span><span style="color: #008080;">10</span>         arrayList.stream().forEach(System.<span style="color: #0000ff;">out</span><span style="color: #000000;">::println);        
+</span><span style="color: #008080;">11</span>     }    </code></pre>
+
+<h3>三、map</h3>
+<ul>
+<li>map 方法用于映射每个元素到对应的结果，以下代码片段使用 map 输出了元素对应的平方数：</li>
+</ul>
+<src class="cnblogs_code">
+<pre><code><span style="color: #008080;">1</span>     <span style="color: #0000ff;">public</span> <span style="color: #0000ff;">static</span> <span style="color: #0000ff;">void</span><span style="color: #000000;"> main(String[] args) {
+</span><span style="color: #008080;">2</span>         <span style="color: #008000;">//</span><span style="color: #008000;">使用map输出元素对应的平方</span>
+<span style="color: #008080;">3</span>         List&lt;Integer&gt; numbers = Arrays.asList(<span style="color: #800080;">1</span>,<span style="color: #800080;">2</span>,<span style="color: #800080;">3</span>,<span style="color: #800080;">4</span>,<span style="color: #800080;">5</span>,<span style="color: #800080;">6</span><span style="color: #000000;">);
+</span><span style="color: #008080;">4</span>         numbers.stream().map(i-&gt;i*i).forEach(System.<span style="color: #0000ff;">out</span><span style="color: #000000;">::println);
+</span><span style="color: #008080;">5</span>     }</code></pre>
+
+<h3>四、filter</h3>
+<ul>
+<li>filter 方法用于通过设置的条件过滤出元素。</li>
+</ul>
+<src class="cnblogs_code">
+<pre><code><span style="color: #008080;">1</span>     <span style="color: #0000ff;">public</span> <span style="color: #0000ff;">static</span> <span style="color: #0000ff;">void</span><span style="color: #000000;"> main(String[] args) {
+</span><span style="color: #008080;">2</span>         <span style="color: #008000;">//</span><span style="color: #008000;">使用 filter 方法过滤空字符串的个数</span>
+<span style="color: #008080;">3</span>         List&lt;String&gt;strings = Arrays.asList(<span style="color: #800000;">"</span><span style="color: #800000;">abc</span><span style="color: #800000;">"</span>, <span style="color: #800000;">""</span>, <span style="color: #800000;">"</span><span style="color: #800000;">bc</span><span style="color: #800000;">"</span>, <span style="color: #800000;">"</span><span style="color: #800000;">efg</span><span style="color: #800000;">"</span>, <span style="color: #800000;">"</span><span style="color: #800000;">abcd</span><span style="color: #800000;">"</span>,<span style="color: #800000;">""</span>, <span style="color: #800000;">"</span><span style="color: #800000;">jkl</span><span style="color: #800000;">"</span><span style="color: #000000;">);
+</span><span style="color: #008080;">4</span>         <span style="color: #0000ff;">long</span> count = strings.stream().filter(<span style="color: #0000ff;">string</span> -&gt; <span style="color: #0000ff;">string</span><span style="color: #000000;">.isEmpty()).count();
+</span><span style="color: #008080;">5</span>         System.<span style="color: #0000ff;">out</span><span style="color: #000000;">.println(count);
+</span><span style="color: #008080;">6</span>     }</code></pre>
+
+<h3>五、limit</h3>
+<ul>
+<li>limit 方法用于获取指定数量的流。</li>
+</ul>
+<src class="cnblogs_code">
+<pre><code><span style="color: #008080;"> 1</span>     <span style="color: #0000ff;">public</span> <span style="color: #0000ff;">static</span> <span style="color: #0000ff;">void</span><span style="color: #000000;"> main(String[] args) {
+</span><span style="color: #008080;"> 2</span>         <span style="color: #008000;">//</span><span style="color: #008000;">使用 limit 方法打印出 3 条数据：</span>
+<span style="color: #008080;"> 3</span>         ArrayList&lt;Integer&gt; arrayList = <span style="color: #0000ff;">new</span> ArrayList&lt;Integer&gt;<span style="color: #000000;">();
+</span><span style="color: #008080;"> 4</span>         arrayList.add(<span style="color: #800080;">1</span><span style="color: #000000;">);
+</span><span style="color: #008080;"> 5</span>         arrayList.add(<span style="color: #800080;">2</span><span style="color: #000000;">);
+</span><span style="color: #008080;"> 6</span>         arrayList.add(<span style="color: #800080;">3</span><span style="color: #000000;">);
+</span><span style="color: #008080;"> 7</span>         arrayList.add(<span style="color: #800080;">4</span><span style="color: #000000;">);
+</span><span style="color: #008080;"> 8</span>         arrayList.add(<span style="color: #800080;">5</span><span style="color: #000000;">);
+</span><span style="color: #008080;"> 9</span>         arrayList.add(<span style="color: #800080;">6</span><span style="color: #000000;">);
+</span><span style="color: #008080;">10</span>         arrayList.stream().limit(<span style="color: #800080;">3</span>).forEach(System.<span style="color: #0000ff;">out</span><span style="color: #000000;">::println);
+</span><span style="color: #008080;">11</span>     }</code></pre>
+
+<h3>六、sorted</h3>
+<ul>
+<li>sorted 方法用于对流进行排序。以下代码片段使用 sorted 方法对输出的 10 个随机数进行排序：</li>
+</ul>
+<src class="cnblogs_code">
+<pre><code><span style="color: #008080;"> 1</span>     <span style="color: #0000ff;">public</span> <span style="color: #0000ff;">static</span> <span style="color: #0000ff;">void</span><span style="color: #000000;"> main(String[] args) {        
+</span><span style="color: #008080;"> 2</span>         <span style="color: #008000;">//</span><span style="color: #008000;">使用 sorted 方法集合中的元素排序：</span>
+<span style="color: #008080;"> 3</span>         ArrayList&lt;Integer&gt; arrayList = <span style="color: #0000ff;">new</span> ArrayList&lt;Integer&gt;<span style="color: #000000;">();
+</span><span style="color: #008080;"> 4</span>         arrayList.add(<span style="color: #800080;">1</span><span style="color: #000000;">);
+</span><span style="color: #008080;"> 5</span>         arrayList.add(<span style="color: #800080;">22</span><span style="color: #000000;">);
+</span><span style="color: #008080;"> 6</span>         arrayList.add(<span style="color: #800080;">13</span><span style="color: #000000;">);
+</span><span style="color: #008080;"> 7</span>         arrayList.add(<span style="color: #800080;">45</span><span style="color: #000000;">);
+</span><span style="color: #008080;"> 8</span>         arrayList.add(<span style="color: #800080;">50</span><span style="color: #000000;">);
+</span><span style="color: #008080;"> 9</span>         arrayList.add(<span style="color: #800080;">6</span><span style="color: #000000;">);
+</span><span style="color: #008080;">10</span>         arrayList.stream().sorted().forEach(System.<span style="color: #0000ff;">out</span><span style="color: #000000;">::println);
+</span><span style="color: #008080;">11</span>     }</code></pre>
+
+<h3>七、Collectors</h3>
+<ul>
+<li>Collectors 类实现了很多归约操作，例如将流转换成集合和聚合元素。Collectors 可用于返回列表或字符串：</li>
+</ul>
+<src class="cnblogs_code">
+<pre><code><span style="color: #008080;">1</span>     <span style="color: #0000ff;">public</span> <span style="color: #0000ff;">static</span> <span style="color: #0000ff;">void</span><span style="color: #000000;"> main(String[] args) {
+</span><span style="color: #008080;">2</span>         List&lt;String&gt; strings = Arrays.asList(<span style="color: #800000;">"</span><span style="color: #800000;">abc</span><span style="color: #800000;">"</span>, <span style="color: #800000;">""</span>, <span style="color: #800000;">"</span><span style="color: #800000;">bc</span><span style="color: #800000;">"</span>, <span style="color: #800000;">"</span><span style="color: #800000;">efg</span><span style="color: #800000;">"</span>, <span style="color: #800000;">"</span><span style="color: #800000;">abcd</span><span style="color: #800000;">"</span>, <span style="color: #800000;">""</span>, <span style="color: #800000;">"</span><span style="color: #800000;">jkl</span><span style="color: #800000;">"</span><span style="color: #000000;">);
+</span><span style="color: #008080;">3</span>         List&lt;String&gt; filtered = strings.stream().filter(<span style="color: #0000ff;">string</span> -&gt; !<span style="color: #0000ff;">string</span><span style="color: #000000;">.isEmpty()).collect(Collectors.toList());
+</span><span style="color: #008080;">4</span> 
+<span style="color: #008080;">5</span>         System.<span style="color: #0000ff;">out</span>.println(<span style="color: #800000;">"</span><span style="color: #800000;">筛选列表: </span><span style="color: #800000;">"</span> +<span style="color: #000000;"> filtered);
+</span><span style="color: #008080;">6</span>         String mergedString = strings.stream().filter(<span style="color: #0000ff;">string</span> -&gt; !<span style="color: #0000ff;">string</span>.isEmpty()).collect(Collectors.joining(<span style="color: #800000;">"</span><span style="color: #800000;">, </span><span style="color: #800000;">"</span><span style="color: #000000;">));
+</span><span style="color: #008080;">7</span>         System.<span style="color: #0000ff;">out</span>.println(<span style="color: #800000;">"</span><span style="color: #800000;">合并字符串: </span><span style="color: #800000;">"</span> +<span style="color: #000000;"> mergedString);
+</span><span style="color: #008080;">8</span>     }</code></pre>
+
+<h3>八、统计</h3>
+<ul>
+<li>一些产生统计结果的收集器也非常有用。它们主要用于int、double、long等基本类型上，它们可以用来产生类似如下的统计结果。</li>
+</ul>
+<src class="cnblogs_code">
+<pre><code><span style="color: #008080;"> 1</span>     <span style="color: #0000ff;">public</span> <span style="color: #0000ff;">static</span> <span style="color: #0000ff;">void</span><span style="color: #000000;"> main(String[] args) {        
+</span><span style="color: #008080;"> 2</span>         List&lt;Integer&gt; numbers = Arrays.asList(<span style="color: #800080;">3</span>, <span style="color: #800080;">2</span>, <span style="color: #800080;">2</span>, <span style="color: #800080;">3</span>, <span style="color: #800080;">7</span>, <span style="color: #800080;">3</span>, <span style="color: #800080;">5</span><span style="color: #000000;">);
+</span><span style="color: #008080;"> 3</span>          
+<span style="color: #008080;"> 4</span>         IntSummaryStatistics stats = numbers.stream().mapToInt((x) -&gt;<span style="color: #000000;"> x).summaryStatistics();
+</span><span style="color: #008080;"> 5</span>          
+<span style="color: #008080;"> 6</span>         System.<span style="color: #0000ff;">out</span>.println(<span style="color: #800000;">"</span><span style="color: #800000;">列表中最大的数 : </span><span style="color: #800000;">"</span> +<span style="color: #000000;"> stats.getMax());
+</span><span style="color: #008080;"> 7</span>         System.<span style="color: #0000ff;">out</span>.println(<span style="color: #800000;">"</span><span style="color: #800000;">列表中最小的数 : </span><span style="color: #800000;">"</span> +<span style="color: #000000;"> stats.getMin());
+</span><span style="color: #008080;"> 8</span>         System.<span style="color: #0000ff;">out</span>.println(<span style="color: #800000;">"</span><span style="color: #800000;">所有数之和 : </span><span style="color: #800000;">"</span> +<span style="color: #000000;"> stats.getSum());
+</span><span style="color: #008080;"> 9</span>         System.<span style="color: #0000ff;">out</span>.println(<span style="color: #800000;">"</span><span style="color: #800000;">平均数 : </span><span style="color: #800000;">"</span> +<span style="color: #000000;"> stats.getAverage());
+</span><span style="color: #008080;">10</span>     }</code></pre>
+
+
+</div><hr><script charset='utf-8' src='../../js/sming.js'></script></body></html>

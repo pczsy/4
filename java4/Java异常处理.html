@@ -1,0 +1,206 @@
+<html><head><meta charset='utf-8'><meta name='viewport' content='width=device-width, initial-scale=1'>
+<meta name='applicable-device' content='pc'><meta name='keywords' content='电脑,电脑讲解,电脑技术,编程,电脑故障维修Java异常处理' />
+<script src='../../highlight/highlight.pack.js'></script>
+<link rel='stylesheet' type='text/css' href='../../highlight/styles/monokai.css'/>
+
+<link rel='stylesheet' href='../../fenxiang/dist/css/share.min.css'>
+<script src='../../fenxiang/src/js/social-share.js'></script>
+<script src='../../fenxiang/src/js/qrcode.js'></script>
+
+</head><body><script>hljs.initHighlightingOnLoad();</script><script>
+var system ={};  
+var p = navigator.platform;       
+system.win = p.indexOf('Win') == 0;  
+system.mac = p.indexOf('Mac') == 0;  
+system.x11 = (p == 'X11') || (p.indexOf('Linux') == 0);     
+if(system.win||system.mac||system.xll){
+document.write("<link href='../css/3.css' rel='stylesheet' type='text/css'>");}else{ document.write("<link href='../css/3wap.css' rel='stylesheet' type='text/css'>");}</script><script src='../../js/3.js'></script><div class='div2'><div class='heading_nav'><ul><div><li><a href='../../index.html'>首页</a></li>
+</div><div onclick='hidden1()' >分享</div>
+</ul></div></div>
+<div id='heading_nav2'> 
+<li class='row' >
+<div class='social-share' data-mode='prepend'><a href='javascript:' class='social-share-icon icon-heart'></a></div></li></div><script charset='utf-8' src='../../3/js/hengfu.js'></script><script charset='utf-8' src='../../3/js/hengfu2.js'></script><hr><div class='div1'><div class='biaoti'><center>Java异常处理</center></div><div class='banquan'>原文出处:本文由博客园博主小毛驴Lucas提供。<br/>
+原文连接:https://www.cnblogs.com/LucasBlog/p/11992286.html</div><br>
+    <h3 id="一.异常的概念">一.异常的概念</h3>
+<blockquote>
+<p>异常：就是程序运行过程中，出现了非正常的情况，异常也是错误的一种，但不是所有错误都是异常，异常会导致JVM非正常停止。</p>
+</blockquote>
+<p>异常有的时候是因为用户错误引起，有的时候是程序错误引起的，还有的一些是其他原因导致的。</p>
+<h3 id="二.异常的体系">二.异常的体系</h3>
+<p>异常在java当中是以对象来处理的，异常的基类是：<strong>java.lang.Throwable</strong></p>
+<p>异常基类下有两个子类：<strong>java.lang.Error</strong>和<strong>java.lang.Exception</strong>，即上面所说的错误和异常。</p>
+<p><img src="./images/Java异常处理0.png" alt="异常体系.png" /></p>
+<p>上图列举了Throwable的主要分支和一些常见的异常。</p>
+<blockquote>
+<p>注意：</p>
+<p><code>Error</code>和<code>Exception</code>的区别：<code>Error</code>通常是灾难性的致命的错误，是程序无法控制和处理的，当出现这些异常时，Java虚拟机（JVM）一般会选择终止线程；<code>Exception</code>通常情况下是可以被程序处理的，并且在程序中应该尽可能的去处理这些异常。</p>
+</blockquote>
+<h3 id="三.异常的分类">三.异常的分类</h3>
+<p>异常的分类，根据在编译时期还是运行时期检查异常可以分为两类：</p>
+<ol>
+<li>编译时期异常（检测异常）：在编译时期就会检测，如果没有处理异常，则编译失败。</li>
+<li>运行时期异常（非检测异常）：在编译时期不会检测（也不会报错）。</li>
+</ol>
+<blockquote>
+<p>注意：</p>
+<p><strong>除了RuntimeException以及其子类外，其他的所有Exception类及其子类</strong>都是检测异常，都是需要检查的，当出现这些异常时，<strong>要么使用<code>try-catch</code>语句捕获异常，要么用<code>throws</code>语句抛出异常，否则编译无法通过</strong>。</p>
+<p>而<strong>RuntimeException</strong>，这类异常时不检测的，可以处理，但不一定会处理，一般不处理。</p>
+</blockquote>
+<h3 id="四.异常的处理">四.异常的处理</h3>
+<p>异常的处理本质上有两个：<strong>抛出异常</strong>和<strong>捕获异常</strong>。</p>
+<p>简单点说：</p>
+<ol>
+<li><p>抛出异常：就是自己不处理，向上抛出异常，由调用者去决定怎么处理。</p>
+<p>比如方法中对参数做检测：</p>
+<pre><code><code>if (obj == null) {
+    throw new NullPointerException();
+}</code></code></pre></li>
+<li><p>捕获异常：就是自己捕获异常，并处理，处理捕获异常需要使用<code>try-catch</code>语句（下面会讲到)</p></li>
+</ol>
+<h3 id="五.异常处理的语法">五.异常处理的语法</h3>
+<p>异常处理的语法主要是五个关键字：<code>try catch finally throw throws</code></p>
+<blockquote>
+<p><strong>try</strong>：用于监测，将可能产生异常的代码放到try语句块之中，当异常产生时，异常就会被抛出。</p>
+<p><strong>catch</strong>：用于捕获异常，catch用来捕获try语句块中抛出的异常。</p>
+<p><strong>finally</strong>：finally语句块的代码总是会被执行，主要是做一些清理（比如关闭打开了的文件句柄等），<strong>当try或catch语句块中有return语句或者throw语句，总是先执行完finally语句块，在返回执行try或catch中的return语句或throw语句，所以如果finally中使用了return或者throw等终止方法的语句，就不会再返回了，方法会直接停止，所以不能再finally中使用return或者throw</strong></p>
+<p><strong>throw</strong>：用于抛出异常</p>
+<p><strong>throws</strong>：用于在方法声明中，声明该方法可能抛出的异常</p>
+</blockquote>
+<ul>
+<li><p>捕获异常处理</p>
+<ol>
+<li><p>try-catch语句处理</p>
+<pre><code><code>try {
+   // 可能发生异常的代码
+} catch (Exception e) {
+    // 异常处理
+} catch (Exception e) {
+       // 异常处理
+}
+...</code></code></pre>
+<p>比如：</p>
+<pre><code><code>public class TryCacthTest {
+    public static void main(String[] args) {
+        try {  // 当方法中产生异常时，必须要有处理，要么捕获，要么声明抛出
+            read(&quot;a.txt&quot;);
+        } catch (FileNotFoundException e) {
+            System.out.println(e);
+        }
+    }
+    // 有异常，编译期异常，检测异常
+    public static void read(String path) {
+        if (!path.equals(&quot;a.txt&quot;)) {   // 假设文件名不是a.txt，认为是错误，抛出异常
+            throw new FileNotFoundException(&quot;文件不存在&quot;);
+        }
+    }
+}</code></code></pre>
+<blockquote>
+<p>如何获取异常信息？</p>
+<p>答：在Throwable类中定义了一些查看方法，有以下三种：</p>
+<ol>
+<li><code>public String getMessage()</code>：获取异常的描述信息，错误原因</li>
+<li><code>public String toString()</code>：获取异常的类型和异常的描述信息</li>
+<li><code>public String printStackTrace()</code>：打印异常的跟着栈信息并输出到控制台</li>
+</ol>
+<p>一般在开发和调试阶段，都得使用<strong>printStackTrace</strong>，其包含了异常的类型，异常的原因，以及异常出现的位置。</p>
+</blockquote></li>
+<li><p>try-catch-catch-...多个catch情况</p>
+<p>有时候一个代码段可以引发多个异常，这种情况可以定义多个catch，对每一种类型的异常进行捕获，当异常发生时候，每个catch语句会依次检查，<strong>第一个匹配异常类型的catch语句执行，其他的所有catch语句不会再执行</strong>.</p>
+<p><strong>编写多个catch语句的注意事项</strong>：子类在前，父类在后。</p></li>
+<li><p>try-catch-finally</p>
+<p>同try-catch或try-catch-catch-...，唯一的不同就是finally语句块里的无论异常是否发生，都会执行，并且不能在finally中添加return。</p></li>
+</ol></li>
+<li><p>抛出异常处理</p>
+<ol>
+<li><p>使用<strong>throw</strong>抛出</p>
+<p>具体语法：<code>throw XXXException</code></p>
+<p>如果throw语句在try块里，则会检查是否有匹配的catch语句，如果发现了有匹配的，则转向对应catch语句；如果没有发现，默认的异常处理程序则会中断程序，并且打印堆栈信息。</p>
+<p>注意：程序执行完throw语句之后立即停止，throw后面的语句不会被执行。</p>
+<p>比如：</p>
+<pre><code><code>class ThrowTest {
+    public static func() {
+        try {
+            throw new NullPointerException(&quot;Test&quot;);
+        } catch (NullPointerException e) {
+            throw e;
+        }
+    }
+
+    public static void main(String[] args) {
+        try {
+            func();
+        } catch (NullPointerException e) {
+            e.printStackTrace();
+        }
+    }
+}
+/*
+   程序中两次处理了异常，第一次，在main中调用func函数时候，抛出了异常，但func函数的try-catch捕获了这个异常，在catch里又一次抛出了异常，给到了调用者main函数，main里的try-catch进行了捕获，最后调用printStackTrace()
+*/</code></code></pre></li>
+<li><p><strong>throws</strong>声明异常</p>
+<p>如果一个方法可能产生一个异常，但本身不处理它，则必须在方法声明中使用throws声明异常，否则导致编译错误。</p>
+<p>使用方法如下，如果存在多个异常，则用逗号隔开</p>
+<p><code>public void func() throws Exception1,Exception2,...</code></p>
+<blockquote>
+<p>注意：</p>
+<p>关于<strong>throws</strong>抛出异常的规则如下：</p>
+<ul>
+<li>如果是不检测的异常，即<strong>Error</strong>，<strong>RuntimeException</strong>或其子类，可以不用<strong>throws</strong>声明要抛出异常，也可以不用try-catch捕获，编译仍可以通过，但在运行时会被系统抛出。</li>
+<li>对于检测的异常，要么用try-catch语句捕获，要么用<strong>throw</strong>抛出异常，再用<strong>throws</strong>声明异常，否则会导致编译错误。</li>
+<li>当抛出了异常给调用者，调用者也无法处理异常时，必须要继续抛出，不能置之不理。</li>
+<li>如果要覆盖一个方法，则声明的任何异常必须是被覆盖方法所声明的异常的同类或子类。</li>
+</ul>
+</blockquote></li>
+</ol></li>
+</ul>
+<h3 id="六.自定义异常">六.自定义异常</h3>
+<p>除了使用java内置的异常类外，还可以自定义异常，用户自定义异常，<strong>只需要继承Exception类即可</strong></p>
+<p>自定义异常，可以分为以下几个步骤：</p>
+<ol>
+<li>创建自定义异常类</li>
+<li>在方法中通过throw抛出异常对象</li>
+<li>如果在当前抛出异常的方法中处理异常，可以使用try-catch捕获并处理；否则在方法的声明使用throws声明要抛出的异常</li>
+<li>在异常出现的方法中捕获并处理异常</li>
+</ol>
+<p>比如：模拟注册操作，用户名存在，则抛出异常并提示</p>
+<pre><code><code>// 自定义异常
+public class RegisterException extends Exception {
+    // 空参构造函数
+    public RegisterException() {
+        
+    }
+    // 带参构造函数，message表示异常提示
+    public RegisterException(String message) {
+        super(message);
+    }
+}</code></code></pre>
+<pre><code><code>public class Demo {
+    private static String[] names = {&quot;Bill&quot;, &quot;hello&quot;, &quot;cddd&quot;};
+    
+    public static void main(String[] args) {
+        try {
+            // 可能出现异常的代码
+            checkUsername(&quot;nill&quot;);
+            System.out.println(&quot;注册成功&quot;);// 如果没有异常就是注册成功的
+        } catch (RegisterException e) {
+            // 处理异常
+            e.printStackTrace();
+        }
+    }
+    public static boolean checkUsername(String uname) throws RegisterException {
+        for (String name : names) {
+            if (name.equals(uname)) {
+                throw new RegisterException(name + &quot;已经被注册&quot;);
+            }
+        }
+        return true;
+    }
+}</code></code></pre>
+<h3 id="七.总结">七.总结</h3>
+<p><img src="./images/Java异常处理1.png" alt="异常总结.jpg" /><br />
+<img src="./images/Java异常处理2.png" alt="异常总结1.jpg" /></p>
+<p><strong>参考文档：</strong></p>
+<p><a href="https://www.cnblogs.com/Qian123/p/5715402.html">Java提高篇——Java 异常处理</a></p>
+
+
+</div><hr><script charset='utf-8' src='../../js/sming.js'></script></body></html>

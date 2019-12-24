@@ -1,0 +1,222 @@
+<html><head><meta charset='utf-8'><meta name='viewport' content='width=device-width, initial-scale=1'>
+<meta name='applicable-device' content='pc'><meta name='keywords' content='电脑,电脑讲解,电脑技术,编程,电脑故障维修Spring Boot 2.x基础教程：Swagger静态文档的生成' />
+<script src='../../highlight/highlight.pack.js'></script>
+<link rel='stylesheet' type='text/css' href='../../highlight/styles/monokai.css'/>
+
+<link rel='stylesheet' href='../../fenxiang/dist/css/share.min.css'>
+<script src='../../fenxiang/src/js/social-share.js'></script>
+<script src='../../fenxiang/src/js/qrcode.js'></script>
+
+</head><body><script>hljs.initHighlightingOnLoad();</script><script>
+var system ={};  
+var p = navigator.platform;       
+system.win = p.indexOf('Win') == 0;  
+system.mac = p.indexOf('Mac') == 0;  
+system.x11 = (p == 'X11') || (p.indexOf('Linux') == 0);     
+if(system.win||system.mac||system.xll){
+document.write("<link href='../css/3.css' rel='stylesheet' type='text/css'>");}else{ document.write("<link href='../css/3wap.css' rel='stylesheet' type='text/css'>");}</script><script src='../../js/3.js'></script><div class='div2'><div class='heading_nav'><ul><div><li><a href='../../index.html'>首页</a></li>
+</div><div onclick='hidden1()' >分享</div>
+</ul></div></div>
+<div id='heading_nav2'> 
+<li class='row' >
+<div class='social-share' data-mode='prepend'><a href='javascript:' class='social-share-icon icon-heart'></a></div></li></div><script charset='utf-8' src='../../3/js/hengfu.js'></script><script charset='utf-8' src='../../3/js/hengfu2.js'></script><hr><div class='div1'><div class='biaoti'><center>Spring Boot 2.x基础教程：Swagger静态文档的生成</center></div><div class='banquan'>原文出处:本文由博客园博主程序猿DD提供。<br/>
+原文连接:https://www.cnblogs.com/didispace/p/11684084.html</div><br>
+    <h2 id="前言">前言</h2>
+<p>通过之前的两篇关于Swagger入门以及具体使用细节的介绍之后，我们已经能够轻松地为Spring MVC的Web项目自动构建出API文档了。如果您还不熟悉这块，可以先阅读：</p>
+<ul>
+<li><a href="http://blog.didispace.com/spring-boot-learning-21-2-2/">Spring Boot 2.x基础教程：使用Swagger2构建强大的API文档</a></li>
+<li><a href="http://blog.didispace.com/spring-boot-learning-21-2-4/">Spring Boot 2.x基础教程：Swagger接口分类与各元素排序问题详解</a></li>
+</ul>
+<p>在这两篇文章中，我们构建的文档必须通过在项目中整合<code>swagger-ui</code>、或使用单独部署的<code>swagger-ui</code>和<code>/v2/api-docs</code>返回的配置信息才能展现出您所构建的API文档。而有些时候，我们可能只需要提供静态文档给其他对接方的时候，我们要如何快速轻便的产生静态API文档呢？</p>
+<p>接下来我们就来学习一个解决该问题的工具：<strong>Swagger2Markup</strong>。</p>
+<h2 id="swagger2markup简介">Swagger2Markup简介</h2>
+<p>Swagger2Markup是Github上的一个开源项目。该项目主要用来将Swagger自动生成的文档转换成几种流行的格式以便于静态部署和使用，比如：AsciiDoc、Markdown、Confluence。</p>
+<p>项目主页：<a href="https://github.com/Swagger2Markup/swagger2markup" class="uri">https://github.com/Swagger2Markup/swagger2markup</a></p>
+<h2 id="如何使用">如何使用</h2>
+<p>在使用Swagger2Markup之前，我们先需要准备一个使用了Swagger的Web项目，可以是直接使用Swagger2的项目，也可以使用<a href="http://blog.didispace.com/spring-boot-learning-21-2-2/">Spring Boot 2.x基础教程：使用Swagger2构建强大的API文档</a>一文中构建的项目。读者可以通过下面的仓库获取：</p>
+<ul>
+<li>Github：<a href="https://github.com/dyc87112/SpringBoot-Learning/tree/2.x" class="uri">https://github.com/dyc87112/SpringBoot-Learning/tree/2.x</a></li>
+<li>Gitee：<a href="https://gitee.com/didispace/SpringBoot-Learning/tree/2.x" class="uri">https://gitee.com/didispace/SpringBoot-Learning/tree/2.x</a></li>
+</ul>
+<p>接下来，我们将利用这个项目中的<code>chapter2-2</code>模块作为基础来来生成几种不同格式的静态文档。</p>
+<h3 id="生成-asciidoc-文档">生成 AsciiDoc 文档</h3>
+<p>生成 AsciiDoc 文档的方式有两种：</p>
+<h4 id="通过java代码来生成">通过Java代码来生成</h4>
+<p><strong>第一步</strong>：编辑<code>pom.xml</code>增加需要使用的相关依赖和仓库</p>
+<pre><code><code>&lt;dependencies&gt;
+    ...
+
+    &lt;dependency&gt;
+        &lt;groupId&gt;io.github.swagger2markup&lt;/groupId&gt;
+        &lt;artifactId&gt;swagger2markup&lt;/artifactId&gt;
+        &lt;version&gt;1.3.3&lt;/version&gt;
+        &lt;scope&gt;test&lt;/scope&gt;
+    &lt;/dependency&gt;
+&lt;/dependencies&gt;
+
+&lt;repositories&gt;
+    &lt;repository&gt;
+        &lt;snapshots&gt;
+            &lt;enabled&gt;false&lt;/enabled&gt;
+        &lt;/snapshots&gt;
+        &lt;id&gt;jcenter-releases&lt;/id&gt;
+        &lt;name&gt;jcenter&lt;/name&gt;
+        &lt;url&gt;http://jcenter.bintray.com&lt;/url&gt;
+    &lt;/repository&gt;
+&lt;/repositories&gt;</code></code></pre>
+<p>本身这个工具主要就临时用一下，所以这里我们把<code>scope</code>设置为test，这样这个依赖就不会打包到正常运行环境中去。</p>
+<p><strong>第二步</strong>：编写一个单元测试用例来生成执行生成文档的代码</p>
+<pre><code><code>@RunWith(SpringRunner.class)
+@SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.DEFINED_PORT)
+public class DemoApplicationTests {
+
+    @Test
+    public void generateAsciiDocs() throws Exception {
+
+        URL remoteSwaggerFile = new URL(&quot;http://localhost:8080/v2/api-docs&quot;);
+        Path outputDirectory = Paths.get(&quot;src/docs/asciidoc/generated&quot;);
+
+        //    输出Ascii格式
+        Swagger2MarkupConfig config = new Swagger2MarkupConfigBuilder()
+                .withMarkupLanguage(MarkupLanguage.ASCIIDOC)
+                .build();
+
+
+        Swagger2MarkupConverter.from(remoteSwaggerFile)
+                .withConfig(config)
+                .build()
+                .toFolder(outputDirectory);
+    }
+
+}</code></code></pre>
+<p>以上代码内容很简单，大致说明几个关键内容：</p>
+<ul>
+<li><code>MarkupLanguage.ASCIIDOC</code>：指定了要输出的最终格式。除了<code>ASCIIDOC</code>之外，还有<code>MARKDOWN</code>和<code>CONFLUENCE_MARKUP</code>，分别定义了其他格式，后面会具体举例。</li>
+<li><code>from(remoteSwaggerFile</code>：指定了生成静态部署文档的源头配置，可以是这样的URL形式，也可以是符合Swagger规范的String类型或者从文件中读取的流。如果是对当前使用的Swagger项目，我们通过使用访问本地Swagger接口的方式，如果是从外部获取的Swagger文档配置文件，就可以通过字符串或读文件的方式</li>
+<li><code>toFolder(outputDirectory)</code>：指定最终生成文件的具体<em>目录</em>位置</li>
+</ul>
+<p>在执行了上面的测试用例之后，我们就能在当前项目的src目录下获得如下内容：</p>
+<pre><code><code>src
+--docs
+----asciidoc
+------generated
+--------definitions.adoc
+--------overview.adoc
+--------paths.adoc
+--------security.adoc</code></code></pre>
+<p>可以看到，这种方式在运行之后就生成出了4个不同的静态文件。</p>
+<p><strong>输出到单个文件</strong></p>
+<p>如果不想分割结果文件，也可以通过替换<code>toFolder(Paths.get(&quot;src/docs/asciidoc/generated&quot;)</code>为<code>toFile(Paths.get(&quot;src/docs/asciidoc/generated/all&quot;))</code>，将转换结果输出到一个单一的文件中，这样可以最终生成html的也是单一的。</p>
+<h4 id="通过-maven-插件来生成">通过 Maven 插件来生成</h4>
+<p>除了通过上面编写Java代码来生成的方式之外，swagger2markup还提供了对应的Maven插件来使用。对于上面的生成方式，完全可以通过在<code>pom.xml</code>中增加如下插件来完成静态内容的生成。</p>
+<pre class="xml"><code>&lt;plugin&gt;
+    &lt;groupId&gt;io.github.swagger2markup&lt;/groupId&gt;
+    &lt;artifactId&gt;swagger2markup-maven-plugin&lt;/artifactId&gt;
+    &lt;version&gt;1.3.3&lt;/version&gt;
+    &lt;configuration&gt;
+        &lt;swaggerInput&gt;http://localhost:8080/v2/api-docs&lt;/swaggerInput&gt;
+        &lt;outputDir&gt;src/docs/asciidoc/generated-by-plugin&lt;/outputDir&gt;
+        &lt;config&gt;
+            &lt;swagger2markup.markupLanguage&gt;ASCIIDOC&lt;/swagger2markup.markupLanguage&gt;
+        &lt;/config&gt;
+    &lt;/configuration&gt;
+&lt;/plugin&gt;</code></code></pre>
+<p>在使用插件生成前，需要先启动应用。然后执行插件，就可以在<code>src/docs/asciidoc/generated-by-plugin</code>目录下看到也生成了上面一样的adoc文件了。</p>
+<h4 id="生成html">生成HTML</h4>
+<p>在完成了从Swagger文档配置文件到AsciiDoc的源文件转换之后，就是如何将AsciiDoc转换成可部署的HTML内容了。这里继续在上面的工程基础上，引入一个Maven插件来完成。</p>
+<pre><code><code>&lt;plugin&gt;
+    &lt;groupId&gt;org.asciidoctor&lt;/groupId&gt;
+    &lt;artifactId&gt;asciidoctor-maven-plugin&lt;/artifactId&gt;
+    &lt;version&gt;1.5.6&lt;/version&gt;
+    &lt;configuration&gt;
+        &lt;sourceDirectory&gt;src/docs/asciidoc/generated&lt;/sourceDirectory&gt;
+        &lt;outputDirectory&gt;src/docs/asciidoc/html&lt;/outputDirectory&gt;
+        &lt;backend&gt;html&lt;/backend&gt;
+        &lt;sourceHighlighter&gt;coderay&lt;/sourceHighlighter&gt;
+        &lt;attributes&gt;
+            &lt;toc&gt;left&lt;/toc&gt;
+        &lt;/attributes&gt;
+    &lt;/configuration&gt;
+&lt;/plugin&gt;</code></code></pre>
+<p>通过上面的配置，执行该插件的<code>asciidoctor:process-asciidoc</code>命令之后，就能在<code>src/docs/asciidoc/html</code>目录下生成最终可用的静态部署HTML了。在完成生成之后，可以直接通过浏览器来看查看，你就能看到类似下图的静态部署结果：</p>
+<p><img src="./images/Spring Boot 2.x基础教程：Swagger静态文档的生成0.png" /></p>
+<p><strong>是不是感觉似曾相识呢？是的，Spring Cloud的E版之前的文档也是这样的！！！</strong></p>
+<h3 id="markdown-与-confluence-的支持">Markdown 与 Confluence 的支持</h3>
+<p>要生成Markdown和Confluence的方式非常简单，与上一篇中的方法类似，只需要修改一个参数即可。</p>
+<h4 id="生成-markdown-和-confluence-文档">生成 Markdown 和 Confluence 文档</h4>
+<p>生成方式有一下两种：</p>
+<ul>
+<li>通过Java代码来生成：只需要修改<code>withMarkupLanguage</code>属性来指定不同的格式以及<code>toFolder</code>属性为结果指定不同的输出目录。</li>
+</ul>
+<p>生成markdown的代码片段：</p>
+<pre><code><code>URL remoteSwaggerFile = new URL(&quot;http://localhost:8080/v2/api-docs&quot;);
+Path outputDirectory = Paths.get(&quot;src/docs/markdown/generated&quot;);
+
+//    输出Ascii格式
+Swagger2MarkupConfig config = new Swagger2MarkupConfigBuilder()
+    .withMarkupLanguage(MarkupLanguage.MARKDOWN)
+    .build();
+
+Swagger2MarkupConverter.from(remoteSwaggerFile)
+    .withConfig(config)
+    .build()
+    .toFolder(outputDirectory);</code></code></pre>
+<p>生成confluence的代码片段：</p>
+<pre><code><code>URL remoteSwaggerFile = new URL(&quot;http://localhost:8080/v2/api-docs&quot;);
+Path outputDirectory = Paths.get(&quot;src/docs/confluence/generated&quot;);
+
+//    输出Ascii格式
+Swagger2MarkupConfig config = new Swagger2MarkupConfigBuilder()
+    .withMarkupLanguage(MarkupLanguage.CONFLUENCE_MARKUP)
+    .build();
+
+Swagger2MarkupConverter.from(remoteSwaggerFile)
+    .withConfig(config)
+    .build()
+    .toFolder(outputDirectory);</code></code></pre>
+<p>在执行了上面的设置内容之后，我们就能在当前项目的src目录下获得如下内容：</p>
+<pre><code><code>src
+--docs
+----confluence
+------generated
+--------definitions.txt
+--------overview.txt
+--------paths.txt
+--------security.txt
+----markdown
+------generated
+--------definitions.md
+--------overview.md
+--------paths.md
+--------security.md</code></code></pre>
+<p>可以看到，运行之后分别在markdown和confluence目录下输出了不同格式的转换内容。如果读者想要通过插件来生成，直接参考上一节内容，只需要修改插件配置中的<code>swagger2markup.markupLanguage</code>即可支持输出其他格式内容。</p>
+<p>最后，我们一起来看看生成的Markdown和Confluence文档要怎么使用</p>
+<h4 id="markdown的部署">Markdown的部署</h4>
+<p>Markdown目前在文档编写中使用非常常见，所以可用的静态部署工具也非常多，比如：Hexo、Jekyll等都可以轻松地实现静态化部署，也可以使用一些SaaS版本的文档工具，比如：语雀等。具体使用方法，这里按照这些工具的文档都非常详细，这里就不具体介绍了。</p>
+<h4 id="confluence的部署">Confluence的部署</h4>
+<p>相信很多团队都使用Confluence作为文档管理系统，所以下面具体说说Confluence格式生成结果的使用。</p>
+<p><strong>第一步</strong>：在Confluence的新建页面的工具栏中选择<code>{}Markup</code></p>
+<p><a href="http://blog.didispace.com/content/images/posts/swagger2markup-markdown-confluence-1.png"><img src="./images/Spring Boot 2.x基础教程：Swagger静态文档的生成1.png" alt="img" /></a></p>
+<p><strong>第二步</strong>：在弹出框的<code>Insert</code>选项中选择<code>Confluence Wiki</code>，然后将生成的txt文件中的内容，黏贴在左侧的输入框中；此时，在右侧的阅览框可以看到如下图的效果了。</p>
+<p><a href="http://blog.didispace.com/content/images/posts/swagger2markup-markdown-confluence-2.png"><img src="./images/Spring Boot 2.x基础教程：Swagger静态文档的生成2.png" alt="img" /></a></p>
+<p>注意：所以<code>Insert</code>选项中也提供了Markdown格式，我们也可以用上面生成的Markdown结果来使用，但是效果并不好，所以在Confluence中使用专门的生成结果为佳。</p>
+<h2 id="代码示例">代码示例</h2>
+<p>本文的完整工程可以查看下面仓库中的<code>chapter2-5</code>目录：</p>
+<ul>
+<li>Github：<a href="https://github.com/dyc87112/SpringBoot-Learning/tree/2.x" class="uri">https://github.com/dyc87112/SpringBoot-Learning/tree/2.x</a></li>
+<li>Gitee：<a href="https://gitee.com/didispace/SpringBoot-Learning/tree/2.x" class="uri">https://gitee.com/didispace/SpringBoot-Learning/tree/2.x</a></li>
+</ul>
+<p>如果您觉得本文不错，欢迎<strong>Star</strong>支持，您的关注是我坚持的动力！</p>
+<h2 id="参考资料">参考资料</h2>
+<ul>
+<li>[1] https://github.com/Swagger2Markup/swagger2markup</li>
+<li>[2] http://blog.didispace.com/swagger2markup-asciidoc/</li>
+<li>[3] http://blog.didispace.com/swagger2markup-markdown-confluence/</li>
+</ul>
+<blockquote>
+<p>欢迎关注我的公众号：程序猿DD，获得独家整理的学习资源和日常干货推送。<br />
+如果您对我的专题内容感兴趣，也可以关注我的博客：<a href="http://blog.didispace.com">didispace.com</a></p>
+</blockquote>
+
+
+</div><hr><script charset='utf-8' src='../../js/sming.js'></script></body></html>

@@ -1,0 +1,164 @@
+<html><head><meta charset='utf-8'><meta name='viewport' content='width=device-width, initial-scale=1'>
+<meta name='applicable-device' content='pc'><meta name='keywords' content='电脑,电脑讲解,电脑技术,编程,电脑故障维修死磕 java线程系列之线程池深入解析——构造方法' />
+<script src='../../highlight/highlight.pack.js'></script>
+<link rel='stylesheet' type='text/css' href='../../highlight/styles/monokai.css'/>
+
+<link rel='stylesheet' href='../../fenxiang/dist/css/share.min.css'>
+<script src='../../fenxiang/src/js/social-share.js'></script>
+<script src='../../fenxiang/src/js/qrcode.js'></script>
+
+</head><body><script>hljs.initHighlightingOnLoad();</script><script>
+var system ={};  
+var p = navigator.platform;       
+system.win = p.indexOf('Win') == 0;  
+system.mac = p.indexOf('Mac') == 0;  
+system.x11 = (p == 'X11') || (p.indexOf('Linux') == 0);     
+if(system.win||system.mac||system.xll){
+document.write("<link href='../css/3.css' rel='stylesheet' type='text/css'>");}else{ document.write("<link href='../css/3wap.css' rel='stylesheet' type='text/css'>");}</script><script src='../../js/3.js'></script><div class='div2'><div class='heading_nav'><ul><div><li><a href='../../index.html'>首页</a></li>
+</div><div onclick='hidden1()' >分享</div>
+</ul></div></div>
+<div id='heading_nav2'> 
+<li class='row' >
+<div class='social-share' data-mode='prepend'><a href='javascript:' class='social-share-icon icon-heart'></a></div></li></div><script charset='utf-8' src='../../3/js/hengfu.js'></script><script charset='utf-8' src='../../3/js/hengfu2.js'></script><hr><div class='div1'><div class='biaoti'><center>死磕 java线程系列之线程池深入解析——构造方法</center></div><div class='banquan'>原文出处:本文由博客园博主彤哥读源码提供。<br/>
+原文连接:https://www.cnblogs.com/tong-yuan/p/11681782.html</div><br>
+    <p><img src="./images/死磕 java线程系列之线程池深入解析——构造方法0.png" alt="ThreadPoolExecutor" /></p>
+<p>（手机横屏看源码更方便）</p>
+<hr />
+<p>注：java源码分析部分如无特殊说明均基于 java8 版本。</p>
+<h2 id="简介">简介</h2>
+<p>ThreadPoolExecutor的构造方法是创建线程池的入口，虽然比较简单，但是信息量很大，由此也能引发一系列的问题，同样地，这也是面试中经常被问到的问题，下面彤哥只是列举了一部分关于ThreadPoolExecutor构造方法的问题，如果你都能回答上来，则可以不用看下面的分析了。</p>
+<h2 id="问题">问题</h2>
+<p>（1）ThreadPoolExecutor有几个构造方法？</p>
+<p>（2）ThreadPoolExecutor最长的构造方法有几个参数？</p>
+<p>（3）keepAliveTime是做什么用的？</p>
+<p>（7）核心线程会不会超时关闭？能不能超时关闭？</p>
+<p>（4）ConcurrentLinkedQueue能不能作为任务队列的参数？</p>
+<p>（5）默认的线程是怎么创建的？</p>
+<p>（6）如何实现自己的线程工厂？</p>
+<p>（7）拒绝策略有哪些？</p>
+<p>（8）默认的拒绝策略是什么？</p>
+<h2 id="构造方法">构造方法</h2>
+<p>好了，我们直接上代码。</p>
+<pre><code><code>public ThreadPoolExecutor(int corePoolSize,
+                          int maximumPoolSize,
+                          long keepAliveTime,
+                          TimeUnit unit,
+                          BlockingQueue&lt;Runnable&gt; workQueue) {
+    this(corePoolSize, maximumPoolSize, keepAliveTime, unit, workQueue,
+         Executors.defaultThreadFactory(), defaultHandler);
+}
+
+public ThreadPoolExecutor(int corePoolSize,
+                          int maximumPoolSize,
+                          long keepAliveTime,
+                          TimeUnit unit,
+                          BlockingQueue&lt;Runnable&gt; workQueue,
+                          ThreadFactory threadFactory) {
+    this(corePoolSize, maximumPoolSize, keepAliveTime, unit, workQueue,
+         threadFactory, defaultHandler);
+}
+
+public ThreadPoolExecutor(int corePoolSize,
+                          int maximumPoolSize,
+                          long keepAliveTime,
+                          TimeUnit unit,
+                          BlockingQueue&lt;Runnable&gt; workQueue,
+                          RejectedExecutionHandler handler) {
+    this(corePoolSize, maximumPoolSize, keepAliveTime, unit, workQueue,
+         Executors.defaultThreadFactory(), handler);
+}
+
+public ThreadPoolExecutor(int corePoolSize,
+                          int maximumPoolSize,
+                          long keepAliveTime,
+                          TimeUnit unit,
+                          BlockingQueue&lt;Runnable&gt; workQueue,
+                          ThreadFactory threadFactory,
+                          RejectedExecutionHandler handler) {
+    if (corePoolSize &lt; 0 ||
+        maximumPoolSize &lt;= 0 ||
+        maximumPoolSize &lt; corePoolSize ||
+        keepAliveTime &lt; 0)
+        throw new IllegalArgumentException();
+    if (workQueue == null || threadFactory == null || handler == null)
+        throw new NullPointerException();
+    this.acc = System.getSecurityManager() == null ?
+            null :
+            AccessController.getContext();
+    this.corePoolSize = corePoolSize;
+    this.maximumPoolSize = maximumPoolSize;
+    this.workQueue = workQueue;
+    this.keepAliveTime = unit.toNanos(keepAliveTime);
+    this.threadFactory = threadFactory;
+    this.handler = handler;
+}</code></code></pre>
+<p>ThreadPoolExecutor有四个构造方法，其中前三个最终都是调用最后一个，它有7个参数，分别为corePoolSize、maximumPoolSize、keepAliveTime、unit、workQueue、threadFactory、handler。</p>
+<h2 id="corepoolsize">corePoolSize</h2>
+<p>核心线程数。</p>
+<p>当正在运行的线程数小于核心线程数时，来一个任务就创建一个核心线程；</p>
+<p>当正在运行的线程数大于或等于核心线程数时，任务来了先不创建线程而是丢到任务队列中。</p>
+<h2 id="maximumpoolsize">maximumPoolSize</h2>
+<p>最大线程数。</p>
+<p>当任务队列满了时【本篇文章由公众号“彤哥读源码”原创】，来一个任务才创建一个非核心线程，但不能超过最大线程数。</p>
+<h2 id="keepalivetime-unit">keepAliveTime + unit</h2>
+<p>线程保持空闲时间及单位。</p>
+<p>默认情况下，此两参数仅当正在运行的线程数大于核心线程数时才有效，即只针对非核心线程。</p>
+<p>但是，如果allowCoreThreadTimeOut被设置成了true，针对核心线程也有效。</p>
+<p>即当任务队列为空时，线程保持多久才会销毁，内部主要是通过阻塞队列带超时的poll(timeout, unit)方法实现的。</p>
+<h2 id="workqueue">workQueue</h2>
+<p>任务队列。</p>
+<p>当正在运行的线程数大于或等于核心线程数时，任务来了是先进入任务队列中的。</p>
+<p>这个队列必须是阻塞队列，所以像ConcurrentLinkedQueue就不能作为参数，因为它虽然是并发安全的队列，但是它不是阻塞队列。</p>
+<pre><code><code>// ConcurrentLinkedQueue并没有实现BlockingQueue接口
+public class ConcurrentLinkedQueue&lt;E&gt; extends AbstractQueue&lt;E&gt;
+        implements Queue&lt;E&gt;, java.io.Serializable {
+    // ...【本篇文章由公众号“彤哥读源码”原创】
+}</code></code></pre>
+<h2 id="threadfactory">threadFactory</h2>
+<p>线程工厂。</p>
+<p>默认使用的是Executors工具类中的DefaultThreadFactory类，这个类有个缺点，创建的线程的名称是自动生成的，无法自定义以区分不同的线程池，且它们都是非守护线程。</p>
+<pre><code><code>static class DefaultThreadFactory implements ThreadFactory {
+        private static final AtomicInteger poolNumber = new AtomicInteger(1);
+        private final ThreadGroup group;
+        private final AtomicInteger threadNumber = new AtomicInteger(1);
+        private final String namePrefix;
+
+        DefaultThreadFactory() {
+            SecurityManager s = System.getSecurityManager();
+            group = (s != null) ? s.getThreadGroup() :
+                                  Thread.currentThread().getThreadGroup();
+            namePrefix = &quot;pool-&quot; +
+                          poolNumber.getAndIncrement() +
+                         &quot;-thread-&quot;;
+        }
+
+        public Thread newThread(Runnable r) {
+            Thread t = new Thread(group, r,
+                                  namePrefix + threadNumber.getAndIncrement(),
+                                  0);
+            if (t.isDaemon())
+                t.setDaemon(false);
+            if (t.getPriority() != Thread.NORM_PRIORITY)
+                t.setPriority(Thread.NORM_PRIORITY);
+            return t;
+        }
+    }</code></code></pre>
+<p>那怎么自定义一个线程工厂呢？</p>
+<p>其实也很简单，自己实现一个ThreadFactory，然后把名称和是否是守护进程当作构造方法的参数传进来就可以了。</p>
+<p>有兴趣的同学可以参考netty中的默认线程工厂或者google中的线程工厂。</p>
+<pre><code><code>io.netty.util.concurrent.DefaultThreadFactory
+com.google.common.util.concurrent.ThreadFactoryBuilder</code></code></pre>
+<h2 id="handler">handler</h2>
+<p>拒绝策略。</p>
+<p>拒绝策略表示当任务队列满了且线程数也达到最大了，这时候再新加任务，线程池已经无法承受了，这些新来的任务应该按什么逻辑来处理。</p>
+<p>常用的拒绝策略有丢弃当前任务、丢弃最老的任务、抛出异常、调用者自己处理等待。</p>
+<p>默认的拒绝策略是抛出异常，即线程池无法承载了，调用者再往里面添加任务会抛出异常。</p>
+<p>默认的拒绝策略虽然比较简单粗暴，但是相对于丢弃任务策略明显要好很多，最起码调用者自己可以捕获这个异常再进行二次处理。</p>
+<h2 id="彩蛋">彩蛋</h2>
+<p>OK，ThreadPoolExecutor的构造方法这块我们今天进行了深入解析，关于这块，您还有什么问题呢？欢迎留言评论、私聊勾搭。</p>
+<hr />
+<p>欢迎关注我的公众号“彤哥读源码”，查看更多源码系列文章, 与彤哥一起畅游源码的海洋。</p>
+<p><img src="./images/死磕 java线程系列之线程池深入解析——构造方法1.png" alt="qrcode" /></p>
+
+
+</div><hr><script charset='utf-8' src='../../js/sming.js'></script></body></html>

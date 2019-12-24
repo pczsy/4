@@ -1,0 +1,196 @@
+<html><head><meta charset='utf-8'><meta name='viewport' content='width=device-width, initial-scale=1'>
+<meta name='applicable-device' content='pc'><meta name='keywords' content='电脑,电脑讲解,电脑技术,编程,电脑故障维修Thymeleaf常用语法：表达式语法之运算符' />
+<script src='../../highlight/highlight.pack.js'></script>
+<link rel='stylesheet' type='text/css' href='../../highlight/styles/monokai.css'/>
+
+<link rel='stylesheet' href='../../fenxiang/dist/css/share.min.css'>
+<script src='../../fenxiang/src/js/social-share.js'></script>
+<script src='../../fenxiang/src/js/qrcode.js'></script>
+
+</head><body><script>hljs.initHighlightingOnLoad();</script><script>
+var system ={};  
+var p = navigator.platform;       
+system.win = p.indexOf('Win') == 0;  
+system.mac = p.indexOf('Mac') == 0;  
+system.x11 = (p == 'X11') || (p.indexOf('Linux') == 0);     
+if(system.win||system.mac||system.xll){
+document.write("<link href='../css/3.css' rel='stylesheet' type='text/css'>");}else{ document.write("<link href='../css/3wap.css' rel='stylesheet' type='text/css'>");}</script><script src='../../js/3.js'></script><div class='div2'><div class='heading_nav'><ul><div><li><a href='../../index.html'>首页</a></li>
+</div><div onclick='hidden1()' >分享</div>
+</ul></div></div>
+<div id='heading_nav2'> 
+<li class='row' >
+<div class='social-share' data-mode='prepend'><a href='javascript:' class='social-share-icon icon-heart'></a></div></li></div><script charset='utf-8' src='../../3/js/hengfu.js'></script><script charset='utf-8' src='../../3/js/hengfu2.js'></script><hr><div class='div1'><div class='biaoti'><center>Thymeleaf常用语法：表达式语法之运算符</center></div><div class='banquan'>原文出处:本文由博客园博主gdjlc提供。<br/>
+原文连接:https://www.cnblogs.com/gdjlc/p/11674563.html</div><br>
+    <p>Thymeleaf表达式语法之常量分为字符串常量、数字常量、布尔值常量、空值常量；<br />运算符分为算术运算符、关系运算符、条件运算符、无操作符。</p>
+<p><span style="color: #888888;">开发环境：IntelliJ IDEA 2019.2.2</span><br /><span style="color: #888888;">Spring Boot版本：2.1.8</span></p>
+<p>新建一个名称为demo的Spring Boot项目。</p>
+<p>1、pom.xml<br />加入Thymeleaf依赖</p>
+<src class="cnblogs_code">
+<pre><code>        <span style="color: #0000ff;">&lt;</span><span style="color: #800000;">dependency</span><span style="color: #0000ff;">&gt;</span>
+            <span style="color: #0000ff;">&lt;</span><span style="color: #800000;">groupId</span><span style="color: #0000ff;">&gt;</span>org.springframework.boot<span style="color: #0000ff;">&lt;/</span><span style="color: #800000;">groupId</span><span style="color: #0000ff;">&gt;</span>
+            <span style="color: #0000ff;">&lt;</span><span style="color: #800000;">artifactId</span><span style="color: #0000ff;">&gt;</span>spring-boot-starter-thymeleaf<span style="color: #0000ff;">&lt;/</span><span style="color: #800000;">artifactId</span><span style="color: #0000ff;">&gt;</span>
+        <span style="color: #0000ff;">&lt;/</span><span style="color: #800000;">dependency</span><span style="color: #0000ff;">&gt;</span></code></pre>
+
+<p>2、src/main/java/com/example/demo/TestController.java</p>
+<src class="cnblogs_code">
+<pre><code><span style="color: #0000ff;">package</span><span style="color: #000000;"> com.example.demo;
+
+</span><span style="color: #0000ff;">import</span><span style="color: #000000;"> org.springframework.stereotype.Controller;
+</span><span style="color: #0000ff;">import</span><span style="color: #000000;"> org.springframework.ui.Model;
+</span><span style="color: #0000ff;">import</span><span style="color: #000000;"> org.springframework.web.bind.annotation.RequestMapping;
+
+@Controller
+</span><span style="color: #0000ff;">public</span> <span style="color: #0000ff;">class</span><span style="color: #000000;"> TestController {
+    @RequestMapping(</span>"/"<span style="color: #000000;">)
+    </span><span style="color: #0000ff;">public</span><span style="color: #000000;"> String test(Model model){
+        model.addAttribute(</span>"flag", <span style="color: #0000ff;">true</span><span style="color: #000000;">);
+        </span><span style="color: #0000ff;">return</span> "test"<span style="color: #000000;">;
+    }
+}</span></code></pre>
+
+<p>3、src/main/resources/templates/test.html</p>
+<src class="cnblogs_code">
+<pre><code><span style="color: #0000ff;">&lt;</span><span style="color: #800000;">h4</span><span style="color: #0000ff;">&gt;</span>一、表达式常量<span style="color: #0000ff;">&lt;/</span><span style="color: #800000;">h4</span><span style="color: #0000ff;">&gt;</span><span style="color: #000000;">
+1、字符串常量：使用单引号，或|
+</span><span style="color: #0000ff;">&lt;</span><span style="color: #800000;">div </span><span style="color: #ff0000;">th:text</span><span style="color: #0000ff;">="'Hello,World'"</span><span style="color: #0000ff;">&gt;&lt;/</span><span style="color: #800000;">div</span><span style="color: #0000ff;">&gt;</span>
+<span style="color: #0000ff;">&lt;</span><span style="color: #800000;">div </span><span style="color: #ff0000;">th:text</span><span style="color: #0000ff;">="|Hello,World|"</span><span style="color: #0000ff;">&gt;&lt;/</span><span style="color: #800000;">div</span><span style="color: #0000ff;">&gt;</span><span style="color: #000000;">
+如果双引号内容只包含&ldquo;a-zA-Z0-9[]-_&rdquo;，也可省略单引号，别的情况如使用逗号会发生异常
+</span><span style="color: #0000ff;">&lt;</span><span style="color: #800000;">div </span><span style="color: #ff0000;">th:text</span><span style="color: #0000ff;">="HelloWorld"</span><span style="color: #0000ff;">&gt;&lt;/</span><span style="color: #800000;">div</span><span style="color: #0000ff;">&gt;</span><span style="color: #000000;">
+2、数字常量
+</span><span style="color: #0000ff;">&lt;</span><span style="color: #800000;">div </span><span style="color: #ff0000;">th:text</span><span style="color: #0000ff;">="10"</span><span style="color: #0000ff;">&gt;&lt;/</span><span style="color: #800000;">div</span><span style="color: #0000ff;">&gt;</span>
+<span style="color: #0000ff;">&lt;</span><span style="color: #800000;">div </span><span style="color: #ff0000;">th:text</span><span style="color: #0000ff;">="10 + 20"</span><span style="color: #0000ff;">&gt;&lt;/</span><span style="color: #800000;">div</span><span style="color: #0000ff;">&gt;</span><span style="color: #000000;">
+3、布尔值常量：==true语句放到${...}外面则由Thymeleaf处理，放在里面则由OGNL或SpringEL处理
+</span><span style="color: #0000ff;">&lt;</span><span style="color: #800000;">div </span><span style="color: #ff0000;">th:if</span><span style="color: #0000ff;">="${flag} == true"</span><span style="color: #0000ff;">&gt;</span>显示<span style="color: #0000ff;">&lt;/</span><span style="color: #800000;">div</span><span style="color: #0000ff;">&gt;</span>
+<span style="color: #0000ff;">&lt;</span><span style="color: #800000;">div </span><span style="color: #ff0000;">th:if</span><span style="color: #0000ff;">="${flag == false}"</span><span style="color: #0000ff;">&gt;</span>隐藏<span style="color: #0000ff;">&lt;/</span><span style="color: #800000;">div</span><span style="color: #0000ff;">&gt;</span><span style="color: #000000;">
+4、空值常量
+</span><span style="color: #0000ff;">&lt;</span><span style="color: #800000;">div </span><span style="color: #ff0000;">th:if</span><span style="color: #0000ff;">="${flag} == null"</span><span style="color: #0000ff;">&gt;</span>显示<span style="color: #0000ff;">&lt;/</span><span style="color: #800000;">div</span><span style="color: #0000ff;">&gt;</span>
+<span style="color: #0000ff;">&lt;</span><span style="color: #800000;">div </span><span style="color: #ff0000;">th:if</span><span style="color: #0000ff;">="${flag == null}"</span><span style="color: #0000ff;">&gt;</span>隐藏<span style="color: #0000ff;">&lt;/</span><span style="color: #800000;">div</span><span style="color: #0000ff;">&gt;</span><span style="color: #000000;">
+5、字符串拼接：除了用#strings对象的append和concat方法，也可使用&ldquo;+&rdquo;号、&ldquo;|&rdquo;符号
+</span><span style="color: #0000ff;">&lt;</span><span style="color: #800000;">div </span><span style="color: #ff0000;">th:text</span><span style="color: #0000ff;">="a + b"</span><span style="color: #0000ff;">&gt;&lt;/</span><span style="color: #800000;">div</span><span style="color: #0000ff;">&gt;</span>
+<span style="color: #0000ff;">&lt;</span><span style="color: #800000;">div </span><span style="color: #ff0000;">th:text</span><span style="color: #0000ff;">="'a' + 'b'"</span><span style="color: #0000ff;">&gt;&lt;/</span><span style="color: #800000;">div</span><span style="color: #0000ff;">&gt;</span>
+<span style="color: #0000ff;">&lt;</span><span style="color: #800000;">div </span><span style="color: #ff0000;">th:text</span><span style="color: #0000ff;">="${'a' + 'b'}"</span><span style="color: #0000ff;">&gt;&lt;/</span><span style="color: #800000;">div</span><span style="color: #0000ff;">&gt;</span>
+<span style="color: #0000ff;">&lt;</span><span style="color: #800000;">div </span><span style="color: #ff0000;">th:text</span><span style="color: #0000ff;">="|a| + |b|"</span><span style="color: #0000ff;">&gt;&lt;/</span><span style="color: #800000;">div</span><span style="color: #0000ff;">&gt;</span>
+
+<span style="color: #0000ff;">&lt;</span><span style="color: #800000;">h4</span><span style="color: #0000ff;">&gt;</span>二、算术运算符<span style="color: #0000ff;">&lt;/</span><span style="color: #800000;">h4</span><span style="color: #0000ff;">&gt;</span><span style="color: #000000;">
+1、加法
+</span><span style="color: #0000ff;">&lt;</span><span style="color: #800000;">div </span><span style="color: #ff0000;">th:text</span><span style="color: #0000ff;">="${1 + 2}"</span><span style="color: #0000ff;">&gt;&lt;/</span><span style="color: #800000;">div</span><span style="color: #0000ff;">&gt;</span>
+<span style="color: #0000ff;">&lt;</span><span style="color: #800000;">div </span><span style="color: #ff0000;">th:text</span><span style="color: #0000ff;">="1 + 2"</span><span style="color: #0000ff;">&gt;&lt;/</span><span style="color: #800000;">div</span><span style="color: #0000ff;">&gt;</span><span style="color: #000000;">
+2、减法
+</span><span style="color: #0000ff;">&lt;</span><span style="color: #800000;">div </span><span style="color: #ff0000;">th:text</span><span style="color: #0000ff;">="${1 - 2}"</span><span style="color: #0000ff;">&gt;&lt;/</span><span style="color: #800000;">div</span><span style="color: #0000ff;">&gt;</span>
+<span style="color: #0000ff;">&lt;</span><span style="color: #800000;">div </span><span style="color: #ff0000;">th:text</span><span style="color: #0000ff;">="1 - 2"</span><span style="color: #0000ff;">&gt;&lt;/</span><span style="color: #800000;">div</span><span style="color: #0000ff;">&gt;</span><span style="color: #000000;">
+3、乘法
+</span><span style="color: #0000ff;">&lt;</span><span style="color: #800000;">div </span><span style="color: #ff0000;">th:text</span><span style="color: #0000ff;">="${1 * 2}"</span><span style="color: #0000ff;">&gt;&lt;/</span><span style="color: #800000;">div</span><span style="color: #0000ff;">&gt;</span>
+<span style="color: #0000ff;">&lt;</span><span style="color: #800000;">div </span><span style="color: #ff0000;">th:text</span><span style="color: #0000ff;">="1 * 2"</span><span style="color: #0000ff;">&gt;&lt;/</span><span style="color: #800000;">div</span><span style="color: #0000ff;">&gt;</span><span style="color: #000000;">
+4、除法：除法还可以用别名 div
+</span><span style="color: #0000ff;">&lt;</span><span style="color: #800000;">div </span><span style="color: #ff0000;">th:text</span><span style="color: #0000ff;">="${1 / 2}"</span><span style="color: #0000ff;">&gt;&lt;/</span><span style="color: #800000;">div</span><span style="color: #0000ff;">&gt;</span>
+<span style="color: #0000ff;">&lt;</span><span style="color: #800000;">div </span><span style="color: #ff0000;">th:text</span><span style="color: #0000ff;">="${1 div 2}"</span><span style="color: #0000ff;">&gt;&lt;/</span><span style="color: #800000;">div</span><span style="color: #0000ff;">&gt;</span>
+<span style="color: #0000ff;">&lt;</span><span style="color: #800000;">div </span><span style="color: #ff0000;">th:text</span><span style="color: #0000ff;">="${1 / 2.0}"</span><span style="color: #0000ff;">&gt;&lt;/</span><span style="color: #800000;">div</span><span style="color: #0000ff;">&gt;</span>
+<span style="color: #0000ff;">&lt;</span><span style="color: #800000;">div </span><span style="color: #ff0000;">th:text</span><span style="color: #0000ff;">="1 / 2"</span><span style="color: #0000ff;">&gt;&lt;/</span><span style="color: #800000;">div</span><span style="color: #0000ff;">&gt;</span><span style="color: #000000;">
+5、求余：求余还可以用别名 mod
+</span><span style="color: #0000ff;">&lt;</span><span style="color: #800000;">div </span><span style="color: #ff0000;">th:text</span><span style="color: #0000ff;">="${1 % 2}"</span><span style="color: #0000ff;">&gt;&lt;/</span><span style="color: #800000;">div</span><span style="color: #0000ff;">&gt;</span>
+<span style="color: #0000ff;">&lt;</span><span style="color: #800000;">div </span><span style="color: #ff0000;">th:text</span><span style="color: #0000ff;">="${1 mod 2}"</span><span style="color: #0000ff;">&gt;&lt;/</span><span style="color: #800000;">div</span><span style="color: #0000ff;">&gt;</span>
+<span style="color: #0000ff;">&lt;</span><span style="color: #800000;">div </span><span style="color: #ff0000;">th:text</span><span style="color: #0000ff;">="1 % 2"</span><span style="color: #0000ff;">&gt;&lt;/</span><span style="color: #800000;">div</span><span style="color: #0000ff;">&gt;</span>
+
+<span style="color: #0000ff;">&lt;</span><span style="color: #800000;">h4</span><span style="color: #0000ff;">&gt;</span>三、关系运算符<span style="color: #0000ff;">&lt;/</span><span style="color: #800000;">h4</span><span style="color: #0000ff;">&gt;</span><span style="color: #000000;">
+关系运算符有： &gt;、</span><span style="color: #0000ff;">&lt;</span><span style="color: #800000;">、</span><span style="color: #0000ff;">&gt;</span>=、<span style="color: #0000ff;">&lt;</span><span style="color: #800000;">=、==、!=，
+&lt;div</span><span style="color: #0000ff;">&gt;</span>对应的别名是：gt、lt、ge、le、eq、ne<span style="color: #0000ff;">&lt;/</span><span style="color: #800000;">div</span><span style="color: #0000ff;">&gt;</span>
+<span style="color: #0000ff;">&lt;</span><span style="color: #800000;">div </span><span style="color: #ff0000;">th:text</span><span style="color: #0000ff;">="1 &gt; 1"</span><span style="color: #0000ff;">&gt;&lt;/</span><span style="color: #800000;">div</span><span style="color: #0000ff;">&gt;</span>
+<span style="color: #0000ff;">&lt;</span><span style="color: #800000;">div </span><span style="color: #ff0000;">th:text</span><span style="color: #0000ff;">="1 gt 1"</span><span style="color: #0000ff;">&gt;&lt;/</span><span style="color: #800000;">div</span><span style="color: #0000ff;">&gt;</span>
+<span style="color: #0000ff;">&lt;</span><span style="color: #800000;">div </span><span style="color: #ff0000;">th:text</span><span style="color: #0000ff;">="1 &lt; 1"</span><span style="color: #0000ff;">&gt;&lt;/</span><span style="color: #800000;">div</span><span style="color: #0000ff;">&gt;</span>
+<span style="color: #0000ff;">&lt;</span><span style="color: #800000;">div </span><span style="color: #ff0000;">th:text</span><span style="color: #0000ff;">="1 lt 1"</span><span style="color: #0000ff;">&gt;&lt;/</span><span style="color: #800000;">div</span><span style="color: #0000ff;">&gt;</span>
+<span style="color: #0000ff;">&lt;</span><span style="color: #800000;">div </span><span style="color: #ff0000;">th:text</span><span style="color: #0000ff;">="1 &gt;= 1"</span><span style="color: #0000ff;">&gt;&lt;/</span><span style="color: #800000;">div</span><span style="color: #0000ff;">&gt;</span>
+<span style="color: #0000ff;">&lt;</span><span style="color: #800000;">div </span><span style="color: #ff0000;">th:text</span><span style="color: #0000ff;">="1 ge 1"</span><span style="color: #0000ff;">&gt;&lt;/</span><span style="color: #800000;">div</span><span style="color: #0000ff;">&gt;</span>
+<span style="color: #0000ff;">&lt;</span><span style="color: #800000;">div </span><span style="color: #ff0000;">th:text</span><span style="color: #0000ff;">="1 &lt;= 1"</span><span style="color: #0000ff;">&gt;&lt;/</span><span style="color: #800000;">div</span><span style="color: #0000ff;">&gt;</span>
+<span style="color: #0000ff;">&lt;</span><span style="color: #800000;">div </span><span style="color: #ff0000;">th:text</span><span style="color: #0000ff;">="1 le 1"</span><span style="color: #0000ff;">&gt;&lt;/</span><span style="color: #800000;">div</span><span style="color: #0000ff;">&gt;</span>
+<span style="color: #0000ff;">&lt;</span><span style="color: #800000;">div </span><span style="color: #ff0000;">th:text</span><span style="color: #0000ff;">="1 == 1"</span><span style="color: #0000ff;">&gt;&lt;/</span><span style="color: #800000;">div</span><span style="color: #0000ff;">&gt;</span>
+<span style="color: #0000ff;">&lt;</span><span style="color: #800000;">div </span><span style="color: #ff0000;">th:text</span><span style="color: #0000ff;">="1 eq 1"</span><span style="color: #0000ff;">&gt;&lt;/</span><span style="color: #800000;">div</span><span style="color: #0000ff;">&gt;</span>
+<span style="color: #0000ff;">&lt;</span><span style="color: #800000;">div </span><span style="color: #ff0000;">th:text</span><span style="color: #0000ff;">="1 != 1"</span><span style="color: #0000ff;">&gt;&lt;/</span><span style="color: #800000;">div</span><span style="color: #0000ff;">&gt;</span>
+<span style="color: #0000ff;">&lt;</span><span style="color: #800000;">div </span><span style="color: #ff0000;">th:text</span><span style="color: #0000ff;">="1 ne 1"</span><span style="color: #0000ff;">&gt;&lt;/</span><span style="color: #800000;">div</span><span style="color: #0000ff;">&gt;</span>
+
+<span style="color: #0000ff;">&lt;</span><span style="color: #800000;">h4</span><span style="color: #0000ff;">&gt;</span>三、条件运算符<span style="color: #0000ff;">&lt;/</span><span style="color: #800000;">h4</span><span style="color: #0000ff;">&gt;</span><span style="color: #000000;">
+1、条件运算符表达式为：(condition) ? then : else
+</span><span style="color: #0000ff;">&lt;</span><span style="color: #800000;">div </span><span style="color: #ff0000;">th:text</span><span style="color: #0000ff;">="${1 &gt; 1} ? |大于| : |不大于|"</span><span style="color: #0000ff;">&gt;&lt;/</span><span style="color: #800000;">div</span><span style="color: #0000ff;">&gt;</span>
+<span style="color: #0000ff;">&lt;</span><span style="color: #800000;">div </span><span style="color: #ff0000;">th:text</span><span style="color: #0000ff;">="1 &gt; 1 ? |大于| : |不大于|"</span><span style="color: #0000ff;">&gt;&lt;/</span><span style="color: #800000;">div</span><span style="color: #0000ff;">&gt;</span><span style="color: #000000;">
+也可省略then
+</span><span style="color: #0000ff;">&lt;</span><span style="color: #800000;">div </span><span style="color: #ff0000;">th:text</span><span style="color: #0000ff;">="1 &gt; 1 ? |大于|"</span><span style="color: #0000ff;">&gt;&lt;/</span><span style="color: #800000;">div</span><span style="color: #0000ff;">&gt;</span><span style="color: #000000;">
+2、默认值表达式为：(value)?:(defaultValue)，表示存在某个值时直接返回该值，否则返回默认值
+</span><span style="color: #0000ff;">&lt;</span><span style="color: #800000;">div </span><span style="color: #ff0000;">th:text</span><span style="color: #0000ff;">="${'a'} ?: |一|"</span><span style="color: #0000ff;">&gt;&lt;/</span><span style="color: #800000;">div</span><span style="color: #0000ff;">&gt;</span>
+<span style="color: #0000ff;">&lt;</span><span style="color: #800000;">div </span><span style="color: #ff0000;">th:text</span><span style="color: #0000ff;">="${null} ?: |一|"</span><span style="color: #0000ff;">&gt;&lt;/</span><span style="color: #800000;">div</span><span style="color: #0000ff;">&gt;</span>
+
+<span style="color: #0000ff;">&lt;</span><span style="color: #800000;">h4</span><span style="color: #0000ff;">&gt;</span>四、无操作符<span style="color: #0000ff;">&lt;/</span><span style="color: #800000;">h4</span><span style="color: #0000ff;">&gt;</span><span style="color: #000000;">
+使用&ldquo;_&rdquo;表示无操作，当一个值不存在时，使用该符号指定表达式不进行任何操作，这样对原型破坏最小。
+例如原型为：</span><span style="color: #0000ff;">&lt;</span><span style="color: #800000;">div</span><span style="color: #0000ff;">&gt;</span>abc<span style="color: #0000ff;">&lt;/</span><span style="color: #800000;">div</span><span style="color: #0000ff;">&gt;</span><span style="color: #000000;">
+可能会使用语句：</span><span style="color: #0000ff;">&lt;</span><span style="color: #800000;">div </span><span style="color: #ff0000;">th:text</span><span style="color: #0000ff;">="${userName} ?: 'abc'"</span><span style="color: #0000ff;">&gt;&lt;/</span><span style="color: #800000;">div</span><span style="color: #0000ff;">&gt;</span><span style="color: #000000;">
+现在可使用：</span><span style="color: #0000ff;">&lt;</span><span style="color: #800000;">div </span><span style="color: #ff0000;">th:text</span><span style="color: #0000ff;">="${userName} ?: _"</span><span style="color: #0000ff;">&gt;</span>abc<span style="color: #0000ff;">&lt;/</span><span style="color: #800000;">div</span><span style="color: #0000ff;">&gt;</span></code></pre>
+
+<p>浏览器访问：http://localhost:8080<br />页面输出：</p>
+<src class="cnblogs_code">
+<pre><code>一、表达式常量
+1、字符串常量：使用单引号，或|
+Hello,World
+Hello,World
+如果双引号内容只包含&ldquo;a-zA-Z0-9[]-_&rdquo;，也可省略单引号，别的情况如使用逗号会发生异常
+HelloWorld
+2、数字常量
+10
+30
+3、布尔值常量：==true语句放到${...}外面则由Thymeleaf处理，放在里面则由OGNL或SpringEL处理
+显示
+4、空值常量 5、字符串拼接：除了用#strings对象的append和concat方法，也可使用&ldquo;+&rdquo;号、&ldquo;|&rdquo;符号
+ab
+ab
+ab
+ab
+二、算术运算符
+1、加法
+3
+3
+2、减法
+-1
+-1
+3、乘法
+2
+2
+4、除法：除法还可以用别名 div
+0
+0
+0.5
+0.5
+5、求余：求余还可以用别名 mod
+1
+1
+1
+三、关系运算符
+关系运算符有： &gt;、&lt;、&gt;=、&lt;=、==、!=，
+对应的别名是：gt、lt、ge、le、eq、ne
+false
+false
+false
+false
+true
+true
+true
+true
+true
+true
+false
+false
+三、条件运算符
+1、条件运算符表达式为：(condition) ? then : else
+不大于
+不大于
+也可省略then
+2、默认值表达式为：(value)?:(defaultValue)，表示存在某个值时直接返回该值，否则返回默认值
+a
+一
+四、无操作符
+使用&ldquo;_&rdquo;表示无操作，当一个值不存在时，使用该符号指定表达式不进行任何操作，这样对原型破坏最小。 例如原型为：
+abc
+可能会使用语句：
+abc
+现在可使用：
+abc</code></pre>
+
+<p>&nbsp;</p>
+
+</div><hr><script charset='utf-8' src='../../js/sming.js'></script></body></html>

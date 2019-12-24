@@ -1,0 +1,79 @@
+<html><head><meta charset='utf-8'><meta name='viewport' content='width=device-width, initial-scale=1'>
+<meta name='applicable-device' content='pc'><meta name='keywords' content='电脑,电脑讲解,电脑技术,编程,电脑故障维修2019-09-18 关键字匹配文件名--搜索文件' />
+<script src='../../highlight/highlight.pack.js'></script>
+<link rel='stylesheet' type='text/css' href='../../highlight/styles/monokai.css'/>
+
+<link rel='stylesheet' href='../../fenxiang/dist/css/share.min.css'>
+<script src='../../fenxiang/src/js/social-share.js'></script>
+<script src='../../fenxiang/src/js/qrcode.js'></script>
+
+</head><body><script>hljs.initHighlightingOnLoad();</script><script>
+var system ={};  
+var p = navigator.platform;       
+system.win = p.indexOf('Win') == 0;  
+system.mac = p.indexOf('Mac') == 0;  
+system.x11 = (p == 'X11') || (p.indexOf('Linux') == 0);     
+if(system.win||system.mac||system.xll){
+document.write("<link href='../css/3.css' rel='stylesheet' type='text/css'>");}else{ document.write("<link href='../css/3wap.css' rel='stylesheet' type='text/css'>");}</script><script src='../../js/3.js'></script><div class='div2'><div class='heading_nav'><ul><div><li><a href='../../index.html'>首页</a></li>
+</div><div onclick='hidden1()' >分享</div>
+</ul></div></div>
+<div id='heading_nav2'> 
+<li class='row' >
+<div class='social-share' data-mode='prepend'><a href='javascript:' class='social-share-icon icon-heart'></a></div></li></div><script charset='utf-8' src='../../3/js/hengfu.js'></script><script charset='utf-8' src='../../3/js/hengfu2.js'></script><hr><div class='div1'><div class='biaoti'><center>2019-09-18 关键字匹配文件名--搜索文件</center></div><div class='banquan'>原文出处:本文由博客园博主math_lin提供。<br/>
+原文连接:https://www.cnblogs.com/mathlin/p/11541620.html</div><br>
+    <p>一、程序描述</p>
+<p>　　1、具体看&nbsp;searchFiles 这个方法。</p>
+<p>　　2、可设置只搜索文件，不搜索文件夹。</p>
+<p>　　3、搜索完成后，会输出所有文件（或文件夹）名。</p>
+<p>二、程序代码</p>
+<src class="cnblogs_code">
+<pre><code><span style="color: #008000;">/*</span><span style="color: #008000;">
+    搜索查询文件
+    跟windows的查询结果数量可能不一样，主要windows系统的查询有一些特殊的功能
+ </span><span style="color: #008000;">*/</span>
+<span style="color: #0000ff;">public</span> <span style="color: #0000ff;">class</span><span style="color: #000000;"> SearchFile {
+    </span><span style="color: #0000ff;">public</span> <span style="color: #0000ff;">static</span> <span style="color: #0000ff;">void</span><span style="color: #000000;"> main(String[] args) {
+
+        </span><span style="color: #0000ff;">long</span> l =<span style="color: #000000;"> System.currentTimeMillis();
+        System.out.println(</span>"-------开始时间："+l+"------"<span style="color: #000000;">);
+        </span><span style="color: #008000;">//</span><span style="color: #008000;">File file=new File("D:\\test\\ljtao");</span>
+        File file=<span style="color: #0000ff;">new</span> File("E:\\"<span style="color: #000000;">);
+        File[] files </span>=<span style="color: #000000;"> file.listFiles();
+        List</span>&lt;String&gt; resultList=<span style="color: #0000ff;">new</span> ArrayList&lt;&gt;<span style="color: #000000;">();
+
+        searchFiles(files,</span>"target",<span style="color: #0000ff;">true</span><span style="color: #000000;">,resultList);
+        System.out.println(</span>"查询结果："+resultList.size()+",耗时："+(System.currentTimeMillis()-<span style="color: #000000;">l));
+        System.out.println(</span>"-------结束时间："+System.currentTimeMillis()+"------"<span style="color: #000000;">);
+    }
+    </span><span style="color: #008000;">/*</span><span style="color: #008000;">
+    path 从哪个路径开始
+    searchText 文件名包含的字段
+    isFile 是否为文件夹，true为只搜索文件，false会搜索文件夹跟文件名
+    resultList 结果集
+    </span><span style="color: #008000;">*/</span>
+    <span style="color: #0000ff;">public</span> <span style="color: #0000ff;">static</span> <span style="color: #0000ff;">void</span> searchFiles(File[] files, String searchText, <span style="color: #0000ff;">boolean</span> isFile, List&lt;String&gt;<span style="color: #000000;"> resultList){
+        </span><span style="color: #0000ff;">if</span>(files==<span style="color: #0000ff;">null</span> || files.length&lt;1<span style="color: #000000;">){
+            </span><span style="color: #0000ff;">return</span><span style="color: #000000;">;
+        }
+        </span><span style="color: #0000ff;">for</span><span style="color: #000000;">(File f:files){
+            String name </span>=<span style="color: #000000;"> f.getName();
+            </span><span style="color: #0000ff;">if</span><span style="color: #000000;">(isFile){
+                </span><span style="color: #0000ff;">if</span>(f.isFile() &amp;&amp; f.getName().toLowerCase().indexOf(searchText)!=-1<span style="color: #000000;">){
+                    System.out.println(f.getAbsolutePath());
+                    resultList.add(f.getAbsolutePath());
+                }
+            }
+            </span><span style="color: #0000ff;">else</span> <span style="color: #0000ff;">if</span>(f.getName().toLowerCase().indexOf(searchText)!=-1<span style="color: #000000;">){
+                System.out.println(f.getAbsolutePath());
+                resultList.add(f.getAbsolutePath());
+            }
+            </span><span style="color: #008000;">//</span><span style="color: #008000;">如果是文件夹进入递归</span>
+            <span style="color: #0000ff;">if</span><span style="color: #000000;">(f.isDirectory()){
+                searchFiles(f.listFiles(),searchText,isFile,resultList);
+            }
+        }
+    }</span></code></pre>
+
+<p>&nbsp;</p>
+
+</div><hr><script charset='utf-8' src='../../js/sming.js'></script></body></html>

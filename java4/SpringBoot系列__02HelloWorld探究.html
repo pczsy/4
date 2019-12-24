@@ -1,0 +1,110 @@
+<html><head><meta charset='utf-8'><meta name='viewport' content='width=device-width, initial-scale=1'>
+<meta name='applicable-device' content='pc'><meta name='keywords' content='电脑,电脑讲解,电脑技术,编程,电脑故障维修SpringBoot系列__02HelloWorld探究' />
+<script src='../../highlight/highlight.pack.js'></script>
+<link rel='stylesheet' type='text/css' href='../../highlight/styles/monokai.css'/>
+
+<link rel='stylesheet' href='../../fenxiang/dist/css/share.min.css'>
+<script src='../../fenxiang/src/js/social-share.js'></script>
+<script src='../../fenxiang/src/js/qrcode.js'></script>
+
+</head><body><script>hljs.initHighlightingOnLoad();</script><script>
+var system ={};  
+var p = navigator.platform;       
+system.win = p.indexOf('Win') == 0;  
+system.mac = p.indexOf('Mac') == 0;  
+system.x11 = (p == 'X11') || (p.indexOf('Linux') == 0);     
+if(system.win||system.mac||system.xll){
+document.write("<link href='../css/3.css' rel='stylesheet' type='text/css'>");}else{ document.write("<link href='../css/3wap.css' rel='stylesheet' type='text/css'>");}</script><script src='../../js/3.js'></script><div class='div2'><div class='heading_nav'><ul><div><li><a href='../../index.html'>首页</a></li>
+</div><div onclick='hidden1()' >分享</div>
+</ul></div></div>
+<div id='heading_nav2'> 
+<li class='row' >
+<div class='social-share' data-mode='prepend'><a href='javascript:' class='social-share-icon icon-heart'></a></div></li></div><script charset='utf-8' src='../../3/js/hengfu.js'></script><script charset='utf-8' src='../../3/js/hengfu2.js'></script><hr><div class='div1'><div class='biaoti'><center>SpringBoot系列__02HelloWorld探究</center></div><div class='banquan'>原文出处:本文由博客园博主本墨提供。<br/>
+原文连接:https://www.cnblogs.com/JackHou/p/11514606.html</div><br>
+    <p>在前文中，我们创建了一个简单的hello world，现在，利用这个简单的程序，来简单分析一下SpringBoot的启动过程。<br />
+如果你是使用过SSM框架的人，尤其是4.0之前的版本，相信你使用过xml方式来配置你的项目；但是，当你首次使用SpringBoot的时候，会惊奇的发现，一点配置文件也没写(你没写，但是不代表没有)，就能成功启动一个web应用。<br />
+下面关于这点，来简单解释一下。</p>
+<h2 id="通过解析pom文件来查看springboot中默认为我们添加了那些maven依赖">1.通过解析POM文件来查看SpringBoot中默认为我们添加了那些maven依赖。</h2>
+<p>这里，贴一下代码：</p>
+<pre><code><code>&lt;?xml version=&quot;1.0&quot; encoding=&quot;UTF-8&quot;?&gt;
+&lt;project xmlns=&quot;http://maven.apache.org/POM/4.0.0&quot; xmlns:xsi=&quot;http://www.w3.org/2001/XMLSchema-instance&quot;
+         xsi:schemaLocation=&quot;http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd&quot;&gt;
+    &lt;modelVersion&gt;4.0.0&lt;/modelVersion&gt;
+    &lt;parent&gt;
+        &lt;groupId&gt;org.springframework.boot&lt;/groupId&gt;
+        &lt;artifactId&gt;spring-boot-starter-parent&lt;/artifactId&gt;
+        &lt;version&gt;2.1.8.RELEASE&lt;/version&gt;
+        &lt;relativePath/&gt; &lt;!-- lookup parent from repository --&gt;
+    &lt;/parent&gt;
+    &lt;groupId&gt;com.bm.springboot&lt;/groupId&gt;
+    &lt;artifactId&gt;helloworld&lt;/artifactId&gt;
+    &lt;version&gt;0.0.1-SNAPSHOT&lt;/version&gt;
+    &lt;name&gt;helloworld&lt;/name&gt;
+    &lt;description&gt;Demo project for Spring Boot&lt;/description&gt;
+
+    &lt;properties&gt;
+        &lt;java.version&gt;1.8&lt;/java.version&gt;
+    &lt;/properties&gt;
+
+    &lt;dependencies&gt;
+        &lt;dependency&gt;
+            &lt;groupId&gt;org.springframework.boot&lt;/groupId&gt;
+            &lt;artifactId&gt;spring-boot-starter-web&lt;/artifactId&gt;
+        &lt;/dependency&gt;
+
+        &lt;dependency&gt;
+            &lt;groupId&gt;org.springframework.boot&lt;/groupId&gt;
+            &lt;artifactId&gt;spring-boot-starter-test&lt;/artifactId&gt;
+            &lt;scope&gt;test&lt;/scope&gt;
+        &lt;/dependency&gt;
+    &lt;/dependencies&gt;
+
+    &lt;build&gt;
+        &lt;plugins&gt;
+            &lt;plugin&gt;
+                &lt;groupId&gt;org.springframework.boot&lt;/groupId&gt;
+                &lt;artifactId&gt;spring-boot-maven-plugin&lt;/artifactId&gt;
+            &lt;/plugin&gt;
+        &lt;/plugins&gt;
+    &lt;/build&gt;
+
+&lt;/project&gt;
+</code></code></pre>
+<p>在这里，我们发现，hello world项目，作为一个web项目，首先有一个父项目：<strong>spring-boot-starter-parent</strong>：<strong><em>该项目是所有的SpringBoot项目的父项目</em></strong>，根据maven项目的继承关系，会被其他所有模块(如aop模块， ioc模块，以及我们用到的web模块)。点进去查看一下：</p>
+<pre><code><code> &lt;parent&gt;
+    &lt;groupId&gt;org.springframework.boot&lt;/groupId&gt;
+    &lt;artifactId&gt;spring-boot-dependencies&lt;/artifactId&gt;
+    &lt;version&gt;2.1.8.RELEASE&lt;/version&gt;
+    &lt;relativePath&gt;../../spring-boot-dependencies&lt;/relativePath&gt;
+  &lt;/parent&gt;
+
+
+ &lt;resource&gt;
+        &lt;filtering&gt;true&lt;/filtering&gt;
+        &lt;directory&gt;${basedir}/src/main/resources&lt;/directory&gt;
+        &lt;includes&gt;
+          &lt;include&gt;**/application*.yml&lt;/include&gt;
+          &lt;include&gt;**/application*.yaml&lt;/include&gt;
+          &lt;include&gt;**/application*.properties&lt;/include&gt;
+        &lt;/includes&gt;
+      &lt;/resource&gt;
+      &lt;resource&gt;
+        &lt;directory&gt;${basedir}/src/main/resources&lt;/directory&gt;
+        &lt;excludes&gt;
+          &lt;exclude&gt;**/application*.yml&lt;/exclude&gt;
+          &lt;exclude&gt;**/application*.yaml&lt;/exclude&gt;
+          &lt;exclude&gt;**/application*.properties&lt;/exclude&gt;
+        &lt;/excludes&gt;
+      &lt;/resource&gt;</code></code></pre>
+<p>在这里，我们看到：</p>
+<h3 id="在这里定义了引入springboot的版本号因此我们引入其他模块的时候无需自己定义也不会担心版本不匹配的问题了">1.在这里定义了引入SpringBoot的版本号，因此，我们引入其他模块的时候，无需自己定义，也不会担心版本不匹配的问题了；</h3>
+<h3 id="springboot首先排除掉了无条件的加载配置文件而是使用拦截器先行校验优先使用用户自定义的配置文件用户没有定义的选项使用默认的配置进行配置">2.SpringBoot首先排除掉了无条件的加载配置文件，而是使用拦截器先行校验(优先使用用户自定义的配置文件，用户没有定义的选项，使用默认的配置进行配置)。</h3>
+<h2 id="启动器">2.启动器</h2>
+<p>在pom文件中，我们发现了这个：</p>
+<pre><code><code>&lt;dependency&gt;
+        &lt;groupId&gt;org.springframework.boot&lt;/groupId&gt;
+        &lt;artifactId&gt;spring-boot-starter-web&lt;/artifactId&gt;
+&lt;/dependency&gt;</code></code></pre>
+
+
+</div><hr><script charset='utf-8' src='../../js/sming.js'></script></body></html>

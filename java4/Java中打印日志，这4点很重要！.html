@@ -1,0 +1,83 @@
+<html><head><meta charset='utf-8'><meta name='viewport' content='width=device-width, initial-scale=1'>
+<meta name='applicable-device' content='pc'><meta name='keywords' content='电脑,电脑讲解,电脑技术,编程,电脑故障维修Java中打印日志，这4点很重要！' />
+<script src='../../highlight/highlight.pack.js'></script>
+<link rel='stylesheet' type='text/css' href='../../highlight/styles/monokai.css'/>
+
+<link rel='stylesheet' href='../../fenxiang/dist/css/share.min.css'>
+<script src='../../fenxiang/src/js/social-share.js'></script>
+<script src='../../fenxiang/src/js/qrcode.js'></script>
+
+</head><body><script>hljs.initHighlightingOnLoad();</script><script>
+var system ={};  
+var p = navigator.platform;       
+system.win = p.indexOf('Win') == 0;  
+system.mac = p.indexOf('Mac') == 0;  
+system.x11 = (p == 'X11') || (p.indexOf('Linux') == 0);     
+if(system.win||system.mac||system.xll){
+document.write("<link href='../css/3.css' rel='stylesheet' type='text/css'>");}else{ document.write("<link href='../css/3wap.css' rel='stylesheet' type='text/css'>");}</script><script src='../../js/3.js'></script><div class='div2'><div class='heading_nav'><ul><div><li><a href='../../index.html'>首页</a></li>
+</div><div onclick='hidden1()' >分享</div>
+</ul></div></div>
+<div id='heading_nav2'> 
+<li class='row' >
+<div class='social-share' data-mode='prepend'><a href='javascript:' class='social-share-icon icon-heart'></a></div></li></div><script charset='utf-8' src='../../3/js/hengfu.js'></script><script charset='utf-8' src='../../3/js/hengfu2.js'></script><hr><div class='div1'><div class='biaoti'><center>Java中打印日志，这4点很重要！</center></div><div class='banquan'>原文出处:本文由博客园博主Java碎碎念提供。<br/>
+原文连接:https://www.cnblogs.com/haha12/p/11834088.html</div><br>
+    <src class="toc">
+    <p class="toc-title">目录</p>
+    <src class="toc-list">
+        <ul>
+        <li><a href="#一预先判断日志级别">一、预先判断日志级别</a></li>
+        <li><a href="#二避免无效日志打印">二、避免无效日志打印</a></li>
+        <li><a href="#三区别对待错误日志">三、区别对待错误日志</a></li>
+        <li><a href="#四保证记录完整内容">四、保证记录完整内容</a></li>
+        </ul>
+    
+
+<blockquote>
+<p>打印日志，要注意下面4点。</p>
+</blockquote>
+<h3 id="一预先判断日志级别">一、预先判断日志级别</h3>
+<p>对DEBUG、INFO级别的日志，必须使用条件输出或者使用占位符的方式打印。该约定综合考虑了程序的运行效率和日志打印需求。</p>
+<p>先来看一个反例：</p>
+<pre><code><code>log.debug(&quot;输入参数信息id=&quot; + id + &quot;,obj=&quot; + obj);</code></code></pre>
+<p>如果在某个配置了打印级别为WARN的应用中，按照上面代码打印DEBUG级别的日志，那么该日志不会被打印，但是会执行字符串拼接操作；如果obj是一个对象，还会执行toString()方法，白白浪费系统资源。</p>
+<p>代码正确示例如下：</p>
+<pre><code><code>//使用条件判断形式
+if (log.isDebugEnabled()) {
+    log.debug(&quot;输入参数信息id={}&quot;, id);
+}
+//使用占位符形式
+log.debug(&quot;输入参数信息id={},obj={}&quot;, id, obj);</code></code></pre>
+<h3 id="二避免无效日志打印">二、避免无效日志打印</h3>
+<p>生产环境禁止输出DEBUG日志且有选择的输出INFO日志。<br />
+使用INFO、WARN级别来记录业务日志行为信息时，一定要控制输出量，以免磁盘空间不足，同时要为日志文件设置合理的生命周期，及时清理过期的日志。</p>
+<p>避免重复打印，务必在日志配置文件中设置additivity=false，示例如下：</p>
+<pre><code><code>&lt;logger name=&quot;com.test&quot; additivity=&quot;false&quot;&gt;
+    &lt;level value=&quot;INFO&quot; /&gt;
+    &lt;appender-ref ref=&quot;logfile&quot; /&gt;
+&lt;/logger&gt;</code></code></pre>
+<p>additivity属性简介：</p>
+<p>它是子Logger是否继承父Logger的输出源（appender）的标志位，默认情况下子Logger会继承父Logger的appender，也就是说子Logger会在父Logger的appender里输出。把additivity设为false，则子Logger只会在自己的appender里输出，而不会在父Logger的appender里输出。</p>
+<h3 id="三区别对待错误日志">三、区别对待错误日志</h3>
+<p>WARN、ERROR都是与错误有关的日志级别，但不要一发生错误就打印ERROR日志，比如一些业务异常是可以通过引导重试就能恢复的，例如用户输入参数错误，在这种情况下，记录日志是为了在用户咨询时可以还原现场如果输出为ERROR级别就表示一旦出现就需要人为介入，这显然不合理。所以，ERROR级别只记录系统逻辑错误、异常或者违反重要的业务规则，其他错误都可以归为WARN级别。</p>
+<h3 id="四保证记录完整内容">四、保证记录完整内容</h3>
+<p>日志记录的内容需要包括现场上下文信息和异常堆栈信息，所以打印时候需要注意下面两点：</p>
+<p>1.记录异常时一定要输出异常堆栈，例如:</p>
+<pre><code><code>log.error(&quot;xxx&quot; + e.getMessage(), e);</code></code></pre>
+<p>2.日志中如果输出对象实例，要确保实例类重写了toString方法，否则只会打印对象的hashCode值，没有实际意义。</p>
+<blockquote>
+<p>参考资料：《码出高效Java开发手册》</p>
+</blockquote>
+<p><strong>推荐阅读</strong></p>
+<p><a href="https://mp.weixin.qq.com/s/nvD4rz0TZrl_Y8-BvDHRfg">1.SpringBoot系列-日志配置基础篇</a><br />
+<a href="https://mp.weixin.qq.com/s/49JC9pgdfWYd7P2a53wA_g">2.SpringBoot集成JWT实现权限认证</a><br />
+<a href="https://mp.weixin.qq.com/s/4mQsN3cZjYtjmn333thSQg">3.一分钟带你了解JWT认证！</a><br />
+<a href="https://mp.weixin.qq.com/s/ikyLQu3bqzk_OyejE4tGRQ">4.SpringBoot中如何优雅的读取yml配置文件？</a><br />
+<a href="https://mp.weixin.qq.com/s/mjCNtTTyGkieERKPP84fVg">5.SpringBoot中如何灵活的实现接口数据的加解密功能？</a></p>
+<hr />
+<blockquote>
+<p>限时领取免费Java相关资料，涵盖了Java、Redis、MongoDB、MySQL、Zookeeper、Spring Cloud、Dubbo/Kafka、Hadoop、Hbase、Flink等高并发分布式、大数据、机器学习等技术。<br />
+关注下方公众号即可免费领取：</p>
+</blockquote>
+<p><img src="./images/Java中打印日志，这4点很重要！0.png" alt="Java碎碎念公众号" /></p>
+
+</div><hr><script charset='utf-8' src='../../js/sming.js'></script></body></html>

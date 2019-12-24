@@ -1,0 +1,72 @@
+<html><head><meta charset='utf-8'><meta name='viewport' content='width=device-width, initial-scale=1'>
+<meta name='applicable-device' content='pc'><meta name='keywords' content='电脑,电脑讲解,电脑技术,编程,电脑故障维修MyBatis缓存' />
+<script src='../../highlight/highlight.pack.js'></script>
+<link rel='stylesheet' type='text/css' href='../../highlight/styles/monokai.css'/>
+
+<link rel='stylesheet' href='../../fenxiang/dist/css/share.min.css'>
+<script src='../../fenxiang/src/js/social-share.js'></script>
+<script src='../../fenxiang/src/js/qrcode.js'></script>
+
+</head><body><script>hljs.initHighlightingOnLoad();</script><script>
+var system ={};  
+var p = navigator.platform;       
+system.win = p.indexOf('Win') == 0;  
+system.mac = p.indexOf('Mac') == 0;  
+system.x11 = (p == 'X11') || (p.indexOf('Linux') == 0);     
+if(system.win||system.mac||system.xll){
+document.write("<link href='../css/3.css' rel='stylesheet' type='text/css'>");}else{ document.write("<link href='../css/3wap.css' rel='stylesheet' type='text/css'>");}</script><script src='../../js/3.js'></script><div class='div2'><div class='heading_nav'><ul><div><li><a href='../../index.html'>首页</a></li>
+</div><div onclick='hidden1()' >分享</div>
+</ul></div></div>
+<div id='heading_nav2'> 
+<li class='row' >
+<div class='social-share' data-mode='prepend'><a href='javascript:' class='social-share-icon icon-heart'></a></div></li></div><script charset='utf-8' src='../../3/js/hengfu.js'></script><script charset='utf-8' src='../../3/js/hengfu2.js'></script><hr><div class='div1'><div class='biaoti'><center>MyBatis缓存</center></div><div class='banquan'>原文出处:本文由博客园博主suhaha提供。<br/>
+原文连接:https://www.cnblogs.com/suhaha/p/11798380.html</div><br>
+    <ol>
+<li>应用程序和数据库交互的过程是一个相对比较耗时的过程。<br />
+</li>
+<li><strong>缓存存在的意义</strong> :让应用程序减少对数据库的访问,提升程序运行效率。<br />
+</li>
+<li>MyBatis 中默认SqlSession 缓存开启<br />
+</li>
+</ol>
+<ul>
+<li>3.1同一个 SqlSession 对象调用同一个&lt;select&gt;时,只有第一次访问数据库,第一次之后把查询结果缓存到SqlSession 缓存区(内存)中</li>
+<li>3.2缓存的是statement 对象.(简单记忆必须是用一个&lt;select&gt;).<br />
+<font color=red > 注意在myabtis 中是一个&lt;select&gt;对应一个statement 对象 </font> 。<br />
+</li>
+<li>3.3有效范围必须是同一个SqlSession 对象</li>
+</ul>
+<h1 id="缓存流程">缓存流程</h1>
+<ul>
+<li>步骤一: 先去缓存区中找是否存在statement<br />
+</li>
+<li>步骤二:返回结果<br />
+</li>
+<li>步骤三:如果没有缓存statement 对象,去数据库获取数据<br />
+</li>
+<li>步骤四:数据库返回查询结果<br />
+</li>
+<li>步骤五:把查询结果放到对应的缓存区中<br />
+<img src="./images/MyBatis缓存0.png" /></li>
+</ul>
+<h1 id="sqlsessionfactory-缓存">SqlSessionFactory 缓存</h1>
+<ul>
+<li>又叫 <strong>二级缓存</strong><br />
+</li>
+<li><strong>有效范围</strong><br />
+同一个factory 内哪个SqlSession 都可以获取<br />
+</li>
+<li>什么时候使用二级缓存:<br />
+当数据频繁被使用,很少被修改<br />
+</li>
+<li>使用二级缓存步骤<br />
+1)在mapper.xml 中添加<br />
+2)如果不写readOnly=”true”需要把实体类序列化<br />
+</li>
+</ul>
+<pre><code><code>&lt;cache readOnly=&quot;true&quot;&gt;&lt;/cache&gt;</code></code></pre>
+<p><strong><font color=red > readonly</font></strong> 表示是否允许对二级缓存数据进行读取。</p>
+<p>当SqlSession 对象close()时或 commit()时会把 SqlSession 缓存的数据刷(flush)到SqlSessionFactory 缓存区中</p>
+
+
+</div><hr><script charset='utf-8' src='../../js/sming.js'></script></body></html>

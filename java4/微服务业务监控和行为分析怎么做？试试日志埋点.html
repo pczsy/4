@@ -1,0 +1,136 @@
+<html><head><meta charset='utf-8'><meta name='viewport' content='width=device-width, initial-scale=1'>
+<meta name='applicable-device' content='pc'><meta name='keywords' content='电脑,电脑讲解,电脑技术,编程,电脑故障维修微服务业务监控和行为分析怎么做？试试日志埋点' />
+<script src='../../highlight/highlight.pack.js'></script>
+<link rel='stylesheet' type='text/css' href='../../highlight/styles/monokai.css'/>
+
+<link rel='stylesheet' href='../../fenxiang/dist/css/share.min.css'>
+<script src='../../fenxiang/src/js/social-share.js'></script>
+<script src='../../fenxiang/src/js/qrcode.js'></script>
+
+</head><body><script>hljs.initHighlightingOnLoad();</script><script>
+var system ={};  
+var p = navigator.platform;       
+system.win = p.indexOf('Win') == 0;  
+system.mac = p.indexOf('Mac') == 0;  
+system.x11 = (p == 'X11') || (p.indexOf('Linux') == 0);     
+if(system.win||system.mac||system.xll){
+document.write("<link href='../css/3.css' rel='stylesheet' type='text/css'>");}else{ document.write("<link href='../css/3wap.css' rel='stylesheet' type='text/css'>");}</script><script src='../../js/3.js'></script><div class='div2'><div class='heading_nav'><ul><div><li><a href='../../index.html'>首页</a></li>
+</div><div onclick='hidden1()' >分享</div>
+</ul></div></div>
+<div id='heading_nav2'> 
+<li class='row' >
+<div class='social-share' data-mode='prepend'><a href='javascript:' class='social-share-icon icon-heart'></a></div></li></div><script charset='utf-8' src='../../3/js/hengfu.js'></script><script charset='utf-8' src='../../3/js/hengfu2.js'></script><hr><div class='div1'><div class='biaoti'><center>微服务业务监控和行为分析怎么做？试试日志埋点</center></div><div class='banquan'>原文出处:本文由博客园博主zlt2000提供。<br/>
+原文连接:https://www.cnblogs.com/zlt2000/p/11834372.html</div><br>
+    <p><img src="./images/微服务业务监控和行为分析怎么做？试试日志埋点0.png" alt="file" /></p>
+<h2 id="一说明">一、说明</h2>
+<p>互联网公司一般都会有专门的数据团队对公司的一些业务指标负责；为了拿到这些基本的业务指标，一般也要工程团队去配合做一些数据采集工作，于是<strong>埋点</strong>诞生了。<br />
+ </p>
+<p><strong>埋点</strong>的方式有很多种，本文主要介绍 <code>日志埋点</code> 这种方式以及实现思路和案例。</p>
+<blockquote>
+<p><code>日志埋点</code> 就是通过程序打印 <code>log</code> 日志的方式进行业务/行为数据的记录</p>
+</blockquote>
+<p> </p>
+<h2 id="二总体架构">二、总体架构</h2>
+<p><img src="./images/微服务业务监控和行为分析怎么做？试试日志埋点1.png" alt="file" /></p>
+<p>通过 <code>日志埋点</code> 来实现业务监控和行为分析主要需要以下4个步骤</p>
+<ol>
+<li>数据生成(埋点)</li>
+<li>数据收集</li>
+<li>数据解析(结构化)</li>
+<li>数据落盘</li>
+<li>数据使用(展示/分析)</li>
+</ol>
+<p> </p>
+<h2 id="三方案说明">三、方案说明</h2>
+<h3 id="数据生成">3.1. 数据生成</h3>
+<p>日志数据的生成直接使用 <code>Logback</code> 等日志框架就可以了，可以自己封装公共方法、aop、注解等方式来生成指定的埋点日志</p>
+<p>但是为了便于后面的数据解析，日志数据需要<strong>规范先行</strong></p>
+<ol>
+<li><p>所有的埋点日志必需约定好统一的格式，例如：{时间}|{来源}|{对象id}|{类型}|{对象属性(以&amp;分割)}</p>
+<blockquote>
+<p>按上面的格式生成的日志为：<br />
+2019-11-07 10:32:01|api-gateway|1|request-statistics|ip=171.221.203.106&amp;browser=CHROME&amp;operatingSystem=WINDOWS_10</p>
+</blockquote></li>
+<li><p>避免埋点的日志文件和系统本身输出的日志混淆<br />
+<img src="./images/微服务业务监控和行为分析怎么做？试试日志埋点2.png" alt="file" /></p>
+<blockquote>
+<p>埋点的日志输出的目录、文件等需要和应用本身的日志分离，通过 <code>Logback</code> 的配置就能实现</p>
+</blockquote></li>
+</ol>
+<p> </p>
+<p><strong>埋点案例</strong><br />
+<img src="./images/微服务业务监控和行为分析怎么做？试试日志埋点3.png" alt="file" /></p>
+<p><strong>生成日志</strong><br />
+<img src="./images/微服务业务监控和行为分析怎么做？试试日志埋点4.png" alt="file" /></p>
+<blockquote>
+<p>网关埋点用户请求</p>
+</blockquote>
+<p> </p>
+<h3 id="数据收集">3.2. 数据收集</h3>
+<p>关于日志数据的收集可选择的中间件比较多，除了图中的 <code>FileBeat</code> 之外还有 <code>Flume</code>、<code>Fluentd</code>、<code>rsyslog</code> 等；需要每台服务器都部署一个收集中间件。</p>
+<blockquote>
+<p>每台服务器部署一个就行了，就算一台服务器中启了多个微服务也是可以一齐收集</p>
+</blockquote>
+<p><strong>PS</strong>：日志收集后面的 <code>消息队列</code> 并不是必需的可以去掉，但是增加 <code>消息队列</code> 后有以下两个优点</p>
+<ol>
+<li>削峰填谷：减轻后面日志解析的压力</li>
+<li>数据共享：日志数据除了提供给日志系统之外，可以增加消费端的同时提供给其他地方使用，如流计算等</li>
+</ol>
+<p> </p>
+<h3 id="数据解析">3.3. 数据解析</h3>
+<p>使用 <code>Logstash</code> 的<strong>grok</strong>表达式解析日志数据并结构化，以上面的日志数据为例</p>
+<blockquote>
+<p>2019-11-07 10:32:01|api-gateway|1|request-statistics|ip=171.221.203.106&amp;browser=CHROME&amp;operatingSystem=WINDOWS_10</p>
+</blockquote>
+<p>结构化后的日志数据为：</p>
+<pre><code><code>{
+    timestamp: &#39;2019-11-07 10:32:01&#39;,
+    appName: &#39;api-gateway&#39;,
+    resouceid: &#39;1&#39;,
+    type: &#39;request-statistics&#39;,
+    ip: &#39;171.221.203.106&#39;,
+    browser: &#39;CHROME&#39;,
+    operatingSystem: &#39;WINDOWS_10&#39;
+}</code></code></pre>
+<p> </p>
+<h3 id="数据落盘">3.4. 数据落盘</h3>
+<p>通过 <code>Logstash</code> 能自动创建 <code>Elasticsearch</code> 索引并以天为单位分片<br />
+<img src="./images/微服务业务监控和行为分析怎么做？试试日志埋点5.png" alt="file" /></p>
+<blockquote>
+<p>可以通过索引模板来指定每个字段的类型和分词器等属性</p>
+</blockquote>
+<p> </p>
+<h3 id="数据使用">3.5. 数据使用</h3>
+<p>日志数据落盘到 <code>Elasticsearch</code> 后，就可以通过聚合查询等方式实时显示监控数据或者分析日志数据</p>
+<p><strong>监控案例</strong><br />
+<img src="./images/微服务业务监控和行为分析怎么做？试试日志埋点6.png" alt="file" /></p>
+<blockquote>
+<p>聚合查询逻辑可参考 <a href="https://gitee.com/zlt2000/microservices-platform" class="uri">https://gitee.com/zlt2000/microservices-platform</a></p>
+</blockquote>
+<p> </p>
+<h2 id="四总结">四、总结</h2>
+<p><code>日志埋点</code> 只是其中一种埋点手段而已，<strong>优点是系统无入侵且灵活</strong>；日志收集、解析、落盘等都可以灵活搭配选择不同的中间件，并且不需要修改源系统的代码；并且可以方便对接其他分析平台(例如: 大数据平台)</p>
+<p><strong>PS</strong>：业务监控是否可以不做日志埋点，直接查询业务的数据库呢？(不建议这样做)</p>
+<ol>
+<li>使用日志埋点能实现监控数据与业务数据分离，监控平台不会影响或增加业务数据库的压力</li>
+<li><p>使用日志埋点能方便实现实时业务数据预警</p>
+<blockquote>
+<p>举个栗子：日志收集后面添加<strong>流计算中间件</strong>，计算某个时间窗口内优惠卷日志的数量或者金额大于某个阀值，则发出预警</p>
+</blockquote></li>
+</ol>
+<p> </p>
+<p><strong>推荐阅读</strong></p>
+<ul>
+<li><a href="https://mp.weixin.qq.com/s/NG-RIPDBkJsH3qo6_rJGWQ">日志排查问题困难？分布式日志链路跟踪来帮你</a></li>
+<li><a href="https://mp.weixin.qq.com/s/I_piUnr63asLUcrN0eUxAA">zuul集成Sentinel最新的网关流控组件</a></li>
+<li><a href="https://mp.weixin.qq.com/s/9XQ-SIbYsov3KBx9TGFN0g">Spring Cloud开发人员如何解决服务冲突和实例乱窜？</a></li>
+<li><a href="https://mp.weixin.qq.com/s/0yCmHzlXDC9BkbUuEt0_fQ">Spring Cloud同步场景分布式事务怎样做？试试Seata</a></li>
+<li><a href="https://mp.weixin.qq.com/s/dJz63WQl7UDjcbmDy06FyA">Spring Cloud异步场景分布式事务怎样做？试试RocketMQ</a></li>
+<li><a href="https://mp.weixin.qq.com/s/ozfjAQowx5nkbfCkn6nolw">Spring Cloud Gateway的动态路由怎样做？集成Nacos实现很简单</a></li>
+</ul>
+<p> <br />
+<strong>扫码关注有惊喜！</strong></p>
+<p><img src="./images/微服务业务监控和行为分析怎么做？试试日志埋点7.png" alt="file" /></p>
+
+
+</div><hr><script charset='utf-8' src='../../js/sming.js'></script></body></html>

@@ -1,0 +1,343 @@
+<html><head><meta charset='utf-8'><meta name='viewport' content='width=device-width, initial-scale=1'>
+<meta name='applicable-device' content='pc'><meta name='keywords' content='电脑,电脑讲解,电脑技术,编程,电脑故障维修Java应用在docker环境配置容器健康检查' />
+<script src='../../highlight/highlight.pack.js'></script>
+<link rel='stylesheet' type='text/css' href='../../highlight/styles/monokai.css'/>
+
+<link rel='stylesheet' href='../../fenxiang/dist/css/share.min.css'>
+<script src='../../fenxiang/src/js/social-share.js'></script>
+<script src='../../fenxiang/src/js/qrcode.js'></script>
+
+</head><body><script>hljs.initHighlightingOnLoad();</script><script>
+var system ={};  
+var p = navigator.platform;       
+system.win = p.indexOf('Win') == 0;  
+system.mac = p.indexOf('Mac') == 0;  
+system.x11 = (p == 'X11') || (p.indexOf('Linux') == 0);     
+if(system.win||system.mac||system.xll){
+document.write("<link href='../css/3.css' rel='stylesheet' type='text/css'>");}else{ document.write("<link href='../css/3wap.css' rel='stylesheet' type='text/css'>");}</script><script src='../../js/3.js'></script><div class='div2'><div class='heading_nav'><ul><div><li><a href='../../index.html'>首页</a></li>
+</div><div onclick='hidden1()' >分享</div>
+</ul></div></div>
+<div id='heading_nav2'> 
+<li class='row' >
+<div class='social-share' data-mode='prepend'><a href='javascript:' class='social-share-icon icon-heart'></a></div></li></div><script charset='utf-8' src='../../3/js/hengfu.js'></script><script charset='utf-8' src='../../3/js/hengfu2.js'></script><hr><div class='div1'><div class='biaoti'><center>Java应用在docker环境配置容器健康检查</center></div><div class='banquan'>原文出处:本文由博客园博主zq2599提供。<br/>
+原文连接:https://www.cnblogs.com/bolingcavalry/p/11715133.html</div><br>
+    <p>在<a href="https://xinchen.blog.csdn.net/article/details/102641942">《极速体验docker容器健康》</a>一文已体验了docker容器健康检查功能，今天就来给java应用的容器加入健康检查，使应用的状态随时都可以被监控和查看。</p>
+<h3 id="实战环境信息">实战环境信息</h3>
+<ol>
+<li>操作系统：macOS Catalina 10.15</li>
+<li><p>Docker：19.03.2</p>
+<h3 id="java应用简介">java应用简介</h3>
+今天实战的java应用，是用来模拟生产环境应用的，特点如下：</li>
+<li>普通springboot应用，对外提供http服务，路径：<font color="blue">/hello</font></li>
+<li>springboot应用运行在docker容器，在容器的<font color="blue">/app/depend/</font>目录下有名为<font color="blue">abc.txt</font>的文件；</li>
+<li><p>上述abc.txt文件存在时，springboot应用的hello接口正常，若abc.txt不存在，springboot应用就不对外提供服务，相当于不健康状态（以此来模拟应用出现异常）；</p>
+<h3 id="源码下载">源码下载</h3>
+<p>如果您不想写代码，上述springboot应用的源码可在GitHub下载到，地址和链接信息如下表所示：<br />
+| 名称 | 链接 | 备注|<br />
+| :-------- | :----| :----|<br />
+| 项目主页| https://github.com/zq2599/blog_demos | 该项目在GitHub上的主页 |<br />
+| git仓库地址(https)| https://github.com/zq2599/blog_demos.git | 该项目源码的仓库地址，https协议 |<br />
+| git仓库地址(ssh)| git@github.com:zq2599/blog_demos.git | 该项目源码的仓库地址，ssh协议 |<br />
+</br></p></li>
+</ol>
+<p>这个git项目中有多个文件夹，本章的应用在<font color="blue">springboot-app-docker-health-check</font>文件夹下，如下图红框所示：<br />
+<img src="./images/Java应用在docker环境配置容器健康检查0.png" alt="在这里插入图片描述" /></p>
+<h3 id="步骤简介">步骤简介</h3>
+<p>应用接入容器健康检查的步骤如下：</p>
+<ol>
+<li>将java应用制作成docker镜像时需要基础镜像，因此先准备好基础镜像，将容器健康检查的参数都配置在基础镜像中，包括提供容器健康信息的接口路径，这里定为<font color="blue">/getstate</font>；</li>
+<li>改造java应用，提供<font color="blue">/getstate</font>接口服务，根据业务的实际情况决定当前应用是否健康，健康时返回码为200，不健康时返回码为403；</li>
+<li>编译构建应用并且生成docker镜像；</li>
+<li><p>验证；</p>
+<h3 id="制作基础镜像">制作基础镜像</h3></li>
+<li>创建名为<font color="blue">Dockerfile</font>的文件，内容如下：</li>
+</ol>
+<pre><code><code># Docker file from bolingcavalry # VERSION 0.0.1
+# Author: bolingcavalry
+
+#基础镜像
+FROM openjdk:8-jdk-stretch
+
+#作者
+MAINTAINER BolingCavalry &lt;zq2599@gmail.com&gt;
+
+#健康检查参数设置，每5秒检查一次，接口超时时间2秒，连续10次返回1就判定该容器不健康
+HEALTHCHECK --interval=5s --timeout=2s --retries=10 \
+  CMD curl --silent --fail localhost:8080/getstate || exit 1</code></code></pre>
+<p>由上述可见Dockerfile的内容非常简单，选定自身的基础镜像为<font color="blue">openjdk:8-jdk-stretch</font>，再配置好健康检查参数：<br />
+| 参数名 | 作用 |<br />
+|--|--|<br />
+| health-cmd | 指定命令在容器内执行，用于检查容器健康状态 |<br />
+| health-interval | 每次健康检查的间隔时间，默认30秒 |<br />
+| health-retries | 假设该值为3，表示若连续三次检测的返回结果都是不健康，就判定该容器不健康，默认值为3 |<br />
+| health-timeout | 超时时间，默认30秒 |</p>
+<ol>
+<li>在Dockerfile文件所在目录执行命令<font color="blue">docker build -t bolingcavalry/jdk8-healthcheck:0.0.1 .</font>(最后那个点号不要漏掉)，控制台输出如下，提示镜像构建成功：</li>
+</ol>
+<pre><code><code>(base) zhaoqindeMacBook-Pro:springboot-app-docker-health-check zhaoqin$ docker build -t bolingcavalry/jdk8-healthcheck:0.0.1 .
+Sending build context to Docker daemon  217.6kB
+Step 1/3 : FROM openjdk:8-jdk-stretch
+8-jdk-stretch: Pulling from library/openjdk
+9a0b0ce99936: Already exists
+db3b6004c61a: Already exists
+f8f075920295: Already exists
+6ef14aff1139: Already exists
+962785d3b7f9: Already exists
+631589572f9b: Already exists
+c55a0c6f4c7b: Already exists
+Digest: sha256:8bce852e5ccd41b17bf9704c0047f962f891bdde3e401678a52d14a628defa49
+Status: Downloaded newer image for openjdk:8-jdk-stretch
+ ---&gt; 57c2c2d2643d
+Step 2/3 : MAINTAINER BolingCavalry &lt;zq2599@gmail.com&gt;
+ ---&gt; Running in 270f78efa617
+Removing intermediate container 270f78efa617
+ ---&gt; 01b5df83611d
+Step 3/3 : HEALTHCHECK --interval=5s --timeout=2s --retries=10   CMD curl --silent --fail localhost:8080/getstate || exit 1
+ ---&gt; Running in 7cdd08b9ca22
+Removing intermediate container 7cdd08b9ca22
+ ---&gt; 9dd7ffb22df4
+Successfully built 9dd7ffb22df4
+Successfully tagged bolingcavalry/jdk8-healthcheck:0.0.1</code></code></pre>
+<ol>
+<li>此时宿主机上已经有了名为<font color="blue">bolingcavalry/jdk8-healthcheck:0.0.1</font>的镜像，该镜像带有容器健康检查的参数配置，以此作为基础镜像来构建的其他镜像都集成了健康检查的特性；</li>
+<li>如果您已经在hub.docker.com上注册过，就可以用<font color="blue">docker login</font>命令登录，然后执行以下命令将本地镜像推送到hub.docker.com给更多人使用：</li>
+</ol>
+<pre><code><code>docker push bolingcavalry/jdk8-healthcheck:0.0.1</code></code></pre>
+<h3 id="改造java应用">改造Java应用</h3>
+<p>本次实战的目标是让Java应用支持docker的容器健康检查功能，接下来一起创建这个Java应用：</p>
+<ol>
+<li>这是个基于maven构建的springboot工程，pom.xml内容如下：</li>
+</ol>
+<pre class="xml"><code>&lt;?xml version=&quot;1.0&quot; encoding=&quot;UTF-8&quot;?&gt;
+&lt;project xmlns=&quot;http://maven.apache.org/POM/4.0.0&quot; xmlns:xsi=&quot;http://www.w3.org/2001/XMLSchema-instance&quot;
+         xsi:schemaLocation=&quot;http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd&quot;&gt;
+    &lt;modelVersion&gt;4.0.0&lt;/modelVersion&gt;
+    &lt;parent&gt;
+        &lt;groupId&gt;org.springframework.boot&lt;/groupId&gt;
+        &lt;artifactId&gt;spring-boot-starter-parent&lt;/artifactId&gt;
+        &lt;version&gt;2.2.0.RELEASE&lt;/version&gt;
+        &lt;relativePath/&gt; &lt;!-- lookup parent from repository --&gt;
+    &lt;/parent&gt;
+    &lt;groupId&gt;com.bolingcavalry&lt;/groupId&gt;
+    &lt;artifactId&gt;springboot-app-docker-health-check&lt;/artifactId&gt;
+    &lt;version&gt;0.0.1-SNAPSHOT&lt;/version&gt;
+    &lt;name&gt;springboot-app-docker-health-check&lt;/name&gt;
+    &lt;description&gt;Demo project for Spring Boot&lt;/description&gt;
+
+    &lt;properties&gt;
+        &lt;java.version&gt;1.8&lt;/java.version&gt;
+    &lt;/properties&gt;
+
+    &lt;dependencies&gt;
+        &lt;dependency&gt;
+            &lt;groupId&gt;org.springframework.boot&lt;/groupId&gt;
+            &lt;artifactId&gt;spring-boot-starter-web&lt;/artifactId&gt;
+        &lt;/dependency&gt;
+        &lt;dependency&gt;
+          &lt;groupId&gt;org.projectlombok&lt;/groupId&gt;
+          &lt;artifactId&gt;lombok&lt;/artifactId&gt;
+          &lt;optional&gt;true&lt;/optional&gt;
+        &lt;/dependency&gt;
+        &lt;dependency&gt;
+            &lt;groupId&gt;commons-io&lt;/groupId&gt;
+            &lt;artifactId&gt;commons-io&lt;/artifactId&gt;
+            &lt;version&gt;2.5&lt;/version&gt;
+        &lt;/dependency&gt;
+        &lt;dependency&gt;
+            &lt;groupId&gt;org.springframework.boot&lt;/groupId&gt;
+            &lt;artifactId&gt;spring-boot-starter-test&lt;/artifactId&gt;
+            &lt;scope&gt;test&lt;/scope&gt;
+            &lt;exclusions&gt;
+                &lt;exclusion&gt;
+                    &lt;groupId&gt;org.junit.vintage&lt;/groupId&gt;
+                    &lt;artifactId&gt;junit-vintage-engine&lt;/artifactId&gt;
+                &lt;/exclusion&gt;
+            &lt;/exclusions&gt;
+        &lt;/dependency&gt;
+    &lt;/dependencies&gt;
+
+    &lt;build&gt;
+        &lt;plugins&gt;
+            &lt;plugin&gt;
+                &lt;groupId&gt;org.springframework.boot&lt;/groupId&gt;
+                &lt;artifactId&gt;spring-boot-maven-plugin&lt;/artifactId&gt;
+            &lt;/plugin&gt;
+
+
+            &lt;!--使用jib插件--&gt;
+            &lt;plugin&gt;
+                &lt;groupId&gt;com.google.cloud.tools&lt;/groupId&gt;
+                &lt;artifactId&gt;jib-maven-plugin&lt;/artifactId&gt;
+                &lt;version&gt;1.7.0&lt;/version&gt;
+                &lt;configuration&gt;
+                    &lt;!--from节点用来设置镜像的基础镜像，相当于Docerkfile中的FROM关键字--&gt;
+                    &lt;from&gt;
+                        &lt;!--基础镜像是bolingcavalry/jdk8-healthcheck:0.0.1，该镜像已配置了健康检查参数--&gt;
+                        &lt;image&gt;bolingcavalry/jdk8-healthcheck:0.0.1&lt;/image&gt;
+                    &lt;/from&gt;
+                    &lt;to&gt;
+                        &lt;!--镜像名称和tag，使用了mvn内置变量${project.version}，表示当前工程的version--&gt;
+                        &lt;image&gt;bolingcavalry/${project.artifactId}:${project.version}&lt;/image&gt;
+                    &lt;/to&gt;
+                    &lt;!--容器相关的属性--&gt;
+                    &lt;container&gt;
+                        &lt;!--jvm内存参数--&gt;
+                        &lt;jvmFlags&gt;
+                            &lt;jvmFlag&gt;-Xms1g&lt;/jvmFlag&gt;
+                            &lt;jvmFlag&gt;-Xmx1g&lt;/jvmFlag&gt;
+                        &lt;/jvmFlags&gt;
+                        &lt;!--要暴露的端口--&gt;
+                        &lt;ports&gt;
+                            &lt;port&gt;8080&lt;/port&gt;
+                        &lt;/ports&gt;
+                        &lt;!--使用该参数将镜像的创建时间与系统时间对其--&gt;
+                        &lt;useCurrentTimestamp&gt;true&lt;/useCurrentTimestamp&gt;
+                    &lt;/container&gt;
+                &lt;/configuration&gt;
+            &lt;/plugin&gt;
+        &lt;/plugins&gt;
+    &lt;/build&gt;
+&lt;/project&gt;</code></code></pre>
+<p>上述pom.xml有以下几处需要注意：</p>
+<p>a. 使用jib插件来将当前工程构建成docker镜像；</p>
+<p>b. 基础镜像是前面构建的<font color="blue">bolingcavalry/jdk8-healthcheck:0.0.1</font>，以此为基础镜像的镜像都带有健康检查功能；</p>
+<ol>
+<li>主要功能类是<font color="blue">SpringbootAppDockerHealthCheckApplication.java</font>：</li>
+</ol>
+<pre class="java"><code>package com.bolingcavalry.springbootappdockerhealthcheck;
+
+import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.io.FileUtils;
+import org.apache.commons.io.IOUtils;
+import org.springframework.boot.SpringApplication;
+import org.springframework.boot.autoconfigure.SpringBootApplication;
+import org.springframework.http.ResponseEntity;
+import org.springframework.util.StringUtils;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestMethod;
+import org.springframework.web.bind.annotation.RestController;
+
+import java.io.*;
+import java.util.List;
+
+@SpringBootApplication
+@RestController
+@Slf4j
+public class SpringbootAppDockerHealthCheckApplication {
+
+    public static void main(String[] args) {
+        SpringApplication.run(SpringbootAppDockerHealthCheckApplication.class, args);
+    }
+
+    /**
+     * 读取本地文本文件的内容并返回
+     * @return
+     */
+    private String getLocalFileContent() {
+        String content = null;
+
+        try{
+            InputStream is = new FileInputStream(&quot;/app/depend/abc.txt&quot;);
+            List&lt;String&gt; lines = IOUtils.readLines(is, &quot;UTF-8&quot;);
+
+            if(null!=lines &amp;&amp; lines.size()&gt;0){
+                content = lines.get(0);
+            }
+        } catch (FileNotFoundException e) {
+            log.error(&quot;local file not found&quot;, e);
+        } catch (IOException e) {
+            log.error(&quot;io exception&quot;, e);
+        }
+
+        return content;
+    }
+
+    /**
+     * 对外提供的http服务，读取本地的txt文件将内容返回，
+     * 如果读取不到内容返回码为403
+     * @return
+     */
+    @RequestMapping(value = &quot;/hello&quot;, method = RequestMethod.GET)
+    public ResponseEntity&lt;String&gt; hello(){
+        String localFileContent = getLocalFileContent();
+
+        if(StringUtils.isEmpty(localFileContent)) {
+            log.error(&quot;hello service error&quot;);
+            return ResponseEntity.status(403).build();
+        } else {
+            log.info(&quot;hello service success&quot;);
+            return ResponseEntity.status(200).body(localFileContent);
+        }
+    }
+
+    /**
+     * 该http服务返回当前应用是否正常，
+     * 如果能从本地txt文件成功读取内容，当前应用就算正常，返回码为200，
+     * 如果无法从本地txt文件成功读取内容，当前应用就算异常，返回码为403
+     * @return
+     */
+    @RequestMapping(value = &quot;/getstate&quot;, method = RequestMethod.GET)
+    public ResponseEntity&lt;String&gt; getstate(){
+        String localFileContent = getLocalFileContent();
+
+        if(StringUtils.isEmpty(localFileContent)) {
+            log.error(&quot;service is unhealthy&quot;);
+            return ResponseEntity.status(403).build();
+        } else {
+            log.info(&quot;service is healthy&quot;);
+            return ResponseEntity.status(200).build();
+        }
+    }
+}</code></code></pre>
+<p>上述代码有以下几处需要注意：</p>
+<p>a. <font color="blue">hello</font>方法是此应用对外提供的服务，如果本地文件abc.txt存在且内容不为空，hello方法的返回码就是200，否则返回码为403，表示当前服务出现异常；</p>
+<p>b. <font color="blue">getstate</font>方法是新增的服务，该接口会被docke-daemon调用，如果返回码是200，就表示容器健康，如果返回码是403，表示容器不健康；</p>
+<ol>
+<li>在pom.xml文件所在目录执行<font color="blue">mvn clean compile -U -DskipTests jib:dockerBuild</font>，即可将当前工程构建为镜像，名为<font color="blue">bolingcavalry/springboot-app-docker-health-check:0.0.1-SNAPSHOT</font></li>
+<li><p>至此，支持容器健康检查的Java应用镜像构建成功，接下来验证容器的健康检查功能是否正常；</p>
+<h3 id="验证步骤">验证步骤</h3>
+验证的步骤如下：</li>
+</ol>
+<p>a. 让应用容器正常工作，确保文件<font color="blue">/app/depend/abc.txt</font>是正常的，此时容器状态应该是<font color="red">healthy</font></p>
+<p>b. 将文件<font color="blue">/app/depend/abc.txt</font>删除，此时应用hello接口返回码为403，并且容器状态变为<font color="red">unhealthy</font></p>
+<h3 id="验证操作">验证操作</h3>
+<ol>
+<li>创建文件<font color="blue">abc.txt</font>，完整路径是<font color="blue">/Users/zhaoqin/temp/201910/20/abc.txt</font>，文件内容是个字符串，例如：123456</li>
+<li>执行以下命令，用新建的java应用镜像创建容器，该容器会将<font color="blue">test</font>文件夹映射到容器的<font color="blue">/app/depend</font>文件夹：</li>
+</ol>
+<pre><code><code>docker run --rm \
+--name=java-health-check \
+-p 8080:8080 \
+-v /Users/zhaoqin/temp/201910/20:/app/depend \
+bolingcavalry/springboot-app-docker-health-check:0.0.1-SNAPSHOT</code></code></pre>
+<ol>
+<li>控制台可见以下输出，表明健康检查接口已经被调用：</li>
+</ol>
+<pre><code><code>2019-10-20 14:16:34.875  INFO 1 --- [nio-8080-exec-1] o.a.c.c.C.[Tomcat].[localhost].[/]       : Initializing Spring DispatcherServlet &#39;dispatcherServlet&#39;
+2019-10-20 14:16:34.876  INFO 1 --- [nio-8080-exec-1] o.s.web.servlet.DispatcherServlet        : Initializing Servlet &#39;dispatcherServlet&#39;
+2019-10-20 14:16:34.892  INFO 1 --- [nio-8080-exec-1] o.s.web.servlet.DispatcherServlet        : Completed initialization in 16 ms
+2019-10-20 14:16:34.959  INFO 1 --- [nio-8080-exec-1] pringbootAppDockerHealthCheckApplication : service is healthy
+2019-10-20 14:16:40.159  INFO 1 --- [nio-8080-exec-2] pringbootAppDockerHealthCheckApplication : service is healthy
+2019-10-20 14:16:45.356  INFO 1 --- [nio-8080-exec-4] pringbootAppDockerHealthCheckApplication : service is healthy
+2019-10-20 14:16:50.580  INFO 1 --- [nio-8080-exec-6] pringbootAppDockerHealthCheckApplication : service is healthy</code></code></pre>
+<ol>
+<li>执行命令<font color="blue">docker ps</font>查看容器状态，可见已经是<font color="red">healthy</font>：</li>
+</ol>
+<pre><code><code>(base) zhaoqindeMBP:20 zhaoqin$ docker ps
+CONTAINER ID        IMAGE                                                             COMMAND                  CREATED              STATUS                        PORTS                    NAMES
+51572d2488fb        bolingcavalry/springboot-app-docker-health-check:0.0.1-SNAPSHOT   &quot;java -Xms1g -Xmx1g …&quot;   About a minute ago   Up About a minute (healthy)   0.0.0.0:8080-&gt;8080/tcp   java-health-check</code></code></pre>
+<ol>
+<li>删除宿主机上的<font color="blue">/Users/zhaoqin/temp/201910/20/abc.txt</font>，相当于容器内的abc.txt文件被删除，此时控制台可见健康检查接口在被调用时发现文件不存在，已返回了403错误码：</li>
+</ol>
+<pre><code><code>019-10-20 14:22:37.490 ERROR 1 --- [nio-8080-exec-7] pringbootAppDockerHealthCheckApplication : service is unhealthy</code></code></pre>
+<ol>
+<li>健康检查接口被连续10次调用后，再执行命令<font color="blue">docker ps</font>查看容器状态，可见已经是<font color="red">unhealthy</font>：</li>
+</ol>
+<pre><code><code>(base) zhaoqindeMBP:20 zhaoqin$ docker ps
+CONTAINER ID        IMAGE                                                             COMMAND                  CREATED             STATUS                     PORTS                    NAMES
+51572d2488fb        bolingcavalry/springboot-app-docker-health-check:0.0.1-SNAPSHOT   &quot;java -Xms1g -Xmx1g …&quot;   7 minutes ago       Up 7 minutes (unhealthy)   0.0.0.0:8080-&gt;8080/tcp   java-health-check</code></code></pre>
+<p>至此，Java应用在docker环境配置容器健康检查的实战就完成了，希望您在给自己的应用添加健康检查时，此文能给您一些参考。</p>
+<h3 id="欢迎关注公众号程序员欣宸">欢迎关注公众号：程序员欣宸</h3>
+
+
+</div><hr><script charset='utf-8' src='../../js/sming.js'></script></body></html>

@@ -1,0 +1,145 @@
+<html><head><meta charset='utf-8'><meta name='viewport' content='width=device-width, initial-scale=1'>
+<meta name='applicable-device' content='pc'><meta name='keywords' content='电脑,电脑讲解,电脑技术,编程,电脑故障维修SpringBoot结合策略模式实战套路' />
+<script src='../../highlight/highlight.pack.js'></script>
+<link rel='stylesheet' type='text/css' href='../../highlight/styles/monokai.css'/>
+
+<link rel='stylesheet' href='../../fenxiang/dist/css/share.min.css'>
+<script src='../../fenxiang/src/js/social-share.js'></script>
+<script src='../../fenxiang/src/js/qrcode.js'></script>
+
+</head><body><script>hljs.initHighlightingOnLoad();</script><script>
+var system ={};  
+var p = navigator.platform;       
+system.win = p.indexOf('Win') == 0;  
+system.mac = p.indexOf('Mac') == 0;  
+system.x11 = (p == 'X11') || (p.indexOf('Linux') == 0);     
+if(system.win||system.mac||system.xll){
+document.write("<link href='../css/3.css' rel='stylesheet' type='text/css'>");}else{ document.write("<link href='../css/3wap.css' rel='stylesheet' type='text/css'>");}</script><script src='../../js/3.js'></script><div class='div2'><div class='heading_nav'><ul><div><li><a href='../../index.html'>首页</a></li>
+</div><div onclick='hidden1()' >分享</div>
+</ul></div></div>
+<div id='heading_nav2'> 
+<li class='row' >
+<div class='social-share' data-mode='prepend'><a href='javascript:' class='social-share-icon icon-heart'></a></div></li></div><script charset='utf-8' src='../../3/js/hengfu.js'></script><script charset='utf-8' src='../../3/js/hengfu2.js'></script><hr><div class='div1'><div class='biaoti'><center>SpringBoot结合策略模式实战套路</center></div><div class='banquan'>原文出处:本文由博客园博主老梁讲Java提供。<br/>
+原文连接:https://www.cnblogs.com/sky-chen/p/11751975.html</div><br>
+    <h1 id="springboot结合策略模式实战套路">1. SpringBoot结合策略模式实战套路</h1>
+<h2 id="前言">1.1. 前言</h2>
+<p>我们都知道设计模式好，可以让我们的代码更具可读性，扩展性，易于维护，但大部分程序猿一开始都学过至少一遍设计模式吧，实战中不知用到了几成。接下来让我介绍一个结合SpringBoot的策略模式套路，让你的代码少些if-else</p>
+<h2 id="开撸">1.2. 开撸</h2>
+<p>废话不多说，直接告诉你今天的核心是<code>@autowired</code>，看到这个是不是很熟悉，你每天都在用，不就是自动注入Spring管理的Bean吗？但我们对它的用法很多时候就局限在<strong>全局变量</strong>的注入了，忘记了，它其实还可以<strong>构造器注入，类型注入或命名注入</strong>，那么结合策略模式会绽放怎样的火花呢？跟着我的代码来看</p>
+<h3 id="计算策略接口">1.2.1. 计算策略接口</h3>
+<pre><code><code>/**
+ * @author laoliangliang
+ * @date 2019/10/28 10:10
+ */
+public interface CalculateStrategy {
+    int doOperation(int num1,int num2);
+}</code></code></pre>
+<h3 id="实现类">1.2.2. 实现类</h3>
+<p>分别实现加减乘三个运算，可以看到我用了spring的注解<code>@Component</code>，也就是实例由spring管理了</p>
+<pre><code><code>@Component
+public class AddOperation implements CalculateStrategy {
+    @Override
+    public int doOperation(int num1, int num2) {
+        return num1 + num2;
+    }
+
+}
+
+
+
+</code></code></pre>
+<pre><code><code>@Component
+public class SubstractOperation implements CalculateStrategy {
+    @Override
+    public int doOperation(int num1, int num2) {
+        return num1 - num2;
+    }
+
+}</code></code></pre>
+<pre><code><code>@Component
+public class MultiplyOperation implements CalculateStrategy {
+    @Override
+    public int doOperation(int num1, int num2) {
+        return num1 * num2;
+    }
+
+}</code></code></pre>
+<h3 id="上下文">1.2.3. 上下文</h3>
+<p>之后创建上下文管理，用于提取策略。这个上下文才是本文的重点，注意到<code>@autowired</code>注解放的位置和对应的参数列表了吗？实际上它还可以注入到Map和List，Map的key就是它注入时的名，List则是存放全部实例对象</p>
+<pre><code><code>import com.google.common.base.Preconditions;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
+import org.springframework.util.StringUtils;
+
+import java.util.List;
+import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
+
+/**
+ * @author laoliangliang
+ * @date 2019/10/28 10:14
+ */
+@Component
+public class CalculatelOperationContext {
+
+//    @Autowired
+//    private Map&lt;String, CalculateStrategy&gt; strategyMap;
+
+    private final Map&lt;String, CalculateStrategy&gt; strategyMap = new ConcurrentHashMap&lt;&gt;();
+
+    @Autowired
+    public void stragegyInteface(Map&lt;String, CalculateStrategy&gt; strategyMap) {
+        this.strategyMap.clear();
+        strategyMap.forEach(this.strategyMap::put);
+        System.out.println(this.strategyMap);
+    }
+
+
+    @Autowired
+    public void stragegyInteface2(List&lt;CalculateStrategy&gt; strategyMap) {
+        strategyMap.forEach(System.out::println);
+    }
+
+    public CalculateStrategy strategySelect(String mode) {
+        Preconditions.checkArgument(!StringUtils.isEmpty(mode), &quot;不允许输入空字符串&quot;);
+        return this.strategyMap.get(mode);
+    }
+}
+</code></code></pre>
+<p>打印结果：</p>
+<pre><code><code>{multiplyOperation=com.laoliang.springboot.pattern.strategy.MultiplyOperation@372ea2bc, addOperation=com.laoliang.springboot.pattern.strategy.AddOperation@4cc76301, substractOperation=com.laoliang.springboot.pattern.strategy.SubstractOperation@2f08c4b}
+com.laoliang.springboot.pattern.strategy.AddOperation@4cc76301
+com.laoliang.springboot.pattern.strategy.MultiplyOperation@372ea2bc
+com.laoliang.springboot.pattern.strategy.SubstractOperation@2f08c4b</code></code></pre>
+<p>可以看到Map中key，value的关系，key的默认值为类的第一个字母小写</p>
+<h3 id="控制层">1.2.4. 控制层</h3>
+<pre><code><code>/**
+ * @author laoliangliang
+ * @date 2019/10/28 10:52
+ */
+@RestController
+public class StrategyController {
+
+    @Autowired
+    private CalculatelOperationContext calculatelOperationContext;
+
+    @RequestMapping(value = &quot;/operation&quot;)
+    public String strategySelect(@RequestParam(&quot;mode&quot;) String mode) {
+        return String.valueOf(calculatelOperationContext.strategySelect(mode).doOperation(20, 5));
+    }
+}</code></code></pre>
+<p>启动SpringBoot，浏览器调用<code>http://localhost:8080/operation?mode=multiplyOperation</code>，结果100。模式可以选择另外两个<code>addOperation</code>和<code>substractOperation</code></p>
+<p>我这里就做个演示，输入参数就写固定了，可以看到我们通过上下文<code>calculatelOperationContext</code>调用其方法<code>strategySelect</code>，通过<strong>不同的调用参数</strong>获得不同的策略，所以业务中只要可以抽象的方法都可以改写成这样的模式。</p>
+<p>这种模式套路的<strong>好处</strong>就是当你要新增一种策略，比如除法，你不需要修改原来的代码，只要抽象不变，你新增一个<code>DivideOperation</code>类实现<code>CalculateStrategy</code>策略接口加上Spring注解即可，调用时模式修改为<code>divideOperation</code>就可以实现调用了，耦合性大大降低，不需要再改原来那一坨自己都看不下去的代码了</p>
+<h2 id="总结">1.3. 总结</h2>
+<p>可以看到全文中代码量还是相对比较少的，将不同的策略用不同的类实现，且可以不用改动别的代码，这篇文章你get到新套路了吗</p>
+<blockquote>
+<p>接下来我争取每篇文章下都分享一套学习视频，希望你们喜欢！！</p>
+<p>龙果学院 秒杀系统企业级实战应用（真实工业界案例）视频</p>
+<p><img src="./images/SpringBoot结合策略模式实战套路0.png" alt="龙果学院 秒杀系统企业级实战应用" /><br />
+<img src="./images/SpringBoot结合策略模式实战套路1.png" alt="老梁讲Java" /><br />
+欢迎关注公众号，一起学习进步</p>
+</blockquote>
+
+
+</div><hr><script charset='utf-8' src='../../js/sming.js'></script></body></html>

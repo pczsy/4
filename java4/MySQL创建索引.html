@@ -1,0 +1,42 @@
+<html><head><meta charset='utf-8'><meta name='viewport' content='width=device-width, initial-scale=1'>
+<meta name='applicable-device' content='pc'><meta name='keywords' content='电脑,电脑讲解,电脑技术,编程,电脑故障维修MySQL创建索引' />
+<script src='../../highlight/highlight.pack.js'></script>
+<link rel='stylesheet' type='text/css' href='../../highlight/styles/monokai.css'/>
+
+<link rel='stylesheet' href='../../fenxiang/dist/css/share.min.css'>
+<script src='../../fenxiang/src/js/social-share.js'></script>
+<script src='../../fenxiang/src/js/qrcode.js'></script>
+
+</head><body><script>hljs.initHighlightingOnLoad();</script><script>
+var system ={};  
+var p = navigator.platform;       
+system.win = p.indexOf('Win') == 0;  
+system.mac = p.indexOf('Mac') == 0;  
+system.x11 = (p == 'X11') || (p.indexOf('Linux') == 0);     
+if(system.win||system.mac||system.xll){
+document.write("<link href='../css/3.css' rel='stylesheet' type='text/css'>");}else{ document.write("<link href='../css/3wap.css' rel='stylesheet' type='text/css'>");}</script><script src='../../js/3.js'></script><div class='div2'><div class='heading_nav'><ul><div><li><a href='../../index.html'>首页</a></li>
+</div><div onclick='hidden1()' >分享</div>
+</ul></div></div>
+<div id='heading_nav2'> 
+<li class='row' >
+<div class='social-share' data-mode='prepend'><a href='javascript:' class='social-share-icon icon-heart'></a></div></li></div><script charset='utf-8' src='../../3/js/hengfu.js'></script><script charset='utf-8' src='../../3/js/hengfu2.js'></script><hr><div class='div1'><div class='biaoti'><center>MySQL创建索引</center></div><div class='banquan'>原文出处:本文由博客园博主久伴成忆提供。<br/>
+原文连接:https://www.cnblogs.com/starluke/p/11729432.html</div><br>
+    <src>&nbsp;&nbsp;mysql的数据索引我们开发的时候一定都会用到，比如我们的主键、唯一等这些都是有到索引的内容，但是如果只有这样的索引在我们的实际开发中肯定满足不了我们的需求，这个时候就需要我们来创建相关的索引，但是索引创建并不是胡乱的创建，以下给出大家一些建议
+<p>索引：提高数据查询的速度，一般创建索引的列为很少改动的列。</p>
+<p>1、例句： select * from user where userId = '123456789';</p>
+<p>userId很少改变且是唯一值，可以对userID创建索引；</p>
+<p>2、例句：select * from user where name = '李明' and age = 26;</p>
+<p>如果name和age是不能为null的列，那么我们可以对这两列单独建立索引，但是如果经常使用这两列进行查询，就要创建复合索引（name, age）;</p>
+<p>3、例句：select * from user where name = '李明' and age = 26 and height = 175;</p>
+<p>此时我们既想满足上面的条件又想满足下面的查询语句的条件的索引，可以会创建两个索引（name,age）和（name,age,height），但是通常可以创建复合索引（name,age,height）即可，因为复合索引满足最佳左前缀原则，会创建以下三个索引（name,age,height）、（name,age）、（name）;</p>
+<p>4、例句：select * from user where number like&nbsp; '2017%';</p>
+<p>学号是按年月日+四位数字，此时想查学号的年份是2017的学生，为了提高查询速度，如果对number建立索引使用，模糊查询（%123%）索引会失效，此时可以使用短索引，也就是只对number的前缀，前四位创建索引即可。</p>
+<p>5、select * from user where grade = '二年级' order by number;</p>
+<p>查询二年级的学生并对其进行排序，此时如果对grade和number分别创建了索引，采用上面的方式进行查询时，索引是没有效果的，因为where子句中已经有了索引，此时order by中的索引不会生效，导致整个sql语句的索引都不会生效。</p>
+<p>6、select * from user where year(time) &lt; 2017 and grade not in ('二年级','三年级')；</p>
+<p>此时无论是建立在time还是grade的索引都会失效，索引的列是不能进行计算的，采用计算该列的索引就会失效，使用not in 语句也会失效，不过可以使用not exists代替。</p>
+<p>通常索引的列可以进行&lt;,&gt;,=,&lt;=,&gt;=,between,in操作。</p>
+<p>如果sql语句中包含or,&lt;&gt;,like '%123',所在列不能null,尽量不要在重复值过多的列创建索引</p>
+<p>7、in和not in在主键上的唯一索引是可以使用的，但是在其他不是唯一索引列索引是失效的。<br />以上就是一些简单索引创建的选择，但是越复杂的索引创建肯定不是这样简单的，后面会给大家继续更新&nbsp;</p>
+
+</div><hr><script charset='utf-8' src='../../js/sming.js'></script></body></html>

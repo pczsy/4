@@ -1,0 +1,60 @@
+<html><head><meta charset='utf-8'><meta name='viewport' content='width=device-width, initial-scale=1'>
+<meta name='applicable-device' content='pc'><meta name='keywords' content='电脑,电脑讲解,电脑技术,编程,电脑故障维修SpringBoot系列随笔 - BootJar的启动方式' />
+<script src='../../highlight/highlight.pack.js'></script>
+<link rel='stylesheet' type='text/css' href='../../highlight/styles/monokai.css'/>
+
+<link rel='stylesheet' href='../../fenxiang/dist/css/share.min.css'>
+<script src='../../fenxiang/src/js/social-share.js'></script>
+<script src='../../fenxiang/src/js/qrcode.js'></script>
+
+</head><body><script>hljs.initHighlightingOnLoad();</script><script>
+var system ={};  
+var p = navigator.platform;       
+system.win = p.indexOf('Win') == 0;  
+system.mac = p.indexOf('Mac') == 0;  
+system.x11 = (p == 'X11') || (p.indexOf('Linux') == 0);     
+if(system.win||system.mac||system.xll){
+document.write("<link href='../css/3.css' rel='stylesheet' type='text/css'>");}else{ document.write("<link href='../css/3wap.css' rel='stylesheet' type='text/css'>");}</script><script src='../../js/3.js'></script><div class='div2'><div class='heading_nav'><ul><div><li><a href='../../index.html'>首页</a></li>
+</div><div onclick='hidden1()' >分享</div>
+</ul></div></div>
+<div id='heading_nav2'> 
+<li class='row' >
+<div class='social-share' data-mode='prepend'><a href='javascript:' class='social-share-icon icon-heart'></a></div></li></div><script charset='utf-8' src='../../3/js/hengfu.js'></script><script charset='utf-8' src='../../3/js/hengfu2.js'></script><hr><div class='div1'><div class='biaoti'><center>SpringBoot系列随笔 - BootJar的启动方式</center></div><div class='banquan'>原文出处:本文由博客园博主li_xiaoxi提供。<br/>
+原文连接:https://www.cnblogs.com/heaven-elegy/p/11727083.html</div><br>
+    <h1 id="前言">前言</h1>
+<p>写完maven的加密插件后,尝试在boot启动时的类加载过程中编写解密代码时,发现了一个平常没有注意的地方.<br />
+那就是boot-jar的启动方式与我们平常编写的可执行jar是存在很大差别的.<br />
+所以在这里进行简单的记录,暂时不对一些复杂机制进行.如repackage阶段对jar文件进行的额外处理,boot-jar加载资源的的实现方式,classLoader实现的扩展等</p>
+<h1 id="开始">开始</h1>
+<h3 id="整体流程直接使用时序图进行如下表示">整体流程直接使用时序图进行如下表示</h3>
+<p><img src="./images/SpringBoot系列随笔 - BootJar的启动方式0.png" /></p>
+<h3 id="分步描述必要的">分步描述(必要的)</h3>
+<ul>
+<li><p>步骤1 - 由虚拟机触发,调用类<code>org.springframework.boot.loader.JarLauncher.main</code>方法.</p>
+<blockquote>
+<p>这一步完全等同于我们使用<code>java -jar hello.jar</code>时,调用了自己面写的<code>main</code>方法.<br />
+而我们所打包的<em>boot-jar</em>,不论如何,最终都会执行语句<code>java -jar boot-jar.jar</code>,并调用方法<code>org.springframework.boot.loader.JarLauncher.main</code></p>
+</blockquote></li>
+<li><p>步骤4-10 - 注册<code>JarUrl</code>协议.</p>
+<blockquote>
+<p>这一步的主要作用是向系统注册新的协议,使<em>boot</em>可以使用自己的方式获取资源信息(针对<em>boot-jar</em>)</p>
+</blockquote></li>
+<li><p>步骤11 - 获取<em>boot-jar</em>内的所有资源定位</p>
+<blockquote>
+<p>结合<code>JarUrl</code>协议,就可以获取资源了</p>
+</blockquote></li>
+<li><p>步骤13 - 创建并配置类加载器</p>
+<blockquote>
+<p>这个加载器的实现,使用了字节码技术.达到了越过<em>JVM</em>并对<em>class</em>进行了读取的效果.<br />
+这么做的目的,个人推测应该是为了能够在扫描所有可能需要加载的类时,保证不让虚拟机加载它们,以较少虚拟机负担.</p>
+</blockquote></li>
+<li><p>14-end - 准备并执行我们编写的main方法</p>
+<blockquote>
+<p>找到我们所表写的<em>main</em>方法所处的类,并直接使用反射进行调用.<br />
+随着<em>main</em>方法的调用,方法体内的<code>SpringApplication</code>相关方法也意味着容器的初始化,应用正式启动</p>
+</blockquote></li>
+<li><p>end -</p></li>
+</ul>
+
+
+</div><hr><script charset='utf-8' src='../../js/sming.js'></script></body></html>

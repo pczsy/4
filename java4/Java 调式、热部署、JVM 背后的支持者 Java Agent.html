@@ -1,0 +1,282 @@
+<html><head><meta charset='utf-8'><meta name='viewport' content='width=device-width, initial-scale=1'>
+<meta name='applicable-device' content='pc'><meta name='keywords' content='电脑,电脑讲解,电脑技术,编程,电脑故障维修Java 调式、热部署、JVM 背后的支持者 Java Agent' />
+<script src='../../highlight/highlight.pack.js'></script>
+<link rel='stylesheet' type='text/css' href='../../highlight/styles/monokai.css'/>
+
+<link rel='stylesheet' href='../../fenxiang/dist/css/share.min.css'>
+<script src='../../fenxiang/src/js/social-share.js'></script>
+<script src='../../fenxiang/src/js/qrcode.js'></script>
+
+</head><body><script>hljs.initHighlightingOnLoad();</script><script>
+var system ={};  
+var p = navigator.platform;       
+system.win = p.indexOf('Win') == 0;  
+system.mac = p.indexOf('Mac') == 0;  
+system.x11 = (p == 'X11') || (p.indexOf('Linux') == 0);     
+if(system.win||system.mac||system.xll){
+document.write("<link href='../css/3.css' rel='stylesheet' type='text/css'>");}else{ document.write("<link href='../css/3wap.css' rel='stylesheet' type='text/css'>");}</script><script src='../../js/3.js'></script><div class='div2'><div class='heading_nav'><ul><div><li><a href='../../index.html'>首页</a></li>
+</div><div onclick='hidden1()' >分享</div>
+</ul></div></div>
+<div id='heading_nav2'> 
+<li class='row' >
+<div class='social-share' data-mode='prepend'><a href='javascript:' class='social-share-icon icon-heart'></a></div></li></div><script charset='utf-8' src='../../3/js/hengfu.js'></script><script charset='utf-8' src='../../3/js/hengfu2.js'></script><hr><div class='div1'><div class='biaoti'><center>Java 调式、热部署、JVM 背后的支持者 Java Agent</center></div><div class='banquan'>原文出处:本文由博客园博主风的姿态提供。<br/>
+原文连接:https://www.cnblogs.com/fengzheng/p/11502963.html</div><br>
+    <blockquote>
+<p>我们平时写 Java Agent 的机会确实不多，也可以说几乎用不着。但其实我们一直在用它，而且接触的机会非常多。下面这些技术都使用了 Java Agent 技术，看一下你就知道为什么了。</p>
+</blockquote>
+<p><em>-</em>各个 Java IDE 的调试功能，例如 eclipse、IntelliJ ；</p>
+<p><em>-</em>热部署功能，例如 JRebel、XRebel、 spring-loaded；</p>
+<p><em>-</em>各种线上诊断工具，例如 Btrace、Greys，还有阿里的 Arthas；</p>
+<p><em>-</em>各种性能分析工具，例如 Visual VM、JConsole 等；</p>
+<p>Java Agent 直译过来叫做 Java 代理，还有另一种称呼叫做 Java 探针。首先说 Java Agent 是一个 jar 包，只不过这个 jar 包不能独立运行，它需要依附到我们的目标 JVM 进程中。我们来理解一下这两种叫法。</p>
+<p><strong>代理</strong>：比方说我们需要了解目标 JVM 的一些运行指标，我们可以通过 Java Agent 来实现，这样看来它就是一个代理的效果，我们最后拿到的指标是目标 JVM ,但是我们是通过 Java Agent 来获取的，对于目标 JVM 来说，它就像是一个代理；</p>
+<p><strong>探针</strong>：这个说法我感觉非常形象，JVM 一旦跑起来，对于外界来说，它就是一个黑盒。而 Java Agent 可以像一支针一样插到 JVM 内部，探到我们想要的东西，并且可以注入东西进去。</p>
+<p>拿上面的几个我们平时会用到的技术举例子。拿 IDEA 调试器来说吧，当开启调试功能后，在 debugger 面板中可以看到当前上下文变量的结构和内容，还可以在 watches 面板中运行一些简单的代码，比如取值赋值等操作。还有 Btrace、Arthas 这些线上排查问题的工具，比方说有接口没有按预期的返回结果，但日志又没有错误，这时，我们只要清楚方法的所在包名、类名、方法名等，不用修改部署服务，就能查到调用的参数、返回值、异常等信息。</p>
+<p>上面只是说到了探测的功能，而热部署功能那就不仅仅是探测这么简单了。热部署的意思就是说再不重启服务的情况下，保证最新的代码逻辑在服务生效。当我们修改某个类后，通过 Java Agent 的 instrument 机制，把之前的字节码替换为新代码所对应的字节码。</p>
+<h3 id="java-agent-结构"><em>Java Agent 结构</em></h3>
+<p><img src="./images/Java 调式、热部署、JVM 背后的支持者 Java Agent0.png" /><br />
+Java Agent 最终以 jar 包的形式存在。主要包含两个部分，一部分是实现代码，一部分是配置文件。</p>
+<p><em>配置文件</em>放在 META-INF 目录下，文件名为 MANIFEST.MF 。包括以下配置项：</p>
+<p>Manifest-Version: 版本号<br />
+Created-By: 创作者<br />
+Agent-Class: agentmain 方法所在类<br />
+Can-Redefine-Classes: 是否可以实现类的重定义<br />
+Can-Retransform-Classes: 是否可以实现字节码替换<br />
+Premain-Class: premain 方法所在类</p>
+<p><em>入口类</em>实现 <code>agentmain</code> 和 <code>premain</code> 两个方法即可，方法要实现什么功能就由你的需求决定了。</p>
+<h3 id="java-agent-实现和使用"><em>Java Agent 实现和使用</em></h3>
+<p>接下来就来实现一个简单的 Java Agent，基于 Java 1.8，主要实现两点简单的功能：</p>
+<p>1、打印当前加载的所有类的名称；</p>
+<p>2、监控一个特定的方法，在方法中动态插入简单的代码并获取方法返回值；</p>
+<p>在方法中插入代码主要是用到了字节码修改技术，字节码修改技术主要有 javassist、ASM，已经 ASM 的高级封装可扩展 cglib，这个例子中用的是 javassist。所以需要引入相关的 maven 包。</p>
+<pre><code><code>&lt;dependency&gt;
+    &lt;groupId&gt;javassist&lt;/groupId&gt;
+    &lt;artifactId&gt;javassist&lt;/artifactId&gt;
+    &lt;version&gt;3.12.1.GA&lt;/version&gt;
+&lt;/dependency&gt;</code></code></pre>
+<p><em>实现入口类和功能逻辑</em></p>
+<p>入口类上面也说了，要实现 <code>agentmain</code> 和 <code>premain</code> 两个方法。这两个方法的运行时机不一样。这要从 Java Agent 的使用方式来说了，Java Agent 有两种启动方式，一种是以 JVM 启动参数 <code>-javaagent:xxx.jar</code> 的形式随着 JVM 一起启动，这种情况下，会调用 <code>premain</code>方法，并且是在主进程的 <code>main</code>方法之前执行。另外一种是以 loadAgent 方法动态 attach 到目标 JVM 上，这种情况下，会执行 <code>agentmain</code>方法。</p>
+<table>
+<thead>
+<tr class="header">
+<th>加载方式</th>
+<th>执行方法</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>-javaagent:xxx.jar 参数形式</td>
+<td>premain</td>
+</tr>
+<tr class="even">
+<td>动态 attach</td>
+<td>agentmain</td>
+</tr>
+</tbody>
+</table>
+<p>代码实现如下：</p>
+<pre class="java"><code>package kite.lab.custom.agent;
+
+import java.lang.instrument.Instrumentation;
+
+public class MyCustomAgent {
+    /**
+     * jvm 参数形式启动，运行此方法
+     * @param agentArgs
+     * @param inst
+     */
+    public static void premain(String agentArgs, Instrumentation inst){
+        System.out.println(&quot;premain&quot;);
+        customLogic(inst);
+    }
+
+    /**
+     * 动态 attach 方式启动，运行此方法
+     * @param agentArgs
+     * @param inst
+     */
+    public static void agentmain(String agentArgs, Instrumentation inst){
+        System.out.println(&quot;agentmain&quot;);
+        customLogic(inst);
+    }
+
+    /**
+     * 打印所有已加载的类名称
+     * 修改字节码
+     * @param inst
+     */
+    private static void customLogic(Instrumentation inst){
+        inst.addTransformer(new MyTransformer(), true);
+        Class[] classes = inst.getAllLoadedClasses();
+        for(Class cls :classes){
+            System.out.println(cls.getName());
+        }
+    }
+}</code></code></pre>
+<p>我们看到这两个方法都有参数 agentArgs 和 inst，其中 agentArgs 是我们启动 Java Agent 时带进来的参数，比如<code>-javaagent:xxx.jar agentArgs</code>。Instrumentation Java 开放出来的专门用于字节码修改和程序监控的实现。我们要实现的打印已加载类和修改字节码也就是基于它来实现的。其中 <code>inst.getAllLoadedClasses()</code>一个方法就实现了获取所以已加载类的功能。</p>
+<p><code>inst.addTransformer</code>方法则是实现字节码修改的关键，后面的参数就是实现字节码修改的实现类，代码如下：</p>
+<pre class="java"><code>public class MyTransformer implements ClassFileTransformer {
+
+    @Override
+    public byte[] transform(ClassLoader loader, String className, Class&lt;?&gt; classBeingRedefined, ProtectionDomain protectionDomain, byte[] classfileBuffer) throws IllegalClassFormatException {
+        System.out.println(&quot;正在加载类：&quot;+ className);
+        if (!&quot;kite/attachapi/Person&quot;.equals(className)){
+            return classfileBuffer;
+        }
+
+        CtClass cl = null;
+        try {
+            ClassPool classPool = ClassPool.getDefault();
+            cl = classPool.makeClass(new ByteArrayInputStream(classfileBuffer));
+            CtMethod ctMethod = cl.getDeclaredMethod(&quot;test&quot;);
+            System.out.println(&quot;获取方法名称：&quot;+ ctMethod.getName());
+
+            ctMethod.insertBefore(&quot;System.out.println(\&quot; 动态插入的打印语句 \&quot;);&quot;);
+            ctMethod.insertAfter(&quot;System.out.println($_);&quot;);
+
+            byte[] transformed = cl.toBytecode();
+            return transformed;
+        }catch (Exception e){
+            e.printStackTrace();
+
+        }
+        return classfileBuffer;
+    }
+}</code></code></pre>
+<p>以上代码的逻辑就是当碰到加载的类是 <code>kite.attachapi.Person</code>的时候，在其中的 <code>test</code> 方法开始时插入一条打印语句，打印内容是&quot;动态插入的打印语句&quot;，在<code>test</code>方法结尾处，打印返回值，其中<code>$_</code>就是返回值，这是 javassist 里特定的标示符。</p>
+<p><em>MANIFEST.MF 配置文件</em></p>
+<p>在目录 resources/META-INF/ 下创建文件名为 MANIFEST.MF 的文件，在其中加入如下的配置内容：</p>
+<pre class="properties"><code>Manifest-Version: 1.0
+Created-By: fengzheng
+Agent-Class: kite.lab.custom.agent.MyCustomAgent
+Can-Redefine-Classes: true
+Can-Retransform-Classes: true
+Premain-Class: kite.lab.custom.agent.MyCustomAgent</code></code></pre>
+<p><em>配置打包所需的 pom 设置</em></p>
+<p>最后 Java Agent 是以 jar 包的形式存在，所以最后一步就是将上面的内容打到一个 jar 包里。</p>
+<p>在 pom 文件中加入以下配置</p>
+<pre><code><code>&lt;build&gt;
+    &lt;plugins&gt;
+        &lt;plugin&gt;
+            &lt;groupId&gt;org.apache.maven.plugins&lt;/groupId&gt;
+            &lt;artifactId&gt;maven-assembly-plugin&lt;/artifactId&gt;
+            &lt;configuration&gt;
+                &lt;archive&gt;
+                    &lt;manifestFile&gt;src/main/resources/META-INF/MANIFEST.MF&lt;/manifestFile&gt;
+                &lt;/archive&gt;
+                &lt;descriptorRefs&gt;
+                    &lt;descriptorRef&gt;jar-with-dependencies&lt;/descriptorRef&gt;
+                &lt;/descriptorRefs&gt;
+            &lt;/configuration&gt;
+        &lt;/plugin&gt;
+    &lt;/plugins&gt;
+&lt;/build&gt;</code></code></pre>
+<p>用的是 maven 的 maven-assembly-plugin 插件，注意其中要用 manifestFile 指定 MANIFEST.MF 所在路径，然后指定 jar-with-dependencies ，将依赖包打进去。</p>
+<p>上面这是一种打包方式，需要单独的 MANIFEST.MF 配合，<em>还有一种方式</em>，不需要在项目中单独的添加 MANIFEST.MF 配置文件，完全在 pom 文件中配置上即可。</p>
+<pre><code><code>&lt;build&gt;
+    &lt;plugins&gt;
+        &lt;plugin&gt;
+            &lt;groupId&gt;org.apache.maven.plugins&lt;/groupId&gt;
+            &lt;artifactId&gt;maven-assembly-plugin&lt;/artifactId&gt;
+            &lt;executions&gt;
+                &lt;execution&gt;
+                    &lt;goals&gt;
+                        &lt;goal&gt;attached&lt;/goal&gt;
+                    &lt;/goals&gt;
+                    &lt;phase&gt;package&lt;/phase&gt;
+                    &lt;configuration&gt;
+                        &lt;descriptorRefs&gt;
+                            &lt;descriptorRef&gt;jar-with-dependencies&lt;/descriptorRef&gt;
+                        &lt;/descriptorRefs&gt;
+                        &lt;archive&gt;
+                            &lt;manifestEntries&gt;
+                                &lt;Premain-Class&gt;kite.agent.vmargsmethod.MyAgent&lt;/Premain-Class&gt;
+                                &lt;Agent-Class&gt;kite.agent.vmargsmethod.MyAgent&lt;/Agent-Class&gt;
+                                &lt;Can-Redefine-Classes&gt;true&lt;/Can-Redefine-Classes&gt;
+                                &lt;Can-Retransform-Classes&gt;true&lt;/Can-Retransform-Classes&gt;
+                            &lt;/manifestEntries&gt;
+                        &lt;/archive&gt;
+                    &lt;/configuration&gt;
+                &lt;/execution&gt;
+            &lt;/executions&gt;
+        &lt;/plugin&gt;
+    &lt;/plugins&gt;
+&lt;/build&gt;</code></code></pre>
+<p>这种方式是将 MANIFEST.MF 的内容全部写作 pom 配置中，打包的时候就会自动将配置信息生成 MANIFEST.MF 配置文件打进包里。</p>
+<p><em>运行打包命令</em></p>
+<p>接下来就简单了，执行一条 maven 命令即可。</p>
+<pre class="bash"><code>mvn assembly:assembly</code></code></pre>
+<p>最后打出来的 jar 包默认是以「项目名称-版本号-jar-with-dependencies.jar」这样的格式生成到 target 目录下。</p>
+<p><em>运行打包好的 Java Agent</em></p>
+<p>首先写一个简单的测试项目，用来作为目标 JVM，稍后会以两种方式将 Java Agent 挂到这个测试项目上。</p>
+<pre class="java"><code>package kite.attachapi;
+
+import java.util.Scanner;
+
+public class RunJvm {
+
+    public static void main(String[] args){
+        System.out.println(&quot;按数字键 1 调用测试方法&quot;);
+        while (true) {
+            Scanner reader = new Scanner(System.in);
+            int number = reader.nextInt();
+            if(number==1){
+                Person person = new Person();
+                person.test();
+            }
+        }
+    }
+}</code></code></pre>
+<p>以上只有一个简单的 main 方法，用 while 的方式保证线程不退出，并且在输入数字 1 的时候，调用 <code>person.test()</code>方法。</p>
+<p>以下是 Person 类</p>
+<pre class="java"><code>package kite.attachapi;
+
+public class Person {
+
+    public String test(){
+        System.out.println(&quot;执行测试方法&quot;);
+        return &quot;I&#39;m ok&quot;;
+    }
+}</code></code></pre>
+<p><strong>以命令行的方式运行</strong></p>
+<p>因为项目是在 IDEA 里创建的，为了省事儿，我就直接在 IDEA 的 「Run/Debug Configurations」里加参数了。</p>
+<pre class="shell"><code>-javaagent:/java-agent路径/lab-custom-agent-1.0-SNAPSHOT-jar-with-dependencies.jar</code></code></pre>
+<p><img src="./images/Java 调式、热部署、JVM 背后的支持者 Java Agent1.png" /></p>
+<p>然后直接运行就可以看到效果了，会看到加载的类名称。然后输入数字键 &quot;1&quot;，会看到字节码修改后的内容。</p>
+<p><img src="./images/Java 调式、热部署、JVM 背后的支持者 Java Agent2.png" /></p>
+<p><strong>以动态 attach 的方式运行</strong></p>
+<p>测试之前先要把这个测试项目跑起来，并把之前的参数去掉。运行后，找到这个它的进程id，一般利用<code>jps -l</code>即可。</p>
+<p>动态 attach 的方式是需要代码实现的，实现代码如下：</p>
+<pre class="java"><code>public class AttachAgent {
+
+    public static void main(String[] args) throws Exception{
+        VirtualMachine vm = VirtualMachine.attach(&quot;pid(进程号)&quot;);
+        vm.loadAgent(&quot;java-agent路径/lab-custom-agent-1.0-SNAPSHOT-jar-with-dependencies.jar&quot;);
+    }
+}</code></code></pre>
+<p>运行上面的 main 方法 并在测试程序中输入“1”，会得到上图同样的结果。</p>
+<blockquote>
+<p>发现了没，我们到这里实现的简单的功能是不是和 BTrace 和 Arthas 有点像呢。我们拦截了指定的一个方法，并在这个方法里插入了代码而且拿到了返回结果。如果把方法名称变成可配置项，并且把返回结果保存到一个公共位置，例如一个内存数据库，是不是我们就可以像 Arthas 那样轻松的检测线上问题了呢。当然了，Arthas 要复杂的多，但原理是一样的。</p>
+</blockquote>
+<h3 id="sun.management.agent-的实现"><em>sun.management.Agent 的实现</em></h3>
+<p>不知道你平时有没有用过 visualVM 或者 JConsole 之类的工具，其实，它们就是用了 management-agent.jar 这个Java Agent 来实现的。如果我们希望 Java 服务允许远程查看 JVM 信息，往往会配置上一下这些参数：</p>
+<pre class="properties"><code>-Dcom.sun.management.jmxremote
+-Djava.rmi.server.hostname=192.168.1.1
+-Dcom.sun.management.jmxremote.port=9999
+-Dcom.sun.management.jmxremote.rmi.port=9999
+-Dcom.sun.management.jmxremote.authenticate=false
+-Dcom.sun.management.jmxremote.ssl=false</code></code></pre>
+<p>这些参数都是 management-agent.jar 定义的。</p>
+<p>我们进到 management-agent.jar 包下，看到只有一个 MANIFEST.MF 配置文件，配置内容为：</p>
+<pre class="properties"><code>Manifest-Version: 1.0
+Created-By: 1.7.0_07 (Oracle Corporation)
+Agent-Class: sun.management.Agent
+Premain-Class: sun.management.Agent</code></code></pre>
+<p>可以看到入口 class 为 sun.management.Agent，进到这个类里面可以找到 agentmain 和 premain，并可以看到它们的逻辑。在这个类的开始，能看到我们前面对服务开启远程 JVM 监控需要开启的那些参数定义。</p>
+<p>不要吝惜你的「<strong>推荐</strong>」呦</p>
+<p><strong>欢迎关注，不定期更新本系列和其他文章</strong><br />
+<code>古时的风筝</code> ，进入公众号可以加入交流群<br />
+<img src="./images/Java 调式、热部署、JVM 背后的支持者 Java Agent3.png" /></p>
+
+
+</div><hr><script charset='utf-8' src='../../js/sming.js'></script></body></html>

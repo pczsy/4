@@ -1,0 +1,131 @@
+<html><head><meta charset='utf-8'><meta name='viewport' content='width=device-width, initial-scale=1'>
+<meta name='applicable-device' content='pc'><meta name='keywords' content='电脑,电脑讲解,电脑技术,编程,电脑故障维修先森林后树木：Elasticsearch各版本升级核心内容必看' />
+<script src='../../highlight/highlight.pack.js'></script>
+<link rel='stylesheet' type='text/css' href='../../highlight/styles/monokai.css'/>
+
+<link rel='stylesheet' href='../../fenxiang/dist/css/share.min.css'>
+<script src='../../fenxiang/src/js/social-share.js'></script>
+<script src='../../fenxiang/src/js/qrcode.js'></script>
+
+</head><body><script>hljs.initHighlightingOnLoad();</script><script>
+var system ={};  
+var p = navigator.platform;       
+system.win = p.indexOf('Win') == 0;  
+system.mac = p.indexOf('Mac') == 0;  
+system.x11 = (p == 'X11') || (p.indexOf('Linux') == 0);     
+if(system.win||system.mac||system.xll){
+document.write("<link href='../css/3.css' rel='stylesheet' type='text/css'>");}else{ document.write("<link href='../css/3wap.css' rel='stylesheet' type='text/css'>");}</script><script src='../../js/3.js'></script><div class='div2'><div class='heading_nav'><ul><div><li><a href='../../index.html'>首页</a></li>
+</div><div onclick='hidden1()' >分享</div>
+</ul></div></div>
+<div id='heading_nav2'> 
+<li class='row' >
+<div class='social-share' data-mode='prepend'><a href='javascript:' class='social-share-icon icon-heart'></a></div></li></div><script charset='utf-8' src='../../3/js/hengfu.js'></script><script charset='utf-8' src='../../3/js/hengfu2.js'></script><hr><div class='div1'><div class='biaoti'><center>先森林后树木：Elasticsearch各版本升级核心内容必看</center></div><div class='banquan'>原文出处:本文由博客园博主会飞的笨石头提供。<br/>
+原文连接:https://www.cnblogs.com/flyrock/p/11614396.html</div><br>
+    <p>在学习Elasticsearch 时候，因为各个版本的问题，搞不清，非常的头疼，官方也给出了各个版本更新的情况，不过是英文版本，版本更新信息又特别多，最近学习，看了很多资料，没有一个整理很清楚的，然后自己就统一整理下,首先声明下面的整理都是各个版本个人认为比较重要点，因为每个大版本更新内容太多，也不能一一举例，详细需要参阅官方文档，文章底部有链接，我也是为了自己方便在整体上，了解Elasticsearch 各个版本的迭代，可以更好的理解和使用Elasticsearch 产品，所以有了这篇文章。</p>
+<h3 id="-0-7-0">初始版本 0.7.0</h3>
+<p>2010年5月14日发布,第一个可以查询到发版信息的版本，重要特性：</p>
+<ul>
+<li>Zen Discovery 自动发现模块</li>
+<li>Groovy Client支持</li>
+<li>简单的插件管理机制</li>
+<li>更好支持ICU分词器</li>
+<li>更多的管理API</li>
+</ul>
+<p>初始化的版本，暂时不多介绍，先来这么多。</p>
+<h3 id="-1-0-0-">升级1.0.0 版本</h3>
+<p>2014年2月14日发布，重要特性： -Snapshot/Restore API 备份恢复API</p>
+<ul>
+<li>支持聚合分析Aggregations</li>
+<li>CAT API 支持</li>
+<li>支持联盟查询</li>
+<li>断路器支持</li>
+<li>Doc values 引入</li>
+</ul>
+<h3 id="2-0-0-">2.0.0 版本</h3>
+<p>2015年10月28日发布，重要特性：</p>
+<ul>
+<li>增加了 pipleline Aggregations</li>
+<li>query/filter 查询合并，都合并到query中，根据不同的上下文执行不同的查询</li>
+<li>存储压缩可配置</li>
+<li>Rivers 模块被移除</li>
+<li>Multicast 组播发现被移除，成为一个插件，生产环境必须配置单播地址</li>
+</ul>
+<h3 id="-5-0-0-">新特性5.0.0 版本</h3>
+<p>2016年10月26日发布，重要特性：</p>
+<ul>
+<li>Lucene 6.x 的支持，磁盘空间少一半；索引时间少一半；查询性能提升25%；支持IPV6。</li>
+<li>Internal engine级别移除了用于避免同一文档并发更新的竞争锁，带来15%-20%的性能提升</li>
+<li>Shrink API ，它可将分片数进行收缩成它的因数，如之前你是15个分片，你可以收缩成5个或者3个又或者1个，那么我们就可以想象成这样一种场景，在写入压力非常大的收集阶段，设置足够多的索引，充分利用shard的并行写能力，索引写完之后收缩成更少的shard，提高查询性能</li>
+<li>提供了第一个Java原生的REST客户端SDK</li>
+<li>IngestNode，之前如果需要对数据进行加工，都是在索引之前进行处理，比如logstash可以对日志进行结构化和转换，现在直接在es就可以处理了</li>
+<li>提供了 Painless 脚本，代替Groovy脚本</li>
+<li>移除 site plugins ，就是说 head 、 bigdesk 都不能直接装 es 里面了，不过可以部署独立站点（反正都是静态文件）或开发 kibana 插件</li>
+<li>新增 Sliced Scroll类型，现在Scroll接口可以并发来进行数据遍历了。每个Scroll请求，可以分成多个Slice请求，可以理解为切片，各Slice独立并行，利用Scroll重建或者遍历要快很多倍。</li>
+<li>新增了Profile API</li>
+<li>新增了Rollover API</li>
+<li>新增Reindex</li>
+<li>提供了第一个Java原生的REST客户端SDK 基于HTTP协议的客户端对Elasticsearch的依赖解耦，没有jar包冲突，提供了集群节点自动发现、日志处理、节点请求失败自动进行请求轮询，充分发挥Elasticsearch的高可用能力</li>
+<li>引入新的字段类型 Text/Keyword 来替换 String</li>
+<li>限制索引请求大小，避免大量并发请求压垮 ES</li>
+<li>限制单个请求的 shards 数量，默认 1000 个</li>
+</ul>
+<h3 id="-6-0-0-">新特性6.0.0 版本</h3>
+<p>2017年8月31日发布，重要特性：</p>
+<ul>
+<li>稀疏性 Doc Values 的支持</li>
+<li>Index sorting，即索引阶段的排序。</li>
+<li>顺序号的支持，每个 es 的操作都有一个顺序编号（类似增量设计）</li>
+<li>无缝滚动升级</li>
+<li>Removal of types，在 6.0 里面，开始不支持一个 index 里面存在多个 type</li>
+<li>Index-template inheritance，索引版本的继承，目前索引模板是所有匹配的都会合并，这样会造成索引模板有一些冲突问题， 6.0 将会只匹配一个，索引创建时也会进行验证</li>
+<li>Load aware shard routing， 基于负载的请求路由，目前的搜索请求是全节点轮询，那么性能最慢的节点往往会造成整体的延迟增加，新的实现方式将基于队列的耗费时间自动调节队列长度，负载高的节点的队列长度将减少，让其他节点分摊更多的压力，搜索和索引都将基于这种机制。</li>
+<li>已经关闭的索引将也支持 replica 的自动处理，确保数据可靠。</li>
+</ul>
+<h3 id="-7-0-0-">新特性7.0.0 版本</h3>
+<p>2019年4月10日发布，重要特性：</p>
+<ul>
+<li>集群连接变化：TransportClient被废弃 以至于，es7的java代码，只能使用restclient。然后，个人综合了一下，对于java编程，建议采用 High-level-rest-client 的方式操作ES集群</li>
+<li>ES程序包默认打包jdk： 以至于7.x版本的程序包大小突然边300MB+ 对比6.x发现，包大了200MB+， 正是JDK的大小</li>
+<li>Lucene9.0</li>
+<li>
+<p>重大改进-正式废除单个索引下多Type的支持 es6时，官方就提到了es7会删除type，并且es6时已经规定每一个index只能有一个type。在es7中使用默认的_doc作为type，官方说在8.x版本会彻底移除type。 api请求方式也发送变化，如获得某索引的某ID的文档：GET index/_doc/id其中index和id为具体的值</p>
+</li>
+<li>
+<p>7.1开始，Security功能免费使用</p>
+</li>
+<li>ECK-ElasticSearch Operator on Kubernetes</li>
+<li>引入了真正的内存断路器，它可以更精准地检测出无法处理的请求，并防止它们使单个节点不稳定</li>
+<li>Zen2 是 Elasticsearch 的全新集群协调层，提高了可靠性、性能和用户体验，变得更快、更安全，并更易于使用</li>
+<li>新功能
+<ul>
+<li>New Cluster coordination</li>
+<li>Feature - Complete High Level REST Client</li>
+<li>Script Score Query</li>
+</ul>
+</li>
+<li>性能优化
+<ul>
+<li>Weak-AND算法提高查询性能</li>
+<li>默认的Primary Shared数从5改为1，避免Over Sharding</li>
+<li>更快的前 k 个查询</li>
+<li>间隔查询(Intervals queries) 某些搜索用例（例如，法律和专利搜索）引入了查找单词或短语彼此相距一定距离的记录的需要。 Elasticsearch 7.0中的间隔查询引入了一种构建此类查询的全新方式，与之前的方法（跨度查询span queries）相比，使用和定义更加简单。 与跨度查询相比，间隔查询对边缘情况的适应性更强。</li>
+</ul>
+</li>
+</ul>
+<h3 id="-">总结</h3>
+<p>通过各个版本的迭代升级会发现，Elasticsearch 的产品的重大改善体验，了解了版本间的不同，会让你认知提高一个档次，网上文章一大片，有的时候你发现，文章作者操作的时候成功的，到了你这里就失败了，百思不得其中的奥秘，或者我的一个方法或者对象怎么就没了，谁对谁错，没有定论，懂得事情的本质才是重点，回到问题的根源，才是解决问题的根本。</p>
+<p>希望本篇的介绍可以让你在学习 Elasticsearch 的路上更顺畅，等你学完了Elasticsearch最新版本后，回过头来再看这篇文章的时候，感觉是不是一样的，我觉得学习一门技术的时候，心里要对全部轮廓有个认知，不至于钻进一个空间，看不到整个森林的尴尬无效的境地。 就像本文标题所说，先看整个森林，再去钻研一课树木，才会更懂。</p>
+<h3 id="end">END</h3>
+<p>如有收获，请帮忙转发，后续会有更好文章贡献，您的鼓励是作者最大的动力！</p>
+<blockquote>
+<p>欢迎关注我的公众号：架构师的修炼，获得独家整理的学习资源和日常干货推送。</p>
+</blockquote>
+<p>参考文章：</p>
+<ul>
+<li><a href="https://www.elastic.co/guide/en/elasticsearch/reference/7.0/release-notes-7.0.0.html">官方文档 Elasticsearch7.0.0版本更新notes</a></li>
+<li><a href="https://www.elastic.co/guide/en/elasticsearch/reference/index.html">Elasticsearch Reference 官方文档，英文好的可以进入</a></li>
+<li><a href="https://blog.csdn.net/qq_34829447/article/details/99687377">01ElasticSearch简介及其发展历史</a></li>
+<li><a href="https://blog.csdn.net/jiangchao858/article/details/78897818">Lucene的版本迭代</a></li>
+</ul>
+
+</div><hr><script charset='utf-8' src='../../js/sming.js'></script></body></html>

@@ -1,0 +1,209 @@
+<html><head><meta charset='utf-8'><meta name='viewport' content='width=device-width, initial-scale=1'>
+<meta name='applicable-device' content='pc'><meta name='keywords' content='电脑,电脑讲解,电脑技术,编程,电脑故障维修springcloud超简单的入门2--Eureka服务治理' />
+<script src='../../highlight/highlight.pack.js'></script>
+<link rel='stylesheet' type='text/css' href='../../highlight/styles/monokai.css'/>
+
+<link rel='stylesheet' href='../../fenxiang/dist/css/share.min.css'>
+<script src='../../fenxiang/src/js/social-share.js'></script>
+<script src='../../fenxiang/src/js/qrcode.js'></script>
+
+</head><body><script>hljs.initHighlightingOnLoad();</script><script>
+var system ={};  
+var p = navigator.platform;       
+system.win = p.indexOf('Win') == 0;  
+system.mac = p.indexOf('Mac') == 0;  
+system.x11 = (p == 'X11') || (p.indexOf('Linux') == 0);     
+if(system.win||system.mac||system.xll){
+document.write("<link href='../css/3.css' rel='stylesheet' type='text/css'>");}else{ document.write("<link href='../css/3wap.css' rel='stylesheet' type='text/css'>");}</script><script src='../../js/3.js'></script><div class='div2'><div class='heading_nav'><ul><div><li><a href='../../index.html'>首页</a></li>
+</div><div onclick='hidden1()' >分享</div>
+</ul></div></div>
+<div id='heading_nav2'> 
+<li class='row' >
+<div class='social-share' data-mode='prepend'><a href='javascript:' class='social-share-icon icon-heart'></a></div></li></div><script charset='utf-8' src='../../3/js/hengfu.js'></script><script charset='utf-8' src='../../3/js/hengfu2.js'></script><hr><div class='div1'><div class='biaoti'><center>springcloud超简单的入门2--Eureka服务治理</center></div><div class='banquan'>原文出处:本文由博客园博主炉窑知码力提供。<br/>
+原文连接:https://www.cnblogs.com/justalittlecoder/p/11519922.html</div><br>
+    <h1 id="eureka服务治理">Eureka服务治理</h1>
+<p>下面请听第一个话题，母。。。咳咳，拿错书了。</p>
+<h2 id="eureka简介">Eureka简介</h2>
+<p>eureka是什么呢？</p>
+<p>简单来说呢，当我的微服务应用多了起来，一个一个写死再程序里是件很不优雅的事情，而且同一服务可能会多个实例存在，来对服务分流，就是负载均衡。</p>
+<p>所以，我们需要一个位置来存放服务的访问列表，以供消费端来使用，这个东西呢，就可以用eureka来实现。</p>
+<p>我们来看一下eureka的相关概念：</p>
+<ul>
+<li><p>​ 相关概念</p>
+<ul>
+<li><p>服务注册(Register)</p>
+<p>eureka客户端向Eureka服务器注册时，它提供自身的元数据，比如IP地址，端口信息</p></li>
+<li><p>服务续约(Renew)</p>
+<p>客户端每隔30秒发送一次心跳来进行服务续约。</p></li>
+<li><p>服务下线(Cancel)</p>
+<p>客户端在程序关闭时向服务器发送取消请求，成功该实例将会从服务器注册列表中删除</p></li>
+<li><p>服务剔除(Eviction)</p>
+<p>默认情况下，当客户端连续90秒没有发送心跳请求，服务器就会将该服务实例从服务列表中删除，剔除该服务</p></li>
+<li><p>获取服务注册列表信息(Fetch Registriers)</p>
+<p>客户端从服务器获取服务注册列表信息，并将其缓存在本地。列表信息定期(30秒)更新一次。</p></li>
+</ul></li>
+</ul>
+<p>不太理解也没关系，我们可以先把架子搭建起来，之后慢慢悟把。</p>
+<h2 id="eureka角色">Eureka角色</h2>
+<p>Eureka中存在三种角色，注册中心，服务提供者，服务消费者。</p>
+<p>其中注册中心是Eureka服务端，服务提供者与服务消费者都是客户端。</p>
+<ul>
+<li><p>注册中心服务器</p>
+<p>主要进行，服务注册，服务续约和服务下线。就是维护服务列表的东东啦。</p>
+<p>让我们一步一步的开始把</p>
+<ul>
+<li>相关依赖</li>
+</ul>
+<pre><code><code>&lt;dependency&gt;
+      &lt;groupId&gt;org.springframework.cloud&lt;/groupId&gt;
+      &lt;artifactId&gt;spring-cloud-starter-netflix-eureka-server&lt;/artifactId&gt;
+&lt;/dependency&gt;</code></code></pre>
+<ul>
+<li>启动类配置，使用<code>@EnableEurekaServer</code>注解，启用Eureka服务</li>
+</ul>
+<pre class="java"><code>@SpringBootApplication
+@EnableEurekaServer
+public class EurekacenteralApplication {
+    public static void main(String[] args) {
+        SpringApplication.run(EurekacenteralApplication.class, args);
+    }
+
+}</code></code></pre>
+<ul>
+<li>属性配置</li>
+</ul>
+<pre class="yml"><code>server:
+  port: 9090 ##UI界面端口
+eureka:
+  instance:
+    hostname: localhost  ##主机名称
+  client:
+    register-with-eureka: false  ##是否注册到服务中心，因为本身就是服务中心，不需要注册
+    fetch-registry: false  ##是否发现服务
+    service-url:          ##注册中心服务地址
+      defaultZone: http://${eureka.instance.hostname}:${server.port}/eureka/</code></code></pre>
+<p>启动服务，这样一个简单的注册中心就启动起来，浏览器访问http://localhost:9090 就可以看到eureka的监控界面了。</p></li>
+<li><p>服务提供者</p>
+<p>eureka客户端，向外提供服务</p>
+<ul>
+<li>相关依赖，作为Euraka客户端</li>
+</ul>
+<pre><code><code> &lt;dependency&gt;
+     &lt;groupId&gt;org.springframework.cloud&lt;/groupId&gt;
+     &lt;artifactId&gt;spring-cloud-starter-netflix-eureka-client&lt;/artifactId&gt;
+ &lt;/dependency&gt;</code></code></pre>
+<ul>
+<li>启动类配置，使用<code>@EnableEurekaClient</code>注解，启动Eureka客户端</li>
+</ul>
+<pre class="java"><code>@SpringBootApplication
+@EnableEurekaClient
+public class App {
+    public static void main(String[] args) {
+        SpringApplication.run(App.class,args);
+    }
+}</code></code></pre>
+<ul>
+<li>属性配置(单机时可以通过设置不同端口，来启动多个服务)</li>
+</ul>
+<pre class="yml"><code>server:
+  port: 8080
+eureka:
+  instance:
+    prefer-ip-address: true  ##使用IP注册服务
+  client:
+    register-with-eureka: true  #默认就是true,可以不用设置
+    fetch-registry: true  #默认是true，可以不用设置
+    service-url:
+      defaultZone: http://localhost:9090/eureka/
+spring:
+  application:
+    name: microservice-provider</code></code></pre>
+<ul>
+<li>服务接口</li>
+</ul>
+<pre class="java"><code>@RestController
+@RequestMapping(&quot;/&quot;)
+public class TestController {
+
+    @GetMapping(&quot;hi/{name}&quot;)
+    public String hi(@PathVariable String name, HttpServletRequest request){
+
+        return &quot;hi,welcome &quot;+name+&quot; from port:&quot;+request.getServerPort();
+    }
+}</code></code></pre></li>
+<li><p>服务消费者</p>
+<p>本质上与提供者为同一类客户端，会在本地缓存一份服务列表信息，会定期更新缓存</p>
+<ul>
+<li>相关依赖</li>
+</ul>
+<pre><code><code>&lt;dependency&gt;
+     &lt;groupId&gt;org.springframework.cloud&lt;/groupId&gt;
+     &lt;artifactId&gt;spring-cloud-starter-netflix-eureka-client&lt;/artifactId&gt;
+&lt;/dependency&gt;</code></code></pre>
+<ul>
+<li>启动类配置</li>
+</ul>
+<pre class="java"><code>@SpringBootApplication
+public class App {
+
+    public static void main(String[] args) {
+        SpringApplication.run(App.class,args);
+    }
+    @Bean
+    public RestTemplate getRestTemplate(){
+        return new RestTemplate();
+    }
+}</code></code></pre>
+<ul>
+<li>属性配置</li>
+</ul>
+<pre class="yml"><code>server:
+  port: 8090
+eureka:
+  client:
+    service-url:
+      defaultZone: http://localhost:9090/eureka/
+    register-with-eureka: false ##仅仅作为消费者
+    fetch-registry: true  #默认是true，可以不用设置
+
+  ## 多说几句，服务者跟消费者不是绝对的，他们可以同时作为两种角色存在
+  ## register-with-eureka: true
+  ## fetch-registry: true  
+  ## 当这两个熟悉都为true的时候，就可以作为两种角色同时存在了，即可以作为提供者，向外提供服务
+  ## 又可以作为消费者，消费服务</code></code></pre>
+<ul>
+<li>服务消费，都在代码里，我干了，你随意。</li>
+</ul>
+<pre class="java"><code>@RestController
+@RequestMapping(&quot;/&quot;)
+public class TestController {
+
+
+    // 服务只有一个实例运行的时候，一个服务提供者，
+    // 就算不注册到eureka，我们也可以使用这种方式就行调用
+    @Resource
+    RestTemplate restTemplate;
+    @GetMapping(&quot;hi&quot;)
+    public String hi() {
+        return restTemplate.getForObject(&quot;http://localhost:8090/hi/consumer&quot;, String.class);
+    }
+
+    //当服务有多个实例的时候，我们就可以使用服务发现或获取服务列表，并取其中一个实例进行调用
+    // 这样才是实际场景，当然还用更简洁的使用方式，我们下次说
+    @Resource
+    DiscoveryClient discoveryClient;
+    //通过服务发现，获取注册中心上注册的服务，获取调用地址，然后调用服务
+    @GetMapping(&quot;hi2&quot;)
+    public String hi2() {
+        List&lt;ServiceInstance&gt; serviceInstances = discoveryClient
+                .getInstances(&quot;microservice-provider&quot;);
+        if (serviceInstances.size() == 0) return &quot;service has down&quot;;
+        // 这里就是取第一个服务来消费
+        return restTemplate.getForObject(String.format(&quot;%s/hi/consumer&quot;, serviceInstances.get(0).getUri()),
+                String.class);
+    }
+}</code></code></pre></li>
+</ul>
+
+
+</div><hr><script charset='utf-8' src='../../js/sming.js'></script></body></html>

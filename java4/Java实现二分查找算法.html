@@ -1,0 +1,98 @@
+<html><head><meta charset='utf-8'><meta name='viewport' content='width=device-width, initial-scale=1'>
+<meta name='applicable-device' content='pc'><meta name='keywords' content='电脑,电脑讲解,电脑技术,编程,电脑故障维修Java实现二分查找算法' />
+<script src='../../highlight/highlight.pack.js'></script>
+<link rel='stylesheet' type='text/css' href='../../highlight/styles/monokai.css'/>
+
+<link rel='stylesheet' href='../../fenxiang/dist/css/share.min.css'>
+<script src='../../fenxiang/src/js/social-share.js'></script>
+<script src='../../fenxiang/src/js/qrcode.js'></script>
+
+</head><body><script>hljs.initHighlightingOnLoad();</script><script>
+var system ={};  
+var p = navigator.platform;       
+system.win = p.indexOf('Win') == 0;  
+system.mac = p.indexOf('Mac') == 0;  
+system.x11 = (p == 'X11') || (p.indexOf('Linux') == 0);     
+if(system.win||system.mac||system.xll){
+document.write("<link href='../css/3.css' rel='stylesheet' type='text/css'>");}else{ document.write("<link href='../css/3wap.css' rel='stylesheet' type='text/css'>");}</script><script src='../../js/3.js'></script><div class='div2'><div class='heading_nav'><ul><div><li><a href='../../index.html'>首页</a></li>
+</div><div onclick='hidden1()' >分享</div>
+</ul></div></div>
+<div id='heading_nav2'> 
+<li class='row' >
+<div class='social-share' data-mode='prepend'><a href='javascript:' class='social-share-icon icon-heart'></a></div></li></div><script charset='utf-8' src='../../3/js/hengfu.js'></script><script charset='utf-8' src='../../3/js/hengfu2.js'></script><hr><div class='div1'><div class='biaoti'><center>Java实现二分查找算法</center></div><div class='banquan'>原文出处:本文由博客园博主bkycaoshi提供。<br/>
+原文连接:https://www.cnblogs.com/hejjon/p/11483786.html</div><br>
+    <p><strong>二分查找:</strong><br /><strong>两种方式</strong>: 非递归方式和递归方式<br /><strong>主要思路</strong>: 对于已排序的数组(先假定是从小到大排序), 先定义两个"指针", 一个"指向"首元素low, 一个"指向"末尾元素high. <br />然后, 开始折半比较, 即让要查找的数与数组中间的元素(索引为 low+high/2)比较. 若要查找的数比中间数小, <br />说明要查找的数在数组左侧(注意前提是数组从小到大排序), 否则说明该数在数组的右侧. 如果low最后还比high大,<br />俩"指针"交叉了, 说明没有找到该数, 即数组不存在该数. </p>
+<p><strong>注意事项</strong>: 排序规则与数组的排序顺序有关, 即从大到小排序和从小到大排序是不一样的!!!</p>
+<src class="cnblogs_code">
+<pre><code><span style="color: #008080;"> 1</span> <span style="color: #0000ff;">class</span><span style="color: #000000;"> BinarySearch {
+</span><span style="color: #008080;"> 2</span>     
+<span style="color: #008080;"> 3</span>     <span style="color: #008000;">//</span><span style="color: #008000;"> 二分查找非递归方式
+</span><span style="color: #008080;"> 4</span>     <span style="color: #008000;">//</span><span style="color: #008000;"> arr 给定已排序数组
+</span><span style="color: #008080;"> 5</span>     <span style="color: #008000;">//</span><span style="color: #008000;"> num 要查找的数</span>
+<span style="color: #008080;"> 6</span>     <span style="color: #0000ff;">public</span> <span style="color: #0000ff;">static</span> <span style="color: #0000ff;">int</span> search(<span style="color: #0000ff;">int</span>[] arr, <span style="color: #0000ff;">int</span><span style="color: #000000;"> num) {
+</span><span style="color: #008080;"> 7</span>         <span style="color: #0000ff;">int</span> low = <span style="color: #800080;">0</span><span style="color: #000000;">;
+</span><span style="color: #008080;"> 8</span>         <span style="color: #0000ff;">int</span> high = arr.length - <span style="color: #800080;">1</span><span style="color: #000000;">;
+</span><span style="color: #008080;"> 9</span>         <span style="color: #0000ff;">int</span> mid = <span style="color: #800080;">0</span><span style="color: #000000;">;
+</span><span style="color: #008080;">10</span>         <span style="color: #0000ff;">while</span> (low &lt;=<span style="color: #000000;"> high) {
+</span><span style="color: #008080;">11</span>             mid = (low + high) / <span style="color: #800080;">2</span><span style="color: #000000;">;
+</span><span style="color: #008080;">12</span>             <span style="color: #0000ff;">if</span> (num &lt;<span style="color: #000000;"> arr[mid]) {
+</span><span style="color: #008080;">13</span>                 high = mid - <span style="color: #800080;">1</span><span style="color: #000000;">;
+</span><span style="color: #008080;">14</span> <span style="color: #000000;">            }
+</span><span style="color: #008080;">15</span>             
+<span style="color: #008080;">16</span>             <span style="color: #0000ff;">if</span> (num &gt;<span style="color: #000000;"> arr[mid]) {
+</span><span style="color: #008080;">17</span>                 low = mid + <span style="color: #800080;">1</span><span style="color: #000000;">;
+</span><span style="color: #008080;">18</span> <span style="color: #000000;">            }
+</span><span style="color: #008080;">19</span>             <span style="color: #0000ff;">if</span> (num ==<span style="color: #000000;"> arr[mid]) {
+</span><span style="color: #008080;">20</span>                 <span style="color: #0000ff;">return</span><span style="color: #000000;"> mid;
+</span><span style="color: #008080;">21</span> <span style="color: #000000;">            }
+</span><span style="color: #008080;">22</span> <span style="color: #000000;">        }
+</span><span style="color: #008080;">23</span>         <span style="color: #0000ff;">return</span> -<span style="color: #800080;">1</span>;    <span style="color: #008000;">//</span><span style="color: #008000;"> 没找到</span>
+<span style="color: #008080;">24</span> <span style="color: #000000;">    }
+</span><span style="color: #008080;">25</span>     
+<span style="color: #008080;">26</span>     
+<span style="color: #008080;">27</span>     <span style="color: #008000;">//</span><span style="color: #008000;"> 二分查找递归方式
+</span><span style="color: #008080;">28</span>     <span style="color: #008000;">//</span><span style="color: #008000;"> arr 给定已排序数组
+</span><span style="color: #008080;">29</span>     <span style="color: #008000;">//</span><span style="color: #008000;"> num 要查找的数
+</span><span style="color: #008080;">30</span>     <span style="color: #008000;">//</span><span style="color: #008000;"> low 初始左侧指针 指向第一个元素
+</span><span style="color: #008080;">31</span>     <span style="color: #008000;">//</span><span style="color: #008000;"> high 初始末尾指针 指向最后一个元素</span>
+<span style="color: #008080;">32</span>     <span style="color: #0000ff;">public</span> <span style="color: #0000ff;">static</span> <span style="color: #0000ff;">int</span> binarySearch(<span style="color: #0000ff;">int</span>[] arr, <span style="color: #0000ff;">int</span> num, <span style="color: #0000ff;">int</span> low, <span style="color: #0000ff;">int</span><span style="color: #000000;"> high) {
+</span><span style="color: #008080;">33</span>         
+<span style="color: #008080;">34</span>         <span style="color: #0000ff;">int</span> mid = (low + high) / <span style="color: #800080;">2</span><span style="color: #000000;">; 
+</span><span style="color: #008080;">35</span>         
+<span style="color: #008080;">36</span>         <span style="color: #008000;">//</span><span style="color: #008000;"> 递归结束条件</span>
+<span style="color: #008080;">37</span>         <span style="color: #0000ff;">if</span> (low &gt;<span style="color: #000000;"> high) {
+</span><span style="color: #008080;">38</span>             <span style="color: #0000ff;">return</span> -<span style="color: #800080;">1</span><span style="color: #000000;">;
+</span><span style="color: #008080;">39</span> <span style="color: #000000;">        }
+</span><span style="color: #008080;">40</span>         
+<span style="color: #008080;">41</span>         <span style="color: #0000ff;">if</span> (num &lt;<span style="color: #000000;"> arr[mid]) {
+</span><span style="color: #008080;">42</span>             <span style="color: #0000ff;">return</span> binarySearch(arr, num, low, mid - <span style="color: #800080;">1</span><span style="color: #000000;">);
+</span><span style="color: #008080;">43</span>         } <span style="color: #0000ff;">else</span> <span style="color: #0000ff;">if</span> (num ==<span style="color: #000000;"> arr[mid]) {
+</span><span style="color: #008080;">44</span>             <span style="color: #0000ff;">return</span><span style="color: #000000;"> mid;
+</span><span style="color: #008080;">45</span>         } <span style="color: #0000ff;">else</span><span style="color: #000000;"> {
+</span><span style="color: #008080;">46</span>             <span style="color: #0000ff;">return</span> binarySearch(arr, num, mid + <span style="color: #800080;">1</span><span style="color: #000000;">, high);
+</span><span style="color: #008080;">47</span> <span style="color: #000000;">        }
+</span><span style="color: #008080;">48</span>         
+<span style="color: #008080;">49</span> <span style="color: #000000;">    }
+</span><span style="color: #008080;">50</span>     
+<span style="color: #008080;">51</span>     
+<span style="color: #008080;">52</span>     <span style="color: #0000ff;">public</span> <span style="color: #0000ff;">static</span> <span style="color: #0000ff;">void</span><span style="color: #000000;"> main(String[] args) {
+</span><span style="color: #008080;">53</span>         
+<span style="color: #008080;">54</span>         <span style="color: #008000;">//</span><span style="color: #008000;"> 给定数组 从小到大排序.</span>
+<span style="color: #008080;">55</span>         <span style="color: #0000ff;">int</span>[] arr = {<span style="color: #800080;">2</span>, <span style="color: #800080;">3</span>, <span style="color: #800080;">5</span>, <span style="color: #800080;">7</span>, <span style="color: #800080;">8</span>, <span style="color: #800080;">9</span>, <span style="color: #800080;">11</span>, <span style="color: #800080;">12</span>, <span style="color: #800080;">15</span><span style="color: #000000;">};
+</span><span style="color: #008080;">56</span>         <span style="color: #008000;">//</span><span style="color: #008000;"> int[] arr = {15, 12, 11, 9, 8, 7, 5, 3, 2};</span>
+<span style="color: #008080;">57</span>         
+<span style="color: #008080;">58</span>         <span style="color: #0000ff;">int</span> m = <span style="color: #800080;">3</span><span style="color: #000000;">;
+</span><span style="color: #008080;">59</span>         
+<span style="color: #008080;">60</span>         <span style="color: #008000;">//</span><span style="color: #008000;"> int index = search(arr, m);</span>
+<span style="color: #008080;">61</span>         
+<span style="color: #008080;">62</span>         <span style="color: #0000ff;">int</span> index = binarySearch(arr, m, <span style="color: #800080;">0</span>, arr.length - <span style="color: #800080;">1</span><span style="color: #000000;">);
+</span><span style="color: #008080;">63</span>         
+<span style="color: #008080;">64</span>         System.<span style="color: #0000ff;">out</span><span style="color: #000000;">.println(index);
+</span><span style="color: #008080;">65</span>         
+<span style="color: #008080;">66</span> <span style="color: #000000;">    }
+</span><span style="color: #008080;">67</span>     
+<span style="color: #008080;">68</span> }</code></pre>
+
+<p>&nbsp;</p>
+
+</div><hr><script charset='utf-8' src='../../js/sming.js'></script></body></html>

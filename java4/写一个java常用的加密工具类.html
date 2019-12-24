@@ -1,0 +1,269 @@
+<html><head><meta charset='utf-8'><meta name='viewport' content='width=device-width, initial-scale=1'>
+<meta name='applicable-device' content='pc'><meta name='keywords' content='电脑,电脑讲解,电脑技术,编程,电脑故障维修写一个java常用的加密工具类' />
+<script src='../../highlight/highlight.pack.js'></script>
+<link rel='stylesheet' type='text/css' href='../../highlight/styles/monokai.css'/>
+
+<link rel='stylesheet' href='../../fenxiang/dist/css/share.min.css'>
+<script src='../../fenxiang/src/js/social-share.js'></script>
+<script src='../../fenxiang/src/js/qrcode.js'></script>
+
+</head><body><script>hljs.initHighlightingOnLoad();</script><script>
+var system ={};  
+var p = navigator.platform;       
+system.win = p.indexOf('Win') == 0;  
+system.mac = p.indexOf('Mac') == 0;  
+system.x11 = (p == 'X11') || (p.indexOf('Linux') == 0);     
+if(system.win||system.mac||system.xll){
+document.write("<link href='../css/3.css' rel='stylesheet' type='text/css'>");}else{ document.write("<link href='../css/3wap.css' rel='stylesheet' type='text/css'>");}</script><script src='../../js/3.js'></script><div class='div2'><div class='heading_nav'><ul><div><li><a href='../../index.html'>首页</a></li>
+</div><div onclick='hidden1()' >分享</div>
+</ul></div></div>
+<div id='heading_nav2'> 
+<li class='row' >
+<div class='social-share' data-mode='prepend'><a href='javascript:' class='social-share-icon icon-heart'></a></div></li></div><script charset='utf-8' src='../../3/js/hengfu.js'></script><script charset='utf-8' src='../../3/js/hengfu2.js'></script><hr><div class='div1'><div class='biaoti'><center>写一个java常用的加密工具类</center></div><div class='banquan'>原文出处:本文由博客园博主不老梦提供。<br/>
+原文连接:https://www.cnblogs.com/chengpu/p/encrypt1.html</div><br>
+    <p><strong>1.叙述</strong></p>
+<p>java security包下有很多加密算法类，我们可以很简单的调用它们。他们虽然功能很全，但是使用起来步骤有些繁琐。我在这里封装来一些常用的加密算法及他们常用的一些方法，来简化代码。</p>
+<p>工具类结构如下：</p>
+<p><img src="./images/写一个java常用的加密工具类0.png" alt="" /></p>
+<p>调用步骤：</p>
+<p>1.Client为调用类，统一调用加密门面对象(EncrypFacade),通过加密门面对象的对应方法，可以选择构建出对称加密门面对象(SymmetryFacade)、非对称加密门面对象(NoSymmetryFacade)、其他加密门面对象(OtherFacade)。</p>
+<p>2.对称加密和非对称加密需要密钥，在构建时先生成密钥，然后再构建对象（HMAC比较特殊，是需要公钥加密的哈希算法），这些对象构建使用门面对象中的builder结尾的方法。而其他加密算法则直接使用OtherFacade对象的对应方法实现加密解密，OtherFacade会根据具体方法调用具体加密对象的方法，这些加密对象再调各自的Handle。</p>
+<p>3.使用builder方法得到加密对象后调用具体方法实现加密解密，这些方法在各自调用的Handler中。</p>
+<p>优点：</p>
+<p>虽然我们在开发中一般不会用到多种加密算法，但是各个类的成员都做了延时加载，在调用时才会生成实例对象，所以不用担心类膨胀。相反的，我们更容易拓展它。</p>
+<p><strong>2.示例</strong></p>
+<p><strong><img src="./images/写一个java常用的加密工具类1.png" alt="" /></strong></p>
+<p><strong><span style="font-size: 13px;">2.1 Base64的使用</span><br /></strong></p>
+<src class="cnblogs_code">
+<pre><code>String text = "123qwe!@#"<span style="color: #000000;">;
+</span>OtherFacade otherFacade =<span style="color: #000000;"> EncrypFacade.getOtherFacade();
+</span>String base64 =<span style="color: #000000;"> otherFacade.Base64(text);
+</span>System.out.println("base64加密后的密文为："+<span style="color: #000000;">base64);
+</span>String base64Decrypt =<span style="color: #000000;"> otherFacade.Base64Decrypt(base64);
+</span>System.out.println("base64解密后的明文为："+base64Decrypt);</code></pre>
+
+<src class="cnblogs_code">
+<p>&nbsp; byte[] data = "123qwe!@#".getBytes();<br />&nbsp; System.out.println("data："+Arrays.toString(data));<br />&nbsp; OtherFacade otherFacade = EncrypFacade.getOtherFacade();<br />&nbsp; byte[] base64 = otherFacade.Base64(data);<br />&nbsp; System.out.println("Base64加密字节数组结果为："+Arrays.toString(base64));<br />&nbsp; byte[] base64Decrypt = otherFacade.Base64Decrypt(base64);<br />&nbsp; System.out.println("Base64解密字节数组结果为："+Arrays.toString(base64Decrypt));</p>
+
+
+
+<p>代码1：</p>
+<p><img src="./images/写一个java常用的加密工具类2.png" alt="" /></p>
+<p>代码2：</p>
+<p>&nbsp;<img src="./images/写一个java常用的加密工具类3.png" alt="" /></p>
+<p>&nbsp;</p>
+<p><strong><span style="font-size: 13px;">&nbsp;2.2 MD5的使用</span></strong></p>
+<src class="cnblogs_code">
+<pre><code>String text = "123qwe!@#"<span style="color: #000000;">;
+OtherFacade otherFacade </span>=<span style="color: #000000;"> EncrypFacade.getOtherFacade();
+String md5 </span>=<span style="color: #000000;"> otherFacade.MD5(text);
+System.out.println(</span>"md5加密后的密文为："+md5);</code></pre>
+
+<src class="cnblogs_code">
+<p>&nbsp; byte[] data = "123qwe!@#".getBytes();<br />&nbsp; System.out.println("data："+Arrays.toString(data));<br />&nbsp; OtherFacade otherFacade = EncrypFacade.getOtherFacade();<br />&nbsp; byte[] md5 = otherFacade.MD5(data);<br />&nbsp; System.out.println("md5加密字节数组结果为："+Arrays.toString(md5));</p>
+
+
+
+<p>代码1：</p>
+<p><img src="./images/写一个java常用的加密工具类4.png" alt="" /></p>
+<p>&nbsp;代码2：</p>
+<p>&nbsp;<img src="./images/写一个java常用的加密工具类5.png" alt="" /></p>
+<p>&nbsp;</p>
+<p><strong><span style="font-size: 13px;">&nbsp;2.3 SHA的使用</span></strong></p>
+<src class="cnblogs_code">
+<pre><code>String text = "123qwe!@#"<span style="color: #000000;">;
+OtherFacade otherFacade </span>=<span style="color: #000000;"> EncrypFacade.getOtherFacade();
+String sha </span>=<span style="color: #000000;"> otherFacade.SHA(text);
+System.out.println(</span>"SHA加密后的密文为："+sha);</code></pre>
+
+<src class="cnblogs_code">
+<pre><code>byte[] data = "123qwe!@#".getBytes();<br />System.out.println("data："+Arrays.toString(data));<br />OtherFacade otherFacade = EncrypFacade.getOtherFacade();<br /><em id="__mceDel">byte[] sha = otherFacade.SHA(data);<br /></em><em id="__mceDel">System.out.println("SHA加密字节数组结果为："+Arrays.toString(sha));</em></code></pre>
+
+<p>代码1：</p>
+<p><img src="./images/写一个java常用的加密工具类6.png" alt="" /></p>
+<p>&nbsp;代码2：</p>
+<p><img src="./images/写一个java常用的加密工具类7.png" alt="" /></p>
+<p>&nbsp;</p>
+<p><strong><span style="font-size: 13px;">&nbsp;2.4 CP的使用</span></strong></p>
+<p>这个加密算法为本人自创的一种算法，它其实就是结合了其他几种加密的杂合版。</p>
+<p>下面这个实例为可解密的CP加密，加密时先使用base64，再用innovate加密，而解密则是先innovate再base64，innovate是我随便启动名字，至于这个算法，我找度娘要的。而innovate加密算法我并没有在门面对象中公开。</p>
+<src class="cnblogs_code">
+<pre><code>String text = "123qwe!@#"<span style="color: #000000;">;
+OtherFacade otherFacade </span>=<span style="color: #000000;"> EncrypFacade.getOtherFacade();
+String cp </span>=<span style="color: #000000;"> otherFacade.CP(text);
+System.out.println(</span>"CP加密后的密文为："+<span style="color: #000000;">cp);
+String cpDecrypt </span>=<span style="color: #000000;"> otherFacade.CPDecrypt(cp);
+System.out.println(</span>"CP解密后的明文为："+cpDecrypt);</code></pre>
+
+<p>结果：</p>
+<p><img src="./images/写一个java常用的加密工具类8.png" alt="" /></p>
+<p>&nbsp;</p>
+<p>&nbsp;下面这个实例为不可逆加密，它会使用4种算法多重加密，有MD5、Base64、SHA、innovate，通过自定义的内部算法用盐值来确定这几种算法的加密顺序，也就是说加密的明文相同，盐值不同也会导致密文不同。</p>
+<src class="cnblogs_code">
+<pre><code>String text = "123qwe!@#"<span style="color: #000000;">;
+String salt </span>= "userName"<span style="color: #000000;">;
+OtherFacade otherFacade </span>=<span style="color: #000000;"> EncrypFacade.getOtherFacade();
+String cp </span>=<span style="color: #000000;"> otherFacade.CP(salt, text);
+System.out.println(</span>"CP加密后的密文为："+cp);</code></pre>
+
+<p>结果：</p>
+<p><img src="./images/写一个java常用的加密工具类9.png" alt="" /></p>
+<p>&nbsp;</p>
+<p><strong><span style="font-size: 13px;">&nbsp;2.5&nbsp;HMAC的使用</span></strong></p>
+<src class="cnblogs_code">
+<pre><code>String text = "123qwe!@#"<span style="color: #000000;">;
+OtherFacade otherFacade </span>=<span style="color: #000000;"> EncrypFacade.getOtherFacade();
+HMAC hmac1 </span>=<span style="color: #000000;"> otherFacade.HMACBuilder();
+SymmetryKey key </span>=<span style="color: #000000;"> hmac1.getKey();
+System.out.println(</span>"HMAC生成的key为："+<span style="color: #000000;">key.getPublicKey());
+String encrypt1 </span>=<span style="color: #000000;"> hmac1.Encrypt(text);
+System.out.println(</span>"A使用HMAC加密结果为："+<span style="color: #000000;">encrypt1);
+</span><span style="color: #008000;">//</span><span style="color: #008000;">模拟A将key传递给B</span>
+HMAC hmac2 =<span style="color: #000000;"> otherFacade.HMACBuilder(key);
+</span><span style="color: #008000;">//</span><span style="color: #008000;">HMAC hmac2 = otherFacade.HMACBuilder(key.getPublicKey());</span><span style="color: #008000;">//</span><span style="color: #008000;">同上</span>
+String encrypt2 =<span style="color: #000000;"> hmac2.Encrypt(text);
+System.out.println(</span>"B使用HMAC加密结果为："+encrypt2);</code></pre>
+
+<src class="cnblogs_code">
+<pre><code><span style="color: #0000ff;">byte</span>[] data = "123qwe!@#"<span style="color: #000000;">.getBytes();
+System.out.println(</span>"data："+<span style="color: #000000;">Arrays.toString(data));
+OtherFacade otherFacade </span>=<span style="color: #000000;"> EncrypFacade.getOtherFacade();
+HMAC hmac1 </span>=<span style="color: #000000;"> otherFacade.HMACBuilder();
+SymmetryKey key </span>=<span style="color: #000000;"> hmac1.getKey();
+System.out.println(</span>"HMAC生成的key为："+<span style="color: #000000;">key.getPublicKey());
+</span><span style="color: #0000ff;">byte</span>[] encrypt1 =<span style="color: #000000;"> hmac1.Encrypt(data);
+System.out.println(</span>"A使用HMAC加密字节数组结果为："+<span style="color: #000000;">Arrays.toString(encrypt1));
+</span><span style="color: #008000;">//</span><span style="color: #008000;">模拟A将key传递给B</span>
+HMAC hmac2 =<span style="color: #000000;"> otherFacade.HMACBuilder(key);
+</span><span style="color: #008000;">//</span><span style="color: #008000;">HMAC hmac2 = otherFacade.HMACBuilder(key.getPublicKey());</span><span style="color: #008000;">//</span><span style="color: #008000;">同上</span>
+<span style="color: #0000ff;">byte</span>[] encrypt2 =<span style="color: #000000;"> hmac2.Encrypt(data);
+System.out.println(</span>"B使用HMAC加密字节数组结果为："+Arrays.toString(encrypt2));</code></pre>
+
+<p>&nbsp;</p>
+<p>代码1：</p>
+<p>&nbsp;<img src="./images/写一个java常用的加密工具类10.png" alt="" /></p>
+<p>&nbsp;代码2：</p>
+<p><img src="./images/写一个java常用的加密工具类11.png" alt="" /></p>
+<p>&nbsp;</p>
+<p>&nbsp;</p>
+<p>&nbsp;</p>
+<p><span style="font-size: 13px;"><strong>2.6 AES的使用</strong></span></p>
+<src class="cnblogs_code">
+<pre><code>String text = "123qwe!@#"<span style="color: #000000;">;
+SymmetryFacade symmetryFacade </span>=<span style="color: #000000;"> EncrypFacade.getSymmetryFacade();
+AES aes1 </span>=<span style="color: #000000;"> symmetryFacade.AESBuilder();<br />SymmetryKey key = aes1.getKey();
+System.out.println(</span>"AES生成的key为："+<span style="color: #000000;">key.getPublicKey());
+String encrypt </span>=<span style="color: #000000;"> aes1.Encrypt(text);
+System.out.println(</span>"A使用AES加密结果为："+<span style="color: #000000;">encrypt);
+</span><span style="color: #008000;">//</span><span style="color: #008000;">模拟A将key传递给B</span>
+AES aes2 =<span style="color: #000000;"> symmetryFacade.AESBuilder(key);
+</span><span style="color: #008000;">//</span><span style="color: #008000;">AES aes2 = symmetryFacade.AESBuilder(key.getPublicKey());</span><span style="color: #008000;">//</span><span style="color: #008000;">同上</span>
+String decrypt =<span style="color: #000000;"> aes2.Decrypt(encrypt);
+System.out.println(</span>"B使用AES解密结果为："+decrypt);</code></pre>
+
+<src class="cnblogs_code">
+<pre><code><span style="color: #0000ff;">byte</span>[] data = "123qwe!@#"<span style="color: #000000;">.getBytes();
+System.out.println(</span>"data："+<span style="color: #000000;">Arrays.toString(data));
+SymmetryFacade symmetryFacade </span>=<span style="color: #000000;"> EncrypFacade.getSymmetryFacade();
+AES aes1 </span>=<span style="color: #000000;"> symmetryFacade.AESBuilder();
+SymmetryKey key </span>=<span style="color: #000000;"> aes1.getKey();
+System.out.println(</span>"AES生成的key为："+<span style="color: #000000;">key.getPublicKey());
+</span><span style="color: #0000ff;">byte</span>[] encrypt =<span style="color: #000000;"> aes1.Encrypt(data);
+System.out.println(</span>"A使用AES加密结果为："+<span style="color: #000000;">Arrays.toString(encrypt));
+</span><span style="color: #008000;">//</span><span style="color: #008000;">模拟A将key传递给B</span>
+AES aes2 =<span style="color: #000000;"> symmetryFacade.AESBuilder(key);
+</span><span style="color: #008000;">//</span><span style="color: #008000;">AES aes2 = symmetryFacade.AESBuilder(key.getPublicKey());</span><span style="color: #008000;">//</span><span style="color: #008000;">同上</span>
+<span style="color: #0000ff;">byte</span>[] decrypt =<span style="color: #000000;"> aes2.Decrypt(encrypt);
+System.out.println(</span>"B使用AES解密结果为："+Arrays.toString(decrypt));</code></pre>
+
+<p>代码1：</p>
+<p>&nbsp;<img src="./images/写一个java常用的加密工具类12.png" alt="" /></p>
+<p>&nbsp;代码2：</p>
+<p>&nbsp;<img src="./images/写一个java常用的加密工具类13.png" alt="" /></p>
+<p><span style="font-size: 13px;"><strong>&nbsp;2.7 RES的使用</strong></span></p>
+<p>&nbsp;我们先来了解下数字签名和非对称加密过程</p>
+<p>1.数字签名：</p>
+<p>数字签名是笔迹签名的模拟，用于保证信息传输的完整性、发送者身份认证，以及防止交易中抵赖行为等。&nbsp;</p>
+<p>　<em id="__mceDel"><em id="__mceDel">公钥签名体制的基本思路是：</em></em></p>
+<p>　　①发送者A用自己的私钥加密信息，从而对文件签名</p>
+<p>　　②将签名的文件发送给接受者B</p>
+<p>　　③B利用A的公钥（可以从CA机构等渠道获得）解密文件，从而验证签名。</p>
+<p>2.非对称加密过程</p>
+<p>　A与B之间要进行加密通信，非对称加密流程是：</p>
+<p>　　①A与B都要产生一对用于加密和解密的加密密钥和解密密钥</p>
+<p>　　②A生成一对密钥，将公用密钥向其他方公开。将公钥传送给B，将私钥自己保管。B将公钥传送给A，将私钥自己保管。</p>
+<p>　　③A发送消息给B时，先用B的公钥对信息进行加密，再将密文发送给B</p>
+<p>　　④B收到A发来的消息时，用自己的私钥解密</p>
+<p>　　注意：A和B都只能用其专用私钥加密由其公钥加密后的任何信息。</p>
+<src class="cnblogs_code">
+<pre><code>String text = "123qwe!@#"<span style="color: #000000;">;
+NoSymmetryFacade noSymmetryFacade </span>=<span style="color: #000000;"> EncrypFacade.getNoSymmetryFacade();
+</span><span style="color: #008000;">//</span><span style="color: #008000;">512为公钥长度，理论上长度越长越难被破解，如果不填参数默认为1024，若小于512则使用默认值</span>
+RSA res1 = noSymmetryFacade.RESBuilder(512<span style="color: #000000;">);
+NoSymmetryKey key1 </span>=<span style="color: #000000;"> res1.getKey();
+RSA res2 </span>= noSymmetryFacade.RESBuilder(512<span style="color: #000000;">);
+NoSymmetryKey key2 </span>=<span style="color: #000000;"> res2.getKey();
+</span><span style="color: #008000;">//</span><span style="color: #008000;">交换publicKey</span>
+<span style="color: #000000;">res1.setKey(key2);
+res2.setKey(key1);
+</span><span style="color: #008000;">//</span><span style="color: #008000;">res1.setKey(key2.getPublicKey());</span><span style="color: #008000;">//</span><span style="color: #008000;">同上
+</span><span style="color: #008000;">//</span><span style="color: #008000;">res2.setKey(key1.getPublicKey());</span><span style="color: #008000;">//</span><span style="color: #008000;">同上
+</span><span style="color: #008000;">//</span><span style="color: #008000;">A先使用B的公钥加密，然后再使用自己的私钥加密</span>
+String privateEncrypt =<span style="color: #000000;"> res1.privateEncrypt(res1.publicEncrypt(text));
+</span><span style="color: #008000;">//</span><span style="color: #008000;">生成签名</span>
+String sign1 =<span style="color: #000000;"> res1.sign(privateEncrypt);
+System.out.println(</span>"A的RSA公钥为："+<span style="color: #000000;">key1.getPublicKey());
+System.out.println(</span>"B的RSA公钥为："+<span style="color: #000000;">key2.getPublicKey());
+System.out.println(</span>"A的RSA签名为："+<span style="color: #000000;">sign1);
+System.out.println(</span>"A使用RSA加密数据为："+<span style="color: #000000;">privateEncrypt);
+</span><span style="color: #008000;">//</span><span style="color: #008000;">B得到签名及加密数据
+</span><span style="color: #008000;">//</span><span style="color: #008000;">先验证签名，判断数据是否被改动过</span>
+<span style="color: #0000ff;">if</span><span style="color: #000000;">(res2.verify(privateEncrypt, sign1)){
+    </span><span style="color: #008000;">//</span><span style="color: #008000;">然后解密
+    </span><span style="color: #008000;">//</span><span style="color: #008000;">先用A的公钥解密，再用B的私钥解密，顺序与加密相反</span>
+    String publicDecrypt =<span style="color: #000000;"> res2.privateDecrypt(res2.publicDecrypt(privateEncrypt));
+    System.out.println(</span>"B使用RSA解密数据为："+<span style="color: #000000;">publicDecrypt);
+}</span></code></pre>
+
+<src class="cnblogs_code">
+<pre><code><span style="color: #0000ff;">byte</span>[] data = "123qwe!@#"<span style="color: #000000;">.getBytes();
+System.out.println(</span>"data："+<span style="color: #000000;">Arrays.toString(data));
+NoSymmetryFacade noSymmetryFacade </span>=<span style="color: #000000;"> EncrypFacade.getNoSymmetryFacade();
+</span><span style="color: #008000;">//</span><span style="color: #008000;">512为公钥长度，理论上长度越长越难被破解，如果不填参数默认为1024，若小于512则使用默认值</span>
+RSA res1 = noSymmetryFacade.RESBuilder(512<span style="color: #000000;">);
+NoSymmetryKey key1 </span>=<span style="color: #000000;"> res1.getKey();
+RSA res2 </span>= noSymmetryFacade.RESBuilder(512<span style="color: #000000;">);
+NoSymmetryKey key2 </span>=<span style="color: #000000;"> res2.getKey();
+</span><span style="color: #008000;">//</span><span style="color: #008000;">交换publicKey</span>
+<span style="color: #000000;">res1.setKey(key2);
+res2.setKey(key1);
+</span><span style="color: #008000;">//</span><span style="color: #008000;">res1.setKey(key2.getPublicKey());</span><span style="color: #008000;">//</span><span style="color: #008000;">同上
+</span><span style="color: #008000;">//</span><span style="color: #008000;">res2.setKey(key1.getPublicKey());</span><span style="color: #008000;">//</span><span style="color: #008000;">同上
+</span><span style="color: #008000;">//</span><span style="color: #008000;">A先使用B的公钥加密，然后再使用自己的私钥加密</span>
+<span style="color: #0000ff;">byte</span>[] privateEncrypt =<span style="color: #000000;"> res1.privateEncrypt(res1.publicEncrypt(data));
+</span><span style="color: #008000;">//</span><span style="color: #008000;">生成签名</span>
+<span style="color: #0000ff;">byte</span>[] sign1 =<span style="color: #000000;"> res1.sign(privateEncrypt);
+System.out.println(</span>"A的RSA公钥为："+<span style="color: #000000;">key1.getPublicKey());
+System.out.println(</span>"B的RSA公钥为："+<span style="color: #000000;">key2.getPublicKey());
+System.out.println(</span>"A的RSA签名为："+<span style="color: #000000;">Arrays.toString(sign1));
+System.out.println(</span>"A使用RSA加密数据为："+<span style="color: #000000;">Arrays.toString(privateEncrypt));
+</span><span style="color: #008000;">//</span><span style="color: #008000;">B得到签名及加密数据
+</span><span style="color: #008000;">//</span><span style="color: #008000;">先验证签名，判断数据是否被改动过</span>
+<span style="color: #0000ff;">if</span><span style="color: #000000;">(res2.verify(privateEncrypt, sign1)){
+    </span><span style="color: #008000;">//</span><span style="color: #008000;">然后解密
+    </span><span style="color: #008000;">//</span><span style="color: #008000;">先用A的公钥解密，再用B的私钥解密，顺序与加密相反</span>
+    <span style="color: #0000ff;">byte</span>[] publicDecrypt =<span style="color: #000000;"> res2.privateDecrypt(res2.publicDecrypt(privateEncrypt));
+    System.out.println(</span>"B使用RSA解密数据为："+<span style="color: #000000;">Arrays.toString(publicDecrypt));
+}</span></code></pre>
+
+<p>代码1：</p>
+<p><img src="./images/写一个java常用的加密工具类14.png" alt="" /></p>
+<p>&nbsp;</p>
+<p>&nbsp;代码2：</p>
+<p><img src="./images/写一个java常用的加密工具类15.png" alt="" /></p>
+<p>&nbsp;</p>
+<p>&nbsp;</p>
+<p><strong>下载地址：</strong></p>
+<p><a href="https://github.com/chengpu2/java_eclipse1" target="_blank">https://github.com/chengpu2/java_eclipse1</a></p>
+
+</div><hr><script charset='utf-8' src='../../js/sming.js'></script></body></html>

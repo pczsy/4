@@ -1,0 +1,61 @@
+<html><head><meta charset='utf-8'><meta name='viewport' content='width=device-width, initial-scale=1'>
+<meta name='applicable-device' content='pc'><meta name='keywords' content='电脑,电脑讲解,电脑技术,编程,电脑故障维修元素“contextcomponent-scan”的前缀“context”未绑定' />
+<script src='../../highlight/highlight.pack.js'></script>
+<link rel='stylesheet' type='text/css' href='../../highlight/styles/monokai.css'/>
+
+<link rel='stylesheet' href='../../fenxiang/dist/css/share.min.css'>
+<script src='../../fenxiang/src/js/social-share.js'></script>
+<script src='../../fenxiang/src/js/qrcode.js'></script>
+
+</head><body><script>hljs.initHighlightingOnLoad();</script><script>
+var system ={};  
+var p = navigator.platform;       
+system.win = p.indexOf('Win') == 0;  
+system.mac = p.indexOf('Mac') == 0;  
+system.x11 = (p == 'X11') || (p.indexOf('Linux') == 0);     
+if(system.win||system.mac||system.xll){
+document.write("<link href='../css/3.css' rel='stylesheet' type='text/css'>");}else{ document.write("<link href='../css/3wap.css' rel='stylesheet' type='text/css'>");}</script><script src='../../js/3.js'></script><div class='div2'><div class='heading_nav'><ul><div><li><a href='../../index.html'>首页</a></li>
+</div><div onclick='hidden1()' >分享</div>
+</ul></div></div>
+<div id='heading_nav2'> 
+<li class='row' >
+<div class='social-share' data-mode='prepend'><a href='javascript:' class='social-share-icon icon-heart'></a></div></li></div><script charset='utf-8' src='../../3/js/hengfu.js'></script><script charset='utf-8' src='../../3/js/hengfu2.js'></script><hr><div class='div1'><div class='biaoti'><center>元素“contextcomponent-scan”的前缀“context”未绑定</center></div><div class='banquan'>原文出处:本文由博客园博主陈彦斌提供。<br/>
+原文连接:https://www.cnblogs.com/chenyanbin/p/11784503.html</div><br>
+    <p>　　首先报这个错误，你得明白，是什么原因导致的？</p>
+<p>　　答：未引入命名空间，和约束文件</p>
+<p>解决方法：</p>
+<src class="cnblogs_code">
+<pre><code>&lt;?xml version="1.0" encoding="UTF-8"?&gt;
+&lt;beans xmlns="http://www.springframework.org/schema/beans"<span style="color: #000000;">
+    xmlns:xsi</span>="http://www.w3.org/2001/XMLSchema-instance"<span style="color: #ff0000; font-size: 16px;"><strong>
+    xmlns:context="http://www.springframework.org/schema/context"</strong></span><span style="color: #000000;">
+    xsi:schemaLocation</span>="http://www.springframework.org/schema/beans
+        http:<span style="color: #008000;">//</span><span style="color: #008000;">www.springframework.org/schema/beans/spring-beans.xsd</span>
+        <span style="color: #ff0000; font-size: 16px;"><strong>http://www.springframework.org/schema/context
+        http://</strong></span><span style="color: #008000;"><span style="color: #ff0000; font-size: 16px;"><strong>www.springframework.org/schema/context/spring-context.xsd</strong></span>"&gt;</span>
+        &lt;!-- 组件扫描器，主要是spring使用，用来扫描带有指定注解的类，将这些加载成BeanDefinition --&gt;
+    &lt;context:component-scan base-<span style="color: #0000ff;">package</span>="com.cyb.spring.service" /&gt;
+&lt;/beans&gt;</code></pre>
+
+<p>标签中加上</p>
+<src class="cnblogs_code">
+<pre><code>&lt;!--命名空间--&gt;<br />xmlns:context="http://www.springframework.org/schema/context"<span style="color: #000000;">
+&lt;!--别名和约束文件--&gt;
+xsi:schemaLocation</span>="http://www.springframework.org/schema/context
+http:<span style="color: #008000;">//</span><span style="color: #008000;">www.springframework.org/schema/context/spring-context.xsd"</span></code></pre>
+
+<p><img src="./images/元素“contextcomponent-scan”的前缀“context”未绑定0.png" alt="" /></p>
+<p>约束文件的话，请看：http://www.springframework.org/schema/beans/spring-beans.xsd</p>
+<src class="cnblogs_code">
+<pre><code>&lt;!--别名--&gt;<span style="color: #000000;">
+http:</span><span style="color: #008000;">//</span><span style="color: #008000;">www.springframework.org/schema/context</span>
+&lt;!--公网地址--&gt;<span style="color: #000000;">
+http:</span><span style="color: #008000;">//</span><span style="color: #008000;">www.springframework.org/schema/context/spring-context.xsd</span></code></pre>
+
+<p><img src="./images/元素“contextcomponent-scan”的前缀“context”未绑定1.png" alt="" /></p>
+<p>若不加上命名空间的话bean得这样写</p>
+<src class="cnblogs_code">
+<pre><code>&lt;beans:bean id="" <span style="color: #0000ff;">class</span>=""&gt;&lt;/beans&gt;</code></pre>
+
+
+</div><hr><script charset='utf-8' src='../../js/sming.js'></script></body></html>

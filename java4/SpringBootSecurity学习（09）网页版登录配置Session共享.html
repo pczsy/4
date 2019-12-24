@@ -1,0 +1,49 @@
+<html><head><meta charset='utf-8'><meta name='viewport' content='width=device-width, initial-scale=1'>
+<meta name='applicable-device' content='pc'><meta name='keywords' content='电脑,电脑讲解,电脑技术,编程,电脑故障维修SpringBootSecurity学习（09）网页版登录配置Session共享' />
+<script src='../../highlight/highlight.pack.js'></script>
+<link rel='stylesheet' type='text/css' href='../../highlight/styles/monokai.css'/>
+
+<link rel='stylesheet' href='../../fenxiang/dist/css/share.min.css'>
+<script src='../../fenxiang/src/js/social-share.js'></script>
+<script src='../../fenxiang/src/js/qrcode.js'></script>
+
+</head><body><script>hljs.initHighlightingOnLoad();</script><script>
+var system ={};  
+var p = navigator.platform;       
+system.win = p.indexOf('Win') == 0;  
+system.mac = p.indexOf('Mac') == 0;  
+system.x11 = (p == 'X11') || (p.indexOf('Linux') == 0);     
+if(system.win||system.mac||system.xll){
+document.write("<link href='../css/3.css' rel='stylesheet' type='text/css'>");}else{ document.write("<link href='../css/3wap.css' rel='stylesheet' type='text/css'>");}</script><script src='../../js/3.js'></script><div class='div2'><div class='heading_nav'><ul><div><li><a href='../../index.html'>首页</a></li>
+</div><div onclick='hidden1()' >分享</div>
+</ul></div></div>
+<div id='heading_nav2'> 
+<li class='row' >
+<div class='social-share' data-mode='prepend'><a href='javascript:' class='social-share-icon icon-heart'></a></div></li></div><script charset='utf-8' src='../../3/js/hengfu.js'></script><script charset='utf-8' src='../../3/js/hengfu2.js'></script><hr><div class='div1'><div class='biaoti'><center>SpringBootSecurity学习（09）网页版登录配置Session共享</center></div><div class='banquan'>原文出处:本文由博客园博主程序员郭艺宾提供。<br/>
+原文连接:https://www.cnblogs.com/guos/p/11614047.html</div><br>
+    <h1 id="场景">场景</h1>
+<p>当后台项目由部署在一台改为部署在多台以后，解决session共享问题最常用的办法就是把session存储在redis等缓存中。关于session和cookie概念这里就不再赘述了，在springboot-security环境下，把session存储到redis中共享是非常非常简单的，除了多了一些配置，几乎不用改任何代码。共享session达到的效果就是，用户在一台服务器上面登录成功后，访问另外一台，用户也是处于登录状态。下面创建两个一样的项目，来配置session共享。</p>
+<h1 id="增加依赖">增加依赖</h1>
+<p>把session存储在redis中配置共享，需要添加两个依赖，一是redis，二是spring session：</p>
+<p><img src="./images/SpringBootSecurity学习（09）网页版登录配置Session共享0.png" alt="file" /></p>
+<h1 id="配置文件修改">配置文件修改</h1>
+<p>在配置文件中，需要配置redis的数据源和session的一些属性：</p>
+<p><img src="./images/SpringBootSecurity学习（09）网页版登录配置Session共享1.png" alt="file" /></p>
+<p>关于session的配置，可以根据ide的提示看一下：</p>
+<p><img src="./images/SpringBootSecurity学习（09）网页版登录配置Session共享2.png" alt="file" /></p>
+<p>可以看到session的存储不仅可以在redis中，还可以在数据库或者MongoDB中，不过目前redis是选择最多的一种方式。</p>
+<h1 id="添加注解">添加注解</h1>
+<p>最后在启动类中添加一个注解 @EnableRedisHttpSession ：</p>
+<p><img src="./images/SpringBootSecurity学习（09）网页版登录配置Session共享3.png" alt="file" /></p>
+<h1 id="测试">测试</h1>
+<p>先打开一个项目的登录页面，登录成功，</p>
+<p><img src="./images/SpringBootSecurity学习（09）网页版登录配置Session共享4.png" alt="file" /></p>
+<p>然后再打开一个浏览器，直接访问第二个项目的主页，此时不用登录直接可以访问：</p>
+<p><img src="./images/SpringBootSecurity学习（09）网页版登录配置Session共享5.png" alt="file" /></p>
+<p>来看一下session在redis中的存储：</p>
+<p><img src="./images/SpringBootSecurity学习（09）网页版登录配置Session共享6.png" alt="file" /></p>
+<p>这样就实现了session共享！此时把其中一个退出，另一个也会自动退出，redis 中的session数据也会自动删除。</p>
+<p>代码地址 ： https://gitee.com/blueses/spring-boot-security 091 092</p>
+
+
+</div><hr><script charset='utf-8' src='../../js/sming.js'></script></body></html>

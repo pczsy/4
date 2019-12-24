@@ -1,0 +1,104 @@
+<html><head><meta charset='utf-8'><meta name='viewport' content='width=device-width, initial-scale=1'>
+<meta name='applicable-device' content='pc'><meta name='keywords' content='电脑,电脑讲解,电脑技术,编程,电脑故障维修Integer.highestOneBit(int i)方法的作用与底层实现' />
+<script src='../../highlight/highlight.pack.js'></script>
+<link rel='stylesheet' type='text/css' href='../../highlight/styles/monokai.css'/>
+
+<link rel='stylesheet' href='../../fenxiang/dist/css/share.min.css'>
+<script src='../../fenxiang/src/js/social-share.js'></script>
+<script src='../../fenxiang/src/js/qrcode.js'></script>
+
+</head><body><script>hljs.initHighlightingOnLoad();</script><script>
+var system ={};  
+var p = navigator.platform;       
+system.win = p.indexOf('Win') == 0;  
+system.mac = p.indexOf('Mac') == 0;  
+system.x11 = (p == 'X11') || (p.indexOf('Linux') == 0);     
+if(system.win||system.mac||system.xll){
+document.write("<link href='../css/3.css' rel='stylesheet' type='text/css'>");}else{ document.write("<link href='../css/3wap.css' rel='stylesheet' type='text/css'>");}</script><script src='../../js/3.js'></script><div class='div2'><div class='heading_nav'><ul><div><li><a href='../../index.html'>首页</a></li>
+</div><div onclick='hidden1()' >分享</div>
+</ul></div></div>
+<div id='heading_nav2'> 
+<li class='row' >
+<div class='social-share' data-mode='prepend'><a href='javascript:' class='social-share-icon icon-heart'></a></div></li></div><script charset='utf-8' src='../../3/js/hengfu.js'></script><script charset='utf-8' src='../../3/js/hengfu2.js'></script><hr><div class='div1'><div class='biaoti'><center>Integer.highestOneBit(int i)方法的作用与底层实现</center></div><div class='banquan'>原文出处:本文由博客园博主1点25提供。<br/>
+原文连接:https://www.cnblogs.com/nicerblog/p/11431181.html</div><br>
+    <p>在Integer类中有这么一个方法，你可以给它传入一个数字，它将返回小于等于这个数字的一个2的幂次方数。这个方法就是highestOneBit(int i)。</p>
+<p>比如下面的Demo，注意方法的输入与返回值：</p>
+<pre><code><code>System.out.println(Integer.highestOneBit(15));  // 输出8
+System.out.println(Integer.highestOneBit(16));  // 输出16
+System.out.println(Integer.highestOneBit(17));  // 输出16</code></code></pre>
+<p>这个方法的实现代码量也是非常少的：</p>
+<pre><code><code>public static int highestOneBit(int i) {
+    // HD, Figure 3-1
+    i |= (i &gt;&gt;  1);
+    i |= (i &gt;&gt;  2);
+    i |= (i &gt;&gt;  4);
+    i |= (i &gt;&gt;  8);
+    i |= (i &gt;&gt; 16);
+    return i - (i &gt;&gt;&gt; 1);
+}</code></code></pre>
+<p>接下来，我们就来详细分析一下这块代码的逻辑。</p>
+<p>首先，对于这个方法的功能：<strong>给定一个数字，找到小于或等于这个数字的一个2的幂次方数。</strong></p>
+<p>如果我们要自己来实现的话，我们需要知道：<strong>怎么判断一个数字是2的幂次方数。</strong></p>
+<p>说真的，我一下想不到什么好方法来判断，唯一能想到的就是一个数字如果把它转换成二进制表示的话，它会有一个规律：<strong>如果一个数字是2的幂次方数，那么它对应的二进制表示仅有一个bit位上是1，其他bit位全为0。</strong><br />
+比如：<br />
+十进制6，二进制表示为：0000 0110<br />
+十进制8，二进制表示为：0000 1000<br />
+十进制9，二进制表示为：0000 1001<br />
+所以，我们可以利用一个数字的二进制表示来判断这个数字是不是2的幂次方数。关键代码怎么实现呢？去遍历每个bit位？可以，但是不好，那怎么办？我们还是回头仔细看看Integer是如何实现的吧？</p>
+<pre><code><code>public static int highestOneBit(int i) {
+    // HD, Figure 3-1
+    i |= (i &gt;&gt;  1);
+    i |= (i &gt;&gt;  2);
+    i |= (i &gt;&gt;  4);
+    i |= (i &gt;&gt;  8);
+    i |= (i &gt;&gt; 16);
+    return i - (i &gt;&gt;&gt; 1);
+}</code></code></pre>
+<p>我们发现这段代码中没有任何的遍历，只有位运算与一个减法，也就是说它的实现思路和我们自己的实现思路完全不一样，它的思路就是：<strong>给定一个数字，通过一系列的运算，得到一个小于或等于该数字的一个2的幂次方数。</strong></p>
+<p>也就是：如果给定一个数字18，通过运算后，要得到16。</p>
+<p>18用二进制表示为： 0001 0010</p>
+<p>想要得到的结果(16)是：0001 0000</p>
+<p>那么这个运算的过程无非就是<strong>将18对应的二进制数中除最高位的1之外的其他bit位都清零，则拿到了我们想要的结果。</strong></p>
+<p>那怎么通过位运算来实现这个过程呢？</p>
+<p>我们拿18对应的二进制数<code>0001 0010</code>来举个例子就行了：<br />
+先将<code>0001 0010</code>右移1位，<br />
+得到<code>0000 1001</code>，再与自身进行或运算：<br />
+得到<code>0001 1011</code>。</p>
+<p>再将<code>0001 1011</code>右移2位，<br />
+得到<code>0000 0110</code>，再与自身进行或运算：<br />
+得到<code>0001 1111</code>。</p>
+<p>再将<code>0001 1111</code>右移4位，<br />
+得到<code>0000 0001</code>，再与自身进行或运算：<br />
+得到<code>0001 1111</code>。</p>
+<p>再将<code>0001 1111</code>右移8位，<br />
+得到<code>0000 0000</code>，再与自身进行或运算：<br />
+得到<code>0001 1111</code>。</p>
+<p>再将<code>0001 1111</code>右移16位，<br />
+得到<code>0000 0000</code>，再与自身进行或运算：<br />
+得到<code>0001 1111</code>。</p>
+<p>再将<code>0001 1111</code>无符号右移1位，<br />
+得到<code>0000 1111</code>。</p>
+<blockquote>
+<p>关于无符号右移，可以看我之前写的文章。</p>
+</blockquote>
+<p>最后用<code>0001 1111  - 0000 1111 = 0001 0000</code><br />
+震惊！得到了我们想要的结果。</p>
+<p>其实这个过程可以抽象成这样：<br />
+现在有一个二进制数据，<code>0001****</code>，我们不关心低位的取值情况，我们对其进行右移并且进行或运算。</p>
+<p>先将<code>0001****</code>右移1位，<br />
+得到<code>00001***</code>，再与自身进行或运算：<br />
+得到<code>00011***</code>。</p>
+<p>再将<code>00011***</code>右移2位，<br />
+得到<code>0000011*</code>，再与自身进行或运算：<br />
+得到<code>0001111*</code>。</p>
+<p>再将<code>0001111*</code>右移4位，<br />
+得到<code>00000001</code>，再与自身进行或运算：<br />
+得到<code>00011111</code>。</p>
+<p>后面不用再推算了，到这里我们其实可以发现一个规律：<br />
+<strong>右移与或运算的目的就是想让某个数字的低位都变为1，再用该结果 减去 该结果右移一位后的结果，则相当于清零了原数字的低位。即得到了我们想要的结果。</strong></p>
+<p>到此，只能感叹JDK作者对于位运算的使用已经达到了出神入化的境界了。</p>
+<p>如果想学习更多的精彩的Java、分布式、微服务等方面的知识，<strong>请关注微信公众号：1点25</strong></p>
+<p><img src="./images/Integer.highestOneBit(int i)方法的作用与底层实现0.png" alt="reny125.jpeg" /></p>
+
+
+</div><hr><script charset='utf-8' src='../../js/sming.js'></script></body></html>

@@ -1,0 +1,292 @@
+<html><head><meta charset='utf-8'><meta name='viewport' content='width=device-width, initial-scale=1'>
+<meta name='applicable-device' content='pc'><meta name='keywords' content='电脑,电脑讲解,电脑技术,编程,电脑故障维修开发zeroc ice应用入门（java开发ice应用，python开发ice应用，java与python结合开发ice服务）' />
+<script src='../../highlight/highlight.pack.js'></script>
+<link rel='stylesheet' type='text/css' href='../../highlight/styles/monokai.css'/>
+
+<link rel='stylesheet' href='../../fenxiang/dist/css/share.min.css'>
+<script src='../../fenxiang/src/js/social-share.js'></script>
+<script src='../../fenxiang/src/js/qrcode.js'></script>
+
+</head><body><script>hljs.initHighlightingOnLoad();</script><script>
+var system ={};  
+var p = navigator.platform;       
+system.win = p.indexOf('Win') == 0;  
+system.mac = p.indexOf('Mac') == 0;  
+system.x11 = (p == 'X11') || (p.indexOf('Linux') == 0);     
+if(system.win||system.mac||system.xll){
+document.write("<link href='../css/3.css' rel='stylesheet' type='text/css'>");}else{ document.write("<link href='../css/3wap.css' rel='stylesheet' type='text/css'>");}</script><script src='../../js/3.js'></script><div class='div2'><div class='heading_nav'><ul><div><li><a href='../../index.html'>首页</a></li>
+</div><div onclick='hidden1()' >分享</div>
+</ul></div></div>
+<div id='heading_nav2'> 
+<li class='row' >
+<div class='social-share' data-mode='prepend'><a href='javascript:' class='social-share-icon icon-heart'></a></div></li></div><script charset='utf-8' src='../../3/js/hengfu.js'></script><script charset='utf-8' src='../../3/js/hengfu2.js'></script><hr><div class='div1'><div class='biaoti'><center>开发zeroc ice应用入门（java开发ice应用，python开发ice应用，java与python结合开发ice服务）</center></div><div class='banquan'>原文出处:本文由博客园博主三哥无邪提供。<br/>
+原文连接:https://www.cnblogs.com/sangewuxie/p/11412587.html</div><br>
+    <p>&nbsp;</p>
+<p>&nbsp;ice作为一种rpc框架，为主流平台设计，包括Windows和Linux，支持广泛的语言，包括C++，Java，C#（和其他.Net的语言，例如Visual Basic），Python，Ruby，PHP和ActionScript。</p>
+<p>安装ice&nbsp; &nbsp;</p>
+<p>1.官网下载地址&nbsp;&nbsp;<a href="https://zeroc.com/downloads/ice">https://zeroc.com/downloads/ice</a></p>
+<p>2.安装程序，本文安装位置E:\Program Files\ZeroC\Ice-3.6.3</p>
+<p>3.配置环境变量</p>
+<p>计算机-&gt;属性-&gt;高级系统设置-&gt;环境变量</p>
+<p>1）新建立一个ICE_HOME，变量值为安装路径</p>
+<p><img src="./images/开发zeroc ice应用入门（java开发ice应用，python开发ice应用，java与python结合开发ice服务）0.png" alt="" /></p>
+<p>2）在Path中添加&rdquo;%ICE_HOME%\bin&ldquo;</p>
+<p><img src="./images/开发zeroc ice应用入门（java开发ice应用，python开发ice应用，java与python结合开发ice服务）1.png" alt="" /></p>
+<p>3）检验</p>
+<p>配置完成之后打开cmd</p>
+<p><img src="./images/开发zeroc ice应用入门（java开发ice应用，python开发ice应用，java与python结合开发ice服务）2.png" alt="" /></p>
+<p>出现版本号即为安装并配置完成</p>
+<p>&nbsp;</p>
+<p>&nbsp;</p>
+<p>&nbsp;</p>
+<p>java结合ice开发</p>
+<p>创建一个maven管理的java项目</p>
+<p>在pom.xml中添加依赖</p>
+<src class="cnblogs_Highlighter">
+<pre><code>&lt;!-- https://mvnrepository.com/artifact/com.zeroc/ice --&gt;
+		&lt;dependency&gt;
+			&lt;groupId&gt;com.zeroc&lt;/groupId&gt;
+			&lt;artifactId&gt;ice&lt;/artifactId&gt;
+			&lt;version&gt;3.6.3&lt;/version&gt;
+		&lt;/dependency&gt;
+</code></pre>
+
+<p>依赖最好对应ice版本</p>
+<p>快速查找依赖的方法&nbsp; 直接百度 maven+多需要的依赖名称</p>
+<p>如maven ice</p>
+<p><img src="./images/开发zeroc ice应用入门（java开发ice应用，python开发ice应用，java与python结合开发ice服务）3.png" alt="" /></p>
+<p>&nbsp;</p>
+<p><img src="./images/开发zeroc ice应用入门（java开发ice应用，python开发ice应用，java与python结合开发ice服务）4.png" alt="" /></p>
+<p><img src="./images/开发zeroc ice应用入门（java开发ice应用，python开发ice应用，java与python结合开发ice服务）5.png" alt="" /></p>
+<p><img src="./images/开发zeroc ice应用入门（java开发ice应用，python开发ice应用，java与python结合开发ice服务）6.png" alt="" /></p>
+<p>&nbsp;</p>
+<p>在项目文件夹下创建slice文件夹&nbsp; &nbsp;创建一个文件**.ice</p>
+<p>本项目示例Hello.ice</p>
+<src class="cnblogs_Highlighter">
+<pre><code>[["java:package:com.test.ice.service"]] // 定义java包名  父结构
+module demo   //模块包名
+{
+	interface Hello   //接口服务名称
+	{
+		string sayHello(string s);   //具体的方法
+	};
+};</code></pre>
+
+<p>&nbsp;</p>
+<p>1）使用slice2java编译ice文件生成java代码</p>
+<p>在ice所在文件夹打开cmd或者shell，使用以下命令&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;ps：--output-dir&nbsp; &nbsp; 输出文件的目录</p>
+<src class="cnblogs_Highlighter">
+<pre><code>slice2java .\Hello.ice --output-dir ..\src\main\java</code></pre>
+
+<p>如果看不到代码，刷新项目即可</p>
+<p>2）使用eclipse插件生成代码</p>
+<p>eclipse &ndash; Help &ndash; Marketplace 搜索ice,第一个插件install&nbsp;</p>
+<p><img src="./images/开发zeroc ice应用入门（java开发ice应用，python开发ice应用，java与python结合开发ice服务）7.png" alt="" /></p>
+<p>安装完成之后重启eclipse</p>
+<p>&nbsp;重启之后，选中项目名称右键选中Ice builder&nbsp; &nbsp; &nbsp; -&gt; add ice builder</p>
+<p>则生成了ice的Java代码</p>
+<p>&nbsp;</p>
+<p>编写程序</p>
+<p>在生成的代码中可以看到"_ice文件接口名称Disp.java"的文件，例如本次项目为_HelloDisp.java</p>
+<p>1）接口实现类HelloImpl&nbsp; &nbsp; &nbsp; &nbsp;继承_HelloDisp.java</p>
+<src class="cnblogs_Highlighter">
+<pre><code>import com.test.ice.service.demo._HelloDisp;
+
+import Ice.Current;
+
+public class HelloImpl extends _HelloDisp{
+
+	/**
+	 * 
+	 */
+	private static final long serialVersionUID = 1L;
+
+	@Override
+	public String sayHello(String s, Current __current) {
+		System.out.println(s);
+		return "hello,"+s;
+	}
+	
+}</code></pre>
+
+<p>ps：接下来的话可以忽略，最好是与接口不是同一项目，也就是api即接口项目，server项目，client项目，将接口项目以maven的方式打包成jar安装到本地库，具体操作实例<a href="https://www.jianshu.com/p/5ce9d1567fee">https://www.jianshu.com/p/5ce9d1567fee</a>，其他项目添加接口项目依赖</p>
+<p>2）服务启动类Server</p>
+<src class="cnblogs_Highlighter">
+<pre><code>import com.test.ice.service.demo.impl.HelloImpl;
+
+import Ice.Communicator;
+import Ice.ObjectAdapter;
+
+public class Server {
+ 
+	public static void main(String[] args) {
+		int status = 0;
+		Communicator ic = null;
+		try{
+			System.out.println("Server starting...");
+			ic = Ice.Util.initialize(args);
+			ObjectAdapter adapter = ic.createObjectAdapterWithEndpoints("iceTest", "default -p 10006");
+			Ice.Object object = new HelloImpl();
+			adapter.add(object, ic.stringToIdentity("hello"));
+			adapter.activate();
+			System.out.println("Server start success.");
+			ic.waitForShutdown();
+		}catch(Ice.LocalException e){
+			e.printStackTrace();
+			status = 1;
+		}catch(Exception e){
+			System.err.println(e.getMessage());
+			status = 1;
+		}
+		if(ic != null){
+			try{
+				ic.destroy();
+			}catch(Exception e){
+				System.err.println(e.getMessage());
+				status = 1;
+			}
+		}
+		System.exit(status);
+	}
+ 
+}
+</code></pre>
+
+<p>3）客户端client</p>
+<src class="cnblogs_Highlighter">
+<pre><code>import com.test.ice.service.demo.HelloPrx;
+import com.test.ice.service.demo.HelloPrxHelper;
+
+public class Client {
+
+	public static void main(String[] args) {
+		int status = 0;
+		Ice.Communicator ic = null;
+		try {
+			ic = Ice.Util.initialize(args);
+			Ice.ObjectPrx base = ic.stringToProxy("hello:default -p 10006");
+			HelloPrx hello = HelloPrxHelper.checkedCast(base);
+			if (hello == null) {
+				throw new Error("Invalid proxy");
+			}
+
+			String s = hello.sayHello("World!");
+			System.out.println("&gt;&gt;" + s);		
+		} catch (Ice.LocalException e) {
+			e.printStackTrace();
+			status = 1;
+		} catch (Exception e) {
+			System.err.println(e.getMessage());
+			status = 1;
+		}
+		if (ic != null) {
+			try {
+				ic.destroy();
+			} catch (Exception e) {
+				System.err.println(e.getMessage());
+				status = 1;
+			}
+		}
+		System.exit(status);
+	}
+}</code></pre>
+
+<p>4）运行程序&nbsp;</p>
+<p>首先运行服务启动类Server，</p>
+<p><img src="./images/开发zeroc ice应用入门（java开发ice应用，python开发ice应用，java与python结合开发ice服务）8.png" alt="" /></p>
+<p>启动客户端Client</p>
+<p>服务端接受到数据</p>
+<p><img src="./images/开发zeroc ice应用入门（java开发ice应用，python开发ice应用，java与python结合开发ice服务）9.png" alt="" /></p>
+<p>客户端接收到服务端返回的数据</p>
+<p><img src="./images/开发zeroc ice应用入门（java开发ice应用，python开发ice应用，java与python结合开发ice服务）10.png" alt="" /></p>
+<p>简单的java 结合ice开发到此介绍结束，具体深入后续一起努力哦</p>
+<p>&nbsp;</p>
+<p>&nbsp;</p>
+<p>python开发ice项目</p>
+<p>&nbsp;1.安装ice所需的依赖包</p>
+<src class="cnblogs_Highlighter">
+<pre><code>pip install zeroc-ice
+</code></pre>
+
+<p>&nbsp;2.编写ice文件</p>
+<src class="cnblogs_Highlighter">
+<pre><code>module demo
+{
+	interface Hello
+	{
+		string sayHello(string s);
+	};
+};
+</code></pre>
+
+<p>3.编写Server启动程序</p>
+<src class="cnblogs_Highlighter">
+<pre><code>#!/usr/bin/env python
+# coding=utf-8
+import sys, Ice
+
+# 动态加载slice文件并编译
+Ice.loadSlice("./demo.ice")
+
+#ice文件中的模块名称
+import demo
+## 实现一个服务类
+class HelloImpl(demo.Hello):
+    def sayHello(self, s, current=None):
+        print s
+        msg ="Hello,"+s
+        return msg
+
+
+with Ice.initialize(sys.argv) as communicator:
+    print "Server starting..."
+    adapter = communicator.createObjectAdapterWithEndpoints("SimplePrinterAdapter", "default -p 10006")
+    object = HelloImpl()
+    adapter.add(object, communicator.stringToIdentity("hello"))
+    adapter.activate()
+    print "Server start success."
+    communicator.waitForShutdown()
+</code></pre>
+
+<p>4.编写客户端启动程序</p>
+<src class="cnblogs_Highlighter">
+<pre><code>#!/usr/bin/env python
+# coding=utf-8
+import sys, Ice
+Ice.loadSlice("./demo.ice")
+import demo
+
+with Ice.initialize(sys.argv) as communicator:
+    base = communicator.stringToProxy("hello:default -p 10006")
+    printer = demo.HelloPrx.checkedCast(base)
+    if not printer:
+        raise RuntimeError("Invalid proxy")
+    print  printer.sayHello("World!")
+</code></pre>
+
+<p>5.运行程序&nbsp; &nbsp;</p>
+<p>1）启动server程序</p>
+<p><img src="./images/开发zeroc ice应用入门（java开发ice应用，python开发ice应用，java与python结合开发ice服务）11.png" alt="" /></p>
+<p>2）启动client程序</p>
+<p><img src="./images/开发zeroc ice应用入门（java开发ice应用，python开发ice应用，java与python结合开发ice服务）12.png" alt="" /></p>
+<p>3）server接受到客户端发送来的数据并输出</p>
+<p>&nbsp;<img src="./images/开发zeroc ice应用入门（java开发ice应用，python开发ice应用，java与python结合开发ice服务）13.png" alt="" /></p>
+<p>4）client接受到server返回的数据并输出</p>
+<p>&nbsp;<img src="./images/开发zeroc ice应用入门（java开发ice应用，python开发ice应用，java与python结合开发ice服务）14.png" alt="" /></p>
+<p>&nbsp;</p>
+<p>&nbsp;</p>
+<p>&nbsp;java与python服务互相调用</p>
+<p>java启动server服务，python客户端程序调用服务</p>
+<p>1）启动java server服务</p>
+<p><img src="./images/开发zeroc ice应用入门（java开发ice应用，python开发ice应用，java与python结合开发ice服务）15.png" alt="" /></p>
+<p>2）启动python client服务</p>
+<p><img src="./images/开发zeroc ice应用入门（java开发ice应用，python开发ice应用，java与python结合开发ice服务）16.png" alt="" /></p>
+<p>3）server服务接收数据并输出</p>
+<p><img src="./images/开发zeroc ice应用入门（java开发ice应用，python开发ice应用，java与python结合开发ice服务）17.png" alt="" /></p>
+<p>4）client接收返回数据并输出</p>
+<p><img src="./images/开发zeroc ice应用入门（java开发ice应用，python开发ice应用，java与python结合开发ice服务）18.png" alt="" /></p>
+<p>&nbsp;</p>
+<p>&nbsp;到此为止，门外看看而已</p>
+<p>&nbsp;</p>
+
+</div><hr><script charset='utf-8' src='../../js/sming.js'></script></body></html>

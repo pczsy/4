@@ -1,0 +1,242 @@
+<html><head><meta charset='utf-8'><meta name='viewport' content='width=device-width, initial-scale=1'>
+<meta name='applicable-device' content='pc'><meta name='keywords' content='电脑,电脑讲解,电脑技术,编程,电脑故障维修深入理解JVM内存分配策略' />
+<script src='../../highlight/highlight.pack.js'></script>
+<link rel='stylesheet' type='text/css' href='../../highlight/styles/monokai.css'/>
+
+<link rel='stylesheet' href='../../fenxiang/dist/css/share.min.css'>
+<script src='../../fenxiang/src/js/social-share.js'></script>
+<script src='../../fenxiang/src/js/qrcode.js'></script>
+
+</head><body><script>hljs.initHighlightingOnLoad();</script><script>
+var system ={};  
+var p = navigator.platform;       
+system.win = p.indexOf('Win') == 0;  
+system.mac = p.indexOf('Mac') == 0;  
+system.x11 = (p == 'X11') || (p.indexOf('Linux') == 0);     
+if(system.win||system.mac||system.xll){
+document.write("<link href='../css/3.css' rel='stylesheet' type='text/css'>");}else{ document.write("<link href='../css/3wap.css' rel='stylesheet' type='text/css'>");}</script><script src='../../js/3.js'></script><div class='div2'><div class='heading_nav'><ul><div><li><a href='../../index.html'>首页</a></li>
+</div><div onclick='hidden1()' >分享</div>
+</ul></div></div>
+<div id='heading_nav2'> 
+<li class='row' >
+<div class='social-share' data-mode='prepend'><a href='javascript:' class='social-share-icon icon-heart'></a></div></li></div><script charset='utf-8' src='../../3/js/hengfu.js'></script><script charset='utf-8' src='../../3/js/hengfu2.js'></script><hr><div class='div1'><div class='biaoti'><center>深入理解JVM内存分配策略</center></div><div class='banquan'>原文出处:本文由博客园博主秃桔子提供。<br/>
+原文连接:https://www.cnblogs.com/godoforange/p/11565505.html</div><br>
+    <h1 id="理解jvm内存分配策略">理解JVM内存分配策略</h1>
+<h2 id="三大原则担保机制">三大原则+担保机制</h2>
+<p>JVM分配内存机制有三大原则和担保机制<br />
+具体如下所示：</p>
+<ul>
+<li>优先分配到eden区</li>
+<li>大对象，直接进入到老年代</li>
+<li>长期存活的对象分配到老年代</li>
+<li>空间分配担保</li>
+</ul>
+<hr />
+<h2 id="对象优先在eden上分配">对象优先在Eden上分配</h2>
+<p>如何验证对象优先在Eden上分配呢，我们进行如下实验。</p>
+<h3 id="打印内存分配信息">打印内存分配信息</h3>
+<p>首先代码如下所示：</p>
+<pre><code><code>public class A {    
+    public static void main(String[] args) {
+        byte[] b1 = new byte[4*1024*1024];
+    }
+}
+</code></code></pre>
+<p>代码很简单，就是创建一个Byte数组，大小为4mb。<br />
+然后我们在运行的时候加上虚拟机参数来打印垃圾回收的信息。</p>
+<pre><code><code>-verbose:gc -XX:+PrintGCDetails</code></code></pre>
+<p>在我们运行后，结果如下所示。</p>
+<blockquote>
+<p>Heap<br />
+PSYoungGen total 37888K, used 6718K [0x00000000d6000000, 0x00000000d8a00000, 0x0000000100000000)<br />
+eden space 32768K, 20% used [0x00000000d6000000,0x00000000d668f810,0x00000000d8000000)<br />
+from space 5120K, 0% used [0x00000000d8500000,0x00000000d8500000,0x00000000d8a00000)<br />
+to space 5120K, 0% used [0x00000000d8000000,0x00000000d8000000,0x00000000d8500000)<br />
+ParOldGen total 86016K, used 0K [0x0000000082000000, 0x0000000087400000, 0x00000000d6000000)<br />
+object space 86016K, 0% used [0x0000000082000000,0x0000000082000000,0x0000000087400000)<br />
+Metaspace used 2638K, capacity 4486K, committed 4864K, reserved 1056768K<br />
+class space used 281K, capacity 386K, committed 512K, reserved 1048576K</p>
+</blockquote>
+<blockquote>
+
+</blockquote>
+<h3 id="手动指定收集器">手动指定收集器</h3>
+<p>我们可以看在新生代采用的是Parallel Scavenge收集器<br />
+其实我们可以指定虚拟机参数来选择垃圾收集器。<br />
+比方说如下参数：</p>
+<pre><code><code>-verbose:gc -XX:+PrintGCDetails -XX:+UseSerialGC
+</code></code></pre>
+<p>运行结果如下：</p>
+<blockquote>
+<p>Heap<br />
+def new generation total 38720K, used 6850K [0x0000000082000000, 0x0000000084a00000, 0x00000000ac000000)<br />
+eden space 34432K, 19% used [0x0000000082000000, 0x00000000826b0be8, 0x00000000841a0000)<br />
+from space 4288K, 0% used [0x00000000841a0000, 0x00000000841a0000, 0x00000000845d0000)<br />
+to space 4288K, 0% used [0x00000000845d0000, 0x00000000845d0000, 0x0000000084a00000)<br />
+tenured generation total 86016K, used 0K [0x00000000ac000000, 0x00000000b1400000, 0x0000000100000000)<br />
+the space 86016K, 0% used [0x00000000ac000000, 0x00000000ac000000, 0x00000000ac000200, 0x00000000b1400000)<br />
+Metaspace used 2637K, capacity 4486K, committed 4864K, reserved 1056768K<br />
+class space used 281K, capacity 386K, committed 512K, reserved 1048576K</p>
+</blockquote>
+<blockquote>
+
+</blockquote>
+<p>其实JDK默认的不是Parallel收集器，但是JDK会依照各种环境来调整采用的垃圾收集器。</p>
+<p>查看环境的代码如下：</p>
+<pre><code><code>java -version</code></code></pre>
+<p><img src="./images/深入理解JVM内存分配策略0.png" /><br />
+因此JDK根据server的环境，采用了Paralled收集器。</p>
+<p>而Serial收集器主要用在客户端的。</p>
+<h3 id="eden分配的验证">eden分配的验证</h3>
+<p>我们看到现在eden区域为34432K，使用了19%，那我们来扩大10倍是否eden就放不下了呢？<br />
+我们来验证一下。</p>
+<pre><code><code>public class A {
+    public static void main(String[] args) {
+        byte[] b1 = new byte[40*1024*1024];
+    }
+}</code></code></pre>
+<p>运行结果如下：</p>
+<blockquote>
+<p>Heap<br />
+def new generation total 38720K, used 2754K [0x0000000082000000, 0x0000000084a00000, 0x00000000ac000000)<br />
+eden space 34432K, 8% used [0x0000000082000000, 0x00000000822b0bd8, 0x00000000841a0000)<br />
+from space 4288K, 0% used [0x00000000841a0000, 0x00000000841a0000, 0x00000000845d0000)<br />
+to space 4288K, 0% used [0x00000000845d0000, 0x00000000845d0000, 0x0000000084a00000)<br />
+tenured generation total 86016K, used 40960K [0x00000000ac000000, 0x00000000b1400000, 0x0000000100000000)<br />
+the space 86016K, 47% used [0x00000000ac000000, 0x00000000ae800010, 0x00000000ae800200, 0x00000000b1400000)<br />
+Metaspace used 2637K, capacity 4486K, committed 4864K, reserved 1056768K<br />
+class space used 281K, capacity 386K, committed 512K, reserved 1048576K</p>
+<p>显然，我们还是正常运行了，但是eden区域没有增加，老年代区域却增加了，符合大对象直接分配到老年代的特征。。</p>
+</blockquote>
+<p>所以我们适当的缩小每次分配的大小。<br />
+我们在此限制下eden区域的大小<br />
+参数如下：</p>
+<pre><code><code>-verbose:gc -XX:+PrintGCDetails -XX:+UseSerialGC -Xms20M -Xmx20M -Xmn10M -XX:SurvivorRatio=8</code></code></pre>
+<p>这里我们限制内存大小为20M<br />
+Eden大小为8M</p>
+<p>然后我们运行我们的代码：</p>
+<p>代码如下所示：</p>
+<pre><code><code>public class A {
+    public static void main(String[] args) {
+        byte[] b1 = new byte[2*1024*1024];
+        byte[] b2 = new byte[2*1024*1024];
+        byte[] b3 = new byte[2*1024*1024];
+        byte[] b4 = new byte[4*1024*1024];
+        System.gc();
+    }
+}</code></code></pre>
+<p>运行结果如下：</p>
+<blockquote>
+<p>[GC (Allocation Failure) [DefNew: 7129K-&gt;520K(9216K), 0.0053010 secs] 7129K-&gt;6664K(19456K), 0.0053739 secs] [Times: user=0.00 sys=0.00, real=0.01 secs]<br />
+[Full GC (System.gc()) [Tenured: 6144K-&gt;6144K(10240K), 0.0459449 secs] 10920K-&gt;10759K(19456K), [Metaspace: 2632K-&gt;2632K(1056768K)], 0.0496885 secs] [Times: user=0.00 sys=0.00, real=0.04 secs]<br />
+Heap<br />
+def new generation total 9216K, used 4779K [0x00000000fec00000, 0x00000000ff600000, 0x00000000ff600000)<br />
+eden space 8192K, 58% used [0x00000000fec00000, 0x00000000ff0aad38, 0x00000000ff400000)<br />
+from space 1024K, 0% used [0x00000000ff500000, 0x00000000ff500000, 0x00000000ff600000)<br />
+to space 1024K, 0% used [0x00000000ff400000, 0x00000000ff400000, 0x00000000ff500000)<br />
+tenured generation total 10240K, used 6144K [0x00000000ff600000, 0x0000000100000000, 0x0000000100000000)<br />
+the space 10240K, 60% used [0x00000000ff600000, 0x00000000ffc00030, 0x00000000ffc00200, 0x0000000100000000)<br />
+Metaspace used 2638K, capacity 4486K, committed 4864K, reserved 1056768K<br />
+class space used 281K, capacity 386K, committed 512K, reserved 1048576K</p>
+<p>我们可以发现在eden区域为8192K 约为8M<br />
+也就是我们的b4的大小</p>
+</blockquote>
+<p>而原先的b1,b2,b3为6M,被分配到了tenured generation。</p>
+<p>原先的Eden区域如下所示，在分配完,b1,b2,b3后如下所示。<br />
+<img src="./images/深入理解JVM内存分配策略1.png" /><br />
+这时候我们发现已经无法继续分了。</p>
+<p>而查看日志的时候，我们发生了俩次GC。</p>
+<blockquote>
+<p>[GC (Allocation Failure) [DefNew: 7129K-&gt;520K(9216K), 0.0053010 secs] 7129K-&gt;6664K(19456K), 0.0053739 secs] [Times: user=0.00 sys=0.00, real=0.01 secs]<br />
+[Full GC (System.gc()) [Tenured: 6144K-&gt;6144K(10240K), 0.0459449 secs] 10920K-&gt;10759K(19456K), [Metaspace: 2632K-&gt;2632K(1056768K)], 0.0496885 secs] [Times: user=0.00 sys=0.00, real=0.04 secs]</p>
+</blockquote>
+<p>而在</p>
+<pre><code><code>[DefNew: 7129K-&gt;520K(9216K), 0.0053010 secs] 7129K-&gt;6664K(19456K), 0.0053739 secs] [Times: user=0.00 sys=0.00, real=0.01 secs] </code></code></pre>
+<p>中我们会看到，刚分配的对象并没有被回收。</p>
+<p>上面的GC是针对新生代的。</p>
+<p>而下面的FullGC是针对老年代的。</p>
+<p>如果我们这时候要再分配4m的内存，虚拟机默认将原先的eden区域放到可放的地方，也就是在老年代这里</p>
+<p>因此会发生我们这种情况。<br />
+<img src="./images/深入理解JVM内存分配策略2.png" /></p>
+<p>这就是整个过程。验证了对象有现在Eden区域回收</p>
+<hr />
+<h2 id="大对象直接进入到老年代">大对象直接进入到老年代</h2>
+<p>指定大对象的参数。</p>
+<pre><code><code>-XX:PretenureSizeThreshold</code></code></pre>
+<p>测试代码：如下</p>
+<pre><code><code>-verbose:gc -XX:+PrintGCDetails -XX:+UseSerialGC -Xms20M -Xmx20M -Xmn10M -XX:SurvivorRatio=8</code></code></pre>
+<pre><code><code>public class A {
+    private static int M = 1024*1024;
+    public static void main(String[] args) {
+        byte[] b1 = new byte[8*M];
+    }
+}</code></code></pre>
+<p>运行结果如下：</p>
+<blockquote>
+<p>Heap<br />
+def new generation total 9216K, used 1149K [0x00000000fec00000, 0x00000000ff600000, 0x00000000ff600000)<br />
+eden space 8192K, 14% used [0x00000000fec00000, 0x00000000fed1f718, 0x00000000ff400000)<br />
+from space 1024K, 0% used [0x00000000ff400000, 0x00000000ff400000, 0x00000000ff500000)<br />
+to space 1024K, 0% used [0x00000000ff500000, 0x00000000ff500000, 0x00000000ff600000)<br />
+tenured generation total 10240K, used 8192K [0x00000000ff600000, 0x0000000100000000, 0x0000000100000000)<br />
+the space 10240K, 80% used [0x00000000ff600000, 0x00000000ffe00010, 0x00000000ffe00200, 0x0000000100000000)<br />
+Metaspace used 2637K, capacity 4486K, committed 4864K, reserved 1056768K<br />
+class space used 281K, capacity 386K, committed 512K, reserved 1048576K</p>
+</blockquote>
+<p>我们可以看到，结果数直接把8M扔到了老年代里面了。<br />
+而我们修改成7M的时候<br />
+<img src="./images/深入理解JVM内存分配策略3.png" /></p>
+<p>被发现7M全部扔到了eden里面。<br />
+如果我们制定了参数后，会发现结果变了。</p>
+<p>参数如下所示：</p>
+<pre><code><code>-verbose:gc -XX:+PrintGCDetails -XX:+UseSerialGC -Xms20M -Xmx20M -Xmn10M -XX:SurvivorRatio=8 -XX:PretenureSizeThreshold=6M</code></code></pre>
+<p>运行结果如下：</p>
+<p><img src="./images/深入理解JVM内存分配策略4.png" /></p>
+<p>我们会发现7M进到了老年代。</p>
+<h2 id="长期存活对象进入老年代">长期存活对象进入老年代</h2>
+<hr />
+<p>参数如下：</p>
+<pre><code><code>-XX:MaxTenuringThreshold</code></code></pre>
+<p>每次进行回收的时候，如果没被回收，那对象的年龄+1</p>
+<p>如果对象年龄到达阈值，就会进入老年代。</p>
+<p>具体测试和上面的Max一样。就不占篇幅了。</p>
+<hr />
+<h2 id="空间分配担保">空间分配担保</h2>
+<p>参数如下：</p>
+<pre><code><code>-XX:+HandlePromotionFailure</code></code></pre>
+<p>步骤如下：</p>
+<ul>
+<li>首先衡量有没有这个能力，然后才能进行分配。</li>
+<li>如果有这个能力放入，那么这个参数是‘+’号证明开启了内存担保，否则是‘-’号就是没开启。</li>
+</ul>
+<hr />
+<h2 id="逃逸分析与栈上分配">逃逸分析与栈上分配</h2>
+<p>如何将内存分配到栈上呢？<br />
+这时就需要我们使用逃逸分析，筛选出未发生逃逸对象。</p>
+<p>逃逸分析的主要目标就是分析出对象的作用域。</p>
+<pre><code><code>public class A {
+    A obj;
+    //方法返回A对象,发生逃逸。
+    public A getInstance() {
+        return this.obj ==null?new A():obj;
+    }
+    //为成员属性赋值,发生逃逸
+    public void setObj() {
+        this.obj = new A();
+    }
+    //没有发生逃逸。对象的作用域尽在当前方法中有效，没有发生逃逸。
+    public void useA() {
+        A s = new A();
+    }
+    //
+    public void useA2() {
+        A s = getInstance();
+    }
+}</code></code></pre>
+<p>总结，只要定义在方体中，对象的作用域不发生逃逸，否则发生逃逸。<br />
+所以尽量把变量放在方法体内，这样会提高效率。</p>
+<h2 id="总结">总结：</h2>
+<p>JVM内存分配策略不是特别复杂，只要一步一步跟着虚拟机走，那么就可以去理解JVM内存分配的机制。</p>
+
+
+</div><hr><script charset='utf-8' src='../../js/sming.js'></script></body></html>

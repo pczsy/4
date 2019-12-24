@@ -1,0 +1,303 @@
+<html><head><meta charset='utf-8'><meta name='viewport' content='width=device-width, initial-scale=1'>
+<meta name='applicable-device' content='pc'><meta name='keywords' content='电脑,电脑讲解,电脑技术,编程,电脑故障维修互联网大厂Java面试题集—Spring boot常见面试题（二）' />
+<script src='../../highlight/highlight.pack.js'></script>
+<link rel='stylesheet' type='text/css' href='../../highlight/styles/monokai.css'/>
+
+<link rel='stylesheet' href='../../fenxiang/dist/css/share.min.css'>
+<script src='../../fenxiang/src/js/social-share.js'></script>
+<script src='../../fenxiang/src/js/qrcode.js'></script>
+
+</head><body><script>hljs.initHighlightingOnLoad();</script><script>
+var system ={};  
+var p = navigator.platform;       
+system.win = p.indexOf('Win') == 0;  
+system.mac = p.indexOf('Mac') == 0;  
+system.x11 = (p == 'X11') || (p.indexOf('Linux') == 0);     
+if(system.win||system.mac||system.xll){
+document.write("<link href='../css/3.css' rel='stylesheet' type='text/css'>");}else{ document.write("<link href='../css/3wap.css' rel='stylesheet' type='text/css'>");}</script><script src='../../js/3.js'></script><div class='div2'><div class='heading_nav'><ul><div><li><a href='../../index.html'>首页</a></li>
+</div><div onclick='hidden1()' >分享</div>
+</ul></div></div>
+<div id='heading_nav2'> 
+<li class='row' >
+<div class='social-share' data-mode='prepend'><a href='javascript:' class='social-share-icon icon-heart'></a></div></li></div><script charset='utf-8' src='../../3/js/hengfu.js'></script><script charset='utf-8' src='../../3/js/hengfu2.js'></script><hr><div class='div1'><div class='biaoti'><center>互联网大厂Java面试题集—Spring boot常见面试题（二）</center></div><div class='banquan'>原文出处:本文由博客园博主yoodb提供。<br/>
+原文连接:https://www.cnblogs.com/MrYoodb/p/11995783.html</div><br>
+    <p><strong>Spring Boot的核心功能与使用优点？</strong></p>
+<p>核心功能：</p>
+<p>1）Spring Boot项目为独立运行的spring项目，<code>java -jar xx.jar</code>即可运行。</p>
+<p>2）内嵌servlet容器（可以选择内嵌: tomcat，jetty等服务器）。</p>
+<p>3）提供了starter的pom配置简化了maven的配置。</p>
+<p>4）自动配置spring容器中的bean。当不满足实际开发场景,可自定义bean的自动化配置。</p>
+<p>5）准生产的应用监控（基于：<code>ssh</code>，<code>http</code>，<code>telnet</code>对服务器运行的项目进行监控）。</p>
+<p>6）Spring Boot无需做出xml配置,也不是通过代码生成来实现（通过条件注解）。</p>
+<p>&nbsp;</p>
+<p>使用优点：</p>
+<p>1）快速搭建项目，与主流框架集成无需配置集成。内嵌服务容器，具有应用监控，开发部署方便,后期与云计算平台集成方便（docket）。</p>
+<p>2）使用JavaConfig有助于避免使用XML。</p>
+<p>3）避免大量的Maven导入和各种版本冲突。</p>
+<p>4）没有单独的Web服务器需要。这意味着你不再需要启动<code>Tomcat</code>，<code>Glassfish</code>或其他任何东西。</p>
+<p>5）需要更少的配置因为没有web.xml文件。只需添加用@Configuration注释的类，然后添加用@Bean注释的方法，Spring将自动加载对象并像以前一样对其进行管理。您甚至可以将@Autowired添加到bean方法中，以使 Spring 自动装入需要的依赖关系中。</p>
+<p>6）基于环境的配置使用这些属性，您可以将您正在使用的环境传递到应用程序：<code>-Dspring.profiles.active = {enviornment}</code>。在加载主应用程序属性文件后，Spring将在（<code>application{environment}.properties</code>）中加载后续的应用程序属性文件。</p>
+<p>&nbsp;</p>
+<p><strong>什么是Spring Boot项目中的自动配置与手动配置？如果需要手动配置该如何实现？.</strong></p>
+<p>1. 自动配置: Spring Boot项目默认支持很多框架的集成，添加组件即可。只需要: 针对<code>application.properties</code>做出自动配置的属性重写即可完成，默认开启。关注微信公众号&ldquo;Java精选&rdquo;（w_z90110）。</p>
+<p>举例:</p>
+<p>Spring Boot采用自动配置集成<code>freemarker</code>模板引擎，前提: 构建spring boot项目。&nbsp;</p>
+<p>1）引入模板组件</p>
+<src class="cnblogs_Highlighter">
+<pre><code>&lt;dependency&gt;
+&lt;groupId&gt;org.springframework.boot&lt;/groupId&gt;
+&lt;artifactId&gt;spring-boot-starter-freemarker&lt;/artifactId&gt; 
+&lt;/dependency&gt;</code></pre>
+
+<p>2）编写Controller和freemarker模板，位于resources/templates</p>
+<p>&nbsp;</p>
+<p>2. 手动配置: 手动自定义web组件，代替Spring Boot项目默认支持的组件与配置。</p>
+<p>举例:</p>
+<p>采用手动配置参数,集成freemarker模板引擎.</p>
+<p>1）前提:&nbsp;<code>spring-boot-starter-web</code>引入；</p>
+<p>2）编写过程类似于springMVC；</p>
+<p>3）额外的SpringMVC的容器配置:</p>
+<p>默认基于spring boot的基本默认配置即可（需要修改: 位于<code>application.properties</code>）。需要手动编写类似于spring容器可以:&nbsp;</p>
+<src class="cnblogs_Highlighter">
+<pre><code>@Configuration
+Public class MVCConfiguration extends WebMvcConfigurerAdapter{ 
+    //视图解析器默认地址为: /resources , /static , /templates, /public,/META
+    @Bean
+    public InternalResourceViewResolver defaultResolver(){
+        InternalResourceViewResolver resourceViewResolver = new InternalResourceViewResolver();
+        resourceViewResolver.setPrefix("classpath:/templates/");
+        resourceViewResolver.setSuffix(".html");
+        return resourceViewResolver;
+    }
+    //解析视图时,默认从以上地址中依次寻找视图资源加载,如果自定义例如Freemarker模板视图解析器的资源地址,那么:
+    @Bean
+    public FreeMarkerViewResolver defaultResolver(){
+        FreeMarkerViewResolver freeMarkerViewResolver = new FreeMarkerViewResolver();
+        //      freeMarkerViewResolver.setPrefix("classpath:/views/");
+        freeMarkerViewResolver.setSuffix(".html");
+        freeMarkerViewResolver.setContentType("text/html;charset=utf-8");
+        return freeMarkerViewResolver;
+    }
+    @Bean
+    public FreeMarkerConfigurer freeMarkerConfigurer(){
+        FreeMarkerConfigurer configurer = new FreeMarkerConfigurer();
+        configurer.setTemplateLoaderPaths("classpath:/views/");
+        configurer.setDefaultEncoding("utf-8");
+        return configurer;
+    }
+    //如果不设置静态资源目录,默认: classpath: /static/  ,  classpath: /public/  ,  classpath: /resources/  ,  classpath: /META-INF/resources/  
+    @Override
+    public void addResourceHandlers(ResourceHandlerRegistry registry) {
+        registry.addResourceHandler("/image/**").addResourceLocations("classpath:/static/image/");
+        registry.addResourceHandler("/css/**").addResourceLocations("classpath:/static/css/");
+        registry.addResourceHandler("/js/**").addResourceLocations("classpath:/static/js/");
+    }
+}
+</code></pre>
+
+<p>&nbsp;</p>
+<p>以上手动配置总结: 如果想要完全自定义，接管spring boot中的所有web配置，可以：</p>
+<src class="cnblogs_Highlighter">
+<pre><code>@Configuration: 创建mvc适配器子类的对象并绑定至spring容器中。
+@EnableWebMvc: 扫描spring容器中的mvc适配器子类对象。
+Public class MVCConfiguration extends WebMvcConfigurerAdapter{ 重写方法即可. }
+</code></pre>
+
+<p>&nbsp;</p>
+<p><strong>如何使用Maven来构建一个Spring Boot程序？</strong></p>
+<p>就像引入其他库一样，我们可以在Maven工程中加入Spring Boot依赖。然而，最好是从<code>spring-boot-starter-parent</code>项目中继承以及声明依赖到<code>Spring Boot starters</code>。这样做可以使我们的项目可以重用Spring Boot的默认配置。</p>
+<p>继承<code>spring-boot-starter-parent</code>项目依赖很简 &ndash;我们只需要在pom.xml中定义一个parent节点：</p>
+<src class="cnblogs_Highlighter">
+<pre><code>&lt;parent&gt;
+&lt;groupId&gt;org.springframework.boot&lt;/groupId&gt;
+&lt;artifactId&gt;spring-boot-starter-parent&lt;/artifactId&gt;
+&lt;version&gt;2.1.1.RELEASE&lt;/version&gt;
+&lt;/parent&gt;
+</code></pre>
+
+<p>&nbsp;</p>
+<p>我们可以在Maven central中央仓库中找到spring-boot-starter-parent的最新版本。</p>
+<p>&nbsp;</p>
+<p>使用starter父项目依赖很方便，但是有时候不是可行的。关注微信公众号&ldquo;Java精选&rdquo;（w_z90110）。如果我们公司都要求项目继承标准 POM，我们就不能依赖<code>Spring Boot starter</code>了。</p>
+<p>这种情况，我们可以通过对POM元素的依赖管理来处理：</p>
+<src class="cnblogs_Highlighter">
+<pre><code>&lt;dependencyManagement&gt;
+    &lt;dependencies&gt;
+        &lt;dependency&gt;
+            &lt;groupId&gt;org.springframework.boot&lt;/groupId&gt;
+            &lt;artifactId&gt;spring-boot-dependencies&lt;/artifactId&gt;
+            &lt;version&gt;2.1.1.RELEASE&lt;/version&gt;
+            &lt;type&gt;pom&lt;/type&gt;
+            &lt;scope&gt;import&lt;/scope&gt;
+        &lt;/dependency&gt;
+    &lt;/dependencies&gt;
+&lt;/dependencyManagement&gt;</code></pre>
+
+<p>最后可以添加<code>Spring Boot starter</code>中一些依赖，之后就可以启动项目了。</p>
+<p>&nbsp;</p>
+<p><strong>Spring Boot中如何禁用某些自动配置特性？</strong></p>
+<p>1）禁用某些自动配置特性使用<code>@EnableAutoConfiguration</code>注解的exclude属性来指明。例如，下面的代码段是使<code>DataSourceAutoConfiguration</code>无效：</p>
+<src class="cnblogs_Highlighter">
+<pre><code>// other annotations
+@EnableAutoConfiguration(exclude = DataSourceAutoConfiguration.class)
+public class MyConfiguration { }</code></pre>
+
+<p>2）使用<code>@SpringBootApplication</code>注解，将<code>@EnableAutoConfiguration</code>作为元注解的项来启用自动化配置，使用相同名字的属性来禁用自动化配置：</p>
+<src class="cnblogs_Highlighter">
+<pre><code>// other annotations
+@SpringBootApplication(exclude = DataSourceAutoConfiguration.class)
+public class MyConfiguration { }</code></pre>
+
+<p>3）使用spring.autoconfigure.exclude环境属性来禁用自动化配置。</p>
+<p>application.properties中的这项配置内容增加如下：</p>
+<src class="cnblogs_Highlighter">
+<pre><code>spring.autoconfigure.exclude=org.springframework.boot.autoconfigure.jdbc.DataSourceAutoConfiguration
+</code></pre>
+
+<p>&nbsp;</p>
+<p><strong>如何将Spring Boot web应用程序部署为JAR或WAR文件？</strong></p>
+<p>通常，将web应用程序打包成WAR文件，然后将它部署到另外的服务器上。这样做使得我们能够在相同的服务器上处理多个项目。当CPU和内存有限的情况下，这是一种最好的方法来节省资源。然而，事情发生了转变。现在的计算机硬件相比起来已经比较廉价，并且现在的注意力大多转移到服务器配置上。部署中对服务器配置的一个细小的失误都会导致无可预料的灾难发生。</p>
+<p>Spring通过提供插件来解决这个问题，也就是<code>spring-boot-maven-plugin</code>来打包web应用程序到一个额外的 JAR 文件当中。为了引入这个插件，只需要在<code>pom.xml</code>中添加一个plugin属性：</p>
+<src class="cnblogs_Highlighter">
+<pre><code>&lt;plugin&gt;
+&lt;groupId&gt;org.springframework.boot&lt;/groupId&gt;
+&lt;artifactId&gt;spring-boot-maven-plugin&lt;/artifactId&gt;
+&lt;/plugin&gt;</code></pre>
+
+<p>有了这个插件，可以在执行package步骤后得到一个JAR包。这个JAR包包含所需的所有依赖以及一个嵌入的服务器。因此，无需担心去配置一个额外的服务器了。可以通过运行一个普通的JAR包来启动应用程序。</p>
+<p>需要注意的是，为了打包成JAR文件，<code>pom.xml</code>中的<code>packgaing</code>属性必须定义为jar：</p>
+<src class="cnblogs_Highlighter">
+<pre><code>&lt;packaging&gt;jar&lt;/packaging&gt;</code></pre>
+
+<p>如果不定义这个元素默认值也是jar。</p>
+<p>如果想构建一个WAR文件，将<code>packaging</code>元素修改为war：</p>
+<src class="cnblogs_Highlighter">
+<pre><code>&lt;packaging&gt;war&lt;/packaging&gt;</code></pre>
+
+<p>并且需要将容器依赖从打包文件中移除：</p>
+<src class="cnblogs_Highlighter">
+<pre><code>&lt;dependency&gt;
+     &lt;groupId&gt;org.springframework.boot&lt;/groupId&gt;
+     &lt;artifactId&gt;spring-boot-starter-tomcat&lt;/artifactId&gt;
+     &lt;scope&gt;provided&lt;/scope&gt;
+&lt;/dependency&gt;</code></pre>
+
+<p>执行Maven的package步骤之后，我们得到一个可部署的WAR文件。</p>
+<p>&nbsp;</p>
+<p><strong>如何使用Spring Boot实现分页和排序？</strong></p>
+<p>使用Spring Boot实现分页非常简单。使用<code>Spring Data-JPA</code>可以实现将可分页的传递给存储库方法。</p>
+<p>&nbsp;</p>
+<p><strong>Spring Boot中的监视器是什么？如何监视所有Spring Boot微服务？</strong></p>
+<p><code>Spring boot actuator</code>是spring启动框架中的重要功能之一。Spring Boot监视器可帮助您访问生产环境中正在运行的应用程序的当前状态。有几个指标必须在生产环境中进行检查和监控。即使一些外部应用程序可能正在使用这些服务来向相关人员触发警报消息。监视器模块公开了一组可直接作为HTTP URL访问的REST端点来检查状态。</p>
+<p>&nbsp;</p>
+<p>Spring Boot 提供监视器端点以监控各个微服务的度量。这些端点对于获取有关应用程序的信息（如它们是否已启动）以及它们的组件（如数据库等）是否正常运行很有帮助。但是，使用监视器的一个主要缺点或困难是必须单独打开应用程序的知识点以了解其状态或健康状况。想象一下涉及50个应用程序的微服务，管理员将不得不击中所有50个应用程序的执行终端。为了帮助我们处理这种情况，可以集成开源项目，它建立在Spring Boot Actuator之上，它提供了一个Web UI，使我们能够可视化多个应用程序的度量。</p>
+<p>&nbsp;</p>
+<p><strong>Spring Boot的Actuator是做什么的？</strong></p>
+<p>本质上，<code>Actuator</code>通过启用<code>production-ready</code>功能使得<code>Spring Boot</code>应用程序变得更有生命力。这些功能允许我们对生产环境中的应用程序进行监视和管理。</p>
+<p>集成Spring Boot Actuator到项目中需要做的只是将spring-boot-starter-actuator starter引入到POM.xml文件当中：</p>
+<src class="cnblogs_Highlighter">
+<pre><code>&lt;dependency&gt;
+     &lt;groupId&gt;org.springframework.boot&lt;/groupId&gt;
+     &lt;artifactId&gt;spring-boot-starter-actuator&lt;/artifactId&gt;
+&lt;/dependency&gt;
+</code></pre>
+
+<p>&nbsp;</p>
+<p><code>Spring Boot Actuaor</code>可以使用HTTP或者<code>JMX endpoints</code>来浏览操作信息。大多数应用程序都是用HTTP，作为endpoint的标识以及使用/actuator前缀作为 URL路径。</p>
+<p>这里有一些常用的内置endpoints Actuator：</p>
+<p><img src="./images/互联网大厂Java面试题集—Spring boot常见面试题（二）0.png" alt="" /></p>
+<p>&nbsp;</p>
+<p><strong>Spring Boot项目web开发时如何集成web组件：<code>servlet.filter.listener</code>？&nbsp;</strong></p>
+<p>自定义servlet（实现或继承<code>HttpServlet</code>），filter（实现或继承<code>Filter</code>），listener（实现或继承<code>ServletContextListener</code>）。</p>
+<p>1）将以下组件直接提供在main()启动类中，用于加载：</p>
+<src class="cnblogs_Highlighter">
+<pre><code>@Bean
+public ServletRegistrationBean servletRegistrationBean() {
+    return new ServletRegistrationBean(new CustomServlet(), "/custom");
+}
+@Bean
+public FilterRegistrationBean filterRegistrationBean() {
+    return new FilterRegistrationBean(new CustomFilter(), servletRegistrationBean());
+}
+@Bean
+public ServletListenerRegistrationBean&lt;CustomListener&gt; servletListenerRegistrationBean() {
+    return new ServletListenerRegistrationBean&lt;CustomListener&gt;(new CustomListener());
+}</code></pre>
+
+<p>2）启动类实现ServletContextInitializer，重写onStartup()：</p>
+<src class="cnblogs_Highlighter">
+<pre><code>@SpringBootApplication
+public class SpringBootDemo102Application implements ServletContextInitializer {
+    @Override
+    public void onStartup(ServletContext servletContext) throws ServletException {
+        servletContext.addServlet("customServlet", new CustomServlet()).addMapping("/custom");
+        servletContext.addFilter("customFilter", new CustomFilter())
+        .addMappingForServletNames(EnumSet.of(DispatcherType.REQUEST), true, "customServlet");
+        servletContext.addListener(new CustomListener());
+    }
+}</code></pre>
+
+<p>3）启动类开启扫描: @ServletComponentScan</p>
+<p>工具组件采用注解进行加载：</p>
+<src class="cnblogs_Highlighter">
+<pre><code>@WebFilter(filterName = "customFilter", urlPatterns = "/*")
+@WebListener
+@WebServlet(name = "customServlet", urlPatterns = "/custom")
+</code></pre>
+
+<p>　　</p>
+<p><strong>Spring Boot中的application.properties配置文件是什么，有哪些配置？</strong></p>
+<p><code>application.properties</code>为<code>Spring Boot</code>项目中的一个系统自带的全局属性配置文件，提供默认属性重写的作用。可包含重写系统<code>tomcat</code>，<code>spring</code>，<code>springmvc</code>，<code>mybatis</code>等诸多默认配置属性。列举部分如下:</p>
+<src class="cnblogs_Highlighter">
+<pre><code>#全局配置文件: 重写视图解析器的资源地址
+#页面默认前缀目录
+spring.mvc.view.prefix=/WEB-INF/jsp/
+
+#响应页面默认后缀
+spring.mvc.view.suffix=.jsp
+
+#静态资源目录配置,
+spring.mvc.static-path-pattern=/static/**
+
+#默认支持的日志记录:
+#logging.config=classpath:logback.xml 加载单独的日志配置文件
+logging.file=d:/test/log.log
+logging.level.org.springframework.web=DEBUG
+
+#tomcat服务器的配置:
+server.port=8081
+server.servlet.context-path=/yoodb
+
+#提供jdbc的基本配置:
+spring.datasource.driver-class-name=com.mysql.jdbc.Driver
+spring.datasource.url=jdbc:mysql://localhost:3306/yoodb01?useUnicode=true&amp;characterEncoding=utf-8
+spring.datasource.username=root
+spring.datasource.password=root
+spring.datasource.type=org.apache.commons.dbcp.BasicDataSource
+
+#提供mybatis的属性配置: 扫描
+mybatis.mapper-locations=classpath:mapper/*_mapper.xml
+</code></pre>
+
+<p>&nbsp;</p>
+<p><strong>如何在Spring Boot中添加通用的JS代码？</strong></p>
+<p>在源文件夹下创建一个名为static的文件夹。之后把静态的内容放在这里面。</p>
+<p>例如，yoodb.js的路径是<code>resources\static\js\yoodb.js</code>，可以参考它在jsp中的使用方法：</p>
+<p>错误：<code>HAL browser gives me unauthorized error - Full authenticaition is required to access this resource.</code>，该如何来修复这个错误呢？</p>
+<p>两种方式：</p>
+<p>1）关闭安全验证，打开<code>application.properties</code>文件增加内容如下：</p>
+<src class="cnblogs_Highlighter">
+<pre><code>management.security.enabled:FALSE</code></pre>
+
+<p>2）在日志中搜索密码并传递至请求头中</p>
+<p>&nbsp;</p>
+<p><strong>Spring和Spring Boot有什么不同？</strong></p>
+<p>Spring框架提供多种特性使得web应用开发变得更简便，包括依赖注入、数据绑定、切面编程、数据存取等。</p>
+<p>但随着时间推移，Spring生态变得越来越复杂了，并且应用程序所必须的配置文件也令人觉得可怕。这就是Spirng Boot派上用场的地方了&ndash;它使得Spring的配置变得更轻而易举。</p>
+<p>实际上，Spring是<code>unopinionated</code>（予以配置项多，倾向性弱） 的，Spring Boot在平台和库的做法中更opinionated，使得我们更容易上手。</p>
+<p>简单总结两条Spring Boot带来的好处：</p>
+<p>1）根据classpath中的artifacts的自动化配置应用程序；</p>
+<p>2）提供非功能性特性例如安全和健康检查给到生产环境中的应用程序。</p>
+<p>转载自：<a href="https://blog.yoodb.com/yoodb/article/detail/1549">https://blog.yoodb.com/yoodb/article/detail/1549</a></p>
+
+</div><hr><script charset='utf-8' src='../../js/sming.js'></script></body></html>

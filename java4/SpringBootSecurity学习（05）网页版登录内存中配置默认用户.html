@@ -1,0 +1,53 @@
+<html><head><meta charset='utf-8'><meta name='viewport' content='width=device-width, initial-scale=1'>
+<meta name='applicable-device' content='pc'><meta name='keywords' content='电脑,电脑讲解,电脑技术,编程,电脑故障维修SpringBootSecurity学习（05）网页版登录内存中配置默认用户' />
+<script src='../../highlight/highlight.pack.js'></script>
+<link rel='stylesheet' type='text/css' href='../../highlight/styles/monokai.css'/>
+
+<link rel='stylesheet' href='../../fenxiang/dist/css/share.min.css'>
+<script src='../../fenxiang/src/js/social-share.js'></script>
+<script src='../../fenxiang/src/js/qrcode.js'></script>
+
+</head><body><script>hljs.initHighlightingOnLoad();</script><script>
+var system ={};  
+var p = navigator.platform;       
+system.win = p.indexOf('Win') == 0;  
+system.mac = p.indexOf('Mac') == 0;  
+system.x11 = (p == 'X11') || (p.indexOf('Linux') == 0);     
+if(system.win||system.mac||system.xll){
+document.write("<link href='../css/3.css' rel='stylesheet' type='text/css'>");}else{ document.write("<link href='../css/3wap.css' rel='stylesheet' type='text/css'>");}</script><script src='../../js/3.js'></script><div class='div2'><div class='heading_nav'><ul><div><li><a href='../../index.html'>首页</a></li>
+</div><div onclick='hidden1()' >分享</div>
+</ul></div></div>
+<div id='heading_nav2'> 
+<li class='row' >
+<div class='social-share' data-mode='prepend'><a href='javascript:' class='social-share-icon icon-heart'></a></div></li></div><script charset='utf-8' src='../../3/js/hengfu.js'></script><script charset='utf-8' src='../../3/js/hengfu2.js'></script><hr><div class='div1'><div class='biaoti'><center>SpringBootSecurity学习（05）网页版登录内存中配置默认用户</center></div><div class='banquan'>原文出处:本文由博客园博主程序员郭艺宾提供。<br/>
+原文连接:https://www.cnblogs.com/guos/p/11609625.html</div><br>
+    <h1 id="默认用户">默认用户</h1>
+<p>前面的例子中我们使用的都是配置文件中配置好的默认用户：</p>
+<p><img src="./images/SpringBootSecurity学习（05）网页版登录内存中配置默认用户0.png" alt="file" /></p>
+<p>除了可以配置账号密码，还可以在配置文件中配置角色：</p>
+<p><img src="./images/SpringBootSecurity学习（05）网页版登录内存中配置默认用户1.png" alt="file" /></p>
+<p>这个角色是后面实现权限过滤的重要内容，后面会重点讨论。</p>
+<h1 id="在内存中配置默认用户">在内存中配置默认用户</h1>
+<p>这样在配置文件中默认用户局限性还是很大的。我们想配置多个不同的用户，每个用户拥有不同的角色，并且还有最重要的一点，用户的密码应该是加密的，不应该是明文。</p>
+<p>想在内存中配置，首先要实现security配置类的 configure(AuthenticationManagerBuilder auth)方法：</p>
+<p><img src="./images/SpringBootSecurity学习（05）网页版登录内存中配置默认用户2.png" alt="file" /></p>
+<p>然后配置密码加密方式，这里我们使用spring自带的推荐方式：</p>
+<p><img src="./images/SpringBootSecurity学习（05）网页版登录内存中配置默认用户3.png" alt="file" /></p>
+<p>下面是增加用户，可以直接在后面用构造的方式添加用户：</p>
+<p><img src="./images/SpringBootSecurity学习（05）网页版登录内存中配置默认用户4.png" alt="file" /></p>
+<p>我们添加了两个用户，下面给每个用户后面分别配置一个角色：</p>
+<p><img src="./images/SpringBootSecurity学习（05）网页版登录内存中配置默认用户5.png" alt="file" /></p>
+<p>这样就在内存中配置好了两个默认用户，如果有需要，还可以继续在下面增加。注意上面两个用户的密码的加密方式。</p>
+<h1 id="获取当前登录用户">获取当前登录用户</h1>
+<p>在controller类中，获取当前登录用户的方式非常简单，有很多种：</p>
+<p><img src="./images/SpringBootSecurity学习（05）网页版登录内存中配置默认用户6.png" alt="file" /></p>
+<p>返回的内容都是一样的，登录成功后，可以访问此接口：</p>
+<p><img src="./images/SpringBootSecurity学习（05）网页版登录内存中配置默认用户7.png" alt="file" /></p>
+<p>信息中包含了用户的用户名等基本信息，已经拥有哪些角色，这些角色前面都加上了ROLE_ 的前缀。</p>
+<p>在代码中获取当前用户的方式是：</p>
+<p><img src="./images/SpringBootSecurity学习（05）网页版登录内存中配置默认用户8.png" alt="file" /></p>
+<p>返回的内容与前面的一致。</p>
+<p>代码地址：<a href="https://gitee.com/blueses/spring-boot-security" class="uri">https://gitee.com/blueses/spring-boot-security</a> 05</p>
+
+
+</div><hr><script charset='utf-8' src='../../js/sming.js'></script></body></html>

@@ -1,0 +1,123 @@
+<html><head><meta charset='utf-8'><meta name='viewport' content='width=device-width, initial-scale=1'>
+<meta name='applicable-device' content='pc'><meta name='keywords' content='电脑,电脑讲解,电脑技术,编程,电脑故障维修JavaWeb  Listener' />
+<script src='../../highlight/highlight.pack.js'></script>
+<link rel='stylesheet' type='text/css' href='../../highlight/styles/monokai.css'/>
+
+<link rel='stylesheet' href='../../fenxiang/dist/css/share.min.css'>
+<script src='../../fenxiang/src/js/social-share.js'></script>
+<script src='../../fenxiang/src/js/qrcode.js'></script>
+
+</head><body><script>hljs.initHighlightingOnLoad();</script><script>
+var system ={};  
+var p = navigator.platform;       
+system.win = p.indexOf('Win') == 0;  
+system.mac = p.indexOf('Mac') == 0;  
+system.x11 = (p == 'X11') || (p.indexOf('Linux') == 0);     
+if(system.win||system.mac||system.xll){
+document.write("<link href='../css/3.css' rel='stylesheet' type='text/css'>");}else{ document.write("<link href='../css/3wap.css' rel='stylesheet' type='text/css'>");}</script><script src='../../js/3.js'></script><div class='div2'><div class='heading_nav'><ul><div><li><a href='../../index.html'>首页</a></li>
+</div><div onclick='hidden1()' >分享</div>
+</ul></div></div>
+<div id='heading_nav2'> 
+<li class='row' >
+<div class='social-share' data-mode='prepend'><a href='javascript:' class='social-share-icon icon-heart'></a></div></li></div><script charset='utf-8' src='../../3/js/hengfu.js'></script><script charset='utf-8' src='../../3/js/hengfu2.js'></script><hr><div class='div1'><div class='biaoti'><center>JavaWeb  Listener</center></div><div class='banquan'>原文出处:本文由博客园博主chenhongyong提供。<br/>
+原文连接:https://www.cnblogs.com/chy18883701161/p/11431581.html</div><br>
+    <p>&nbsp;</p>
+<p>Listener是Servlet的事件监听器，一共有8种。</p>
+<p>&nbsp;</p>
+<p>&nbsp;</p>
+<h3>使用xml注册Listener</h3>
+<src class="cnblogs_code">
+<pre><code>&lt;listener&gt;
+        &lt;listener-class&gt;listener.MyListener&lt;/listener-class&gt;
+    &lt;/listener&gt;</code></pre>
+
+<p>监听的是整个web应用，不是某个Servlet。</p>
+<p>&nbsp;</p>
+<p>&nbsp;</p>
+<h3>使用注解注册Listener</h3>
+<src class="cnblogs_code">
+<pre><code>@WebListener()</code></pre>
+
+<p>&nbsp;</p>
+<p>&nbsp;</p>
+<p>&nbsp;</p>
+<p>&nbsp;</p>
+<hr />
+<p>&nbsp;</p>
+<p>&nbsp;</p>
+<p>&nbsp;</p>
+<ul>
+<li>ServletContextListener&nbsp; &nbsp; 监听ServletContext对象的创建、销毁</li>
+<li>HttpSessionListener&nbsp; &nbsp;监听HTTPSession对象的创建、销毁</li>
+<li>ServletRequestListener&nbsp; &nbsp;监听ServletRequest对象的创建、销毁</li>
+</ul>
+<p>&nbsp;</p>
+<p>&nbsp;</p>
+<h3>HttpSession对象销毁有2种情况</h3>
+<ul>
+<li>Session超时</li>
+<li>使用session.invalidate()强制销毁这个session。</li>
+</ul>
+<p>用户直接关闭浏览器，服务器上这个session仍然在，没有被销毁，只是不能再使用这个Session了（作废），原session中数据全部丢失。</p>
+<p>后面执行的request.getSession()，是新建一个session，再返回这个新的session，不是获取原session，。</p>
+<p>&nbsp;</p>
+<p>&nbsp;</p>
+<p>&nbsp;</p>
+<hr />
+<p>&nbsp;</p>
+<p>&nbsp;</p>
+<p>&nbsp;</p>
+<h3>使用Session+HttpSessionListener实现购物车</h3>
+<ul>
+<li>用一个Map来存储购物车中的商品，key存储商品id，value存储购买数量。</li>
+<li>将Map放到session中，用户修改购物车中的商品时（加入商品、移出商品、修改购买数量），从session中使用getAttribute()取出Map，对Map进行修改，然后setAttribute()放回session中（同名覆盖）。</li>
+<li>当会话结束销毁session时，把session中的这个Map取出来，从中读取数据，存到数据库中。这个功能可以用Listener来实现。</li>
+</ul>
+<src class="cnblogs_code">
+<pre><code><span>@WebListener()
+public class MyListener implements<span> HttpSessionListener {
+    public void<span> sessionCreated(HttpSessionEvent se) {
+
+    }
+
+    public void<span> sessionDestroyed(HttpSessionEvent se) {
+        HttpSession session =<span> se.getSession();
+        //从session中取出Map，获取数据，存储到数据库中
+        //......
+<span>    }
+}</span></span></span></span></span></span></code></pre>
+
+<p>重写方法时，要把原来的default权限改为public。</p>
+<p>&nbsp;</p>
+<p>&nbsp;</p>
+<p>&nbsp;</p>
+<hr />
+<p>&nbsp;</p>
+<p>&nbsp;</p>
+<p>&nbsp;</p>
+<ul>
+<li>ServletContextAttributeListener&nbsp; &nbsp;监听ServletContext（application域）中的属性变化，添加、修改&mdash;&mdash;setattribute()，移出&mdash;&mdash;removeAttribute()</li>
+<li>HttpSessionAttributeListener&nbsp; &nbsp; 监听session域中的属性变化</li>
+<li>ServletRequestAttributeListener&nbsp; &nbsp;监听request域中的属性变化</li>
+</ul>
+<p>&nbsp;</p>
+<p>ServletContext中（application域）放的是整个WebApp的共享数据，是所有用户的公共数据。</p>
+<p>&nbsp;</p>
+<p>session是从request中通过SessionId这个Cookie来获取的，是根据用户浏览器上的SessionId这个Cookie来确定的。服务器上有很多session，一个用户（浏览器）对应一个session，我们从request获取的session是某个用户的，这个session域中存储的是某个用户的信息。</p>
+<p>&nbsp;</p>
+<p>request是某个用户（浏览器）本次请求中添加、设置的数据，只在本次HTTP请求中有效。</p>
+<p>&nbsp;</p>
+<p>&nbsp;</p>
+<p>&nbsp;</p>
+<hr />
+<p>&nbsp;</p>
+<p>&nbsp;</p>
+<p>&nbsp;</p>
+<p>&nbsp;</p>
+<p>JavaWeb中的8个监听器均为接口，自己新建Listener实现即可。</p>
+<p>实现的时候需要注意，这8个接口只是声明为interface，里面的方法权限都是default，且都提供了空实现，并不是public abstract，所以IDEA不会自动重写里面的方法，需要我们Ctrl+B找到接口中的方法，复制过来，把default改为public，再写代码。</p>
+<p>&nbsp;</p>
+<p>IDEA下新建Listener时，默认会实现 ServletContextListener,HttpSessionListener, HttpSessionAttributeListener<em id="__mceDel"> </em>这三个最常用的监听器。</p>
+<p>&nbsp;</p>
+
+</div><hr><script charset='utf-8' src='../../js/sming.js'></script></body></html>

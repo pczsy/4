@@ -1,0 +1,207 @@
+<html><head><meta charset='utf-8'><meta name='viewport' content='width=device-width, initial-scale=1'>
+<meta name='applicable-device' content='pc'><meta name='keywords' content='电脑,电脑讲解,电脑技术,编程,电脑故障维修等待唤醒机制---Day25' />
+<script src='../../highlight/highlight.pack.js'></script>
+<link rel='stylesheet' type='text/css' href='../../highlight/styles/monokai.css'/>
+
+<link rel='stylesheet' href='../../fenxiang/dist/css/share.min.css'>
+<script src='../../fenxiang/src/js/social-share.js'></script>
+<script src='../../fenxiang/src/js/qrcode.js'></script>
+
+</head><body><script>hljs.initHighlightingOnLoad();</script><script>
+var system ={};  
+var p = navigator.platform;       
+system.win = p.indexOf('Win') == 0;  
+system.mac = p.indexOf('Mac') == 0;  
+system.x11 = (p == 'X11') || (p.indexOf('Linux') == 0);     
+if(system.win||system.mac||system.xll){
+document.write("<link href='../css/3.css' rel='stylesheet' type='text/css'>");}else{ document.write("<link href='../css/3wap.css' rel='stylesheet' type='text/css'>");}</script><script src='../../js/3.js'></script><div class='div2'><div class='heading_nav'><ul><div><li><a href='../../index.html'>首页</a></li>
+</div><div onclick='hidden1()' >分享</div>
+</ul></div></div>
+<div id='heading_nav2'> 
+<li class='row' >
+<div class='social-share' data-mode='prepend'><a href='javascript:' class='social-share-icon icon-heart'></a></div></li></div><script charset='utf-8' src='../../3/js/hengfu.js'></script><script charset='utf-8' src='../../3/js/hengfu2.js'></script><hr><div class='div1'><div class='biaoti'><center>等待唤醒机制---Day25</center></div><div class='banquan'>原文出处:本文由博客园博主CeliaTodd提供。<br/>
+原文连接:https://www.cnblogs.com/hpcz190911/p/11955116.html</div><br>
+    <p><strong>线程间通信</strong></p>
+<p>　　概念：多个线程在处理同一个资源，但是处理的动作（线程的任务）却不相同。</p>
+<p>　　比如：线程A用来生成包子的，线程B用来吃包子的，包子可以理解为同一资源，线程A与线程B处理的动作，一个 是生产，一个是消费，那么线程A与线程B之间就存在线程通信问题。</p>
+<p>　　为什么要处理线程间通信：</p>
+<p>　　　　多个线程并发执行时, 在默认情况下CPU是随机切换线程的，当我们需要多个线程来共同完成一项任务时，我们都知道执行任务时一般都是按规律或者规则来执行，所以多线程执行任务也是一样，需要规律来协调通信，以此来帮我们达到多线程共同操作一项任务（一份数据）。</p>
+<p>　　如何保证线程间通信有效执行任务（利用资源）：</p>
+<p>　　　　多个线程在处理同一个资源，并且任务不同时，需要线程通信来帮助解决线程之间对同一个变量的使用或操作。 因为多个线程在操作同一份数据时， 要避免对同一共享变量的争夺。因此我们需要通过一定的手段使各个线程能有效的利用资源。而这种手段即&mdash;&mdash; 等待唤醒机制</p>
+<p><strong>等待唤醒机制</strong></p>
+<p>　　什么时等待唤醒机制</p>
+<p>　　　　这是多个线程间的一种协作机制。谈到线程我们经常想到的是线程间的竞争（race），比如去争夺锁，但这并不是故事的全部，线程间也会有协作机制，就是在一个线程进行了规定操作后，就进入等待状态（wait()）， 等待其他线程执行完他们的指定代码过后再将其唤醒（notify()）;在有多个线程进行等待时， 如果需要，可以使用 notifyAll()来唤醒所有的等待线程</p>
+<p>　　　　wait/notify 就是线程间的一种协作机制</p>
+<p><strong>等待唤醒中的方法</strong></p>
+<p><strong>　</strong>　等待唤醒机制就是用于解决线程间通信的问题的，使用到的3个方法的含义如下</p>
+<p>　　　　1. wait：线程不再活动，不再参与调度，进入 wait set 中，因此不会浪费 CPU 资源，也不会去竞争锁了，这时的线程状态即是WAITING。它还要等着别的线程执行一个特别的动作，也即是&ldquo;通知（notify）&rdquo;在这个对象上等待的线程从wait set 中释放出来，重新进入到调度队列（ready queue）中</p>
+<p>　　　　2. notify：则选取所通知对象的 wait set 中的一个线程释放；例如，餐馆有空位置后，等候就餐最久的顾客最先入座。</p>
+<p>　　　　3. notifyAll：则释放所通知对象的 wait set 上的全部线程。</p>
+<p>　　　　注意：哪怕只通知了一个等待的线程，被通知线程也不能立即恢复执行，因为它当初中断的地方是在同步块内，而此刻它已经不再持有锁，所以需要再次尝试去获取锁（很可能面临其它线程的竞争），获取锁成功后才能在当初调用 wait 方法之后的地方恢复执行</p>
+<p>　　总结：如果能获取锁，线程就从 WAITING 状态变成 RUNNABLE 状态； 否则，从 wait set 出来，又进入 entry set，线程就从 WAITING 状态又变成 BLOCKED 状态&nbsp;</p>
+<p><strong>调用wait和notify方法需要注意的细节</strong></p>
+<p>　　1. wait方法与notify方法必须要由同一个锁对象调用。因为：对应的锁对象可以通过notify唤醒使用同一个锁对 象调用的wait方法后的线程。</p>
+<p>　　2. wait方法与notify方法是属于Object类的方法的。因为：锁对象可以是任意对象，而任意对象的所属类都是继 承了Object类的。</p>
+<p>　　3. wait方法与notify方法必须要在同步代码块或者是同步函数中使用。因为：必须要通过锁对象调用这2个方法。</p>
+<p><strong>等待唤醒机制是&ldquo;生产者与消费者之间的关系&rdquo;</strong></p>
+<p>　　就拿生产包子消费包子来说等待唤醒机制如何有效利用资源：</p>
+<p>　　　　包子铺线程生产包子，吃货线程消费包子。当包子没有时（包子状态为false），吃货线程等待，包子铺线程生产包子 （即包子状态为true），并通知吃货线程（解除吃货的等待状态）,因为已经有包子了，那么包子铺线程进入等待状态。 接下来，吃货线程能否进一步执行则取决于锁的获取情况。如果吃货获取到锁，那么就执行吃包子动作，包子吃完（包 子状态为false），并通知包子铺线程（解除包子铺的等待状态）,吃货线程进入等待。包子铺线程能否进一步执行则取决于锁的获取情况</p>
+<p><strong>包子类</strong></p>
+<src class="cnblogs_code">
+<pre><code><span style="color: #008080;"> 1</span> <span style="color: #0000ff;">package</span><span style="color: #000000;"> demosummary.waitingandwake;
+</span><span style="color: #008080;"> 2</span> 
+<span style="color: #008080;"> 3</span> <span style="color: #008000;">/**</span>
+<span style="color: #008080;"> 4</span> <span style="color: #008000;">    包子铺线程生产包子，吃货线程消费包子。当包子没有时（包子状态为false），吃货线程等待，
+</span><span style="color: #008080;"> 5</span> <span style="color: #008000;">    包子铺线程生产包子 （即包子状态为true）
+</span><span style="color: #008080;"> 6</span> <span style="color: #008000;">    并通知吃货线程（解除吃货的等待状态）,因为已经有包子了，那么包子铺线程进入等待状态。
+</span><span style="color: #008080;"> 7</span> <span style="color: #008000;">    接下来，吃货线程能否进一步执行则取决于锁的获取情况。
+</span><span style="color: #008080;"> 8</span> <span style="color: #008000;">    如果吃货获取到锁，那么就执行吃包子动作，包子吃完（包 子状态为false），并通知包子铺线程（解除包子铺的等待状态）,
+</span><span style="color: #008080;"> 9</span> <span style="color: #008000;">    吃货线程进入等待。包子铺线程能否进一步执行则取决于锁的获取情况
+</span><span style="color: #008080;">10</span>  <span style="color: #008000;">*/</span>
+<span style="color: #008080;">11</span> <span style="color: #0000ff;">public</span> <span style="color: #0000ff;">class</span><span style="color: #000000;"> BaoZi {
+</span><span style="color: #008080;">12</span>     <span style="color: #0000ff;">private</span><span style="color: #000000;"> String pi;
+</span><span style="color: #008080;">13</span>     <span style="color: #0000ff;">private</span><span style="color: #000000;"> String xian;
+</span><span style="color: #008080;">14</span>     <span style="color: #0000ff;">boolean</span> flag = <span style="color: #0000ff;">false</span><span style="color: #000000;">;
+</span><span style="color: #008080;">15</span> 
+<span style="color: #008080;">16</span>     <span style="color: #0000ff;">public</span><span style="color: #000000;"> BaoZi() {
+</span><span style="color: #008080;">17</span> <span style="color: #000000;">    }
+</span><span style="color: #008080;">18</span> 
+<span style="color: #008080;">19</span>     <span style="color: #0000ff;">public</span> BaoZi(String pi, String xian, <span style="color: #0000ff;">boolean</span><span style="color: #000000;"> flag) {
+</span><span style="color: #008080;">20</span>         <span style="color: #0000ff;">this</span>.pi =<span style="color: #000000;"> pi;
+</span><span style="color: #008080;">21</span>         <span style="color: #0000ff;">this</span>.xian =<span style="color: #000000;"> xian;
+</span><span style="color: #008080;">22</span>         <span style="color: #0000ff;">this</span>.flag =<span style="color: #000000;"> flag;
+</span><span style="color: #008080;">23</span> <span style="color: #000000;">    }
+</span><span style="color: #008080;">24</span> 
+<span style="color: #008080;">25</span>     <span style="color: #0000ff;">public</span><span style="color: #000000;"> String getPi() {
+</span><span style="color: #008080;">26</span>         <span style="color: #0000ff;">return</span><span style="color: #000000;"> pi;
+</span><span style="color: #008080;">27</span> <span style="color: #000000;">    }
+</span><span style="color: #008080;">28</span> 
+<span style="color: #008080;">29</span>     <span style="color: #0000ff;">public</span> <span style="color: #0000ff;">void</span><span style="color: #000000;"> setPi(String pi) {
+</span><span style="color: #008080;">30</span>         <span style="color: #0000ff;">this</span>.pi =<span style="color: #000000;"> pi;
+</span><span style="color: #008080;">31</span> <span style="color: #000000;">    }
+</span><span style="color: #008080;">32</span> 
+<span style="color: #008080;">33</span>     <span style="color: #0000ff;">public</span><span style="color: #000000;"> String getXian() {
+</span><span style="color: #008080;">34</span>         <span style="color: #0000ff;">return</span><span style="color: #000000;"> xian;
+</span><span style="color: #008080;">35</span> <span style="color: #000000;">    }
+</span><span style="color: #008080;">36</span> 
+<span style="color: #008080;">37</span>     <span style="color: #0000ff;">public</span> <span style="color: #0000ff;">void</span><span style="color: #000000;"> setXian(String xian) {
+</span><span style="color: #008080;">38</span>         <span style="color: #0000ff;">this</span>.xian =<span style="color: #000000;"> xian;
+</span><span style="color: #008080;">39</span> <span style="color: #000000;">    }
+</span><span style="color: #008080;">40</span> 
+<span style="color: #008080;">41</span>     <span style="color: #0000ff;">public</span> <span style="color: #0000ff;">boolean</span><span style="color: #000000;"> isFlag() {
+</span><span style="color: #008080;">42</span>         <span style="color: #0000ff;">return</span><span style="color: #000000;"> flag;
+</span><span style="color: #008080;">43</span> <span style="color: #000000;">    }
+</span><span style="color: #008080;">44</span> 
+<span style="color: #008080;">45</span>     <span style="color: #0000ff;">public</span> <span style="color: #0000ff;">void</span> setFlag(<span style="color: #0000ff;">boolean</span><span style="color: #000000;"> flag) {
+</span><span style="color: #008080;">46</span>         <span style="color: #0000ff;">this</span>.flag =<span style="color: #000000;"> flag;
+</span><span style="color: #008080;">47</span> <span style="color: #000000;">    }
+</span><span style="color: #008080;">48</span> 
+<span style="color: #008080;">49</span> <span style="color: #000000;">    @Override
+</span><span style="color: #008080;">50</span>     <span style="color: #0000ff;">public</span><span style="color: #000000;"> String toString() {
+</span><span style="color: #008080;">51</span>         <span style="color: #0000ff;">return</span> "BaoZi{" +
+<span style="color: #008080;">52</span>                 "pi='" + pi + '\'' +
+<span style="color: #008080;">53</span>                 ", xian='" + xian + '\'' +
+<span style="color: #008080;">54</span>                 ", flag=" + flag +
+<span style="color: #008080;">55</span>                 '}'<span style="color: #000000;">;
+</span><span style="color: #008080;">56</span> <span style="color: #000000;">    }
+</span><span style="color: #008080;">57</span> }</code></pre>
+
+<p><strong>包子铺类</strong></p>
+<src class="cnblogs_code">
+<pre><code><span style="color: #008080;"> 1</span> <span style="color: #0000ff;">package</span><span style="color: #000000;"> demosummary.waitingandwake;
+</span><span style="color: #008080;"> 2</span> 
+<span style="color: #008080;"> 3</span> <span style="color: #0000ff;">public</span> <span style="color: #0000ff;">class</span> BaoZiPu <span style="color: #0000ff;">extends</span><span style="color: #000000;"> Thread{
+</span><span style="color: #008080;"> 4</span>     <span style="color: #0000ff;">private</span><span style="color: #000000;"> BaoZi bz;
+</span><span style="color: #008080;"> 5</span> 
+<span style="color: #008080;"> 6</span>     <span style="color: #0000ff;">public</span><span style="color: #000000;"> BaoZiPu(String name, BaoZi bz) {
+</span><span style="color: #008080;"> 7</span>         <span style="color: #0000ff;">super</span><span style="color: #000000;">(name);
+</span><span style="color: #008080;"> 8</span>         <span style="color: #0000ff;">this</span>.bz =<span style="color: #000000;"> bz;
+</span><span style="color: #008080;"> 9</span> <span style="color: #000000;">    }
+</span><span style="color: #008080;">10</span> 
+<span style="color: #008080;">11</span> <span style="color: #000000;">    @Override
+</span><span style="color: #008080;">12</span>     <span style="color: #0000ff;">public</span> <span style="color: #0000ff;">void</span><span style="color: #000000;"> run() {
+</span><span style="color: #008080;">13</span>         <span style="color: #008000;">//</span><span style="color: #008000;">定义一个变量来判断做什么皮和馅的包子</span>
+<span style="color: #008080;">14</span>         <span style="color: #0000ff;">int</span> count = 0<span style="color: #000000;">;
+</span><span style="color: #008080;">15</span>         <span style="color: #0000ff;">while</span> (<span style="color: #0000ff;">true</span><span style="color: #000000;">) {
+</span><span style="color: #008080;">16</span>             <span style="color: #0000ff;">synchronized</span><span style="color: #000000;"> (bz) {
+</span><span style="color: #008080;">17</span>                 <span style="color: #0000ff;">if</span> (bz.flag == <span style="color: #0000ff;">true</span>) {<span style="color: #008000;">//</span><span style="color: #008000;">包子存在</span>
+<span style="color: #008080;">18</span>                     <span style="color: #0000ff;">try</span><span style="color: #000000;"> {
+</span><span style="color: #008080;">19</span>                         bz.wait();<span style="color: #008000;">//</span><span style="color: #008000;">进入等待状态,既不需要做包子</span>
+<span style="color: #008080;">20</span>                     } <span style="color: #0000ff;">catch</span><span style="color: #000000;"> (InterruptedException e) {
+</span><span style="color: #008080;">21</span> <span style="color: #000000;">                        e.printStackTrace();
+</span><span style="color: #008080;">22</span> <span style="color: #000000;">                    }
+</span><span style="color: #008080;">23</span> <span style="color: #000000;">                }
+</span><span style="color: #008080;">24</span>                 <span style="color: #008000;">//</span><span style="color: #008000;">没有包子,包子铺开始做包子</span>
+<span style="color: #008080;">25</span>                 System.out.println("包子铺开始做包子"<span style="color: #000000;">);
+</span><span style="color: #008080;">26</span>                 <span style="color: #008000;">//</span><span style="color: #008000;">判断做什么包子</span>
+<span style="color: #008080;">27</span>                 <span style="color: #0000ff;">if</span> (count != 0<span style="color: #000000;">) {
+</span><span style="color: #008080;">28</span>                     <span style="color: #008000;">//</span><span style="color: #008000;">做冰皮蛋黄包子</span>
+<span style="color: #008080;">29</span>                     bz.setPi("冰皮"<span style="color: #000000;">);
+</span><span style="color: #008080;">30</span>                     bz.setXian("蛋黄"<span style="color: #000000;">);
+</span><span style="color: #008080;">31</span>                 } <span style="color: #0000ff;">else</span><span style="color: #000000;"> {
+</span><span style="color: #008080;">32</span>                     <span style="color: #008000;">//</span><span style="color: #008000;">做薄皮豆沙馅</span>
+<span style="color: #008080;">33</span>                     bz.setPi("薄皮"<span style="color: #000000;">);
+</span><span style="color: #008080;">34</span>                     bz.setXian("豆沙"<span style="color: #000000;">);
+</span><span style="color: #008080;">35</span> <span style="color: #000000;">                }
+</span><span style="color: #008080;">36</span>                 count++<span style="color: #000000;">;
+</span><span style="color: #008080;">37</span>                 <span style="color: #008000;">//</span><span style="color: #008000;">改变包子的状态为有包子</span>
+<span style="color: #008080;">38</span>                 bz.flag = <span style="color: #0000ff;">true</span><span style="color: #000000;">;
+</span><span style="color: #008080;">39</span>                 System.out.println("包子做好了:"+bz.getPi()+bz.getXian()+"包子"<span style="color: #000000;">);
+</span><span style="color: #008080;">40</span>                 System.out.println("请等待的顾客可以来拿包子了"<span style="color: #000000;">);
+</span><span style="color: #008080;">41</span> <span style="color: #000000;">                bz.notify();
+</span><span style="color: #008080;">42</span> <span style="color: #000000;">            }
+</span><span style="color: #008080;">43</span> <span style="color: #000000;">        }
+</span><span style="color: #008080;">44</span> <span style="color: #000000;">    }
+</span><span style="color: #008080;">45</span> }</code></pre>
+
+<p><strong>顾客类</strong></p>
+<src class="cnblogs_code">
+<pre><code><span style="color: #008080;"> 1</span> <span style="color: #0000ff;">package</span><span style="color: #000000;"> demosummary.waitingandwake;
+</span><span style="color: #008080;"> 2</span> 
+<span style="color: #008080;"> 3</span> <span style="color: #0000ff;">public</span> <span style="color: #0000ff;">class</span> GuKe <span style="color: #0000ff;">extends</span><span style="color: #000000;"> Thread{
+</span><span style="color: #008080;"> 4</span>     <span style="color: #0000ff;">private</span><span style="color: #000000;"> BaoZi bz;
+</span><span style="color: #008080;"> 5</span> 
+<span style="color: #008080;"> 6</span>     <span style="color: #0000ff;">public</span><span style="color: #000000;"> GuKe(String name, BaoZi bz) {
+</span><span style="color: #008080;"> 7</span>         <span style="color: #0000ff;">super</span><span style="color: #000000;">(name);
+</span><span style="color: #008080;"> 8</span>         <span style="color: #0000ff;">this</span>.bz =<span style="color: #000000;"> bz;
+</span><span style="color: #008080;"> 9</span> <span style="color: #000000;">    }
+</span><span style="color: #008080;">10</span> 
+<span style="color: #008080;">11</span> <span style="color: #000000;">    @Override
+</span><span style="color: #008080;">12</span>     <span style="color: #0000ff;">public</span> <span style="color: #0000ff;">void</span><span style="color: #000000;"> run() {
+</span><span style="color: #008080;">13</span>         <span style="color: #0000ff;">while</span> (<span style="color: #0000ff;">true</span><span style="color: #000000;">) {
+</span><span style="color: #008080;">14</span>             <span style="color: #0000ff;">synchronized</span><span style="color: #000000;"> (bz) {
+</span><span style="color: #008080;">15</span>                 <span style="color: #0000ff;">if</span> (bz.flag == <span style="color: #0000ff;">false</span><span style="color: #000000;">) {
+</span><span style="color: #008080;">16</span>                     <span style="color: #0000ff;">try</span><span style="color: #000000;"> {
+</span><span style="color: #008080;">17</span> <span style="color: #000000;">                        bz.wait();
+</span><span style="color: #008080;">18</span>                     } <span style="color: #0000ff;">catch</span><span style="color: #000000;"> (InterruptedException e) {
+</span><span style="color: #008080;">19</span> <span style="color: #000000;">                        e.printStackTrace();
+</span><span style="color: #008080;">20</span> <span style="color: #000000;">                    }
+</span><span style="color: #008080;">21</span> <span style="color: #000000;">                }
+</span><span style="color: #008080;">22</span> 
+<span style="color: #008080;">23</span>                 System.out.println("顾客已拿到" + bz.getPi() + bz.getXian()+"包子"<span style="color: #000000;">);
+</span><span style="color: #008080;">24</span>                 bz.flag = <span style="color: #0000ff;">false</span><span style="color: #000000;">;
+</span><span style="color: #008080;">25</span> <span style="color: #000000;">                bz.notify();
+</span><span style="color: #008080;">26</span> <span style="color: #000000;">            }
+</span><span style="color: #008080;">27</span> <span style="color: #000000;">        }
+</span><span style="color: #008080;">28</span> <span style="color: #000000;">    }
+</span><span style="color: #008080;">29</span> }</code></pre>
+
+<p><strong>测试类</strong></p>
+<src class="cnblogs_code">
+<pre><code><span style="color: #008080;"> 1</span> <span style="color: #0000ff;">package</span><span style="color: #000000;"> demosummary.waitingandwake;
+</span><span style="color: #008080;"> 2</span> 
+<span style="color: #008080;"> 3</span> <span style="color: #0000ff;">public</span> <span style="color: #0000ff;">class</span><span style="color: #000000;"> Test {
+</span><span style="color: #008080;"> 4</span>     <span style="color: #0000ff;">public</span> <span style="color: #0000ff;">static</span> <span style="color: #0000ff;">void</span><span style="color: #000000;"> main(String[] args) {
+</span><span style="color: #008080;"> 5</span>         <span style="color: #008000;">//</span><span style="color: #008000;">创建包子、包子铺、顾客对象</span>
+<span style="color: #008080;"> 6</span>         BaoZi baoZi = <span style="color: #0000ff;">new</span><span style="color: #000000;"> BaoZi();
+</span><span style="color: #008080;"> 7</span>         BaoZiPu baoZiPu = <span style="color: #0000ff;">new</span> BaoZiPu("包子铺"<span style="color: #000000;">, baoZi);
+</span><span style="color: #008080;"> 8</span>         GuKe guKe = <span style="color: #0000ff;">new</span> GuKe("顾客"<span style="color: #000000;">, baoZi);
+</span><span style="color: #008080;"> 9</span>         <span style="color: #008000;">//</span><span style="color: #008000;">调用包子铺和顾客线程</span>
+<span style="color: #008080;">10</span> <span style="color: #000000;">        baoZiPu.start();
+</span><span style="color: #008080;">11</span> <span style="color: #000000;">        guKe.start();
+</span><span style="color: #008080;">12</span> <span style="color: #000000;">    }
+</span><span style="color: #008080;">13</span> }</code></pre>
+
+<p>&nbsp;</p>
+
+</div><hr><script charset='utf-8' src='../../js/sming.js'></script></body></html>

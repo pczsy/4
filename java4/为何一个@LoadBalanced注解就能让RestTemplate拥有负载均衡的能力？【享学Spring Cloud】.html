@@ -1,0 +1,385 @@
+<html><head><meta charset='utf-8'><meta name='viewport' content='width=device-width, initial-scale=1'>
+<meta name='applicable-device' content='pc'><meta name='keywords' content='电脑,电脑讲解,电脑技术,编程,电脑故障维修为何一个@LoadBalanced注解就能让RestTemplate拥有负载均衡的能力？【享学Spring Cloud】' />
+<script src='../../highlight/highlight.pack.js'></script>
+<link rel='stylesheet' type='text/css' href='../../highlight/styles/monokai.css'/>
+
+<link rel='stylesheet' href='../../fenxiang/dist/css/share.min.css'>
+<script src='../../fenxiang/src/js/social-share.js'></script>
+<script src='../../fenxiang/src/js/qrcode.js'></script>
+
+</head><body><script>hljs.initHighlightingOnLoad();</script><script>
+var system ={};  
+var p = navigator.platform;       
+system.win = p.indexOf('Win') == 0;  
+system.mac = p.indexOf('Mac') == 0;  
+system.x11 = (p == 'X11') || (p.indexOf('Linux') == 0);     
+if(system.win||system.mac||system.xll){
+document.write("<link href='../css/3.css' rel='stylesheet' type='text/css'>");}else{ document.write("<link href='../css/3wap.css' rel='stylesheet' type='text/css'>");}</script><script src='../../js/3.js'></script><div class='div2'><div class='heading_nav'><ul><div><li><a href='../../index.html'>首页</a></li>
+</div><div onclick='hidden1()' >分享</div>
+</ul></div></div>
+<div id='heading_nav2'> 
+<li class='row' >
+<div class='social-share' data-mode='prepend'><a href='javascript:' class='social-share-icon icon-heart'></a></div></li></div><script charset='utf-8' src='../../3/js/hengfu.js'></script><script charset='utf-8' src='../../3/js/hengfu2.js'></script><hr><div class='div1'><div class='biaoti'><center>为何一个@LoadBalanced注解就能让RestTemplate拥有负载均衡的能力？【享学Spring Cloud】</center></div><div class='banquan'>原文出处:本文由博客园博主_YourBatman提供。<br/>
+原文连接:https://www.cnblogs.com/fangshixiang/p/11532729.html</div><br>
+    <h4 id="每篇一句">每篇一句</h4>
+<blockquote>
+<p>你应该思考：为什么往往完成比完美更重要？</p>
+</blockquote>
+<h4 id="前言">前言</h4>
+<p>在<code>Spring Cloud</code>微服务应用体系中，远程调用都应负载均衡。我们在使用<code>RestTemplate</code>作为远程调用客户端的时候，开启负载均衡极其简单：<strong>一个<code>@LoadBalanced</code>注解就搞定了</strong>。<br />
+相信大家大都使用过<code>Ribbon</code>做<strong>Client端</strong>的负载均衡，也许你有和我一样的感受：<strong>Ribbon虽强大但不是特别的好用</strong>。我研究了一番，其实根源还是我们对它内部的原理不够了解，导致对一些现象无法给出合理解释，同时也影响了我们对它的<strong>定制和扩展</strong>。本文就针对此做出梳理，希望大家通过本文也能够对<code>Ribbon</code>有一个较为清晰的理解（本文只解释它<code>@LoadBalanced</code>这一小块内容）。</p>
+<p>开启客户端负载均衡只需要一个注解即可，形如这样：</p>
+<pre><code><code>@LoadBalanced // 标注此注解后，RestTemplate就具有了客户端负载均衡能力
+@Bean
+public RestTemplate restTemplate(){
+    return new RestTemplate();
+}</code></code></pre>
+<p>说<code>Spring</code>是Java界最优秀、最杰出的重复发明轮子作品一点都不为过。本文就代领你一探究竟，为何开启<code>RestTemplate</code>的负载均衡如此简单。</p>
+<blockquote>
+<p>说明：本文建立在你已经熟练使用<code>RestTemplate</code>，并且了解<code>RestTemplate</code>它相关组件的原理的基础上分析。若对这部分还比较模糊，强行推荐你<code>先</code>参看我前面这篇文章：<a href="https://fangshixiang.blog.csdn.net/article/details/100753981">RestTemplate的使用和原理你都烂熟于胸了吗？【享学Spring MVC】</a></p>
+</blockquote>
+<h2 id="ribbonautoconfiguration">RibbonAutoConfiguration</h2>
+<p>这是<code>Spring Boot/Cloud</code>启动<code>Ribbon</code>的入口自动配置类，需要先有个大概的了解：</p>
+<pre><code><code>@Configuration
+// 类路径存在com.netflix.client.IClient、RestTemplate等时生效
+@Conditional(RibbonAutoConfiguration.RibbonClassesConditions.class) 
+// // 允许在单个类中使用多个@RibbonClient
+@RibbonClients 
+// 若有Eureka，那就在Eureka配置好后再配置它~~~（如果是别的注册中心呢，ribbon还能玩吗？）
+@AutoConfigureAfter(name = &quot;org.springframework.cloud.netflix.eureka.EurekaClientAutoConfiguration&quot;)
+@AutoConfigureBefore({ LoadBalancerAutoConfiguration.class, AsyncLoadBalancerAutoConfiguration.class })
+// 加载配置：ribbon.eager-load --&gt; true的话，那么项目启动的时候就会把Client初始化好，避免第一次惩罚
+@EnableConfigurationProperties({ RibbonEagerLoadProperties.class, ServerIntrospectorProperties.class })
+public class RibbonAutoConfiguration {
+
+    @Autowired
+    private RibbonEagerLoadProperties ribbonEagerLoadProperties;
+    // Ribbon的配置文件们~~~~~~~（复杂且重要）
+    @Autowired(required = false)
+    private List&lt;RibbonClientSpecification&gt; configurations = new ArrayList&lt;&gt;();
+
+    // 特征，FeaturesEndpoint这个端点(`/actuator/features`)会使用它org.springframework.cloud.client.actuator.HasFeatures
+    @Bean
+    public HasFeatures ribbonFeature() {
+        return HasFeatures.namedFeature(&quot;Ribbon&quot;, Ribbon.class);
+    }
+
+
+    // 它是最为重要的，是一个org.springframework.cloud.context.named.NamedContextFactory  此工厂用于创建命名的Spring容器
+    // 这里传入配置文件，每个不同命名空间就会创建一个新的容器（和Feign特别像） 设置当前容器为父容器
+    @Bean
+    public SpringClientFactory springClientFactory() {
+        SpringClientFactory factory = new SpringClientFactory();
+        factory.setConfigurations(this.configurations);
+        return factory;
+    }
+
+    // 这个Bean是关键，若你没定义，就用系统默认提供的Client了~~~
+    // 内部使用和持有了SpringClientFactory。。。
+    @Bean
+    @ConditionalOnMissingBean(LoadBalancerClient.class)
+    public LoadBalancerClient loadBalancerClient() {
+        return new RibbonLoadBalancerClient(springClientFactory());
+    }
+    ...
+}</code></code></pre>
+<p>这个配置类最重要的是完成了<code>Ribbon</code>相关组件的自动配置，有了<code>LoadBalancerClient</code>才能做负载均衡（这里使用的是它的唯一实现类<code>RibbonLoadBalancerClient</code>）</p>
+<hr />
+<h2 id="loadbalanced">@LoadBalanced</h2>
+<p>注解本身及其简单（一个属性都木有）：</p>
+<pre><code><code>// 所在包是org.springframework.cloud.client.loadbalancer
+// 能标注在字段、方法参数、方法上
+// JavaDoc上说得很清楚：它只能标注在RestTemplate上才有效
+@Target({ ElementType.FIELD, ElementType.PARAMETER, ElementType.METHOD })
+@Retention(RetentionPolicy.RUNTIME)
+@Documented
+@Inherited
+@Qualifier
+public @interface LoadBalanced {
+}</code></code></pre>
+<p>它最大的特点：头上标注有<code>@Qualifier</code>注解，这是它生效的最重要因素之一，本文后半啦我花了大篇幅介绍它的生效时机。<br />
+关于<code>@LoadBalanced</code>自动生效的配置，我们需要来到这个自动配置类：<code>LoadBalancerAutoConfiguration</code></p>
+<h4 id="loadbalancerautoconfiguration">LoadBalancerAutoConfiguration</h4>
+<pre><code><code>// Auto-configuration for Ribbon (client-side load balancing).
+// 它的负载均衡技术依赖于的是Ribbon组件~
+// 它所在的包是：org.springframework.cloud.client.loadbalancer
+@Configuration
+@ConditionalOnClass(RestTemplate.class) //可见它只对RestTemplate生效
+@ConditionalOnBean(LoadBalancerClient.class) // Spring容器内必须存在这个接口的Bean才会生效（参见：RibbonAutoConfiguration）
+@EnableConfigurationProperties(LoadBalancerRetryProperties.class) // retry的配置文件
+public class LoadBalancerAutoConfiguration {
+    
+    // 拿到容器内所有的标注有@LoadBalanced注解的Bean们
+    // 注意：必须标注有@LoadBalanced注解的才行
+    @LoadBalanced
+    @Autowired(required = false)
+    private List&lt;RestTemplate&gt; restTemplates = Collections.emptyList(); 
+    // LoadBalancerRequestTransformer接口：允许使用者把request + ServiceInstance --&gt; 改造一下
+    // Spring内部默认是没有提供任何实现类的（匿名的都木有）
+    @Autowired(required = false)
+    private List&lt;LoadBalancerRequestTransformer&gt; transformers = Collections.emptyList();
+
+    // 配置一个匿名的SmartInitializingSingleton 此接口我们应该是熟悉的
+    // 它的afterSingletonsInstantiated()方法会在所有的单例Bean初始化完成之后，再调用一个一个的处理BeanName~
+    // 本处：使用配置好的所有的RestTemplateCustomizer定制器们，对所有的`RestTemplate`定制处理
+    // RestTemplateCustomizer下面有个lambda的实现。若调用者有需要可以书写然后扔进容器里既生效
+    // 这种定制器：若你项目中有多个RestTempalte，需要统一处理的话。写一个定制器是个不错的选择
+    // （比如统一要放置一个请求拦截器：输出日志之类的）
+    @Bean
+    public SmartInitializingSingleton loadBalancedRestTemplateInitializerDeprecated(final ObjectProvider&lt;List&lt;RestTemplateCustomizer&gt;&gt; restTemplateCustomizers) {
+        return () -&gt; restTemplateCustomizers.ifAvailable(customizers -&gt; {
+            for (RestTemplate restTemplate : LoadBalancerAutoConfiguration.this.restTemplates) {
+                for (RestTemplateCustomizer customizer : customizers) {
+                    customizer.customize(restTemplate);
+                }
+            }
+        });
+    }
+    
+    // 这个工厂用于createRequest()创建出一个LoadBalancerRequest
+    // 这个请求里面是包含LoadBalancerClient以及HttpRequest request的
+    @Bean
+    @ConditionalOnMissingBean
+    public LoadBalancerRequestFactory loadBalancerRequestFactory(LoadBalancerClient loadBalancerClient) {
+        return new LoadBalancerRequestFactory(loadBalancerClient, this.transformers);
+    }
+    
+    // =========到目前为止还和负载均衡没啥关系==========
+    // =========接下来的配置才和负载均衡有关（当然上面是基础项）==========
+
+    // 若有Retry的包，就是另外一份配置，和这差不多~~
+    @Configuration
+    @ConditionalOnMissingClass(&quot;org.springframework.retry.support.RetryTemplate&quot;)
+    static class LoadBalancerInterceptorConfig {、
+    
+        // 这个Bean的名称叫`loadBalancerClient`，我个人觉得叫`loadBalancerInterceptor`更合适吧（虽然ribbon是唯一实现）
+        // 这里直接使用的是requestFactory和Client构建一个拦截器对象
+        // LoadBalancerInterceptor可是`ClientHttpRequestInterceptor`，它会介入到http.client里面去
+        // LoadBalancerInterceptor也是实现负载均衡的入口，下面详解
+        // Tips:这里可没有@ConditionalOnMissingBean哦~~~~
+        @Bean
+        public LoadBalancerInterceptor ribbonInterceptor(LoadBalancerClient loadBalancerClient, LoadBalancerRequestFactory requestFactory) {
+            return new LoadBalancerInterceptor(loadBalancerClient, requestFactory);
+        }
+    
+        
+        // 向容器内放入一个RestTemplateCustomizer 定制器
+        // 这个定制器的作用上面已经说了：在RestTemplate初始化完成后，应用此定制化器在**所有的实例上**
+        // 这个匿名实现的逻辑超级简单：向所有的RestTemplate都塞入一个loadBalancerInterceptor 让其具备有负载均衡的能力
+        
+        // Tips：此处有注解@ConditionalOnMissingBean。也就是说如果调用者自己定义过RestTemplateCustomizer类型的Bean，此处是不会执行的
+        // 请务必注意这点：容易让你的负载均衡不生效哦~~~~
+        @Bean
+        @ConditionalOnMissingBean
+        public RestTemplateCustomizer restTemplateCustomizer(final LoadBalancerInterceptor loadBalancerInterceptor) {
+            return restTemplate -&gt; {
+                List&lt;ClientHttpRequestInterceptor&gt; list = new ArrayList&lt;&gt;(restTemplate.getInterceptors());
+                list.add(loadBalancerInterceptor);
+                restTemplate.setInterceptors(list);
+            };
+        }
+    }
+    ...
+}</code></code></pre>
+<p>这段配置代码稍微有点长，我把流程总结为如下几步：</p>
+<ol>
+<li><code>LoadBalancerAutoConfiguration</code>要想生效类路径必须有<code>RestTemplate</code>，以及Spring容器内必须有<code>LoadBalancerClient</code>的实现Bean<br />
+1. <code>LoadBalancerClient</code>的唯一实现类是：<code>org.springframework.cloud.netflix.ribbon.RibbonLoadBalancerClient</code></li>
+<li><code>LoadBalancerInterceptor</code>是个<code>ClientHttpRequestInterceptor</code>客户端请求拦截器。它的作用是在客户端发起请求之前拦截，<strong>进而实现客户端的负载均衡</strong></li>
+<li><code>restTemplateCustomizer()</code>返回的匿名定制器<code>RestTemplateCustomizer</code>它用来给所有的<code>RestTemplate</code>加上负载均衡拦截器（需要注意它的<code>@ConditionalOnMissingBean</code>注解~）</li>
+</ol>
+<p>不难发现，负载均衡实现的核心就是一个拦截器，就是这个拦截器让一个普通的<code>RestTemplate</code>逆袭成为了一个具有负载均衡功能的请求器</p>
+<h4 id="loadbalancerinterceptor"><code>LoadBalancerInterceptor</code></h4>
+<p>该类唯一被使用的地方就是<code>LoadBalancerAutoConfiguration</code>里配置上去~</p>
+<pre><code><code>public class LoadBalancerInterceptor implements ClientHttpRequestInterceptor {
+
+    // 这个命名都不叫Client了，而叫loadBalancer~~~
+    private LoadBalancerClient loadBalancer;
+    // 用于构建出一个Request
+    private LoadBalancerRequestFactory requestFactory;
+    ... // 省略构造函数（给这两个属性赋值）
+
+    @Override
+    public ClientHttpResponse intercept(final HttpRequest request, final byte[] body, final ClientHttpRequestExecution execution) throws IOException {
+        final URI originalUri = request.getURI();
+        String serviceName = originalUri.getHost();
+        Assert.state(serviceName != null, &quot;Request URI does not contain a valid hostname: &quot; + originalUri);
+        return this.loadBalancer.execute(serviceName, this.requestFactory.createRequest(request, body, execution));
+    }
+}</code></code></pre>
+<p>此拦截器拦截请求后把它的<code>serviceName</code>委托给了<code>LoadBalancerClient</code>去执行，根据<code>ServiceName</code>可能对应N多个实际的<code>Server</code>，因此就可以从众多的Server中运用均衡算法，挑选出一个最为合适的<code>Server</code>做最终的请求（它持有真正的请求执行器<code>ClientHttpRequestExecution</code>）。</p>
+<hr />
+<h4 id="loadbalancerclient">LoadBalancerClient</h4>
+<p>请求被拦截后，最终都是委托给了<code>LoadBalancerClient</code>处理。</p>
+<pre><code><code>// 由使用负载平衡器选择要向其发送请求的服务器的类实现
+public interface ServiceInstanceChooser {
+
+    // 从负载平衡器中为指定的服务选择Service服务实例。
+    // 也就是根据调用者传入的serviceId，负载均衡的选择出一个具体的实例出来
+    ServiceInstance choose(String serviceId);
+}
+
+// 它自己定义了三个方法
+public interface LoadBalancerClient extends ServiceInstanceChooser {
+    
+    // 执行请求
+    &lt;T&gt; T execute(String serviceId, LoadBalancerRequest&lt;T&gt; request) throws IOException;
+    &lt;T&gt; T execute(String serviceId, ServiceInstance serviceInstance, LoadBalancerRequest&lt;T&gt; request) throws IOException;
+    
+    // 重新构造url：把url中原来写的服务名 换掉 换成实际的
+    URI reconstructURI(ServiceInstance instance, URI original);
+}</code></code></pre>
+<p>它只有一个实现类<code>RibbonLoadBalancerClient</code>（<code>ServiceInstanceChooser</code>是有多个实现类的~）。</p>
+<h5 id="ribbonloadbalancerclient"><code>RibbonLoadBalancerClient</code></h5>
+<p>首先我们应当关注它的<code>choose()</code>方法：</p>
+<pre><code><code>public class RibbonLoadBalancerClient implements LoadBalancerClient {
+    
+    @Override
+    public ServiceInstance choose(String serviceId) {
+        return choose(serviceId, null);
+    }
+    // hint：你可以理解成分组。若指定了，只会在这个偏好的分组里面去均衡选择
+    // 得到一个Server后，使用RibbonServer把server适配起来~~~
+    // 这样一个实例就选好了~~~真正请求会落在这个实例上~
+    public ServiceInstance choose(String serviceId, Object hint) {
+        Server server = getServer(getLoadBalancer(serviceId), hint);
+        if (server == null) {
+            return null;
+        }
+        return new RibbonServer(serviceId, server, isSecure(server, serviceId),
+                serverIntrospector(serviceId).getMetadata(server));
+    }
+
+    // 根据ServiceId去找到一个属于它的负载均衡器
+    protected ILoadBalancer getLoadBalancer(String serviceId) {
+        return this.clientFactory.getLoadBalancer(serviceId);
+    }
+
+}</code></code></pre>
+<p><code>choose方法</code>：传入serviceId，然后通过<code>SpringClientFactory</code>获取负载均衡器<code>com.netflix.loadbalancer.ILoadBalancer</code>，最终委托给它的<code>chooseServer()</code>方法选取到一个<code>com.netflix.loadbalancer.Server</code>实例，也就是说真正完成<code>Server</code>选取的是<code>ILoadBalancer</code>。</p>
+<blockquote>
+<p><code>ILoadBalancer</code>以及它相关的类是一个较为庞大的体系，本文不做更多的展开，而是只聚焦在我们的流程上</p>
+</blockquote>
+<p><code>LoadBalancerInterceptor</code>执行的时候是直接委托执行的<code>loadBalancer.execute()</code>这个方法：</p>
+<pre><code><code>RibbonLoadBalancerClient：
+
+    // hint此处传值为null：一视同仁
+    // 说明：LoadBalancerRequest是通过LoadBalancerRequestFactory.createRequest(request, body, execution)创建出来的
+    // 它实现LoadBalancerRequest接口是用的一个匿名内部类，泛型类型是ClientHttpResponse
+    // 因为最终执行的显然还是执行器：ClientHttpRequestExecution.execute()
+    @Override
+    public &lt;T&gt; T execute(String serviceId, LoadBalancerRequest&lt;T&gt; request) throws IOException {
+        return execute(serviceId, request, null);
+    }
+    // public方法（非接口方法）
+    public &lt;T&gt; T execute(String serviceId, LoadBalancerRequest&lt;T&gt; request, Object hint) throws IOException {
+        // 同上：拿到负载均衡器，然后拿到一个serverInstance实例
+        ILoadBalancer loadBalancer = getLoadBalancer(serviceId);
+        Server server = getServer(loadBalancer, hint);
+        if (server == null) { // 若没找到就直接抛出异常。这里使用的是IllegalStateException这个异常
+            throw new IllegalStateException(&quot;No instances available for &quot; + serviceId);
+        }
+
+        // 把Server适配为RibbonServer  isSecure：客户端是否安全
+        // serverIntrospector内省  参考配置文件：ServerIntrospectorProperties
+        RibbonServer ribbonServer = new RibbonServer(serviceId, server,
+                isSecure(server, serviceId), serverIntrospector(serviceId).getMetadata(server));
+
+        //调用本类的重载接口方法~~~~~
+        return execute(serviceId, ribbonServer, request);
+    }
+
+    // 接口方法：它的参数是ServiceInstance --&gt; 已经确定了唯一的Server实例~~~
+    @Override
+    public &lt;T&gt; T execute(String serviceId, ServiceInstance serviceInstance, LoadBalancerRequest&lt;T&gt; request) throws IOException {
+    
+        // 拿到Server）（说白了，RibbonServer是execute时的唯一实现）
+        Server server = null;
+        if (serviceInstance instanceof RibbonServer) {
+            server = ((RibbonServer) serviceInstance).getServer();
+        }
+        if (server == null) {
+            throw new IllegalStateException(&quot;No instances available for &quot; + serviceId);
+        }
+
+        // 说明：执行的上下文是和serviceId绑定的
+        RibbonLoadBalancerContext context = this.clientFactory.getLoadBalancerContext(serviceId);
+        ... 
+        // 真正的向server发送请求，得到返回值
+        // 因为有拦截器，所以这里肯定说执行的是InterceptingRequestExecution.execute()方法
+        // so会调用ServiceRequestWrapper.getURI()，从而就会调用reconstructURI()方法
+            T returnVal = request.apply(serviceInstance);
+            return returnVal;
+        ... // 异常处理
+    }</code></code></pre>
+<p><code>returnVal</code>是一个<code>ClientHttpResponse</code>，最后交给<code>handleResponse()</code>方法来处理异常情况（若存在的话），若无异常就交给提取器提值：<code>responseExtractor.extractData(response)</code>，这样整个请求就算全部完成了。</p>
+<h4 id="使用细节">使用细节</h4>
+<p>针对<code>@LoadBalanced</code>下的<code>RestTemplate</code>的使用，我总结如下细节供以参考：</p>
+<ol>
+<li>传入的<code>String</code>类型的url必须是绝对路径（<code>http://...</code>），否则抛出异常：<code>java.lang.IllegalArgumentException: URI is not absolute</code></li>
+<li><code>serviceId</code>不区分大小写（<code>http://user/...效果同http://USER/...</code>）</li>
+<li><code>serviceId</code>后请不要跟port端口号了~~~</li>
+</ol>
+<p>最后，需要特别指出的是：标注有<code>@LoadBalanced</code>的<code>RestTemplate</code>只能书写<code>serviceId</code>而不能再写<code>IP地址/域名</code>去发送请求了。若你的项目中两种case都有需要，请定义多个<code>RestTemplate</code>分别应对不同的使用场景~</p>
+<h4 id="本地测试">本地测试</h4>
+<p>了解了它的执行流程后，若需要本地测试（不依赖于注册中心），可以这么来做：</p>
+<pre><code><code>// 因为自动配置头上有@ConditionalOnMissingBean注解，所以自定义一个覆盖它的行为即可
+// 此处复写它的getServer()方法，返回一个固定的（访问百度首页）即可，方便测试
+@Bean
+public LoadBalancerClient loadBalancerClient(SpringClientFactory factory) {
+    return new RibbonLoadBalancerClient(factory) {
+        @Override
+        protected Server getServer(ILoadBalancer loadBalancer, Object hint) {
+            return new Server(&quot;www.baidu.com&quot;, 80);
+        }
+    };
+}</code></code></pre>
+<p>这么一来，下面这个访问结果就是百度首页的html内容喽。</p>
+<pre><code><code>@Test
+public void contextLoads() {
+    String obj = restTemplate.getForObject(&quot;http://my-serviceId&quot;, String.class);
+    System.out.println(obj);
+}</code></code></pre>
+<blockquote>
+<p>此处<code>my-serviceId</code>肯定是不存在的，但得益于我上面自定义配置的<code>LoadBalancerClient</code></p>
+</blockquote>
+<p>什么，写死<code>return</code>一个<code>Server</code>实例不优雅？确实，总不能每次上线前还把这部分代码给注释掉吧，若有多个实例呢？还得自己写负载均衡算法吗？很显然<code>Spring Cloud</code>早早就为我们考虑到了这一点：<strong>脱离Eureka使用配置listOfServers进行客户端负载均衡调度（<code>&lt;clientName&gt;.&lt;nameSpace&gt;.listOfServers=&lt;comma delimited hostname:port strings&gt;</code>）</strong></p>
+<p>对于上例我只需要在主配置文件里这么配置一下：</p>
+<pre><code><code># ribbon.eureka.enabled=false # 若没用euraka，此配置可省略。否则不可以
+my-serviceId.ribbon.listOfServers=www.baidu.com # 若有多个实例请用逗号分隔</code></code></pre>
+<p>效果完全同上。</p>
+<blockquote>
+<p>Tips：这种配置法不需要是完整的绝对路径，<code>http://</code>是可以省略的（<code>new Server()</code>方式亦可）</p>
+</blockquote>
+<h4 id="自己添加一个记录请求日志的拦截器可行吗">自己添加一个记录请求日志的拦截器可行吗？</h4>
+<p>显然是可行的，我给出示例如下：</p>
+<pre><code><code>@LoadBalanced
+@Bean
+public RestTemplate restTemplate() {
+    RestTemplate restTemplate = new RestTemplate();
+    List&lt;ClientHttpRequestInterceptor&gt; list = new ArrayList&lt;&gt;();
+    list.add((request, body, execution) -&gt; {
+        System.out.println(&quot;当前请求的URL是：&quot; + request.getURI().toString());
+        return execution.execute(request, body);
+    });
+    restTemplate.setInterceptors(list);
+    return restTemplate;
+}</code></code></pre>
+<p>这样每次客户端的请求都会打印这句话：<code>当前请求的URI是：http://my-serviceId</code>，一般情况（缺省情况）自定义的拦截器都会在负载均衡拦截器前面执行（因为它要执行最终的请求）。若你有必要定义多个拦截器且要控制顺序，可通过<code>Ordered</code>系列接口来实现~</p>
+<hr />
+<p><strong>最后的最后，我抛出一个非常非常重要的问题：</strong></p>
+<pre><code><code>    @LoadBalanced
+    @Autowired(required = false)
+    private List&lt;RestTemplate&gt; restTemplates = Collections.emptyList();</code></code></pre>
+<p><code>@Autowired</code> + <code>@LoadBalanced</code>能把你配置的<code>RestTemplate</code>自动注入进来拿来定制呢？？？核心原理是什么？</p>
+<h2 id="提示本原理内容属于spring-framwork核心技术建议深入思考而不囫囵吞枣有疑问的可以给我留言我也将会在下篇文章给出详细解答建议先思考">&gt; 提示：本原理内容属于<code>Spring Framwork</code>核心技术，建议深入思考而不囫囵吞枣。有疑问的可以给我留言，我也将会在下篇文章给出详细解答（建议先思考）</h2>
+<h4 id="推荐阅读">推荐阅读</h4>
+<p><a href="https://fangshixiang.blog.csdn.net/article/details/100753981">RestTemplate的使用和原理你都烂熟于胸了吗？【享学Spring MVC】</a><br />
+<a href="https://fangshixiang.blog.csdn.net/article/details/100890879">@Qualifier高级应用---按类别批量依赖注入【享学Spring】</a></p>
+<h4 id="总结">总结</h4>
+<p>本文以大家熟悉的<code>@LoadBalanced</code>和<code>RestTemplate</code>为切入点介绍了<code>Ribbon</code>实现负载均衡的执行流程，当然此部分对<code>Ribbon</code>整个的核心负载体系知识来说知识冰山一角，但它作为敲门砖还是很有意义的，希望本文能勾起你对<code>Ribbon</code>体系的兴趣，深入了解它~</p>
+<p>== <strong>若对Spring、SpringBoot、MyBatis等源码分析感兴趣，可加我wx：fsx641385712，手动邀请你入群一起飞</strong> ==<br />
+== <strong>若对Spring、SpringBoot、MyBatis等源码分析感兴趣，可加我wx：fsx641385712，手动邀请你入群一起飞</strong> ==</p>
+
+
+</div><hr><script charset='utf-8' src='../../js/sming.js'></script></body></html>

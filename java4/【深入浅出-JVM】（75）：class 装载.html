@@ -1,0 +1,192 @@
+<html><head><meta charset='utf-8'><meta name='viewport' content='width=device-width, initial-scale=1'>
+<meta name='applicable-device' content='pc'><meta name='keywords' content='电脑,电脑讲解,电脑技术,编程,电脑故障维修【深入浅出-JVM】（75）：class 装载' />
+<script src='../../highlight/highlight.pack.js'></script>
+<link rel='stylesheet' type='text/css' href='../../highlight/styles/monokai.css'/>
+
+<link rel='stylesheet' href='../../fenxiang/dist/css/share.min.css'>
+<script src='../../fenxiang/src/js/social-share.js'></script>
+<script src='../../fenxiang/src/js/qrcode.js'></script>
+
+</head><body><script>hljs.initHighlightingOnLoad();</script><script>
+var system ={};  
+var p = navigator.platform;       
+system.win = p.indexOf('Win') == 0;  
+system.mac = p.indexOf('Mac') == 0;  
+system.x11 = (p == 'X11') || (p.indexOf('Linux') == 0);     
+if(system.win||system.mac||system.xll){
+document.write("<link href='../css/3.css' rel='stylesheet' type='text/css'>");}else{ document.write("<link href='../css/3wap.css' rel='stylesheet' type='text/css'>");}</script><script src='../../js/3.js'></script><div class='div2'><div class='heading_nav'><ul><div><li><a href='../../index.html'>首页</a></li>
+</div><div onclick='hidden1()' >分享</div>
+</ul></div></div>
+<div id='heading_nav2'> 
+<li class='row' >
+<div class='social-share' data-mode='prepend'><a href='javascript:' class='social-share-icon icon-heart'></a></div></li></div><script charset='utf-8' src='../../3/js/hengfu.js'></script><script charset='utf-8' src='../../3/js/hengfu2.js'></script><hr><div class='div1'><div class='biaoti'><center>【深入浅出-JVM】（75）：class 装载</center></div><div class='banquan'>原文出处:本文由博客园博主mousycoder提供。<br/>
+原文连接:https://www.cnblogs.com/mousycoder/p/11528978.html</div><br>
+    <h2 id="过程">过程</h2>
+<p><img src="./images/【深入浅出-JVM】（75）：class 装载0.png" /></p>
+<h2 id="装载">装载</h2>
+<h3 id="条件">条件</h3>
+<p>主动使用 class时</p>
+<ul>
+<li>创建一个类的实例 （new 、反射、克隆、反序列化）</li>
+<li>调用类的静态方法（invokestatic）</li>
+<li>使用类或接口的静态字段（getstatic、putstatic）</li>
+<li>使用 reflect反射</li>
+<li>初始化子类，先初始化父类</li>
+<li>main方法的类</li>
+</ul>
+<h3 id="例子">例子</h3>
+<p>被动引用不会初始化类</p>
+<pre><code><code>package com.mousycoder.mycode.thinking_in_jvm;
+
+/**
+ * @version 1.0
+ * @author: mousycoder
+ * @date: 2019-09-02 16:29
+ */
+public class Parent {
+    static {
+        System.out.println(&quot;Parent init&quot;);
+    }
+    public static int v = 100;
+}
+
+
+
+package com.mousycoder.mycode.thinking_in_jvm;
+
+import sun.jvm.hotspot.memory.ParNewGeneration;
+
+/**
+ * @version 1.0
+ * @author: mousycoder
+ * @date: 2019-09-02 16:29
+ */
+public class Child extends Parent {
+
+    static {
+        System.out.println(&quot;Child init&quot;);
+    }
+}
+
+package com.mousycoder.mycode.thinking_in_jvm;
+
+/**
+ * @version 1.0
+ * @author: mousycoder
+ * @date: 2019-09-02 16:32
+ */
+public class UseParent {
+    public static void main(String[] args) {
+        System.out.println(Child.v);
+    }
+}
+</code></code></pre>
+<p>虚拟机参数 <code>-XX:+TraceClassLoading</code><br />
+输出</p>
+<pre><code><code>[Loaded com.mousycoder.mycode.thinking_in_jvm.Parent from file:/Users/mousycoder/My/code/mycode/target/classes/]
+[Loaded com.mousycoder.mycode.thinking_in_jvm.Child from file:/Users/mousycoder/My/code/mycode/target/classes/]
+Parent init
+100
+[Loaded java.lang.Shutdown from /Library/Java/JavaVirtualMachines/jdk1.8.0.jdk/Contents/Home/jre/lib/rt.jar]
+[Loaded java.lang.Shutdown$Lock from /Library/Java/JavaVirtualMachines/jdk1.8.0.jdk/Contents/Home/jre/lib/rt.jar]</code></code></pre>
+<p>表示 Child被加载了，但是没有被初始化</p>
+<p>final 常量不会引起类初始化</p>
+<pre><code><code>package com.mousycoder.mycode.thinking_in_jvm;
+
+/**
+ * @version 1.0
+ * @author: mousycoder
+ * @date: 2019-09-02 16:41
+ */
+public class FinalFieldClass {
+
+    public static final String constString = &quot;CONST&quot;;
+    static {
+        System.out.println(&quot;FinalFieldClass init&quot;);
+    }
+
+
+}
+package com.mousycoder.mycode.thinking_in_jvm;
+
+public class UseFinalField {
+    public static void main(String[] args) {
+        System.out.println(FinalFieldClass.constString);
+    }
+}</code></code></pre>
+<p>输出</p>
+<pre><code><code>CONST</code></code></pre>
+<p>FinalFieldClass 类没有因为常量 constString 被引用而初始化，而是直接把CONST 放在常量池中<br />
+<img src="./images/【深入浅出-JVM】（75）：class 装载1.png" /><br />
+<img src="./images/【深入浅出-JVM】（75）：class 装载2.png" /></p>
+<h3 id="加载">加载</h3>
+<p>例子：加载String类</p>
+<pre><code><code>package com.mousycoder.mycode.thinking_in_jvm;
+
+import java.lang.reflect.Method;
+import java.lang.reflect.Modifier;
+
+/**
+ * @version 1.0
+ * @author: mousycoder
+ * @date: 2019-09-03 13:38
+ */
+public class StringTest {
+    public static void main(String[] args) throws ClassNotFoundException {
+        Class clzStr = Class.forName(&quot;java.lang.String&quot;);
+        Method[] ms = clzStr.getDeclaredMethods();
+        for (Method m : ms) {
+            String mod = Modifier.toString(m.getModifiers());
+            System.out.println(mod + &quot; &quot; + m.getName() + &quot; ( &quot;);
+            Class&lt;?&gt;[] ps = m.getParameterTypes();
+            if (ps.length == 0 ){
+                System.out.println(&#39;)&#39;);
+            }
+            for (int i = 0; i &lt; ps.length; i++) {
+                char end =i==ps.length-1 ? &#39;)&#39;:&#39;,&#39;;
+                System.out.println(ps[i].getSimpleName() + end);
+            }
+            System.out.println();
+        }
+    }
+}
+</code></code></pre>
+<p>输出<br />
+``<br />
+public equals (<br />
+Object)</p>
+<p>public toString (<br />
+)</p>
+<p>public hashCode (<br />
+)</p>
+<p>public volatile compareTo (<br />
+Object)</p>
+<p>public compareTo (<br />
+String)</p>
+<p>public indexOf (<br />
+String,<br />
+int)`<br />
+``</p>
+<h3 id="验证">验证</h3>
+<p>保证加载的字节码合法<br />
+<img src="./images/【深入浅出-JVM】（75）：class 装载3.png" /></p>
+<h3 id="准备">准备</h3>
+<p>为类分配对应的内存空间，并设置初始值,此阶段不会有 java 代码执行<br />
+|类型|默认初始值|<br />
+|--|--|<br />
+|int|0|<br />
+|long|0L|<br />
+|short|(short)0|<br />
+|char|\u0000|<br />
+|boolean|false|<br />
+|reference|null|<br />
+|float|0f|<br />
+|double|0f|</p>
+<h3 id="解析">解析</h3>
+<p>将类、接口、字段、方法的符号引用（字面量的引用）转成直接引用（找到方法中表的位置）</p>
+<h3 id="初始化">初始化</h3>
+<p>执行类的初始化方法<clinit>，此方法由编译器自动生成的，由类静态成员的赋值语句以及static 语句块合并产生<br />
+其中<clinit>函数是带锁线程安全的，可能会导致死锁。</p>
+
+
+</div><hr><script charset='utf-8' src='../../js/sming.js'></script></body></html>

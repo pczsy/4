@@ -1,0 +1,180 @@
+<html><head><meta charset='utf-8'><meta name='viewport' content='width=device-width, initial-scale=1'>
+<meta name='applicable-device' content='pc'><meta name='keywords' content='电脑,电脑讲解,电脑技术,编程,电脑故障维修4. 彤哥说netty系列之Java NIO实现群聊（自己跟自己聊上瘾了）' />
+<script src='../../highlight/highlight.pack.js'></script>
+<link rel='stylesheet' type='text/css' href='../../highlight/styles/monokai.css'/>
+
+<link rel='stylesheet' href='../../fenxiang/dist/css/share.min.css'>
+<script src='../../fenxiang/src/js/social-share.js'></script>
+<script src='../../fenxiang/src/js/qrcode.js'></script>
+
+</head><body><script>hljs.initHighlightingOnLoad();</script><script>
+var system ={};  
+var p = navigator.platform;       
+system.win = p.indexOf('Win') == 0;  
+system.mac = p.indexOf('Mac') == 0;  
+system.x11 = (p == 'X11') || (p.indexOf('Linux') == 0);     
+if(system.win||system.mac||system.xll){
+document.write("<link href='../css/3.css' rel='stylesheet' type='text/css'>");}else{ document.write("<link href='../css/3wap.css' rel='stylesheet' type='text/css'>");}</script><script src='../../js/3.js'></script><div class='div2'><div class='heading_nav'><ul><div><li><a href='../../index.html'>首页</a></li>
+</div><div onclick='hidden1()' >分享</div>
+</ul></div></div>
+<div id='heading_nav2'> 
+<li class='row' >
+<div class='social-share' data-mode='prepend'><a href='javascript:' class='social-share-icon icon-heart'></a></div></li></div><script charset='utf-8' src='../../3/js/hengfu.js'></script><script charset='utf-8' src='../../3/js/hengfu2.js'></script><hr><div class='div1'><div class='biaoti'><center>4. 彤哥说netty系列之Java NIO实现群聊（自己跟自己聊上瘾了）</center></div><div class='banquan'>原文出处:本文由博客园博主彤哥读源码提供。<br/>
+原文连接:https://www.cnblogs.com/tong-yuan/p/11894501.html</div><br>
+    <p><img src="./images/4. 彤哥说netty系列之Java NIO实现群聊（自己跟自己聊上瘾了）0.png" alt="nio" /></p>
+<p>你好，我是彤哥，本篇是netty系列的第四篇。</p>
+<p>欢迎来我的公从号<strong>彤哥读源码</strong>系统地学习<strong>源码&amp;架构</strong>的知识。</p>
+<h1 id="简介">简介</h1>
+<p>上一章我们一起学习了Java中的BIO/NIO/AIO的故事，本章将带着大家一起使用纯纯的NIO实现一个越聊越上瘾的“群聊系统”。</p>
+<h1 id="业务逻辑分析">业务逻辑分析</h1>
+<p>首先，我们先来分析一下群聊的功能点：</p>
+<p>（1）加入群聊，并通知其他人；</p>
+<p>（2）发言，并通知其他人；</p>
+<p>（3）退出群聊，并通知其他人；</p>
+<p>一个简单的群聊系统差不多这三个功能足够了，为了方便记录用户信息，当用户加入群聊的时候自动给他分配一个用户ID。</p>
+<h1 id="业务实现">业务实现</h1>
+<p>上代码：</p>
+<pre><code><code>// 这是一个内部类
+private static class ChatHolder {
+    // 我们只用了一个线程，用普通的HashMap也可以
+    static final Map&lt;SocketChannel, String&gt; USER_MAP = new ConcurrentHashMap&lt;&gt;();
+
+    /**
+     * 加入群聊
+     * @param socketChannel
+     */
+    static void join(SocketChannel socketChannel) {
+        // 有人加入就给他分配一个id，本文来源于公从号“彤哥读源码”
+        String userId = &quot;用户&quot;+ ThreadLocalRandom.current().nextInt(Integer.MAX_VALUE);
+        send(socketChannel, &quot;您的id为：&quot; + userId + &quot;\n\r&quot;);
+
+        for (SocketChannel channel : USER_MAP.keySet()) {
+            send(channel, userId + &quot; 加入了群聊&quot; + &quot;\n\r&quot;);
+        }
+
+        // 将当前用户加入到map中
+        USER_MAP.put(socketChannel, userId);
+    }
+
+    /**
+     * 退出群聊
+     * @param socketChannel
+     */
+    static void quit(SocketChannel socketChannel) {
+        String userId = USER_MAP.get(socketChannel);
+        send(socketChannel, &quot;您退出了群聊&quot; + &quot;\n\r&quot;);
+        USER_MAP.remove(socketChannel);
+
+        for (SocketChannel channel : USER_MAP.keySet()) {
+            if (channel != socketChannel) {
+                send(channel, userId + &quot; 退出了群聊&quot; + &quot;\n\r&quot;);
+            }
+        }
+    }
+
+    /**
+     * 扩散说话的内容
+     * @param socketChannel
+     * @param content
+     */
+    public static void propagate(SocketChannel socketChannel, String content) {
+        String userId = USER_MAP.get(socketChannel);
+        for (SocketChannel channel : USER_MAP.keySet()) {
+            if (channel != socketChannel) {
+                send(channel, userId + &quot;: &quot; + content + &quot;\n\r&quot;);
+            }
+        }
+    }
+
+    /**
+     * 发送消息
+     * @param socketChannel
+     * @param msg
+     */
+    static void send(SocketChannel socketChannel, String msg) {
+        try {
+            ByteBuffer writeBuffer = ByteBuffer.allocate(1024);
+            writeBuffer.put(msg.getBytes());
+            writeBuffer.flip();
+            socketChannel.write(writeBuffer);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+}</code></code></pre>
+<h1 id="服务端代码">服务端代码</h1>
+<p>服务端代码直接使用上一章NIO的实现，只不过这里要把上面实现的业务逻辑适时地插入到相应的事件中。</p>
+<p>（1）accept事件，即连接建立的时候，说明加入了群聊；</p>
+<p>（2）read事件，即读取数据的时候，说明有人说话了；</p>
+<p>（3）连接断开的时候，说明退出了群聊；</p>
+<p>OK，直接上代码，为了与上一章的代码作区分，彤哥特意加入了一些标记：</p>
+<pre><code><code>public class ChatServer {
+    public static void main(String[] args) throws IOException {
+        Selector selector = Selector.open();
+        ServerSocketChannel serverSocketChannel = ServerSocketChannel.open();
+        serverSocketChannel.bind(new InetSocketAddress(8080));
+        serverSocketChannel.configureBlocking(false);
+        // 将accept事件绑定到selector上
+        serverSocketChannel.register(selector, SelectionKey.OP_ACCEPT);
+
+        while (true) {
+            // 阻塞在select上
+            selector.select();
+            Set&lt;SelectionKey&gt; selectionKeys = selector.selectedKeys();
+            // 遍历selectKeys
+            Iterator&lt;SelectionKey&gt; iterator = selectionKeys.iterator();
+            while (iterator.hasNext()) {
+                SelectionKey selectionKey = iterator.next();
+                // 如果是accept事件
+                if (selectionKey.isAcceptable()) {
+                    ServerSocketChannel ssc = (ServerSocketChannel) selectionKey.channel();
+                    SocketChannel socketChannel = ssc.accept();
+                    System.out.println(&quot;accept new conn: &quot; + socketChannel.getRemoteAddress());
+                    socketChannel.configureBlocking(false);
+                    socketChannel.register(selector, SelectionKey.OP_READ);
+                    // 加入群聊，本文来源于公从号“彤哥读源码”
+                    ChatHolder.join(socketChannel);
+                } else if (selectionKey.isReadable()) {
+                    // 如果是读取事件
+                    SocketChannel socketChannel = (SocketChannel) selectionKey.channel();
+                    ByteBuffer buffer = ByteBuffer.allocate(1024);
+                    // 将数据读入到buffer中
+                    int length = socketChannel.read(buffer);
+                    if (length &gt; 0) {
+                        buffer.flip();
+                        byte[] bytes = new byte[buffer.remaining()];
+                        // 将数据读入到byte数组中
+                        buffer.get(bytes);
+
+                        // 换行符会跟着消息一起传过来
+                        String content = new String(bytes, &quot;UTF-8&quot;).replace(&quot;\r\n&quot;, &quot;&quot;);
+                        if (content.equalsIgnoreCase(&quot;quit&quot;)) {
+                            // 退出群聊，本文来源于公从号“彤哥读源码”
+                            ChatHolder.quit(socketChannel);
+                            selectionKey.cancel();
+                            socketChannel.close();
+                        } else {
+                            // 扩散，本文来源于公从号“彤哥读源码”
+                            ChatHolder.propagate(socketChannel, content);
+                        }
+                    }
+                }
+                iterator.remove();
+            }
+        }
+    }
+}</code></code></pre>
+<h1 id="测试">测试</h1>
+<p>打开四个XSHELL客户端，分别连接<code>telnet 127.0.0.1 8080</code>，然后就可以开始群聊了。</p>
+<p><img src="./images/4. 彤哥说netty系列之Java NIO实现群聊（自己跟自己聊上瘾了）1.png" alt="nio" /></p>
+<p>彤哥发现，自己跟自己聊天也是会上瘾的，完全停不下来，不行了，我再去自聊一会儿^^</p>
+<h1 id="总结">总结</h1>
+<p>本文彤哥跟着大家一起实现了“群聊系统”，去掉注释也就100行左右的代码，是不是非常简单？这就是NIO网络编程的魅力，我发现写网络编程也上瘾了^^</p>
+<h1 id="问题">问题</h1>
+<p><strong>这两章我们都没有用NIO实现客户端，你知道怎么实现吗？</strong></p>
+<p>提示：服务端需要监听accept事件，所以需要有一个ServerSocketChannel，而客户端是直接去连服务器了，所以直接用SocketChannel就可以了，一个SocketChannel就相当于一个Connection。</p>
+<p>最后，也欢迎来我的公从号<strong>彤哥读源码</strong>系统地学习<strong>源码&amp;架构</strong>的知识。</p>
+<p><img src="./images/4. 彤哥说netty系列之Java NIO实现群聊（自己跟自己聊上瘾了）2.png" alt="code" /></p>
+
+
+</div><hr><script charset='utf-8' src='../../js/sming.js'></script></body></html>

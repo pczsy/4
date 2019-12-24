@@ -1,0 +1,74 @@
+<html><head><meta charset='utf-8'><meta name='viewport' content='width=device-width, initial-scale=1'>
+<meta name='applicable-device' content='pc'><meta name='keywords' content='电脑,电脑讲解,电脑技术,编程,电脑故障维修Java Stream函数式编程案例图文详解' />
+<script src='../../highlight/highlight.pack.js'></script>
+<link rel='stylesheet' type='text/css' href='../../highlight/styles/monokai.css'/>
+
+<link rel='stylesheet' href='../../fenxiang/dist/css/share.min.css'>
+<script src='../../fenxiang/src/js/social-share.js'></script>
+<script src='../../fenxiang/src/js/qrcode.js'></script>
+
+</head><body><script>hljs.initHighlightingOnLoad();</script><script>
+var system ={};  
+var p = navigator.platform;       
+system.win = p.indexOf('Win') == 0;  
+system.mac = p.indexOf('Mac') == 0;  
+system.x11 = (p == 'X11') || (p.indexOf('Linux') == 0);     
+if(system.win||system.mac||system.xll){
+document.write("<link href='../css/3.css' rel='stylesheet' type='text/css'>");}else{ document.write("<link href='../css/3wap.css' rel='stylesheet' type='text/css'>");}</script><script src='../../js/3.js'></script><div class='div2'><div class='heading_nav'><ul><div><li><a href='../../index.html'>首页</a></li>
+</div><div onclick='hidden1()' >分享</div>
+</ul></div></div>
+<div id='heading_nav2'> 
+<li class='row' >
+<div class='social-share' data-mode='prepend'><a href='javascript:' class='social-share-icon icon-heart'></a></div></li></div><script charset='utf-8' src='../../3/js/hengfu.js'></script><script charset='utf-8' src='../../3/js/hengfu2.js'></script><hr><div class='div1'><div class='biaoti'><center>Java Stream函数式编程案例图文详解</center></div><div class='banquan'>原文出处:本文由博客园博主字母哥博客提供。<br/>
+原文连接:https://www.cnblogs.com/zimug/p/11724249.html</div><br>
+    <p><img src="./images/Java Stream函数式编程案例图文详解0.png" alt="Java Stream函数式编程？用过都说好，案例图文详解送给你" /></p>
+<h2 id="导读">导读</h2>
+<p>作者计划把Java Stream写成一个系列的文章，本文只是其中一节。更多内容期待您关注我的号！</p>
+<h2 id="一什么是java-stream">一、什么是Java Stream？</h2>
+<p>Java Stream函数式编程接口最初是在Java 8中引入的，并且与lambda一起成为Java开发的里程碑式的功能特性，它极大的方便了开放人员处理集合类数据的效率。从笔者之前看过的调查文章显示，绝大部分的开发者使用的JDK版本是java 8，其中Java Stream和lambda功不可没。</p>
+<p>Java Stream就是一个数据流经的管道，并且在管道中对数据进行操作，然后流入下一个管道。有学过linux 管道的同学应该会很容易就理解。在没有Java Stram之前，对于集合类的操作，更多的是通过for循环。大家从后文中就能看出Java Stream相对于for 循环更加简洁、易用、快捷。</p>
+<p>管道的功能包括：Filter（过滤）、Map(映射)、sort(排序）等，集合数据通过Java Stream管道处理之后，转化为另一组集合或数据输出。</p>
+<p><img src="./images/Java Stream函数式编程案例图文详解1.png" alt="Java Stream函数式编程？用过都说好，案例图文详解送给你" /></p>
+<p>我们先来看一个例子：</p>
+<pre><code><code>List&lt;String&gt; nameStrs = Arrays.asList(&quot;Monkey&quot;, &quot;Lion&quot;, &quot;Giraffe&quot;,&quot;Lemur&quot;);
+
+List&lt;String&gt; list = nameStrs.stream()
+        .filter(s -&gt; s.startsWith(&quot;L&quot;))
+        .map(String::toUpperCase)
+        .sorted()
+        .collect(toList());
+System.out.println(list);</code></code></pre>
+<ul>
+<li>首先，我们使用Stream()函数，将一个List转换为管道流</li>
+<li>调用filter函数过滤数组元素，过滤方法使用lambda表达式，以L开头的元素返回true被保留，其他的List元素被过滤掉</li>
+<li>然后调用Map函数对管道流中每个元素进行处理，字母全部转换为大写</li>
+<li>然后调用sort函数，对管道流中数据进行排序</li>
+<li>最后调用collect函数toList，将管道流转换为List返回</li>
+</ul>
+<p>最终的输出结果是：[LEMUR, LION]。大家可以想一想，上面的这些对数组进行遍历的代码，如果你用for循环来写，需要写多少行代码？来，我们来继续学习Java Stream吧！</p>
+<p><img src="./images/Java Stream函数式编程案例图文详解2.png" alt="Java Stream函数式编程？用过都说好，案例图文详解送给你" /></p>
+<h2 id="二将数组转换为管道流">二、将数组转换为管道流</h2>
+<p>使用Stream.of()方法，将数组转换为管道流。</p>
+<pre><code><code>String[] array = {&quot;Monkey&quot;, &quot;Lion&quot;, &quot;Giraffe&quot;, &quot;Lemur&quot;};
+Stream&lt;String&gt; nameStrs2 = Stream.of(array);
+
+Stream&lt;String&gt; nameStrs3 = Stream.of(&quot;Monkey&quot;, &quot;Lion&quot;, &quot;Giraffe&quot;, &quot;Lemur&quot;);</code></code></pre>
+<h2 id="三将集合类对象转换为管道流">三、将集合类对象转换为管道流</h2>
+<p>通过调用集合类的stream()方法，将集合类对象转换为管道流。</p>
+<pre><code><code>List&lt;String&gt; list = Arrays.asList(&quot;Monkey&quot;, &quot;Lion&quot;, &quot;Giraffe&quot;, &quot;Lemur&quot;);
+Stream&lt;String&gt; streamFromList = list.stream();
+
+Set&lt;String&gt; set = new HashSet&lt;&gt;(list);
+Stream&lt;String&gt; streamFromSet = set.stream();</code></code></pre>
+<h2 id="四将文本文件转换为管道流">四、将文本文件转换为管道流</h2>
+<p>通过Files.lines方法将文本文件转换为管道流，下图中的Paths.get()方法作用就是获取文件，是Java NIO的API！</p>
+<p>也就是说：我们可以很方便的使用Java Stream加载文本文件，然后逐行的对文件内容进行处理。</p>
+<pre><code><code>Stream&lt;String&gt; lines = Files.lines(Paths.get(&quot;file.txt&quot;));</code></code></pre>
+<h2 id="期待您的关注">期待您的关注</h2>
+<ul>
+<li>博主最近新写了一本书：<a href="http://springboot.zimug.com">《手摸手教您学习SpringBoot系列-16章97节》</a></li>
+<li>本文转载注明出处（必须带连接，不能只转文字）：<a href="http://www.zimug.com">字母哥博客</a>。</li>
+</ul>
+
+
+</div><hr><script charset='utf-8' src='../../js/sming.js'></script></body></html>

@@ -1,0 +1,315 @@
+<html><head><meta charset='utf-8'><meta name='viewport' content='width=device-width, initial-scale=1'>
+<meta name='applicable-device' content='pc'><meta name='keywords' content='电脑,电脑讲解,电脑技术,编程,电脑故障维修Java操作数据库——使用连接池连接数据库' />
+<script src='../../highlight/highlight.pack.js'></script>
+<link rel='stylesheet' type='text/css' href='../../highlight/styles/monokai.css'/>
+
+<link rel='stylesheet' href='../../fenxiang/dist/css/share.min.css'>
+<script src='../../fenxiang/src/js/social-share.js'></script>
+<script src='../../fenxiang/src/js/qrcode.js'></script>
+
+</head><body><script>hljs.initHighlightingOnLoad();</script><script>
+var system ={};  
+var p = navigator.platform;       
+system.win = p.indexOf('Win') == 0;  
+system.mac = p.indexOf('Mac') == 0;  
+system.x11 = (p == 'X11') || (p.indexOf('Linux') == 0);     
+if(system.win||system.mac||system.xll){
+document.write("<link href='../css/3.css' rel='stylesheet' type='text/css'>");}else{ document.write("<link href='../css/3wap.css' rel='stylesheet' type='text/css'>");}</script><script src='../../js/3.js'></script><div class='div2'><div class='heading_nav'><ul><div><li><a href='../../index.html'>首页</a></li>
+</div><div onclick='hidden1()' >分享</div>
+</ul></div></div>
+<div id='heading_nav2'> 
+<li class='row' >
+<div class='social-share' data-mode='prepend'><a href='javascript:' class='social-share-icon icon-heart'></a></div></li></div><script charset='utf-8' src='../../3/js/hengfu.js'></script><script charset='utf-8' src='../../3/js/hengfu2.js'></script><hr><div class='div1'><div class='biaoti'><center>Java操作数据库——使用连接池连接数据库</center></div><div class='banquan'>原文出处:本文由博客园博主鲨猫提供。<br/>
+原文连接:https://www.cnblogs.com/shamao/p/11928905.html</div><br>
+    <h1>Java操作数据库&mdash;&mdash;使用连接池连接数据库</h1>
+<p>摘要：本文主要学习了如何使用JDBC连接池连接数据库。</p>
+<h2>传统方式和连接池方式</h2>
+<h3>传统方式的步骤</h3>
+<p>使用传统方式在Java中使用JDBC连接数据库，完成一次数据库的操作，一般有以下几个步骤：</p>
+<p>加载驱动。</p>
+<p>建立连接。</p>
+<p>执行SQL语句。</p>
+<p>释放连接。</p>
+<h3>传统方式的弊端</h3>
+<p>每一次对数据库的操作都要建立一次连接，并且会将得到的Connection对象加载到内存中，导致消耗了大量的内存和时间。如果短时间有很多需要进行建立连接的操作，会导致占用很多系统资源，甚至会导致服务器崩溃。</p>
+<p>同建立连接相对应，每次使用都需要手动释放连接，如果忘记释放连接或者程序出现异常未能成功释放，会导致内存泄露。</p>
+<p>此外，传统方式并不能控制连接的数量，如果连接的人数过多，会导致无限制的创建连接对象，导致内存开销过大，服务器崩溃。</p>
+<h3>连接池的步骤</h3>
+<p>创建连接池并配置连接属性。</p>
+<p>使用连接池获取连接。</p>
+<h3>连接池的优势</h3>
+<p>每次需要连接数据库时，不需要建立连接，而是通过连接池获取，由连接池提供连接。</p>
+<p>在使用完连接后，不需要手动释放连接，而是交由连接池释放连接。</p>
+<p>可以通过连接池控制连接的数量，在连接池里的连接可多次重复使用，避免了无限制创建连接的问题。</p>
+<h2>使用连接池</h2>
+<h3>使用C3P0连接池</h3>
+<p>C3P0是一个开放源代码的JDBC连接池，它在lib目录中与Hibernate一起发布，包括实现了数据源和JNDI绑定，支持JDBC3规范和JDBC2的标准扩展。目前使用它的开源项目有Hibernate，Spring等。</p>
+<p>导入jar包：</p>
+<src class="cnblogs_code">
+<pre><code><span style="color: #008080;">1</span> c3p0-0.9.5.2.jar</code></pre>
+
+<p>在当前项目的代码根目录&nbsp;<span class="cnblogs_code">src</span>&nbsp;下新建名为&nbsp;<span class="cnblogs_code">c3p0-config.xml</span>&nbsp;的配置文件，<span style="color: #ff0000;">注意文件名称不可改变</span>，内容如下：</p>
+<src class="cnblogs_code">
+<pre><code><span style="color: #008080;"> 1</span> <span style="color: #0000ff;">&lt;</span><span style="color: #800000;">c3p0-config</span><span style="color: #0000ff;">&gt;</span>
+<span style="color: #008080;"> 2</span>     <span style="color: #008000;">&lt;!--</span><span style="color: #008000;"> 连接名称 </span><span style="color: #008000;">--&gt;</span>
+<span style="color: #008080;"> 3</span>     <span style="color: #0000ff;">&lt;</span><span style="color: #800000;">named-config </span><span style="color: #ff0000;">name</span><span style="color: #0000ff;">="mysql"</span><span style="color: #0000ff;">&gt;</span>
+<span style="color: #008080;"> 4</span>         <span style="color: #008000;">&lt;!--</span><span style="color: #008000;"> 接数据库的驱动类名 </span><span style="color: #008000;">--&gt;</span>
+<span style="color: #008080;"> 5</span>         <span style="color: #0000ff;">&lt;</span><span style="color: #800000;">property </span><span style="color: #ff0000;">name</span><span style="color: #0000ff;">="driverClass"</span><span style="color: #0000ff;">&gt;</span>com.mysql.jdbc.Driver<span style="color: #0000ff;">&lt;/</span><span style="color: #800000;">property</span><span style="color: #0000ff;">&gt;</span>
+<span style="color: #008080;"> 6</span>         <span style="color: #008000;">&lt;!--</span><span style="color: #008000;"> 连接属性 </span><span style="color: #008000;">--&gt;</span>
+<span style="color: #008080;"> 7</span>         <span style="color: #0000ff;">&lt;</span><span style="color: #800000;">property </span><span style="color: #ff0000;">name</span><span style="color: #0000ff;">="jdbcUrl"</span><span style="color: #0000ff;">&gt;</span>jdbc:mysql://192.168.35.128:3306/demo<span style="color: #0000ff;">&lt;/</span><span style="color: #800000;">property</span><span style="color: #0000ff;">&gt;</span>
+<span style="color: #008080;"> 8</span>         <span style="color: #0000ff;">&lt;</span><span style="color: #800000;">property </span><span style="color: #ff0000;">name</span><span style="color: #0000ff;">="user"</span><span style="color: #0000ff;">&gt;</span>root<span style="color: #0000ff;">&lt;/</span><span style="color: #800000;">property</span><span style="color: #0000ff;">&gt;</span>
+<span style="color: #008080;"> 9</span>         <span style="color: #0000ff;">&lt;</span><span style="color: #800000;">property </span><span style="color: #ff0000;">name</span><span style="color: #0000ff;">="password"</span><span style="color: #0000ff;">&gt;</span>123456<span style="color: #0000ff;">&lt;/</span><span style="color: #800000;">property</span><span style="color: #0000ff;">&gt;</span>
+<span style="color: #008080;">10</span>         <span style="color: #008000;">&lt;!--</span><span style="color: #008000;"> 当连接池用完时等待获取新连接的时间，超时后将抛出SQLException，单位毫秒，如设为0则无限期等待。默认为0。 </span><span style="color: #008000;">--&gt;</span>
+<span style="color: #008080;">11</span>         <span style="color: #0000ff;">&lt;</span><span style="color: #800000;">property </span><span style="color: #ff0000;">name</span><span style="color: #0000ff;">="checkoutTimeout"</span><span style="color: #0000ff;">&gt;</span>5000<span style="color: #0000ff;">&lt;/</span><span style="color: #800000;">property</span><span style="color: #0000ff;">&gt;</span>
+<span style="color: #008080;">12</span>         <span style="color: #008000;">&lt;!--</span><span style="color: #008000;"> 当连接用尽后，一次获取的连接个数 </span><span style="color: #008000;">--&gt;</span>
+<span style="color: #008080;">13</span>         <span style="color: #0000ff;">&lt;</span><span style="color: #800000;">property </span><span style="color: #ff0000;">name</span><span style="color: #0000ff;">="acquireIncrement"</span><span style="color: #0000ff;">&gt;</span>2<span style="color: #0000ff;">&lt;/</span><span style="color: #800000;">property</span><span style="color: #0000ff;">&gt;</span>
+<span style="color: #008080;">14</span>         <span style="color: #008000;">&lt;!--</span><span style="color: #008000;"> 初始连接数 </span><span style="color: #008000;">--&gt;</span>
+<span style="color: #008080;">15</span>         <span style="color: #0000ff;">&lt;</span><span style="color: #800000;">property </span><span style="color: #ff0000;">name</span><span style="color: #0000ff;">="initialPoolSize"</span><span style="color: #0000ff;">&gt;</span>1<span style="color: #0000ff;">&lt;/</span><span style="color: #800000;">property</span><span style="color: #0000ff;">&gt;</span>
+<span style="color: #008080;">16</span>         <span style="color: #008000;">&lt;!--</span><span style="color: #008000;"> 最小连接数 </span><span style="color: #008000;">--&gt;</span>
+<span style="color: #008080;">17</span>         <span style="color: #0000ff;">&lt;</span><span style="color: #800000;">property </span><span style="color: #ff0000;">name</span><span style="color: #0000ff;">="minPoolSize"</span><span style="color: #0000ff;">&gt;</span>3<span style="color: #0000ff;">&lt;/</span><span style="color: #800000;">property</span><span style="color: #0000ff;">&gt;</span>
+<span style="color: #008080;">18</span>         <span style="color: #008000;">&lt;!--</span><span style="color: #008000;"> 最大连接数 </span><span style="color: #008000;">--&gt;</span>
+<span style="color: #008080;">19</span>         <span style="color: #0000ff;">&lt;</span><span style="color: #800000;">property </span><span style="color: #ff0000;">name</span><span style="color: #0000ff;">="maxPoolSize"</span><span style="color: #0000ff;">&gt;</span>5<span style="color: #0000ff;">&lt;/</span><span style="color: #800000;">property</span><span style="color: #0000ff;">&gt;</span>
+<span style="color: #008080;">20</span>     <span style="color: #0000ff;">&lt;/</span><span style="color: #800000;">named-config</span><span style="color: #0000ff;">&gt;</span>
+<span style="color: #008080;">21</span> <span style="color: #0000ff;">&lt;/</span><span style="color: #800000;">c3p0-config</span><span style="color: #0000ff;">&gt;</span></code></pre>
+
+<p>程序代码：</p>
+<src class="cnblogs_code">
+<pre><code><span style="color: #008080;"> 1</span> <span style="color: #0000ff;">public</span> <span style="color: #0000ff;">class</span><span style="color: #000000;"> TestDataPool {
+</span><span style="color: #008080;"> 2</span>     <span style="color: #008000;">//</span><span style="color: #008000;"> 根据配置文件里的名称创建连接池</span>
+<span style="color: #008080;"> 3</span>     <span style="color: #0000ff;">public</span> <span style="color: #0000ff;">static</span> ComboPooledDataSource cpds = <span style="color: #0000ff;">new</span> ComboPooledDataSource("mysql"<span style="color: #000000;">);
+</span><span style="color: #008080;"> 4</span>     
+<span style="color: #008080;"> 5</span>     <span style="color: #008000;">/**</span>
+<span style="color: #008080;"> 6</span> <span style="color: #008000;">     * 主程序
+</span><span style="color: #008080;"> 7</span>      <span style="color: #008000;">*/</span>
+<span style="color: #008080;"> 8</span>     <span style="color: #0000ff;">public</span> <span style="color: #0000ff;">static</span> <span style="color: #0000ff;">void</span><span style="color: #000000;"> main(String[] args) {
+</span><span style="color: #008080;"> 9</span>         <span style="color: #008000;">//</span><span style="color: #008000;"> 模拟多次对数据库的查询操作</span>
+<span style="color: #008080;">10</span>         <span style="color: #0000ff;">for</span> (<span style="color: #0000ff;">int</span> i = 0; i &lt; 6; i++<span style="color: #000000;">) {
+</span><span style="color: #008080;">11</span>             <span style="color: #0000ff;">new</span> Thread(<span style="color: #0000ff;">new</span><span style="color: #000000;"> Runnable() {
+</span><span style="color: #008080;">12</span> <span style="color: #000000;">                @Override
+</span><span style="color: #008080;">13</span>                 <span style="color: #0000ff;">public</span> <span style="color: #0000ff;">void</span><span style="color: #000000;"> run() {
+</span><span style="color: #008080;">14</span> <span style="color: #000000;">                    select();
+</span><span style="color: #008080;">15</span> <span style="color: #000000;">                }
+</span><span style="color: #008080;">16</span>             }, "线程" +<span style="color: #000000;"> i).start();
+</span><span style="color: #008080;">17</span> <span style="color: #000000;">        }
+</span><span style="color: #008080;">18</span> <span style="color: #000000;">    }
+</span><span style="color: #008080;">19</span>     
+<span style="color: #008080;">20</span>     <span style="color: #008000;">/**</span>
+<span style="color: #008080;">21</span> <span style="color: #008000;">     * 查询程序
+</span><span style="color: #008080;">22</span>      <span style="color: #008000;">*/</span>
+<span style="color: #008080;">23</span>     <span style="color: #0000ff;">public</span> <span style="color: #0000ff;">static</span> <span style="color: #0000ff;">void</span><span style="color: #000000;"> select() {
+</span><span style="color: #008080;">24</span>         Connection conn = <span style="color: #0000ff;">null</span><span style="color: #000000;">;
+</span><span style="color: #008080;">25</span>         PreparedStatement pstmt = <span style="color: #0000ff;">null</span><span style="color: #000000;">;
+</span><span style="color: #008080;">26</span>         ResultSet rs = <span style="color: #0000ff;">null</span><span style="color: #000000;">;
+</span><span style="color: #008080;">27</span>         <span style="color: #008000;">//</span><span style="color: #008000;"> 获取连接并执行SQL</span>
+<span style="color: #008080;">28</span>         <span style="color: #0000ff;">try</span><span style="color: #000000;"> {
+</span><span style="color: #008080;">29</span>             conn =<span style="color: #000000;"> cpds.getConnection();
+</span><span style="color: #008080;">30</span>             pstmt = conn.prepareStatement("select * from student where id = 906"<span style="color: #000000;">);
+</span><span style="color: #008080;">31</span>             rs =<span style="color: #000000;"> pstmt.executeQuery();
+</span><span style="color: #008080;">32</span>             <span style="color: #0000ff;">while</span><span style="color: #000000;"> (rs.next()) {
+</span><span style="color: #008080;">33</span>                 System.out.println(Thread.currentThread().getName() + "\t" + rs.getString(1) + "\t" + rs.getString(2) + "\t" + rs.getString("address"<span style="color: #000000;">));
+</span><span style="color: #008080;">34</span> <span style="color: #000000;">            }
+</span><span style="color: #008080;">35</span>         } <span style="color: #0000ff;">catch</span><span style="color: #000000;"> (Exception e) {
+</span><span style="color: #008080;">36</span> <span style="color: #000000;">            e.printStackTrace();
+</span><span style="color: #008080;">37</span>         } <span style="color: #0000ff;">finally</span><span style="color: #000000;"> {
+</span><span style="color: #008080;">38</span>             <span style="color: #008000;">//</span><span style="color: #008000;"> 释放资源</span>
+<span style="color: #008080;">39</span>             <span style="color: #0000ff;">try</span><span style="color: #000000;"> {
+</span><span style="color: #008080;">40</span> <span style="color: #000000;">                rs.close();
+</span><span style="color: #008080;">41</span>             } <span style="color: #0000ff;">catch</span><span style="color: #000000;"> (SQLException e) {
+</span><span style="color: #008080;">42</span> <span style="color: #000000;">                e.printStackTrace();
+</span><span style="color: #008080;">43</span> <span style="color: #000000;">            }
+</span><span style="color: #008080;">44</span>             <span style="color: #0000ff;">try</span><span style="color: #000000;"> {
+</span><span style="color: #008080;">45</span> <span style="color: #000000;">                pstmt.close();
+</span><span style="color: #008080;">46</span>             } <span style="color: #0000ff;">catch</span><span style="color: #000000;"> (SQLException e) {
+</span><span style="color: #008080;">47</span> <span style="color: #000000;">                e.printStackTrace();
+</span><span style="color: #008080;">48</span> <span style="color: #000000;">            }
+</span><span style="color: #008080;">49</span>             <span style="color: #0000ff;">try</span><span style="color: #000000;"> {
+</span><span style="color: #008080;">50</span> <span style="color: #000000;">                conn.close();
+</span><span style="color: #008080;">51</span>             } <span style="color: #0000ff;">catch</span><span style="color: #000000;"> (SQLException e) {
+</span><span style="color: #008080;">52</span> <span style="color: #000000;">                e.printStackTrace();
+</span><span style="color: #008080;">53</span> <span style="color: #000000;">            }
+</span><span style="color: #008080;">54</span> <span style="color: #000000;">        }
+</span><span style="color: #008080;">55</span> <span style="color: #000000;">    }
+</span><span style="color: #008080;">56</span> }</code></pre>
+
+<h3>使用DBCP连接池</h3>
+<p>DBCP是Apache上的一个Java连接池项目，是一个依赖Jakarta项目commons-pool对象池机制的数据库连接池。DBCP可以直接的在应用程序中使用，Tomcat的数据源使用的就是DBCP。</p>
+<p>导入jar包：</p>
+<src class="cnblogs_code">
+<pre><code><span style="color: #008080;">1</span> commons-dbcp-1.4.jar<span style="color: #008080;">2</span> commons-pool-1.5.5.jar</code></pre>
+
+<p>在当前项目的代码根目录&nbsp;<span class="cnblogs_code">src</span>&nbsp;下新建名为&nbsp;<span class="cnblogs_code">dbcp.properties</span>&nbsp;的配置文件，<span style="color: #ff0000;">文件名需要同代码中引用的文件名一致</span>，内容如下：</p>
+<src class="cnblogs_code">
+<pre><code><span style="color: #008080;"> 1</span> <span style="color: #000000;"># 接数据库的驱动类名
+</span><span style="color: #008080;"> 2</span> <span style="color: #000000;">driverClassName=com.mysql.jdbc.Driver
+</span><span style="color: #008080;"> 3</span> <span style="color: #000000;"># 连接属性
+</span><span style="color: #008080;"> 4</span> <span style="color: #000000;">url=jdbc:mysql://192.168.35.128:3306/demo
+</span><span style="color: #008080;"> 5</span> <span style="color: #000000;">username=root
+</span><span style="color: #008080;"> 6</span> <span style="color: #000000;">password=123456
+</span><span style="color: #008080;"> 7</span> <span style="color: #000000;"># 初始化连接数
+</span><span style="color: #008080;"> 8</span> <span style="color: #000000;">initialSize=10
+</span><span style="color: #008080;"> 9</span> <span style="color: #000000;"># 最大连接数
+</span><span style="color: #008080;">10</span> maxActive=15</code></pre>
+
+<p>程序代码：</p>
+<src class="cnblogs_code">
+<pre><code><span style="color: #008080;"> 1</span> <span style="color: #0000ff;">public</span> <span style="color: #0000ff;">class</span><span style="color: #000000;"> TestDBCP {
+</span><span style="color: #008080;"> 2</span>     <span style="color: #008000;">//</span><span style="color: #008000;"> 根据配置文件里的名称创建连接池</span>
+<span style="color: #008080;"> 3</span>     <span style="color: #0000ff;">private</span> <span style="color: #0000ff;">static</span> DataSource source = <span style="color: #0000ff;">null</span><span style="color: #000000;">;
+</span><span style="color: #008080;"> 4</span>     <span style="color: #0000ff;">static</span><span style="color: #000000;"> {
+</span><span style="color: #008080;"> 5</span>         Properties pros = <span style="color: #0000ff;">new</span><span style="color: #000000;"> Properties();
+</span><span style="color: #008080;"> 6</span>         InputStream is = TestDBCP.<span style="color: #0000ff;">class</span>.getClassLoader().getResourceAsStream("dbcp.properties"<span style="color: #000000;">);
+</span><span style="color: #008080;"> 7</span>         <span style="color: #0000ff;">try</span><span style="color: #000000;"> {
+</span><span style="color: #008080;"> 8</span> <span style="color: #000000;">            pros.load(is);
+</span><span style="color: #008080;"> 9</span>             source =<span style="color: #000000;"> BasicDataSourceFactory.createDataSource(pros);
+</span><span style="color: #008080;">10</span>         } <span style="color: #0000ff;">catch</span><span style="color: #000000;"> (Exception e) {
+</span><span style="color: #008080;">11</span> <span style="color: #000000;">            e.printStackTrace();
+</span><span style="color: #008080;">12</span> <span style="color: #000000;">        }
+</span><span style="color: #008080;">13</span> <span style="color: #000000;">    }
+</span><span style="color: #008080;">14</span> 
+<span style="color: #008080;">15</span>     <span style="color: #008000;">/**</span>
+<span style="color: #008080;">16</span> <span style="color: #008000;">     * 主程序
+</span><span style="color: #008080;">17</span>      <span style="color: #008000;">*/</span>
+<span style="color: #008080;">18</span>     <span style="color: #0000ff;">public</span> <span style="color: #0000ff;">static</span> <span style="color: #0000ff;">void</span><span style="color: #000000;"> main(String[] args) {
+</span><span style="color: #008080;">19</span>         <span style="color: #008000;">//</span><span style="color: #008000;"> 模拟多次对数据库的查询操作</span>
+<span style="color: #008080;">20</span>         <span style="color: #0000ff;">for</span> (<span style="color: #0000ff;">int</span> i = 0; i &lt; 6; i++<span style="color: #000000;">) {
+</span><span style="color: #008080;">21</span>             <span style="color: #0000ff;">new</span> Thread(<span style="color: #0000ff;">new</span><span style="color: #000000;"> Runnable() {
+</span><span style="color: #008080;">22</span> <span style="color: #000000;">                @Override
+</span><span style="color: #008080;">23</span>                 <span style="color: #0000ff;">public</span> <span style="color: #0000ff;">void</span><span style="color: #000000;"> run() {
+</span><span style="color: #008080;">24</span> <span style="color: #000000;">                    select();
+</span><span style="color: #008080;">25</span> <span style="color: #000000;">                }
+</span><span style="color: #008080;">26</span>             }, "线程" +<span style="color: #000000;"> i).start();
+</span><span style="color: #008080;">27</span> <span style="color: #000000;">        }
+</span><span style="color: #008080;">28</span> <span style="color: #000000;">    }
+</span><span style="color: #008080;">29</span> 
+<span style="color: #008080;">30</span>     <span style="color: #008000;">/**</span>
+<span style="color: #008080;">31</span> <span style="color: #008000;">     * 查询程序
+</span><span style="color: #008080;">32</span>      <span style="color: #008000;">*/</span>
+<span style="color: #008080;">33</span>     <span style="color: #0000ff;">public</span> <span style="color: #0000ff;">static</span> <span style="color: #0000ff;">void</span><span style="color: #000000;"> select() {
+</span><span style="color: #008080;">34</span>         Connection conn = <span style="color: #0000ff;">null</span><span style="color: #000000;">;
+</span><span style="color: #008080;">35</span>         PreparedStatement pstmt = <span style="color: #0000ff;">null</span><span style="color: #000000;">;
+</span><span style="color: #008080;">36</span>         ResultSet rs = <span style="color: #0000ff;">null</span><span style="color: #000000;">;
+</span><span style="color: #008080;">37</span>         <span style="color: #008000;">//</span><span style="color: #008000;"> 获取连接并执行SQL</span>
+<span style="color: #008080;">38</span>         <span style="color: #0000ff;">try</span><span style="color: #000000;"> {
+</span><span style="color: #008080;">39</span>             conn =<span style="color: #000000;"> source.getConnection();
+</span><span style="color: #008080;">40</span>             pstmt = conn.prepareStatement("select * from student where id = 906"<span style="color: #000000;">);
+</span><span style="color: #008080;">41</span>             rs =<span style="color: #000000;"> pstmt.executeQuery();
+</span><span style="color: #008080;">42</span>             <span style="color: #0000ff;">while</span><span style="color: #000000;"> (rs.next()) {
+</span><span style="color: #008080;">43</span>                 System.out.println(Thread.currentThread().getName() + "\t" + rs.getString(1) + "\t" + rs.getString(2) + "\t" + rs.getString("address"<span style="color: #000000;">));
+</span><span style="color: #008080;">44</span> <span style="color: #000000;">            }
+</span><span style="color: #008080;">45</span>         } <span style="color: #0000ff;">catch</span><span style="color: #000000;"> (Exception e) {
+</span><span style="color: #008080;">46</span> <span style="color: #000000;">            e.printStackTrace();
+</span><span style="color: #008080;">47</span>         } <span style="color: #0000ff;">finally</span><span style="color: #000000;"> {
+</span><span style="color: #008080;">48</span>             <span style="color: #008000;">//</span><span style="color: #008000;"> 释放资源</span>
+<span style="color: #008080;">49</span>             <span style="color: #0000ff;">try</span><span style="color: #000000;"> {
+</span><span style="color: #008080;">50</span> <span style="color: #000000;">                rs.close();
+</span><span style="color: #008080;">51</span>             } <span style="color: #0000ff;">catch</span><span style="color: #000000;"> (SQLException e) {
+</span><span style="color: #008080;">52</span> <span style="color: #000000;">                e.printStackTrace();
+</span><span style="color: #008080;">53</span> <span style="color: #000000;">            }
+</span><span style="color: #008080;">54</span>             <span style="color: #0000ff;">try</span><span style="color: #000000;"> {
+</span><span style="color: #008080;">55</span> <span style="color: #000000;">                pstmt.close();
+</span><span style="color: #008080;">56</span>             } <span style="color: #0000ff;">catch</span><span style="color: #000000;"> (SQLException e) {
+</span><span style="color: #008080;">57</span> <span style="color: #000000;">                e.printStackTrace();
+</span><span style="color: #008080;">58</span> <span style="color: #000000;">            }
+</span><span style="color: #008080;">59</span>             <span style="color: #0000ff;">try</span><span style="color: #000000;"> {
+</span><span style="color: #008080;">60</span> <span style="color: #000000;">                conn.close();
+</span><span style="color: #008080;">61</span>             } <span style="color: #0000ff;">catch</span><span style="color: #000000;"> (SQLException e) {
+</span><span style="color: #008080;">62</span> <span style="color: #000000;">                e.printStackTrace();
+</span><span style="color: #008080;">63</span> <span style="color: #000000;">            }
+</span><span style="color: #008080;">64</span> <span style="color: #000000;">        }
+</span><span style="color: #008080;">65</span> <span style="color: #000000;">    }
+</span><span style="color: #008080;">66</span> }</code></pre>
+
+<h3>使用Druid连接池</h3>
+<p>Druid是阿里巴巴出品的数据源，而且是淘宝和支付宝专用数据库连接池，但它不仅仅是一个数据库连接池，它还包含一个ProxyDriver，一系列内置的JDBC组件库，一个SQL Parser。</p>
+<p>导入jar包：</p>
+<src class="cnblogs_code">
+<pre><code><span style="color: #008080;">1</span> druid-1.0.9.jar</code></pre>
+
+<p>在当前项目的代码根目录&nbsp;<span class="cnblogs_code">src</span>&nbsp;下新建名为&nbsp;<span class="cnblogs_code">druid.properties</span>&nbsp;的配置文件，<span style="color: #ff0000;">文件名需要同代码中引用的文件名一致</span>，内容如下：</p>
+<src class="cnblogs_code">
+<pre><code><span style="color: #008080;"> 1</span> <span style="color: #000000;"># 接数据库的驱动类名
+</span><span style="color: #008080;"> 2</span> <span style="color: #000000;">driverClassName=com.mysql.jdbc.Driver
+</span><span style="color: #008080;"> 3</span> <span style="color: #000000;"># 连接属性
+</span><span style="color: #008080;"> 4</span> <span style="color: #000000;">url=jdbc:mysql://192.168.35.128:3306/demo
+</span><span style="color: #008080;"> 5</span> <span style="color: #000000;">username=root
+</span><span style="color: #008080;"> 6</span> <span style="color: #000000;">password=123456
+</span><span style="color: #008080;"> 7</span> <span style="color: #000000;"># 最大连接数
+</span><span style="color: #008080;"> 8</span> <span style="color: #000000;">maxActive=15
+</span><span style="color: #008080;"> 9</span> <span style="color: #000000;"># 最长等待时间
+</span><span style="color: #008080;">10</span> <span style="color: #000000;">maxWait=3000
+</span><span style="color: #008080;">11</span> <span style="color: #000000;"># 配置初始化连接数
+</span><span style="color: #008080;">12</span> <span style="color: #000000;">initialSize=1
+</span><span style="color: #008080;">13</span> <span style="color: #000000;"># 配置最大活动连接数
+</span><span style="color: #008080;">14</span> maxActive=10</code></pre>
+
+<p>程序代码：</p>
+<src class="cnblogs_code">
+<pre><code><span style="color: #008080;"> 1</span> <span style="color: #0000ff;">public</span> <span style="color: #0000ff;">class</span><span style="color: #000000;"> TestDruid {
+</span><span style="color: #008080;"> 2</span>     <span style="color: #008000;">//</span><span style="color: #008000;"> 根据配置文件里的名称创建连接池</span>
+<span style="color: #008080;"> 3</span>     <span style="color: #0000ff;">private</span> <span style="color: #0000ff;">static</span> DataSource source = <span style="color: #0000ff;">null</span><span style="color: #000000;">;
+</span><span style="color: #008080;"> 4</span>     <span style="color: #0000ff;">static</span><span style="color: #000000;"> {
+</span><span style="color: #008080;"> 5</span>         Properties pros = <span style="color: #0000ff;">new</span><span style="color: #000000;"> Properties();
+</span><span style="color: #008080;"> 6</span>         InputStream is = TestDruid.<span style="color: #0000ff;">class</span>.getClassLoader().getResourceAsStream("druid.properties"<span style="color: #000000;">);
+</span><span style="color: #008080;"> 7</span>         <span style="color: #0000ff;">try</span><span style="color: #000000;"> {
+</span><span style="color: #008080;"> 8</span> <span style="color: #000000;">            pros.load(is);
+</span><span style="color: #008080;"> 9</span>             source =<span style="color: #000000;"> DruidDataSourceFactory.createDataSource(pros);
+</span><span style="color: #008080;">10</span>         } <span style="color: #0000ff;">catch</span><span style="color: #000000;"> (Exception e) {
+</span><span style="color: #008080;">11</span> <span style="color: #000000;">            e.printStackTrace();
+</span><span style="color: #008080;">12</span> <span style="color: #000000;">        }
+</span><span style="color: #008080;">13</span> <span style="color: #000000;">    }
+</span><span style="color: #008080;">14</span> 
+<span style="color: #008080;">15</span>     <span style="color: #008000;">/**</span>
+<span style="color: #008080;">16</span> <span style="color: #008000;">     * 主程序
+</span><span style="color: #008080;">17</span>      <span style="color: #008000;">*/</span>
+<span style="color: #008080;">18</span>     <span style="color: #0000ff;">public</span> <span style="color: #0000ff;">static</span> <span style="color: #0000ff;">void</span><span style="color: #000000;"> main(String[] args) {
+</span><span style="color: #008080;">19</span>         <span style="color: #008000;">//</span><span style="color: #008000;"> 模拟多次对数据库的查询操作</span>
+<span style="color: #008080;">20</span>         <span style="color: #0000ff;">for</span> (<span style="color: #0000ff;">int</span> i = 0; i &lt; 6; i++<span style="color: #000000;">) {
+</span><span style="color: #008080;">21</span>             <span style="color: #0000ff;">new</span> Thread(<span style="color: #0000ff;">new</span><span style="color: #000000;"> Runnable() {
+</span><span style="color: #008080;">22</span> <span style="color: #000000;">                @Override
+</span><span style="color: #008080;">23</span>                 <span style="color: #0000ff;">public</span> <span style="color: #0000ff;">void</span><span style="color: #000000;"> run() {
+</span><span style="color: #008080;">24</span> <span style="color: #000000;">                    select();
+</span><span style="color: #008080;">25</span> <span style="color: #000000;">                }
+</span><span style="color: #008080;">26</span>             }, "线程" +<span style="color: #000000;"> i).start();
+</span><span style="color: #008080;">27</span> <span style="color: #000000;">        }
+</span><span style="color: #008080;">28</span> <span style="color: #000000;">    }
+</span><span style="color: #008080;">29</span> 
+<span style="color: #008080;">30</span>     <span style="color: #008000;">/**</span>
+<span style="color: #008080;">31</span> <span style="color: #008000;">     * 查询程序
+</span><span style="color: #008080;">32</span>      <span style="color: #008000;">*/</span>
+<span style="color: #008080;">33</span>     <span style="color: #0000ff;">public</span> <span style="color: #0000ff;">static</span> <span style="color: #0000ff;">void</span><span style="color: #000000;"> select() {
+</span><span style="color: #008080;">34</span>         Connection conn = <span style="color: #0000ff;">null</span><span style="color: #000000;">;
+</span><span style="color: #008080;">35</span>         PreparedStatement pstmt = <span style="color: #0000ff;">null</span><span style="color: #000000;">;
+</span><span style="color: #008080;">36</span>         ResultSet rs = <span style="color: #0000ff;">null</span><span style="color: #000000;">;
+</span><span style="color: #008080;">37</span>         <span style="color: #008000;">//</span><span style="color: #008000;"> 获取连接并执行SQL</span>
+<span style="color: #008080;">38</span>         <span style="color: #0000ff;">try</span><span style="color: #000000;"> {
+</span><span style="color: #008080;">39</span>             conn =<span style="color: #000000;"> source.getConnection();
+</span><span style="color: #008080;">40</span>             pstmt = conn.prepareStatement("select * from student where id = 906"<span style="color: #000000;">);
+</span><span style="color: #008080;">41</span>             rs =<span style="color: #000000;"> pstmt.executeQuery();
+</span><span style="color: #008080;">42</span>             <span style="color: #0000ff;">while</span><span style="color: #000000;"> (rs.next()) {
+</span><span style="color: #008080;">43</span>                 System.out.println(Thread.currentThread().getName() + "\t" + rs.getString(1) + "\t" + rs.getString(2) + "\t" + rs.getString("address"<span style="color: #000000;">));
+</span><span style="color: #008080;">44</span> <span style="color: #000000;">            }
+</span><span style="color: #008080;">45</span>         } <span style="color: #0000ff;">catch</span><span style="color: #000000;"> (Exception e) {
+</span><span style="color: #008080;">46</span> <span style="color: #000000;">            e.printStackTrace();
+</span><span style="color: #008080;">47</span>         } <span style="color: #0000ff;">finally</span><span style="color: #000000;"> {
+</span><span style="color: #008080;">48</span>             <span style="color: #008000;">//</span><span style="color: #008000;"> 释放资源</span>
+<span style="color: #008080;">49</span>             <span style="color: #0000ff;">try</span><span style="color: #000000;"> {
+</span><span style="color: #008080;">50</span> <span style="color: #000000;">                rs.close();
+</span><span style="color: #008080;">51</span>             } <span style="color: #0000ff;">catch</span><span style="color: #000000;"> (SQLException e) {
+</span><span style="color: #008080;">52</span> <span style="color: #000000;">                e.printStackTrace();
+</span><span style="color: #008080;">53</span> <span style="color: #000000;">            }
+</span><span style="color: #008080;">54</span>             <span style="color: #0000ff;">try</span><span style="color: #000000;"> {
+</span><span style="color: #008080;">55</span> <span style="color: #000000;">                pstmt.close();
+</span><span style="color: #008080;">56</span>             } <span style="color: #0000ff;">catch</span><span style="color: #000000;"> (SQLException e) {
+</span><span style="color: #008080;">57</span> <span style="color: #000000;">                e.printStackTrace();
+</span><span style="color: #008080;">58</span> <span style="color: #000000;">            }
+</span><span style="color: #008080;">59</span>             <span style="color: #0000ff;">try</span><span style="color: #000000;"> {
+</span><span style="color: #008080;">60</span> <span style="color: #000000;">                conn.close();
+</span><span style="color: #008080;">61</span>             } <span style="color: #0000ff;">catch</span><span style="color: #000000;"> (SQLException e) {
+</span><span style="color: #008080;">62</span> <span style="color: #000000;">                e.printStackTrace();
+</span><span style="color: #008080;">63</span> <span style="color: #000000;">            }
+</span><span style="color: #008080;">64</span> <span style="color: #000000;">        }
+</span><span style="color: #008080;">65</span> <span style="color: #000000;">    }
+</span><span style="color: #008080;">66</span> }</code></pre>
+
+
+</div><hr><script charset='utf-8' src='../../js/sming.js'></script></body></html>

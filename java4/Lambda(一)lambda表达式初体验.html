@@ -1,0 +1,111 @@
+<html><head><meta charset='utf-8'><meta name='viewport' content='width=device-width, initial-scale=1'>
+<meta name='applicable-device' content='pc'><meta name='keywords' content='电脑,电脑讲解,电脑技术,编程,电脑故障维修Lambda(一)lambda表达式初体验' />
+<script src='../../highlight/highlight.pack.js'></script>
+<link rel='stylesheet' type='text/css' href='../../highlight/styles/monokai.css'/>
+
+<link rel='stylesheet' href='../../fenxiang/dist/css/share.min.css'>
+<script src='../../fenxiang/src/js/social-share.js'></script>
+<script src='../../fenxiang/src/js/qrcode.js'></script>
+
+</head><body><script>hljs.initHighlightingOnLoad();</script><script>
+var system ={};  
+var p = navigator.platform;       
+system.win = p.indexOf('Win') == 0;  
+system.mac = p.indexOf('Mac') == 0;  
+system.x11 = (p == 'X11') || (p.indexOf('Linux') == 0);     
+if(system.win||system.mac||system.xll){
+document.write("<link href='../css/3.css' rel='stylesheet' type='text/css'>");}else{ document.write("<link href='../css/3wap.css' rel='stylesheet' type='text/css'>");}</script><script src='../../js/3.js'></script><div class='div2'><div class='heading_nav'><ul><div><li><a href='../../index.html'>首页</a></li>
+</div><div onclick='hidden1()' >分享</div>
+</ul></div></div>
+<div id='heading_nav2'> 
+<li class='row' >
+<div class='social-share' data-mode='prepend'><a href='javascript:' class='social-share-icon icon-heart'></a></div></li></div><script charset='utf-8' src='../../3/js/hengfu.js'></script><script charset='utf-8' src='../../3/js/hengfu2.js'></script><hr><div class='div1'><div class='biaoti'><center>Lambda(一)lambda表达式初体验</center></div><div class='banquan'>原文出处:本文由博客园博主习惯MM提供。<br/>
+原文连接:https://www.cnblogs.com/itgcjava/p/lambda_r1.html</div><br>
+    <p><span style="color: #00ccff;"><strong><span style="font-family: 'times new roman', times;">Lambda(一)lambda表达式初体验</span></strong></span></p>
+<h3>Lambda引入&nbsp;：</h3>
+<p style="text-align: left; margin-left: 30px;"><strong>随着需求的不断改变，代码也需要随之变化</strong></p>
+<p style="text-align: left; margin-left: 30px;">需求一：有一个农场主要从一堆苹果中挑选出绿色的苹果</p>
+<p style="text-align: left; margin-left: 30px;">解决方案：常规做法，source&nbsp;code如下</p>
+<src class="cnblogs_code">
+<pre><code><span style="color: #0000ff;">public</span> <span style="color: #0000ff;">static</span> <span style="color: #0000ff;">void</span><span style="color: #000000;"> main(String[] args){
+        List</span>&lt;Apple&gt; apples =<span style="color: #000000;"> Arrays.asList(
+                </span><span style="color: #0000ff;">new</span> Apple("green", 120<span style="color: #000000;">),
+                </span><span style="color: #0000ff;">new</span> Apple("red", 150<span style="color: #000000;">),
+                </span><span style="color: #0000ff;">new</span> Apple("green", 170<span style="color: #000000;">),
+                </span><span style="color: #0000ff;">new</span> Apple("green", 150<span style="color: #000000;">),
+                </span><span style="color: #0000ff;">new</span> Apple("yellow", 100<span style="color: #000000;">));
+
+        List</span>&lt;Apple&gt; filterApple =<span style="color: #000000;"> filterGreenApple(apples);
+        System.out.println(filterApple);
+}
+
+</span><span style="color: #0000ff;">public</span> <span style="color: #0000ff;">static</span> List&lt;Apple&gt; filterGreenApple(List&lt;Apple&gt;<span style="color: #000000;"> apples){
+        List</span>&lt;Apple&gt; list = <span style="color: #0000ff;">new</span> ArrayList&lt;&gt;<span style="color: #000000;">();
+        </span><span style="color: #0000ff;">for</span><span style="color: #000000;">(Apple a: apples){
+            </span><span style="color: #0000ff;">if</span>(a.getColor().equals("green"<span style="color: #000000;">)){
+                list.add(a);
+            }
+        }
+        </span><span style="color: #0000ff;">return</span><span style="color: #000000;"> list;
+}            </span></code></pre>
+
+<p style="margin-left: 30px;">&nbsp;假如现在需求发生改变：需要挑选红色、黄色等其他颜色</p>
+<p style="margin-left: 30px;">&nbsp;解决方案：基于上面解决方案，多加一个color参数，source&nbsp;code如下</p>
+<src class="cnblogs_code">
+<pre><code><span style="color: #0000ff;">public</span> <span style="color: #0000ff;">static</span> List&lt;Apple&gt; findApple(List&lt;Apple&gt;<span style="color: #000000;"> apples,String color){
+        List</span>&lt;Apple&gt; list = <span style="color: #0000ff;">new</span> ArrayList&lt;&gt;<span style="color: #000000;">();
+        </span><span style="color: #0000ff;">for</span><span style="color: #000000;">(Apple a: apples){
+            </span><span style="color: #0000ff;">if</span><span style="color: #000000;">(a.getColor().equals(color)){
+                list.add(a);
+            }
+        }
+        </span><span style="color: #0000ff;">return</span><span style="color: #000000;"> list;
+}</span></code></pre>
+
+<p style="margin-left: 30px;">为了应对更复杂的需求，这里我们使用<span style="color: #99ccff;">策略模式</span>，source&nbsp;code如下</p>
+<src class="cnblogs_code">
+<pre><code><span style="color: #000000;">@FunctionalInterface
+</span><span style="color: #0000ff;">public</span> <span style="color: #0000ff;">interface</span><span style="color: #000000;"> FindApple{
+        </span><span style="color: #0000ff;">boolean</span><span style="color: #000000;"> filter(Apple apple);
+    }
+
+</span><span style="color: #0000ff;">public</span> <span style="color: #0000ff;">static</span> List&lt;Apple&gt; findApple(List&lt;Apple&gt;<span style="color: #000000;"> apples,FindApple findApple){
+        List</span>&lt;Apple&gt; list = <span style="color: #0000ff;">new</span> ArrayList&lt;&gt;<span style="color: #000000;">();
+        </span><span style="color: #0000ff;">for</span><span style="color: #000000;">(Apple apple:apples){
+            </span><span style="color: #0000ff;">if</span><span style="color: #000000;">(findApple.filter(apple)){
+                list.add(apple);
+            }
+        }
+        </span><span style="color: #0000ff;">return</span><span style="color: #000000;"> list;
+}
+
+</span><span style="color: #0000ff;">public</span> <span style="color: #0000ff;">static</span> <span style="color: #0000ff;">void</span><span style="color: #000000;"> main(String[] args){
+        </span><span style="color: #008000;">//</span><span style="color: #008000;">匿名类</span>
+        List&lt;Apple&gt; yellowApple = findApple(apples, <span style="color: #0000ff;">new</span><span style="color: #000000;"> FindApple() {
+            @Override
+            </span><span style="color: #0000ff;">public</span> <span style="color: #0000ff;">boolean</span><span style="color: #000000;"> filter(Apple apple) {
+                </span><span style="color: #0000ff;">return</span> apple.getColor().equals("yellow") &amp;&amp; apple.getWeight() &gt;= 100<span style="color: #000000;">;
+            }
+        });
+        System.out.println(yellowApple);
+
+        List</span>&lt;Apple&gt; complexApple = findApple(apples, <span style="color: #0000ff;">new</span><span style="color: #000000;"> greenAndGreater150WeightApple ());
+        System.out.println(complexApple);
+}
+
+</span><span style="color: #008000;">//</span><span style="color: #008000;">过滤绿色且重量大于150g的Apple</span>
+<span style="color: #0000ff;">public</span> <span style="color: #0000ff;">static</span> <span style="color: #0000ff;">class</span> greenAndGreater150WeightApple <span style="color: #0000ff;">implements</span><span style="color: #000000;"> FindApple{
+        @Override
+        </span><span style="color: #0000ff;">public</span> <span style="color: #0000ff;">boolean</span><span style="color: #000000;"> filter(Apple apple) {
+            </span><span style="color: #0000ff;">return</span> apple.getColor().equals("green")&amp;&amp;apple.getWeight()&gt;=150<span style="color: #000000;">;
+        }
+}</span></code></pre>
+
+<p style="margin-left: 30px;">匿名类的方式比较臃肿，容易发生混淆，故这里引入Lambda表达式，source&nbsp;code如下</p>
+<src class="cnblogs_code">
+<pre><code><span style="color: #008000;">//</span><span style="color: #008000;">基于上面的source code</span>
+List&lt;Apple&gt; lambdaresult = findApple(apples, apple -&gt; apple.getColor().equals("green"<span style="color: #000000;">));
+System.out.println(lambdaresult);</span></code></pre>
+
+
+</div><hr><script charset='utf-8' src='../../js/sming.js'></script></body></html>

@@ -1,0 +1,49 @@
+<html><head><meta charset='utf-8'><meta name='viewport' content='width=device-width, initial-scale=1'>
+<meta name='applicable-device' content='pc'><meta name='keywords' content='电脑,电脑讲解,电脑技术,编程,电脑故障维修ArrayList扩容' />
+<script src='../../highlight/highlight.pack.js'></script>
+<link rel='stylesheet' type='text/css' href='../../highlight/styles/monokai.css'/>
+
+<link rel='stylesheet' href='../../fenxiang/dist/css/share.min.css'>
+<script src='../../fenxiang/src/js/social-share.js'></script>
+<script src='../../fenxiang/src/js/qrcode.js'></script>
+
+</head><body><script>hljs.initHighlightingOnLoad();</script><script>
+var system ={};  
+var p = navigator.platform;       
+system.win = p.indexOf('Win') == 0;  
+system.mac = p.indexOf('Mac') == 0;  
+system.x11 = (p == 'X11') || (p.indexOf('Linux') == 0);     
+if(system.win||system.mac||system.xll){
+document.write("<link href='../css/3.css' rel='stylesheet' type='text/css'>");}else{ document.write("<link href='../css/3wap.css' rel='stylesheet' type='text/css'>");}</script><script src='../../js/3.js'></script><div class='div2'><div class='heading_nav'><ul><div><li><a href='../../index.html'>首页</a></li>
+</div><div onclick='hidden1()' >分享</div>
+</ul></div></div>
+<div id='heading_nav2'> 
+<li class='row' >
+<div class='social-share' data-mode='prepend'><a href='javascript:' class='social-share-icon icon-heart'></a></div></li></div><script charset='utf-8' src='../../3/js/hengfu.js'></script><script charset='utf-8' src='../../3/js/hengfu2.js'></script><hr><div class='div1'><div class='biaoti'><center>ArrayList扩容</center></div><div class='banquan'>原文出处:本文由博客园博主又菜瘾又大提供。<br/>
+原文连接:https://www.cnblogs.com/fyhdblog/p/11456483.html</div><br>
+    <p>ArrayList有三种初始化方式：</p>
+<p>　　1.指定大小初始化　　public ArrayList(int initialCapacity)&nbsp;</p>
+<p>　　2.传入一个Collection对象初始化，并将对象中的数据添加到ArrayList中&nbsp;public ArrayList(Collection&lt;? extends E&gt; c)</p>
+<p>　　3.默认构造函数初始化&nbsp;&nbsp;public ArrayList()</p>
+<p>默认长度：</p>
+<pre><code>private static final Object[] DEFAULTCAPACITY_EMPTY_ELEMENTDATA = {};</code></pre>
+<pre><code>public ArrayList() {<br />    this.elementData = DEFAULTCAPACITY_EMPTY_ELEMENTDATA;<br />}</code></pre>
+<p>　从上面可以看出当使用无参构造函数创建ArrayList时，默认长度为0</p>
+<p>　调用add方法添加元素时</p>
+<pre><code>private static final Object[] DEFAULTCAPACITY_EMPTY_ELEMENTDATA = {}//默认空数组</code></pre>
+<pre><code>private int size;//元素个数</code></pre>
+<pre><code>transient Object[] elementData;//存放元素的数组</code></pre>
+<pre><code>private static final int DEFAULT_CAPACITY = 10;//默认容量</code></pre>
+<pre><code>private static final int MAX_ARRAY_SIZE = Integer.MAX_VALUE - 8;//int最大值-8</code></pre>
+<pre><code>//添加元素<br />public boolean add(E e) {<br />    ensureCapacityInternal(size + 1);  // Increments modCount!!<br />    elementData[size++] = e;<br />    return true;<br />}<br />//确保内部容量，将元素个数与数组长度比较判断是否扩容</code></pre>
+<pre><code>private void ensureCapacityInternal(int minCapacity) {<br />    ensureExplicitCapacity(calculateCapacity(elementData, minCapacity));<br />}</code></pre>
+<pre><code>private void ensureExplicitCapacity(int minCapacity) {<br />    modCount++;<br /><br />    // overflow-conscious code<br />    if (minCapacity - elementData.length &gt; 0)//如果最小需要容量大于数组长度，将数组扩容<br />        grow(minCapacity);<br />}<br />//计算最小需要容量</code></pre>
+<pre><code>private static int calculateCapacity(Object[] elementData, int minCapacity) {<br />    if (elementData == DEFAULTCAPACITY_EMPTY_ELEMENTDATA) {<br />        return Math.max(DEFAULT_CAPACITY, minCapacity);<br />    }<br />    return minCapacity;<br />}<br />//扩容</code></pre>
+<pre><code>private void grow(int minCapacity) {<br />    // overflow-conscious code<br />    int oldCapacity = elementData.length;<br />    int newCapacity = oldCapacity + (oldCapacity &gt;&gt; 1);//将数组长度的二进制表达形式右移，相当于原来的0.5倍，每次扩容1.5倍<br />    if (newCapacity - minCapacity &lt; 0)//如果新容量小于最小需要容量，则将新容量设置为最小容量</code></pre>
+<pre><code>        newCapacity = minCapacity;<br />    if (newCapacity - MAX_ARRAY_SIZE &gt; 0)//如果新容量大于int最大值减8，则将新容量设置为int类型的最大容量<br />        newCapacity = hugeCapacity(minCapacity);<br />    // minCapacity is usually close to size, so this is a win:<br />    elementData = Arrays.copyOf(elementData, newCapacity);<br />}<br />//巨大容量</code></pre>
+<pre><code>private static int hugeCapacity(int minCapacity) {<br />    if (minCapacity &lt; 0) // overflow<br />        throw new OutOfMemoryError();<br />    return (minCapacity &gt; MAX_ARRAY_SIZE) ?<br />        Integer.MAX_VALUE :<br />        MAX_ARRAY_SIZE;<br />}</code></pre>
+<pre><code>从上述代码可以看出，当第一次调用add添加元素时ArrayList才会设置数组默认长度10，之后每超出数组长度就会进行扩容，每次扩容是原来的1.5倍<br /><br /></code></pre>
+<pre><code></code></pre>
+<pre><code>　<br />　　<em id="__mceDel"><br /></em></code></pre>
+
+</div><hr><script charset='utf-8' src='../../js/sming.js'></script></body></html>

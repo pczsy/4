@@ -1,0 +1,264 @@
+<html><head><meta charset='utf-8'><meta name='viewport' content='width=device-width, initial-scale=1'>
+<meta name='applicable-device' content='pc'><meta name='keywords' content='电脑,电脑讲解,电脑技术,编程,电脑故障维修实战SpringCloud响应式微服务系列教程（第六章）' />
+<script src='../../highlight/highlight.pack.js'></script>
+<link rel='stylesheet' type='text/css' href='../../highlight/styles/monokai.css'/>
+
+<link rel='stylesheet' href='../../fenxiang/dist/css/share.min.css'>
+<script src='../../fenxiang/src/js/social-share.js'></script>
+<script src='../../fenxiang/src/js/qrcode.js'></script>
+
+</head><body><script>hljs.initHighlightingOnLoad();</script><script>
+var system ={};  
+var p = navigator.platform;       
+system.win = p.indexOf('Win') == 0;  
+system.mac = p.indexOf('Mac') == 0;  
+system.x11 = (p == 'X11') || (p.indexOf('Linux') == 0);     
+if(system.win||system.mac||system.xll){
+document.write("<link href='../css/3.css' rel='stylesheet' type='text/css'>");}else{ document.write("<link href='../css/3wap.css' rel='stylesheet' type='text/css'>");}</script><script src='../../js/3.js'></script><div class='div2'><div class='heading_nav'><ul><div><li><a href='../../index.html'>首页</a></li>
+</div><div onclick='hidden1()' >分享</div>
+</ul></div></div>
+<div id='heading_nav2'> 
+<li class='row' >
+<div class='social-share' data-mode='prepend'><a href='javascript:' class='social-share-icon icon-heart'></a></div></li></div><script charset='utf-8' src='../../3/js/hengfu.js'></script><script charset='utf-8' src='../../3/js/hengfu2.js'></script><hr><div class='div1'><div class='biaoti'><center>实战SpringCloud响应式微服务系列教程（第六章）</center></div><div class='banquan'>原文出处:本文由博客园博主Java知音*提供。<br/>
+原文连接:https://www.cnblogs.com/javazhiyin/p/11597839.html</div><br>
+    <p><strong>本章节介绍：Flux和Mono操作符</strong></p>
+<p>和其他主流的响应式编程一样，Reactor框架的设计目标也是为了简化相应式流的使用方法。为此Reactor框架提供了大量操作符用于操作Flux和Mono对象。</p>
+<p><strong>本节不打算全面详细介绍，我们的思路是将这些操作符分类，然后对每一类中具有代表性的操作符展开讨论。</strong></p>
+<blockquote class="js_blockquote_wrap">对于其他没有介绍到的操作符可参考Reactor框架的官方文档。</blockquote>
+<p>在本节中我们把Flux和Mono操作符分为以下7大类。</p>
+<ul class="list-paddingleft-2">
+<li>转换 （Transforming）操作符负责对序列中的元素进行转变。</li>
+<li>过滤 （Filtering）操作符负责将不需要的数据从序列中进行过滤。</li>
+<li>组合 （Combining） 操作符负责将序列中的元素进行合并和连接。</li>
+<li>条件 （Conditional） 操作符负责根据特定条件对序列中的元素进行处理。</li>
+<li>数学 （Mathematical） 操作符负责对序列中的元素执行各种数学操作。</li>
+<li>Obserable工具（Utility） 操作符提供的是一些针对流失处理的辅助性工具。</li>
+<li>日志和调试（Log&amp;Debug） 操作符提供了针对运行时日志以及如何对序列进行代码调试的工具类。</li>
+</ul>
+<h2>1. 转换操作符</h2>
+<p>Reactor框架中常用的转换操作符包括buffer、map、flatMap和window。</p>
+<h3>（1）buffer</h3>
+<p>buffer操作符把当前流中的元素收集到集合中，并把集合对象作为流中的新元素。使用buffer操作符在进行元素收集时可以指定集合对象所包含的元素的最大数量。</p>
+<p>以下代码先使用range()方法创建了1~50这50个元素，然后演示了使用buffer从包含这50个元素的流中构建集合，每个集合包含10个元素，一共构建5个集合。</p>
+<src class="cnblogs_code">
+<pre><code>Flux.range(1,50).buffer(10).subscribe(System.out::println);</code></pre>
+
+<p>&nbsp;</p>
+<p>上面代码执行结果如下：</p>
+<src class="cnblogs_code">
+<pre><code>[1,2,3,4,5,6,7,8,9,10<span style="color: #000000;">]
+[</span>11,12,13,14,15,16,17,18,19,20<span style="color: #000000;">]
+[</span>21,22,23,24,25,26,27,28,29,30<span style="color: #000000;">]
+[</span>31,32,33,34,35,36,37,38,39,40<span style="color: #000000;">]
+[</span>41,42,43,44,45,46,47,48,49,50]</code></pre>
+
+<p>&nbsp;</p>
+<p>buffer操作符的另一种用法是指定收集的时间间隔，由此演变出了bufferTimeout()方法。bufferTimeout()方法可以指定时间间隔为一个Duration对象或者毫秒数，即使用bufferTimeoutMillis()或者bufferMillis()这两个方法。</p>
+<p>除了指定元素数量和时间间隔，还可以通过bufferUnitl和bufferWhile操作符进行数据收集。bufferUnitl会一直收集，知道断言（Predicate）条件返回true。使得断言条件返回true的那个元素可以选择添加到当前集合或者下一个集合当中。</p>
+<p>而bufferWhile只有当断言条件返回true时才会收集，一旦值为false，会立即开始下一次收集。</p>
+<p>代码如下：</p>
+<src class="cnblogs_code">
+<pre><code>Flux.range(1,10).bufferUnitl(i -&gt; i%2 ==0<span style="color: #000000;">).subscribe(System.out::println);
+System.out.println(</span>"-----------------------------------"<span style="color: #000000;">);
+Flux.range(</span>1,10).bufferWhile(i -&gt; i%2 ==0).subscribe(System.out::println);</code></pre>
+
+<p>&nbsp;</p>
+<p>以上代码执行结果如下：</p>
+<src class="cnblogs_code">
+<pre><code>[1,2<span style="color: #000000;">]
+[</span>3,4<span style="color: #000000;">]
+[</span>5.6<span style="color: #000000;">]
+[</span>7,8<span style="color: #000000;">]
+[</span>9,10<span style="color: #000000;">]
+</span>--------------------------<span style="color: #000000;">
+[</span>2<span style="color: #000000;">]
+[</span>4<span style="color: #000000;">]
+[</span>6<span style="color: #000000;">]
+[</span>8<span style="color: #000000;">]
+[</span>10]</code></pre>
+
+<p>&nbsp;</p>
+<h3>（2）map</h3>
+<p>map操作符相当于一种映射操作，他对流中每一个元素映射一个函数，从而达到一个变幻效果。</p>
+<src class="cnblogs_code">
+<pre><code>Flux.just(1, 2, 3, 4<span style="color: #000000;">)
+                .log()
+                .map(i </span>-&gt;<span style="color: #000000;"> {
+                    </span><span style="color: #0000ff;">try</span><span style="color: #000000;"> {
+                        TimeUnit.SECONDS.sleep(</span>1<span style="color: #000000;">);
+                    } </span><span style="color: #0000ff;">catch</span><span style="color: #000000;"> (InterruptedException e) {
+                        e.printStackTrace();
+                    }
+                    </span><span style="color: #0000ff;">return</span> i * 2<span style="color: #000000;">;
+                })
+                .subscribe(e </span>-&gt; log.info("get:{}",e));</code></pre>
+
+<p>&nbsp;</p>
+<p>以上代码运行结果：</p>
+<src class="cnblogs_code">
+<pre><code>10:53:57.058 [main] INFO reactor.Flux.Array.1 - |<span style="color: #000000;"> onSubscribe([Synchronous Fuseable] FluxArray.ArraySubscription)
+</span>10:53:57.062 [main] INFO reactor.Flux.Array.1 - |<span style="color: #000000;"> request(unbounded)
+</span>10:53:57.063 [main] INFO reactor.Flux.Array.1 - | onNext(1<span style="color: #000000;">)
+</span>10:53:58.067 [main] INFO com.example.demo.FluxTest - get:2
+10:53:58.067 [main] INFO reactor.Flux.Array.1 - | onNext(2<span style="color: #000000;">)
+</span>10:53:59.071 [main] INFO com.example.demo.FluxTest - get:4
+10:53:59.071 [main] INFO reactor.Flux.Array.1 - | onNext(3<span style="color: #000000;">)
+</span>10:54:00.076 [main] INFO com.example.demo.FluxTest - get:6
+10:54:00.076 [main] INFO reactor.Flux.Array.1 - | onNext(4<span style="color: #000000;">)
+</span>10:54:01.080 [main] INFO com.example.demo.FluxTest - get:8
+10:54:01.081 [main] INFO reactor.Flux.Array.1 - | onComplete()</code></pre>
+
+<p>&nbsp;</p>
+<h3>（3） flatMap</h3>
+<p>与map不同，操作符把流中的每一个元素转换成一个流，再把转换之后得到的所有流中的元素进行合并。</p>
+<p>flatMap操作符非常实用，代码示例如下：</p>
+<src class="cnblogs_code">
+<pre><code>Flux.just(1,5).flatMap(x -&gt; Mono.just(x*x)).subscribe(System.out::println);</code></pre>
+
+<p>&nbsp;</p>
+<p>以上代码中我们对1和5这两个元素进行了flatMap操作，操作的结果是返回他们的平方值进行合并，执行结果如下：</p>
+<src class="cnblogs_code">
+<pre><code>1
+25</code></pre>
+
+<p>&nbsp;</p>
+<p>在系统开发过程中我们经常会碰到对数据库中的数据进行逐一处理的场景，这时候可以充分利用flatMap操作符的特性开展相关操作。以下代码展示了如何使用flatMap对数据库中获取的数据进行逐一删除的方法。</p>
+<src class="cnblogs_code">
+<pre><code>Mono&lt;<span style="color: #0000ff;">void</span>&gt; deleteFiles =<span style="color: #000000;"> 
+fileRepository.findByname(flieName).flatMap(fileRepository::delete);</span></code></pre>
+
+<p>&nbsp;</p>
+<h3>（4）window</h3>
+<p>window操作符类似于buffer,所不同的是，window操作符是把当前流中的元素收集到另一个Flux序列中。因此它的返回值类型是Flux&lt;flux&gt;，而不是简单的Flux。&lt;/flux</p>
+<p>示例代码：</p>
+<src class="cnblogs_code">
+<pre><code>Flux.range(1,5).window(2).toIterable().forEach(w -&gt;<span style="color: #000000;"> {
+   w.subscribe(System.out::println);
+   System.out.println(</span>"---------------------------"<span style="color: #000000;">)
+})</span></code></pre>
+
+<p>&nbsp;</p>
+<p>以上代码执行结果如下。这里生成了5个元素，然后通过window操作符把这个5个元素转变成3个Flux对象，并通过forEach()工具把这些对象打印出来。</p>
+<src class="cnblogs_code">
+<pre><code>1
+2
+-----------------
+3
+4
+-----------------
+5</code></pre>
+
+<p>&nbsp;</p>
+<h2>2.过滤操作符</h2>
+<p>Reactor中 常用过操作符包括filter、first、last、skip/skipLast、take/takeLast等。</p>
+<h3>（1）filter</h3>
+<p>filter操作符的含义与普通的过滤器类似，就是对流中包含的元素进行过滤，只是留下满足指定条件的元素。</p>
+<p>例如，我们想对1~10这10个元素进行过滤，只获取能被2取余的元素，可以使用如下代码。</p>
+<src class="cnblogs_code">
+<pre><code>Flux.range(1,10).filter(i -&gt; i % 2 ==0).subscribe(System.out::println);</code></pre>
+
+<p>&nbsp;</p>
+<h3>（2）first</h3>
+<p>first操作符的执行效果即为返回流中的第一个元素。</p>
+<h3>（3）last</h3>
+<p>last操作符与first类似，返回流中的最后一个元素。</p>
+<h3>（4）skip/skipLast</h3>
+<p>如果使用skip操作符，将会忽略数据流中的前n个元素。类似的如果使用skipLast将会忽略数据流中的后n个元素。</p>
+<h3>（5）take/takeLast</h3>
+<p>take系列操作符用来从当前流中提取元素。我们可以按照指定的数量来提取元素，对应的方法是take(long n)；同时，也可以按照指定的时间间隔来提取元素，分别使用take(Duration time) 和takeMillis(long time)。类似的takeLast操作符用来从当前流中尾部提取元素。</p>
+<p>take和takeLast操作符示例代码如下：</p>
+<src class="cnblogs_code">
+<pre><code>Flux.range(1,100).take(10<span style="color: #000000;">).subscribe(System.out::println);
+Flux.range(</span>1,100).takeLast(10).subscribe(System.out::println);</code></pre>
+
+<p>&nbsp;</p>
+<h2>3. 组合操作符</h2>
+<p>Reactor中常用的组合操作符有then/when、merge、starWith和zip</p>
+<h3>（1）then/when</h3>
+<p>then操作符的含义是等到上一个操作符完成时在做下一个。</p>
+<p>when操作符的含义是等到多个操作仪器完成。</p>
+<p>如下代码很好的展示了when操作符的实际应用场景。</p>
+<src class="cnblogs_code">
+<pre><code><span style="color: #0000ff;">public</span> Mono&lt;Void&gt; updateFiles(Flux&lt;FilePart&gt;<span style="color: #000000;"> files){
+        </span><span style="color: #0000ff;">return</span> files.flatMap(file -&gt;<span style="color: #000000;">{
+            Mono</span>&lt;Void&gt; copyFileToFileServer =<span style="color: #000000;">...;
+            Mono</span>&lt;Void&gt; saFilePathToDataBase =<span style="color: #000000;"> ...;
+            </span><span style="color: #0000ff;">return</span><span style="color: #000000;"> Mono.when(copyFileToFileServer);
+        });
+    }</span></code></pre>
+
+<p>&nbsp;</p>
+<h3>（2）starWith</h3>
+<p>starWith操作符的含义是在数据元素序列的开头插入指定的元素项。</p>
+<h3>（3）merge</h3>
+<p>merge操作符用来把多个流合并成一个Flux序列，该操作符按照所有流中的元素实际生产顺序合并。</p>
+<p>merge操作符示例代码如下：</p>
+<src class="cnblogs_code">
+<pre><code>Flux.merge(Flux.intervalMillis(0,10).take(3<span style="color: #000000;">),
+   Flux.intervalMillis(</span>5,10).take(3<span style="color: #000000;">)).toStream()
+   .forEach(System.out::println);</span></code></pre>
+
+<p>&nbsp;</p>
+<p>请注意这里两个Flux.intervalMillis()方法都是在限制10ms内生产一个新元素。</p>
+<p>运行结果如下：</p>
+<src class="cnblogs_code">
+<pre><code>0
+0
+1
+1
+2
+2</code></pre>
+
+<p>&nbsp;</p>
+<p>不同于merge，mergeSequeetial操作符则是按照所有流被订阅的顺序以流为单位进行合并。</p>
+<p>请看如下代码：</p>
+<src class="cnblogs_code">
+<pre><code>Flux.mergeSequeetial(Flux.intervalMillis(0,10).take(3<span style="color: #000000;">),
+   Flux.intervalMillis(</span>5,10).take(3<span style="color: #000000;">)).toStream()
+   .forEach(System.out::println);</span></code></pre>
+
+<p>&nbsp;</p>
+<p>我们仅仅只是将merge换成了mergeSequeetial。</p>
+<p>运行结果如下：</p>
+<src class="cnblogs_code">
+<pre><code>0
+1
+2
+0
+1
+2</code></pre>
+
+<p>&nbsp;</p>
+<h3>（4）zipWith</h3>
+<p>zipWith把当前流中的元素与另外一个流中的元素按照一对一的方式进行合并。使用zipWith<br />操作符在合并时可以不做任何处理，如此得到一个元素类型为Tuple2的流，示例代码如下：</p>
+<src class="cnblogs_code">
+<pre><code>Flux.just("a","b").zipWith(Flux.just("c","b")).subscribe(System.out::println);</code></pre>
+
+<p>&nbsp;</p>
+<p>运行结果如下：</p>
+<src class="cnblogs_code">
+<pre><code><span style="color: #000000;">[a,c]
+[b,d]</span></code></pre>
+
+<p>&nbsp;</p>
+<p>另外，我们还可以通过一个BiFunction函数对合并的元素进行处理，所得到的流的元素类型为该函数的返回值。</p>
+<p>代码如下：</p>
+<src class="cnblogs_code">
+<pre><code>Flux.just("a","b").zipWith(Flux.just("c","b"),(s1,s2) -&gt; String.format("%+%"<span style="color: #000000;">,s1,s2))
+   .subscribe(System.out::println);</span></code></pre>
+
+<p>&nbsp;</p>
+<p>运行结果如下：</p>
+<src class="cnblogs_code">
+<pre><code>a+<span style="color: #000000;">c
+b</span>+d</code></pre>
+
+<p>&nbsp;</p>
+<p>本章节完！历史章节</p>
+<p><a href="https://www.javazhiyin.com/go?url=http://mp.weixin.qq.com/s?__biz=MzI4Njc5NjM1NQ==&amp;mid=2247489088&amp;idx=1&amp;sn=68f56dc89abbdad803b16f91e20e385c&amp;chksm=ebd6296cdca1a07aee0a76554f19c1e3b0df8a0357a9ade96cc22c656cf0f92ddf79b32eb339&amp;scene=21#wechat_redirect" rel="noopener" target="_blank">实战SpringCloud响应式微服务系列教程（第一章）</a></p>
+<p><a href="https://www.javazhiyin.com/go?url=http://mp.weixin.qq.com/s?__biz=MzI4Njc5NjM1NQ==&amp;mid=2247489157&amp;idx=2&amp;sn=b473396d3b11a040508a9cc70f22c163&amp;chksm=ebd629a9dca1a0bf77edbe7cbce108e43371707b30dae0699eeac75464325b4122d820817b30&amp;scene=21#wechat_redirect" rel="noopener" target="_blank">实战SpringCloud响应式微服务系列教程（第二章）</a></p>
+<p><a href="https://www.javazhiyin.com/go?url=http://mp.weixin.qq.com/s?__biz=MzI4Njc5NjM1NQ==&amp;mid=2247489407&amp;idx=2&amp;sn=48e31d4d54cd0bd7a31a77d322400df4&amp;chksm=ebd62853dca1a145a5477f24b1396c6895160493dac0e0e3a038bebd25cdf434a8cc9c091d85&amp;scene=21#wechat_redirect" rel="noopener" target="_blank">实战SpringCloud响应式微服务系列教程（第三章）</a></p>
+<p><a href="https://www.javazhiyin.com/go?url=http://mp.weixin.qq.com/s?__biz=MzI4Njc5NjM1NQ==&amp;mid=2247489450&amp;idx=2&amp;sn=dd7ed3a0764b4a86caaa9e1de022dc7a&amp;chksm=ebd62886dca1a1903da1cd75ab9ef631eb5b9f58c9f316da615be1b0b139349476b54b7bf70c&amp;scene=21#wechat_redirect" rel="noopener" target="_blank">实战SpringCloud响应式微服务系列教程（第四章）</a></p>
+<p><a href="https://www.javazhiyin.com/go?url=http://mp.weixin.qq.com/s?__biz=MzI4Njc5NjM1NQ==&amp;mid=2247489638&amp;idx=2&amp;sn=c43488a38ce0bd4534ceebf52b185e5e&amp;chksm=ebd6274adca1ae5cb770826c30f5c88c394e96fee9dda5010f87017463fad6cd18cc1a5c33b6&amp;scene=21#wechat_redirect" rel="noopener" target="_blank">实战SpringCloud响应式微服务系列教程（第五章）</a></p>
+
+</div><hr><script charset='utf-8' src='../../js/sming.js'></script></body></html>

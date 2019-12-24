@@ -1,0 +1,304 @@
+<html><head><meta charset='utf-8'><meta name='viewport' content='width=device-width, initial-scale=1'>
+<meta name='applicable-device' content='pc'><meta name='keywords' content='电脑,电脑讲解,电脑技术,编程,电脑故障维修shiro整合shiro多验证登录（账号密码登录和使用手机验证码登录）' />
+<script src='../../highlight/highlight.pack.js'></script>
+<link rel='stylesheet' type='text/css' href='../../highlight/styles/monokai.css'/>
+
+<link rel='stylesheet' href='../../fenxiang/dist/css/share.min.css'>
+<script src='../../fenxiang/src/js/social-share.js'></script>
+<script src='../../fenxiang/src/js/qrcode.js'></script>
+
+</head><body><script>hljs.initHighlightingOnLoad();</script><script>
+var system ={};  
+var p = navigator.platform;       
+system.win = p.indexOf('Win') == 0;  
+system.mac = p.indexOf('Mac') == 0;  
+system.x11 = (p == 'X11') || (p.indexOf('Linux') == 0);     
+if(system.win||system.mac||system.xll){
+document.write("<link href='../css/3.css' rel='stylesheet' type='text/css'>");}else{ document.write("<link href='../css/3wap.css' rel='stylesheet' type='text/css'>");}</script><script src='../../js/3.js'></script><div class='div2'><div class='heading_nav'><ul><div><li><a href='../../index.html'>首页</a></li>
+</div><div onclick='hidden1()' >分享</div>
+</ul></div></div>
+<div id='heading_nav2'> 
+<li class='row' >
+<div class='social-share' data-mode='prepend'><a href='javascript:' class='social-share-icon icon-heart'></a></div></li></div><script charset='utf-8' src='../../3/js/hengfu.js'></script><script charset='utf-8' src='../../3/js/hengfu2.js'></script><hr><div class='div1'><div class='biaoti'><center>shiro整合shiro多验证登录（账号密码登录和使用手机验证码登录）</center></div><div class='banquan'>原文出处:本文由博客园博主专注菜鸟提供。<br/>
+原文连接:https://www.cnblogs.com/Web-spring/p/11943728.html</div><br>
+    <p>1. 首先新建一个shiroConfig&nbsp; shiro的配置类，代码如下：</p>
+<pre><code><span>@Configuration是标识这个类是一个配置文件，在启动时会加载这个类里面的内容，这个配置文件的位置的一定一定一定不能防止启动类外面的文件夹中，否则还会在启动类上加注解<br /></span></code></pre>
+<pre><code><span>@Bean</span>是将这个类交给spring管理</code></pre>
+<src class="cnblogs_code">
+<pre><code><span style="color: #000000;">@Configuration
+</span><span style="color: #0000ff;">public</span> <span style="color: #0000ff;">class</span><span style="color: #000000;"> SpringShiroConfig {
+
+
+    </span><span style="color: #008000;">/**</span><span style="color: #008000;">
+     * </span><span style="color: #808080;">@param</span><span style="color: #008000;"> realms 这儿使用接口集合是为了实现多验证登录时使用的
+     * </span><span style="color: #808080;">@return</span>
+     <span style="color: #008000;">*/</span><span style="color: #000000;">
+    @Bean
+    </span><span style="color: #0000ff;">public</span> SecurityManager securityManager(Collection&lt;Realm&gt;<span style="color: #000000;"> realms) {
+        DefaultWebSecurityManager sManager </span>= <span style="color: #0000ff;">new</span><span style="color: #000000;"> DefaultWebSecurityManager();
+        sManager.setRealms(realms);
+        </span><span style="color: #0000ff;">return</span><span style="color: #000000;"> sManager;
+    }
+
+    @Bean
+    </span><span style="color: #0000ff;">public</span><span style="color: #000000;"> ShiroFilterFactoryBean shiroFilterFactory(SecurityManager securityManager) {
+        ShiroFilterFactoryBean sfBean </span>= <span style="color: #0000ff;">new</span><span style="color: #000000;"> ShiroFilterFactoryBean();
+        sfBean.setSecurityManager(securityManager);
+        </span><span style="color: #008000;">//</span><span style="color: #008000;">如果是匿名访问时，访问了不能访问的资源跳转的位置</span>
+        sfBean.setLoginUrl("/index"<span style="color: #000000;">);
+        </span><span style="color: #008000;">//</span><span style="color: #008000;">定义map指定请求过滤规则(哪些资源允许匿名访问,哪些必须认证访问)</span>
+        LinkedHashMap&lt;String, String&gt; map = <span style="color: #0000ff;">new</span> LinkedHashMap&lt;&gt;<span style="color: #000000;">();
+        </span><span style="color: #008000;">//</span><span style="color: #008000;">静态资源允许匿名访问:"anon" 静态资源授权时不能写static下面所有的开放，要将static下面的所有文件夹一个一个的开放，templates同理
+        </span><span style="color: #008000;">//</span><span style="color: #008000;">map的key可以为文件的位置，也可以为请求的路径</span>
+        map.put("/bower_components/**", "anon"<span style="color: #000000;">);
+        map.put(</span>"/json/**", "anon"<span style="color: #000000;">);
+        map.put(</span>"/pages", "anon"<span style="color: #000000;">);
+        map.put(</span>"/user/userPasswordLogin", "anon"<span style="color: #000000;">);
+        map.put(</span>"/user/login", "anon"<span style="color: #000000;">);
+        map.put(</span>"/user/reg", "anon"<span style="color: #000000;">);
+        </span><span style="color: #008000;">//</span><span style="color: #008000;">访问这个路径时不会进入controller，会在这儿直接拦截退出，问为什么的，自己想请求流程去</span>
+        map.put("/user/userLogout", "logout"<span style="color: #000000;">);
+        </span><span style="color: #008000;">//</span><span style="color: #008000;">拦截除上面之外的所有请求路径</span>
+        map.put("/**", "user"<span style="color: #000000;">);
+        sfBean.setFilterChainDefinitionMap(map);
+        </span><span style="color: #0000ff;">return</span><span style="color: #000000;"> sfBean;
+    }
+
+    @Bean
+    </span><span style="color: #0000ff;">public</span><span style="color: #000000;"> LifecycleBeanPostProcessor lifecycleBeanPostProcessor() {
+        </span><span style="color: #0000ff;">return</span> <span style="color: #0000ff;">new</span><span style="color: #000000;"> LifecycleBeanPostProcessor();
+    }</span></code></pre>
+
+<p>2. 写Realms的实现类，一般继承自AuthorizingRealm（这个是实现用户名，密码登录），代码如下：</p>
+<src class="cnblogs_code">
+<pre><code><span style="color: #000000;">@Service
+</span><span style="color: #0000ff;">public</span> <span style="color: #0000ff;">class</span> ShioUserRealm <span style="color: #0000ff;">extends</span><span style="color: #000000;"> AuthorizingRealm {
+
+    </span><span style="color: #008000;">//</span><span style="color: #008000;">注入userdao</span>
+<span style="color: #000000;">    @Autowired
+    </span><span style="color: #0000ff;">private</span><span style="color: #000000;"> UserDao userDao;
+    </span><span style="color: #008000;">/**</span><span style="color: #008000;">
+     * 设置凭证匹配器
+     *
+     * </span><span style="color: #808080;">@param</span><span style="color: #008000;"> credentialsMatcher
+     </span><span style="color: #008000;">*/</span><span style="color: #000000;">
+    @Override
+    </span><span style="color: #0000ff;">public</span> <span style="color: #0000ff;">void</span><span style="color: #000000;"> setCredentialsMatcher(CredentialsMatcher credentialsMatcher) {
+        </span><span style="color: #008000;">/*</span><span style="color: #008000;">这里设置了MD5盐值加密，这儿就必须使用HashedCredentialsMatcher才能有下面两个方法</span><span style="color: #008000;">*/</span><span style="color: #000000;">
+        HashedCredentialsMatcher matcher </span>= <span style="color: #0000ff;">new</span><span style="color: #000000;"> HashedCredentialsMatcher();
+        </span><span style="color: #008000;">//</span><span style="color: #008000;">这里是设置加密方式</span>
+        matcher.setHashAlgorithmName("MD5"<span style="color: #000000;">);
+        </span><span style="color: #008000;">//</span><span style="color: #008000;">这里是设置加密的次数</span>
+        matcher.setHashIterations(2<span style="color: #000000;">);
+        </span><span style="color: #0000ff;">super</span><span style="color: #000000;">.setCredentialsMatcher(matcher);
+    }
+
+    </span><span style="color: #008000;">/**</span><span style="color: #008000;">
+     * 这儿是设置授权的
+     * </span><span style="color: #808080;">@param</span><span style="color: #008000;"> principalCollection
+     * </span><span style="color: #808080;">@return</span>
+     <span style="color: #008000;">*/</span><span style="color: #000000;">
+    @Override
+    </span><span style="color: #0000ff;">protected</span><span style="color: #000000;"> AuthorizationInfo doGetAuthorizationInfo(PrincipalCollection principalCollection) {
+
+        </span><span style="color: #0000ff;">return</span> <span style="color: #0000ff;">null</span><span style="color: #000000;">;
+    }
+
+    </span><span style="color: #008000;">/**</span><span style="color: #008000;">
+     * 通过此方法完成认证数据的获取及封装，系统底层会将认证数据传递认证管理器，有认证管理器完成认证操作
+     * </span><span style="color: #808080;">@param</span><span style="color: #008000;"> authenticationToken
+     * </span><span style="color: #808080;">@return</span><span style="color: #008000;">
+     * </span><span style="color: #808080;">@throws</span><span style="color: #008000;"> AuthenticationException
+     </span><span style="color: #008000;">*/</span><span style="color: #000000;">
+    @Override
+    </span><span style="color: #0000ff;">protected</span> AuthenticationInfo doGetAuthenticationInfo(AuthenticationToken authenticationToken) <span style="color: #0000ff;">throws</span><span style="color: #000000;"> AuthenticationException {
+
+        </span><span style="color: #008000;">//</span><span style="color: #008000;">先判断这个是否是来及这个令牌的数据：我们这儿分为了UsernamePasswordToken（shiro给我们提供的。）、UserPhoneToken</span>
+        <span style="color: #0000ff;">if</span> (!(authenticationToken <span style="color: #0000ff;">instanceof</span><span style="color: #000000;"> UsernamePasswordToken)) {
+            </span><span style="color: #0000ff;">return</span> <span style="color: #0000ff;">null</span><span style="color: #000000;">;
+        }
+        </span><span style="color: #008000;">//</span><span style="color: #008000;">获取controller传过来的数据</span>
+        UsernamePasswordToken upToken =<span style="color: #000000;"> (UsernamePasswordToken) authenticationToken;
+        </span><span style="color: #008000;">//</span><span style="color: #008000;">upToken.setRememberMe(true);shiro默认为false,是是否记住我的功能
+        </span><span style="color: #008000;">//</span><span style="color: #008000;">这儿为用户提交的username</span>
+        String username =<span style="color: #000000;"> upToken.getUsername();
+        </span><span style="color: #008000;">//</span><span style="color: #008000;">去数据更加name取到用户的信息</span>
+        User user =<span style="color: #000000;"> userDao.findUserByUserName(username);
+        </span><span style="color: #008000;">//</span><span style="color: #008000;">判断数据库是否有这用户</span>
+        <span style="color: #0000ff;">if</span> (user == <span style="color: #0000ff;">null</span><span style="color: #000000;">) {
+            </span><span style="color: #0000ff;">throw</span> <span style="color: #0000ff;">new</span><span style="color: #000000;"> UnknownAccountException();
+        }
+        </span><span style="color: #008000;">//</span><span style="color: #008000;">判断用户的状态是否被禁用(数据库的字段)</span>
+        <span style="color: #0000ff;">if</span> (user.getState() == 0<span style="color: #000000;">) {
+            </span><span style="color: #0000ff;">throw</span> <span style="color: #0000ff;">new</span><span style="color: #000000;"> LockedAccountException();
+        }
+        </span><span style="color: #008000;">//</span><span style="color: #008000;">这儿是取到用户信息中的盐值，盐值要转换为ByteSource这个类型才能使用</span>
+        ByteSource credentialsSalt =<span style="color: #000000;"> ByteSource.Util.bytes(user.getSalt());
+        </span><span style="color: #008000;">//</span><span style="color: #008000;">这儿是将这个用户的信息交给shiro（user为用户对象，user.getPassword()是要加密的对象，credentialsSalt为盐值，getName()当前对象）</span>
+        SimpleAuthenticationInfo info = <span style="color: #0000ff;">new</span><span style="color: #000000;"> SimpleAuthenticationInfo(user, user.getPassword(), credentialsSalt, getName());
+        </span><span style="color: #0000ff;">return</span><span style="color: #000000;"> info;
+    }
+}</span></code></pre>
+
+<p>3. 此时用户的账号密码登录已经可以使用了controller代码如下：</p>
+<src class="cnblogs_code">
+<pre><code>@RequestMapping("userPasswordLogin"<span style="color: #000000;">)
+    @ResponseBody
+    </span><span style="color: #0000ff;">public</span><span style="color: #000000;"> JsonResult userPasswordLogin(String username, String password) {
+        Subject subject </span>=<span style="color: #000000;"> SecurityUtils.getSubject();
+        UsernamePasswordToken token </span>= <span style="color: #0000ff;">new</span><span style="color: #000000;"> UsernamePasswordToken(username, password);
+        subject.login(token);
+        </span><span style="color: #0000ff;">return</span> <span style="color: #0000ff;">new</span> JsonResult("login Ok"<span style="color: #000000;">);
+    }</span></code></pre>
+
+<p>4. 我们现在来实现短信验证码登录实现：</p>
+<p>4.1 先写UserPhoneToken，我放在l和springShiroConfig同一目录下：</p>
+<src class="cnblogs_code">
+<pre><code><span style="color: #000000;">@Component
+</span><span style="color: #0000ff;">public</span> <span style="color: #0000ff;">class</span> UserPhoneToken <span style="color: #0000ff;">extends</span> UsernamePasswordToken <span style="color: #0000ff;">implements</span><span style="color: #000000;"> Serializable {
+
+    </span><span style="color: #0000ff;">private</span> <span style="color: #0000ff;">static</span> <span style="color: #0000ff;">final</span> <span style="color: #0000ff;">long</span> serialVersionUID = 6293390033867929958L<span style="color: #000000;">;
+    </span><span style="color: #008000;">//</span><span style="color: #008000;"> 手机号码</span>
+    <span style="color: #0000ff;">private</span><span style="color: #000000;"> String phoneNum;
+    </span><span style="color: #008000;">//</span><span style="color: #008000;">无参构造</span>
+    <span style="color: #0000ff;">public</span><span style="color: #000000;"> UserPhoneToken(){}
+    
+    </span><span style="color: #008000;">//</span><span style="color: #008000;">获取存入的值</span>
+<span style="color: #000000;">    @Override
+    </span><span style="color: #0000ff;">public</span><span style="color: #000000;"> Object getPrincipal() {
+        </span><span style="color: #0000ff;">if</span> (phoneNum == <span style="color: #0000ff;">null</span><span style="color: #000000;">) {
+            </span><span style="color: #0000ff;">return</span><span style="color: #000000;"> getUsername();
+        } </span><span style="color: #0000ff;">else</span><span style="color: #000000;"> {
+            </span><span style="color: #0000ff;">return</span><span style="color: #000000;"> getPhoneNum();
+        }
+    }
+
+    @Override
+    </span><span style="color: #0000ff;">public</span><span style="color: #000000;"> Object getCredentials() {
+        </span><span style="color: #0000ff;">if</span> (phoneNum == <span style="color: #0000ff;">null</span><span style="color: #000000;">) {
+            </span><span style="color: #0000ff;">return</span><span style="color: #000000;"> getPassword();
+        }</span><span style="color: #0000ff;">else</span><span style="color: #000000;"> {
+            </span><span style="color: #0000ff;">return</span> "ok"<span style="color: #000000;">;
+        }
+
+    }
+
+    </span><span style="color: #0000ff;">public</span><span style="color: #000000;"> UserPhoneToken(String phoneNum) {
+        </span><span style="color: #0000ff;">this</span>.phoneNum =<span style="color: #000000;"> phoneNum;
+    }
+
+    </span><span style="color: #0000ff;">public</span> UserPhoneToken(<span style="color: #0000ff;">final</span> String userName, <span style="color: #0000ff;">final</span><span style="color: #000000;"> String password) {
+        </span><span style="color: #0000ff;">super</span><span style="color: #000000;">(userName, password);
+    }
+
+    </span><span style="color: #0000ff;">public</span><span style="color: #000000;"> String getPhoneNum() {
+        </span><span style="color: #0000ff;">return</span><span style="color: #000000;"> phoneNum;
+    }
+
+    </span><span style="color: #0000ff;">public</span> <span style="color: #0000ff;">void</span><span style="color: #000000;"> setPhoneNum(String phoneNum) {
+        </span><span style="color: #0000ff;">this</span>.phoneNum =<span style="color: #000000;"> phoneNum;
+    }
+    @Override
+    </span><span style="color: #0000ff;">public</span><span style="color: #000000;"> String toString() {
+        </span><span style="color: #0000ff;">return</span> "PhoneToken [PhoneNum=" + phoneNum + "]"<span style="color: #000000;">;
+    }
+
+}</span></code></pre>
+
+<p>4.2 在写shiroUserPhoneRealm,代码如下：</p>
+<src class="cnblogs_code">
+<pre><code><span style="color: #000000;">@Service
+</span><span style="color: #0000ff;">public</span> <span style="color: #0000ff;">class</span> ShioUserPhoneRealm <span style="color: #0000ff;">extends</span><span style="color: #000000;"> AuthorizingRealm {
+
+    @Autowired
+    </span><span style="color: #0000ff;">private</span><span style="color: #000000;"> UserDao userDao;
+
+    @Override
+    </span><span style="color: #0000ff;">public</span> <span style="color: #0000ff;">void</span><span style="color: #000000;"> setCredentialsMatcher(CredentialsMatcher credentialsMatcher) {
+        </span><span style="color: #008000;">//</span><span style="color: #008000;">这儿的CredentialsMatcher的new的对象必须是AllowAllCredentialsMatcher</span>
+        CredentialsMatcher matcher = <span style="color: #0000ff;">new</span><span style="color: #000000;"> AllowAllCredentialsMatcher();
+        </span><span style="color: #0000ff;">super</span><span style="color: #000000;">.setCredentialsMatcher(matcher);
+    }
+
+    @Override
+    </span><span style="color: #0000ff;">protected</span><span style="color: #000000;"> AuthorizationInfo doGetAuthorizationInfo(PrincipalCollection principalCollection) {
+        </span><span style="color: #0000ff;">return</span> <span style="color: #0000ff;">null</span><span style="color: #000000;">;
+    }
+
+    </span><span style="color: #008000;">/**</span><span style="color: #008000;">
+     * 通过此方法完成认证数据的获取及封装，系统底层会将认证数据传递认证管理器，有认证管理器完成认证操作
+     * </span><span style="color: #808080;">@param</span><span style="color: #008000;"> authenticationToken
+     * </span><span style="color: #808080;">@return</span><span style="color: #008000;">
+     * </span><span style="color: #808080;">@throws</span><span style="color: #008000;"> AuthenticationException
+     </span><span style="color: #008000;">*/</span><span style="color: #000000;">
+    @Override
+    </span><span style="color: #0000ff;">protected</span> AuthenticationInfo doGetAuthenticationInfo(AuthenticationToken authenticationToken) <span style="color: #0000ff;">throws</span><span style="color: #000000;"> AuthenticationException {
+
+        UserPhoneToken token </span>= <span style="color: #0000ff;">null</span><span style="color: #000000;">;
+        </span><span style="color: #0000ff;">if</span> (authenticationToken <span style="color: #0000ff;">instanceof</span><span style="color: #000000;"> UserPhoneToken) {
+            token </span>=<span style="color: #000000;"> (UserPhoneToken) authenticationToken;
+        }</span><span style="color: #0000ff;">else</span><span style="color: #000000;"> {
+            </span><span style="color: #0000ff;">return</span> <span style="color: #0000ff;">null</span><span style="color: #000000;">;
+        }
+        </span><span style="color: #008000;">//</span><span style="color: #008000;">获取我发送验证码是存入session中的验证码和手机号</span>
+        String verificationCode = (String) SecurityUtils.getSubject().getSession().getAttribute("verificationCode"<span style="color: #000000;">);
+        String phone </span>= (String) SecurityUtils.getSubject().getSession().getAttribute("phone"<span style="color: #000000;">);
+        </span><span style="color: #008000;">//</span><span style="color: #008000;">获取controller传过来的数据</span>
+        String verificationCode1 =<span style="color: #000000;"> (String) token.getPrincipal();
+        </span><span style="color: #008000;">//</span><span style="color: #008000;">去数据库根据手机号查询用户信息</span>
+        User user =<span style="color: #000000;"> userDao.findUserByUserPhone(phone);
+        </span><span style="color: #0000ff;">if</span><span style="color: #000000;"> (StringUtils.isEmpty(verificationCode)) {
+            </span><span style="color: #0000ff;">throw</span> <span style="color: #0000ff;">new</span> ServiceException("网络错误"<span style="color: #000000;">);
+        }
+        </span><span style="color: #008000;">//</span><span style="color: #008000;">比对手机号</span>
+        <span style="color: #0000ff;">if</span> (!<span style="color: #000000;">verificationCode.equals(verificationCode1)) {
+            </span><span style="color: #0000ff;">throw</span> <span style="color: #0000ff;">new</span> ServiceException("验证码不正确"<span style="color: #000000;">);
+        }
+        </span><span style="color: #0000ff;">if</span> (user == <span style="color: #0000ff;">null</span><span style="color: #000000;">) {
+            </span><span style="color: #0000ff;">throw</span> <span style="color: #0000ff;">new</span><span style="color: #000000;"> UnknownAccountException();
+        }
+        </span><span style="color: #0000ff;">if</span> (user.getState() == 0<span style="color: #000000;">) {
+            </span><span style="color: #0000ff;">throw</span> <span style="color: #0000ff;">new</span><span style="color: #000000;"> LockedAccountException();
+        }
+        </span><span style="color: #0000ff;">return</span> <span style="color: #0000ff;">new</span><span style="color: #000000;"> SimpleAuthenticationInfo(user,phone,getName());
+    }
+}</span></code></pre>
+
+<p>4.3 手机号码登录验证已经基本完成：controller代码如下：</p>
+<pre><code><span>password为接收的验证码</span></code></pre>
+<src class="cnblogs_code">
+<pre><code> @PostMapping("verificationCodeLogin"<span style="color: #000000;">)
+    @ResponseBody
+    </span><span style="color: #0000ff;">public</span><span style="color: #000000;"> JsonResult verificationCodeLogin(String password) {
+        Subject subject </span>=<span style="color: #000000;"> SecurityUtils.getSubject();
+        UserPhoneToken token </span>= <span style="color: #0000ff;">new</span><span style="color: #000000;"> UserPhoneToken(password);
+        subject.login(token);
+        </span><span style="color: #0000ff;">return</span> <span style="color: #0000ff;">new</span> JsonResult("login OK"<span style="color: #000000;">);
+    }</span></code></pre>
+
+<p><span style="color: #ff0000;"><strong>使用过程中遇到的bug</strong></span></p>
+<p><span style="color: #000000;">1.&nbsp;</span></p>
+<src class="cnblogs_code">
+<pre><code>org.apache.shiro.authc.UnknownAccountException: Realm [cn.tedu.wxacs.service.impl.ShioUserPhoneRealm@768d8431] was unable to find account data for the submitted AuthenticationToken [org.apache.shiro.authc.UsernamePasswordToken - 张三, rememberMe=false].</code></pre>
+
+<p>出现这个问题是我的是因为Realm中的某个实现类没有加注解，我这儿演示时是应为ShiroUserRealm为加@Service注解</p>
+<p>2.</p>
+<src class="cnblogs_code">
+<pre><code>org.apache.shiro.authc.AuthenticationException: Authentication token of type [class org.apache.shiro.authc.UsernamePasswordToken] could not be authenticated by any configured realms.  Please ensure that at least one realm can authenticate these tokens.</code></pre>
+
+<p>这儿出现的问题是应为我的ShioUserRealm的AuthenticationInfo方法的User user = userDao.findUserByUserName(username);这行代码出现的问题，debug的时候就发现这一句执行后就保错</p>
+<p>原因：是因为我的application.yml文件中没有写dao对应的mapper文件的路径</p>
+<p>3. 在ShioUserPhoneRealm的doGetAuthenticationInfo方法的new SimpleAuthenticationInfo(user,phone,getName())这个位置后就报错是应为<span style="color: #ff0000;">ShioUserPhoneRealm</span>的这个方法中你没有将new的对象设置为<span style="color: #ff0000;">AllowAllCredentialsMatcher（）；</span></p>
+<src class="cnblogs_code">
+<pre><code><span style="color: #000000;"> @Override
+    </span><span style="color: #0000ff;">public</span> <span style="color: #0000ff;">void</span><span style="color: #000000;"> setCredentialsMatcher(CredentialsMatcher credentialsMatcher) {
+        </span><span style="color: #008000;">//</span><span style="color: #008000;">这儿的CredentialsMatcher的new的对象必须是AllowAllCredentialsMatcher</span>
+        CredentialsMatcher matcher = <span style="color: #0000ff;">new</span><span style="color: #000000;"> AllowAllCredentialsMatcher();
+        </span><span style="color: #0000ff;">super</span><span style="color: #000000;">.setCredentialsMatcher(matcher);
+    }</span></code></pre>
+
+<p>注解中有一些需要注意的地方，建议看看，注解不对的地方还希望在下放评论指出或者联系我</p>
+<p>应为我的知识有限，此方法本人实现目前没有问题，其中有什么不对的地方还希望各位指出，谢谢！</p>
+<p>使用的是jdk8，spring boot 的2.2.1版本，shiro的1,.4.1版本</p>
+
+</div><hr><script charset='utf-8' src='../../js/sming.js'></script></body></html>

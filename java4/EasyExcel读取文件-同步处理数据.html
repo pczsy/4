@@ -1,0 +1,100 @@
+<html><head><meta charset='utf-8'><meta name='viewport' content='width=device-width, initial-scale=1'>
+<meta name='applicable-device' content='pc'><meta name='keywords' content='电脑,电脑讲解,电脑技术,编程,电脑故障维修EasyExcel读取文件-同步处理数据' />
+<script src='../../highlight/highlight.pack.js'></script>
+<link rel='stylesheet' type='text/css' href='../../highlight/styles/monokai.css'/>
+
+<link rel='stylesheet' href='../../fenxiang/dist/css/share.min.css'>
+<script src='../../fenxiang/src/js/social-share.js'></script>
+<script src='../../fenxiang/src/js/qrcode.js'></script>
+
+</head><body><script>hljs.initHighlightingOnLoad();</script><script>
+var system ={};  
+var p = navigator.platform;       
+system.win = p.indexOf('Win') == 0;  
+system.mac = p.indexOf('Mac') == 0;  
+system.x11 = (p == 'X11') || (p.indexOf('Linux') == 0);     
+if(system.win||system.mac||system.xll){
+document.write("<link href='../css/3.css' rel='stylesheet' type='text/css'>");}else{ document.write("<link href='../css/3wap.css' rel='stylesheet' type='text/css'>");}</script><script src='../../js/3.js'></script><div class='div2'><div class='heading_nav'><ul><div><li><a href='../../index.html'>首页</a></li>
+</div><div onclick='hidden1()' >分享</div>
+</ul></div></div>
+<div id='heading_nav2'> 
+<li class='row' >
+<div class='social-share' data-mode='prepend'><a href='javascript:' class='social-share-icon icon-heart'></a></div></li></div><script charset='utf-8' src='../../3/js/hengfu.js'></script><script charset='utf-8' src='../../3/js/hengfu2.js'></script><hr><div class='div1'><div class='biaoti'><center>EasyExcel读取文件-同步处理数据</center></div><div class='banquan'>原文出处:本文由博客园博主那钢绕指柔提供。<br/>
+原文连接:https://www.cnblogs.com/ngrzr/p/11982697.html</div><br>
+    <h2 id="读取代码">读取代码</h2>
+<pre><code><code>// 前端传过来的文件
+MultipartFile file;
+InputStream inputStream = file.getInputStream();
+// 读取excel数据，边读取边处理；
+EasyExcel.read(inputStream, ImportSkuIdList.class, new SkuIdExceListener(sendCouponCusRecordService)).sheet().doRead();</code></code></pre>
+<h2 id="解析对象">解析对象</h2>
+<pre><code><code>public class ImportSkuIdList{
+    @ExcelProperty(index = 0)
+    /** 商品编号*/
+    private Long skuId;
+    // 省略get set
+    ....
+}
+</code></code></pre>
+<h2 id="listener">Listener</h2>
+<pre><code><code>public class SkuIdExceListener extends AnalysisEventListener&lt;ImportSkuIdList&gt; {
+    private static final Logger LOGGER = LoggerFactory.getLogger(SkuIdExceListener.class);
+    // spring的方式需要通过构造函数传进来
+    private SendCouponCusRecordService sendCouponCusRecordService;
+    /**
+     * 每隔100条存储数据库，实际使用中可以3000条，然后清理list ，方便内存回收
+     */
+    private static final int BATCH_COUNT = 100;
+    private volatile int totalCount = 0;
+    List&lt;ImportSkuIdList&gt; list = new ArrayList&lt;&gt;();
+    /**
+     * 如果使用了spring,请使用这个构造方法。每次创建Listener的时候需要把spring管理的类传进来
+     *
+     */
+    public SkuIdExceListener(SendCouponCusRecordService sendCouponCusRecordService) {
+        this.sendCouponCusRecordService = sendCouponCusRecordService;
+    }
+
+    /**
+     * 这个每一条数据解析都会来调用
+     *
+     * @param data
+     *            one row value. Is is same as {@link AnalysisContext#readRowHolder()}
+     * @param context
+     */
+    @Override
+    public void invoke(ImportSkuIdList data, AnalysisContext context) {
+        totalCount ++;
+        list.add(data);
+        // 达到BATCH_COUNT了，需要去存储一次数据库，防止数据几万条数据在内存，容易OOM
+        if (list.size() &gt;= BATCH_COUNT) {
+            dealData(context);
+            // 存储完成清理 list
+            list.clear();
+        }
+    }
+
+    /**
+     * 所有数据解析完成了 都会来调用
+     * @param context
+     */
+    @Override
+    public void doAfterAllAnalysed(AnalysisContext context) {
+        // 这里也要保存数据，确保最后遗留的数据也存储到数据库
+        dealData(context);
+        LOGGER.info(&quot;所有数据解析完成！&quot;);
+    }
+
+    /**
+     * 加上存储数据库
+     */
+    private void dealData(AnalysisContext context) {
+        LOGGER.info(&quot;当前正在处理第[{}]行数据，本次处理[{}]条数据,总共有：{}条数据&quot;,context.readRowHolder().getRowIndex(),list.size(),totalCount);
+        // 实际处理逻辑
+        sendCouponCusRecordService.dealUploadData(list);
+    }
+}
+</code></code></pre>
+
+
+</div><hr><script charset='utf-8' src='../../js/sming.js'></script></body></html>

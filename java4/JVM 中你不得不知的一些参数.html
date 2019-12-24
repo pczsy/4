@@ -1,0 +1,141 @@
+<html><head><meta charset='utf-8'><meta name='viewport' content='width=device-width, initial-scale=1'>
+<meta name='applicable-device' content='pc'><meta name='keywords' content='电脑,电脑讲解,电脑技术,编程,电脑故障维修JVM 中你不得不知的一些参数' />
+<script src='../../highlight/highlight.pack.js'></script>
+<link rel='stylesheet' type='text/css' href='../../highlight/styles/monokai.css'/>
+
+<link rel='stylesheet' href='../../fenxiang/dist/css/share.min.css'>
+<script src='../../fenxiang/src/js/social-share.js'></script>
+<script src='../../fenxiang/src/js/qrcode.js'></script>
+
+</head><body><script>hljs.initHighlightingOnLoad();</script><script>
+var system ={};  
+var p = navigator.platform;       
+system.win = p.indexOf('Win') == 0;  
+system.mac = p.indexOf('Mac') == 0;  
+system.x11 = (p == 'X11') || (p.indexOf('Linux') == 0);     
+if(system.win||system.mac||system.xll){
+document.write("<link href='../css/3.css' rel='stylesheet' type='text/css'>");}else{ document.write("<link href='../css/3wap.css' rel='stylesheet' type='text/css'>");}</script><script src='../../js/3.js'></script><div class='div2'><div class='heading_nav'><ul><div><li><a href='../../index.html'>首页</a></li>
+</div><div onclick='hidden1()' >分享</div>
+</ul></div></div>
+<div id='heading_nav2'> 
+<li class='row' >
+<div class='social-share' data-mode='prepend'><a href='javascript:' class='social-share-icon icon-heart'></a></div></li></div><script charset='utf-8' src='../../3/js/hengfu.js'></script><script charset='utf-8' src='../../3/js/hengfu2.js'></script><hr><div class='div1'><div class='biaoti'><center>JVM 中你不得不知的一些参数</center></div><div class='banquan'>原文出处:本文由博客园博主风的姿态提供。<br/>
+原文连接:https://www.cnblogs.com/fengzheng/p/11864192.html</div><br>
+    <p>有的同学虽然写了一段时间 Java 了，但是对于 JVM 却不太关注。有的同学说，参数都是团队规定好的，部署的时候也不用我动手，关注它有什么用，而且，JVM 这东西，听上去就感觉很神秘很高深的样子，还是算了吧。</p>
+<p>没错，部署的时候可能用不到你亲自动手，但是出现问题了怎么办，难道不用你解决问题吗，如果对 JVM 了解不够的话，有些问题可能排查起来就很费力，或者根本无法解决。</p>
+<p>本篇以 JDK Hotspot 8 为背景，介绍一下 JVM 的常用参数。建议你在做一些小项目、小 demo 的时候，也把这些参数加上，加深印象。以我的经验来看，有些知识你刚开始接触的时候会感觉很难理解，但是没关系，万事开头难嘛，知识点都是需要消化时间的。第一天不理解，甚至过了一个月也不理解，但是总有那么一刻，你会突然有种茅塞顿开的感觉，感觉一下子通了。最后心里面感谢自己在多少多少天以前能够开始学习并坚持学习这些知识点。</p>
+<p>只介绍一些常用参数，除了这些常用参数外，Hotspot 还提供了很多其他的参数，每一个都值得考究。</p>
+<p>在使用这些参数之前，你需要对 Java 内存模型有一定的了解，可以读一下 <a href="https://mp.weixin.qq.com/s/Liy8XYbJn9qfOAdVA4xx5w">这篇文章</a> 了解一下内存模型。</p>
+<p>还是要把内存模型图放在这里，方便理解。</p>
+<p><img src="./images/JVM 中你不得不知的一些参数0.png" /></p>
+<h4 id="堆参数">堆参数：</h4>
+<p><strong>-Xms</strong>: 堆的初始值，例如 -Xmx2048，初始堆大小为 2G</p>
+<p><strong>-Xmx</strong>: 堆的最大值，例如 -Xmx2048M，允许最大堆内存 2G</p>
+<p><strong>-Xmn</strong>: 新生代大小</p>
+<p><strong>-XX:SurvivorRatio</strong>：Eden 区所占比例，默认是 8，也就是 80%，例如 -XX:SurvivorRatio=8<br />
+<img src="./images/JVM 中你不得不知的一些参数1.png" /></p>
+<blockquote>
+<p>最好将 -Xms 和 -Xmx 的值设置成一样的值，这样做是为了防止随着堆空间使用量增加，会动态的调整堆空间大小，有一定的性能损耗，不如开始就设置成相同的值，来规避性能损失。</p>
+</blockquote>
+<h4 id="栈参数">栈参数</h4>
+<p><strong>-Xss</strong>：栈空间大小，栈是线程独占的，所以是一个线程使用栈空间的大小，例如 -Xss256K，如果不设置此参数，默认值是 1M，一般来讲设置成 256K 就足够了。</p>
+<h4 id="metaspace-参数">Metaspace 参数</h4>
+<p><strong>-XX:MetaspaceSize</strong>：Metaspace 空间初始大小，如果不设置的话，默认是20.79M，这个初始大小是触发首次 Metaspace Full GC 的阈值，例如 -XX:MetaspaceSize=256M</p>
+<p><strong>-XX:MaxMetaspaceSize</strong>：Metaspace 最大值，默认不限制大小，但是线上环境建议设置，例如</p>
+<p>-XX:MaxMetaspaceSize=256M</p>
+<p><strong>-XX:MinMetaspaceFreeRatio</strong>：最小空闲比，当 Metaspace 发生 GC 后，会计算 Metaspace 的空闲比，如果空闲比(空闲空间/当前 Metaspace 大小)小于此值，就会触发 Metaspace 扩容。默认值是 40 ，也就是 40%，例如 -XX:MinMetaspaceFreeRatio=40</p>
+<p><strong>-XX:MaxMetaspaceFreeRatio</strong>:最大空闲比，当 Metaspace 发生 GC 后，会计算 Metaspace 的空闲比，如果空闲比(空闲空间/当前 Metaspace 大小)大于此值，就会触发 Metaspace 释放空间。默认值是 70 ，也就是 70%，例如 -XX:MaxMetaspaceFreeRatio=70</p>
+<blockquote>
+<p>建议将 MetaspaceSize 和 MaxMetaspaceSize 设置为同样大小，避免频繁扩容。</p>
+</blockquote>
+<h4 id="gc-日志">GC 日志</h4>
+<p><strong>简单日志</strong></p>
+<p><code>-verbose:gc 或者 -XX:+PrintGC</code></p>
+<p>日志格式：</p>
+<pre><code><code>[GC (Allocation Failure)  7892K-&gt;5646K(19456K), 0.0060442 secs]
+[GC (Allocation Failure) , 0.0066315 secs]
+[Full GC (Allocation Failure)  19302K-&gt;13646K(19456K), 0.0032698 secs]</code></code></pre>
+<p><strong>详细日志</strong></p>
+<pre class="properties"><code>#打印详细日志
+-XX:+PrintGCDetails
+#打印 GC 的时间点
+-XX:+PrintGCDateStamps</code></code></pre>
+<p>日志格式：</p>
+<pre><code><code>2019-11-13T14:06:46.099-0800: [GC (Allocation Failure) 2019-11-13T14:06:46.099-0800: [DefNew (promotion failed) : 9180K-&gt;9157K(9216K), 0.0084297 secs]2019-11-13T14:06:46.107-0800: [Tenured: 10145K-&gt;10145K(10240K), 0.0035768 secs] 13802K-&gt;13646K(19456K), [Metaspace: 3895K-&gt;3895K(1056768K)], 0.0120887 secs] [Times: user=0.00 sys=0.00, real=0.02 secs] 
+2019-11-13T14:06:47.243-0800: [Full GC (Allocation Failure) 2019-11-13T14:06:47.244-0800: [Tenured: 10145K-&gt;10145K(10240K), 0.0042686 secs] 19304K-&gt;19146K(19456K), [Metaspace: 3895K-&gt;3895K(1056768K)], 0.0043232 secs] [Times: user=0.00 sys=0.00, real=0.00 secs] </code></code></pre>
+<p>以下几个 GC 日志相关的参数打印的内容比较多，生产环境可选择性开启，大多数时候不需要开启。</p>
+<p><strong>GC 前后的堆信息</strong></p>
+<p><code>-XX:+PrintHeapAtGC</code></p>
+<pre><code><code>{Heap before GC invocations=0 (full 0):
+ def new generation   total 9216K, used 7892K [0x00000007bec00000, 0x00000007bf600000, 0x00000007bf600000)
+  eden space 8192K,  96% used [0x00000007bec00000, 0x00000007bf3b5200, 
+  xxx....
+  class space    used 445K, capacity 462K, committed 512K, reserved 1048576K
+Heap after GC invocations=1 (full 0):
+ def new generation   total 9216K, used 1023K [0x00000007bec00000,
+ xxx...
+ Metaspace       used 3892K, capacity 4646K, committed 4864K, reserved 1056768K
+  class space    used 445K, capacity 462K, committed 512K, reserved 1048576K
+}</code></code></pre>
+<p><strong>GC 导致的 Stop the world 时间</strong></p>
+<p><code>-XX:+PrintGCApplicationStoppedTime</code></p>
+<pre><code><code>Total time for which application threads were stopped: 0.0070384 seconds, Stopping threads took: 0.0000200 seconds</code></code></pre>
+<p><strong>加载类信息</strong></p>
+<p><code>-verbose:class</code></p>
+<pre><code><code>[Loaded java.net.URLClassLoader$3$1 from /Library/Java/JavaVirtualMachines/jdk1.8.0_111.jdk/Contents/Home/jre/lib/rt.jar]</code></code></pre>
+<p><strong>GC 前后的类加载情况</strong></p>
+<pre class="properties"><code>-XX:+PrintClassHistogramBeforeFullGC
+-XX:+PrintClassHistogramAfterFullGC</code></code></pre>
+<pre><code><code> num     #instances         #bytes  class name
+----------------------------------------------
+   1:           140       19016264  [B
+   2:          2853         226256  [C
+   3:           138         169072  [I
+   4:           761          86240  java.lang.Class
+   5:          2850          68400  java.lang.String
+   6:           660          41024  [Ljava.lang.Object;</code></code></pre>
+<p><strong>日志输出到文件</strong></p>
+<p>以上参数配置好之后，默认会输出到控制台或者服务指定的统一日志的位置。但是这里还会有服务的一般性信息日志、错误日志等，都混在一起的话会比较乱，所以，一般都会把 jvm 日志单独存放。</p>
+<pre class="properties"><code>#GC 活动日志，根据配置的参数输出内容
+-Xloggc:/Users/fengzheng/jvmlog/gc.log
+
+#致命错误日志，只有在 jvm 发生崩溃的时候会输出
+-XX:ErrorFile=/Users/fengzheng/jvmlog/hs_err_pid%p.log</code></code></pre>
+<p><strong>堆溢出现场保留</strong></p>
+<p>有些错误虽然不会导致 jvm 崩溃，但是对于服务而言也是非常严重的，比如stackOverflow、OutOfMemoryError，发生错误后，留存现场信息对分析错误原因是至关重要的。jvm 提供了保留堆溢出现场的方法，对于 JDK 8 而言，可能是 heap 溢出，也可能是 Metasapce 溢出。</p>
+<pre class="properties"><code>-XX:HeapDumpPath=/Users/fengzheng/jvmlog
+-XX:+HeapDumpOnOutOfMemoryError</code></code></pre>
+<p>最后出现异常后，保存的文件格式为 java_pidxxx.hprof，pid 后面是发生溢出的进程 id，之后可以用 VisualVM、JProfiler 等工具打开分析。</p>
+<h4 id="设置垃圾回收器类型">设置垃圾回收器类型</h4>
+<p>随着 JDK 版本的升级，可使用的垃圾收集器类型也越来越多了。JDK 8 可使用的垃圾收集器有 7 种，当然有点只适用于年轻代，有点只使用于老年代，JDK 8 中最新的垃圾收集器是 G1，可以用于年轻代和老年代。到了 JDK 11，还出了 ZGC。</p>
+<p>下图是 JDK 8 中可使用的垃圾收集器以及它们配合使用的关系。<br />
+<img src="./images/JVM 中你不得不知的一些参数2.png" /><br />
+Serial、ParNew、Parallel Scavenge 只适用于年轻代，CMS、Serial Old、Parallel Old 只适用于老年代，而 G1 通用于年轻代和老年代。连线表示它们之间可配合使用的关系，其中 CMS 和 Serial Old 连线的意思是说 Serial Old 会作为 CMS 的后预案，当 CMS 发生 Concurrent Mode Failure 时启用。</p>
+<p>在 JDK 8 中，如果不指定垃圾收集器，默认使用参数 <code>-XX:+UseParallelGC</code>，新生代使用 Parallel Scavenge，老年代使用 Serial Old。</p>
+<p><strong>-XX:+UseSerialGC</strong>：使用 Serial + Serial Old ，运行于 client 模式下的默认设置</p>
+<p><strong>-XX:+UseConcMarkSweepGC</strong>：使用 ParNew+CMS+Serial Old，CMS 垃圾收集器</p>
+<p><strong>-XX:+UseParallelGC</strong>：Parallel Scavenge + Serial Old，JDK 8 server 模式下的默认设置</p>
+<p><strong>-XX:+UseParallelOldGC</strong>：Parallel Scavenge + Parallel Old</p>
+<p><strong>-XX:+UseG1GC</strong>：使用 G1 垃圾收集器</p>
+<h4 id="开启远程-jmx-监控">开启远程 JMX 监控</h4>
+<p>除了日志外，当我们需要实时查看 JVM 运行情况的时候怎么办，当然可以到 JVM 所在服务器用 jstack、jmap、jinfo 等工具进行查看，但是又不够直观，这时候就需要开启 JMX 远程功能，使用 jConsole、VisualVM 等工具进行监控。或者自己开发监控平台，比如我之前就做了一个 web 版的简易 VisualVm。<a href="https://mp.weixin.qq.com/s/df1XroHcS6KYj4ftkzwKfQ">无意中就做了个 web 版 JVM 监控端</a></p>
+<p>开启参数如下：</p>
+<pre class="properties"><code>-Dcom.sun.management.jmxremote
+#指定 jvm 所在服务器 ip 或域名
+-Djava.rmi.server.hostname=192.168.1.1
+#指定端口
+-Dcom.sun.management.jmxremote.port=9999
+-Dcom.sun.management.jmxremote.rmi.port=9999
+-Dcom.sun.management.jmxremote.authenticate=false
+-Dcom.sun.management.jmxremote.ssl=false</code></code></pre>
+<h6 id="相关阅读">相关阅读:</h6>
+<p><a href="https://mp.weixin.qq.com/s/Liy8XYbJn9qfOAdVA4xx5w">Java 内存模型简介</a></p>
+<p><a href="https://mp.weixin.qq.com/s/df1XroHcS6KYj4ftkzwKfQ">无意中就做了个 web 版 JVM 监控端</a></p>
+<p><a href="https://mp.weixin.qq.com/s/9xn9Ht4WO0Et_V7ZclsX_Q">Java-agent， 调试工具、热部署、JVM 监控工具都用到了它</a></p>
+<p>不要吝惜你的「<strong>推荐</strong>」呦</p>
+<p><strong>欢迎关注，不定期更新本系列和其他文章</strong><br />
+<code>古时的风筝</code> ，进入公众号可以加入交流群</p>
+<p><img src="./images/JVM 中你不得不知的一些参数3.png" /></p>
+
+
+</div><hr><script charset='utf-8' src='../../js/sming.js'></script></body></html>

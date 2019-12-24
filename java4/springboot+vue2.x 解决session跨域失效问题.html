@@ -1,0 +1,411 @@
+<html><head><meta charset='utf-8'><meta name='viewport' content='width=device-width, initial-scale=1'>
+<meta name='applicable-device' content='pc'><meta name='keywords' content='电脑,电脑讲解,电脑技术,编程,电脑故障维修springboot+vue2.x 解决session跨域失效问题' />
+<script src='../../highlight/highlight.pack.js'></script>
+<link rel='stylesheet' type='text/css' href='../../highlight/styles/monokai.css'/>
+
+<link rel='stylesheet' href='../../fenxiang/dist/css/share.min.css'>
+<script src='../../fenxiang/src/js/social-share.js'></script>
+<script src='../../fenxiang/src/js/qrcode.js'></script>
+
+</head><body><script>hljs.initHighlightingOnLoad();</script><script>
+var system ={};  
+var p = navigator.platform;       
+system.win = p.indexOf('Win') == 0;  
+system.mac = p.indexOf('Mac') == 0;  
+system.x11 = (p == 'X11') || (p.indexOf('Linux') == 0);     
+if(system.win||system.mac||system.xll){
+document.write("<link href='../css/3.css' rel='stylesheet' type='text/css'>");}else{ document.write("<link href='../css/3wap.css' rel='stylesheet' type='text/css'>");}</script><script src='../../js/3.js'></script><div class='div2'><div class='heading_nav'><ul><div><li><a href='../../index.html'>首页</a></li>
+</div><div onclick='hidden1()' >分享</div>
+</ul></div></div>
+<div id='heading_nav2'> 
+<li class='row' >
+<div class='social-share' data-mode='prepend'><a href='javascript:' class='social-share-icon icon-heart'></a></div></li></div><script charset='utf-8' src='../../3/js/hengfu.js'></script><script charset='utf-8' src='../../3/js/hengfu2.js'></script><hr><div class='div1'><div class='biaoti'><center>springboot+vue2.x 解决session跨域失效问题</center></div><div class='banquan'>原文出处:本文由博客园博主东方飘雪提供。<br/>
+原文连接:https://www.cnblogs.com/zdyang/p/11636697.html</div><br>
+    <p>服务端SpringBoot2.x&nbsp; &nbsp;：localhost:8082</p>
+<p>前端Vue2.x&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;：localhost:81</p>
+<p>前后端的端口号不同，为跨域，导致前端访问后端时，每次访问都新生产一个sessionID。解决如下：</p>
+<p>&nbsp;</p>
+<p>后端：</p>
+<h1><span style="background-color: #ffcc00;">1.添加过滤器：</span></h1>
+<src class="cnblogs_code">
+<pre><code><span style="color: #0000ff;">package</span><span style="color: #000000;"> com.nsoft.gkzp.syscore.config.filter;
+
+</span><span style="color: #0000ff;">import</span><span style="color: #000000;"> org.apache.logging.log4j.LogManager;
+</span><span style="color: #0000ff;">import</span><span style="color: #000000;"> org.apache.logging.log4j.Logger;
+</span><span style="color: #0000ff;">import</span><span style="color: #000000;"> org.springframework.web.bind.annotation.RequestMethod;
+
+</span><span style="color: #0000ff;">import</span> javax.servlet.*<span style="color: #000000;">;
+</span><span style="color: #0000ff;">import</span><span style="color: #000000;"> javax.servlet.annotation.WebFilter;
+</span><span style="color: #0000ff;">import</span><span style="color: #000000;"> javax.servlet.http.HttpServletRequest;
+</span><span style="color: #0000ff;">import</span><span style="color: #000000;"> javax.servlet.http.HttpServletResponse;
+</span><span style="color: #0000ff;">import</span><span style="color: #000000;"> java.io.IOException;
+<br />@Configuration <span style="color: #339966;">//内置tomcat运行不加它没问题，但后来改为用外置tomcat时，启动后过滤器会失效，后来查明原因需要加上@Configuration才行</span>
+@WebFilter(urlPatterns </span>= "/*", filterName = "corsFilter"<span style="color: #000000;">)
+</span><span style="color: #0000ff;">public</span> <span style="color: #0000ff;">class</span> CorsFilter <span style="color: #0000ff;">implements</span><span style="color: #000000;"> Filter {
+
+    </span><span style="color: #0000ff;">final</span> <span style="color: #0000ff;">private</span> <span style="color: #0000ff;">static</span> Logger logger = LogManager.getLogger(CorsFilter.<span style="color: #0000ff;">class</span><span style="color: #000000;">);
+    @Override
+    </span><span style="color: #0000ff;">public</span> <span style="color: #0000ff;">void</span><span style="color: #000000;"> destroy() {
+    }
+    </span><span style="color: #008000;">/**</span><span style="color: #008000;">
+     * 此过滤器只是处理跨域问题
+     * </span><span style="color: #808080;">@param</span><span style="color: #008000;"> servletRequest
+     * </span><span style="color: #808080;">@param</span><span style="color: #008000;"> servletResponse
+     * </span><span style="color: #808080;">@param</span><span style="color: #008000;"> chain
+     * </span><span style="color: #808080;">@throws</span><span style="color: #008000;"> ServletException
+     * </span><span style="color: #808080;">@throws</span><span style="color: #008000;"> IOException
+     </span><span style="color: #008000;">*/</span><span style="color: #000000;">
+    @Override
+    </span><span style="color: #0000ff;">public</span> <span style="color: #0000ff;">void</span> doFilter(ServletRequest servletRequest, ServletResponse servletResponse, FilterChain chain) <span style="color: #0000ff;">throws</span><span style="color: #000000;"> ServletException, IOException {
+        HttpServletRequest request </span>=<span style="color: #000000;"> (HttpServletRequest) servletRequest;
+        HttpServletResponse response </span>=<span style="color: #000000;"> (HttpServletResponse) servletResponse;
+        String origin </span>= request.getHeader("Origin"<span style="color: #000000;">);
+        </span><span style="color: #0000ff;">if</span>(origin == <span style="color: #0000ff;">null</span><span style="color: #000000;">) {
+            origin </span>= request.getHeader("Referer"<span style="color: #000000;">);
+        }
+        response.setHeader(</span>"Access-Control-Allow-Origin", origin);<span style="color: #008000;">//</span><span style="color: #008000;"> 允许指定域访问跨域资源(这里不能写*，*代表接受所有域名访问，如写*则下面一行代码无效。谨记)</span>
+        response.setHeader("Access-Control-Allow-Credentials", "true");<span style="color: #008000;">//</span><span style="color: #008000;">true代表允许客户端携带cookie(此时origin值不能为&ldquo;*&rdquo;，只能为指定单一域名)</span>
+        response.setHeader("Access-Control-Allow-Methods", "GET, HEAD, POST, PUT, DELETE, TRACE, OPTIONS, PATCH"); <span style="color: #008000;">//</span><span style="color: #008000;">/ 允许浏览器在预检请求成功之后发送的实际请求方法名</span>
+        response.setHeader("Access-Control-Allow-Headers", "Authorization,Origin, X-Requested-With, Content-Type, Accept,Access-Token");<span style="color: #008000;">//</span><span style="color: #008000;"> 允许浏览器发送的请求消息头
+        </span><span style="color: #008000;">//</span><span style="color: #008000;">response.setHeader("Access-Control-Max-Age", "86400");            </span><span style="color: #008000;">//</span><span style="color: #008000;"> 浏览器缓存预检请求结果时间,单位:秒</span>
+<span style="color: #000000;">
+        chain.doFilter(request,response);
+    }
+    @Override
+    </span><span style="color: #0000ff;">public</span> <span style="color: #0000ff;">void</span> init(FilterConfig filterConfig) <span style="color: #0000ff;">throws</span><span style="color: #000000;"> ServletException {
+    }
+
+
+}</span></code></pre>
+
+<h1><span style="background-color: #ffcc00;">2.&nbsp;springboot2.配置过滤器时，启动类必须加上@ServletComponentScan才会加载过滤器</span></h1>
+<src class="cnblogs_code">
+<pre><code><span style="color: #0000ff;">package</span><span style="color: #000000;"> com.nsoft.gkzp;
+
+</span><span style="color: #0000ff;">import</span><span style="color: #000000;"> org.mybatis.spring.annotation.MapperScan;
+</span><span style="color: #0000ff;">import</span><span style="color: #000000;"> org.springframework.boot.SpringApplication;
+</span><span style="color: #0000ff;">import</span><span style="color: #000000;"> org.springframework.boot.autoconfigure.SpringBootApplication;
+</span><span style="color: #0000ff;">import</span><span style="color: #000000;"> org.springframework.boot.web.server.ConfigurableWebServerFactory;
+</span><span style="color: #0000ff;">import</span><span style="color: #000000;"> org.springframework.boot.web.server.ErrorPage;
+</span><span style="color: #0000ff;">import</span><span style="color: #000000;"> org.springframework.boot.web.server.WebServerFactoryCustomizer;
+</span><span style="color: #0000ff;">import</span><span style="color: #000000;"> org.springframework.boot.web.servlet.ServletComponentScan;
+</span><span style="color: #0000ff;">import</span><span style="color: #000000;"> org.springframework.context.annotation.Bean;
+</span><span style="color: #0000ff;">import</span><span style="color: #000000;"> org.springframework.http.HttpStatus;
+</span><span style="color: #0000ff;">import</span><span style="color: #000000;"> org.springframework.web.servlet.config.annotation.CorsRegistry;
+</span><span style="color: #0000ff;">import</span><span style="color: #000000;"> org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
+</span><span style="color: #0000ff;">import</span><span style="color: #000000;"> org.springframework.web.servlet.config.annotation.WebMvcConfigurerAdapter;
+
+</span><span style="color: #008000;">/**</span><span style="color: #008000;">
+ * springboot入口
+ * MapperScan("com.nsoft.gkzp.**.dao")为扫描mapper, 所以dao下面的类就不需要添加@mapper注解了
+ * ServletComponentScan  添加了过滤器,故这里要添加@ServletComponentScan注解，spring才会扫描到过滤器（eg:com.nsoft.gkzp.syscore.config.filter.CorsFilter)
+ </span><span style="color: #008000;">*/</span><span style="color: #000000;">
+@SpringBootApplication
+@ServletComponentScan
+@MapperScan(</span>"com.nsoft.gkzp.**.dao"<span style="color: #000000;">)
+</span><span style="color: #0000ff;">public</span> <span style="color: #0000ff;">class</span><span style="color: #000000;"> GzyGkzpApplication {
+
+    </span><span style="color: #0000ff;">public</span> <span style="color: #0000ff;">static</span> <span style="color: #0000ff;">void</span><span style="color: #000000;"> main(String[] args) {
+        SpringApplication.run(GzyGkzpApplication.</span><span style="color: #0000ff;">class</span><span style="color: #000000;">, args);
+    }
+
+
+    </span><span style="color: #008000;">/**</span><span style="color: #008000;">
+     * 在springboot整合vue前端时，vue使用url跳转时报404错误，此处代码解决此问题
+     * 参照https://blog.csdn.net/Mr_EvanChen/article/details/83625082
+     </span><span style="color: #008000;">*/</span><span style="color: #000000;">
+    @Bean
+    </span><span style="color: #0000ff;">public</span> WebServerFactoryCustomizer&lt;ConfigurableWebServerFactory&gt;<span style="color: #000000;"> webServerFactoryCustomizer(){
+        </span><span style="color: #0000ff;">return</span> factory -&gt;<span style="color: #000000;"> {
+            ErrorPage error404Page </span>= <span style="color: #0000ff;">new</span> ErrorPage(HttpStatus.NOT_FOUND, "/index.html"<span style="color: #000000;">);
+            factory.addErrorPages(error404Page);
+        };
+    }
+
+}</span></code></pre>
+
+<h1><span style="background-color: #ffcc00;">3.<strong><span style="background-color: #ffcc00;">&nbsp;</span><code><span style="background-color: #ffcc00;">spr</span>ing-session 2.x</code>&nbsp;中&nbsp;<code>Cookie</code>里面了<code>SameSite</code>&nbsp;，他默认值是 Lax&nbsp;</strong></span></h1>
+<p>SameSite Cookie 是用来防止CSRF攻击，它有两个值：Strict、Lax<br />SameSite = Strict：意为严格模式，表明这个cookie在任何情况下都不可能作为第三方cookie；<br />SameSite = Lax&nbsp; ：意为宽松模式，在get请求是可以作为第三方cookie，但是不能携带cookie进行跨域post访问（这就很蛋疼了，我们那个校验接口就是POST请求）</p>
+<src class="cnblogs_code">
+<pre><code><span style="color: #0000ff;">package</span><span style="color: #000000;"> com.nsoft.gkzp.syscore.config;
+
+</span><span style="color: #0000ff;">import</span><span style="color: #000000;"> org.springframework.context.annotation.Bean;
+</span><span style="color: #0000ff;">import</span><span style="color: #000000;"> org.springframework.context.annotation.Configuration;
+</span><span style="color: #0000ff;">import</span><span style="color: #000000;"> org.springframework.session.web.http.CookieSerializer;
+</span><span style="color: #0000ff;">import</span><span style="color: #000000;"> org.springframework.session.web.http.DefaultCookieSerializer;
+
+</span></code></pre>
+<pre><code><span style="color: #339966;">/**</span><br /><span style="color: #339966;"> * https://www.cnblogs.com/hujinshui/p/11025848.html</span><br /><span style="color: #339966;"> * spring-session 2.x 中 Cookie里面引入了SameSite他默认值是 Lax，</span><br /><span style="color: #339966;"> * SameSite Cookie 是用来防止CSRF攻击，它有两个值：Strict、Lax</span><br /><span style="color: #339966;"> * SameSite = Strict：意为严格模式，表明这个cookie在任何情况下都不可能作为第三方cookie；</span><br /><span style="color: #339966;"> * SameSite = Lax：意为宽松模式，在get请求是可以作为第三方cookie，但是不能携带cookie进行跨域post访问</span><br /><span style="color: #339966;"> * 总结：前端请求到后台，每次session都不一样，每次都是新的会话，导致获取不到用户信息</span><br /><span style="color: #339966;"> */</span></code></pre>
+<pre><code><span style="color: #000000;">@Configuration </span><span style="color: #0000ff;">public</span> <span style="color: #0000ff;">class</span><span style="color: #000000;"> SpringSessionConfig {<br /> </span><span style="color: #0000ff;">public</span><span style="color: #000000;"> SpringSessionConfig() { }<br /> @Bean <br /></span><span style="color: #0000ff;"> public</span><span style="color: #000000;"> CookieSerializer httpSessionIdResolver() { <br />　　DefaultCookieSerializer cookieSerializer </span>= <span style="color: #0000ff;">new</span><span style="color: #000000;"> DefaultCookieSerializer(); </span><span style="color: #008000;">//</span><span style="color: #008000;"> 取消仅限同一站点设置</span> <br />　　cookieSerializer.setSameSite(<span style="color: #0000ff;">null</span><span style="color: #000000;">); </span><span style="color: #0000ff;">return</span><span style="color: #000000;"> cookieSerializer; <br />　　} <br />}</span></code></pre>
+
+<p>&nbsp;</p>
+<p>前端：</p>
+<p><span style="background-color: #ffcc00;">1.在 main.js (前端用axios)</span></p>
+<src class="cnblogs_code">
+<pre><code><span style="color: #0000ff;">import</span> axios from <span style="color: #000000; font-weight: bold;">'</span><span style="color: #000000; font-weight: bold;">axios</span><span style="color: #000000; font-weight: bold;">'</span><span style="color: #000000;">;
+axios</span>.defaults.withCredentials=true;//让ajax携带cookie</code></pre>
+
+<p>&nbsp;</p>
+<p>用了1天半时间，改了很多次依然不行，后来发现是前端用了&nbsp;proxy 代理，它本身也是已经处理了跨域问题，网上找的时候发现有的文章也用到这个了。但我这里就是不行。</p>
+<p>我原来的代码：</p>
+<p>1）写的注册页面：</p>
+<p><img src="./images/springboot+vue2.x 解决session跨域失效问题0.png" alt="" /></p>
+<p>&nbsp;</p>
+<p>&nbsp;2）全局配置如下：</p>
+<p>main.js</p>
+<src class="cnblogs_code">
+<pre><code><span style="color: #339966;">// xenv 标记当前环境 true:开发环境   false:</span><span style="color: #000000;"><span style="color: #339966;">生产环境</span>
+const xenv </span>=<span style="color: #000000;"> true;
+</span><span style="color: #339966;">//</span><span style="color: #000000;"><span style="color: #339966;"> 注册全局变量</span>
+Vue</span>.<span style="color: #0000ff;">prototype</span>.<span style="color: #800080;">$global</span> =<span style="color: #000000;"> {
+ <span style="color: #339966;">  //contentPath 标记根路径，主要用于axios请求后端数据的url</span>
+   contentPath</span>: xenv ? <span style="color: #000000; font-weight: bold;">'</span><span style="color: #000000; font-weight: bold;">/api/</span><span style="color: #000000; font-weight: bold;">'</span> : router.options.<span style="color: #000000;">base  </span><span style="color: #000000;">
+};</span></code></pre>
+
+<p>(xenv设为true；所以 根路径contentPath的值必为&lsquo;/api/&rsquo;&nbsp; &nbsp;,而&lsquo;/api/&rsquo; 在vue.config.js里配置为代理，如下。)</p>
+<p>vue.config.js</p>
+<src class="cnblogs_code">
+<pre><code>  devServer:<span style="color: #000000;"> {
+    </span><span style="color: #0000ff;">open</span>: true,<span style="color: #000000;">
+    host</span>: <span style="color: #000000; font-weight: bold;">'</span><span style="color: #000000; font-weight: bold;">0.0.0.0</span><span style="color: #000000; font-weight: bold;">'</span>,<span style="color: #000000;">
+    port</span>: <span style="color: #800000;">80</span>,<span style="color: #000000;">
+    https</span>: false,<span style="color: #000000;">
+    hotOnly</span>: false,<span style="color: #000000;">
+    before</span>: app =&gt;<span style="color: #000000;"> {
+    }</span>,<span style="color: #000000;">
+    proxy</span>:<span style="color: #000000;"> {
+      </span><span style="color: #339966;">// 配置跨域
+      </span><span style="color: #000000; font-weight: bold;">'</span><span style="color: #000000; font-weight: bold;">/api</span><span style="color: #000000; font-weight: bold;">'</span>:<span style="color: #000000;"> {
+        target</span>: <span style="color: #000000; font-weight: bold;">'</span><span style="color: #000000; font-weight: bold;">http://127.0.0.1:8082/</span><span style="color: #000000; font-weight: bold;">'</span>,<span style="color: #000000;">
+        ws</span>: true,<span style="color: #000000;">
+        changOrigin</span>: true,<span style="color: #000000;">
+        pathRewrite</span>:<span style="color: #000000;"> {
+          </span><span style="color: #000000; font-weight: bold;">'</span><span style="color: #000000; font-weight: bold;">^/api</span><span style="color: #000000; font-weight: bold;">'</span>: <span style="color: #000000; font-weight: bold;">'</span><span style="color: #000000; font-weight: bold;">/</span><span style="color: #000000; font-weight: bold;">'</span><span style="color: #000000;">
+        }
+      }
+    }
+  }</span>,</code></pre>
+
+<p>&nbsp;</p>
+<p><span style="background-color: #ffcc00;">2.不使用proxy代理，把根目录写死为'http://127.0.0.1:8082/'，就成功了，修改如下：</span></p>
+<p><span style="background-color: #ffcc00;">main.js：</span></p>
+<src class="cnblogs_code">
+<pre><code><span style="color: #339966;">// xenv 标记当前环境 true:开发环境   false:</span><span style="color: #000000;"><span style="color: #339966;">生产环境</span>
+const xenv </span>=<span style="color: #000000;"> true;
+</span><span style="color: #339966;">//</span><span style="color: #000000;"><span style="color: #339966;"> 注册全局变量</span>
+Vue</span>.<span style="color: #0000ff;">prototype</span>.<span style="color: #800080;">$global</span> =<span style="color: #000000;"> {
+  </span><span style="color: #339966;">// contentPath 标记根路径，主要用于axios请求后端数据的url
+  // contentPath: xenv ? <span style="font-weight: bold;">'</span><span style="font-weight: bold;">/api/</span><span style="font-weight: bold;">'</span> : router.options.</span><span style="color: #000000;"><span style="color: #339966;">base</span>
+  contentPath</span>:  <span style="color: #000000; font-weight: bold;">'</span><span style="color: #000000; font-weight: bold;">http://127.0.0.1:8082/</span><span style="color: #000000; font-weight: bold;">'</span><span style="color: #000000;">
+};</span></code></pre>
+
+<p>&nbsp;</p>
+<h1><span style="background-color: #ff9900;">4. 跨域白名单</span></h1>
+<p>（为了安全起见，可在服务端设置可跨域访问的白名单地址）</p>
+<p>1. 自定义了一个配置文件&nbsp;D:\workspace-gzy-gkzp\src\main\resources\resources\config.properties&nbsp;（这里对于localhost,127.0.0.1两个ip，不要放到正式环境。否则如对方用本地环境，去访问正式的后台，会被允许跨域访问，不安全）</p>
+<src class="cnblogs_code">
+<pre><code><span style="color: #339966;">#允许CORS的IP（即可跨域访问白名单,添加多个用英文逗号隔开coreFile.java）（(端口号固定为application.properties配置的server.port)）</span>
+system.accessControlAllowOrigin =192.168.1.61,zshj.com.cn<span style="color: #339966;">
+#测试环境加上localhost,127.0.0.1   system.accessControlAllowOrigin =localhost,127.0.0.1,,zshj.com.cn</span></code></pre>
+
+<p>2.读取配置文件类&nbsp;D:\workspace-gzy-gkzp\src\main\java\com\nsoft\gkzp\syscore\config\MyDefinedUtil.java</p>
+<src class="cnblogs_code">
+<pre><code>package<span> com.nsoft.gkzp.syscore.config;
+import<span> org.springframework.beans.factory.annotation.Value;
+import<span> org.springframework.context.annotation.Configuration;
+import<span> org.springframework.context.annotation.PropertySource;
+
+<span style="color: #339966;">/**
+ * 自定义配置类 获取config.properties相关参数
+ *（ 其他类获取值，请用注解@Autowired 方式 ，否则获取不到值）
+ * @author zdyang
+ * @date 2019.08.30
+ */</span><span>
+@Configuration <span style="color: #339966;">//标识这个是一个配置类</span>
+@PropertySource(value = "classpath:resources/config.properties"<span>)
+public class<span> MyDefinedUtil {
+    @Value("${system.encoding:UTF-8}") <span style="color: #339966;"> //冒号后的值为没有配置文件时，制动装载的默认值  //下面的属性不能为static类型，否则获取不到值</span>
+    public  String SYSTEM_ENCODING; <span style="color: #339966;"> //#System Encoding</span>
+
+   <span style="color: #339966;"> //文件管理</span>
+    @Value("${system.file.folder.img}"<span>)
+    public<span>  String SYSTEM_FILE_FOLDER_IMG;
+
+   <span style="color: #339966;"> //允许跨域白名单</span>
+    @Value("${system.accessControlAllowOrigin}"<span>)
+    public<span>  String SYSTEM_ACCESSCONTROLALLOWORIGIN;
+}</span></span></span></span></span></span></span></span></span></span></span></code></pre>
+
+<p>3.跨域配置类：D:\workspace-gzy-gkzp\src\main\java\com\nsoft\gkzp\syscore\config\filter\CorsFilter.java</p>
+<src class="cnblogs_code">
+<pre><code><span style="color: #0000ff;">package</span><span style="color: #000000;"> com.nsoft.gkzp.syscore.config.filter;
+
+</span><span style="color: #0000ff;">import</span><span style="color: #000000;"> com.nsoft.gkzp.syscore.config.MyDefinedUtil;
+</span><span style="color: #0000ff;">import</span><span style="color: #000000;"> org.apache.logging.log4j.LogManager;
+</span><span style="color: #0000ff;">import</span><span style="color: #000000;"> org.apache.logging.log4j.Logger;
+</span><span style="color: #0000ff;">import</span><span style="color: #000000;"> org.springframework.beans.factory.annotation.Autowired;
+
+
+</span><span style="color: #0000ff;">import</span> javax.servlet.*<span style="color: #000000;">;
+</span><span style="color: #0000ff;">import</span><span style="color: #000000;"> javax.servlet.annotation.WebFilter;
+</span><span style="color: #0000ff;">import</span><span style="color: #000000;"> javax.servlet.http.HttpServletRequest;
+</span><span style="color: #0000ff;">import</span><span style="color: #000000;"> javax.servlet.http.HttpServletResponse;
+</span><span style="color: #0000ff;">import</span><span style="color: #000000;"> java.io.IOException;
+<br />@Configuration<span style="color: #339966;"> //内置tomcat运行不加它没问题，但后来改为用外置tomcat时，启动后过滤器会失效，后来查明原因需要加上@Configuration才行</span>
+@WebFilter(urlPatterns </span>= "/*", filterName = "corsFilter"<span style="color: #000000;">)
+</span><span style="color: #0000ff;">public</span> <span style="color: #0000ff;">class</span> CorsFilter <span style="color: #0000ff;">implements</span><span style="color: #000000;"> Filter {
+
+    </span><span style="color: #0000ff;">final</span> <span style="color: #0000ff;">private</span> <span style="color: #0000ff;">static</span> Logger logger = LogManager.getLogger(CorsFilter.<span style="color: #0000ff;">class</span><span style="color: #000000;">);
+
+    @Autowired
+    MyDefinedUtil myDefinedUtil;
+
+    @Override
+    </span><span style="color: #0000ff;">public</span> <span style="color: #0000ff;">void</span><span style="color: #000000;"> destroy() {
+    }
+
+    </span><span style="color: #008000;">/**</span><span style="color: #008000;">
+     * 此过滤器只是处理跨域问题
+     * </span><span style="color: #808080;">@param</span><span style="color: #008000;"> servletRequest
+     * </span><span style="color: #808080;">@param</span><span style="color: #008000;"> servletResponse
+     * </span><span style="color: #808080;">@param</span><span style="color: #008000;"> chain
+     * </span><span style="color: #808080;">@throws</span><span style="color: #008000;"> ServletException
+     * </span><span style="color: #808080;">@throws</span><span style="color: #008000;"> IOException
+     </span><span style="color: #008000;">*/</span><span style="color: #000000;">
+    @Override
+    </span><span style="color: #0000ff;">public</span> <span style="color: #0000ff;">void</span> doFilter(ServletRequest servletRequest, ServletResponse servletResponse, FilterChain chain) <span style="color: #0000ff;">throws</span><span style="color: #000000;"> ServletException, IOException {
+        HttpServletRequest request </span>=<span style="color: #000000;"> (HttpServletRequest) servletRequest;
+        HttpServletResponse response </span>=<span style="color: #000000;"> (HttpServletResponse) servletResponse;
+        String origin </span>= request.getHeader("Origin"<span style="color: #000000;">);
+        </span><span style="color: #0000ff;">if</span>(origin == <span style="color: #0000ff;">null</span><span style="color: #000000;">) {
+            origin </span>= request.getHeader("Referer"<span style="color: #000000;">);
+        }
+
+        </span><span style="color: #008000;">//</span><span style="color: #008000;">允许跨域白名单</span>
+        String whiteList=<span style="color: #000000;">myDefinedUtil.SYSTEM_ACCESSCONTROLALLOWORIGIN;
+        </span><span style="color: #0000ff;">boolean</span> isValid = <span style="color: #0000ff;">false</span><span style="color: #000000;">;
+         String adressIP    </span>= <span style="color: #0000ff;">null</span>;<span style="color: #008000;">//</span><span style="color: #008000;">截取地址栏的ip地址</span>
+        <span style="color: #0000ff;">if</span>(origin != <span style="color: #0000ff;">null</span><span style="color: #000000;">){
+            </span><span style="color: #0000ff;">try</span><span style="color: #000000;"> {
+                adressIP </span>= origin.substring(origin.indexOf("://") + 3<span style="color: #000000;">);
+                </span><span style="color: #0000ff;">int</span> b = adressIP.indexOf(":");<span style="color: #008000;">//</span><span style="color: #008000;">有端口号情况  eg：</span><span style="color: #008000; text-decoration: underline;">https://127.0.0.1</span><span style="color: #008000;">:8080</span>
+                <span style="color: #0000ff;">if</span> (b &gt; 0<span style="color: #000000;">) {
+                    adressIP </span>= adressIP.substring(0<span style="color: #000000;">, b);
+                }</span><span style="color: #0000ff;">else</span><span style="color: #000000;">{
+                     b </span>= adressIP.indexOf("/");<span style="color: #008000;">//</span><span style="color: #008000;">如果是默认端口号，地址栏不填写端口情况（443 80）eg: </span><span style="color: #008000; text-decoration: underline;">https://127.0.0.1</span>
+                    <span style="color: #0000ff;">if</span> (b &gt; 0<span style="color: #000000;">) {
+                        adressIP </span>= adressIP.substring(0<span style="color: #000000;">, b);
+                    }
+                }
+                isValid </span>= whiteList.contains(adressIP); <span style="color: #008000;">//</span><span style="color: #008000;">将origin截出ip字符串</span>
+            }<span style="color: #0000ff;">catch</span><span style="color: #000000;"> (Exception e){
+                logger.error(</span>"白名单校验出错:"+<span style="color: #000000;">e.getMessage(),e);
+            }
+        }
+        logger.info(</span>"跨域验证:origin="+origin+"***adressIP="+adressIP+"***isValid="+isValid);<span style="color: #008000;">//</span><span style="color: #008000;"> 如为跨域请求，下面的"Access-Control-Allow-Origin"值置为null，就无法访问了。。。如果为非跨域请求，这个为null不会受影响，依然允许访问</span>
+        response.setHeader("Access-Control-Allow-Origin", isValid ? origin : "null");<span style="color: #008000;">//</span><span style="color: #008000;"> 允许指定域访问跨域资源(这里不能写*，*代表接受所有域名访问，如写*则下面一行代码无效。谨记)</span>
+        response.setHeader("Access-Control-Allow-Credentials", "true");<span style="color: #008000;">//</span><span style="color: #008000;">true代表允许客户端携带cookie(此时origin值不能为&ldquo;*&rdquo;，只能为指定单一域名)</span>
+        response.setHeader("Access-Control-Allow-Methods", "GET, HEAD, POST, PUT, DELETE, TRACE, OPTIONS, PATCH"); <span style="color: #008000;">//</span><span style="color: #008000;">/ 允许浏览器在预检请求成功之后发送的实际请求方法名</span>
+        response.setHeader("Access-Control-Allow-Headers", "Authorization,Origin, X-Requested-With, Content-Type, Accept,Access-Token");<span style="color: #008000;">//</span><span style="color: #008000;"> 允许浏览器发送的请求消息头
+        </span><span style="color: #008000;">//</span><span style="color: #008000;">response.setHeader("Access-Control-Max-Age", "86400");            </span><span style="color: #008000;">//</span><span style="color: #008000;"> 浏览器缓存预检请求结果时间,单位:秒
+        </span><span style="color: #008000;">//</span><span style="color: #008000;">logger.info("****************测试过滤器及日志1111");</span>
+<span style="color: #000000;">        chain.doFilter(request,response);
+        </span><span style="color: #008000;">//</span><span style="color: #008000;">logger.error("****************测试过滤器及日志2222");</span>
+<span style="color: #000000;">    }
+    @Override
+    </span><span style="color: #0000ff;">public</span> <span style="color: #0000ff;">void</span> init(FilterConfig filterConfig) <span style="color: #0000ff;">throws</span><span style="color: #000000;"> ServletException {
+    }
+
+
+}</span></code></pre>
+
+<p>&nbsp;</p>
+<p>&nbsp;</p>
+<p>&nbsp;</p>
+<p><span style="color: #000000; background-color: #ff0000;"><strong>白名单心路历程如下：</strong></span></p>
+<p>首先参考&nbsp;<a href="https://blog.csdn.net/qq_15054679/article/details/90684703" target="_blank">https://blog.csdn.net/qq_15054679/article/details/90684703</a>&nbsp;：</p>
+<p>&nbsp;config.properties&nbsp;</p>
+<src class="cnblogs_code">
+<pre><code><span style="color: #008000;">#</span><span style="color: #008000;">允许CORS的IP（即可跨域访问白名单,添加多个用英文逗号隔开）（本地连接在</span><span style="color: #008000;">CorsFilter.java中已设置，就不在这里配置了）</span> <br /><span style="color: #0000ff;">system</span>.accessControlAllowOrigin =http://<span style="color: #800000;">localhost</span>:<span style="color: #800000;">8082</span></code></pre>
+
+<p>CorsFilter.java</p>
+<src class="cnblogs_code">
+<pre><code><span style="color: #0000ff;">package</span><span style="color: #000000;"> com.nsoft.gkzp.syscore.config.filter;
+
+</span><span style="color: #0000ff;">import</span><span style="color: #000000;"> com.nsoft.gkzp.syscore.config.MyDefinedUtil;
+</span><span style="color: #0000ff;">import</span><span style="color: #000000;"> org.apache.logging.log4j.LogManager;
+</span><span style="color: #0000ff;">import</span><span style="color: #000000;"> org.apache.logging.log4j.Logger;
+</span><span style="color: #0000ff;">import</span><span style="color: #000000;"> org.springframework.beans.factory.annotation.Autowired;
+
+</span><span style="color: #0000ff;">import</span> javax.servlet.*<span style="color: #000000;">;
+</span><span style="color: #0000ff;">import</span><span style="color: #000000;"> javax.servlet.annotation.WebFilter;
+</span><span style="color: #0000ff;">import</span><span style="color: #000000;"> javax.servlet.http.HttpServletRequest;
+</span><span style="color: #0000ff;">import</span><span style="color: #000000;"> javax.servlet.http.HttpServletResponse;
+</span><span style="color: #0000ff;">import</span><span style="color: #000000;"> java.io.IOException;
+<br />@Configuration <span style="color: #339966;">//内置tomcat运行不加它没问题，但后来改为用外置tomcat时，启动后过滤器会失效，后来查明原因需要加上@Configuration才行</span>
+@WebFilter(urlPatterns </span>= "/*", filterName = "corsFilter"<span style="color: #000000;">)
+</span><span style="color: #0000ff;">public</span> <span style="color: #0000ff;">class</span> CorsFilter <span style="color: #0000ff;">implements</span><span style="color: #000000;"> Filter {
+
+    </span><span style="color: #0000ff;">final</span> <span style="color: #0000ff;">private</span> <span style="color: #0000ff;">static</span> Logger logger = LogManager.getLogger(CorsFilter.<span style="color: #0000ff;">class</span><span style="color: #000000;">);
+
+    @Autowired
+    MyDefinedUtil myDefinedUtil;
+
+    @Override
+    </span><span style="color: #0000ff;">public</span> <span style="color: #0000ff;">void</span><span style="color: #000000;"> destroy() {
+    }
+    </span><span style="color: #008000;">/**</span><span style="color: #008000;">
+     * 此过滤器只是处理跨域问题
+     * </span><span style="color: #808080;">@param</span><span style="color: #008000;"> servletRequest
+     * </span><span style="color: #808080;">@param</span><span style="color: #008000;"> servletResponse
+     * </span><span style="color: #808080;">@param</span><span style="color: #008000;"> chain
+     * </span><span style="color: #808080;">@throws</span><span style="color: #008000;"> ServletException
+     * </span><span style="color: #808080;">@throws</span><span style="color: #008000;"> IOException
+     </span><span style="color: #008000;">*/</span><span style="color: #000000;">
+    @Override
+    </span><span style="color: #0000ff;">public</span> <span style="color: #0000ff;">void</span> doFilter(ServletRequest servletRequest, ServletResponse servletResponse, FilterChain chain) <span style="color: #0000ff;">throws</span><span style="color: #000000;"> ServletException, IOException {
+        HttpServletRequest request </span>=<span style="color: #000000;"> (HttpServletRequest) servletRequest;
+        HttpServletResponse response </span>=<span style="color: #000000;"> (HttpServletResponse) servletResponse;
+        String origin </span>= request.getHeader("Origin"<span style="color: #000000;">);
+        </span><span style="color: #0000ff;">if</span>(origin == <span style="color: #0000ff;">null</span><span style="color: #000000;">) {
+            origin </span>= request.getHeader("Referer"<span style="color: #000000;">);
+        }
+        </span><span style="color: #008000;">//</span><span style="color: #008000;">允许跨域白名单</span>
+<span style="color: #ff0000;">        String[] whiteList = (myDefinedUtil.SYSTEM_ACCESSCONTROLALLOWORIGIN).split(",") ;
+        boolean isValid = false;
+        logger.info("origin="+origin);
+        for(String ip : whiteList){
+            if(origin != null &amp;&amp;  origin.equals(ip)){
+                isValid = true;
+                break;
+            }
+        }
+        logger.info("isValid="+isValid);</span><span style="color: #339966;">//如为跨域请求，下面的"Access-Control-Allow-Origin"值置为null，就无法访问了。。。如果为非跨域请求，这个为null不会受影响，依然允许访问</span></code></pre>
+<pre><code><span style="color: #000000;">        response.setHeader(</span>"Access-Control-Allow-Origin", isValid ? origin : "null");<span style="color: #008000;">//</span><span style="color: #008000;"> 允许指定域访问跨域资源(这里不能写*，*代表接受所有域名访问，如写*则下面一行代码无效。谨记)</span>
+        response.setHeader("Access-Control-Allow-Credentials", "true");<span style="color: #008000;">//</span><span style="color: #008000;">true代表允许客户端携带cookie(此时origin值不能为&ldquo;*&rdquo;，只能为指定单一域名)</span>
+        response.setHeader("Access-Control-Allow-Methods", "GET, HEAD, POST, PUT, DELETE, TRACE, OPTIONS, PATCH"); <span style="color: #008000;">//</span><span style="color: #008000;">/ 允许浏览器在预检请求成功之后发送的实际请求方法名</span>
+        response.setHeader("Access-Control-Allow-Headers", "Authorization,Origin, X-Requested-With, Content-Type, Accept,Access-Token");<span style="color: #008000;">//</span><span style="color: #008000;"> 允许浏览器发送的请求消息头
+        </span><span style="color: #008000;">//</span><span style="color: #008000;">response.setHeader("Access-Control-Max-Age", "86400");            </span><span style="color: #008000;">//</span><span style="color: #008000;"> 浏览器缓存预检请求结果时间,单位:秒</span>
+<span style="color: #000000;">
+        chain.doFilter(request,response);
+    }
+    @Override
+    </span><span style="color: #0000ff;">public</span> <span style="color: #0000ff;">void</span> init(FilterConfig filterConfig) <span style="color: #0000ff;">throws</span><span style="color: #000000;"> ServletException {
+    }
+
+
+}</span></code></pre>
+
+<p>上面代码用&nbsp;&nbsp;origin.equals(ip) 去判定不是很好。</p>
+<p>原因是测试时发现，</p>
+<p>1）origin如果是域名的话(值为http://zhxy.nsoft.com.cn:8082),如果是ip地址的话会有斜杠（值为：http://120.24.253.6:8082/）。这样在config.properties配置文件配置白名单参数system.accessControlAllowOrigin时会有很多，其很麻烦</p>
+<p>2）我把http协议改为https协议时：端口号变了，http也改成https，参数system.accessControlAllowOrigin改的时候也很麻烦。</p>
+<p>&nbsp;</p>
+<p>&nbsp;</p>
+<p>&nbsp;</p>
+<p>&nbsp;</p>
+<p>参照：</p>
+<p><a href="https://www.cnblogs.com/zimublog/p/10786110.html" target="_blank">https://www.cnblogs.com/zimublog/p/10786110.html</a></p>
+<p><a href="https://blog.csdn.net/qq_17555933/article/details/92017890" target="_blank">https://blog.csdn.net/qq_17555933/article/details/92017890</a></p>
+
+</div><hr><script charset='utf-8' src='../../js/sming.js'></script></body></html>

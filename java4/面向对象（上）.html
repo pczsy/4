@@ -1,0 +1,470 @@
+<html><head><meta charset='utf-8'><meta name='viewport' content='width=device-width, initial-scale=1'>
+<meta name='applicable-device' content='pc'><meta name='keywords' content='电脑,电脑讲解,电脑技术,编程,电脑故障维修面向对象（上）' />
+<script src='../../highlight/highlight.pack.js'></script>
+<link rel='stylesheet' type='text/css' href='../../highlight/styles/monokai.css'/>
+
+<link rel='stylesheet' href='../../fenxiang/dist/css/share.min.css'>
+<script src='../../fenxiang/src/js/social-share.js'></script>
+<script src='../../fenxiang/src/js/qrcode.js'></script>
+
+</head><body><script>hljs.initHighlightingOnLoad();</script><script>
+var system ={};  
+var p = navigator.platform;       
+system.win = p.indexOf('Win') == 0;  
+system.mac = p.indexOf('Mac') == 0;  
+system.x11 = (p == 'X11') || (p.indexOf('Linux') == 0);     
+if(system.win||system.mac||system.xll){
+document.write("<link href='../css/3.css' rel='stylesheet' type='text/css'>");}else{ document.write("<link href='../css/3wap.css' rel='stylesheet' type='text/css'>");}</script><script src='../../js/3.js'></script><div class='div2'><div class='heading_nav'><ul><div><li><a href='../../index.html'>首页</a></li>
+</div><div onclick='hidden1()' >分享</div>
+</ul></div></div>
+<div id='heading_nav2'> 
+<li class='row' >
+<div class='social-share' data-mode='prepend'><a href='javascript:' class='social-share-icon icon-heart'></a></div></li></div><script charset='utf-8' src='../../3/js/hengfu.js'></script><script charset='utf-8' src='../../3/js/hengfu2.js'></script><hr><div class='div1'><div class='biaoti'><center>面向对象（上）</center></div><div class='banquan'>原文出处:本文由博客园博主MyTripod提供。<br/>
+原文连接:https://www.cnblogs.com/mytripod/p/11480062.html</div><br>
+    <p>Java 支持面向对象的三大特征：封装、继承、多态；java 提供了public 、protected、private三个访问控制修饰符来实现良好的封装；提供 extends 关键来让子类实例继承父类，使子类可以继承父类的可允许访问控制的属性和方法；通过继承的关系也可实现方法和属性的复用，这时子类对象可以直接赋值给父类变量，这个父类对象便具有了多态性。</p>
+<h1 id="一类和对象">一、类和对象</h1>
+<p>类是对象的抽象，对象是类的具体实例。</p>
+<h2 id="定义类">1、定义类</h2>
+<p>定义类的简单语法：</p>
+<pre><code><code>[修饰符] 类名 {
+  定义构造器；
+  定义成员变量；
+  定义方法；
+}</code></code></pre>
+<p>类名的修饰符可以是public、final、abstract或者完全省略不写。示例如下：</p>
+<pre class="java"><code>//1.String 类
+public final class String {}
+//2.普通自定义Person 类
+public class person {}
+//3.抽象类 Animal 类
+public abstract Animal{}</code></code></pre>
+<p><strong>注意：final 和 abstract 不能同时修饰一个类。因为abstract 修饰的类需要子类继承（实现）才能使用，而 final 是指定类不能被继承，二者相互矛盾。</strong></p>
+<p>类里各成员之间的定义顺序没有任何影响，各成员之间可以相互调用，但需要指出的是，<strong>static修饰的成员不能访问没有static修饰的成员。</strong></p>
+<blockquote>
+<p>static成员是在JVM的classloader加载类的时候初始化的，而非static的成员是在创建对象，即new 操作的时候才初始化的；类加载的时候初始化static的成员，此时static 已经分配内存空间，所以可以访问；非static的成员还没有通过new创建对象而进行初始化，所以必然不可以访问。<br />
+简单点说：静态成员属于类,不需要生成对象就存在了.而非静态成员需要生成对象才产生，所以访问一个还没创建的成<br />
+员是不可能的.</p>
+</blockquote>
+<h2 id="创建对象">2、创建对象</h2>
+<p>Java 中五种创建对象的方式：</p>
+<pre class="java"><code>/**
+1.使用 new 关键字（最常用）；   
+2.使用反射的Class类的newInstance()方法； //静态工厂方法
+3.使用反射的Constructor类的（）newInstance()方法； //静态工厂方法
+4.使用对象克隆clone()方法,需要先实现Cloneable接口并实现其定义的clone方法：
+5.使用反序列化（ObjectInputStream）的readObject()方法，类必须实现 Serializable接口：
+// 前三种都使用到了类的构造方法
+*/
+import java.io.*;
+public class Person implements Cloneable, Serializable {
+    private String name;
+    private String adress;
+    private Boolean aBoolean;
+    public Person() {}
+    public Person(String name, String adress) {
+        this.name = name;
+        this.adress = adress;
+    }
+    /**
+     * 无参：使用静态工厂方法创建对象
+     * @return
+     */
+    public static Person getNewInstance() {
+        return new Person();
+    }
+    /**
+     * 有参：使用静态工厂方法创建对象
+     * @return
+     */
+    public static Person getInstance(String name, String adress) {
+        return new Person(name, adress);
+    }
+    @Override
+    public Object clone() throws CloneNotSupportedException {
+        return super.clone();
+    }
+
+    // 使用 反序列化ObjectInputStream 的readObject()方法：类必须实现 Serializable接口
+    public Person SerializablePerson() {
+        Person person =null;
+        try (
+                ObjectInputStream ois = new ObjectInputStream(new FileInputStream(&quot;d：person.txt&quot;))) {
+            try {
+                 person = (Person) ois.readObject();                
+            } catch (IOException e) {
+                e.printStackTrace();
+            } catch (ClassNotFoundException e) {
+                e.printStackTrace();
+            }
+        } catch (FileNotFoundException e) {
+            e.printStackTrace();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        return person;
+    }
+//getter/setter  方法
+}</code></code></pre>
+<h2 id="对象引用和指针">3、对象、引用和指针</h2>
+<p>当执行 Person person = new Person() 时，实际上产生了两个东西：</p>
+<ul>
+<li>变量 person （变量是需要内存来存储的）</li>
+<li>Person 对象（ new Person() ）（在堆内存中开辟了一块空间）</li>
+</ul>
+<p>当然在创建Person对象时，Person 中的成员变量也有对应的内存。<img src="./images/面向对象（上）0.png" alt="UTOOLS1567829228279.png" /></p>
+<p><strong>当一个对象被创建成功以后，这个对象将保存在堆内存中，Java程序不允许直接访问堆内存中的对象，只能通过该对象的引用操作该对象。也就是说，不管是数组还是对象，都只能通过引用来访问它们。</strong><img src="./images/面向对象（上）1.png" alt="UTOOLS1567829418257.png" /></p>
+<p>栈内存中引用变量本身只存储了一个地址值，并未包含任何实际数据，该地址值执行了堆内存中的对象，当访问引用变量 p 的成员变量和方法时，实际是访问 p 引用对象的成员变量和方法。</p>
+<p>当执行 Person p2 = p 时，实际上是将 p 保存的地址值赋值给了 p2 , p 和p2 指向的都是同一个 Person 对象。</p>
+<p><strong>当希望垃圾回收机制回收某个对象时，只需要切断该对象的所有引用变量和它之间的关系即可，即把这些引用变量赋值为 null</strong></p>
+<h2 id="对象的-this-引用">4、对象的 this 引用</h2>
+<p>this 关键字总是指向调用该方法的对象，this 作为对象的默认引用有两种情形：</p>
+<ul>
+<li>在构造器中 引用该构造正在初始化的对象</li>
+<li>在方法中引用调用该方法的对象</li>
+</ul>
+<pre class="java"><code>public class Employee {
+    private String employee_id;
+    private Integer age;
+    public Employee() {
+    //在构造器中 引用该构造正在初始化的对象
+        this.age=18;
+        this.employee_id=&quot;000001&quot;;
+    }  
+    public void  say(){
+       //在方法中引用调用该方法的对象
+        System.out.println(&quot;二狗子，&quot;+this.eat());
+    }
+    public  String eat(){
+        return &quot;你妈喊你吃饭啦&quot;;
+    }
+}
+</code></code></pre>
+<p>大部分时候，普通方法访问其他方法、成员变量时无须使用this前缀，但如果方法里有个局部变量和成员变量同名，但程序又需要在该方法里访问这个被覆盖的成员变量，则必须使用this前缀。</p>
+<h1 id="二方法详解">二、方法详解</h1>
+<p>方法是类或对象的行为特征的抽象，方法要么属于类（static 修饰的方法），要么属于对象。</p>
+<h2 id="方法的所属性">1、方法的所属性</h2>
+<p>java 中的方法不能独立存在，必须属于对象或类，方法的执行必须使用类或者对象作为调用者；</p>
+<p>同一个类的一个方法调用另外一个方法时，如果被调方法是普通方法，则默认使用this作为调用者；如果被调方法是静态方法，则默认使用类作为调用者。也就是说，表面上看起来某些方法可以被独立执行，但实际上还是使用this或者类来作为调用者。</p>
+<h2 id="方法参数的传递机制">2、方法参数的传递机制</h2>
+<p><strong>Java 里的方法传递机制只有一种 ： 值传递，就是将实际参数值的副本传入方法内，但参数本身不会发生任何影响。</strong></p>
+<p>链接：<a href="https://www.nowcoder.com/questionTerminal/b296e9e1c40542ec8677c1e452b6b576" class="uri">https://www.nowcoder.com/questionTerminal/b296e9e1c40542ec8677c1e452b6b576</a><br />
+来源：牛客网</p>
+<p>第一个例子：基本类型</p>
+<pre class="java"><code>void foo(int value) {
+     value = 100;
+}
+
+foo(num); // num 没有被改变</code></code></pre>
+<p>第二个例子：没有提供改变自身方法的引用类型</p>
+<pre class="java"><code>void foo(String text) {
+     text = &quot;windows&quot;;
+}
+
+foo(str); // str 也没有被改变</code></code></pre>
+<p>第三个例子：提供了改变自身方法的引用类型</p>
+<pre class="java"><code>StringBuilder sb = new StringBuilder(&quot;iphone&quot;);
+void foo(StringBuilder builder) {
+     builder.append(&quot;4&quot;);
+}
+
+foo(sb); // sb中的地址值没有改变，只是sb变量指向的内容变成了&quot;iphone4&quot;。</code></code></pre>
+<p>第四个例子：提供了改变自身方法的引用类型，但是不使用，而是使用赋值运算符。</p>
+<pre class="java"><code>StringBuilder sb = new StringBuilder(&quot;iphone&quot;);
+void foo(StringBuilder builder) {
+     builder = new StringBuilder(&quot;ipad&quot;);
+}
+
+foo(sb); // sb变量中的地址值没有被改变，所指向的内容还是 &quot;iphone&quot;；参数builder 指向了另一个内存中的&quot;ipad&quot;.</code></code></pre>
+<h2 id="递归方法">3、递归方法</h2>
+<p>什么是递归方法：一个方法体内调用它自身，这称为递归方法。<br />
+<strong>定义递归方法时最重要的一条规定：递归一定要向已知方向递归</strong></p>
+<p>《疯狂Java 讲义》 示例一如下：</p>
+<p><img src="./images/面向对象（上）2.png" alt="UTOOLS1567829680252.png" /></p>
+<p>示例二：</p>
+<p><img src="./images/面向对象（上）3.png" alt="UTOOLS1567829804225.png" /></p>
+<p>拿示例一说明：已知 f(0) 与 f(4)；如果使用 fn(n+2) - 2fn(n+1)，那么传入参数 n = 10 是永远无法得到结果的。因为 fn(n+2) - 2fn(n+1) 一直在循环，只有往 f(0) 与f (4) 的方向递归才能得到结果。</p>
+<h2 id="方法重载">4、方法重载</h2>
+<p>Java允许同一个类里定义多个同名方法，只要形参列表不同就行。如果同一个类中包含了两个或两个以上方法的方法名相同，但形参列表不同，则被称为<strong>方法重载</strong>。</p>
+<h1 id="三变量">三、变量</h1>
+<p><strong>Java 中根据定义变量位置的不同，可分为全局(成员)变量和局部变量。</strong></p>
+<ul>
+<li>成员变量
+<ul>
+<li>类变量 ： 类变量属于类，，被 static 修饰，不属于对象，在类的准备阶段开始存在 。</li>
+<li>实例变量：实例变量属于对象</li>
+</ul></li>
+<li>局部变量
+<ul>
+<li>形参</li>
+<li>方法内的变量</li>
+<li>代码块中的变量</li>
+</ul></li>
+</ul>
+<h1 id="四封装">四、封装</h1>
+<p>封装指的是将 对象的状态信息隐藏起来，不让外部应用直接对象内部信息，而是通过该类提供的方法来对内部的访问和操作。</p>
+<p>总结来说，封装的目的就是两点 ：</p>
+<ul>
+<li>将对象的成员变量和实现细节隐藏起来，不允许外部直接访问。</li>
+<li>把方法暴露出来，外部程序可通过方法来控制对这些成员变量进行安全的访问和操作。</li>
+</ul>
+<h2 id="访问控制符">1、访问控制符</h2>
+<ul>
+<li>private （当前类访问权限）</li>
+</ul>
+<p>如果类里的一个成员（包括成员变量、方法和构造器等)使用private 访问控制符来修饰，则这个成员只能在当前类的内部被访问。</p>
+<ul>
+<li>default(包访问权限）</li>
+</ul>
+<p>如果类里的一个成员(包括成员变量、方法和构造器等）或者一个外部类不使用任何访问控制符修饰，就称它是包访问权限的，default访问控制的成员或外部类可以被相同包下的其他类访问。</p>
+<ul>
+<li>protected(子类访问权限）</li>
+</ul>
+<p>如果一个成员（包括成员变量、方法和构造器等）使用protected访问控制符修饰，那么这个成员既可以被同一个包中的其他类访问，也可以被不同包中的子类访问。在通常情况下，如果使用protected来修饰一个方法，通常是希望其子类来重写这个方法。</p>
+<ul>
+<li>public(公共访问权限)</li>
+</ul>
+<p>如果一个成员(包括成员变量、方法和构造器等)或者一个外部类使用public访问控制符修饰，那么这个成员或外部类就可以被所有类访问。</p>
+<p><img src="./images/面向对象（上）4.png" alt="UTOOLS1567829897359.png" /></p>
+<h2 id="package-与-import">2、package 与 import</h2>
+<ul>
+<li>引入package 的概念是为了解决 类的命名冲突和类文件管理等问题</li>
+</ul>
+<p>每一个Jar 包提供的 类都有很多，很可能和别的jar 中的类 命名重复，故需要引入package 的概念解决 命名冲突的问题</p>
+<p>在引入 packege 后，在一个类中引入 其他 packege 中的方法 我们可以这样操作</p>
+<pre class="java"><code>com.myt.domain.Person p = new com.myt.domain.Person();</code></code></pre>
+<p><strong>但是 在调用不同package 中的类时总是需要 写该类的全名，则是非常繁琐的，故，为了简化代码，引入 import，import 可以导入指定包下的某个特点的类或者全部类。</strong></p>
+<h1 id="五构造器">五、构造器</h1>
+<p>构造器是创建对象的重要途径（静态工厂方法以及反射等方式都是通过构造器来创建对象的），故Java类中必须包含一个或者一个以上的构造器。</p>
+<h2 id="使用构造是执行初始化">1、使用构造是执行初始化</h2>
+<p>构造器最大的作用就是在创建对象时执行初始化，即在 new Person() 时，将对象中所有的基本类型的示例变量设置为0 ，所有的引用类型设置为 null 。当然如果想改变这种默认设置，在创建对象变量时显示的指定初始值即可。</p>
+<p>一个类可以有多个构造器，这就形成了构造器重载。因为构造器通常需要被别的方法调用，故构造器设置成 public 访问权限，允许从任何位置的类通过构造器来创建对象。但在一些其他业务情况下，需设置为其他的访问权限，比如单例模式，需设置为 private 访问权限，只允许该类本身创建对象。或者设置为 protected ，仅允许被其之类调用。</p>
+<h2 id="构造器的重载">2、构造器的重载</h2>
+<p>当类中的一个构造器（A）的执行体完全包含了另一个构造器（B）的执行体,则可以直接在 A构造器值使用 this 关键字来直接调用 B 构造器。</p>
+<pre class="java"><code>package com.myt.bean;
+import com.ivo.domain.Person;
+public class Employee extends Person {
+    private String employee_id;
+    private  String address;
+    public Employee() {}
+    //自定义构造器
+    public Employee(String employee_id) {
+        this.employee_id = employee_id;
+    }
+    //自定义构造器 --&gt; this
+    public Employee(String employee_id, String address) {
+        // this 调用的构造器必须在第一位
+        //  不可直接使用 new Employee(employee_id)，这会产生两个对象
+        this(employee_id);
+        this.address = address;
+    }
+}
+</code></code></pre>
+<h1 id="六继承">六、继承</h1>
+<p>Java 是单继承的，每个子类只能继承一个父类（基类或者称超类）。</p>
+<h2 id="继承的特点">1、继承的特点</h2>
+<p>子类继承了父类，将获得父类的所有成员变量和方法，<strong>注意 父类被 private 修饰的变量和方法可以继承但不能直接使用，子类也不能继承父类的构造器</strong>。</p>
+<ul>
+<li>子类可通过 父类public 修饰的 getter/setter 方法 访问 父类的 private 成员变量</li>
+<li>子类可通过父类 public 修饰的方法 访问父类的 private 方法</li>
+</ul>
+<h2 id="方法重写">2、方法重写</h2>
+<p>子类包含与父类相同名称的方法，这种情况称为方法重写（覆盖）。</p>
+<p>如果在子类需要访问父类中被重写方法，则可以使用 super(父类方法名) 或者 父类类名(父类方法名) 这样的形式来调用</p>
+<h2 id="super-关键字">3、super 关键字</h2>
+<p>可使用super 关键字来调用父类被子类覆盖的方法。<br />
+可使用 super 关键字调用父类的构造器。<br />
+当父类没有默认的构造器时，子类构造器必须显示的调用父类构造器。<br />
+在Java继承体系中，父类必须先于子类初始化，故存在两种情况：</p>
+<ul>
+<li>在子类的构造器中显式的调用父类的构造器，</li>
+<li>如果没有显式调用，子类的任何构造器都会默认调用父类的无参构造器。</li>
+</ul>
+<pre class="java"><code>package com.myt.bean;
+import com.myt.domain.Person;
+public class Employee extends Person {
+    private String employee_id;
+    private  String address;
+    public  void foo4(){
+        this.foo5();
+        super.foo2();
+    }
+    public  void foo5(){
+        System.out.println(111);
+    }
+    //自定义构造器 --&gt; super
+    public Employee(String name, String age, String employee_id, String address) {
+        super(name, age);
+        this.employee_id = employee_id;
+        this.address = address;
+    }
+}</code></code></pre>
+<h1 id="七多态">七、多态</h1>
+<h2 id="多态性">1、多态性</h2>
+<p>Java 的引用变量有两种类型</p>
+<ul>
+<li>编译时类型：由声明该变量时使用的类型决定</li>
+<li>引用时类型：由实际赋给该变量的对象决定</li>
+</ul>
+<p>如果编译时类型和运行时类型不一致，就可能出现多态。</p>
+<pre class="java"><code>public class Base {
+    public void methodOne() {
+        System.out.print(&quot;A&quot;);
+        methodTwo();
+    }
+    public void methodTwo() {
+        System.out.print(&quot;B&quot;);
+    }
+}
+public class Derived extends Base {
+    public void methodOne() {
+        super.methodOne();
+        System.out.print(&quot;C&quot;);
+    }
+    public void methodTwo() {
+        super.methodTwo();
+        System.out.print(&quot;D&quot;);
+    }
+}
+public class mainTest {
+   public static void main(String[] args) {
+        //编译时类型为 Base ； 父类引用指向子类对象 （向上转型）
+        Base base = new Derived();
+        //编译时是由 base 调用该方法，但运行时是 Derived 对象调用该方法
+        //所以第一次执行先调用Derived 的 methodOne()
+        base.methodOne();
+        }
+   }
+}</code></code></pre>
+<p>执行结果 ：A 、B、D、C<br />
+执行过程：</p>
+<ul>
+<li>base.methodOne() --&gt; 调用 Derived 中的 methodOne()方法</li>
+<li>methodOne() 方法中 super.methodOne() 调用了 Base 中的 methodOne() 打印 &quot;A&quot;</li>
+<li>Base 中的 methodOne() 中 调用了 methodTwo() ，但 子类 Derived 中重写了 methodTwo(), 所以执行的是 Derived 中的 methodTwo()方法</li>
+<li>Derived 中的 methodTwo()方法 中 super.methodTwo() 调用了 Base 中的 methodTwo() 打印 &quot;B&quot; 再打印 “D”</li>
+<li>最后再打印 “C”</li>
+</ul>
+<h2 id="引用变量的强制类型转换">2、引用变量的强制类型转换</h2>
+<p><strong>引用变量只能调用它编译时类型的方法，而不能调用它运行时类型的方法，即使它实际所引用的对象确实包含该方法。如果需要让这个引用变量调用它运行时类型的方法，则必须把它强制类型转换成运行时类型，强制类型转换需要借助于类型转换运算符。</strong></p>
+<pre class="java"><code>public class Test {
+    public static void main(String[] args) {
+        Person p = new Employee();
+        // foo2() Person 独有的方法
+        p.foo2();
+        // foo() Employee 类中重写了
+        p.foo();
+        // foo4 Employee 独有方法，故需强转
+        ((Employee) p).foo4();
+    }
+}
+
+</code></code></pre>
+<h2 id="instanceof-运算符">3、instanceof 运算符</h2>
+<p><strong>instanceof 运算符左边通常是一个引用变量，右边是一个类或者接口；它用于判断 这个引用变量指向的对象是不是右边的类或者是该类的子类，或实现类。</strong></p>
+<pre class="java"><code>public class Test {
+    public static void main(String[] args) {
+        Object obj =&quot;hello&quot;;
+        System.out.println( obj instanceof  Object ); //true
+        Person p = new Employee();
+        System.out.println( p instanceof  Employee); //true
+       // Employee emp = (Employee) new Person();
+       // System.out.println(emp instanceof  Person);// ClassCastException
+       //想让父类强制转换成子类，不是没有可能，除非父类是子类构造出来的实例，不然是不能强转的
+        Employee emp2 = (Employee) p;
+        System.out.println(emp2 instanceof  Person); //true
+    }
+}</code></code></pre>
+<ul>
+<li>向上转型：employee --&gt; Person</li>
+</ul>
+<pre class="java"><code>Person p = new Employee();</code></code></pre>
+<ul>
+<li>向下转型：Person --&gt; employee</li>
+</ul>
+<pre class="java"><code> Employee emp = (Employee) new Person(); //报错：  ClassCastException
+
+//想让父类强制转换成子类，不是没有可能，除非父类是子类构造出来的实例，不然是不能强转的
+ Person p = new Employee();
+ Employee emp2 = (Employee) p;</code></code></pre>
+<h2 id="初始化块">4、初始化块</h2>
+<p>初始化块和构造器的作用类似，可以对Java 对象进行初始化。</p>
+<p>初始块的修饰符只能是static ,被static修饰的称之为静态代码块，先执行代码块，再执行构造器。</p>
+<pre class="java"><code>public class CodeblockTest {
+    public static void main(String[] args) {
+        new Leaf();
+        System.out.println(&quot;--------------------------&quot;);
+        new Leaf();
+    }
+}
+class Root{
+    static {
+        System.out.println(&quot;root 静态初始化块&quot;);
+    }
+    {
+    System.out.println(&quot;root 普通初始化块&quot;);
+    }
+
+    public Root(){
+        System.out.println(&quot;root 无参构造&quot;);
+    }
+}
+
+class  Mid extends  Root{
+    static {
+        System.out.println(&quot;mid 静态初始化块&quot;);
+    }
+    {
+        System.out.println(&quot;mid 普通初始化块&quot;);
+    }
+
+    public Mid(){
+        System.out.println(&quot;mid 无参构造&quot;);
+    }
+
+    public Mid(String msg){
+        this(); //使用this 调用类中构造器
+        System.out.println(&quot;mid 无参构造 &quot;+msg);
+    }
+}
+
+class Leaf extends  Mid{
+    static {
+        System.out.println(&quot;Leaf 静态初始化块&quot;);
+    }
+    {
+        System.out.println(&quot;Leaf 普通初始化块&quot;);
+    }
+
+    public Leaf(){
+        super(&quot;测试&quot;); //使用super 调用父类构造
+        System.out.println(&quot;Leaf 无参构造&quot;);
+    }
+}</code></code></pre>
+<p>输出顺序 ：</p>
+<pre><code><code>root 静态初始化块
+mid 静态初始化块
+Leaf 静态初始化块
+root 普通初始化块
+root 无参构造
+mid 普通初始化块
+mid 无参构造
+mid 无参构造 测试
+Leaf 普通初始化块
+Leaf 无参构造
+---------------------------------------
+root 普通初始化块
+root 无参构造
+mid 普通初始化块
+mid 无参构造
+mid 无参构造 测试
+Leaf 普通初始化块
+Leaf 无参构造</code></code></pre>
+<p>总结 ：</p>
+<ul>
+<li>在创建 leaf 对象 时，系统中并没有 该 leaf 类，故先加载该类。在加载leaf 类时，先加载的是该类的最顶层父类的静态代码块，在加载其父类Mid 的静态代码块 ，最后 执行该类本身的静态代码块</li>
+<li>在执行完类加载后 ，创建对象leaf 实例,也是先执行顶层父类对象的普通代码块和构造方法，最后执行该对象本身的普通代码块和构造器</li>
+<li>第二次创建该类对象时，因第一次已经加载了静态代码块，故不需要再执行，所以执行重新实例化该对象就ok(从顶层父类对象开始)</li>
+</ul>
+
+
+</div><hr><script charset='utf-8' src='../../js/sming.js'></script></body></html>

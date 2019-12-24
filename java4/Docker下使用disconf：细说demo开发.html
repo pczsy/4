@@ -1,0 +1,277 @@
+<html><head><meta charset='utf-8'><meta name='viewport' content='width=device-width, initial-scale=1'>
+<meta name='applicable-device' content='pc'><meta name='keywords' content='电脑,电脑讲解,电脑技术,编程,电脑故障维修Docker下使用disconf：细说demo开发' />
+<script src='../../highlight/highlight.pack.js'></script>
+<link rel='stylesheet' type='text/css' href='../../highlight/styles/monokai.css'/>
+
+<link rel='stylesheet' href='../../fenxiang/dist/css/share.min.css'>
+<script src='../../fenxiang/src/js/social-share.js'></script>
+<script src='../../fenxiang/src/js/qrcode.js'></script>
+
+</head><body><script>hljs.initHighlightingOnLoad();</script><script>
+var system ={};  
+var p = navigator.platform;       
+system.win = p.indexOf('Win') == 0;  
+system.mac = p.indexOf('Mac') == 0;  
+system.x11 = (p == 'X11') || (p.indexOf('Linux') == 0);     
+if(system.win||system.mac||system.xll){
+document.write("<link href='../css/3.css' rel='stylesheet' type='text/css'>");}else{ document.write("<link href='../css/3wap.css' rel='stylesheet' type='text/css'>");}</script><script src='../../js/3.js'></script><div class='div2'><div class='heading_nav'><ul><div><li><a href='../../index.html'>首页</a></li>
+</div><div onclick='hidden1()' >分享</div>
+</ul></div></div>
+<div id='heading_nav2'> 
+<li class='row' >
+<div class='social-share' data-mode='prepend'><a href='javascript:' class='social-share-icon icon-heart'></a></div></li></div><script charset='utf-8' src='../../3/js/hengfu.js'></script><script charset='utf-8' src='../../3/js/hengfu2.js'></script><hr><div class='div1'><div class='biaoti'><center>Docker下使用disconf：细说demo开发</center></div><div class='banquan'>原文出处:本文由博客园博主zq2599提供。<br/>
+原文连接:https://www.cnblogs.com/bolingcavalry/p/11510316.html</div><br>
+    <h3 id="docker下的disconf实战全文链接">Docker下的disconf实战全文链接</h3>
+<ol>
+<li><a href="https://blog.csdn.net/boling_cavalry/article/details/71082610">《Docker搭建disconf环境，三部曲之一：极速搭建disconf》</a>；</li>
+<li><a href="https://blog.csdn.net/boling_cavalry/article/details/71107498">《Docker搭建disconf环境，三部曲之二：本地快速构建disconf镜像》</a>；</li>
+<li><a href="https://blog.csdn.net/boling_cavalry/article/details/71120725">《Docker搭建disconf环境，三部曲之三：细说搭建过程》</a>；</li>
+<li><a href="https://blog.csdn.net/boling_cavalry/article/details/71404395">《Docker下使用disconf：极速体验》</a>；</li>
+<li><a href="https://blog.csdn.net/boling_cavalry/article/details/71424124">《Docker下使用disconf：细说demo开发》</a>；</li>
+</ol>
+<h3 id="细说demo开发">细说demo开发</h3>
+<p>在上一章<a href="http://blog.csdn.net/boling_cavalry/article/details/71404395">《docker下使用disconf：极速体验》</a>中我们体验了disconf服务的使用方获取配置以及实时感知到这个配置变化的效果，今天我们一起来实践这个demo的开发过程，学会在项目中使用disconf服务。</p>
+<p>此demo源于disconf官网的demo(git地址:git@github.com:knightliao/disconf-demos-java.git，下有三个工程，此文的demo源自其中的disconf-standalone-demo)，官方demo展示了大而全的功能，做为初学者的我花了不少时间去看，因此我就基于官方代码做了精简，精简后的代码旨在快速为初学者展示最基本的远程配置和实时感知配置变化的能力，若要系统的学习disconf的各类服务，还请自行研究官方文档和demo。</p>
+<p>本文demo的源码在git@github.com:zq2599/blog_demos.git，下载后的里面有多个工程，下图红框中的工程才是本文的demo：</p>
+<p><img src="./images/Docker下使用disconf：细说demo开发0.png" alt="这里写图片描述" /></p>
+<p>接下来我们看看调用disconf服务需要哪些步骤：</p>
+<ol>
+<li>由于这是个maven工程，所以首先要确定依赖包，我们用到的主要有disconf的库，以及spring和日志等常用库，如下：</li>
+</ol>
+<pre><code><code>&lt;dependencies&gt;
+
+        &lt;dependency&gt;
+            &lt;groupId&gt;com.baidu.disconf&lt;/groupId&gt;
+            &lt;artifactId&gt;disconf-client&lt;/artifactId&gt;
+            &lt;version&gt;2.6.36&lt;/version&gt;
+        &lt;/dependency&gt;
+
+        &lt;dependency&gt;
+            &lt;groupId&gt;commons-io&lt;/groupId&gt;
+            &lt;artifactId&gt;commons-io&lt;/artifactId&gt;
+            &lt;version&gt;1.4&lt;/version&gt;
+        &lt;/dependency&gt;
+
+        &lt;dependency&gt;
+            &lt;groupId&gt;commons-lang&lt;/groupId&gt;
+            &lt;artifactId&gt;commons-lang&lt;/artifactId&gt;
+            &lt;version&gt;2.4&lt;/version&gt;
+        &lt;/dependency&gt;
+
+        &lt;dependency&gt;
+            &lt;groupId&gt;org.slf4j&lt;/groupId&gt;
+            &lt;artifactId&gt;slf4j-api&lt;/artifactId&gt;
+            &lt;version&gt;1.7.6&lt;/version&gt;
+        &lt;/dependency&gt;
+
+        &lt;dependency&gt;
+            &lt;groupId&gt;ch.qos.logback&lt;/groupId&gt;
+            &lt;artifactId&gt;logback-core&lt;/artifactId&gt;
+            &lt;version&gt;1.0.9&lt;/version&gt;
+        &lt;/dependency&gt;
+
+        &lt;dependency&gt;
+            &lt;groupId&gt;ch.qos.logback&lt;/groupId&gt;
+            &lt;artifactId&gt;logback-classic&lt;/artifactId&gt;
+            &lt;version&gt;1.0.9&lt;/version&gt;
+        &lt;/dependency&gt;
+
+        &lt;dependency&gt;
+            &lt;groupId&gt;org.springframework&lt;/groupId&gt;
+            &lt;artifactId&gt;spring-context&lt;/artifactId&gt;
+            &lt;version&gt;4.1.7.RELEASE&lt;/version&gt;
+        &lt;/dependency&gt;
+    &lt;/dependencies&gt;</code></code></pre>
+<p>maven的构建插件是作者自定义的，除了基本功能，还生成了一些脚本工具，我们直接使用：</p>
+<pre class="shell"><code>&lt;plugin&gt;
+                &lt;groupId&gt;com.github.knightliao.plugin&lt;/groupId&gt;
+                &lt;artifactId&gt;starter-shade-maven-plugin&lt;/artifactId&gt;
+                &lt;version&gt;1.0.0&lt;/version&gt;
+                &lt;executions&gt;
+                    &lt;execution&gt;
+                        &lt;phase&gt;package&lt;/phase&gt;
+                        &lt;goals&gt;
+                            &lt;goal&gt;shade&lt;/goal&gt;
+                        &lt;/goals&gt;
+                        &lt;configuration&gt;
+                            &lt;finalName&gt;${project.build.finalName}&lt;/finalName&gt;
+                            &lt;transformers&gt;
+                                &lt;transformer
+                                        implementation=&quot;org.apache.maven.plugins.shade.resource.ManifestResourceTransformer&quot;&gt;
+                                    &lt;mainClass&gt;com.example.disconf.demo.DisconfDemoMain&lt;/mainClass&gt;
+                                &lt;/transformer&gt;
+                                &lt;transformer
+                                        implementation=&quot;org.apache.maven.plugins.shade.resource.DontIncludeResourceTransformer&quot;&gt;
+                                    &lt;resources&gt;
+                                        &lt;resource&gt;env&lt;/resource&gt;
+                                        &lt;resource&gt;disconf.properties&lt;/resource&gt;
+                                        &lt;resource&gt;logback.xml&lt;/resource&gt;
+                                    &lt;/resources&gt;
+                                &lt;/transformer&gt;
+                                &lt;transformer
+                                        implementation=&quot;org.apache.maven.plugins.shade.resource.AppendingTransformer&quot;&gt;
+                                    &lt;resource&gt;META-INF/spring.handlers&lt;/resource&gt;
+                                &lt;/transformer&gt;
+                                &lt;transformer
+                                        implementation=&quot;org.apache.maven.plugins.shade.resource.AppendingTransformer&quot;&gt;
+                                    &lt;resource&gt;META-INF/spring.schemas&lt;/resource&gt;
+                                &lt;/transformer&gt;
+                            &lt;/transformers&gt;
+                        &lt;/configuration&gt;
+                    &lt;/execution&gt;
+                &lt;/executions&gt;
+            &lt;/plugin&gt;</code></code></pre>
+<ol>
+<li><p>程序入口是DisconfDemoMain类，里面的main方法初始化spring环境，启动一个while死循环，每隔五秒将JedisConfig实例的host和port属性打印到终端；</p></li>
+<li><p>JedisConfig的host和port属性，是被disconf的runtime环境控制，可以实时被设置成最新的配置值，对应的远程配置和具体的属性字段，都是通过注解来完成的：</p></li>
+</ol>
+<p><img src="./images/Docker下使用disconf：细说demo开发1.png" alt="这里写图片描述" /></p>
+<p>如上图所示：</p>
+<blockquote>
+<p>红框中的DisconfFile注解将该类和disconf服务端的redis.properties配置绑定;<br />
+黄框中的DisconfFileItem注解将host和port属性与redis.properties配置的host，port属性绑定;<br />
+紫框中的DisconfUpdateService注解向disconf运行时注册了配置变化的实时广播监听，当配置发生变化时，蓝框中的reload方法会被disconf运行时调用；</p>
+</blockquote>
+<ol>
+<li><p>SimpleRedisServiceUpdateCallback类的作用也是注册广播监听，当配置发生变化时，蓝框中的reload方法会被disconf运行时调用；</p></li>
+<li><p>除了代码，还要关注disconf.properties文件:</p></li>
+</ol>
+<pre class="properties"><code># 是否使用远程配置文件
+# true(默认)会从远程获取配置 false则直接获取本地配置
+disconf.enable.remote.conf=true
+
+#
+# 配置服务器的 HOST,用逗号分隔  127.0.0.1:8004,127.0.0.1:8004
+#
+disconf.conf_server_host=nginxhost:80
+#disconf.conf_server_host=127.0.0.1:80
+
+# 版本, 请采用 X_X_X_X 格式 
+disconf.version=1_0_0_0
+
+# APP 请采用 产品线_服务名 格式 
+disconf.app=disconf_demo
+
+# 环境disco
+disconf.env=rd
+
+# 忽略哪些分布式配置，用逗号分隔
+disconf.ignore=
+
+# 获取远程配置 重试次数，默认是3次
+disconf.conf_server_url_retry_times=1
+# 获取远程配置 重试时休眠时间，默认是5秒
+disconf.conf_server_url_retry_sleep_seconds=1
+
+# 用户指定的下载文件夹, 远程文件下载后会放在这里
+disconf.user_define_download_dir=./disconf/download2
+
+# 下载的文件会被迁移到classpath根路径下，强烈建议将此选项置为 true(默认是true)
+disconf.enable_local_download_dir_in_class_path=true</code></code></pre>
+<p>conf_server_host的值在此处配置成nginxhost,这个和docker容器启动时配置的nginx的link别名一致，这样demo就能访问到disconf服务器了；</p>
+<ol>
+<li>disconf在demo上的运行时环境，是通过spring配置来实现的，如下：</li>
+</ol>
+<pre class="shell"><code>&lt;context:component-scan base-package=&quot;com.example&quot;/&gt;
+
+    &lt;aop:aspectj-autoproxy proxy-target-class=&quot;true&quot;/&gt;
+
+    &lt;!-- 使用disconf必须添加以下配置 --&gt;
+    &lt;bean id=&quot;disconfMgrBean&quot; class=&quot;com.baidu.disconf.client.DisconfMgrBean&quot;
+          destroy-method=&quot;destroy&quot;&gt;
+        &lt;property name=&quot;scanPackage&quot; value=&quot;com.example.disconf.demo&quot;/&gt;
+    &lt;/bean&gt;
+    &lt;bean id=&quot;disconfMgrBean2&quot; class=&quot;com.baidu.disconf.client.DisconfMgrBeanSecond&quot;
+          init-method=&quot;init&quot; destroy-method=&quot;destroy&quot;&gt;
+    &lt;/bean&gt;</code></code></pre>
+<p>disconfMgrBean复制核心管理，disconfMgrBean2负责启动定时扫描和实现销毁时的回调。</p>
+<ol>
+<li>配置好这些，打开控制台，在pom.xml文件所在目录下执行<font color="blue">mvn clean package -U</font>，即可完成打包，这时候进入target目录，可以看到执行结果如下图：</li>
+</ol>
+<p><img src="./images/Docker下使用disconf：细说demo开发2.png" alt="这里写图片描述" /></p>
+<ol>
+<li>打开上图中的starter-run文件夹中的start.sh文件，最下面一行内容如下：</li>
+</ol>
+<pre class="shell"><code>nohup java $JAVA_OPTS -jar ${CUR_BUNDLE_NAME} &gt;&gt; log_`date +%s`.log 2&gt;&amp;1 &amp;</code></code></pre>
+<p>这个命令会启动java进程，并且把输出信息重定向到日志文件中，这样就不便于我们观察demo的运行效果，动手把这一行修改如下：</p>
+<pre class="shell"><code>java $JAVA_OPTS -jar ${CUR_BUNDLE_NAME}</code></code></pre>
+<p>这样所有的日志都会在控制台打印出来，便于我们观察运行状态；</p>
+<ol>
+<li>打包完成了，现在可以开始制作镜像了，这里的基础镜像我选用的是<font color="blue">tomcat:7.0.77-jre8</font>，是为了图个方便，不用安装jdk和配置java环境了，dockerfile内容非常简单，创建一个工作目录，把前面打包时生成的starter-run文件夹下的所有东西都复制到这个工作目录中去：</li>
+</ol>
+<pre class="shell"><code># Docker image of disconf consumer
+# VERSION 0.0.1
+# Author: bolingcavalry
+
+#基础镜像使用tomcat:7.0.77-jre8
+FROM tomcat:7.0.77-jre8
+
+#作者
+MAINTAINER BolingCavalry &lt;zq2599@gmail.com&gt;
+
+#定义工作目录
+ENV WORK_PATH /usr/local/work
+
+#创建工作文件夹
+RUN mkdir -p $WORK_PATH
+
+#复制应用包到工作文件夹
+COPY ./starter-run $WORK_PATH/</code></code></pre>
+<p>打开终端，在dockerfile的目录下执行以下命令生成镜像:</p>
+<pre class="shell"><code>docker build -t local_disconf_standalone_demo:0.0.1 .</code></code></pre>
+<ol>
+<li>新建一个docker-compose.yml文件，内容如下所示：<font color="red">(这里要重点注意的是disconf_java的link配置，除了连接disconf_nginx，还要连接disconf_zookeeper，否则启动demo的时候会提示watcher启动失败，导致在disconf服务端修改配置后，demo收不到配置更新的广播)</font>：</li>
+</ol>
+<pre class="yml"><code>version: &#39;2&#39;
+services:
+  disconf_redis_1: 
+    image: daocloud.io/library/redis
+    restart: always
+  disconf_redis_2: 
+    image: daocloud.io/library/redis
+    restart: always
+  disconf_zookeeper: 
+    image: zookeeper:3.3.6
+    restart: always
+  disconf_mysql: 
+    image: bolingcavalry/disconf_mysql:0.0.1
+    environment:
+      MYSQL_ROOT_PASSWORD: 123456
+    restart: always
+  disconf_tomcat: 
+    image: bolingcavalry/disconf_tomcat:0.0.1
+    links: 
+      - disconf_redis_1:redishost001 
+      - disconf_redis_2:redishost002
+      - disconf_zookeeper:zkhost
+      - disconf_mysql:mysqlhost
+    restart: always
+  disconf_nginx: 
+    image: bolingcavalry/disconf_nginx:0.0.1
+    links: 
+      - disconf_tomcat:tomcathost 
+    ports: 
+      - &quot;80:80&quot; 
+    restart: always
+  disconf_java: 
+    image: local_disconf_standalone_demo:0.0.1
+    links: 
+      - disconf_nginx:nginxhost
+      - disconf_zookeeper:zkhost
+    restart: always  </code></code></pre>
+<ol>
+<li>在docker-compose.yml文件所在目录下执行命令<font color="blue">docker-compose up -d</font>，启动所有容器，如下图：</li>
+</ol>
+<p><img src="./images/Docker下使用disconf：细说demo开发3.png" alt="这里写图片描述" /></p>
+<ol>
+<li><p>执行命令<font color="blue">08_disconf_java_1</font>进入容器，再进入/usr/local/work目录，执行./start.sh启动demo，即可看到disconf本地运行时的启动信息，以及每隔5秒一次的输出配置信息；</p></li>
+<li><p>在浏览器上输入localhost，登录disconf，用户名密码都是admin，修改对应的配置项，在docker容器08_disconf_java_1的控制台即可看到对应的输出，具体操作方法请参照上一章<a href="http://blog.csdn.net/boling_cavalry/article/details/71404395">《docker下使用disconf：极速体验》</a></p></li>
+<li><p>本章用到的docker镜像的制作材料也已经上传到git上，地址：git@github.com:zq2599/docker_disconf.git，目录如下图红框：</p></li>
+</ol>
+<p><img src="./images/Docker下使用disconf：细说demo开发4.png" alt="这里写图片描述" /></p>
+<p>至此，一个使用disconf的demo已经完成了开发和使用，这只是给大家带来初步的认识，deisonf的配置服务是很丰富的，大家可以在官网的文档和demo中获取更详细的信息。</p>
+<h3 id="欢迎关注我的公众号">欢迎关注我的公众号</h3>
+<p><img src="./images/Docker下使用disconf：细说demo开发5.png" alt="在这里插入图片描述" /></p>
+
+
+</div><hr><script charset='utf-8' src='../../js/sming.js'></script></body></html>

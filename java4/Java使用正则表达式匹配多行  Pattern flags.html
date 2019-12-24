@@ -1,0 +1,159 @@
+<html><head><meta charset='utf-8'><meta name='viewport' content='width=device-width, initial-scale=1'>
+<meta name='applicable-device' content='pc'><meta name='keywords' content='电脑,电脑讲解,电脑技术,编程,电脑故障维修Java使用正则表达式匹配多行  Pattern flags' />
+<script src='../../highlight/highlight.pack.js'></script>
+<link rel='stylesheet' type='text/css' href='../../highlight/styles/monokai.css'/>
+
+<link rel='stylesheet' href='../../fenxiang/dist/css/share.min.css'>
+<script src='../../fenxiang/src/js/social-share.js'></script>
+<script src='../../fenxiang/src/js/qrcode.js'></script>
+
+</head><body><script>hljs.initHighlightingOnLoad();</script><script>
+var system ={};  
+var p = navigator.platform;       
+system.win = p.indexOf('Win') == 0;  
+system.mac = p.indexOf('Mac') == 0;  
+system.x11 = (p == 'X11') || (p.indexOf('Linux') == 0);     
+if(system.win||system.mac||system.xll){
+document.write("<link href='../css/3.css' rel='stylesheet' type='text/css'>");}else{ document.write("<link href='../css/3wap.css' rel='stylesheet' type='text/css'>");}</script><script src='../../js/3.js'></script><div class='div2'><div class='heading_nav'><ul><div><li><a href='../../index.html'>首页</a></li>
+</div><div onclick='hidden1()' >分享</div>
+</ul></div></div>
+<div id='heading_nav2'> 
+<li class='row' >
+<div class='social-share' data-mode='prepend'><a href='javascript:' class='social-share-icon icon-heart'></a></div></li></div><script charset='utf-8' src='../../3/js/hengfu.js'></script><script charset='utf-8' src='../../3/js/hengfu2.js'></script><hr><div class='div1'><div class='biaoti'><center>Java使用正则表达式匹配多行  Pattern flags</center></div><div class='banquan'>原文出处:本文由博客园博主MengW9提供。<br/>
+原文连接:https://www.cnblogs.com/mengw/p/11454848.html</div><br>
+    <p><span style="font-size: 18px;">Java中正则匹配有多种模式，若不选择模式则默认为单行匹配</span></p>
+<h2><span style="font-size: 18px;">匹配模式(Pattern flags)</span></h2>
+<p><span style="font-size: 18px;">compile()方法有两个模式</span></p>
+<p><span style="font-size: 18px;">未开匹配模式</span></p>
+<src class="cnblogs_code">
+<pre><code>Pattern compile(String regex)</code></pre>
+
+<p><span style="font-size: 18px;">开匹配模式</span></p>
+<src class="cnblogs_code">
+<pre><code>Pattern compile(String regex, <span style="color: #0000ff;">int</span> flags)</code></pre>
+
+<h3><span style="font-size: 18px;">源码关于flags的描述</span></h3>
+<src class="cnblogs_code">
+<pre><code><span style="color: #000000;">Match flags, a bit mask that may include
+        {@link #CASE_INSENSITIVE}, 
+        {@link #MULTILINE}, 
+        {@link #DOTALL},
+        {@link #UNICODE_CASE}, 
+        {@link #CANON_EQ}, 
+        {@link #UNIX_LINES},
+        {@link #LITERAL}, 
+        {@link #UNICODE_CHARACTER_CLASS}
+        and {@link #COMMENTS}    </span></code></pre>
+
+<p><span style="font-size: 18px;">flags的取值</span>&nbsp;</p>
+<p>&nbsp;</p>
+<table class="narration" style="height: 245px; width: 689px;" border="2" cellspacing="0" cellpadding="2">
+<tbody>
+<tr><th><span class="original_words">编译标志</span></th><th><span class="original_words">效果</span></th></tr>
+<tr>
+<td><span class="original_words">Pattern.CANON_EQ</span></td>
+<td>当且仅当两个字符的"正规分解(canonical decomposition)"都完全相同的情况下，才认定匹配。比如用了这个标志之后，表达式"a/u030A"会匹配"?"。默认情况下，不考虑"规范相等性(canonical equivalence)"。</td>
+</tr>
+<tr>
+<td><span class="original_words">Pattern.CASE_INSENSITIVE<br />(?i)</span></td>
+<td>默认情况下，大小写不明感的匹配只适用于US-ASCII字符集。这个标志能让表达式忽略大小写进行匹配。要想对Unicode字符进行大小不明感的匹配，只要将<span class="original_words">UNICODE_CASE与这个标志合起来就行了。</span></td>
+
+
+
+
+</tr>
+<tr>
+<td><span class="original_words">Pattern.COMMENTS<br />(?x)</span></td>
+<td>在这种模式下，匹配时会忽略(正则表达式里的)空格字符(注：不是指表达式里的"//s"，而是指表达式里的空格，tab，回车之类)。注释从#开始，一直到这行结束。可以通过嵌入式的标志来启用Unix行模式。</td>
+
+
+
+
+</tr>
+<tr>
+<td><span class="original_words">Pattern.DOTALL<br />(?s)</span></td>
+<td>在这种模式下，表达式'.'可以匹配任意字符，包括表示一行的结束符。默认情况下，表达式'.'不匹配行的结束符。</td>
+
+
+
+
+</tr>
+<tr>
+<td><span class="original_words">Pattern.MULTILINE<br />(?m)</span></td>
+<td>在这种模式下，'^'和'$'分别匹配一行的开始和结束。此外，'^'仍然匹配字符串的开始，'$'也匹配字符串的结束。默认情况下，这两个表达式仅仅匹配字符串的开始和结束。</td>
+
+
+
+
+</tr>
+<tr>
+<td><span class="original_words">Pattern.UNICODE_CASE<br />(?u)</span></td>
+<td>在这个模式下，如果你还启用了<span class="original_words">CASE_INSENSITIVE标志，那么它会对Unicode字符进行大小写不明感的匹配。默认情况下，大小写不明感的匹配只适用于US-ASCII字符集。</span></td>
+
+
+
+
+</tr>
+<tr>
+<td><span class="original_words">Pattern.UNIX_LINES<br />(?d)</span></td>
+<td>在这个模式下，只有'/n'才被认作一行的中止，并且与'.'，'^'，以及'$'进行匹配。</td>
+
+
+
+
+</tr>
+
+
+
+
+</tbody>
+
+
+
+</table>
+<p><br /><span style="font-size: 18px;">在这些标志里面，<span class="original_words">Pattern.CASE_INSENSITIVE，<span class="original_words">Pattern.MULTILINE，以及<span class="original_words">Pattern.COMMENTS是最有用的(其中<span class="original_words">Pattern.COMMENTS还能帮我们把思路理清楚，并且/或者做文档)。注意，你可以用在表达式里插记号的方式来启用绝大多数的模式。这些记号就在上面那张表的各个标志的下面。你希望模式从哪里开始启动，就在哪里插记号。</span></span></span></span></span></p>
+<p><span style="font-size: 18px;">可以用"OR" ('|')运算符把这些标志合使用</span></p>
+<p><span style="font-size: 18px;">&nbsp;下面详细说明下部分的用法</span></p>
+<h3>1、Pattern.MULTILINE模式的用法</h3>
+<p><span style="font-size: 18px;">正则表达式中出现了^或者$, 默认只会匹配第一行. 设置了Pattern.MULTILINE模式,会匹配所有行。例如：</span></p>
+<src class="cnblogs_code">
+<pre><code>Pattern p1 = Pattern.compile("^.*b.*$"<span style="color: #000000;">);
+</span><span style="color: #008000;">//</span><span style="color: #008000;">输出false,因为正则表达式中出现了^或$，默认只会匹配第一行，第二行的b匹配不到。</span>
+System.out.println(p1.matcher("a\nb"<span style="color: #000000;">).find());
+Pattern p2 </span>= Pattern.compile("^.*b.*$"<span style="color: #000000;">,Pattern.MULTILINE);
+</span><span style="color: #008000;">//</span><span style="color: #008000;">输出true,指定了Pattern.MULTILINE模式，就可以匹配多行了。</span>
+System.out.println(p2.matcher("a\nb").find());</code></pre>
+
+<h3>2、Pattern.DOTALL模式的用法</h3>
+<p><span style="font-size: 18px;">默认情况下, 正则表达式中点(.)不会匹配换行符, 设置了Pattern.DOTALL模式, 才会匹配所有字符包括换行符。例如：</span></p>
+<src class="cnblogs_code">
+<pre><code>Pattern p1 = Pattern.compile("a.*b"<span style="color: #000000;">);
+</span><span style="color: #008000;">//</span><span style="color: #008000;">输出false，默认点(.)没有匹配换行符</span>
+System.out.println(p1.matcher("a\nb"<span style="color: #000000;">).find());
+Pattern p2 </span>= Pattern.compile("a.*b"<span style="color: #000000;">, Pattern.DOTALL);
+</span><span style="color: #008000;">//</span><span style="color: #008000;">输出true,指定Pattern.DOTALL模式，可以匹配换行符。</span>
+System.out.println(p2.matcher("a\nb").find());</code></pre>
+
+<h3>3、同时指定Pattern.MULTILINE和Pattern.DOTALL模式</h3>
+<p><span style="font-size: 18px;">实际情况中要是比较复杂的情况，可能Pattern.MULTILINE模式和Pattern.DOTAL模式需要同时指定来匹配多行</span></p>
+<src class="cnblogs_code">
+<pre><code>Pattern p1 = Pattern.compile("^a.*b$"<span style="color: #000000;">);
+</span><span style="color: #008000;">//</span><span style="color: #008000;">输出false</span>
+System.out.println(p1.matcher("cc\na\nb"<span style="color: #000000;">).find());
+Pattern p2 </span>= Pattern.compile("^a.*b$"<span style="color: #000000;">, Pattern.DOTALL);
+</span><span style="color: #008000;">//</span><span style="color: #008000;">输出false,因为有^或&amp;没有匹配到下一行</span>
+System.out.println(p2.matcher("cc\na\nb"<span style="color: #000000;">).find());
+Pattern p3 </span>= Pattern.compile("^a.*b$"<span style="color: #000000;">, Pattern.MULTILINE);
+</span><span style="color: #008000;">//</span><span style="color: #008000;">输出false，匹配到下一行，但.没有匹配换行符</span>
+System.out.println(p3.matcher("cc\na\nb"<span style="color: #000000;">).find());
+</span><span style="color: #008000;">//</span><span style="color: #008000;">指定多个模式，中间用|隔开</span>
+Pattern p4 = Pattern.compile("^a.*b$", Pattern.DOTALL|<span style="color: #000000;">Pattern.MULTILINE);
+</span><span style="color: #008000;">//</span><span style="color: #008000;">输出true</span>
+System.out.println(p4.matcher("cc\na\nb").find());</code></pre>
+
+<p>&nbsp;</p>
+<p>参考：</p>
+<p><a href="https://www.cnblogs.com/xyou/p/7427779.html">https://www.cnblogs.com/xyou/p/7427779.html</a></p>
+<p><a href="https://www.cjavapy.com/article/68/">https://www.cjavapy.com/article/68/</a></p>
+
+</div><hr><script charset='utf-8' src='../../js/sming.js'></script></body></html>

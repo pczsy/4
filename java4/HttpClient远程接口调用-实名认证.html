@@ -1,0 +1,577 @@
+<html><head><meta charset='utf-8'><meta name='viewport' content='width=device-width, initial-scale=1'>
+<meta name='applicable-device' content='pc'><meta name='keywords' content='电脑,电脑讲解,电脑技术,编程,电脑故障维修HttpClient远程接口调用-实名认证' />
+<script src='../../highlight/highlight.pack.js'></script>
+<link rel='stylesheet' type='text/css' href='../../highlight/styles/monokai.css'/>
+
+<link rel='stylesheet' href='../../fenxiang/dist/css/share.min.css'>
+<script src='../../fenxiang/src/js/social-share.js'></script>
+<script src='../../fenxiang/src/js/qrcode.js'></script>
+
+</head><body><script>hljs.initHighlightingOnLoad();</script><script>
+var system ={};  
+var p = navigator.platform;       
+system.win = p.indexOf('Win') == 0;  
+system.mac = p.indexOf('Mac') == 0;  
+system.x11 = (p == 'X11') || (p.indexOf('Linux') == 0);     
+if(system.win||system.mac||system.xll){
+document.write("<link href='../css/3.css' rel='stylesheet' type='text/css'>");}else{ document.write("<link href='../css/3wap.css' rel='stylesheet' type='text/css'>");}</script><script src='../../js/3.js'></script><div class='div2'><div class='heading_nav'><ul><div><li><a href='../../index.html'>首页</a></li>
+</div><div onclick='hidden1()' >分享</div>
+</ul></div></div>
+<div id='heading_nav2'> 
+<li class='row' >
+<div class='social-share' data-mode='prepend'><a href='javascript:' class='social-share-icon icon-heart'></a></div></li></div><script charset='utf-8' src='../../3/js/hengfu.js'></script><script charset='utf-8' src='../../3/js/hengfu2.js'></script><hr><div class='div1'><div class='biaoti'><center>HttpClient远程接口调用-实名认证</center></div><div class='banquan'>原文出处:本文由博客园博主libingshen提供。<br/>
+原文连接:https://www.cnblogs.com/lisingshen/p/11569290.html</div><br>
+    <p>1、HttpClient远程接口调用</p>
+<p>1)用户注册</p>
+<p><img src="./images/HttpClient远程接口调用-实名认证0.png" alt="用户注册" /></p>
+<p>注册按钮<code>button</code>提交表单时，要<code>return false</code></p>
+<p><code>form</code>表单</p>
+<pre><code><code>    &lt;!-- action=&quot;http://localhost:8082/scw-restapi/member/regist&quot; --&gt;
+    &lt;form class=&quot;form-signin&quot; role=&quot;form&quot; action=&quot;${ctp}/member/regist&quot;
+        method=&quot;post&quot; id=&quot;regForm&quot;&gt;
+    ...
+    &lt;/form&gt;
+</code></code></pre>
+<p>js提交表单</p>
+<pre class="js"><code>    $(&quot;#submitBtn&quot;).click(function() {
+
+        var loginType = $(&quot;select.form-control&quot;).val();
+        log(&quot;注册类型==============&gt;&quot;, loginType)
+        
+        /* if (loginType == &quot;管理&quot;) {
+            $(&quot;#regForm&quot;).submit();
+        } else {
+            alert(&quot;此功能尚未开通&quot;);
+        } */
+
+        $(&quot;#regForm&quot;).submit();
+        return false
+    })
+</code></code></pre>
+<p>2)加载外部资源文件</p>
+<p><img src="./images/HttpClient远程接口调用-实名认证1.png" /></p>
+<p>app.properties</p>
+<pre><code><code>restapi.server.ip=127.0.0.1
+restapi.server.port=8082
+restapi.server.apppath=scw-restapi
+</code></code></pre>
+<p>编辑<code>springmvc.xml</code></p>
+<pre class="xml"><code>    &lt;!-- 引入外部配置文件 --&gt;
+    &lt;context:property-placeholder
+        location=&quot;classpath:other/app.properties&quot; /&gt;
+</code></code></pre>
+<p>RestApiServerInfo.java</p>
+<pre class="java"><code>    @Controller
+    public class RestApiServerInfo {
+    
+        // MemberService memberService;
+        @Value(&quot;${restapi.server.ip}&quot;)
+        private String restapiserver;
+    
+        @Value(&quot;${restapi.server.port}&quot;)
+        private String restapiport;
+    
+        @Value(&quot;${restapi.server.apppath}&quot;)
+        private String appPath;
+    
+        public String getRestApiURL() {
+            System.out.println(&quot;http://&quot; + restapiserver + &quot;:&quot; + restapiport);
+            return &quot;http://&quot; + restapiserver + &quot;:&quot; + restapiport + &quot;/&quot; + appPath;
+        }
+    }
+</code></code></pre>
+<p>3)HTTPClient工具远程调用接口</p>
+<p>导入依赖</p>
+<pre class="xml"><code>    &lt;!-- https://mvnrepository.com/artifact/org.apache.httpcomponents/httpclient --&gt;
+    &lt;dependency&gt;
+        &lt;groupId&gt;org.apache.httpcomponents&lt;/groupId&gt;
+        &lt;artifactId&gt;httpclient&lt;/artifactId&gt;
+        &lt;version&gt;4.5.3&lt;/version&gt;
+    &lt;/dependency&gt;
+</code></code></pre>
+<p>发送post请求</p>
+<pre><code><code>    public static String httpPostRequest(String url, Map&lt;String, Object&gt; params)
+</code></code></pre>
+<p>工具类<code>HttpClientUtil.java</code></p>
+<pre class="java"><code>package com.atguigu.project;
+
+import java.io.IOException;
+import java.io.UnsupportedEncodingException;
+import java.net.URISyntaxException;
+import java.util.ArrayList;
+import java.util.Map;
+
+import org.apache.http.HttpEntity;
+import org.apache.http.NameValuePair;
+import org.apache.http.client.ClientProtocolException;
+import org.apache.http.client.entity.UrlEncodedFormEntity;
+import org.apache.http.client.methods.CloseableHttpResponse;
+import org.apache.http.client.methods.HttpGet;
+import org.apache.http.client.methods.HttpPost;
+import org.apache.http.client.methods.HttpRequestBase;
+import org.apache.http.client.utils.URIBuilder;
+import org.apache.http.impl.client.CloseableHttpClient;
+import org.apache.http.impl.client.HttpClients;
+import org.apache.http.impl.conn.PoolingHttpClientConnectionManager;
+import org.apache.http.message.BasicNameValuePair;
+import org.apache.http.util.EntityUtils;
+
+/**
+ * @author Nan 2015-11
+ */
+public class HttpClientUtil {
+
+    private static PoolingHttpClientConnectionManager cm;
+    private static String EMPTY_STR = &quot;&quot;;
+    private static String UTF_8 = &quot;UTF-8&quot;;
+
+    private static void init() {
+        if (cm == null) {
+            cm = new PoolingHttpClientConnectionManager();
+            cm.setMaxTotal(50);// 整个连接池最大连接数
+            cm.setDefaultMaxPerRoute(5);// 每路由最大连接数，默认值是2
+        }
+    }
+
+    /**
+     * 通过连接池获取HttpClient
+     * 
+     * @return
+     */
+    private static CloseableHttpClient getHttpClient() {
+        init();
+        return HttpClients.custom().setConnectionManager(cm).build();
+    }
+
+    /**
+     * @param url
+     * @return
+     */
+    public static String httpGetRequest(String url) {
+        HttpGet httpGet = new HttpGet(url);
+        return getResult(httpGet);
+    }
+
+    public static String httpGetRequest(String url, Map&lt;String, Object&gt; params) throws URISyntaxException {
+        URIBuilder ub = new URIBuilder();
+        ub.setPath(url);
+
+        ArrayList&lt;NameValuePair&gt; pairs = covertParams2NVPS(params);
+        ub.setParameters(pairs);
+
+        HttpGet httpGet = new HttpGet(ub.build());
+        return getResult(httpGet);
+    }
+
+    public static String httpGetRequest(String url, Map&lt;String, Object&gt; headers, Map&lt;String, Object&gt; params)
+            throws URISyntaxException {
+        URIBuilder ub = new URIBuilder();
+        ub.setPath(url);
+
+        ArrayList&lt;NameValuePair&gt; pairs = covertParams2NVPS(params);
+        ub.setParameters(pairs);
+
+        HttpGet httpGet = new HttpGet(ub.build());
+        for (Map.Entry&lt;String, Object&gt; param : headers.entrySet()) {
+            httpGet.addHeader(param.getKey(), String.valueOf(param.getValue()));
+        }
+        return getResult(httpGet);
+    }
+
+    public static String httpPostRequest(String url) {
+        HttpPost httpPost = new HttpPost(url);
+        return getResult(httpPost);
+    }
+
+    public static String httpPostRequest(String url, Map&lt;String, Object&gt; params) throws UnsupportedEncodingException {
+        HttpPost httpPost = new HttpPost(url);
+        ArrayList&lt;NameValuePair&gt; pairs = covertParams2NVPS(params);
+        httpPost.setEntity(new UrlEncodedFormEntity(pairs, UTF_8));
+        return getResult(httpPost);
+    }
+
+    public static String httpPostRequest(String url, Map&lt;String, Object&gt; headers, Map&lt;String, Object&gt; params)
+            throws UnsupportedEncodingException {
+        HttpPost httpPost = new HttpPost(url);
+
+        for (Map.Entry&lt;String, Object&gt; param : headers.entrySet()) {
+            httpPost.addHeader(param.getKey(), String.valueOf(param.getValue()));
+        }
+
+        ArrayList&lt;NameValuePair&gt; pairs = covertParams2NVPS(params);
+        httpPost.setEntity(new UrlEncodedFormEntity(pairs, UTF_8));
+
+        return getResult(httpPost);
+    }
+
+    private static ArrayList&lt;NameValuePair&gt; covertParams2NVPS(Map&lt;String, Object&gt; params) {
+        ArrayList&lt;NameValuePair&gt; pairs = new ArrayList&lt;NameValuePair&gt;();
+        for (Map.Entry&lt;String, Object&gt; param : params.entrySet()) {
+            pairs.add(new BasicNameValuePair(param.getKey(), String.valueOf(param.getValue())));
+        }
+
+        return pairs;
+    }
+
+    /**
+     * 处理Http请求
+     * 
+     * @param request
+     * @return
+     */
+    private static String getResult(HttpRequestBase request) {
+        // CloseableHttpClient httpClient = HttpClients.createDefault();
+        CloseableHttpClient httpClient = getHttpClient();
+        try {
+            CloseableHttpResponse response = httpClient.execute(request);
+            // response.getStatusLine().getStatusCode();
+            HttpEntity entity = response.getEntity();
+            if (entity != null) {
+                // long len = entity.getContentLength();// -1 表示长度未知
+                String result = EntityUtils.toString(entity);
+                response.close();
+                // httpClient.close();
+                return result;
+            }
+        } catch (ClientProtocolException e) {
+            e.printStackTrace();
+        } catch (IOException e) {
+            e.printStackTrace();
+        } finally {
+
+        }
+
+        return EMPTY_STR;
+    }
+
+}
+
+</code></code></pre>
+<p>远程接口返回<code>ScwReturn&lt;T&gt;</code>封装对象</p>
+<pre class="java"><code>package com.atguigu.scw.restapi.bean;
+
+import java.util.Map;
+
+public class ScwReturn&lt;T&gt; {
+
+    private int code;// 状态码 1：表示成功 0:表示失败
+    private String msg;// 要给的提示信息
+    private T content;// 响应的内容；
+    private Map&lt;String, Object&gt; ext;// 额外的数据
+
+    public int getCode() {
+        return code;
+    }
+
+    public void setCode(int code) {
+        this.code = code;
+    }
+
+    public String getMsg() {
+        return msg;
+    }
+
+    public void setMsg(String msg) {
+        this.msg = msg;
+    }
+
+    public T getContent() {
+        return content;
+    }
+
+    public void setContent(T content) {
+        this.content = content;
+    }
+
+    public Map&lt;String, Object&gt; getExt() {
+        return ext;
+    }
+
+    public void setExt(Map&lt;String, Object&gt; ext) {
+        this.ext = ext;
+    }
+
+    // 两个快速的成功失败方法
+    public static &lt;T&gt; ScwReturn&lt;T&gt; success(String msg, T content, Map&lt;String, Object&gt; ext) {
+        ScwReturn&lt;T&gt; t = new ScwReturn&lt;T&gt;();
+        t.setCode(1);
+        t.setMsg(msg);
+        t.setContent(content);
+        t.setExt(ext);
+        return t;
+    }
+
+    public static &lt;T&gt; ScwReturn&lt;T&gt; fail(String msg, T content, Map&lt;String, Object&gt; ext) {
+        ScwReturn&lt;T&gt; t = new ScwReturn&lt;T&gt;();
+        t.setCode(0);
+        t.setMsg(msg);
+        t.setContent(content);
+        t.setExt(ext);
+        return t;
+    }
+}
+
+
+</code></code></pre>
+<p>注册调用远程接口</p>
+<p>发送请求</p>
+<pre><code><code>String response = HttpClientUtil.httpPostRequest(url, params);
+
+</code></code></pre>
+<p>远程接口返回的响应字符串转java对象</p>
+<pre><code><code>    readValue = new ObjectMapper().readValue(response.getBytes(), new TypeReference&lt;ScwReturn&lt;TMemeber&gt;&gt;() {
+        });
+
+</code></code></pre>
+<pre class="java"><code>@RequestMapping(&quot;/regist&quot;)
+public String regist(TMemeber memeber, Model model) throws Exception {
+    // 需要利用http工具去模拟发调用接口的请求
+    // http://localhost:8082/scw-restapi/member/regist
+    // &lt;httpclient.version&gt;4.5.3&lt;/httpclient.version&gt;
+    // httpclient使用java代码来模拟发送请求
+    // 能收到api调用后产生的json数据；
+    // 1、可以将产生的json逆向成对象ScwReturn&lt;TMemeber&gt;
+    // 2、可以直接将json写给页面
+    System.out.println(&quot;memeber===========&gt;&quot; + memeber);
+    // 注册成功以后可以来到一个页面；
+
+    // 1、应该去发送请求来进行注册；java代码发请求
+    String url = serverInfo.getRestApiURL() + &quot;/member/regist&quot;;
+    System.out.println(&quot;url===========&gt;&quot; + url);
+    // 2、构建请求参数
+    Map&lt;String, Object&gt; params = new HashMap&lt;String, Object&gt;();
+
+    params.put(&quot;loginacct&quot;, memeber.getLoginacct());
+    // 密码是业务逻辑加密的，我们不用管
+    params.put(&quot;userpswd&quot;, memeber.getUserpswd());
+    params.put(&quot;email&quot;, memeber.getEmail());
+
+    // 响应内容；
+    String response = HttpClientUtil.httpPostRequest(url, params);
+
+    // 封装响应为对象
+    ScwReturn&lt;TMemeber&gt; readValue = null;
+
+    readValue = new ObjectMapper().readValue(response.getBytes(), new TypeReference&lt;ScwReturn&lt;TMemeber&gt;&gt;() {
+    });
+
+    // 判断，注册成功！来到登陆页面
+    if (readValue.getCode() == 1) {
+        return &quot;redirect:/login.jsp&quot;;
+    } else {
+        // 注册失败！来到注册页面进行回显
+        model.addAttribute(&quot;msg&quot;, &quot;用户名和邮箱已经被注册了！&quot;);
+        return &quot;forward:/reg.jsp&quot;;
+    }
+}
+
+</code></code></pre>
+<p>远程接口注册方法</p>
+<p>控制层</p>
+<pre class="java"><code>    /**
+     * ScwReturn&lt;List&lt;TMemeber&gt;&gt;:泛型是content内容的对象的类型
+     * 
+     * @Description (TODO这里用一句话描述这个方法的作用)
+     * @param memeber
+     * @return
+     */
+    @RequestMapping(&quot;/regist&quot;)
+    public ScwReturn&lt;TMemeber&gt; regist(TMemeber memeber) {
+
+        // 创建一个空的对象
+        TMemeber regist = new TMemeber();
+        Map&lt;String, Object&gt; hashMap = new HashMap&lt;&gt;();
+        try {
+            regist = memberService.regist(memeber);
+        } catch (Exception e) {
+            // 判断异常类型来放错误
+            // e.printStackTrace();
+            hashMap.put(&quot;error&quot;, &quot;触犯唯一约束，请保证用户名和邮箱唯一&quot;);
+        }
+        regist.setUserpswd(&quot;&quot;);
+        if (regist.getId() != null) {
+            return ScwReturn.success(&quot;用户注册成功！&quot;, regist, null);
+        } else {
+            return ScwReturn.fail(&quot;用户注册失败!&quot;, null, hashMap);
+        }
+    }
+</code></code></pre>
+<p>业务层</p>
+<p>带条件插入</p>
+<pre><code><code>    int i = memeberMapper.insertSelective(tMemeber);
+
+</code></code></pre>
+<pre class="java"><code>    @Override
+    public TMemeber regist(TMemeber tMemeber) {
+        // TODO Auto-generated method stub
+        String digest = MD5Util.digest(tMemeber.getUserpswd());
+        // 加密密码保存
+        tMemeber.setUserpswd(digest);
+        // 初始化用户名和账号
+        tMemeber.setUsername(tMemeber.getLoginacct());
+        // 实名认证状态 0:未实名认证 1::实名认证
+        tMemeber.setAuthstatus(&quot;0&quot;);
+        // 真实姓名；实名认证是保存的
+        tMemeber.setRealname(&quot;未实名&quot;);
+        // 0：普通会员 1：月费会员 2：年费会员 3：
+        tMemeber.setUsertype(&quot;0&quot;);
+        // 身份证号，账户类型；（实名认证是做的）
+        // 账户类型：直接保存账户的全名
+
+        int i = memeberMapper.insertSelective(tMemeber);
+
+        // 刚才就是按照这个对象给数据库插入值，希望获取到数据库分配的自增主键
+        return tMemeber;
+    }
+
+</code></code></pre>
+<p>2、实名认证文件上传</p>
+<p>1)上传用户资质证件</p>
+<p>导入依赖</p>
+<pre class="xml"><code>    &lt;dependency&gt;
+        &lt;groupId&gt;commons-fileupload&lt;/groupId&gt;
+        &lt;artifactId&gt;commons-fileupload&lt;/artifactId&gt;
+        &lt;version&gt;1.3.2&lt;/version&gt;
+    &lt;/dependency&gt;
+    &lt;dependency&gt;
+        &lt;groupId&gt;commons-io&lt;/groupId&gt;
+        &lt;artifactId&gt;commons-io&lt;/artifactId&gt;
+        &lt;version&gt;2.5&lt;/version&gt;
+    &lt;/dependency&gt;
+
+</code></code></pre>
+<p>编辑<code>springmvc.xml</code>文件</p>
+<pre class="xml"><code>    &lt;!-- 1、文件上传需要一个文件上传解析器 --&gt;
+    &lt;bean id=&quot;multipartResolver&quot; class=&quot;org.springframework.web.multipart.commons.CommonsMultipartResolver&quot;&gt;
+        &lt;property name=&quot;defaultEncoding&quot; value=&quot;utf-8&quot;&gt;&lt;/property&gt;
+    &lt;/bean&gt;
+
+</code></code></pre>
+<p>前台ajax提交</p>
+<p>带有文件表单，一次提交所有项</p>
+<pre><code><code>var fd = new FormData($(&quot;#certForm&quot;)[0])
+
+</code></code></pre>
+<p>带有文件表单,提交部分内容</p>
+<pre><code><code>//使用formData（js对象来包装form表单）
+var fd = new FormData();
+log($(&quot;#ad_name_input&quot;).val())
+log($(&quot;#ad_file_input&quot;)[0].files[0])
+fd.append(&quot;name&quot;, $(&quot;#ad_name_input&quot;).val());
+fd.append(&quot;ad&quot;, $(&quot;#ad_file_input&quot;)[0].files[0])
+
+</code></code></pre>
+<p>processData(默认: true)</p>
+<p>默认情况下，通过data选项传递进来的数据，如果是一个对象(技术上讲只要不是字符串)，都会处理转化成一个查询字符串，以配合默认内容类型 &quot;application/x-www-form-urlencoded&quot;。</p>
+<p>contentType</p>
+<p>不使用默认的内容类型；(默认: &quot;application/x-www-form-urlencoded&quot;) 发送信息至服务器时内容编码类型。</p>
+<pre class="js"><code>    //这是一个资质文件上传的页面
+    //发送文件上传资质文件请求；
+    var fd = new FormData($(&quot;#certForm&quot;)[0]);
+    $.ajax({
+        url:&quot;http://localhost:8082/scw-restapi/auth/upload&quot;,
+        data:fd,
+        type:&quot;post&quot;,
+        contentType:false,
+        dataType:&quot;json&quot;,
+        processData:false,
+        success:function(result){
+            //来到邮箱填写页面
+            location.href=&quot;${ctp}/auth/apply-2.html&quot;
+        },
+        error:function(e){
+            layer.msg(&quot;上传失败:&quot;+e);
+        }
+    });
+
+</code></code></pre>
+<p>控制层</p>
+<pre class="java"><code>    //文件上传
+    private String uploadfile(String webPath,MultipartFile file,HttpSession session){
+        ServletContext context = session.getServletContext();
+        String realPath = context.getRealPath(webPath);
+        String name = UUID.randomUUID().toString().replace(&quot;-&quot;, &quot;&quot;).substring(0, 10) +&quot;_file_&quot;+ file.getOriginalFilename();
+        try {
+            //webPath不存在的情况下必须创建
+            File file2 = new File(realPath);
+            if(!file2.exists()){
+                //创建目录
+                file2.mkdirs();
+            }
+            
+            file.transferTo(new File(realPath+&quot;/&quot;+name));
+            //返回这个图片在服务器下的路径
+            return webPath+&quot;/&quot;+name;
+        }catch (Exception e) {
+            return null;
+        }
+    }
+    
+    @RequestMapping(&quot;/upload&quot;)
+    public ScwReturn&lt;Object&gt; upload(HttpSession session,
+            @RequestParam(&quot;file&quot;)MultipartFile[] file,
+            @RequestParam(&quot;certid&quot;)Integer[] certid,@RequestParam(&quot;memberid&quot;)Integer memberid){
+        
+        try {
+            System.out.println(&quot;资质的id&quot;+certid);
+            List&lt;TMemberCert&gt; certsList= new ArrayList&lt;TMemberCert&gt;();
+            for (int i=0;i&lt;certid.length;i++) {
+                TMemberCert cert = new TMemberCert();
+                MultipartFile multipartFile = file[i];
+                String uploadfile = uploadfile(&quot;/certsimg&quot;, multipartFile, session);
+                cert.setCertid(certid[i]);
+                cert.setMemberid(memberid);
+                cert.setIconpath(uploadfile);
+                certsList.add(cert);
+            }
+            //调用业务逻辑进行保存;/删除原有资质，保存新的资质
+            certService.insertCerts(certsList);
+        } catch (Exception e) {
+            // TODO Auto-generated catch block
+            System.out.println(e);
+            return ScwReturn.fail(&quot;资质保存失败！&quot;, null, null);
+        }
+        
+        return ScwReturn.success(&quot;保存成功！&quot;, null, null);
+    }
+
+</code></code></pre>
+<p>2)批量插入用户资质证件描述信息</p>
+<p>业务层</p>
+<p>CertService.java</p>
+<pre class="java"><code>    public void insertCerts(List&lt;TMemberCert&gt; certsList);
+
+</code></code></pre>
+<p>CertServiceImpl.java</p>
+<pre class="java"><code>    @Override
+    public void insertCerts(List&lt;TMemberCert&gt; certsList) {
+        // TODO Auto-generated method stub
+        TMemberCertExample example = new TMemberCertExample();
+        Criteria criteria = example.createCriteria();
+        criteria.andMemberidEqualTo(certsList.get(0).getMemberid());
+        //先删除
+        memberCertMapper.deleteByExample(example);
+        //后保存
+        certMapper.insertBatch(certsList);
+    }
+
+</code></code></pre>
+<p>dao层</p>
+<p>TCertMapper.java</p>
+<pre class="java"><code>    void insertBatch(@Param(&quot;certs&quot;)List&lt;TMemberCert&gt; certsList);
+
+</code></code></pre>
+<p>TCertMapper.xml</p>
+<pre class="xml"><code>  &lt;!-- void insertBatch(@Param(&quot;certs&quot;)List&lt;TMemberCert&gt; certsList); --&gt;
+  &lt;insert id=&quot;insertBatch&quot;&gt;
+        INSERT INTO t_member_cert(memberid,certid,iconpath) 
+        VALUES
+        &lt;foreach collection=&quot;certs&quot; item=&quot;c&quot; separator=&quot;,&quot;&gt;
+            (#{c.memberid},#{c.certid},#{c.iconpath})
+        &lt;/foreach&gt;
+  &lt;/insert&gt;
+
+</code></code></pre>
+
+
+</div><hr><script charset='utf-8' src='../../js/sming.js'></script></body></html>

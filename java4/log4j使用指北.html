@@ -1,0 +1,368 @@
+<html><head><meta charset='utf-8'><meta name='viewport' content='width=device-width, initial-scale=1'>
+<meta name='applicable-device' content='pc'><meta name='keywords' content='电脑,电脑讲解,电脑技术,编程,电脑故障维修log4j使用指北' />
+<script src='../../highlight/highlight.pack.js'></script>
+<link rel='stylesheet' type='text/css' href='../../highlight/styles/monokai.css'/>
+
+<link rel='stylesheet' href='../../fenxiang/dist/css/share.min.css'>
+<script src='../../fenxiang/src/js/social-share.js'></script>
+<script src='../../fenxiang/src/js/qrcode.js'></script>
+
+</head><body><script>hljs.initHighlightingOnLoad();</script><script>
+var system ={};  
+var p = navigator.platform;       
+system.win = p.indexOf('Win') == 0;  
+system.mac = p.indexOf('Mac') == 0;  
+system.x11 = (p == 'X11') || (p.indexOf('Linux') == 0);     
+if(system.win||system.mac||system.xll){
+document.write("<link href='../css/3.css' rel='stylesheet' type='text/css'>");}else{ document.write("<link href='../css/3wap.css' rel='stylesheet' type='text/css'>");}</script><script src='../../js/3.js'></script><div class='div2'><div class='heading_nav'><ul><div><li><a href='../../index.html'>首页</a></li>
+</div><div onclick='hidden1()' >分享</div>
+</ul></div></div>
+<div id='heading_nav2'> 
+<li class='row' >
+<div class='social-share' data-mode='prepend'><a href='javascript:' class='social-share-icon icon-heart'></a></div></li></div><script charset='utf-8' src='../../3/js/hengfu.js'></script><script charset='utf-8' src='../../3/js/hengfu2.js'></script><hr><div class='div1'><div class='biaoti'><center>log4j使用指北</center></div><div class='banquan'>原文出处:本文由博客园博主水木桶提供。<br/>
+原文连接:https://www.cnblogs.com/shuimutong/p/11546722.html</div><br>
+    <h1>背景</h1>
+<p>工作一直使用日志组件，但是配置却一直看的糊里糊涂的，只记得个日志级别，其他的都不太理解，例如，一个页面日志太多，怎么样能单独打印？所以就找机会整理了一下。</p>
+<p>本文参考：https://www.cnblogs.com/xiaobaizhiqian/p/7956690.html、https://www.cnblogs.com/wangzhuxing/p/7753420.html</p>
+<h1>log4j配置概述</h1>
+<p>搜了很多文章，这些文章乍看起来，都有点不知所云。但是仔细阅读，发现还是比较有用的。为了能够更好的掌握log4j的使用，我也不免俗的加上这些乍看起来不知所云的东西。</p>
+<src class="cnblogs_code">
+<pre><code>#根据不同包配置不同的日志
+log4j.logger.包名=DEBUG,别名&nbsp;
+log4j.appender.别名 =org.apache.log4j.RollingFileAppender
+log4j.appender.别名 .File=${catalina.home}/webapps/webFrameWork/WEB-INF/logs/Controller.log &nbsp; //路径以及日志名称
+log4j.appender.别名 .layout=org.apache.log4j.PatternLayout
+log4j.appender.别名 .layout.ConversionPattern=%-4r %d{yyyy-MM-dd HH:mm:ss,SSS} [%t] %-5p %c %x - %m%n &nbsp;&nbsp;
+
+
+
+
+#######Log4J配置文件的基本格式如下：##################
+#配置根Logger
+log4j.rootLogger  =   [ level ]   ,  appenderName1 ,  appenderName2 ,  &hellip;
+ 
+#配置日志信息输出目的地Appender
+log4j.appender.appenderName  =  fully.qualified.name.of.appender.class 
+　　log4j.appender.appenderName.option1  =  value1 
+　　&hellip; 
+　　log4j.appender.appenderName.optionN  =  valueN 
+ 
+#配置日志信息的格式（布局）
+log4j.appender.appenderName.layout  =  fully.qualified.name.of.layout.class 
+　　log4j.appender.appenderName.layout.option1  =  value1 
+　　&hellip; 
+　　log4j.appender.appenderName.layout.optionN  =  valueN 
+
+
+
+###########其中 [level] 是日志输出级别，共有5级
+FATAL       0  
+ERROR      3  
+WARN       4  
+INFO         6  
+DEBUG      7 
+
+
+
+#############Appender 为日志输出目的地，Log4j提供的appender有以下几种：################
+org.apache.log4j.ConsoleAppender（控制台），
+org.apache.log4j.FileAppender（文件），
+org.apache.log4j.DailyRollingFileAppender（每天产生一个日志文件），
+org.apache.log4j.RollingFileAppender（文件大小到达指定尺寸的时候产生一个新的文件），
+org.apache.log4j.WriterAppender（将日志信息以流格式发送到任意指定的地方）
+
+
+
+###############Layout：日志输出格式，Log4j提供的layout有以下几种：
+org.apache.log4j.HTMLLayout（以HTML表格形式布局），
+org.apache.log4j.PatternLayout（可以灵活地指定布局模式），
+org.apache.log4j.SimpleLayout（包含日志信息的级别和信息字符串），
+org.apache.log4j.TTCCLayout（包含日志产生的时间、线程、类别等等信息）
+
+
+
+#########打印参数: Log4J采用类似C语言中的printf函数的打印格式格式化日志信息，如下:######################
+%m   输出代码中指定的消息
+%p   输出优先级，即DEBUG，INFO，WARN，ERROR，FATAL 
+%r   输出自应用启动到输出该log信息耗费的毫秒数 
+%c   输出所属的类目，通常就是所在类的全名 
+%t   输出产生该日志事件的线程名 
+%n   输出一个回车换行符，Windows平台为&ldquo;/r/n&rdquo;，Unix平台为&ldquo;/n&rdquo; 
+%d   输出日志时间点的日期或时间，默认格式为ISO8601，也可以在其后指定格式，比如：%d{yyy MMM dd HH:mm:ss , SSS}，输出类似：2002年10月18日  22 ： 10 ： 28 ， 921  
+%l   输出日志事件的发生位置，包括类目名、发生的线程，以及在代码中的行数。举例：Testlog4.main(TestLog4.java: 10 ) </code></pre>
+
+<h1>实战</h1>
+<h2>准备：pom配置</h2>
+<src class="cnblogs_code">
+<pre><code><span style="color: #0000ff;">&lt;</span><span style="color: #800000;">dependency</span><span style="color: #0000ff;">&gt;</span>
+    <span style="color: #0000ff;">&lt;</span><span style="color: #800000;">groupId</span><span style="color: #0000ff;">&gt;</span>org.slf4j<span style="color: #0000ff;">&lt;/</span><span style="color: #800000;">groupId</span><span style="color: #0000ff;">&gt;</span>
+    <span style="color: #0000ff;">&lt;</span><span style="color: #800000;">artifactId</span><span style="color: #0000ff;">&gt;</span>slf4j-api<span style="color: #0000ff;">&lt;/</span><span style="color: #800000;">artifactId</span><span style="color: #0000ff;">&gt;</span>
+    <span style="color: #0000ff;">&lt;</span><span style="color: #800000;">version</span><span style="color: #0000ff;">&gt;</span>1.7.12<span style="color: #0000ff;">&lt;/</span><span style="color: #800000;">version</span><span style="color: #0000ff;">&gt;</span>
+<span style="color: #0000ff;">&lt;/</span><span style="color: #800000;">dependency</span><span style="color: #0000ff;">&gt;</span>
+<span style="color: #0000ff;">&lt;</span><span style="color: #800000;">dependency</span><span style="color: #0000ff;">&gt;</span>
+    <span style="color: #0000ff;">&lt;</span><span style="color: #800000;">groupId</span><span style="color: #0000ff;">&gt;</span>org.slf4j<span style="color: #0000ff;">&lt;/</span><span style="color: #800000;">groupId</span><span style="color: #0000ff;">&gt;</span>
+    <span style="color: #0000ff;">&lt;</span><span style="color: #800000;">artifactId</span><span style="color: #0000ff;">&gt;</span>slf4j-log4j12<span style="color: #0000ff;">&lt;/</span><span style="color: #800000;">artifactId</span><span style="color: #0000ff;">&gt;</span>
+    <span style="color: #0000ff;">&lt;</span><span style="color: #800000;">version</span><span style="color: #0000ff;">&gt;</span>1.7.21<span style="color: #0000ff;">&lt;/</span><span style="color: #800000;">version</span><span style="color: #0000ff;">&gt;</span>
+<span style="color: #0000ff;">&lt;/</span><span style="color: #800000;">dependency</span><span style="color: #0000ff;">&gt;</span>
+<span style="color: #0000ff;">&lt;</span><span style="color: #800000;">dependency</span><span style="color: #0000ff;">&gt;</span>
+    <span style="color: #0000ff;">&lt;</span><span style="color: #800000;">groupId</span><span style="color: #0000ff;">&gt;</span>org.apache.logging.log4j<span style="color: #0000ff;">&lt;/</span><span style="color: #800000;">groupId</span><span style="color: #0000ff;">&gt;</span>
+    <span style="color: #0000ff;">&lt;</span><span style="color: #800000;">artifactId</span><span style="color: #0000ff;">&gt;</span>log4j-api<span style="color: #0000ff;">&lt;/</span><span style="color: #800000;">artifactId</span><span style="color: #0000ff;">&gt;</span>
+    <span style="color: #0000ff;">&lt;</span><span style="color: #800000;">version</span><span style="color: #0000ff;">&gt;</span>2.12.1<span style="color: #0000ff;">&lt;/</span><span style="color: #800000;">version</span><span style="color: #0000ff;">&gt;</span>
+<span style="color: #0000ff;">&lt;/</span><span style="color: #800000;">dependency</span><span style="color: #0000ff;">&gt;</span>
+<span style="color: #0000ff;">&lt;</span><span style="color: #800000;">dependency</span><span style="color: #0000ff;">&gt;</span>
+    <span style="color: #0000ff;">&lt;</span><span style="color: #800000;">groupId</span><span style="color: #0000ff;">&gt;</span>org.apache.logging.log4j<span style="color: #0000ff;">&lt;/</span><span style="color: #800000;">groupId</span><span style="color: #0000ff;">&gt;</span>
+    <span style="color: #0000ff;">&lt;</span><span style="color: #800000;">artifactId</span><span style="color: #0000ff;">&gt;</span>log4j-core<span style="color: #0000ff;">&lt;/</span><span style="color: #800000;">artifactId</span><span style="color: #0000ff;">&gt;</span>
+    <span style="color: #0000ff;">&lt;</span><span style="color: #800000;">version</span><span style="color: #0000ff;">&gt;</span>2.12.1<span style="color: #0000ff;">&lt;/</span><span style="color: #800000;">version</span><span style="color: #0000ff;">&gt;</span>
+<span style="color: #0000ff;">&lt;/</span><span style="color: #800000;">dependency</span><span style="color: #0000ff;">&gt;</span></code></pre>
+
+<h2>log4j.properties配置</h2>
+<p>log4j.properties文件放到src/main/resources路径下面，具体配置请继续往下看。</p>
+<h2>目标1：error日志单独输出</h2>
+<p>1、log4j.properties配置</p>
+<src class="cnblogs_code">
+<pre><code>### \u8BBE\u7F6E###
+log4j.rootLogger = debug,stdout,D,E
+ 
+### \u8F93\u51FA\u4FE1\u606F\u5230\u63A7\u5236\u62AC ###
+log4j.appender.stdout = org.apache.log4j.ConsoleAppender
+log4j.appender.stdout.Target = System.out
+log4j.appender.stdout.layout = org.apache.log4j.PatternLayout
+log4j.appender.stdout.layout.ConversionPattern = [%-5p] %d{yyyy-MM-dd HH:mm:ss,SSS} method:%l%n%m%n
+ 
+### \u8F93\u51FADEBUG \u7EA7\u522B\u4EE5\u4E0A\u7684\u65E5\u5FD7\u5230=E://logs/error.log ###
+log4j.appender.D = org.apache.log4j.DailyRollingFileAppender
+log4j.appender.D.File = E://develop/logs/log.log
+log4j.appender.D.Append = true
+log4j.appender.D.Threshold = DEBUG 
+log4j.appender.D.layout = org.apache.log4j.PatternLayout
+log4j.appender.D.layout.ConversionPattern = %-d{yyyy-MM-dd HH:mm:ss}  [ %t:%r ] - [ %p ]  %m%n
+ 
+### \u8F93\u51FAERROR \u7EA7\u522B\u4EE5\u4E0A\u7684\u65E5\u5FD7\u5230=E://logs/error.log ###
+log4j.appender.E = org.apache.log4j.DailyRollingFileAppender
+log4j.appender.E.File =E://develop/logs/error.log 
+log4j.appender.E.Append = true
+log4j.appender.E.Threshold = ERROR 
+log4j.appender.E.layout = org.apache.log4j.PatternLayout
+log4j.appender.E.layout.ConversionPattern = %-d{yyyy-MM-dd HH:mm:ss}  [ %t:%r ] - [ %p ]  %m%n</code></pre>
+
+<p>备注：不要问我unicode码是啥，我也不记得了。</p>
+<p>2、代码</p>
+<src class="cnblogs_code">
+<pre><code><span style="color: #0000ff;">package</span><span style="color: #000000;"> com.shuimutong.log4j.use1;
+
+</span><span style="color: #0000ff;">import</span><span style="color: #000000;"> org.slf4j.Logger;
+</span><span style="color: #0000ff;">import</span><span style="color: #000000;"> org.slf4j.LoggerFactory;
+
+</span><span style="color: #0000ff;">public</span> <span style="color: #0000ff;">class</span><span style="color: #000000;"> Log4JTest1 {
+    </span><span style="color: #0000ff;">private</span> <span style="color: #0000ff;">final</span> <span style="color: #0000ff;">static</span> Logger log = LoggerFactory.getLogger(Log4JTest1.<span style="color: #0000ff;">class</span><span style="color: #000000;">);
+    </span><span style="color: #0000ff;">private</span> <span style="color: #0000ff;">final</span> <span style="color: #0000ff;">static</span> Logger logTest = LoggerFactory.getLogger("mytest1"<span style="color: #000000;">);
+
+    </span><span style="color: #0000ff;">public</span> <span style="color: #0000ff;">static</span> <span style="color: #0000ff;">void</span><span style="color: #000000;"> main(String[] args) {
+        log.debug(</span>"log-----debug-----"<span style="color: #000000;">);
+        log.error(</span>"log-----error-----"<span style="color: #000000;">);
+        
+        logTest.info(</span>"logTest-----info-----"<span style="color: #000000;">);
+    }
+    
+}</span></code></pre>
+
+<p>3、执行控制台打印</p>
+<blockquote>
+<p>[DEBUG] 2019-09-19 08:25:35,934 method:com.shuimutong.log4j.use1.Log4JTest1.main(Log4JTest1.java:11)<br />log-----debug-----<br />[ERROR] 2019-09-19 08:25:35,934 method:com.shuimutong.log4j.use1.Log4JTest1.main(Log4JTest1.java:12)<br />log-----error-----<br />[INFO ] 2019-09-19 08:25:35,934 method:com.shuimutong.log4j.use1.Log4JTest1.main(Log4JTest1.java:14)<br />logTest-----info-----</p>
+
+
+
+
+
+
+
+</blockquote>
+<p>4、日志文件</p>
+<p><img src="./images/log4j使用指北0.png" alt="" /></p>
+<p>&nbsp;</p>
+<p>5、日志内容</p>
+<p>1）log.log</p>
+<blockquote>
+<p>2019-09-19 08:25:35 [ main:0 ] - [ DEBUG ] log-----debug-----<br />2019-09-19 08:25:35  [ main:0 ] - [ ERROR ]  log-----error-----<br />2019-09-19 08:25:35  [ main:0 ] - [ INFO ]  logTest-----info-----</p>
+
+
+
+
+
+
+
+</blockquote>
+<p>2）error.log</p>
+<blockquote>
+<p>2019-09-19 08:25:35 [ main:0 ] - [ ERROR ] log-----error-----</p>
+
+
+
+
+
+
+
+</blockquote>
+<p>6、结论</p>
+<p>达到预期</p>
+<h2>目标2：指定包名日志单独输出</h2>
+<p>1、log4j.properties配置</p>
+<src class="cnblogs_code">
+<pre><code>### \u8BBE\u7F6E###
+log4j.rootLogger = debug,stdout,D,E
+ 
+### \u8F93\u51FA\u4FE1\u606F\u5230\u63A7\u5236\u62AC ###
+log4j.appender.stdout = org.apache.log4j.ConsoleAppender
+log4j.appender.stdout.Target = System.out
+log4j.appender.stdout.layout = org.apache.log4j.PatternLayout
+log4j.appender.stdout.layout.ConversionPattern = [%-5p] %d{yyyy-MM-dd HH:mm:ss,SSS} method:%l%n%m%n
+ 
+### \u8F93\u51FADEBUG \u7EA7\u522B\u4EE5\u4E0A\u7684\u65E5\u5FD7\u5230=E://logs/error.log ###
+log4j.appender.D = org.apache.log4j.DailyRollingFileAppender
+log4j.appender.D.File = E://develop/logs/log.log
+log4j.appender.D.Append = true
+log4j.appender.D.Threshold = DEBUG 
+log4j.appender.D.layout = org.apache.log4j.PatternLayout
+log4j.appender.D.layout.ConversionPattern = %-d{yyyy-MM-dd HH:mm:ss}  [ %t:%r ] - [ %p ]  %m%n
+ 
+### \u8F93\u51FAERROR \u7EA7\u522B\u4EE5\u4E0A\u7684\u65E5\u5FD7\u5230=E://logs/error.log ###
+log4j.appender.E = org.apache.log4j.DailyRollingFileAppender
+log4j.appender.E.File =E://develop/logs/error.log 
+log4j.appender.E.Append = true
+log4j.appender.E.Threshold = ERROR 
+log4j.appender.E.layout = org.apache.log4j.PatternLayout
+log4j.appender.E.layout.ConversionPattern = %-d{yyyy-MM-dd HH:mm:ss}  [ %t:%r ] - [ %p ]  %m%n
+
+log4j.logger.com.shuimutong.log4j.use2=DEBUG,luse2
+log4j.appender.luse2.Threshold=debug
+log4j.appender.luse2=org.apache.log4j.FileAppender
+log4j.appender.luse2.File = E://develop/logs/use2.log
+log4j.appender.luse2.layout=org.apache.log4j.PatternLayout
+log4j.appender.luse2.layout.ConversionPattern=%d %p [%c] - %m%n</code></pre>
+
+<p>2、代码</p>
+<src class="cnblogs_code">
+<pre><code><span style="color: #0000ff;">package</span><span style="color: #000000;"> com.shuimutong.log4j.use2;
+
+</span><span style="color: #0000ff;">import</span><span style="color: #000000;"> org.slf4j.Logger;
+</span><span style="color: #0000ff;">import</span><span style="color: #000000;"> org.slf4j.LoggerFactory;
+
+</span><span style="color: #0000ff;">public</span> <span style="color: #0000ff;">class</span><span style="color: #000000;"> Log4JTest2 {
+    </span><span style="color: #0000ff;">private</span> <span style="color: #0000ff;">final</span> <span style="color: #0000ff;">static</span> Logger log = LoggerFactory.getLogger(Log4JTest2.<span style="color: #0000ff;">class</span><span style="color: #000000;">);
+    </span><span style="color: #0000ff;">private</span> <span style="color: #0000ff;">final</span> <span style="color: #0000ff;">static</span> Logger logTest = LoggerFactory.getLogger("mytest1"<span style="color: #000000;">);
+
+    </span><span style="color: #0000ff;">public</span> <span style="color: #0000ff;">static</span> <span style="color: #0000ff;">void</span><span style="color: #000000;"> main(String[] args) {
+        log.debug(</span>"log--use2---debug-----"<span style="color: #000000;">);
+        log.error(</span>"log--use2---error-----"<span style="color: #000000;">);
+        
+        logTest.info(</span>"logTest--use2---info-----"<span style="color: #000000;">);
+    }
+    
+}</span></code></pre>
+
+<p>期望：com.shuimutong.log4j.use2包下的日志单独输出</p>
+<p>3、执行控制台打印</p>
+<blockquote>
+<p>[DEBUG] 2019-09-19 08:32:04,446 method:com.shuimutong.log4j.use2.Log4JTest2.main(Log4JTest2.java:11)<br />log--use2---debug-----<br />[ERROR] 2019-09-19 08:32:04,446 method:com.shuimutong.log4j.use2.Log4JTest2.main(Log4JTest2.java:12)<br />log--use2---error-----<br />[INFO ] 2019-09-19 08:32:04,446 method:com.shuimutong.log4j.use2.Log4JTest2.main(Log4JTest2.java:14)<br />logTest--use2---info-----</p>
+
+
+
+
+
+
+
+</blockquote>
+<p>4、日志文件</p>
+<p><img src="./images/log4j使用指北1.png" alt="" /></p>
+<p>&nbsp;</p>
+<p>5、&nbsp;日志内容</p>
+<p>1）log.log</p>
+<blockquote>
+<p>2019-09-19 08:32:04 [ main:0 ] - [ DEBUG ] log--use2---debug-----<br />2019-09-19 08:32:04  [ main:0 ] - [ ERROR ]  log--use2---error-----<br />2019-09-19 08:32:04  [ main:0 ] - [ INFO ]  logTest--use2---info-----</p>
+
+
+
+
+
+
+
+</blockquote>
+<p>&nbsp;2）error.log</p>
+<blockquote>
+<p>2019-09-19 08:32:04 [ main:0 ] - [ ERROR ] log--use2---error-----</p>
+
+
+
+
+
+
+</blockquote>
+<p>&nbsp;3）use2.log</p>
+<blockquote>
+<p>2019-09-19 08:32:04,446 DEBUG [com.shuimutong.log4j.use2.Log4JTest2] - log--use2---debug-----<br />2019-09-19 08:32:04,446 ERROR [com.shuimutong.log4j.use2.Log4JTest2] - log--use2---error-----</p>
+
+
+
+
+
+
+</blockquote>
+<p>&nbsp;6、结论</p>
+<p>指定包名的日志单独输出到了use2.log文件下。</p>
+<p>但是，log.log、error.log文件里也出现了，一个记录出现了多份。</p>
+<p>如果，一个服务里有一个处理流程打印日志很多，干扰到了其他逻辑的日志查看，我想把这个流程的日志&ldquo;只&rdquo;打印到指定文件，怎么做？请继续往下看。</p>
+<h2>目标3：指定类型日志&ldquo;只&rdquo;输出到指定文件</h2>
+<p>&nbsp;1、log2j.properties</p>
+<p>增加以下配置：</p>
+<src class="cnblogs_code">
+<pre><code>log4j.logger.mytest1=DEBUG,test1
+#参考：https://blog.csdn.net/xingxingmingyue/article/details/90515777
+log4j.additivity.mytest1=false
+log4j.appender.test1.Threshold=debug
+log4j.appender.test1=org.apache.log4j.FileAppender
+log4j.appender.test1.File = E://develop/logs/test1.log
+log4j.appender.test1.layout=org.apache.log4j.PatternLayout
+log4j.appender.test1.layout.ConversionPattern=%d %p [%c] - %m%n</code></pre>
+
+<p>&nbsp;注意，这段配置的核心就是&ldquo;log4j.additivity.mytest1=false&rdquo;这行，这里写的是&ldquo;mytest1&rdquo;，而不是别名&ldquo;test1&rdquo;，这一点很重要。我最开始配置的时候总是不生效，最后才发现问题出在了这里。</p>
+<p>2、代码</p>
+<pre><code><span>Log4JTest2 代码没有变</span></code></pre>
+<p>3、日志内容</p>
+<p><img src="./images/log4j使用指北2.png" alt="" /></p>
+<p>&nbsp;</p>
+<p>&nbsp;结果：mytest1类型日志只打印在了test1.log文件中</p>
+<p>4、控制台打印</p>
+<p><img src="./images/log4j使用指北3.png" alt="" /></p>
+<p>&nbsp;</p>
+<p>现象：&nbsp;mytest1类型日志没有在控制台打印。</p>
+<p>那么问题来了，我如果配置了单独打印，而且在本地调试，难道说还得看日志文件吗？</p>
+<p>请继续往下看。</p>
+<h2>目标3-1：指定类型日志还要输出在控制台</h2>
+<p>1、log4j.properties</p>
+<p>将&ldquo;目标3&rdquo;中的配置改为下面的配置。</p>
+<src class="cnblogs_code">
+<pre><code>log4j.logger.mytest1=DEBUG,test1,mconsole
+#https://blog.csdn.net/xingxingmingyue/article/details/90515777
+log4j.additivity.mytest1=false
+log4j.appender.test1.Threshold=debug
+log4j.appender.test1=org.apache.log4j.FileAppender
+log4j.appender.test1.File = E://develop/logs/test1.log
+log4j.appender.test1.layout=org.apache.log4j.PatternLayout
+log4j.appender.test1.layout.ConversionPattern=%d %p [%c] - %m%n
+
+log4j.appender.mconsole = org.apache.log4j.ConsoleAppender
+log4j.appender.mconsole.Target = System.out
+log4j.appender.mconsole.layout = org.apache.log4j.PatternLayout
+log4j.appender.mconsole.layout.ConversionPattern = [%-5p] %d{yyyy-MM-dd HH:mm:ss,SSS} method:%l%n%m%n</code></pre>
+
+<p>&nbsp;</p>
+<p>其实就是增加了一个console的appender。</p>
+<p>2、代码</p>
+<pre><code>Log4JTest2 代码没有变</code></pre>
+<p>3、控制台打印</p>
+<p><img src="./images/log4j使用指北4.png" alt="" /></p>
+<p>&nbsp;</p>
+<p>结果：控制台打印了mytest1类型的日志。&nbsp;</p>
+<p>&nbsp;</p>
+
+</div><hr><script charset='utf-8' src='../../js/sming.js'></script></body></html>

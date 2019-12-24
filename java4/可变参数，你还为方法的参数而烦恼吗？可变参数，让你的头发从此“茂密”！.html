@@ -1,0 +1,59 @@
+<html><head><meta charset='utf-8'><meta name='viewport' content='width=device-width, initial-scale=1'>
+<meta name='applicable-device' content='pc'><meta name='keywords' content='电脑,电脑讲解,电脑技术,编程,电脑故障维修可变参数，你还为方法的参数而烦恼吗？可变参数，让你的头发从此“茂密”！' />
+<script src='../../highlight/highlight.pack.js'></script>
+<link rel='stylesheet' type='text/css' href='../../highlight/styles/monokai.css'/>
+
+<link rel='stylesheet' href='../../fenxiang/dist/css/share.min.css'>
+<script src='../../fenxiang/src/js/social-share.js'></script>
+<script src='../../fenxiang/src/js/qrcode.js'></script>
+
+</head><body><script>hljs.initHighlightingOnLoad();</script><script>
+var system ={};  
+var p = navigator.platform;       
+system.win = p.indexOf('Win') == 0;  
+system.mac = p.indexOf('Mac') == 0;  
+system.x11 = (p == 'X11') || (p.indexOf('Linux') == 0);     
+if(system.win||system.mac||system.xll){
+document.write("<link href='../css/3.css' rel='stylesheet' type='text/css'>");}else{ document.write("<link href='../css/3wap.css' rel='stylesheet' type='text/css'>");}</script><script src='../../js/3.js'></script><div class='div2'><div class='heading_nav'><ul><div><li><a href='../../index.html'>首页</a></li>
+</div><div onclick='hidden1()' >分享</div>
+</ul></div></div>
+<div id='heading_nav2'> 
+<li class='row' >
+<div class='social-share' data-mode='prepend'><a href='javascript:' class='social-share-icon icon-heart'></a></div></li></div><script charset='utf-8' src='../../3/js/hengfu.js'></script><script charset='utf-8' src='../../3/js/hengfu2.js'></script><hr><div class='div1'><div class='biaoti'><center>可变参数，你还为方法的参数而烦恼吗？可变参数，让你的头发从此“茂密”！</center></div><div class='banquan'>原文出处:本文由博客园博主San_Chi提供。<br/>
+原文连接:https://www.cnblogs.com/canchi/p/11440310.html</div><br>
+    <h1>为什么要写可变参数呢？</h1>
+<p>今天为什么我会写这篇博客呢，一个可变参数而已，也没什么技术含量，原因是因为，今天朋友看我代码的时候问我，这个是什么</p>
+<src class="cnblogs_code">
+<pre><code><span style="color: #008080;">1</span> <span style="color: #0000ff;">public</span> <span style="color: #0000ff;">static</span> <span style="color: #0000ff;">void</span><span style="color: #000000;"> k(String... str){}
+</span><span style="color: #008080;">2</span> <span style="color: #008000;">//</span><span style="color: #008000;">代码我就不放上来了，比较长，就简短的写个例子</span></code></pre>
+
+<p>当时我很惊讶，问他，这个你不知道吗，很早就出了，然后和他解释了一番，随后想了一下，可能是教他的老师，不在乎，或是赶课程，把这个可变参数跳过了。<br />好了，闲话少说，步如正题：</p>
+<h3>什么是可变参数呢？</h3>
+<p>可变参数是在jdk1.5的时候，推出的新特性。<br />顾名思义，就是可以变换的参数列表，这个参数可多可少，比如说，你又一个方法，这个方法一般写的话，参数是固定的，俩个参数就是俩个参数，一个参数就是参数，而这个可变参数，就是，在你使用它的时候，他可以是俩个也可以是三个也可以是一个。<br />可变参数底层实现是数组，可以做一个简单的测试如下：</p>
+<p><img src="./images/可变参数，你还为方法的参数而烦恼吗？可变参数，让你的头发从此“茂密”！0.png" alt="" /></p>
+<p>大家可以看到，在编译阶段它就报错了，之所以会报错，是因为，可变参数的底层实现就是数组，上面我们是用String，所以编译的时候，可变参数会转成String[]（方法的可变参数在编译时会被看成具有相同类型的一维数组），这时它们的参数就一样了，冲突了，所以会报错。</p>
+<p>### 可变参数怎么用呢？<br />可变参数的使用很简单，只要在方法参数的类型后面加三个点就可以了</p>
+<src class="cnblogs_code">
+<pre><code><span style="color: #008080;">1</span> <span style="color: #0000ff;">public</span> <span style="color: #0000ff;">static</span> <span style="color: #0000ff;">void</span> t(String... a) {}</code></pre>
+
+<p><span style="font-size: 15px;"><strong>同时也要注意，可变参数只能写在参数列表的最后一个，否则在编译时就会报错</strong> </span></p>
+<p><img src="./images/可变参数，你还为方法的参数而烦恼吗？可变参数，让你的头发从此“茂密”！1.png" alt="" /></p>
+<p><span style="font-size: 15px;"><strong>还要注意，一个方法的参数列表里只能有一个可变参数</strong></span></p>
+<p><span style="font-size: 15px;"><strong><img src="./images/可变参数，你还为方法的参数而烦恼吗？可变参数，让你的头发从此“茂密”！2.png" alt="" /></strong></span></p>
+<p>其实这个也可以说是和可变参数只能放在最后一个相互印证了</p>
+<h3>写一个简单的小例子供参考</h3>
+<src class="cnblogs_code">
+<pre><code><span style="color: #008080;">1</span> <span style="color: #0000ff;">public</span> <span style="color: #0000ff;">static</span> <span style="color: #0000ff;">void</span><span style="color: #000000;"> main(String[] args) {
+</span><span style="color: #008080;">2</span> t(1,2.0,"张三","李四","王五"<span style="color: #000000;">);
+</span><span style="color: #008080;">3</span> <span style="color: #000000;">}
+</span><span style="color: #008080;">4</span> <span style="color: #0000ff;">public</span> <span style="color: #0000ff;">static</span> <span style="color: #0000ff;">void</span> t(<span style="color: #0000ff;">int</span> i,<span style="color: #0000ff;">double</span><span style="color: #000000;"> d,String... str) {
+</span><span style="color: #008080;">5</span> <span style="color: #000000;">System.out.println(str.length);
+</span><span style="color: #008080;">6</span> <span style="color: #000000;">}<br /><br />
+</span><span style="color: #000000;">输出结果:
+</span><span style="color: #008080;">========</span>
+<span style="color: #008080;">1</span> 3</code></pre>
+
+<h3>可变参数在什么时候用呢？</h3>
+<p>可变参数在你确定不了方法参数的时候，或则你方法的参数可能会存在增加/减少的时候用。</p>
+
+</div><hr><script charset='utf-8' src='../../js/sming.js'></script></body></html>

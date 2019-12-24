@@ -1,0 +1,81 @@
+<html><head><meta charset='utf-8'><meta name='viewport' content='width=device-width, initial-scale=1'>
+<meta name='applicable-device' content='pc'><meta name='keywords' content='电脑,电脑讲解,电脑技术,编程,电脑故障维修SpringBoot发送邮箱验证码' />
+<script src='../../highlight/highlight.pack.js'></script>
+<link rel='stylesheet' type='text/css' href='../../highlight/styles/monokai.css'/>
+
+<link rel='stylesheet' href='../../fenxiang/dist/css/share.min.css'>
+<script src='../../fenxiang/src/js/social-share.js'></script>
+<script src='../../fenxiang/src/js/qrcode.js'></script>
+
+</head><body><script>hljs.initHighlightingOnLoad();</script><script>
+var system ={};  
+var p = navigator.platform;       
+system.win = p.indexOf('Win') == 0;  
+system.mac = p.indexOf('Mac') == 0;  
+system.x11 = (p == 'X11') || (p.indexOf('Linux') == 0);     
+if(system.win||system.mac||system.xll){
+document.write("<link href='../css/3.css' rel='stylesheet' type='text/css'>");}else{ document.write("<link href='../css/3wap.css' rel='stylesheet' type='text/css'>");}</script><script src='../../js/3.js'></script><div class='div2'><div class='heading_nav'><ul><div><li><a href='../../index.html'>首页</a></li>
+</div><div onclick='hidden1()' >分享</div>
+</ul></div></div>
+<div id='heading_nav2'> 
+<li class='row' >
+<div class='social-share' data-mode='prepend'><a href='javascript:' class='social-share-icon icon-heart'></a></div></li></div><script charset='utf-8' src='../../3/js/hengfu.js'></script><script charset='utf-8' src='../../3/js/hengfu2.js'></script><hr><div class='div1'><div class='biaoti'><center>SpringBoot发送邮箱验证码</center></div><div class='banquan'>原文出处:本文由博客园博主Raicho提供。<br/>
+原文连接:https://www.cnblogs.com/lzhdonald/p/11490933.html</div><br>
+    <src id="cnblogs_post_body" class="blogpost-body ">
+<h2 id="一.线程安全性">一.开启QQ邮箱服务</h2>
+<p>　　（1）登陆QQ找到设置，点击账户</p>
+<p><img style="display: block; margin-left: auto; margin-right: auto;" src="./images/SpringBoot发送邮箱验证码0.png" alt="" /></p>
+<p>&nbsp;　　（2）往下拉，开启POP3/SMTP服务和IMAP/SMTP服务</p>
+<p><img style="display: block; margin-left: auto; margin-right: auto;" src="./images/SpringBoot发送邮箱验证码1.png" alt="" width="794" height="271" /></p>
+<blockquote>
+<p>当开启IMAP/SMTP会有一串密文密码，保存起来后面要用到</p>
+</blockquote>
+<h2 id="二.原子性">二.spring boot配置邮箱服务</h2>
+<p>　　在pom.xml文件中导入支持邮箱依赖</p>
+<src class="cnblogs_code">
+<pre><code>&lt;dependency&gt;
+      &lt;groupId&gt;org.springframework.boot&lt;/groupId&gt;
+      &lt;artifactId&gt;spring-boot-starter-mail&lt;/artifactId&gt;
+ &lt;/dependency&gt;</code></pre>
+
+<p>&emsp;&emsp;在spring boot的配置文件application.yml中添加以下配置</p>
+<src class="cnblogs_code">
+<pre><code><span style="color: #008080;">1</span> <span style="color: #000000;">spring:
+</span><span style="color: #008080;">2</span> <span style="color: #000000;">  mail:
+</span><span style="color: #008080;">3</span>     username: 1963342385<span style="color: #000000;">@qq.com
+</span><span style="color: #008080;">4</span> <span style="color: #000000;">    password: yqc...fchj
+</span><span style="color: #008080;">5</span>     host: smtp.qq.com</code></pre>
+
+<blockquote>
+<p>　　password是在开启邮箱服务的时候得到的密文密码</p>
+</blockquote>
+<h2 id="三.可见性">三.代码编写</h2>
+<p>&emsp;&emsp;测试代码</p>
+<src class="cnblogs_code">
+<pre><code><span style="color: #008080;"> 1</span> @RunWith(SpringRunner.<span style="color: #0000ff;">class</span><span style="color: #000000;">)
+</span><span style="color: #008080;"> 2</span> <span style="color: #000000;">@SpringBootTest
+</span><span style="color: #008080;"> 3</span> <span style="color: #0000ff;">public</span> <span style="color: #0000ff;">class</span><span style="color: #000000;"> ExchangeOfLearningPlatformApplicationTests {
+</span><span style="color: #008080;"> 4</span> <span style="color: #000000;">    @Autowired
+</span><span style="color: #008080;"> 5</span> <span style="color: #000000;">    JavaMailSenderImpl mailSender;
+</span><span style="color: #008080;"> 6</span>     <span style="color: #0000ff;">private</span><span style="color: #000000;"> String emailServiceCode;
+</span><span style="color: #008080;"> 7</span> 
+<span style="color: #008080;"> 8</span>     <span style="color: #0000ff;">public</span> <span style="color: #0000ff;">void</span><span style="color: #000000;"> test(){
+</span><span style="color: #008080;"> 9</span>         emailServiceCode = "1234"<span style="color: #000000;">;
+</span><span style="color: #008080;">10</span>         SimpleMailMessage message = <span style="color: #0000ff;">new</span><span style="color: #000000;"> SimpleMailMessage();
+</span><span style="color: #008080;">11</span>         message.setSubject("注册验证码"<span style="color: #000000;">);
+</span><span style="color: #008080;">12</span>         message.setText("注册验证码是：" +<span style="color: #000000;"> emailServiceCode);
+</span><span style="color: #008080;">13</span>         message.setFrom("1111111111@qq.com"<span style="color: #000000;">);
+</span><span style="color: #008080;">14</span> <span style="color: #000000;">        mailSender.send(message);
+</span><span style="color: #008080;">15</span> <span style="color: #000000;">    }
+</span><span style="color: #008080;">16</span> }</code></pre>
+
+<blockquote>
+<p>代码说明：</p>
+<pre><code>创建一个简单的邮件对象：SimpleMailMessage message = new SimpleMailMessage(); </code></pre>
+<pre><code>设置邮件标题：message.setSubject(<span>);</span></code></pre>
+<pre><code>设置文件内容：message.setText(<span>);<br /></span></code></pre>
+<pre><code>设置收件邮箱：message.setFrom(<span>);<br /><br />发送邮件：</span>mailSender.send(message);</code></pre>
+</blockquote>
+
+
+</div><hr><script charset='utf-8' src='../../js/sming.js'></script></body></html>

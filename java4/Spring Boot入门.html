@@ -1,0 +1,208 @@
+<html><head><meta charset='utf-8'><meta name='viewport' content='width=device-width, initial-scale=1'>
+<meta name='applicable-device' content='pc'><meta name='keywords' content='电脑,电脑讲解,电脑技术,编程,电脑故障维修Spring Boot入门' />
+<script src='../../highlight/highlight.pack.js'></script>
+<link rel='stylesheet' type='text/css' href='../../highlight/styles/monokai.css'/>
+
+<link rel='stylesheet' href='../../fenxiang/dist/css/share.min.css'>
+<script src='../../fenxiang/src/js/social-share.js'></script>
+<script src='../../fenxiang/src/js/qrcode.js'></script>
+
+</head><body><script>hljs.initHighlightingOnLoad();</script><script>
+var system ={};  
+var p = navigator.platform;       
+system.win = p.indexOf('Win') == 0;  
+system.mac = p.indexOf('Mac') == 0;  
+system.x11 = (p == 'X11') || (p.indexOf('Linux') == 0);     
+if(system.win||system.mac||system.xll){
+document.write("<link href='../css/3.css' rel='stylesheet' type='text/css'>");}else{ document.write("<link href='../css/3wap.css' rel='stylesheet' type='text/css'>");}</script><script src='../../js/3.js'></script><div class='div2'><div class='heading_nav'><ul><div><li><a href='../../index.html'>首页</a></li>
+</div><div onclick='hidden1()' >分享</div>
+</ul></div></div>
+<div id='heading_nav2'> 
+<li class='row' >
+<div class='social-share' data-mode='prepend'><a href='javascript:' class='social-share-icon icon-heart'></a></div></li></div><script charset='utf-8' src='../../3/js/hengfu.js'></script><script charset='utf-8' src='../../3/js/hengfu2.js'></script><hr><div class='div1'><div class='biaoti'><center>Spring Boot入门</center></div><div class='banquan'>原文出处:本文由博客园博主佩奇er提供。<br/>
+原文连接:https://www.cnblogs.com/hxun/p/11422803.html</div><br>
+    <h1 align="justify"><strong>1.Spring Boot<span style="font-family: 黑体;">入门</span></strong></h1>
+<h2>1.1<span style="font-family: 黑体;">什么是</span><span style="font-family: Cambria;">Spring Boot </span></h2>
+<p>Spring <span style="font-family: 宋体;">诞生时是 </span><span style="font-family: Calibri;">Java </span><span style="font-family: 宋体;">企业版（</span><span style="font-family: Calibri;">Java Enterprise Edition</span><span style="font-family: 宋体;">，</span><span style="font-family: Calibri;">JEE</span><span style="font-family: 宋体;">，也称 </span><span style="font-family: Calibri;">J2EE</span><span style="font-family: 宋体;">）的轻量级代替品。无需开发重量级的 </span><span style="font-family: Calibri;">Enterprise JavaBean</span><span style="font-family: 宋体;">（</span><span style="font-family: Calibri;">EJB</span><span style="font-family: 宋体;">），</span><span style="font-family: Calibri;">Spring </span><span style="font-family: 宋体;">为企业级</span><span style="font-family: Calibri;">Java </span><span style="font-family: 宋体;">开发提供了一种相对简单的方法，通过依赖注入和面向切面编程，用简单的</span><span style="font-family: Calibri;">Java </span><span style="font-family: 宋体;">对象（</span><span style="font-family: Calibri;">Plain Old Java Object</span><span style="font-family: 宋体;">，</span><span style="font-family: Calibri;">POJO</span><span style="font-family: 宋体;">）实现了 </span><span style="font-family: Calibri;">EJB </span><span style="font-family: 宋体;">的功能。</span></p>
+<p><span style="font-family: 宋体;">虽然</span> Spring <span style="font-family: 宋体;">的组件代码是轻量级的，但它的配置却是重量级的。一开始，</span><span style="font-family: Calibri;">Spring </span><span style="font-family: 宋体;">用 </span><span style="font-family: Calibri;">XML </span><span style="font-family: 宋体;">配置，而且是很多 </span><span style="font-family: Calibri;">XML </span><span style="font-family: 宋体;">配置。</span><span style="font-family: Calibri;">Spring 2.5 </span><span style="font-family: 宋体;">引入了基于注解的组件扫描，这消除了大量针对应用程序自身组件的显式 </span><span style="font-family: Calibri;">XML </span><span style="font-family: 宋体;">配置。</span><span style="font-family: Calibri;">Spring 3.0 </span><span style="font-family: 宋体;">引入了基于 </span><span style="font-family: Calibri;">Java </span><span style="font-family: 宋体;">的配置，这是一种类型安全的可重构配置方式，可以代替 </span><span style="font-family: Calibri;">XML</span><span style="font-family: 宋体;">。所有这些配置都代表了开发时的损耗。因为在思考 </span><span style="font-family: Calibri;">Spring </span><span style="font-family: 宋体;">特性配置和解决业务问题之间需要进行思维切换，所以写配置挤占了写应用程序逻辑的时间。和所有框架一样，</span><span style="font-family: Calibri;">Spring </span><span style="font-family: 宋体;">实用，但与此同时它要求的回报也不少。</span></p>
+<p>除此之外，项目的依赖管理也是件吃力不讨好的事情。决定项目里要用哪些库就已经够让人头痛的了，你还要知道这些库的哪个版本和其他库不会有冲突，这难题实在太棘手。并且，依赖管理也是一种损耗，添加依赖不是写应用程序代码。一旦选错了依赖的版本，随之而来的不兼容问题毫无疑问会是生产力杀手。</p>
+<p>Spring Boot <span style="font-family: 宋体;">让这一切成为了过去。</span></p>
+<p>&nbsp;&nbsp;&nbsp;&nbsp;Spring Boot <span style="font-family: 宋体;">是 </span><span style="font-family: Calibri;">Spring </span><span style="font-family: 宋体;">社区较新的一个项目。该项目的目的是帮助开发者更容易的创建基于 </span><span style="font-family: Calibri;">Spring </span><span style="font-family: 宋体;">的应用程序和服务，让更多人的人更快的对 </span><span style="font-family: Calibri;">Spring </span><span style="font-family: 宋体;">进行入门体验，为 </span><span style="font-family: Calibri;">Spring </span><span style="font-family: 宋体;">生态系统提供了一种固定的、约定优于配置风格的框架。</span></p>
+<p>Spring Boot <span style="font-family: 宋体;">具有如下特性：</span></p>
+<p><span style="font-family: 宋体;">（</span>1<span style="font-family: 宋体;">）为基于 </span><span style="font-family: Calibri;">Spring </span><span style="font-family: 宋体;">的开发提供更快的入门体验</span></p>
+<p><span style="font-family: 宋体;">（</span>2<span style="font-family: 宋体;">）开箱即用，没有代码生成，也无需 </span><span style="font-family: Calibri;">XML </span><span style="font-family: 宋体;">配置。同时也可以修改默认值来满足特定的需求。</span></p>
+<p><span style="font-family: 宋体;">（</span>3<span style="font-family: 宋体;">）提供了一些大型项目中常见的非功能性特性，如嵌入式服务器、安全、指标，健康检测、外部配置等。</span></p>
+<p><span style="font-family: 宋体;">（</span>4<span style="font-family: 宋体;">）</span><span style="font-family: Calibri;">Spring Boot </span><span style="font-family: 宋体;">并不是不对 </span><span style="font-family: Calibri;">Spring </span><span style="font-family: 宋体;">功能上的增强，而是提供了一种快速使用 </span><span style="font-family: Calibri;">Spring </span><span style="font-family: 宋体;">的方式。</span></p>
+<h2>1.2 Spring Boot<span style="font-family: 黑体;">入门小</span><span style="font-family: Cambria;">Demo</span></h2>
+<h3>1.2.1<span style="font-family: 黑体;">起步依赖</span></h3>
+<p><span style="font-family: 宋体;">创建</span>Maven<span style="font-family: 宋体;">工程 </span><span style="font-family: Calibri;">springboot_demo</span><span style="font-family: 宋体;">（打包方式</span><span style="font-family: Calibri;">jar</span><span style="font-family: 宋体;">） &nbsp;</span></p>
+<p><span style="font-family: 宋体;">在</span>pom.xml<span style="font-family: 宋体;">中添加如下依赖</span></p>
+<table border="1" cellspacing="0">
+<tbody>
+<tr>
+<td valign="top" width="568">
+<p>&nbsp;&nbsp;&lt;parent&gt;</p>
+<p>&nbsp;&nbsp;&nbsp;&nbsp;&lt;groupId&gt;org.springframework.boot&lt;/groupId&gt;</p>
+<p>&nbsp;&nbsp;&nbsp;&nbsp;&lt;artifactId&gt;spring-boot-starter-parent&lt;/artifactId&gt;</p>
+<p>&lt;version&gt;1.4.0.RELEASE&lt;/version&gt;</p>
+<p>&nbsp;&nbsp;&lt;/parent&gt;&nbsp;&nbsp;</p>
+<p>&nbsp;&nbsp;&lt;dependencies&gt;</p>
+<p>&nbsp;&nbsp;&nbsp;&nbsp;&lt;dependency&gt;</p>
+<p>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&lt;groupId&gt;org.springframework.boot&lt;/groupId&gt;</p>
+<p>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&lt;artifactId&gt;spring-boot-starter-web&lt;/artifactId&gt;</p>
+<p>&nbsp;&nbsp;&nbsp;&nbsp;&lt;/dependency&gt;</p>
+<p>&nbsp;&nbsp;&lt;/dependencies&gt;</p>
+</td>
+</tr>
+</tbody>
+</table>
+<p><span style="font-family: 宋体;">我们会惊奇地发现，我们的工程自动添加了好多好多</span>jar<span style="font-family: 宋体;">包</span></p>
+<p>&nbsp;<img src="./images/Spring Boot入门0.png" alt="" /></p>
+<p>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;........</p>
+<p>而这些jar<span style="font-family: 宋体;">包正式我们做开发时需要导入的</span><span style="font-family: Calibri;">jar</span><span style="font-family: 宋体;">包。因为这些</span><span style="font-family: Calibri;">jar</span><span style="font-family: 宋体;">包被我们刚才引入的</span>spring-boot-starter-web<span style="font-family: 宋体;">所引用了，所以我们引用</span><span style="font-family: Calibri;">spring-boot-starter-web</span><span style="font-family: 宋体;">后会自动把依赖传递过来。</span></p>
+<h3>1.2.2<span style="font-family: 黑体;">变更</span><span style="font-family: Cambria;">JDK</span><span style="font-family: 黑体;">版本</span></h3>
+<p><span style="font-family: 宋体;">我们发现默认情况下工程的</span>JDK<span style="font-family: 宋体;">版本是</span><span style="font-family: Calibri;">1.6 ,</span><span style="font-family: 宋体;">而我们通常用使用</span><span style="font-family: Calibri;">1.7</span><span style="font-family: 宋体;">的版本，所以我们需要在</span><span style="font-family: Calibri;">pom.xml</span><span style="font-family: 宋体;">中添加以下配置</span></p>
+<table border="1" cellspacing="0">
+<tbody>
+<tr>
+<td valign="top" width="568">
+<p>&nbsp;&nbsp;&lt;properties&gt;&nbsp;&nbsp;&nbsp;</p>
+<p>&nbsp;&nbsp;&nbsp;&nbsp;&lt;java.version&gt;1.7&lt;/java.version&gt;</p>
+<p>&nbsp;&nbsp;&lt;/properties&gt;</p>
+</td>
+</tr>
+</tbody>
+</table>
+<p><span style="font-family: 宋体;">添加后更新工程，会发现版本已经变更为</span>1.7</p>
+<h3>1.2.3<span style="font-family: 黑体;">引导类</span></h3>
+<p><span style="font-family: 宋体;">只需要创建一个引导类</span> .</p>
+<table border="1" cellspacing="0">
+<tbody>
+<tr>
+<td valign="top" width="568">
+<p><strong>package</strong>&nbsp;cn.itcast.demo;</p>
+<p><strong>import</strong>&nbsp;org.springframework.boot.SpringApplication;</p>
+<p><strong>import</strong>&nbsp;org.springframework.boot.autoconfigure.SpringBootApplication;</p>
+<p>@SpringBootApplication</p>
+<p><strong>public</strong>&nbsp;<strong>class</strong>&nbsp;Application {</p>
+<p><strong>public</strong>&nbsp;<strong>static</strong>&nbsp;<strong>void</strong>&nbsp;main(String[] args) {</p>
+<p>SpringApplication.<em>run</em>(Application.<strong>class</strong>, args);</p>
+<p>}</p>
+<p>}</p>
+</td>
+</tr>
+</tbody>
+</table>
+<p><span style="font-family: 宋体;">简单解释一下，</span>@SpringBootApplication<span style="font-family: 宋体;">其实就是以下三个注解的总和</span></p>
+<p>@Configuration<span style="font-family: 宋体;">：</span>&nbsp;用于定义一个配置类</p>
+<p>@EnableAutoConfiguration&nbsp;：Spring Boot<span style="font-family: 宋体;">会自动根据你</span><span style="font-family: Calibri;">jar</span><span style="font-family: 宋体;">包的依赖来自动配置项目。</span></p>
+<p>@ComponentScan：&nbsp;<span style="font-family: 宋体;">告诉</span>Spring <span style="font-family: 宋体;">哪个</span><span style="font-family: Calibri;">packages </span><span style="font-family: 宋体;">的用注解标识的类 会被</span><span style="font-family: Calibri;">spring</span><span style="font-family: 宋体;">自动扫描并且装入</span><span style="font-family: Calibri;">bean</span><span style="font-family: 宋体;">容器</span>。</p>
+<p>我们直接执行这个引导类，会发现控制台出现的这个标识</p>
+<p>&nbsp;<img src="./images/Spring Boot入门1.png" alt="" /></p>
+<p>你能不能看出来上边这个图是什么东西？<img src="./images/Spring Boot入门2.png" alt="" /></p>
+<p>&nbsp;</p>
+<h3>1.2.4 Spring MVC<span style="font-family: 黑体;">实现</span><span style="font-family: Cambria;">Hello World</span><span style="font-family: 黑体;">输出</span></h3>
+<p>我们现在开始使用spring MVC<span style="font-family: 宋体;">框架，实现</span><span style="font-family: Calibri;">json</span><span style="font-family: 宋体;">数据的输出。如果按照我们原来的做法，需要在</span><span style="font-family: Calibri;">web.xml</span><span style="font-family: 宋体;">中添加一个</span><span style="font-family: Calibri;">DispatcherServlet</span><span style="font-family: 宋体;">的配置，再添加一个</span><span style="font-family: Calibri;">spring</span><span style="font-family: 宋体;">的配置文件，配置文件中需要添加如下配置</span></p>
+<table border="1" cellspacing="0">
+<tbody>
+<tr>
+<td valign="top" width="568">
+<p>&nbsp;&nbsp;&nbsp;&nbsp;&lt;!-- <span style="font-family: 宋体;">使用组件扫描，不用将</span><span style="font-family: Calibri;">controller</span><span style="font-family: 宋体;">在</span><span style="font-family: Calibri;">spring</span><span style="font-family: 宋体;">中配置 </span><span style="font-family: Calibri;">--&gt;</span></p>
+<p>&lt;context:component-scan base-package="cn.itcast.demo.controller" /&gt;</p>
+<p>&nbsp;&nbsp;&nbsp;&nbsp;&lt;!-- <span style="font-family: 宋体;">使用注解驱动不用在下边定义映射器和适配置器 </span><span style="font-family: Calibri;">--&gt;</span></p>
+<p>&nbsp;&nbsp; &lt;mvc:annotation-driven&gt;</p>
+<p>&nbsp;&nbsp;&lt;mvc:message-converters register-defaults=<em>"true"</em>&gt;</p>
+<p>&nbsp;&nbsp;&nbsp;&nbsp;&lt;bean class=<em>"com.alibaba.fastjson.support.spring.FastJsonHttpMessageConverter"</em>&gt; &nbsp;</p>
+<p>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&lt;property name=<em>"supportedMediaTypes"</em>&nbsp;value=<em>"application/json"</em>/&gt;</p>
+<p>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&lt;property name=<em>"features"</em>&gt;</p>
+<p>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&lt;array&gt;</p>
+<p>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&lt;value&gt;WriteMapNullValue&lt;/value&gt;</p>
+<p>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&lt;value&gt;WriteDateUseDateFormat&lt;/value&gt;</p>
+<p>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&lt;/array&gt;</p>
+<p>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&lt;/property&gt;</p>
+<p>&nbsp;&nbsp;&nbsp;&nbsp;&lt;/bean&gt;</p>
+<p>&nbsp;&nbsp;&lt;/mvc:message-converters&gt; &nbsp;</p>
+<p>&lt;/mvc:annotation-driven&gt;</p>
+</td>
+</tr>
+</tbody>
+</table>
+<p>但是我们用SpringBoot<span style="font-family: 宋体;">，这一切都省了。</span>我们直接写Controller<span style="font-family: 宋体;">类</span></p>
+<table border="1" cellspacing="0">
+<tbody>
+<tr>
+<td valign="top" width="568">
+<p><strong>package</strong>&nbsp;cn.itcast.demo.controller;</p>
+<p><strong>import</strong>&nbsp;org.springframework.web.bind.annotation.RequestMapping;</p>
+<p><strong>import</strong>&nbsp;org.springframework.web.bind.annotation.RestController;</p>
+<p>@RestController</p>
+<p><strong>public</strong>&nbsp;<strong>class</strong>&nbsp;HelloWorldController {</p>
+<p>@RequestMapping("/info")</p>
+<p><strong>public</strong>&nbsp;String info(){</p>
+<p><strong>return</strong>&nbsp;"HelloWorld";</p>
+<p>}</p>
+<p>}</p>
+</td>
+</tr>
+</tbody>
+</table>
+<p>我们运行启动类来运行程序</p>
+<p><span style="font-family: 宋体;">在浏览器地址栏输入</span> http://localhost:8080/info <span style="font-family: 宋体;">即可看到运行结果</span></p>
+<h3>1.2.5<span style="font-family: 黑体;">修改</span><span style="font-family: Cambria;">tomcat</span><span style="font-family: 黑体;">启动端口</span></h3>
+<p><span style="font-family: 宋体;">在</span>src/main/resources<span style="font-family: 宋体;">下创建</span><span style="font-family: Calibri;">application.properties</span></p>
+<table border="1" cellspacing="0">
+<tbody>
+<tr>
+<td valign="top" width="568">
+<p>server.port=8088</p>
+</td>
+</tr>
+</tbody>
+</table>
+<p>重新运行引导类。地址栏输入</p>
+<p><a href="http://localhost:8088/info"><span style="text-decoration: underline;">http://localhost:8088/info</span></a></p>
+<h3>1.2.6<span style="font-family: 黑体;">读取配置文件信息</span></h3>
+<p><span style="font-family: 宋体;">在</span>src/main/resources<span style="font-family: 宋体;">下的</span><span style="font-family: Calibri;">application.properties </span><span style="font-family: 宋体;">增加配置</span></p>
+<table border="1" cellspacing="0">
+<tbody>
+<tr>
+<td valign="top" width="568">
+<p>url=http://www.itcast.cn</p>
+</td>
+</tr>
+</tbody>
+</table>
+<p><span style="font-family: 宋体;">我要在类中读取这个配置信息，修改</span>HelloWorldController &nbsp;</p>
+<table border="1" cellspacing="0">
+<tbody>
+<tr>
+<td valign="top" width="568">
+<p>@Autowired</p>
+<p><strong>private</strong>&nbsp;<span style="color: #ff0000;">Environment env</span>;</p>
+<p>&nbsp;</p>
+<p>@RequestMapping("/info")</p>
+<p><strong>public</strong>&nbsp;String info(){</p>
+<p><strong>return</strong>&nbsp;"HelloWorld~~"+<span style="color: #ff0000;">env.getProperty("url")</span>;</p>
+<p>}</p>
+</td>
+</tr>
+</tbody>
+</table>
+<h3>1.2.7<span style="font-family: 黑体;">热部署</span></h3>
+<p><span style="font-family: 宋体;">我们在开发中反复修改类、页面等资源，每次修改后都是需要重新启动才生效，这样每次启动都很麻烦，浪费了大量的时间，能不能在我修改代码后不重启就能生效呢？可以，在</span>pom.xml<span style="font-family: 宋体;">中添加如下配置就可以实现这样的功能，我们称之为热部署。</span></p>
+<table border="1" cellspacing="0">
+<tbody>
+<tr>
+<td valign="top" width="568">
+<p>&lt;dependency&gt;&nbsp;&nbsp;</p>
+<p>&nbsp;&nbsp;&nbsp;&nbsp;&lt;groupId&gt;org.springframework.boot&lt;/groupId&gt;&nbsp;&nbsp;</p>
+<p>&nbsp;&nbsp;&nbsp;&nbsp;&lt;artifactId&gt;spring-boot-<span style="text-decoration: underline;">devtools</span>&lt;/artifactId&gt;&nbsp;&nbsp;</p>
+<p>&lt;/dependency&gt;&nbsp;&nbsp;</p>
+</td>
+</tr>
+</tbody>
+</table>
+<p>赶快试试看吧，是不是很爽。<img src="./images/Spring Boot入门3.png" alt="" /></p>
+<p>&nbsp;</p>
+
+</div><hr><script charset='utf-8' src='../../js/sming.js'></script></body></html>

@@ -1,0 +1,271 @@
+<html><head><meta charset='utf-8'><meta name='viewport' content='width=device-width, initial-scale=1'>
+<meta name='applicable-device' content='pc'><meta name='keywords' content='电脑,电脑讲解,电脑技术,编程,电脑故障维修小白的springboot之路（八）、继承Redis以及@Cacheable注解实现Redis缓存' />
+<script src='../../highlight/highlight.pack.js'></script>
+<link rel='stylesheet' type='text/css' href='../../highlight/styles/monokai.css'/>
+
+<link rel='stylesheet' href='../../fenxiang/dist/css/share.min.css'>
+<script src='../../fenxiang/src/js/social-share.js'></script>
+<script src='../../fenxiang/src/js/qrcode.js'></script>
+
+</head><body><script>hljs.initHighlightingOnLoad();</script><script>
+var system ={};  
+var p = navigator.platform;       
+system.win = p.indexOf('Win') == 0;  
+system.mac = p.indexOf('Mac') == 0;  
+system.x11 = (p == 'X11') || (p.indexOf('Linux') == 0);     
+if(system.win||system.mac||system.xll){
+document.write("<link href='../css/3.css' rel='stylesheet' type='text/css'>");}else{ document.write("<link href='../css/3wap.css' rel='stylesheet' type='text/css'>");}</script><script src='../../js/3.js'></script><div class='div2'><div class='heading_nav'><ul><div><li><a href='../../index.html'>首页</a></li>
+</div><div onclick='hidden1()' >分享</div>
+</ul></div></div>
+<div id='heading_nav2'> 
+<li class='row' >
+<div class='social-share' data-mode='prepend'><a href='javascript:' class='social-share-icon icon-heart'></a></div></li></div><script charset='utf-8' src='../../3/js/hengfu.js'></script><script charset='utf-8' src='../../3/js/hengfu2.js'></script><hr><div class='div1'><div class='biaoti'><center>小白的springboot之路（八）、继承Redis以及@Cacheable注解实现Redis缓存</center></div><div class='banquan'>原文出处:本文由博客园博主烧麦提供。<br/>
+原文连接:https://www.cnblogs.com/yanghj/p/12014409.html</div><br>
+    <h2>0、前言</h2>
+<p>　　在项目中，缓存作为一种高效的提升性能的手段，几乎必不可少，Redis作为其中的佼佼者被广泛应用；</p>
+<h1>一、spring boot集成Redis</h1>
+<h3>1、添加依赖</h3>
+<src class="cnblogs_code">
+<pre><code>        &lt;dependency&gt;
+            &lt;groupId&gt;org.springframework.boot&lt;/groupId&gt;
+            &lt;artifactId&gt;spring-boot-starter-data-redis&lt;/artifactId&gt;
+        &lt;/dependency&gt;</code></pre>
+
+<h3>2、配置文件增加Redis配置</h3>
+<src class="cnblogs_code">
+<pre><code><span style="color: #000000;">####### Redis ################
+#第几个数据库，由于redis中数据库不止一个（默认会开启15个）
+spring.redis.database</span>=1<span style="color: #000000;">
+# 也可指定为127.</span>0.0.1<span style="color: #000000;">
+spring.redis.host</span>=<span style="color: #000000;">localhost
+spring.redis.port</span>=6379<span style="color: #000000;">
+spring.redis.password</span>=88888888<span style="color: #000000;">
+
+# springboot2.x以上如此配置，由于2.x的客户端是lettuce
+# 单位要带上
+spring.redis.lettuce.pool.max</span>-active=8<span style="color: #000000;">
+spring.redis.lettuce.pool.min</span>-idle=0<span style="color: #000000;">
+spring.redis.lettuce.pool.max</span>-idle=8<span style="color: #000000;">
+spring.redis.lettuce.pool.max</span>-wait=<span style="color: #000000;">10000ms
+spring.redis.lettuce.shutdown</span>-timeout=<span style="color: #000000;">100ms
+
+# springboot1.x如此配置，由于1.x的客户端是jedis
+#spring.redis.jedis.pool.max</span>-active=8<span style="color: #000000;">
+#spring.redis.jedis.pool.min</span>-idle=0<span style="color: #000000;">
+#spring.redis.jedis.pool.max</span>-idle=8<span style="color: #000000;">
+#spring.redis.jedis.pool.max</span>-wait=-1<span style="color: #000000;">
+#spring.redis.timeout</span>=500</code></pre>
+
+<h3>3、使用</h3>
+<p>　　这样就集成进来了，就可以使用了，<strong>有两种template可以直接使用，RedisTemplate和StringRedisTemplate</strong>，<strong>有opsForValue、opsForList、opsForSet、opsForZset、opsForHash</strong>几种访问方法，简单示例如下：</p>
+<src class="cnblogs_code">
+<pre><code><span style="color: #000000;">   @Resource
+    </span><span style="color: #0000ff;">private</span><span style="color: #000000;"> RedisTemplate redisTemplate; 
+
+   </span><span style="color: #008000;">//</span><span style="color: #008000;"> 写入缓存</span>
+   redisTemplate.opsForValue().set("111","anson"<span style="color: #000000;">);
+
+    </span><span style="color: #008000;">//</span><span style="color: #008000;">读取缓存</span>
+   String str = redisTemplate.opsForValue().get("111").toString();</code></pre>
+
+<p>运行后可以查看到缓存中已经写入，读取也正常读取出来</p>
+<p><img src="./images/小白的springboot之路（八）、继承Redis以及@Cacheable注解实现Redis缓存0.png" alt="" /></p>
+<p>&nbsp;</p>
+<p><img src="./images/小白的springboot之路（八）、继承Redis以及@Cacheable注解实现Redis缓存1.png" alt="" /></p>
+<p>&nbsp;</p>
+<p>&nbsp;</p>
+<h2>4、总结：</h2>
+<h3>　　可以看到，写入Redis的是经过转码的，不方便查看，一般我们在使用的时候，会替换掉它默认的解析器，并且将相关操作封装成工具类方便使用；通常Redis我们是作为缓存服务器来使用，实际项目中，缓存有两种方式，一种是手动的方式：就是像上面的方式，将Redis的解析器替换，然后封装工具类；在使用的地方，先判断缓存中时候有需要的数据，没有的换就从数据库中去取，然后写入Redis缓存，有的话就直接从Redis缓存取；手动的方式虽然有时候更灵活，但是每个方法都需要写一堆代码，很累赘，基本上我们是不会用这种方式的，所以上面的方式只是简单介绍，什么封装工具类啊那些都没贴代码出来，想用这种方式的自己去百度，一大堆；</h3>
+<h3>　　缓存的第二种方式就是配合注解实现缓存，方便，只需要在需要缓存的方法上加上注解即可，实际项目中，基本都是使用这种方式，下面介绍</h3>
+<h1>二、@Cacheable注解实现Redis缓存</h1>
+<h2>1、添加依赖</h2>
+<src class="cnblogs_code">
+<pre><code>&lt;!--4、集成redis --&gt;
+        &lt;dependency&gt;
+            &lt;groupId&gt;org.apache.commons&lt;/groupId&gt;
+            &lt;artifactId&gt;commons-pool2&lt;/artifactId&gt;
+            &lt;version&gt;2.4.2&lt;/version&gt;
+        &lt;/dependency&gt;
+        &lt;!-- redis依赖，2.0以上使用这个依赖 --&gt;
+        &lt;dependency&gt;
+            &lt;groupId&gt;org.springframework.boot&lt;/groupId&gt;
+            &lt;artifactId&gt;spring-boot-starter-data-redis&lt;/artifactId&gt;
+        &lt;/dependency&gt;
+        &lt;!-- 缓存依赖 --&gt;
+        &lt;dependency&gt;
+            &lt;groupId&gt;org.springframework.boot&lt;/groupId&gt;
+            &lt;artifactId&gt;spring-boot-starter-cache&lt;/artifactId&gt;
+        &lt;/dependency&gt;</code></pre>
+
+<h2>2、配置文件中增加配置</h2>
+<src class="cnblogs_code">
+<pre><code><span style="color: #000000;">####### Redis ################
+#第几个数据库，由于redis中数据库不止一个
+spring.redis.database</span>=1<span style="color: #000000;">
+# 也可指定为127.</span>0.0.1<span style="color: #000000;">
+spring.redis.host</span>=<span style="color: #000000;">localhost
+spring.redis.port</span>=6379<span style="color: #000000;">
+spring.redis.password</span>=88888888<span style="color: #000000;">
+
+# springboot2.x以上如此配置，由于2.x的客户端是lettuce
+# 单位要带上
+spring.redis.lettuce.pool.max</span>-active=8<span style="color: #000000;">
+spring.redis.lettuce.pool.min</span>-idle=0<span style="color: #000000;">
+spring.redis.lettuce.pool.max</span>-idle=8<span style="color: #000000;">
+spring.redis.lettuce.pool.max</span>-wait=<span style="color: #000000;">10000ms
+spring.redis.lettuce.shutdown</span>-timeout=<span style="color: #000000;">100ms
+
+# springboot1.x如此配置，由于1.x的客户端是jedis
+#spring.redis.jedis.pool.max</span>-active=8<span style="color: #000000;">
+#spring.redis.jedis.pool.min</span>-idle=0<span style="color: #000000;">
+#spring.redis.jedis.pool.max</span>-idle=8<span style="color: #000000;">
+#spring.redis.jedis.pool.max</span>-wait=-1<span style="color: #000000;">
+#spring.redis.timeout</span>=500</code></pre>
+
+<h2>3、实现自定义缓存管理器</h2>
+<src class="cnblogs_code">
+<pre><code><span style="color: #0000ff;">package</span><span style="color: #000000;"> com.anson.config;
+
+
+</span><span style="color: #0000ff;">import</span><span style="color: #000000;"> org.slf4j.Logger;
+</span><span style="color: #0000ff;">import</span><span style="color: #000000;"> org.slf4j.LoggerFactory;
+</span><span style="color: #0000ff;">import</span><span style="color: #000000;"> org.springframework.cache.annotation.CachingConfigurerSupport;
+</span><span style="color: #0000ff;">import</span><span style="color: #000000;"> org.springframework.cache.annotation.EnableCaching;
+</span><span style="color: #0000ff;">import</span><span style="color: #000000;"> org.springframework.cache.interceptor.KeyGenerator;
+</span><span style="color: #0000ff;">import</span><span style="color: #000000;"> org.springframework.context.annotation.Bean;
+</span><span style="color: #0000ff;">import</span><span style="color: #000000;"> org.springframework.context.annotation.Configuration;
+</span><span style="color: #0000ff;">import</span><span style="color: #000000;"> org.springframework.data.redis.cache.RedisCacheConfiguration;
+</span><span style="color: #0000ff;">import</span><span style="color: #000000;"> org.springframework.data.redis.cache.RedisCacheManager;
+</span><span style="color: #0000ff;">import</span><span style="color: #000000;"> org.springframework.data.redis.connection.RedisConnectionFactory;
+</span><span style="color: #0000ff;">import</span> org.springframework.data.redis.serializer.*<span style="color: #000000;">;
+
+</span><span style="color: #0000ff;">import</span><span style="color: #000000;"> java.time.Duration;
+
+</span><span style="color: #008000;">/**</span><span style="color: #008000;">
+ * @description: redis缓存配置类
+ * </span><span style="color: #808080;">@author</span><span style="color: #008000;">: anson
+ * @Date: 2019/12/8 21:34
+ </span><span style="color: #008000;">*/</span><span style="color: #000000;">
+
+@Configuration
+@EnableCaching
+</span><span style="color: #0000ff;">public</span> <span style="color: #0000ff;">class</span> RedisCacheConfig <span style="color: #0000ff;">extends</span><span style="color: #000000;"> CachingConfigurerSupport {
+
+    </span><span style="color: #0000ff;">private</span> <span style="color: #0000ff;">static</span> <span style="color: #0000ff;">final</span> Logger logger = LoggerFactory.getLogger(RedisCacheConfig.<span style="color: #0000ff;">class</span><span style="color: #000000;">);
+
+    </span><span style="color: #008000;">//</span><span style="color: #008000;"> 自定义key生成器</span>
+<span style="color: #000000;">    @Bean
+    </span><span style="color: #0000ff;">public</span><span style="color: #000000;"> KeyGenerator keyGenerator(){
+        </span><span style="color: #0000ff;">return</span> (o, method, params) -&gt;<span style="color: #000000;">{
+            StringBuilder sb </span>= <span style="color: #0000ff;">new</span><span style="color: #000000;"> StringBuilder();
+            sb.append(o.getClass().getName()); </span><span style="color: #008000;">//</span><span style="color: #008000;"> 类目</span>
+            sb.append(method.getName()); <span style="color: #008000;">//</span><span style="color: #008000;"> 方法名</span>
+            <span style="color: #0000ff;">for</span><span style="color: #000000;">(Object param: params){
+                sb.append(param.toString()); </span><span style="color: #008000;">//</span><span style="color: #008000;"> 参数名</span>
+<span style="color: #000000;">            }
+            </span><span style="color: #0000ff;">return</span><span style="color: #000000;"> sb.toString();
+        };
+    }
+
+    </span><span style="color: #008000;">//</span><span style="color: #008000;"> 配置缓存管理器</span>
+<span style="color: #000000;">    @Bean
+    </span><span style="color: #0000ff;">public</span><span style="color: #000000;"> RedisCacheManager cacheManager(RedisConnectionFactory connectionFactory) {
+        RedisCacheConfiguration config </span>=<span style="color: #000000;"> RedisCacheConfiguration.defaultCacheConfig()
+                .entryTtl(Duration.ofSeconds(</span>60000000)) <span style="color: #008000;">//</span><span style="color: #008000;"> 60s缓存失效
+                </span><span style="color: #008000;">//</span><span style="color: #008000;"> 设置key的序列化方式</span>
+<span style="color: #000000;">                .serializeKeysWith(RedisSerializationContext.SerializationPair.fromSerializer(keySerializer()))
+                </span><span style="color: #008000;">//</span><span style="color: #008000;"> 设置value的序列化方式</span>
+<span style="color: #000000;">                .serializeValuesWith(RedisSerializationContext.SerializationPair.fromSerializer(valueSerializer()))
+                </span><span style="color: #008000;">//</span><span style="color: #008000;"> 不缓存null值</span>
+<span style="color: #000000;">                .disableCachingNullValues();
+
+        RedisCacheManager redisCacheManager </span>=<span style="color: #000000;"> RedisCacheManager.builder(connectionFactory)
+                .cacheDefaults(config)
+                .transactionAware()
+                .build();
+
+        logger.info(</span>"自定义RedisCacheManager加载完成"<span style="color: #000000;">);
+        </span><span style="color: #0000ff;">return</span><span style="color: #000000;"> redisCacheManager;
+    }
+
+
+    </span><span style="color: #008000;">//</span><span style="color: #008000;"> key键序列化方式</span>
+    <span style="color: #0000ff;">private</span> RedisSerializer&lt;String&gt;<span style="color: #000000;"> keySerializer() {
+        </span><span style="color: #0000ff;">return</span> <span style="color: #0000ff;">new</span><span style="color: #000000;"> StringRedisSerializer();
+    }
+
+    </span><span style="color: #008000;">//</span><span style="color: #008000;"> value值序列化方式</span>
+    <span style="color: #0000ff;">private</span><span style="color: #000000;"> GenericJackson2JsonRedisSerializer valueSerializer(){
+        </span><span style="color: #0000ff;">return</span> <span style="color: #0000ff;">new</span><span style="color: #000000;"> GenericJackson2JsonRedisSerializer();
+       </span><span style="color: #008000;">//</span><span style="color: #008000;"> return  new GenericFastJsonRedisSerializer();</span>
+<span style="color: #000000;">    }
+}</span></code></pre>
+
+<h2>4、使用：可以直接使用了，在UserServiceImpl中</h2>
+<src class="cnblogs_code">
+<pre><code><span style="color: #000000;">    @Override
+    @Cacheable(cacheNames </span>= "user" ,key="#id"<span style="color: #000000;">)
+    </span><span style="color: #0000ff;">public</span><span style="color: #000000;"> User selectByPrimaryKey(Integer id)
+    {
+        </span><span style="color: #0000ff;">return</span><span style="color: #000000;">  usermapper.selectByPrimaryKey(id);
+    }
+
+    @Override
+    @Cacheable(cacheNames </span>= "users"<span style="color: #000000;">)
+    </span><span style="color: #0000ff;">public</span> List&lt;User&gt;<span style="color: #000000;"> getAll()
+    {
+        </span><span style="color: #0000ff;">return</span><span style="color: #000000;"> usermapper.getAll();
+    }</span></code></pre>
+
+<h3>　　其中，key如果不设置，会根据我们设置的生成器生成KEY，如果自己设置的话，有几种方式，下面介绍一下：</h3>
+<src>
+<src>
+<h3>A、基本形式</h3>
+<p>@Cacheable(value="cacheName", key"#id")</p>
+<p>public User method(int id);</p>
+<h3>B、组合形式</h3>
+<p>@Cacheable(value="cacheName", key"T(String).valueOf(#name).concat('-').concat(#password))</p>
+<p>public User&nbsp;method(int name, String password);</p>
+<h3>C、对象形式</h3>
+<p>@Cacheable(value="cacheName", key"#user.id)</p>
+<p>public User&nbsp;method(User user);</p>
+<h3>D、自定义Key生成器</h3>
+<p>@Cacheable(value="gomeo2oCache", keyGenerator = "keyGenerator")</p>
+<p>public User&nbsp;method(User user);</p>
+
+
+<h2>&nbsp;5、测试 </h2>
+<p>　　&nbsp;我们 打开druid的SQL监控，然后在swagger中进行操作，在Redis desktop manager中查看Redis，就可以看到第一次查询执行了数据库查询，并把结果存进了Redis中，以后执行同样的查询，在缓存没过期之前，都直接从Redis获取，不再执行数据库查询，可见Redis缓存成功运行和释放了数据库的压力了；</p>
+<p><img src="./images/小白的springboot之路（八）、继承Redis以及@Cacheable注解实现Redis缓存2.png" alt="" /></p>
+<p>&nbsp;</p>
+<p>&nbsp;</p>
+<p><img src="./images/小白的springboot之路（八）、继承Redis以及@Cacheable注解实现Redis缓存3.png" alt="" /></p>
+<p>&nbsp;</p>
+<p>&nbsp;<img src="./images/小白的springboot之路（八）、继承Redis以及@Cacheable注解实现Redis缓存4.png" alt="" /></p>
+<p>&nbsp;</p>
+<p>&nbsp;</p>
+<h2>附：Redis Windows下简单实用以及Redis GUI工具Redis desktop manager的使用，也简单介绍下：</h2>
+<h3>1、Redis Windows版的简单使用：</h3>
+<p>下载Redis Windows版，解压后看到</p>
+<p><img src="./images/小白的springboot之路（八）、继承Redis以及@Cacheable注解实现Redis缓存5.png" alt="" /></p>
+<p>&nbsp;</p>
+<p>&nbsp;先点击打开Redis-server.exe，再打开Redis-cli.exe，Redis已经以默认的方式启动起来了，其中Redis-server.exe就是Redis服务，Redis-cli.exe是客户端工具，用来以命令操作Redis的；</p>
+<p>这时候就可以使用Redis，默认密码是空的，端口是6379；我们设置一下密码：</p>
+<p><strong>config set requirepass &ldquo;你的密码&rdquo; &nbsp; &nbsp; &nbsp; //设置密码</strong><br /><strong>auth &ldquo;你的密码&rdquo; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; //验证密码是否成功设置</strong></p>
+<p><img src="./images/小白的springboot之路（八）、继承Redis以及@Cacheable注解实现Redis缓存6.png" alt="" /></p>
+<p>&nbsp;</p>
+<p><strong>&nbsp;flushall ，是清除所有缓存的命令，用来清除重新测试的，</strong></p>
+<p>其他命令就不多介绍了，需要用到自行百度</p>
+<h3>2、Redis desktop manager的使用</h3>
+<p>下载安装包，安装，然后填入密码连接即可</p>
+<p><img src="./images/小白的springboot之路（八）、继承Redis以及@Cacheable注解实现Redis缓存7.png" alt="" /></p>
+<p>&nbsp;</p>
+<p>&nbsp;<img src="./images/小白的springboot之路（八）、继承Redis以及@Cacheable注解实现Redis缓存8.png" alt="" /></p>
+<p>&nbsp;</p>
+<p>&nbsp;</p>
+<h1>三、后续</h1>
+<h2>　　第二种方式中注解实现Redis缓存的方式有个缺点，就是失效时间都统一配置了，更多时候，我们希望失效时间可以每个方法单独配置，所以二的方法还需要改造，实现失效时间单独配置的功能；还有Redis一般我们都会搭建集群实现高可用，关于Linux、docker搭建Redis集群的方式，这些项目实战干货我们以后再来详细聊；</h2>
+<p>&nbsp;</p>
+<h3>附demoGIT地址：<a href="https://github.com/anson-yang/cloverDemo.git" target="_blank">https://github.com/anson-yang/cloverDemo.git</a></h3>
+
+</div><hr><script charset='utf-8' src='../../js/sming.js'></script></body></html>

@@ -1,0 +1,382 @@
+<html><head><meta charset='utf-8'><meta name='viewport' content='width=device-width, initial-scale=1'>
+<meta name='applicable-device' content='pc'><meta name='keywords' content='电脑,电脑讲解,电脑技术,编程,电脑故障维修什么是Java优先级队列？' />
+<script src='../../highlight/highlight.pack.js'></script>
+<link rel='stylesheet' type='text/css' href='../../highlight/styles/monokai.css'/>
+
+<link rel='stylesheet' href='../../fenxiang/dist/css/share.min.css'>
+<script src='../../fenxiang/src/js/social-share.js'></script>
+<script src='../../fenxiang/src/js/qrcode.js'></script>
+
+</head><body><script>hljs.initHighlightingOnLoad();</script><script>
+var system ={};  
+var p = navigator.platform;       
+system.win = p.indexOf('Win') == 0;  
+system.mac = p.indexOf('Mac') == 0;  
+system.x11 = (p == 'X11') || (p.indexOf('Linux') == 0);     
+if(system.win||system.mac||system.xll){
+document.write("<link href='../css/3.css' rel='stylesheet' type='text/css'>");}else{ document.write("<link href='../css/3wap.css' rel='stylesheet' type='text/css'>");}</script><script src='../../js/3.js'></script><div class='div2'><div class='heading_nav'><ul><div><li><a href='../../index.html'>首页</a></li>
+</div><div onclick='hidden1()' >分享</div>
+</ul></div></div>
+<div id='heading_nav2'> 
+<li class='row' >
+<div class='social-share' data-mode='prepend'><a href='javascript:' class='social-share-icon icon-heart'></a></div></li></div><script charset='utf-8' src='../../3/js/hengfu.js'></script><script charset='utf-8' src='../../3/js/hengfu2.js'></script><hr><div class='div1'><div class='biaoti'><center>什么是Java优先级队列？</center></div><div class='banquan'>原文出处:本文由博客园博主Absolutely-提供。<br/>
+原文连接:https://www.cnblogs.com/youruike-/p/12054471.html</div><br>
+    <p>PriorityQueue是基于无界优先级队列和优先级堆构建的重要Java API之一。本文通过适当的代码示例深入了解了有关此API及其用法的一些复杂信息。另在上篇文章中我们简单地谈了下<a id="cb_post_title_url" class="postTitle2" href="https://www.cnblogs.com/youruike-/p/12053564.html" target="_blank">Java编译器API简介</a>，你可以先阅读以方便更好地阅读这篇文章。感谢优锐课老师对我写下这两篇文章时给予的帮助。</p>
+<p>&nbsp;</p>
+<h2>总览</h2>
+<p>PriorityQueue类是java.util包的一部分，是Java中基于优先级的队列的通用实现。队列基本上是一种数据结构，它定义了针对商店中商品的插入和检索过程的特定规范。这个想法与排队等候说票的许多人非常相似。排队的第一个人有第一个获得彩票的机会，最后一个人有一个结局的机会。人们被添加到队列的末尾或末尾。在队列中添加项目在技术上称为入队过程，从队列中删除的项目是从该行的第一行开始。这称为出队。想法是以先进先出的方式对元素进行排序。</p>
+<p>现在，这是最简单的体系结构，并且紧密定义了队列的实际含义以及如何在计算机中模拟队列。存储通常由一个简单的数组表示，其中存储和检索过程具有此定义的规范。优先级队列在此之上强加一些特殊规范。我们将在后面看到更多内容。</p>
+<p>&nbsp;</p>
+<h2>队列的Java实现</h2>
+<p>Java API在java.util包中具有通用接口名称Queue &lt;E&gt;。这是Java Collection Framework API的一部分，旨在在处理之前保存元素。作为集合的一部分，它具有所有基本的集合操作。特定于其标识的操作涉及存储在其中的元素的插入，提取和检查。这些操作中的每一个都有两种不同的形式，例如一种在操作失败时引发异常，而另一种则根据操作返回一个特殊值，例如null或false。请注意，与典型队列不同，Java Queue的具体实现不必一定以FIFO方式对元素进行排序。对于基于优先级的队列尤其如此，其中元素的排序是根据提供的比较器或自然排序完成的。但是无论顺序如何，remove（）或poll（）方法将始终检索队列开头的元素。这两种不太可能的方法之间的特定区别似乎是一种相似的方法，即在失败时引发异常（NoSuchElementException），而后者则返回特殊值（null）。</p>
+<p>&nbsp;</p>
+<table style="width: 584px;" border="0" cellspacing="0" cellpadding="0">
+<tbody>
+<tr>
+<td valign="top" width="107">
+<p><em>方法</em></p>
+</td>
+<td colspan="3" valign="top" width="185">
+<p><em>引发异常</em></p>
+</td>
+<td valign="top" width="269">
+<p><em>描述</em></p>
+</td>
+<td width="22">
+<p>&nbsp;</p>
+</td>
+</tr>
+<tr>
+<td valign="top" width="107">
+<p>E remove()</p>
+</td>
+<td colspan="3" valign="top" width="185">
+<p>NoSuchElementException</p>
+</td>
+<td valign="top" width="269">
+<p>从队列的开头检索一个元素。</p>
+</td>
+<td width="22">
+<p>&nbsp;</p>
+</td>
+</tr>
+<tr>
+<td valign="top" width="107">
+<p>void add(E)</p>
+</td>
+<td colspan="3" valign="top" width="185">
+<p>IllegalStateException</p>
+</td>
+<td valign="top" width="269">
+<p>在队列末尾插入一个元素。成功返回true，如果空间不可用则抛出异常。</p>
+</td>
+<td width="22">
+<p>&nbsp;</p>
+</td>
+</tr>
+<tr>
+<td valign="top" width="107">
+<p>E element()</p>
+</td>
+<td colspan="3" valign="top" width="185">
+<p>NoSuchElementException</p>
+</td>
+<td valign="top" width="269">
+<p>检索元素而不将其从队列的开头移除。</p>
+</td>
+<td width="22">
+<p>&nbsp;</p>
+</td>
+</tr>
+<tr>
+<td valign="top" width="107">
+<p>&nbsp;</p>
+<p>&nbsp;</p>
+</td>
+<td colspan="3" valign="top" width="185">
+<p>&nbsp;</p>
+</td>
+<td valign="top" width="269">&nbsp;</td>
+<td width="22">
+<p>&nbsp;</p>
+</td>
+</tr>
+<tr>
+<td colspan="2" valign="top" width="112">
+<p><em>方法</em></p>
+</td>
+<td valign="top" width="174">
+<p><em>返回特殊值</em></p>
+</td>
+<td colspan="3" valign="top" width="298">
+<p><em>说明</em></p>
+</td>
+</tr>
+<tr>
+<td colspan="2" valign="top" width="112">
+<p>boolean offer(E)</p>
+</td>
+<td valign="top" width="174">
+<p>true or false</p>
+</td>
+<td colspan="3" valign="top" width="298">
+<p>将元素插入队列。成功返回true，如果由于空间不足而无法插入，则返回false。</p>
+</td>
+</tr>
+<tr>
+<td colspan="2" valign="top" width="112">
+<p>E poll()</p>
+</td>
+<td valign="top" width="174">
+<p>null</p>
+</td>
+<td colspan="3" valign="top" width="298">
+<p>从队列的开头移除元素；如果队列为空，则返回null。</p>
+</td>
+</tr>
+<tr>
+<td colspan="2" valign="top" width="112">
+<p>E peek()</p>
+</td>
+<td valign="top" width="174">
+<p>null</p>
+</td>
+<td colspan="3" valign="top" width="298">
+<p>检索但不从队列的开头删除元素。如果队列为空，则返回null。</p>
+</td>
+</tr>
+<tr>
+<td width="107">&nbsp;</td>
+<td width="5">&nbsp;</td>
+<td width="174">&nbsp;</td>
+<td width="6">&nbsp;</td>
+<td width="269">&nbsp;</td>
+<td width="22">&nbsp;</td>
+</tr>
+</tbody>
+</table>
+<p>请注意，Queue &lt;E&gt;接口不适用于并发编程，因为它没有定义阻塞队列方法，在这种方法中，入队和出队过程等待元素出现在队列中或大小可用。有一个名为BlockingQueue &lt;E&gt;的特定接口，该接口扩展了Queue &lt;E&gt;接口并解决了这些问题。</p>
+<p>有一个称为AbstractQueue &lt;E&gt;的抽象类，该类提供某些队列操作的部分实现。 PriorityQueue &lt;E&gt;类是此抽象类的直接扩展。</p>
+<p>&nbsp;</p>
+<h2>优先队列</h2>
+<p>优先级队列的Java实现是一种特殊的队列，其中元素的排序由其自然排序原则确定，也可以根据创建期间提供的Comparator进行定制。我们在构造过程中调用的构造函数决定要与优先级队列一起使用的排序原则。与不允许使用null元素的Queue &lt;E&gt;不同，但是某些实现（例如LinkedList）也不禁止插入null元素。但是，PriorityQueue &lt;E&gt;根本不允许空元素。如果优先级队列是根据自然顺序构造的，则任何不可比较的元素插入都将引发ClassCastException。</p>
+<p>它被声明为无限制的并且基于优先级堆。尽管队列的大小被称为无限制，但内部具有确定阵列大小的能力。插入元素时，此大小会自动增长。但是，没有详细说明增大尺寸的原理。</p>
+<p>有七种类型的重载构造函数，通过它们我们可以设置参数来指定队列的初始容量，提供Comparator来指定元素的自定义顺序，或者使用无参数构造函数将所有内容接受为默认值。</p>
+<ul>
+<li>PriorityQueue()</li>
+<li>PriorityQueue(int initialCapacity)</li>
+<li>PriorityQueue(int initialCapacity, Comparator&lt;? Super E&gt; comparator)</li>
+<li>PriorityQueue(Commection&lt;? extends E&gt; c)</li>
+<li>PriorityQueue(Comparator&lt;? Super E&gt; comparator)</li>
+<li>PriorityQueue(PriorityQueue&lt;? extends E&gt; c)</li>
+<li>PriorityQueue(SortedSet&lt;? extends E&gt; c)</li>
+</ul>
+<p>与Queue &lt;E&gt;相似，PriorityQueue &lt;E&gt;也不同步，因此在并发编程中应谨慎使用。但是，有一个同步的替代方法，称为PriorityBlockingQueue &lt;E&gt;。这与PriorityQueue &lt;E&gt;的工作方式相同，只是具有线程安全的其他限定条件。</p>
+<p>PriorityQueue &lt;E&gt;中定义的操作与Queue &lt;E&gt;相同，但有一些附加功能。</p>
+<table style="width: 562px;" border="0" cellspacing="0" cellpadding="0">
+<tbody>
+<tr>
+<td valign="top" width="144">
+<p><strong>方法</strong></p>
+</td>
+<td valign="top" width="418">
+<p><strong>描述</strong></p>
+</td>
+</tr>
+<tr>
+<td valign="top" width="144">
+<p>void clear()</p>
+</td>
+<td valign="top" width="418">
+<p>从优先级队列中删除所有元素。</p>
+</td>
+</tr>
+<tr>
+<td valign="top" width="144">
+<p>Comparator&lt;? Super E&gt; comparator()</p>
+</td>
+<td valign="top" width="418">
+<p>返回与队列关联的比较器。如果根据自然顺序对队列进行排序，则返回null。</p>
+</td>
+</tr>
+<tr>
+<td valign="top" width="144">
+<p>boolean contains(Object o)</p>
+</td>
+<td valign="top" width="418">
+<p>如果队列包含指定的对象，则返回true。</p>
+</td>
+</tr>
+<tr>
+<td valign="top" width="144">
+<p>Iterator&lt;E&gt; iterator()</p>
+</td>
+<td valign="top" width="418">
+<p>返回与Collection类关联的旧式迭代器。但是，它不能保证以任何特定顺序遍历元素。</p>
+</td>
+</tr>
+<tr>
+<td valign="top" width="144">
+<p>Spliterator&lt;E&gt; spliterator()</p>
+</td>
+<td valign="top" width="418">
+<p>创建后期绑定，故障快速拆分器，但具有与迭代器相同的条件。</p>
+</td>
+</tr>
+<tr>
+<td valign="top" width="144">
+<p>Object[] toArray()</p>
+</td>
+<td valign="top" width="418">
+<p>这是一种便捷方法，可用于设置遍历顺序权限，例如<tt>Arrays.sort(priorityQueue.toArray())</tt>.</p>
+</td>
+</tr>
+<tr>
+<td valign="top" width="144">
+<p>&lt;T&gt;T[] toArray(T[] a)</p>
+</td>
+<td valign="top" width="418">
+<p>返回数组元素，但是返回类型由指定的数组确定。</p>
+</td>
+</tr>
+</tbody>
+</table>
+<h2>&nbsp;</h2>
+<h2>快速示例1</h2>
+<p>让我们用一个简单的程序实现PriorityQueue &lt;E&gt;的一些操作。</p>
+<src>
+<src class="cnblogs_code">
+<pre><code><span style="color: #008080;"> 1</span> <span style="color: #0000ff;">package</span><span style="color: #000000;"> org.mano.examples;
+</span><span style="color: #008080;"> 2</span> <span style="color: #0000ff;">import</span><span style="color: #000000;"> java.util.Arrays;
+</span><span style="color: #008080;"> 3</span> <span style="color: #0000ff;">import</span><span style="color: #000000;"> java.util.Iterator;
+</span><span style="color: #008080;"> 4</span> <span style="color: #0000ff;">import</span><span style="color: #000000;"> java.util.PriorityQueue;
+</span><span style="color: #008080;"> 5</span> <span style="color: #0000ff;">public</span> <span style="color: #0000ff;">class</span><span style="color: #000000;"> Example1 {
+</span><span style="color: #008080;"> 6</span>    <span style="color: #0000ff;">public</span> <span style="color: #0000ff;">static</span> <span style="color: #0000ff;">void</span><span style="color: #000000;"> main(String[] args){
+</span><span style="color: #008080;"> 7</span>       PriorityQueue&lt;String&gt; pq = <span style="color: #0000ff;">new</span> PriorityQueue&lt;&gt;<span style="color: #000000;">();
+</span><span style="color: #008080;"> 8</span>       pq.add("Mercury"<span style="color: #000000;">);
+</span><span style="color: #008080;"> 9</span>       pq.add("Venus"<span style="color: #000000;">);
+</span><span style="color: #008080;">10</span>       pq.add("Earth"<span style="color: #000000;">);
+</span><span style="color: #008080;">11</span>       pq.add("Mars"<span style="color: #000000;">);
+</span><span style="color: #008080;">12</span>       pq.add("Jupiter"<span style="color: #000000;">);
+</span><span style="color: #008080;">13</span>       pq.add("Saturn"<span style="color: #000000;">);
+</span><span style="color: #008080;">14</span>       <span style="color: #008000;">//</span><span style="color: #008000;"> Get the most priority element based upon
+</span><span style="color: #008080;">15</span>       <span style="color: #008000;">//</span><span style="color: #008000;"> natural alphabetic ordering in string</span>
+<span style="color: #008080;">16</span>       System.out.println("Priority element "+<span style="color: #000000;">pq.peek());
+</span><span style="color: #008080;">17</span>       <span style="color: #008000;">//</span><span style="color: #008000;"> Queue elements</span>
+<span style="color: #008080;">18</span> <span style="color: #000000;">      show(pq);
+</span><span style="color: #008080;">19</span>       <span style="color: #008000;">//</span><span style="color: #008000;"> Remove top of the queue element</span>
+<span style="color: #008080;">20</span> <span style="color: #000000;">      pq.poll();
+</span><span style="color: #008080;">21</span> <span style="color: #000000;">      show(pq);
+</span><span style="color: #008080;">22</span>       <span style="color: #008000;">//</span><span style="color: #008000;"> Retrieves element from the head of the queue</span>
+<span style="color: #008080;">23</span>       pq.remove("Earth"<span style="color: #000000;">);
+</span><span style="color: #008080;">24</span> <span style="color: #000000;">      show(pq);
+</span><span style="color: #008080;">25</span>       String result = pq.contains("Earth")?
+<span style="color: #008080;">26</span>          "Found Earth":"Earth Missing!"<span style="color: #000000;">;
+</span><span style="color: #008080;">27</span> <span style="color: #000000;">      System.out.println(result);
+</span><span style="color: #008080;">28</span>       Object[] arr =<span style="color: #000000;"> pq.toArray();
+</span><span style="color: #008080;">29</span> <span style="color: #000000;">      Arrays.sort(arr);
+</span><span style="color: #008080;">30</span>       System.out.println(""<span style="color: #000000;">);
+</span><span style="color: #008080;">31</span>       <span style="color: #0000ff;">for</span> (<span style="color: #0000ff;">int</span> i = 0; i&lt;arr.length; i++<span style="color: #000000;">)
+</span><span style="color: #008080;">32</span>          System.out.print(arr[i].toString()+"::"<span style="color: #000000;">);
+</span><span style="color: #008080;">33</span> <span style="color: #000000;">   }
+</span><span style="color: #008080;">34</span>    <span style="color: #0000ff;">public</span> <span style="color: #0000ff;">static</span> <span style="color: #0000ff;">void</span> show(PriorityQueue&lt;String&gt;<span style="color: #000000;"> pq){
+</span><span style="color: #008080;">35</span>       Iterator&lt;String&gt; itr =<span style="color: #000000;"> pq.iterator();
+</span><span style="color: #008080;">36</span>       <span style="color: #0000ff;">while</span><span style="color: #000000;"> (itr.hasNext())
+</span><span style="color: #008080;">37</span>          System.out.print(itr.next()+"::"<span style="color: #000000;">);
+</span><span style="color: #008080;">38</span>          System.out.println(""<span style="color: #000000;">);
+</span><span style="color: #008080;">39</span> <span style="color: #000000;">   }
+</span><span style="color: #008080;">40</span> }</code></pre>
+
+<p>&nbsp;</p>
+
+<h3>Output</h3>
+<src>
+<src class="cnblogs_code">
+<pre><code><span style="color: #008080;">1</span> <span style="color: #000000;">Priority element Earth
+</span><span style="color: #008080;">2</span> <span style="color: #000000;">Earth::Jupiter::Mercury::Venus::Mars::Saturn::
+</span><span style="color: #008080;">3</span> <span style="color: #000000;">Jupiter::Mars::Mercury::Venus::Saturn::
+</span><span style="color: #008080;">4</span> <span style="color: #000000;">Jupiter::Mars::Mercury::Venus::Saturn::
+</span><span style="color: #008080;">5</span> Earth Missing!
+<span style="color: #008080;">6</span>  
+<span style="color: #008080;">7</span> Jupiter::Mars::Mercury::Saturn::Venus::</code></pre>
+
+<p>&nbsp;</p>
+
+<h2>快速示例2</h2>
+<p>这是另一个带有自定义比较器的快速示例。</p>
+<src>
+<src class="cnblogs_code">
+<pre><code><span style="color: #008080;"> 1</span> <span style="color: #0000ff;">package</span><span style="color: #000000;"> org.mano.examples;
+</span><span style="color: #008080;"> 2</span> <span style="color: #0000ff;">import</span><span style="color: #000000;"> java.util.Comparator;
+</span><span style="color: #008080;"> 3</span> <span style="color: #0000ff;">import</span><span style="color: #000000;"> java.util.PriorityQueue;
+</span><span style="color: #008080;"> 4</span> <span style="color: #0000ff;">public</span> <span style="color: #0000ff;">class</span> Planet <span style="color: #0000ff;">implements</span> Comparable&lt;Planet&gt;<span style="color: #000000;">{
+</span><span style="color: #008080;"> 5</span>    <span style="color: #0000ff;">private</span><span style="color: #000000;"> String name;
+</span><span style="color: #008080;"> 6</span>    <span style="color: #0000ff;">private</span> <span style="color: #0000ff;">double</span><span style="color: #000000;"> orbitPeriodInDays;
+</span><span style="color: #008080;"> 7</span>    <span style="color: #0000ff;">public</span> Planet(String name, <span style="color: #0000ff;">double</span><span style="color: #000000;"> orbitPeriodInDays) {
+</span><span style="color: #008080;"> 8</span>       <span style="color: #0000ff;">this</span>.name =<span style="color: #000000;"> name;
+</span><span style="color: #008080;"> 9</span>       <span style="color: #0000ff;">this</span>.orbitPeriodInDays =<span style="color: #000000;"> orbitPeriodInDays;
+</span><span style="color: #008080;">10</span> <span style="color: #000000;">   }
+</span><span style="color: #008080;">11</span>    <span style="color: #0000ff;">public</span><span style="color: #000000;"> String getName() {
+</span><span style="color: #008080;">12</span>       <span style="color: #0000ff;">return</span><span style="color: #000000;"> name;
+</span><span style="color: #008080;">13</span> <span style="color: #000000;">   }
+</span><span style="color: #008080;">14</span>    <span style="color: #0000ff;">public</span> <span style="color: #0000ff;">void</span><span style="color: #000000;"> setName(String name) {
+</span><span style="color: #008080;">15</span>       <span style="color: #0000ff;">this</span>.name =<span style="color: #000000;"> name;
+</span><span style="color: #008080;">16</span> <span style="color: #000000;">   }
+</span><span style="color: #008080;">17</span>    <span style="color: #0000ff;">public</span> <span style="color: #0000ff;">double</span><span style="color: #000000;"> getOrbitPeriodInDays() {
+</span><span style="color: #008080;">18</span>       <span style="color: #0000ff;">return</span><span style="color: #000000;"> orbitPeriodInDays;
+</span><span style="color: #008080;">19</span> <span style="color: #000000;">   }
+</span><span style="color: #008080;">20</span>    <span style="color: #0000ff;">public</span> <span style="color: #0000ff;">void</span> setOrbitPeriodInDays(<span style="color: #0000ff;">double</span><span style="color: #000000;"> orbitPeriodInDays) {
+</span><span style="color: #008080;">21</span>       <span style="color: #0000ff;">this</span>.orbitPeriodInDays =<span style="color: #000000;"> orbitPeriodInDays;
+</span><span style="color: #008080;">22</span> <span style="color: #000000;">   }
+</span><span style="color: #008080;">23</span> <span style="color: #000000;">   @Override
+</span><span style="color: #008080;">24</span>    <span style="color: #0000ff;">public</span> <span style="color: #0000ff;">int</span><span style="color: #000000;"> compareTo(Planet o) {
+</span><span style="color: #008080;">25</span>       <span style="color: #0000ff;">return</span> 0<span style="color: #000000;">;
+</span><span style="color: #008080;">26</span> <span style="color: #000000;">   }
+</span><span style="color: #008080;">27</span> <span style="color: #000000;">   @Override
+</span><span style="color: #008080;">28</span>    <span style="color: #0000ff;">public</span><span style="color: #000000;"> String toString() {
+</span><span style="color: #008080;">29</span>       <span style="color: #0000ff;">return</span> "Planet{" +
+<span style="color: #008080;">30</span>          "name='" + name + '\'' +
+<span style="color: #008080;">31</span>          ", orbitPeriodInDays=" + orbitPeriodInDays +
+<span style="color: #008080;">32</span>          '}'<span style="color: #000000;">;
+</span><span style="color: #008080;">33</span> <span style="color: #000000;">   }
+</span><span style="color: #008080;">34</span>    <span style="color: #0000ff;">public</span> <span style="color: #0000ff;">static</span> <span style="color: #0000ff;">void</span><span style="color: #000000;"> main(String[] args){
+</span><span style="color: #008080;">35</span>       Comparator&lt;Planet&gt; nameSorter =
+<span style="color: #008080;">36</span> <span style="color: #000000;">         Comparator.comparing(Planet::getName);
+</span><span style="color: #008080;">37</span>       PriorityQueue&lt;Planet&gt; priorityQueue = <span style="color: #0000ff;">new</span>
+<span style="color: #008080;">38</span>          PriorityQueue&lt;&gt;<span style="color: #000000;">(nameSorter);
+</span><span style="color: #008080;">39</span>       priorityQueue.add(<span style="color: #0000ff;">new</span> Planet("Mercury",88<span style="color: #000000;">));
+</span><span style="color: #008080;">40</span>       priorityQueue.add(<span style="color: #0000ff;">new</span> Planet("Venus",225<span style="color: #000000;">));
+</span><span style="color: #008080;">41</span>       priorityQueue.add(<span style="color: #0000ff;">new</span> Planet("Earth",365.24<span style="color: #000000;">));
+</span><span style="color: #008080;">42</span>       priorityQueue.add(<span style="color: #0000ff;">new</span> Planet("Mars",693.5<span style="color: #000000;">));
+</span><span style="color: #008080;">43</span>       priorityQueue.add(<span style="color: #0000ff;">new</span> Planet("Jupiter",4343.5<span style="color: #000000;">));
+</span><span style="color: #008080;">44</span>       priorityQueue.add(<span style="color: #0000ff;">new</span> Planet("Saturn",10767.5<span style="color: #000000;">));
+</span><span style="color: #008080;">45</span>       priorityQueue.add(<span style="color: #0000ff;">new</span> Planet("Uranus",30660<span style="color: #000000;">));
+</span><span style="color: #008080;">46</span>       priorityQueue.add(<span style="color: #0000ff;">new</span> Planet("Neptune",60152<span style="color: #000000;">));
+</span><span style="color: #008080;">47</span>       Object[] list =<span style="color: #000000;"> priorityQueue.toArray();
+</span><span style="color: #008080;">48</span>       <span style="color: #0000ff;">for</span><span style="color: #000000;"> (Object o: list)
+</span><span style="color: #008080;">49</span> <span style="color: #000000;">         System.out.println(o);
+</span><span style="color: #008080;">50</span> <span style="color: #000000;">   }
+</span><span style="color: #008080;">51</span> }</code></pre>
+
+<p>&nbsp;</p>
+
+<h3>Output</h3>
+<src>
+<src class="cnblogs_code">
+<pre><code><span style="color: #008080;">1</span> Planet{name='Earth', orbitPeriodInDays=365.24<span style="color: #000000;">}
+</span><span style="color: #008080;">2</span> Planet{name='Jupiter', orbitPeriodInDays=4343.5<span style="color: #000000;">}
+</span><span style="color: #008080;">3</span> Planet{name='Mercury', orbitPeriodInDays=88.0<span style="color: #000000;">}
+</span><span style="color: #008080;">4</span> Planet{name='Neptune', orbitPeriodInDays=60152.0<span style="color: #000000;">}
+</span><span style="color: #008080;">5</span> Planet{name='Mars', orbitPeriodInDays=693.5<span style="color: #000000;">}
+</span><span style="color: #008080;">6</span> Planet{name='Saturn', orbitPeriodInDays=10767.5<span style="color: #000000;">}
+</span><span style="color: #008080;">7</span> Planet{name='Uranus', orbitPeriodInDays=30660.0<span style="color: #000000;">}
+</span><span style="color: #008080;">8</span> Planet{name='Venus', orbitPeriodInDays=225.0}</code></pre>
+
+<p>&nbsp;</p>
+
+<h2>总结</h2>
+<p>优先级队列的其他规范是，从列表中删除的项目具有最高优先级。Java将优先级规则强加给其他常规队列的方式是通过附加元素的排序原则。该顺序可以根据程序员的要求进行自定义，也可以设置为默认。这就是Java中优先级队列实现的本质。</p>
+<p>感谢阅读！</p>
+
+
+</div><hr><script charset='utf-8' src='../../js/sming.js'></script></body></html>

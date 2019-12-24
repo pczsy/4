@@ -1,0 +1,299 @@
+<html><head><meta charset='utf-8'><meta name='viewport' content='width=device-width, initial-scale=1'>
+<meta name='applicable-device' content='pc'><meta name='keywords' content='电脑,电脑讲解,电脑技术,编程,电脑故障维修docker-compose下的java应用启动顺序两部曲之二：实战' />
+<script src='../../highlight/highlight.pack.js'></script>
+<link rel='stylesheet' type='text/css' href='../../highlight/styles/monokai.css'/>
+
+<link rel='stylesheet' href='../../fenxiang/dist/css/share.min.css'>
+<script src='../../fenxiang/src/js/social-share.js'></script>
+<script src='../../fenxiang/src/js/qrcode.js'></script>
+
+</head><body><script>hljs.initHighlightingOnLoad();</script><script>
+var system ={};  
+var p = navigator.platform;       
+system.win = p.indexOf('Win') == 0;  
+system.mac = p.indexOf('Mac') == 0;  
+system.x11 = (p == 'X11') || (p.indexOf('Linux') == 0);     
+if(system.win||system.mac||system.xll){
+document.write("<link href='../css/3.css' rel='stylesheet' type='text/css'>");}else{ document.write("<link href='../css/3wap.css' rel='stylesheet' type='text/css'>");}</script><script src='../../js/3.js'></script><div class='div2'><div class='heading_nav'><ul><div><li><a href='../../index.html'>首页</a></li>
+</div><div onclick='hidden1()' >分享</div>
+</ul></div></div>
+<div id='heading_nav2'> 
+<li class='row' >
+<div class='social-share' data-mode='prepend'><a href='javascript:' class='social-share-icon icon-heart'></a></div></li></div><script charset='utf-8' src='../../3/js/hengfu.js'></script><script charset='utf-8' src='../../3/js/hengfu2.js'></script><hr><div class='div1'><div class='biaoti'><center>docker-compose下的java应用启动顺序两部曲之二：实战</center></div><div class='banquan'>原文出处:本文由博客园博主zq2599提供。<br/>
+原文连接:https://www.cnblogs.com/bolingcavalry/p/11787756.html</div><br>
+    <h3 id="上篇回顾">上篇回顾</h3>
+<ul>
+<li>本文是《docker-compose下的java应用启动顺序两部曲》的终篇，在上一篇<a href="https://blog.csdn.net/boling_cavalry/article/details/102874052">《docker-compose下的java应用启动顺序两部曲之一：问题分析》</a>中，我们以SpringCloud环境下的注册中心和业务服务为例，展示了docker-compose.yml中<font color="blue">depends_on</font>参数的不足：即只能控制容器创建顺序，但我们想要的是eureka服务就绪之后再启动业务服务，并且docker官方也认为<font color="blue">depends_on</font>参数是达不到这个要求的，如下图所示：<br />
+<img src="./images/docker-compose下的java应用启动顺序两部曲之二：实战0.png" alt="在这里插入图片描述" /></li>
+<li><p>针对上述问题，docker给出的解决办法是使用<font color="blue">wait-for-it.sh</font>脚本来解决问题，地址：https://docs.docker.com/compose/startup-order/ ，如下图：<br />
+<img src="./images/docker-compose下的java应用启动顺序两部曲之二：实战1.png" alt="在这里插入图片描述" /></p>
+<h3 id="什么是wait-for-it.sh">什么是wait-for-it.sh</h3></li>
+<li><font color="blue">wait-for-it.sh</font>脚本用来访问指定的地址和端口，如果收不到响应就等待一段时间再去重试，直到收到响应后，再去做前面指定好的命令，如上图红框所示<font color="blue">./wait-for-it.sh db:5432 -- python app.py</font>的意思是：等到<font color="blue">db:5432</font>这个远程访问能够响应的时候，就去执行<font color="blue">python app.py</font>命令</li>
+<li><p>wait-for-it.sh文件的链接：<br>https://raw.githubusercontent.com/zq2599/blog_demos/master/wait-for-it-demo/docker/wait-for-it.sh</p>
+<h3 id="环境信息">环境信息</h3>
+本次实战的环境如下：</li>
+</ul>
+<ol>
+<li>操作系统：CentOS Linux release 7.7.1908</li>
+<li>docker：1.13.1</li>
+<li>docker-compose：1.24.1</li>
+<li>spring cloud：Finchley.RELEASE</li>
+<li>maven：3.6.0</li>
+<li>jib：1.7.0</li>
+</ol>
+<h3 id="实战简介">实战简介</h3>
+<p>上一篇的例子中，我们用到了eureka和service两个容器，eureka是注册中心，service是普通业务应用，service容器向eureka容器注册时，eureka还没有初始化完成，因此service注册失败，在稍后的自动重试时由于eureka进入ready状态，因而service注册成功。<br />
+今天我们来改造上一篇的例子，让service用上docker官方推荐的<font color="blue">wait-for-it.sh</font>脚本，等待eureka服务就绪再启动java进程，确保service可以一次性注册eureka成功；<br />
+为了达到上述目标，总共需要做以下几步：</p>
+<ol>
+<li>简单介绍eureka和service容器的镜像是怎么制作的；</li>
+<li>制作基础镜像，包含<font color="blue">wait-for-it.sh</font>脚本；</li>
+<li>使用新的基础镜像构建service镜像；</li>
+<li>改造docker-compose.yml；</li>
+<li>启动容器，验证顺序控制是否成功；</li>
+<li>wait-for-it.sh方案的缺陷；</li>
+</ol>
+<p>接下来进入实战环节；</p>
+<h3 id="源码下载">源码下载</h3>
+<p>如果您不想编码，也可以在GitHub上获取文中所有源码和脚本，地址和链接信息如下表所示：<br />
+| 名称 | 链接 | 备注|<br />
+| :-------- | :----| :----|<br />
+| 项目主页| https://github.com/zq2599/blog_demos | 该项目在GitHub上的主页 |<br />
+| git仓库地址(https)| https://github.com/zq2599/blog_demos.git | 该项目源码的仓库地址，https协议 |<br />
+| git仓库地址(ssh)| git@github.com:zq2599/blog_demos.git | 该项目源码的仓库地址，ssh协议 |<br />
+</br></p>
+<p>这个git项目中有多个文件夹，本章的应用在<font color="blue">wait-for-it-demo</font>文件夹下，如下图红框所示：<br />
+<img src="./images/docker-compose下的java应用启动顺序两部曲之二：实战2.png" alt="在这里插入图片描述" /><br />
+源码的结构如下图所示：<br />
+<img src="./images/docker-compose下的java应用启动顺序两部曲之二：实战3.png" alt="在这里插入图片描述" /><br />
+接下来开始编码了；</p>
+<h3 id="简单介绍eureka和service容器">简单介绍eureka和service容器</h3>
+<p>上一篇和本篇，我们都在用eureka和service这两个容器做实验，现在就来看看他们是怎么做出来的：</p>
+<ol>
+<li>eureka是个maven工程，和SpringCloud环境中的eureka服务一样，唯一不同的是它的pom.xml中使用了jib插件，用来将工程构建成docker镜像：</li>
+</ol>
+<pre><code><code>&lt;?xml version=&quot;1.0&quot; encoding=&quot;UTF-8&quot;?&gt;
+&lt;project xmlns=&quot;http://maven.apache.org/POM/4.0.0&quot; xmlns:xsi=&quot;http://www.w3.org/2001/XMLSchema-instance&quot;
+    xsi:schemaLocation=&quot;http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd&quot;&gt;
+    &lt;modelVersion&gt;4.0.0&lt;/modelVersion&gt;
+
+    &lt;groupId&gt;com.bolingcavalry&lt;/groupId&gt;
+    &lt;artifactId&gt;eureka&lt;/artifactId&gt;
+    &lt;version&gt;0.0.1-SNAPSHOT&lt;/version&gt;
+    &lt;packaging&gt;jar&lt;/packaging&gt;
+
+    &lt;name&gt;eureka&lt;/name&gt;
+    &lt;description&gt;eureka&lt;/description&gt;
+
+    &lt;parent&gt;
+        &lt;groupId&gt;com.bolingcavalry&lt;/groupId&gt;
+        &lt;artifactId&gt;wait-for-it-demo&lt;/artifactId&gt;
+        &lt;version&gt;0.0.1-SNAPSHOT&lt;/version&gt;
+        &lt;relativePath&gt;../pom.xml&lt;/relativePath&gt; &lt;!-- lookup parent from repository --&gt;
+    &lt;/parent&gt;
+
+    &lt;properties&gt;
+        &lt;project.build.sourceEncoding&gt;UTF-8&lt;/project.build.sourceEncoding&gt;
+        &lt;project.reporting.outputEncoding&gt;UTF-8&lt;/project.reporting.outputEncoding&gt;
+        &lt;java.version&gt;1.8&lt;/java.version&gt;
+        &lt;spring-cloud.version&gt;Finchley.RELEASE&lt;/spring-cloud.version&gt;
+    &lt;/properties&gt;
+
+    &lt;dependencies&gt;
+        &lt;dependency&gt;
+            &lt;groupId&gt;org.springframework.cloud&lt;/groupId&gt;
+            &lt;artifactId&gt;spring-cloud-starter-netflix-eureka-server&lt;/artifactId&gt;
+        &lt;/dependency&gt;
+    &lt;/dependencies&gt;
+
+    &lt;build&gt;
+        &lt;plugins&gt;
+            &lt;plugin&gt;
+                &lt;groupId&gt;org.springframework.boot&lt;/groupId&gt;
+                &lt;artifactId&gt;spring-boot-maven-plugin&lt;/artifactId&gt;
+            &lt;/plugin&gt;
+            &lt;!--使用jib插件--&gt;
+            &lt;plugin&gt;
+                &lt;groupId&gt;com.google.cloud.tools&lt;/groupId&gt;
+                &lt;artifactId&gt;jib-maven-plugin&lt;/artifactId&gt;
+                &lt;version&gt;1.7.0&lt;/version&gt;
+                &lt;configuration&gt;
+                    &lt;!--from节点用来设置镜像的基础镜像，相当于Docerkfile中的FROM关键字--&gt;
+                    &lt;from&gt;
+                        &lt;!--使用openjdk官方镜像，tag是8-jdk-stretch，表示镜像的操作系统是debian9,装好了jdk8--&gt;
+                        &lt;image&gt;openjdk:8-jdk-stretch&lt;/image&gt;
+                    &lt;/from&gt;
+                    &lt;to&gt;
+                        &lt;!--镜像名称和tag，使用了mvn内置变量${project.version}，表示当前工程的version--&gt;
+                        &lt;image&gt;bolingcavalry/${project.artifactId}:${project.version}&lt;/image&gt;
+                    &lt;/to&gt;
+                    &lt;!--容器相关的属性--&gt;
+                    &lt;container&gt;
+                        &lt;!--jvm内存参数--&gt;
+                        &lt;jvmFlags&gt;
+                            &lt;jvmFlag&gt;-Xms1g&lt;/jvmFlag&gt;
+                            &lt;jvmFlag&gt;-Xmx1g&lt;/jvmFlag&gt;
+                        &lt;/jvmFlags&gt;
+                        &lt;!--要暴露的端口--&gt;
+                        &lt;ports&gt;
+                            &lt;port&gt;8080&lt;/port&gt;
+                        &lt;/ports&gt;
+                        &lt;useCurrentTimestamp&gt;true&lt;/useCurrentTimestamp&gt;
+                    &lt;/container&gt;
+                &lt;/configuration&gt;
+                &lt;executions&gt;
+                    &lt;execution&gt;
+                        &lt;phase&gt;compile&lt;/phase&gt;
+                        &lt;goals&gt;
+                            &lt;goal&gt;dockerBuild&lt;/goal&gt;
+                        &lt;/goals&gt;
+                    &lt;/execution&gt;
+                &lt;/executions&gt;
+            &lt;/plugin&gt;
+        &lt;/plugins&gt;
+    &lt;/build&gt;
+&lt;/project&gt;</code></code></pre>
+<p>上述pom.xml中多了个jib插件，这样在执行<font color="blue">mvn compile</font>的时候，插件就会用构建结果制作好docker镜像并放入本地仓库；</p>
+<ol>
+<li>service是个普通的SpringCloud应用，除了在pom.xml中也用到了jib插件来构建镜像，它的配置文件中，访问eureka的地址要写成eureka容器的名称：</li>
+</ol>
+<pre class="yml"><code>spring:
+  application:
+    name: service
+
+eureka:
+  client:
+    serviceUrl:
+      defaultZone: http://eureka:8080/eureka/</code></code></pre>
+<ol>
+<li>关于如何将java应用制作成docker镜像，如果您想了解更多请参考以下两篇文章：<br />
+<a href="https://blog.csdn.net/boling_cavalry/article/details/94355659">《Docker与Jib(maven插件版)实战》</a><br />
+<a href="https://blog.csdn.net/boling_cavalry/article/details/100179709">《Jib使用小结(Maven插件版)》</a></li>
+</ol>
+<h3 id="制作基础镜像">制作基础镜像</h3>
+<p>从上面的pom.xml可见，我们将Java应用制作成docker镜像时，使用的基础镜像是<font color="blue">openjdk:8-jdk-stretch</font>，这样做出的应用镜像是不含wait-for-it.sh脚本的，自然就无法实现启动顺序控制了，因此我们要做一个带有wait-for-it.sh的基础镜像给业务镜像用：</p>
+<ol>
+<li>把wait-for-it.sh文件准备好，下载地址：https://raw.githubusercontent.com/zq2599/blog_demos/master/wait-for-it-demo/docker/wait-for-it.sh</li>
+<li>在wait-for-it.sh文件所在目录新建Dockerfile文件，内容如下：</li>
+</ol>
+<pre class="shell"><code>FROM openjdk:8-jdk-stretch
+
+ADD wait-for-it.sh /wait-for-it.sh
+RUN sh -c &#39;chmod 777 /wait-for-it.sh&#39;</code></code></pre>
+<p><font color="red">注意：</font>我这里用的是openjdk:8-jdk-stretch，您可以根据自己的实际需要选择不同的openjdk版本，可以参考：<a href="https://blog.csdn.net/boling_cavalry/article/details/94320638">《openjdk镜像的tag说明》</a></p>
+<ol>
+<li>执行命令<font color="blue">docker build -t bolingcavalry/jkd8-wait-for-it:0.0.2 .</font>就能构建出名为<font color="red">bolingcavalry/jkd8-wait-for-it:0.0.2</font>的镜像了，请您根据自己的情况设置镜像名称和tag，注意命令的末尾有个小数点，不要漏了；</li>
+<li>如果您有hub.docker.com账号，建请使用<font color="blue">docker push</font>命令将新建的镜像推送到镜像仓库上去，或者推送到私有仓库，因为后面使用jib插件构建镜像是，jib插件要去仓库获取基础镜像的元数据信息，取不到会导致构建失败；</li>
+</ol>
+<h3 id="使用新的基础镜像构建service镜像">使用新的基础镜像构建service镜像</h3>
+<p>我们的目标是让service服务等待eureka服务就绪，所以应该改造service服务，让它用docker官方推荐的<font color="blue">wait-for-it.sh</font>方案来实现等待：</p>
+<ul>
+<li>修改service工程的pom.xml，有关jib插件的配置改为以下内容：</li>
+</ul>
+<pre><code><code>&lt;plugin&gt;
+                &lt;groupId&gt;com.google.cloud.tools&lt;/groupId&gt;
+                &lt;artifactId&gt;jib-maven-plugin&lt;/artifactId&gt;
+                &lt;version&gt;1.7.0&lt;/version&gt;
+                &lt;configuration&gt;
+                    &lt;!--from节点用来设置镜像的基础镜像，相当于Docerkfile中的FROM关键字--&gt;
+                    &lt;from&gt;
+                        &lt;!--使用自制的基础镜像，里面有wait-for-it.sh脚本--&gt;
+                        &lt;image&gt;bolingcavalry/jkd8-wait-for-it:0.0.2&lt;/image&gt;
+                    &lt;/from&gt;
+                    &lt;to&gt;
+                        &lt;!--镜像名称和tag，使用了mvn内置变量${project.version}，表示当前工程的version--&gt;
+                        &lt;image&gt;bolingcavalry/${project.artifactId}:${project.version}&lt;/image&gt;
+                    &lt;/to&gt;
+                    &lt;!--容器相关的属性--&gt;
+                    &lt;container&gt;
+                        &lt;!--entrypoint的值等于INHERIT表示jib插件不构建启动命令了，此时要使用者自己控制，可以在启动时输入，或者写在基础镜像中--&gt;
+                        &lt;entrypoint&gt;INHERIT&lt;/entrypoint&gt;
+                        &lt;!--要暴露的端口--&gt;
+                        &lt;ports&gt;
+                            &lt;port&gt;8080&lt;/port&gt;
+                        &lt;/ports&gt;
+                        &lt;useCurrentTimestamp&gt;true&lt;/useCurrentTimestamp&gt;
+                    &lt;/container&gt;
+                &lt;/configuration&gt;
+                &lt;executions&gt;
+                    &lt;execution&gt;
+                        &lt;phase&gt;compile&lt;/phase&gt;
+                        &lt;goals&gt;
+                            &lt;goal&gt;dockerBuild&lt;/goal&gt;
+                        &lt;/goals&gt;
+                    &lt;/execution&gt;
+                &lt;/executions&gt;
+            &lt;/plugin&gt;</code></code></pre>
+<p>上述配置有几点需要注意：</p>
+<p>a. 基础镜像改为刚刚构建好的<font color="blue">bolingcavalry/jkd8-wait-for-it:0.0.2</font></p>
+<p>b. 增加<font color="blue">entrypoint</font>节点，内容是<font color="red">INHERIT</font>，按照官方的说法，entrypoint的值等于INHERIT表示jib插件不构建启动命令了，此时要使用者自己控制，可以在启动时输入，或者写在基础镜像中，这样我们在docker-compose.yml中用command参数来设置service容器的启动命令，就可以把<font color="blue">wait-for-it.sh</font>脚本用上了</p>
+<p>c. 去掉<font color="blue">jvmFlags</font>节点，按照官方文档的说法，entrypoint节点的值等于INHERIT时，jvmFlags和mainClass参数会被忽略，如下图，地址是：https://github.com/GoogleContainerTools/jib/tree/master/jib-maven-plugin<br />
+<img src="./images/docker-compose下的java应用启动顺序两部曲之二：实战4.png" alt="在这里插入图片描述" /><br />
+至此，service工程改造完毕，接下来修改docker-compose.yml，让service容器能用上wait-for-it.sh<br />
+### 改造docker-compose.yml</p>
+<ol>
+<li>完整的docker-compose.yml内容如下所示：</li>
+</ol>
+<pre class="yml"><code>version: &#39;3&#39;
+services:
+ eureka:
+   image: bolingcavalry/eureka:0.0.1-SNAPSHOT
+   container_name: eureka
+   restart: unless-stopped
+ service:
+   image: bolingcavalry/service:0.0.1-SNAPSHOT
+   container_name: service
+   restart: unless-stopped
+   command: sh -c &#39;./wait-for-it.sh eureka:8080 -t 0  -- java -Xms1g -Xmx1g -cp /app/resources:/app/classes:/app/libs/* com.bolingcavalry.waitforitdemo.ServiceApplication&#39;
+   depends_on:
+   - eureka</code></code></pre>
+<ol>
+<li>注意command参数的内容，如下，service容器创建后，会一直等待eureka:8080的响应，直到该地址有响应后，才会执行命令<font color="blue">java -Xms1g -Xmx1g -cp /app/resources:/app/classes:/app/libs/* com.bolingcavalry.waitforitdemo.ServiceApplication</font>：</li>
+</ol>
+<pre class="shell"><code>sh -c &#39;./wait-for-it.sh eureka:8080 -t 0  -- java -Xms1g -Xmx1g -cp /app/resources:/app/classes:/app/libs/* com.bolingcavalry.waitforitdemo.ServiceApplication&#39;</code></code></pre>
+<ol>
+<li>对于命令<font color="blue">java -Xms1g -Xmx1g -cp /app/resources:/app/classes:/app/libs/* com.bolingcavalry.waitforitdemo.ServiceApplication</font>，您可能觉得太长了不好写，这里有个小窍门，就是在不使用<font color="blue">entrypoint</font>节点的时候，用jib插件制作的镜像本身是带有启动命令的，容器运行的时候，您可以通过<font color="blue">docker ps --no-trunc</font>命令看到该容器的完整启动命令，复制过来直接用就行了；</li>
+</ol>
+<p>所有的改造工作都完成了，可以开始验证了；</p>
+<h3 id="启动容器验证顺序控制是否成功">启动容器，验证顺序控制是否成功</h3>
+<ol>
+<li>在docker-compose.yml文件所在目录执行命令<font color="blue">docker-compose up</font>，会创建两个容器，并且日志信息会直接打印在控制台，我们来分析这些日志信息，验证顺序控制是否成功；</li>
+<li>如下图，可见service容器中并没有启动java进程，而是在等待eureka:8080的响应：<br />
+<img src="./images/docker-compose下的java应用启动顺序两部曲之二：实战5.png" alt="在这里插入图片描述" /></li>
+<li>继续看日志，可见eureka服务就绪的时候，service容器的wait-for-it.sh脚本收到了响应，于是立即启动service应用的进程：<br />
+<img src="./images/docker-compose下的java应用启动顺序两部曲之二：实战6.png" alt="在这里插入图片描述" /></li>
+<li><p>继续看日志，如下图，service在eureka上注册成功：<br />
+<img src="./images/docker-compose下的java应用启动顺序两部曲之二：实战7.png" alt="在这里插入图片描述" /><br />
+综上所述，使用docker官方推荐的wait-for-it.sh来控制java应用的启动顺序是可行的，可以按照业务自身的需求来量身定做合适的启动顺序；</p>
+<h3 id="wait-for-it.sh方案的缺陷">wait-for-it.sh方案的缺陷</h3></li>
+</ol>
+<p>使用docker官方推荐的<font color="blue">wait-for-it.sh</font>来控制容器启动顺序，虽然已满足了我们的需求，但依旧留不是完美方案，留下的缺陷还是请您先知晓吧，也许这个缺陷会对您的系统产生严重的负面影响：</p>
+<ol>
+<li>再开启一个SSH连接，登录到实战的linux电脑上，执行命令<font color="blue">docker exec eureka ps -ef</font>，将eureka容器内的进程打印出来，如下所示，<font color="red">java进程的PID等于1</font>：</li>
+</ol>
+<pre class="shell"><code>[root@maven ~]# docker exec eureka ps -ef
+UID         PID   PPID  C STIME TTY          TIME CMD
+root          1      0  2 07:04 ?        00:00:48 java -Xms1g -Xmx1g -cp /app/resources:/app/classes:/app/libs/* com.bolingcavalry.waitforitdemo.EurekaApplication
+root         56      0  0 07:25 ?        00:00:00 /bin/bash
+root         63      0  0 07:31 ?        00:00:00 ps -ef</code></code></pre>
+<ol>
+<li>再来看看service的进程情况，执行命令<font color="blue">docker exec service ps -ef</font>，将service容器内的进程打印出来，如下所示，<font color="red">PID等于1的进程不是java，而是启动时的shell命令</font>：</li>
+</ol>
+<pre class="shell"><code>[root@maven ~]# docker exec service ps -ef
+UID         PID   PPID  C STIME TTY          TIME CMD
+root          1      0  0 07:04 ?        00:00:00 sh -c ./wait-for-it.sh eureka:8080 -t 0  -- java -Xms1g -Xmx1g -cp /app/resources:/app/classes:/app/libs/* com.bolingcavalry.waitforitdemo.ServiceApplication
+root          7      1  1 07:04 ?        00:00:32 java -Xms1g -Xmx1g -cp /app/resources:/app/classes:/app/libs/* com.bolingcavalry.waitforitdemo.ServiceApplication
+root        107      0  0 07:33 ?        00:00:00 ps -ef</code></code></pre>
+<ol>
+<li>通常情况下，在执行命令<font color="blue">docker stop xxx</font>停止容器时，只有PID=1的进程才会收到&quot;SIGTERM&quot;信号量，所以在使用<font color="blue">docker stop</font>停止容器时，eureka容器中的java进程收到了&quot;SIGTERM&quot;可以立即停止，但是service容器中的java进程收不到&quot;SIGTERM&quot;，因此只能等到默认的10秒超时时间到达的时候，被&quot;SIGKILL&quot;信号量杀死，<font color="red">不但等待时间长，而且优雅停机的功能也用不上了</font>；</li>
+<li>您可以分别输入<font color="blue">docker stop eureka</font>和<font color="blue">docker stop service</font>来感受一下，前者立即完成，后者要等待10秒。</li>
+<li>我的shell技能过于平庸，目前还找不到好的解决办法让service容器中的java进程取得1号进程ID，个人觉得自定义entrypoint.sh脚本来调用wait-for-it.sh并且处理&quot;SIGTERM&quot;说不定可行，如果您有好的办法请留言告知，在此感激不尽；</li>
+<li>目前看来，控制容器启动顺序最好的解决方案并非wait-for-it.sh，而是业务自己实现容错，例如service注册eureka失败后会自动重试，但是这对业务的要求就略高了，尤其是在复杂的分布式环境中更加难以实现；</li>
+<li><p>docker官方推荐使用wait-for-it.sh脚本的文章地址是：https://docs.docker.com/compose/startup-order/ ，文章末尾显示了顶和踩的数量，如下图，顶的数量是145，踩的数量达到了563，一份官方文档居然这么不受待见，也算是开了眼界，不知道和我前面提到的1号PID问题有没有关系：<br />
+<img src="./images/docker-compose下的java应用启动顺序两部曲之二：实战8.png" alt="在这里插入图片描述" /><br />
+至此，java应用的容器顺序控制实战就完成了，希望您在对自己的应用做容器化的时候，此文能给您提供一些参考。</p>
+<h3 id="欢迎关注公众号程序员欣宸">欢迎关注公众号：程序员欣宸</h3></li>
+</ol>
+
+
+</div><hr><script charset='utf-8' src='../../js/sming.js'></script></body></html>

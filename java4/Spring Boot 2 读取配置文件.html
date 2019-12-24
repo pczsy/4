@@ -1,0 +1,248 @@
+<html><head><meta charset='utf-8'><meta name='viewport' content='width=device-width, initial-scale=1'>
+<meta name='applicable-device' content='pc'><meta name='keywords' content='电脑,电脑讲解,电脑技术,编程,电脑故障维修Spring Boot 2 读取配置文件' />
+<script src='../../highlight/highlight.pack.js'></script>
+<link rel='stylesheet' type='text/css' href='../../highlight/styles/monokai.css'/>
+
+<link rel='stylesheet' href='../../fenxiang/dist/css/share.min.css'>
+<script src='../../fenxiang/src/js/social-share.js'></script>
+<script src='../../fenxiang/src/js/qrcode.js'></script>
+
+</head><body><script>hljs.initHighlightingOnLoad();</script><script>
+var system ={};  
+var p = navigator.platform;       
+system.win = p.indexOf('Win') == 0;  
+system.mac = p.indexOf('Mac') == 0;  
+system.x11 = (p == 'X11') || (p.indexOf('Linux') == 0);     
+if(system.win||system.mac||system.xll){
+document.write("<link href='../css/3.css' rel='stylesheet' type='text/css'>");}else{ document.write("<link href='../css/3wap.css' rel='stylesheet' type='text/css'>");}</script><script src='../../js/3.js'></script><div class='div2'><div class='heading_nav'><ul><div><li><a href='../../index.html'>首页</a></li>
+</div><div onclick='hidden1()' >分享</div>
+</ul></div></div>
+<div id='heading_nav2'> 
+<li class='row' >
+<div class='social-share' data-mode='prepend'><a href='javascript:' class='social-share-icon icon-heart'></a></div></li></div><script charset='utf-8' src='../../3/js/hengfu.js'></script><script charset='utf-8' src='../../3/js/hengfu2.js'></script><hr><div class='div1'><div class='biaoti'><center>Spring Boot 2 读取配置文件</center></div><div class='banquan'>原文出处:本文由博客园博主gdjlc提供。<br/>
+原文连接:https://www.cnblogs.com/gdjlc/p/11575743.html</div><br>
+    <p><span style="font-size: 14px; color: #888888;">开发环境：IntelliJ IDEA 2019.2.2<br />Spring Boot版本：2.1.8</span></p>
+<p><span style="font-size: 14px;">新建一个名称为demo的Spring Boot项目。</span></p>
+<p><strong style="font-size: 16px;">一、默认配置文件</strong></p>
+<p>Spring Boot会读取名称application.properties(yml)的配置文件。<br />如果有多个同名文件，默认情况下，按照下面顺序读取：<br />(1)项目根目录的config目录<br />(2)项目根目录<br />(3)项目classpath下的config目录<br />(4)项目classpath根目录<br />如果同一个配置项出现在多份配置文件中，后面读取的值不会覆盖前面的。</p>
+<p>测试：<br />在项目的4个位置各建立application.properties，内容如下：<br />(1)config/application.properties</p>
+<src class="cnblogs_code">
+<pre><code>test = config/application.properties
+test1 = test1</code></pre>
+
+<p>(2)application.properties</p>
+<src class="cnblogs_code">
+<pre><code>test = application.properties
+test2 = test2</code></pre>
+
+<p>(3)src/main/resources/config/application.properties</p>
+<src class="cnblogs_code">
+<pre><code>test = src/main/resources/config/application.properties
+test3 = test3</code></pre>
+
+<p>(4)src/main/resources/application.properties</p>
+<src class="cnblogs_code">
+<pre><code>test = src/main/resources/application.properties
+test4 = test4</code></pre>
+
+<p><img src="./images/Spring Boot 2 读取配置文件0.png" alt="" /></p>
+<p>&nbsp;修改默认生成的启动类 DemoApplication.java 代码：</p>
+<src class="cnblogs_code">
+<pre><code><span style="color: #0000ff;">package</span><span style="color: #000000;"> com.example.demo;
+
+</span><span style="color: #0000ff;">import</span><span style="color: #000000;"> org.springframework.beans.factory.annotation.Autowired;
+</span><span style="color: #0000ff;">import</span><span style="color: #000000;"> org.springframework.boot.SpringApplication;
+</span><span style="color: #0000ff;">import</span><span style="color: #000000;"> org.springframework.boot.autoconfigure.SpringBootApplication;
+</span><span style="color: #0000ff;">import</span><span style="color: #000000;"> org.springframework.core.env.Environment;
+</span><span style="color: #0000ff;">import</span><span style="color: #000000;"> org.springframework.web.bind.annotation.RequestMapping;
+</span><span style="color: #0000ff;">import</span><span style="color: #000000;"> org.springframework.web.bind.annotation.RestController;
+
+@SpringBootApplication
+@RestController
+</span><span style="color: #0000ff;">public</span> <span style="color: #0000ff;">class</span><span style="color: #000000;"> DemoApplication {
+
+    </span><span style="color: #0000ff;">public</span> <span style="color: #0000ff;">static</span> <span style="color: #0000ff;">void</span><span style="color: #000000;"> main(String[] args) {
+        SpringApplication.run(DemoApplication.</span><span style="color: #0000ff;">class</span><span style="color: #000000;">, args);
+    }
+
+    @Autowired
+    </span><span style="color: #0000ff;">private</span><span style="color: #000000;"> Environment env;
+
+    @RequestMapping(</span>"/"<span style="color: #000000;">)
+    </span><span style="color: #0000ff;">public</span><span style="color: #000000;"> String getProp(){
+        String test </span>= env.getProperty("test"<span style="color: #000000;">);
+        String test1 </span>= env.getProperty("test1"<span style="color: #000000;">);
+        String test2 </span>= env.getProperty("test2"<span style="color: #000000;">);
+        String test3 </span>= env.getProperty("test3"<span style="color: #000000;">);
+        String test4 </span>= env.getProperty("test4"<span style="color: #000000;">);
+        </span><span style="color: #0000ff;">return</span> test + "," + test1 + "," + test2 + "," + test3 + "," +<span style="color: #000000;"> test4;
+    }
+}</span></code></pre>
+
+<p>访问 http://localhost:8080/<br />输出：config/application.properties,test1,test2,test3,test4</p>
+<p><span style="font-size: 16px;"><strong>二、指定配置文件</strong></span></p>
+<p>读取指定的配置文件，不使用默认的application.properties。</p>
+<p>测试：<br />(1)src/main/resources/application.properties 内容：</p>
+<src class="cnblogs_code">
+<pre><code>test1 = application.properties</code></pre>
+
+<p>(2)在项目的src/main/resources新建目录config，新建配置文件myConfig.properties，内容：</p>
+<src class="cnblogs_code">
+<pre><code>test2= myConfig.properties</code></pre>
+
+<p><img src="./images/Spring Boot 2 读取配置文件1.png" alt="" /></p>
+<p>修改默认生成的启动类 DemoApplication.java 代码：</p>
+<src class="cnblogs_code">
+<pre><code><span style="color: #0000ff;">package</span><span style="color: #000000;"> com.example.demo;
+
+</span><span style="color: #0000ff;">import</span><span style="color: #000000;"> org.springframework.beans.factory.annotation.Autowired;
+</span><span style="color: #0000ff;">import</span><span style="color: #000000;"> org.springframework.boot.SpringApplication;
+</span><span style="color: #0000ff;">import</span><span style="color: #000000;"> org.springframework.boot.autoconfigure.SpringBootApplication;
+</span><span style="color: #0000ff;">import</span><span style="color: #000000;"> org.springframework.boot.builder.SpringApplicationBuilder;
+</span><span style="color: #0000ff;">import</span><span style="color: #000000;"> org.springframework.core.env.Environment;
+</span><span style="color: #0000ff;">import</span><span style="color: #000000;"> org.springframework.web.bind.annotation.RequestMapping;
+</span><span style="color: #0000ff;">import</span><span style="color: #000000;"> org.springframework.web.bind.annotation.RestController;
+
+@SpringBootApplication
+@RestController
+</span><span style="color: #0000ff;">public</span> <span style="color: #0000ff;">class</span><span style="color: #000000;"> DemoApplication {
+
+    </span><span style="color: #0000ff;">public</span> <span style="color: #0000ff;">static</span> <span style="color: #0000ff;">void</span><span style="color: #000000;"> main(String[] args) {
+        </span><span style="color: #008000;">//</span><span style="color: #008000;">SpringApplication.run(DemoApplication.class, args);</span>
+        <span style="color: #0000ff;">new</span> SpringApplicationBuilder(DemoApplication.<span style="color: #0000ff;">class</span><span style="color: #000000;">).properties(
+                </span>"spring.config.location=classpath:/config/myConfig.properties"<span style="color: #000000;">
+        ).run(args);
+    }
+
+    @Autowired
+    </span><span style="color: #0000ff;">private</span><span style="color: #000000;"> Environment env;
+
+    @RequestMapping(</span>"/"<span style="color: #000000;">)
+    </span><span style="color: #0000ff;">public</span><span style="color: #000000;"> String getProp(){
+        String test1 </span>= env.getProperty("test1"<span style="color: #000000;">);
+        String test2 </span>= env.getProperty("test2"<span style="color: #000000;">);
+        </span><span style="color: #0000ff;">return</span> test1 + "," +<span style="color: #000000;"> test2;
+    }
+}</span></code></pre>
+
+<p>访问 http://localhost:8080/<br />输出：null,myConfig.properties<br />可见application.properties已读取不到，成功读取到配置文件myConfig.properties。</p>
+<p>也可以使用spring.config.name指定配置文件的名称，如下面代码指定了myConfig，Spring Boot会到classpath下寻找myConfig.properties(yml)。</p>
+<src class="cnblogs_code">
+<pre><code>    <span style="color: #0000ff;">public</span> <span style="color: #0000ff;">static</span> <span style="color: #0000ff;">void</span><span style="color: #000000;"> main(String[] args) {
+        </span><span style="color: #008000;">//</span><span style="color: #008000;">SpringApplication.run(DemoApplication.class, args);</span>
+        <span style="color: #008000;">/*</span><span style="color: #008000;">new SpringApplicationBuilder(DemoApplication.class).properties(
+                "spring.config.location=classpath:/config/myConfig.properties"
+        ).run(args);</span><span style="color: #008000;">*/</span>
+        <span style="color: #0000ff;">new</span> SpringApplicationBuilder(DemoApplication.<span style="color: #0000ff;">class</span><span style="color: #000000;">).properties(
+                </span>"spring.config.name=myConfig"<span style="color: #000000;">).run(args);
+    }</span></code></pre>
+
+<p><strong style="font-size: 16px;">三、使用profile指定配置</strong></p>
+<p>使用profile可以根据特定的环境来激活不同的配置。</p>
+<p>src/main/resources/application.yml 内容如下：</p>
+<src class="cnblogs_code">
+<pre><code>spring:
+  profiles: mysql
+jdbc:
+  driver:
+    com.mysql.jdbc.Driver
+---
+spring:
+  profiles: oracle
+jdbc:
+  driver:
+    oracle.jdbc.driver.OracleDriver</code></pre>
+
+<p>修改默认生成的启动类 DemoApplication.java 代码：</p>
+<src class="cnblogs_code">
+<pre><code><span style="color: #0000ff;">package</span><span style="color: #000000;"> com.example.demo;
+
+</span><span style="color: #0000ff;">import</span><span style="color: #000000;"> org.springframework.beans.factory.annotation.Autowired;
+</span><span style="color: #0000ff;">import</span><span style="color: #000000;"> org.springframework.boot.SpringApplication;
+</span><span style="color: #0000ff;">import</span><span style="color: #000000;"> org.springframework.boot.autoconfigure.SpringBootApplication;
+</span><span style="color: #0000ff;">import</span><span style="color: #000000;"> org.springframework.boot.builder.SpringApplicationBuilder;
+</span><span style="color: #0000ff;">import</span><span style="color: #000000;"> org.springframework.core.env.Environment;
+</span><span style="color: #0000ff;">import</span><span style="color: #000000;"> org.springframework.web.bind.annotation.RequestMapping;
+</span><span style="color: #0000ff;">import</span><span style="color: #000000;"> org.springframework.web.bind.annotation.RestController;
+
+</span><span style="color: #0000ff;">import</span><span style="color: #000000;"> java.util.Scanner;
+
+@SpringBootApplication
+@RestController
+</span><span style="color: #0000ff;">public</span> <span style="color: #0000ff;">class</span><span style="color: #000000;"> DemoApplication {
+
+    </span><span style="color: #0000ff;">public</span> <span style="color: #0000ff;">static</span> <span style="color: #0000ff;">void</span><span style="color: #000000;"> main(String[] args) {
+        </span><span style="color: #008000;">//</span><span style="color: #008000;">SpringApplication.run(DemoApplication.class, args);</span>
+<span style="color: #000000;">
+        Scanner scan </span>= <span style="color: #0000ff;">new</span><span style="color: #000000;"> Scanner(System.in);
+        String profile </span>=<span style="color: #000000;"> scan.nextLine();
+        </span><span style="color: #0000ff;">new</span> SpringApplicationBuilder(DemoApplication.<span style="color: #0000ff;">class</span><span style="color: #000000;">).properties(
+                </span>"spring.config.location=classpath:/application.yml"<span style="color: #000000;">
+        ).profiles(profile).run(args);
+    }
+
+    @Autowired
+    </span><span style="color: #0000ff;">private</span><span style="color: #000000;"> Environment env;
+
+    @RequestMapping(</span>"/"<span style="color: #000000;">)
+    </span><span style="color: #0000ff;">public</span><span style="color: #000000;"> String getProp(){
+        String res </span>= env.getProperty("jdbc.driver"<span style="color: #000000;">);
+        </span><span style="color: #0000ff;">return</span><span style="color: #000000;"> res;
+    }
+}</span></code></pre>
+
+<p>在IDEA中点击Run按钮后，在控制台先敲回车再输入oracle，<br />访问 http://localhost:8080/ 输出：oracle.jdbc.driver.OracleDriver<br />重新Run，在控制台先敲回车再输入mysql，<br />访问 http://localhost:8080/ 输出：com.mysql.jdbc.Driver</p>
+<p>还可以通过不同配置文件的名称来设置profile，创建下面3个文件。<br />(1)src/main/resources/application.yml 内容：</p>
+<src class="cnblogs_code">
+<pre><code>spring:
+  profiles:
+    active: oracle</code></pre>
+
+<p>(2)src/main/resources/application-mysql.yml 内容：</p>
+<src class="cnblogs_code">
+<pre><code>jdbc:
+  driver:
+    com.mysql.jdbc.Driver</code></pre>
+
+<p>(3)src/main/resources/application-oracle.yml 内容：</p>
+<src class="cnblogs_code">
+<pre><code>jdbc:
+  driver:
+    oracle.jdbc.driver.OracleDriver</code></pre>
+
+<p><img src="./images/Spring Boot 2 读取配置文件2.png" alt="" /></p>
+<p>&nbsp;修改默认生成的启动类 DemoApplication.java 代码：</p>
+<src class="cnblogs_code">
+<pre><code><span style="color: #0000ff;">package</span><span style="color: #000000;"> com.example.demo;
+
+</span><span style="color: #0000ff;">import</span><span style="color: #000000;"> org.springframework.beans.factory.annotation.Autowired;
+</span><span style="color: #0000ff;">import</span><span style="color: #000000;"> org.springframework.boot.SpringApplication;
+</span><span style="color: #0000ff;">import</span><span style="color: #000000;"> org.springframework.boot.autoconfigure.SpringBootApplication;
+</span><span style="color: #0000ff;">import</span><span style="color: #000000;"> org.springframework.boot.builder.SpringApplicationBuilder;
+</span><span style="color: #0000ff;">import</span><span style="color: #000000;"> org.springframework.core.env.Environment;
+</span><span style="color: #0000ff;">import</span><span style="color: #000000;"> org.springframework.web.bind.annotation.RequestMapping;
+</span><span style="color: #0000ff;">import</span><span style="color: #000000;"> org.springframework.web.bind.annotation.RestController;
+
+</span><span style="color: #0000ff;">import</span><span style="color: #000000;"> java.util.Scanner;
+
+@SpringBootApplication
+@RestController
+</span><span style="color: #0000ff;">public</span> <span style="color: #0000ff;">class</span><span style="color: #000000;"> DemoApplication {
+
+    </span><span style="color: #0000ff;">public</span> <span style="color: #0000ff;">static</span> <span style="color: #0000ff;">void</span><span style="color: #000000;"> main(String[] args) {
+        SpringApplication.run(DemoApplication.</span><span style="color: #0000ff;">class</span><span style="color: #000000;">, args);     
+    }
+
+    @Autowired
+    </span><span style="color: #0000ff;">private</span><span style="color: #000000;"> Environment env;
+
+    @RequestMapping(</span>"/"<span style="color: #000000;">)
+    </span><span style="color: #0000ff;">public</span><span style="color: #000000;"> String getProp(){
+        String res </span>= env.getProperty("jdbc.driver"<span style="color: #000000;">);
+        </span><span style="color: #0000ff;">return</span><span style="color: #000000;"> res;
+    }
+}</span></code></pre>
+
+<p>访问 http://localhost:8080/ 输出：oracle.jdbc.driver.OracleDriver</p>
+
+</div><hr><script charset='utf-8' src='../../js/sming.js'></script></body></html>

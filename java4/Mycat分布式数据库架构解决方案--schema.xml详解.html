@@ -1,0 +1,101 @@
+<html><head><meta charset='utf-8'><meta name='viewport' content='width=device-width, initial-scale=1'>
+<meta name='applicable-device' content='pc'><meta name='keywords' content='电脑,电脑讲解,电脑技术,编程,电脑故障维修Mycat分布式数据库架构解决方案--schema.xml详解' />
+<script src='../../highlight/highlight.pack.js'></script>
+<link rel='stylesheet' type='text/css' href='../../highlight/styles/monokai.css'/>
+
+<link rel='stylesheet' href='../../fenxiang/dist/css/share.min.css'>
+<script src='../../fenxiang/src/js/social-share.js'></script>
+<script src='../../fenxiang/src/js/qrcode.js'></script>
+
+</head><body><script>hljs.initHighlightingOnLoad();</script><script>
+var system ={};  
+var p = navigator.platform;       
+system.win = p.indexOf('Win') == 0;  
+system.mac = p.indexOf('Mac') == 0;  
+system.x11 = (p == 'X11') || (p.indexOf('Linux') == 0);     
+if(system.win||system.mac||system.xll){
+document.write("<link href='../css/3.css' rel='stylesheet' type='text/css'>");}else{ document.write("<link href='../css/3wap.css' rel='stylesheet' type='text/css'>");}</script><script src='../../js/3.js'></script><div class='div2'><div class='heading_nav'><ul><div><li><a href='../../index.html'>首页</a></li>
+</div><div onclick='hidden1()' >分享</div>
+</ul></div></div>
+<div id='heading_nav2'> 
+<li class='row' >
+<div class='social-share' data-mode='prepend'><a href='javascript:' class='social-share-icon icon-heart'></a></div></li></div><script charset='utf-8' src='../../3/js/hengfu.js'></script><script charset='utf-8' src='../../3/js/hengfu2.js'></script><hr><div class='div1'><div class='biaoti'><center>Mycat分布式数据库架构解决方案--schema.xml详解</center></div><div class='banquan'>原文出处:本文由博客园博主xlecho提供。<br/>
+原文连接:https://www.cnblogs.com/xlecho/p/11796603.html</div><br>
+    <p>echo编辑整理，欢迎转载，转载请声明文章来源。欢迎添加echo微信(微信号：t2421499075)交流学习。 百战不败，依不自称常胜，百败不颓，依能奋力前行。——这才是真正的堪称强大！！！</p>
+<hr />
+<blockquote>
+<p>该文件是一个包含Mycat的系统配置信息文件，对应的原码是SystemConfig.java。我们对该文件做一个详解，该文件在我们安装包中，/mycat/conf中（该文是基于“Mycat分布式数据库架构解决方案--Linux安装运行Mycat”）的后续，可以了解安装之后目录结构。想要对比详细配置文件也可以直接去github下载mycat源码，下载地址：<a href="https://github.com/MyCATApache/Mycat-Server" class="uri">https://github.com/MyCATApache/Mycat-Server</a></p>
+</blockquote>
+<pre><code><code>&lt;?xml version=&quot;1.0&quot;?&gt;
+&lt;!DOCTYPE mycat:schema SYSTEM &quot;schema.dtd&quot;&gt;
+&lt;mycat:schema xmlns:mycat=&quot;http://io.mycat/&quot;&gt;
+
+    &lt;!-- schema标签主要用于定义Mycat实例中的逻辑库。Mycat可以有多个逻辑库，每个逻辑库都有自己相关的配置 --&gt;
+    &lt;!-- 可以使用schema标签来划分不同的逻辑库,如果不配置schema标签，则所有的表配置都会属于同一个默认的逻辑库 --&gt;
+    &lt;!-- name=&quot;TESTDB&quot; 给Mycat定义逻辑库名称 --&gt;
+    &lt;!-- checkSQLschema属性值为true的时候，如果我们执行语句select * from TESTDB.table;该设置会讲TESTDB截取掉，SQL变成select * from table;该规则只能截掉schema上指定的库 --&gt;
+    &lt;!-- sqlMaxLimit属性设置为100时，每次执行的SQL语句如果没有加上limit语句，Mycat会自动加上limit 100;不设置就会返回查询到的所有信息 --&gt;
+    &lt;schema name=&quot;TESTDB&quot; checkSQLschema=&quot;true&quot; sqlMaxLimit=&quot;100&quot;&gt;
+        &lt;!-- table标签定义了Mycat中的逻辑表，所有需要拆分的表都需要在table标签中定义。--&gt;
+        &lt;!-- name属性定义逻辑表的名称,同一个schema标签中定义的table名字必须唯一 --&gt;
+        &lt;!-- dataNode属性该属性的值需要与下面dataNode标签中的name属性的值相互对应。如果有多个值，使用&#39;,&#39;分隔 --&gt;
+        &lt;!-- rule属性用于指定逻辑表要使用的规则，规则的名字定义在rule.xml中定义，必须与tableRule标签中name属性一致 --&gt;
+        &lt;!-- ruleRequired属性用于指定表是否绑定分片规则，如果配置true，但没有配置具体的rule，程序会报错。--&gt;
+        &lt;!-- primaryKey属性对应真实表的主键 --&gt;
+        &lt;!-- type属性定义了逻辑表的类型，目前逻辑表只有全局表和普通表两种类型。全局表对应的配置值：global，不指定普通表 --&gt;
+        &lt;!-- autoIncrement属性默认false，设置成为true时Mycat对表使用自增长主键 --&gt;
+        &lt;!-- subTables属性目前Mycat在1.6版本以后才开始支持分表，并且dataNode在分表条件下只能配置一个，不支持各种条件的join关联查询语句 --&gt;
+        &lt;!-- needAddLimit指定表是否需要自动在每个语句后面加上limit限制。如果设置为true，Mycat查询的时候自动给我们加上limit 100 --&gt;
+        &lt;table name=&quot;travelrecord&quot; needAddLimit=&quot;true&quot; ruleRequired=&quot;true&quot; autoIncrement=&quot;false&quot; primaryKey=&quot;&quot; dataNode=&quot;dn1,dn2,dn3&quot; rule=&quot;auto-sharding-long&quot;/&gt;
+    &lt;/schema&gt;
+    &lt;!-- 一个schema代表一个逻辑库 --&gt;
+    &lt;schema name=&quot;TEST&quot; checkSQLschema=&quot;true&quot; sqlMaxLimit=&quot;100&quot;&gt;
+        &lt;table name=&quot;travelrecord&quot; dataNode=&quot;dn1,dn2,dn3&quot; rule=&quot;auto-sharding-long&quot;/&gt;
+    &lt;/schema&gt;
+    &lt;!-- dataNode属性用于绑定逻辑库和具体的数据库。Mycat1.3如果配置了dataNode，则不可以配置分片表；
+    Mycat的1.4和1.5版本可以配置默认分片，配置需要分片的表即可 --&gt;
+    &lt;!-- name属性对应上面schema中间的DataNode的名字 --&gt;
+    &lt;!-- database属性是指定真是数据库的名称 --&gt;
+    &lt;!-- dataHost属性是对应数据库的Mycat逻辑库名称 --&gt;
+    &lt;dataNode name=&quot;dn1&quot; dataHost=&quot;Node1&quot; database=&quot;db1&quot;/&gt;
+    &lt;dataNode name=&quot;dn2&quot; dataHost=&quot;Node2&quot; database=&quot;db2&quot;/&gt;
+    &lt;dataNode name=&quot;dn3&quot; dataHost=&quot;Node3&quot; database=&quot;db3&quot;/&gt;
+
+    &lt;!-- 它是schema.xml中最后一个标签,该标签在Mycat逻辑库中作为底层标签存在，直接定义了具体的数据库实例、读写分离和心跳语句。--&gt;
+    &lt;!-- name属性是唯一标识dataHost标签，供上层标签使用 --&gt;
+    &lt;!-- maxCon属性指定每个读写实例连接池的最大连接数。内嵌标签writeHost/readHost都会使用这个属性的值类实例化连接池的最大连接数 --&gt;
+    &lt;!-- minCon属性指定每个读写实例连接池的最小连接数，初始化连接池的大小 --&gt;
+    &lt;!-- balance属性属于负载均衡类型，目前有一下4中值
+        balance=&quot;0&quot; 不开启读写分离机制，所有的操作都发送到当前可以用的writeHost上。
+        balance=&quot;1&quot; 全部的readHost与stand by writeHost都参与select语句的负载均衡。
+        balance=&quot;2&quot; 所有的读操作都随机地在writeHost、readHost上分发。
+        balance=&quot;3&quot; 所有的读请求都随机分发到writeHost对应的readHost上执行，writeHost不负担读压力--&gt;
+    &lt;!-- writeType属性有两种值 writeType=&quot;0&quot; 所有的写操作都发送到配置的第1个writeHost上，writeHost1挂了则切到writeHost2上
+         writeType=&quot;1&quot; 所有的写操作都随机的发送到配置的writeHost上 --&gt;
+    &lt;!-- dbType属性指定后端连接的数据库类型，目前除了支持二进制的MySQL协议，还支持使用JDBC连接的数据库,例如MongoDB.Oracle等 --&gt;
+    &lt;!-- daDriver指定连接后端数据库使用的Driver,目前可选的有native和JDBC --&gt;
+    &lt;!-- switchType属性
+            switchType=&quot;-1&quot;表示不自动切换。
+            switchType=&quot;1&quot;为默认值，表示自动切换。
+            switchType=&quot;2&quot;表示基于MySQL主从同步的状态决定是否切换。
+            switchType=&quot;3&quot;表示基于MySQL Galary Cluster的切换机制。--&gt;
+    &lt;dataHost name=&quot;localhost1&quot; maxCon=&quot;1000&quot; minCon=&quot;10&quot; balance=&quot;0&quot; writeType=&quot;0&quot;
+              dbType=&quot;mysql&quot; tempReadHostAvailable=&quot;&quot; dbDriver=&quot;native&quot; switchType=&quot;1&quot; slaveThreshold=&quot;100&quot;&gt;
+        &lt;!-- heartbeat标签指明了用于后端数据库进行心跳检查的语句,MySQL使用select user() Oracle使用select 1 from dual--&gt;
+        &lt;heartbeat&gt;select user()&lt;/heartbeat&gt;
+        &lt;!-- writeHost标签和readHost标签一样，都指定Mycat后端数据库的相关配置，用于实例化后端连接池。唯一的不同是，writeHost指定写实例，readHost指定读实例 --&gt;
+        &lt;!-- host属性用于表示不同的实例,对于writeHost我们一般使用*M1;对于readHost，我们一般使用*S1。 --&gt;
+        &lt;!-- url属性,连接后端实例的连接地址 --&gt;
+        &lt;!-- user属性,后端存储实例的用户名 --&gt;
+        &lt;!-- password属性,后端存储实例的密码 --&gt;
+        &lt;!-- weight属性在readHost中作为读节点的权重 --&gt;
+        &lt;!-- usingDecrypt属性同server.mxl中的usingDecrypt的配置 --&gt;
+        &lt;writeHost host=&quot;hostM1&quot; url=&quot;192.168.222.132:3306&quot; user=&quot;root&quot; password=&quot;123456&quot;&gt;&lt;/writeHost&gt;
+    &lt;/dataHost&gt;
+&lt;/mycat:schema&gt;
+</code></code></pre>
+<hr />
+<p>做一个有底线的博客主</p>
+
+
+</div><hr><script charset='utf-8' src='../../js/sming.js'></script></body></html>

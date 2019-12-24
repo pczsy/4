@@ -1,0 +1,78 @@
+<html><head><meta charset='utf-8'><meta name='viewport' content='width=device-width, initial-scale=1'>
+<meta name='applicable-device' content='pc'><meta name='keywords' content='电脑,电脑讲解,电脑技术,编程,电脑故障维修树莓派4B安装64位Linux(不用显示器键盘鼠标)' />
+<script src='../../highlight/highlight.pack.js'></script>
+<link rel='stylesheet' type='text/css' href='../../highlight/styles/monokai.css'/>
+
+<link rel='stylesheet' href='../../fenxiang/dist/css/share.min.css'>
+<script src='../../fenxiang/src/js/social-share.js'></script>
+<script src='../../fenxiang/src/js/qrcode.js'></script>
+
+</head><body><script>hljs.initHighlightingOnLoad();</script><script>
+var system ={};  
+var p = navigator.platform;       
+system.win = p.indexOf('Win') == 0;  
+system.mac = p.indexOf('Mac') == 0;  
+system.x11 = (p == 'X11') || (p.indexOf('Linux') == 0);     
+if(system.win||system.mac||system.xll){
+document.write("<link href='../css/3.css' rel='stylesheet' type='text/css'>");}else{ document.write("<link href='../css/3wap.css' rel='stylesheet' type='text/css'>");}</script><script src='../../js/3.js'></script><div class='div2'><div class='heading_nav'><ul><div><li><a href='../../index.html'>首页</a></li>
+</div><div onclick='hidden1()' >分享</div>
+</ul></div></div>
+<div id='heading_nav2'> 
+<li class='row' >
+<div class='social-share' data-mode='prepend'><a href='javascript:' class='social-share-icon icon-heart'></a></div></li></div><script charset='utf-8' src='../../3/js/hengfu.js'></script><script charset='utf-8' src='../../3/js/hengfu2.js'></script><hr><div class='div1'><div class='biaoti'><center>树莓派4B安装64位Linux(不用显示器键盘鼠标)</center></div><div class='banquan'>原文出处:本文由博客园博主zq2599提供。<br/>
+原文连接:https://www.cnblogs.com/bolingcavalry/p/11480661.html</div><br>
+    <p>入手了树莓派4B，我对它的定位是作为一个Docker实验环境，平时用到的镜像多为Java服务端常用的技术、以及自己作的Java应用镜像，因此宿主机需要64位操作系统，而树莓派官方操作系统只有32位的，只能去网上找第三方的了。</p>
+<h3 id="前提条件">前提条件</h3>
+<p>本次安装需要您提前准备以下内容：</p>
+<ol>
+<li>树莓派4B；</li>
+<li>可用于树莓派的SD卡；</li>
+<li>读卡器；</li>
+<li>内网网络，并且可以通过路由器管理页面看到每个设备的IP地址；</li>
+<li>网线一根；</li>
+<li>Win10电脑一台，安装有<font color="blue">SDFormatter V4.0</font>、<font color="blue">Win32 Disk Imager</font>；</li>
+</ol>
+<h3 id="openfans的64位镜像下载">openfans的64位镜像下载</h3>
+<ol>
+<li>在GitHub上可以找到适配树莓派4B的64位操作系统镜像，地址是：<a href="https://github.com/openfans-community-offical/Debian-Pi-Aarch64" class="uri">https://github.com/openfans-community-offical/Debian-Pi-Aarch64</a></li>
+<li>上述地址提供了多种镜像，如下所示，点击红框按钮进入资源下页面：<br />
+<img src="./images/树莓派4B安装64位Linux(不用显示器键盘鼠标)0.png" alt="在这里插入图片描述" /></li>
+<li>这里我打算使用<font color="blue">基础 Aarch64(ARM64) 系统镜像(无桌面WebUI增强版)</font>，打开百度盘的目录，如下所示，我选的是红框中的RC4，因为最新：<br />
+<img src="./images/树莓派4B安装64位Linux(不用显示器键盘鼠标)1.png" alt="在这里插入图片描述" /></li>
+<li>进入RC4目录后如下图，根据名字的大小推测，红框中的是我所需要的版本（服务器版，带有WEBUI）将此文件下载到本地，稍后会用到：<br />
+<img src="./images/树莓派4B安装64位Linux(不用显示器键盘鼠标)2.png" alt="在这里插入图片描述" /></li>
+<li>上述文件我已经上传到CSDN，您可以在此下载：<a href="https://download.csdn.net/download/boling_cavalry/11693338" class="uri">https://download.csdn.net/download/boling_cavalry/11693338</a></li>
+<li><p>在CSDN下载需要5个CSDN积分，这不是我想要的，而是实在不知道在哪里可以设置免费下载，您要是知道麻烦留言告诉我，谢谢。</p>
+<h3 id="烧录到sd卡">烧录到SD卡</h3></li>
+<li>准备好sd卡和读卡器，如下：<br />
+<img src="./images/树莓派4B安装64位Linux(不用显示器键盘鼠标)3.png" alt="在这里插入图片描述" /></li>
+<li>准备格式化SD卡的软件，我用的是<font color="blue">SDFormatter V4.0</font>，如下所示，选好SD卡的盘符（千万小心别搞错），再执行格式化，该卡的数据会全部被删除：<br />
+<img src="./images/树莓派4B安装64位Linux(不用显示器键盘鼠标)4.png" alt="在这里插入图片描述" /></li>
+<li>将镜像烧录到SD卡，我这里用的烧录软件是<font color="blue">Win32 Disk Imager</font>，如下图，选中刚才下载的镜像文件在点击&quot;Write&quot;按钮即可开始烧录：<br />
+<img src="./images/树莓派4B安装64位Linux(不用显示器键盘鼠标)5.png" alt="在这里插入图片描述" /></li>
+<li>烧录完成后，将卡插入树莓派，打开电源；</li>
+<li><p>将网线插入树莓派的网口；</p></li>
+</ol>
+<h3 id="进入树莓派">进入树莓派</h3>
+<ol>
+<li>电源接通后，等待大约5分钟左右，在路由器的管理页面查看树莓派的IP地址，我这里是华硕AC86U路由器，可以在其管理页面看到树莓派的IP地址是<font color="blue">192.168.50.118</font>，如下图：<br />
+<img src="./images/树莓派4B安装64位Linux(不用显示器键盘鼠标)6.png" alt="在这里插入图片描述" /></li>
+<li>在同一网络内的电脑上，用浏览器访问：<a href="https://192.168.50.118:9090" class="uri">https://192.168.50.118:9090</a> ，这是树莓派的管理页面，期间会有安全提示，点击下图红框中的链接继续：<br />
+<img src="./images/树莓派4B安装64位Linux(不用显示器键盘鼠标)7.png" alt="在这里插入图片描述" /></li>
+<li>来到登录页面，输入用户名<font color="blue">pi</font>，密码<font color="blue">raspberry</font>，即可登录成功：<br />
+<img src="./images/树莓派4B安装64位Linux(不用显示器键盘鼠标)8.png" alt="在这里插入图片描述" /></li>
+<li>顺利进入树莓派的管理系统，如下图，内容不少，系统基本信都能看到了：<br />
+<img src="./images/树莓派4B安装64位Linux(不用显示器键盘鼠标)9.png" alt="在这里插入图片描述" /></li>
+<li>点击<font color="blue">终端</font>菜单，可以执行控制台命令，先看看是不是64位系统，如下图红框：<br />
+<img src="./images/树莓派4B安装64位Linux(不用显示器键盘鼠标)10.png" alt="在这里插入图片描述" /></li>
+<li>我最关心的是ssh服务是否启动，如下图，ssh服务正常运行中，这样就可以通过xshell等工具远程连接树莓派了：<br />
+<img src="./images/树莓派4B安装64位Linux(不用显示器键盘鼠标)11.png" alt="在这里插入图片描述" /></li>
+<li>左侧菜单中有个<font color="blue">容器</font>菜单引起了我的注意，莫非这个版本的树莓派已经内置了Docker？<br />
+<img src="./images/树莓派4B安装64位Linux(不用显示器键盘鼠标)12.png" alt="在这里插入图片描述" /></li>
+<li>在GitHub的文档证实了Docker服务是内置的，并且有关于Docker的详细描述：<br />
+<img src="./images/树莓派4B安装64位Linux(不用显示器键盘鼠标)13.png" alt="在这里插入图片描述" /><br />
+至此，在树莓派4B上安装64位Linux操作系统成功完成，希望您在装系统的时候此文能给您一些参考。</li>
+</ol>
+
+
+</div><hr><script charset='utf-8' src='../../js/sming.js'></script></body></html>

@@ -1,0 +1,236 @@
+<html><head><meta charset='utf-8'><meta name='viewport' content='width=device-width, initial-scale=1'>
+<meta name='applicable-device' content='pc'><meta name='keywords' content='电脑,电脑讲解,电脑技术,编程,电脑故障维修基于Maven 的 Spring MVC' />
+<script src='../../highlight/highlight.pack.js'></script>
+<link rel='stylesheet' type='text/css' href='../../highlight/styles/monokai.css'/>
+
+<link rel='stylesheet' href='../../fenxiang/dist/css/share.min.css'>
+<script src='../../fenxiang/src/js/social-share.js'></script>
+<script src='../../fenxiang/src/js/qrcode.js'></script>
+
+</head><body><script>hljs.initHighlightingOnLoad();</script><script>
+var system ={};  
+var p = navigator.platform;       
+system.win = p.indexOf('Win') == 0;  
+system.mac = p.indexOf('Mac') == 0;  
+system.x11 = (p == 'X11') || (p.indexOf('Linux') == 0);     
+if(system.win||system.mac||system.xll){
+document.write("<link href='../css/3.css' rel='stylesheet' type='text/css'>");}else{ document.write("<link href='../css/3wap.css' rel='stylesheet' type='text/css'>");}</script><script src='../../js/3.js'></script><div class='div2'><div class='heading_nav'><ul><div><li><a href='../../index.html'>首页</a></li>
+</div><div onclick='hidden1()' >分享</div>
+</ul></div></div>
+<div id='heading_nav2'> 
+<li class='row' >
+<div class='social-share' data-mode='prepend'><a href='javascript:' class='social-share-icon icon-heart'></a></div></li></div><script charset='utf-8' src='../../3/js/hengfu.js'></script><script charset='utf-8' src='../../3/js/hengfu2.js'></script><hr><div class='div1'><div class='biaoti'><center>基于Maven 的 Spring MVC</center></div><div class='banquan'>原文出处:本文由博客园博主张泽提供。<br/>
+原文连接:https://www.cnblogs.com/zhangze-lifetime/p/11807260.html</div><br>
+    <h1><span style="font-size: 18pt; font-family: 楷体;">Spring MVC</span></h1>
+<p><span style="font-size: 14pt; font-family: 楷体;">他是基于MVC的设计模式做出来的，他是Spring对Servlet的进一步的封装</span><br /><span style="font-size: 14pt; font-family: 楷体;">　　MVC：Model&nbsp; View&nbsp; Controller</span></p>
+<p><span style="font-size: 14pt; font-family: 楷体;">如何使用Spring MVC？（Spring 和 Spring MVC整合）<br />&nbsp;&nbsp; &nbsp;a. pom.xml 导入 SpringMVC.jar</span></p>
+<p>&nbsp;</p>
+<src class="cnblogs_code">
+<pre><code><span style="color: #008000;">&lt;!--</span><span style="color: #008000;"> Spring 5 与SpringMVC </span><span style="color: #008000;">--&gt;</span>
+    <span style="color: #0000ff;">&lt;</span><span style="color: #800000;">dependency</span><span style="color: #0000ff;">&gt;</span>
+        <span style="color: #0000ff;">&lt;</span><span style="color: #800000;">groupId</span><span style="color: #0000ff;">&gt;</span>org.springframework<span style="color: #0000ff;">&lt;/</span><span style="color: #800000;">groupId</span><span style="color: #0000ff;">&gt;</span>
+        <span style="color: #0000ff;">&lt;</span><span style="color: #800000;">artifactId</span><span style="color: #0000ff;">&gt;</span>spring-webmvc<span style="color: #0000ff;">&lt;/</span><span style="color: #800000;">artifactId</span><span style="color: #0000ff;">&gt;</span>
+         <span style="color: #0000ff;">&lt;</span><span style="color: #800000;">version</span><span style="color: #0000ff;">&gt;</span>${spring.version}<span style="color: #0000ff;">&lt;/</span><span style="color: #800000;">version</span><span style="color: #0000ff;">&gt;</span>
+    <span style="color: #0000ff;">&lt;/</span><span style="color: #800000;">dependency</span><span style="color: #0000ff;">&gt;</span></code></pre>
+
+<p>&nbsp;</p>
+<p>&nbsp;</p>
+<p><span style="font-size: 14pt; font-family: 楷体;"><br />&nbsp;&nbsp; &nbsp;b. 配置(xml 标注)：AppConfig类<br />&nbsp;&nbsp; &nbsp;&nbsp;&nbsp; &nbsp;@Configurable<br />&nbsp;&nbsp; &nbsp;&nbsp;&nbsp; &nbsp;@EnableWebMvc<br />&nbsp;&nbsp; &nbsp;&nbsp;&nbsp; &nbsp;@ComponentScan({"day"})<br /></span></p>
+<src class="cnblogs_code">
+<pre><code><span style="color: #0000ff;">package</span><span style="color: #000000;"> day;
+
+</span><span style="color: #0000ff;">import</span><span style="color: #000000;"> org.springframework.context.annotation.Bean;
+</span><span style="color: #0000ff;">import</span><span style="color: #000000;"> org.springframework.context.annotation.ComponentScan;
+</span><span style="color: #0000ff;">import</span><span style="color: #000000;"> org.springframework.context.annotation.Configuration;
+</span><span style="color: #0000ff;">import</span><span style="color: #000000;"> org.springframework.web.servlet.config.annotation.EnableWebMvc;
+</span><span style="color: #0000ff;">import</span><span style="color: #000000;"> org.springframework.web.servlet.view.JstlView;
+</span><span style="color: #0000ff;">import</span><span style="color: #000000;"> org.springframework.web.servlet.view.UrlBasedViewResolver;
+
+</span><span style="color: #008000;">/**</span><span style="color: #008000;">
+ * 基于注解的配置类（JavaConfig配置）
+ * </span><span style="color: #808080;">@author</span><span style="color: #008000;"> 张泽
+ </span><span style="color: #008000;">*/</span><span style="color: #000000;">
+
+@Configuration
+@EnableWebMvc
+@ComponentScan({</span>"day"<span style="color: #000000;">})
+</span><span style="color: #0000ff;">public</span> <span style="color: #0000ff;">class</span><span style="color: #000000;"> AppConfig {
+    </span><span style="color: #008000;">/**</span><span style="color: #008000;">
+     * jsp的解析器
+     * 这个Bean的作用就是告诉Spring MVC 你写的JSP文件的位置
+     * </span><span style="color: #808080;">@return</span>
+     <span style="color: #008000;">*/</span><span style="color: #000000;">
+    @Bean 
+    </span><span style="color: #0000ff;">public</span><span style="color: #000000;"> UrlBasedViewResolver setupViewResolver() {
+        UrlBasedViewResolver resolver </span>= <span style="color: #0000ff;">new</span><span style="color: #000000;"> UrlBasedViewResolver();
+        resolver.setPrefix(</span>"/WEB-INF/");<span style="color: #008000;">//</span><span style="color: #008000;">-- 位置 受保护的，不可以直接访问</span>
+        resolver.setSuffix(".jsp"); <span style="color: #008000;">//</span><span style="color: #008000;">-- jsp文件的后缀，你在写页面的时候就省略掉后缀</span>
+        resolver.setViewClass(JstlView.<span style="color: #0000ff;">class</span><span style="color: #000000;">);
+        </span><span style="color: #0000ff;">return</span><span style="color: #000000;"> resolver;
+    }
+}
+</span><span style="color: #008000;">/**</span><span style="color: #008000;">
+    换句话说：我们要先配置好那个Servlet，并且在服务器启动的时候把它实例化
+    （1）tomcat启动的时候，SpringMVC框架写了监听器ContextListener(ServletContextListener)
+    （2）在ServletContextListener中实例化这个核心的Servlet
+    （3）这个Serlet拦截一切请求
+    （4）拦截请求后，在获取请求的路径转发给对应的Controller
+    （5）Controller再进行相应的请求的处理
+    
+想法：所有的Bean要纳入到Spring容器来管理，才能实现面向接口的编程
+Tomcat 启动后，会不会有Spring容器。
+当Tomcat启动的时候，我们实例化一个Spring容器。然后把它放到ServletContext
+SpringMVC：
+    （1）在Tomcat启动的时候，实例化一个Spring容器放入到ServletContext对象里
+    （2）并且在ServletContext中实例化那个核心的Servlet
+    （3）而且该Servlet拦截一切请求
+    
+</span><span style="color: #008000;">*/</span></code></pre>
+
+<p>&nbsp;</p>
+<p>&nbsp;</p>
+<p><span style="font-size: 14pt; font-family: 楷体;">&nbsp;&nbsp;&nbsp; 　　<br />&nbsp;&nbsp; &nbsp;&nbsp;&nbsp; &nbsp;WebInitializer类：web容器启动得时候会调用该类得onStartup<span style="font-size: 14pt; font-family: 楷体;">方法初始化工作：<span style="font-size: 14pt; font-family: 楷体;">Spring容器与SpringMVC框架</span></span></span></p>
+<p>&nbsp;</p>
+<src class="cnblogs_code">
+<pre><code><span style="color: #0000ff;">package</span><span style="color: #000000;"> day;
+
+</span><span style="color: #0000ff;">import</span><span style="color: #000000;"> javax.servlet.ServletContext;
+</span><span style="color: #0000ff;">import</span><span style="color: #000000;"> javax.servlet.ServletException;
+</span><span style="color: #0000ff;">import</span><span style="color: #000000;"> javax.servlet.ServletRegistration;
+
+</span><span style="color: #0000ff;">import</span><span style="color: #000000;"> org.springframework.web.WebApplicationInitializer;
+</span><span style="color: #0000ff;">import</span><span style="color: #000000;"> org.springframework.web.context.support.AnnotationConfigWebApplicationContext;
+</span><span style="color: #0000ff;">import</span><span style="color: #000000;"> org.springframework.web.servlet.DispatcherServlet;
+
+</span><span style="color: #008000;">/**</span><span style="color: #008000;">
+ * Tomcat 启动的时候会检测是否有WebApplicationInitializer接口的类
+ * 若检测到有这个类，就会实例化它，并调用他的onStartup方法
+ * </span><span style="color: #808080;">@author</span><span style="color: #008000;"> 张泽
+ </span><span style="color: #008000;">*/</span>
+<span style="color: #0000ff;">public</span> <span style="color: #0000ff;">class</span> WebInitializer <span style="color: #0000ff;">implements</span><span style="color: #000000;"> WebApplicationInitializer {
+
+    @Override
+    </span><span style="color: #0000ff;">public</span> <span style="color: #0000ff;">void</span><span style="color: #000000;"> onStartup(ServletContext servletContext) 
+            </span><span style="color: #0000ff;">throws</span><span style="color: #000000;"> ServletException {
+        System.out.println(</span>"startup invoker the method"<span style="color: #000000;">);
+        
+        </span><span style="color: #008000;">//</span><span style="color: #008000;">--  1. 构造Spring容器</span>
+        AnnotationConfigWebApplicationContext ctx = 
+                <span style="color: #0000ff;">new</span><span style="color: #000000;"> AnnotationConfigWebApplicationContext();
+        </span><span style="color: #008000;">//</span><span style="color: #008000;">-- 2. Spring容器加载配置</span>
+        ctx.register(AppConfig.<span style="color: #0000ff;">class</span><span style="color: #000000;">);
+        </span><span style="color: #008000;">//</span><span style="color: #008000;">-- 3. Spring容器接管servletContext应用上下文对象</span>
+<span style="color: #000000;">        ctx.setServletContext(servletContext);
+        </span><span style="color: #008000;">//</span><span style="color: #008000;">-- 4. 添加Servlet（至少添加一个Servlet，SpringMVC框架实现的入口Servlet)</span>
+        ServletRegistration.Dynamic servlet =<span style="color: #000000;"> 
+                servletContext.addServlet(</span>"dispatcher",<span style="color: #0000ff;">new</span><span style="color: #000000;"> DispatcherServlet(ctx));
+        servlet.addMapping(</span>"/"<span style="color: #000000;">);
+        servlet.setLoadOnStartup(</span>1<span style="color: #000000;">);
+    }
+</span><span style="color: #008000;">//</span><span style="color: #008000;">-- 你想使用Spring，就得有Spring容器得实例，
+</span><span style="color: #008000;">//</span><span style="color: #008000;">-- 你想使用SpringMVC就得配置DispatcherServlet得实例，
+</span><span style="color: #008000;">//</span><span style="color: #008000;">-- 还要把这两个东西放到ServletContext 对象里，为什么呢？
+</span><span style="color: #008000;">//</span><span style="color: #008000;">-- 因为他们两个都是重量级对象</span>
+}</code></pre>
+
+<p>&nbsp;</p>
+<p>&nbsp;</p>
+<p><span style="font-size: 14pt; font-family: 楷体;">&nbsp;<br />&nbsp;&nbsp; &nbsp; 调用类</span></p>
+<p>&nbsp;</p>
+<src class="cnblogs_code">
+<pre><code><span style="color: #0000ff;">package</span><span style="color: #000000;"> day;
+
+</span><span style="color: #0000ff;">import</span><span style="color: #000000;"> java.io.IOException;
+</span><span style="color: #0000ff;">import</span><span style="color: #000000;"> java.io.PrintWriter;
+</span><span style="color: #0000ff;">import</span><span style="color: #000000;"> java.util.ArrayList;
+</span><span style="color: #0000ff;">import</span><span style="color: #000000;"> java.util.List;
+
+</span><span style="color: #0000ff;">import</span><span style="color: #000000;"> javax.servlet.http.HttpServletRequest;
+</span><span style="color: #0000ff;">import</span><span style="color: #000000;"> javax.servlet.http.HttpServletResponse;
+
+</span><span style="color: #0000ff;">import</span><span style="color: #000000;"> org.springframework.stereotype.Controller;
+</span><span style="color: #0000ff;">import</span><span style="color: #000000;"> org.springframework.web.bind.annotation.RequestMapping;
+</span><span style="color: #0000ff;">import</span><span style="color: #000000;"> org.springframework.web.bind.annotation.ResponseBody;
+</span><span style="color: #0000ff;">import</span><span style="color: #000000;"> org.springframework.web.servlet.ModelAndView;
+
+</span><span style="color: #0000ff;">import</span><span style="color: #000000;"> com.alibaba.fastjson.JSON;
+
+</span><span style="color: #0000ff;">import</span><span style="color: #000000;"> day.entity.User;
+
+@Controller
+</span><span style="color: #0000ff;">public</span> <span style="color: #0000ff;">class</span><span style="color: #000000;"> HelloController {
+    @RequestMapping(</span>"/hello"<span style="color: #000000;">)
+    </span><span style="color: #0000ff;">public</span> <span style="color: #0000ff;">void</span><span style="color: #000000;"> hello() {
+        System.out.println(</span>"hello"<span style="color: #000000;">);
+    }
+    
+    @RequestMapping(</span>"/hi"<span style="color: #000000;">)
+    </span><span style="color: #0000ff;">public</span> <span style="color: #0000ff;">void</span><span style="color: #000000;"> hi() {
+        System.out.println(</span>"hi"<span style="color: #000000;">);
+    }
+    
+    @RequestMapping(</span>"/index")  <span style="color: #008000;">//</span><span style="color: #008000;">-- 代表映射路径</span>
+    <span style="color: #0000ff;">public</span> String index(HttpServletRequest request,    HttpServletResponse response) {   <span style="color: #008000;">//</span><span style="color: #008000;">-- 方法名</span>
+        String name = request.getParameter("name"<span style="color: #000000;">);
+        System.out.println(name);
+        </span><span style="color: #0000ff;">try</span><span style="color: #000000;"> {
+            PrintWriter out </span>=<span style="color: #000000;"> response.getWriter();
+            out.write(</span>"adsfasdfasdf"+<span style="color: #000000;">name);
+            out.close();
+        } </span><span style="color: #0000ff;">catch</span><span style="color: #000000;"> (IOException e) {
+            e.printStackTrace();
+        }
+        
+        </span><span style="color: #0000ff;">return</span> "index";<span style="color: #008000;">//</span><span style="color: #008000;">-- 页面得名字</span>
+<span style="color: #000000;">    }
+    </span><span style="color: #008000;">/**</span><span style="color: #008000;">
+     * 返回字符串
+     * </span><span style="color: #808080;">@return</span>
+     <span style="color: #008000;">*/</span><span style="color: #000000;">
+    @RequestMapping(</span>"/data"<span style="color: #000000;">)
+    @ResponseBody
+    </span><span style="color: #0000ff;">public</span><span style="color: #000000;"> String aaa() {
+        List</span>&lt;User&gt; users = <span style="color: #0000ff;">new</span> ArrayList&lt;User&gt;<span style="color: #000000;">();
+        users.add(</span><span style="color: #0000ff;">new</span> User("zz",15<span style="color: #000000;">));
+        users.add(</span><span style="color: #0000ff;">new</span> User("zz",15<span style="color: #000000;">));
+        users.add(</span><span style="color: #0000ff;">new</span> User("zz",15<span style="color: #000000;">));
+        </span><span style="color: #008000;">//</span><span style="color: #008000;">-- 2. 用alibaba得fastJson工具</span>
+        String jsonStr =<span style="color: #000000;"> JSON.toJSONString(users);
+        </span><span style="color: #0000ff;">return</span><span style="color: #000000;"> jsonStr;
+        </span><span style="color: #008000;">//</span><span style="color: #008000;">return "[{'name':zz,'age':15}]";</span>
+<span style="color: #000000;">    }
+    </span><span style="color: #008000;">/**</span><span style="color: #008000;">
+     * 返回得是页面，并且可以给页面传递数据
+     * </span><span style="color: #808080;">@return</span> 
+     <span style="color: #008000;">*/</span><span style="color: #000000;">
+    @RequestMapping(</span>"/test"<span style="color: #000000;">)
+    </span><span style="color: #0000ff;">public</span><span style="color: #000000;"> ModelAndView bbb(HttpServletRequest request,HttpServletResponse response) {
+        
+        ModelAndView mv </span>= <span style="color: #0000ff;">new</span> ModelAndView("test"<span style="color: #000000;">);
+        </span><span style="color: #008000;">//</span><span style="color: #008000;">-- do something query data</span>
+        mv.addObject("message", "宝塔镇河妖"<span style="color: #000000;">);
+        </span><span style="color: #0000ff;">return</span><span style="color: #000000;"> mv;
+        
+        </span><span style="color: #008000;">//</span><span style="color: #008000;">底层：
+</span><span style="color: #008000;">//</span><span style="color: #008000;">        request.setAttribute("message", "hello");
+</span><span style="color: #008000;">//</span><span style="color: #008000;">        try {
+</span><span style="color: #008000;">//</span><span style="color: #008000;">            request.getRequestDispatcher("/WEB-INF/test.jsp").forward(request, response);
+</span><span style="color: #008000;">//</span><span style="color: #008000;">        } catch (ServletException e) {
+</span><span style="color: #008000;">//</span>            <span style="color: #008000;">//</span><span style="color: #008000;"> TODO Auto-generated catch block
+</span><span style="color: #008000;">//</span><span style="color: #008000;">            e.printStackTrace();
+</span><span style="color: #008000;">//</span><span style="color: #008000;">        } catch (IOException e) {
+</span><span style="color: #008000;">//</span>            <span style="color: #008000;">//</span><span style="color: #008000;"> TODO Auto-generated catch block
+</span><span style="color: #008000;">//</span><span style="color: #008000;">            e.printStackTrace();
+</span><span style="color: #008000;">//</span><span style="color: #008000;">        }</span>
+<span style="color: #000000;">    }
+}</span></code></pre>
+
+<p>&nbsp;</p>
+<p>&nbsp;</p>
+<p><span style="font-size: 14pt; font-family: 楷体;"><br />&nbsp;&nbsp; &nbsp;&nbsp;&nbsp; &nbsp;<br />其他小知识点：</span></p>
+<p><span style="font-size: 14pt; font-family: 楷体;"> 之前的访问连接：URL: http://localhost:8080/hello?name=xxx&amp;word=122<br />&nbsp;&nbsp; &nbsp;RestFul形式接口：<br />&nbsp;&nbsp; &nbsp;&nbsp;&nbsp; &nbsp;http://localhost:8080/hello/name/zhangsan/password/123456<br />&nbsp;&nbsp; &nbsp;<br />&nbsp;&nbsp; &nbsp;实现：hello/zhangsan/123456&nbsp;&nbsp; &nbsp;<br />&nbsp;&nbsp; &nbsp;@RequestMapping("/hello/{name}/{password}")<br />&nbsp;&nbsp; &nbsp;public String getUser(<br />&nbsp;&nbsp; &nbsp;&nbsp;&nbsp; &nbsp;@pathVariable("name") String name,<br />&nbsp;&nbsp; &nbsp;&nbsp;&nbsp; &nbsp;@pathVariable("password") String password){}<br />&nbsp; <br />&nbsp;&nbsp; &nbsp;</span></p>
+<p><span style="font-size: 14pt; font-family: 楷体;">Get与Post请求：</span></p>
+<p><span style="font-size: 14pt; font-family: 楷体;">　　方法一：<br />&nbsp;&nbsp; &nbsp;　　@RequestMapping(value="",method=RequestMethod.GET)</span></p>
+<p><span style="font-size: 14pt; font-family: 楷体;">　　　　<span style="font-size: 14pt; font-family: 楷体;">@RequestMapping(value="",method=RequestMethod.Post)</span><br />&nbsp;&nbsp;&nbsp; 方法二：<br />&nbsp;&nbsp; &nbsp;　　Get请求：@GetMapping("")&nbsp;&nbsp; 相等于： @RequestMapping(value="",method=RequestMethod.GET)<br />&nbsp;&nbsp; &nbsp;　　Post请求：@PostMappping("")</span></p>
+
+</div><hr><script charset='utf-8' src='../../js/sming.js'></script></body></html>

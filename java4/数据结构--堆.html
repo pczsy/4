@@ -1,0 +1,337 @@
+<html><head><meta charset='utf-8'><meta name='viewport' content='width=device-width, initial-scale=1'>
+<meta name='applicable-device' content='pc'><meta name='keywords' content='电脑,电脑讲解,电脑技术,编程,电脑故障维修数据结构--堆' />
+<script src='../../highlight/highlight.pack.js'></script>
+<link rel='stylesheet' type='text/css' href='../../highlight/styles/monokai.css'/>
+
+<link rel='stylesheet' href='../../fenxiang/dist/css/share.min.css'>
+<script src='../../fenxiang/src/js/social-share.js'></script>
+<script src='../../fenxiang/src/js/qrcode.js'></script>
+
+</head><body><script>hljs.initHighlightingOnLoad();</script><script>
+var system ={};  
+var p = navigator.platform;       
+system.win = p.indexOf('Win') == 0;  
+system.mac = p.indexOf('Mac') == 0;  
+system.x11 = (p == 'X11') || (p.indexOf('Linux') == 0);     
+if(system.win||system.mac||system.xll){
+document.write("<link href='../css/3.css' rel='stylesheet' type='text/css'>");}else{ document.write("<link href='../css/3wap.css' rel='stylesheet' type='text/css'>");}</script><script src='../../js/3.js'></script><div class='div2'><div class='heading_nav'><ul><div><li><a href='../../index.html'>首页</a></li>
+</div><div onclick='hidden1()' >分享</div>
+</ul></div></div>
+<div id='heading_nav2'> 
+<li class='row' >
+<div class='social-share' data-mode='prepend'><a href='javascript:' class='social-share-icon icon-heart'></a></div></li></div><script charset='utf-8' src='../../3/js/hengfu.js'></script><script charset='utf-8' src='../../3/js/hengfu2.js'></script><hr><div class='div1'><div class='biaoti'><center>数据结构--堆</center></div><div class='banquan'>原文出处:本文由博客园博主浮云Cloud提供。<br/>
+原文连接:https://www.cnblogs.com/cloudfloating/p/11723395.html</div><br>
+    <p>GitHub Page: <a href="http://blog.cloudli.top/posts/数据结构-堆/" class="uri">http://blog.cloudli.top/posts/数据结构-堆/</a></p>
+<p>堆（Heap）是一棵完全二叉树，没有使用父指针和子指针，使用数组描述。</p>
+<blockquote>
+<p>完全二叉树的特点：按照从上到下，从左向右的顺序填充，当前层没有填满时不允许填下一层。</p>
+</blockquote>
+<h2 id="堆的属性">堆的属性</h2>
+<p>堆分为<strong>大根堆</strong>（最大堆）和<strong>小根堆</strong>（最小堆）。</p>
+<ul>
+<li>在大根堆中，父节点的值比每一个子节点的值都要大。</li>
+<li>在小根堆中，父节点的值比每一个子节点都要小。</li>
+</ul>
+<p>大根堆的根节点永远是最大值，小根堆的根节点永远是最小值。</p>
+<h2 id="堆的存储结构">堆的存储结构</h2>
+<p>将以下数组存放在堆中</p>
+<pre><code><code>[7, 6, 5, 2, 3]</code></code></pre>
+<p>节点在数组中的位置 i 与它的父子节点之间存在一个映射关系：</p>
+<pre><code><code>parent(i) = floor((i - 1) / 2)
+left(i) = 2i + 1
+right(i) = 2i + 2</code></code></pre>
+<p>一个节点的父节点等于它的索引减去 1 除 2 向下取整。左右节点的索引总是相邻。</p>
+<table>
+<thead>
+<tr class="header">
+<th>节点</th>
+<th>索引</th>
+<th>父节点索引</th>
+<th>左子节点索引</th>
+<th>右子节点索引</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>7</td>
+<td>0</td>
+<td>-1</td>
+<td>1</td>
+<td>2</td>
+</tr>
+<tr class="even">
+<td>7</td>
+<td>1</td>
+<td>0</td>
+<td>3</td>
+<td>4</td>
+</tr>
+<tr class="odd">
+<td>5</td>
+<td>2</td>
+<td>0</td>
+<td>5</td>
+<td>6</td>
+</tr>
+<tr class="even">
+<td>2</td>
+<td>3</td>
+<td>1</td>
+<td>7</td>
+<td>8</td>
+</tr>
+<tr class="odd">
+<td>3</td>
+<td>4</td>
+<td>1</td>
+<td>9</td>
+<td>10</td>
+</tr>
+</tbody>
+</table>
+<p>根节点 7 没有父节点，它的父节点索引是 -1，节点 5、2、3 没有子节点，它们的子节点索引超过了数组的最大索引。在使用时要判断索引是否是有效值。</p>
+<h2 id="堆的操作">堆的操作</h2>
+<p>两个原子操作保证在插入和删除节点维持堆的属性：</p>
+<ul>
+<li><code>shiftUp()</code> ： 如果一个节点比它的父节点大（大根堆）或小（小根堆），需要将这个节点与父节点交换位置。</li>
+<li><code>shiftDown()</code> ：如果一个节点比它的子节点小（大根堆）或大（小根堆），需要将这个节点与（左或者右）子节点交换位置。</li>
+</ul>
+<p>以上两个操作是一个递归的过程，时间复杂度 O(log N) 。基于这两个原子操作还有一些其他的操作：</p>
+<ul>
+<li><code>insert(value)</code> ：在堆的尾部插入一个节点，然后使用 <code>shiftUp()</code> 来修复堆属性。</li>
+<li><code>remove()</code> ：删除并返回堆顶节点。将最后一个节点放被删除节点的位置，然后使用 <code>shiftDown()</code> 来修复堆属性。</li>
+<li><code>removeAt(index)</code> ：删除堆中的任意节点。将被删除节点与最后一个节点交换位置，交换后如果当前节点比父节点大（小），使用 <code>shiftUp()</code> 修复堆属性，如果它比子节点小（大），使用 <code>shiftDown()</code> 修复堆属性。</li>
+</ul>
+<p>以上所有的操作时间复杂度都是 O(log N) 。</p>
+<p>堆的可以通过反复调用 <code>insert(value)</code> 来建立。</p>
+<h2 id="堆的-java-实现">堆的 Java 实现</h2>
+<p>这里使用了泛型和函数式接口，根据指定的 <code>Comparator</code> 来构造堆。</p>
+<pre class="java"><code>package top.cloudli.heap;
+
+import java.util.Arrays;
+import java.util.Comparator;
+
+/**
+ * 堆（Heap）
+ * 根据 {@link Comparator} 构造最大（小）堆
+ *
+ * @author Cloud Li
+ */
+@SuppressWarnings(&quot;unchecked&quot;)
+public class Heap&lt;T&gt; {
+    private Object[] heap;
+    private int length = 0;
+
+    private Comparator&lt;T&gt; cmp= Comparator.comparingInt(Object::hashCode);
+
+    public Heap(T[] array) {
+        this(array, null);
+    }
+
+    public Heap(T[] array, Comparator&lt;T&gt; cmp) {
+        heap = new Object[array.length];
+        if (cmp != null)
+            this.cmp = cmp;
+        build(array);
+    }
+
+    /**
+     * 构造堆
+     *
+     * @param array 用来构造堆的元素
+     */
+    private void build(T[] array) {
+        for (T e : array) {
+            insert(e);
+        }
+    }
+
+    /**
+     * 插入一个元素
+     *
+     * @param e 被插入的元素
+     */
+    public void insert(T e) {
+        if (length == heap.length)
+            resize();
+        heap[length] = e;
+        shiftUp(length);
+        length++;
+    }
+
+    public T peek() {
+        return (T) heap[0];
+    }
+
+    /**
+     * 移除并返回根节点
+     *
+     * @return 根节点元素
+     */
+    public T remove() {
+        T t = (T) heap[0];
+
+        heap[0] = heap[length - 1];
+        length--;
+        shiftDown(0);
+
+        return t;
+    }
+
+    /**
+     * 删除指定位置的元素
+     *
+     * @param i 目标元素索引，起始为 0
+     * @return 被删除的元素
+     */
+    public T removeAt(int i) {
+        if (i &lt; 0 || i &gt;= length)
+            throw new ArrayIndexOutOfBoundsException(i);
+
+        T t = (T) heap[i];
+
+        swap(i, length - 1);
+        length--;
+
+        if (cmp.compare((T) heap[i], (T) heap[parent(i)]) &gt; 0) {
+            shiftUp(i);
+        } else {
+            shiftDown(i);
+        }
+
+        return t;
+    }
+
+    /**
+     * 扩容
+     */
+    private void resize() {
+        Object[] old = heap;
+        Object[] t = new Object[old.length &lt;&lt; 1];
+        System.arraycopy(old, 0, t, 0, old.length);
+        heap = t;
+    }
+
+    /**
+     * 获取当前元素的父节点索引
+     *
+     * @param i 当前元素的索引
+     * @return 父节点索引 floor(i - 1 / 2)
+     */
+    private int parent(int i) {
+        return (i - 1) &gt;&gt; 1;
+    }
+
+    /**
+     * 获取当前元素左节点的索引
+     *
+     * @param i 当前元素的索引
+     * @return 左节点的索引 2i + 1
+     */
+    private int left(int i) {
+        return (i &lt;&lt; 1) + 1;
+    }
+
+    /**
+     * 获取当前元素右节点的索引
+     *
+     * @param i 当前元素的索引
+     * @return 右节点的索引 2i + 2
+     */
+    private int right(int i) {
+        return (i &lt;&lt; 1) + 2;
+    }
+
+    /**
+     * 上移
+     *
+     * @param i 当前元素的索引
+     */
+    private void shiftUp(int i) {
+        int parent = parent(i);
+
+        if (parent &lt; 0)
+            return;
+
+        // 如果当前元素比它的父节点大（小），交换位置
+        if (cmp.compare((T) heap[i], (T) heap[parent]) &gt; 0) {
+            swap(i, parent);
+            shiftUp(parent);
+        }
+    }
+
+    /**
+     * 下移
+     *
+     * @param i 当前元素的索引
+     */
+    private void shiftDown(int i) {
+        int left = left(i), right = right(i), child;
+
+        if (left &gt;= length || right &gt;= length)
+            return;
+
+        // 如果当前元素比它的子节点小（大），交换位置
+        if (cmp.compare((T) heap[left], (T) heap[i]) &gt; 0) {
+            child = left;
+        } else if (cmp.compare((T) heap[right], (T) heap[i]) &gt; 0) {
+            child = right;
+        } else {
+            child = -1;
+        }
+
+        if (child != -1) {
+            swap(i, child);
+            shiftDown(child);
+        }
+    }
+
+    /**
+     * 交换元素
+     *
+     * @param i 索引
+     * @param j 索引
+     */
+    private void swap(int i, int j) {
+        Object t = heap[i];
+        heap[i] = heap[j];
+        heap[j] = t;
+    }
+
+    public int size() {
+        return length;
+    }
+
+    public int maxSize() {
+        return heap.length;
+    }
+
+    @Override
+    public String toString() {
+        Object[] t = new Object[length];
+        System.arraycopy(heap, 0, t, 0, length);
+        return Arrays.toString(t);
+    }
+}</code></code></pre>
+<pre class="java"><code>public class Main {
+
+    public static void main(String[] args) {
+        Integer[] arr = {5, 2, 7, 3, 6};
+
+        // 构造一个大根堆
+        Heap&lt;Integer&gt; heap = new Heap&lt;&gt;(arr, Integer::compareTo);
+
+        out.printf(&quot;Size: %d, MaxSize: %d, nodes: %s\n&quot;, heap.size(), heap.maxSize(), heap.toString());
+    }
+}</code></code></pre>
+<p>运行结果：</p>
+<pre class="shell"><code>Size: 5, MaxSize: 5, nodes: [7, 6, 5, 2, 3]
+
+Process finished with exit code 0
+</code></code></pre>
+<p>如果要构造小根堆：</p>
+<pre class="java"><code>Heap&lt;Integer&gt; heap = new Heap&lt;&gt;(arr, Comparator.reverseOrder());</code></code></pre>
+<p>如果要使用自定义对象，可以传入一个 lambda 表达式，指定比较规则。</p>
+
+
+</div><hr><script charset='utf-8' src='../../js/sming.js'></script></body></html>

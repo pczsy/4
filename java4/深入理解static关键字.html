@@ -1,0 +1,367 @@
+<html><head><meta charset='utf-8'><meta name='viewport' content='width=device-width, initial-scale=1'>
+<meta name='applicable-device' content='pc'><meta name='keywords' content='电脑,电脑讲解,电脑技术,编程,电脑故障维修深入理解static关键字' />
+<script src='../../highlight/highlight.pack.js'></script>
+<link rel='stylesheet' type='text/css' href='../../highlight/styles/monokai.css'/>
+
+<link rel='stylesheet' href='../../fenxiang/dist/css/share.min.css'>
+<script src='../../fenxiang/src/js/social-share.js'></script>
+<script src='../../fenxiang/src/js/qrcode.js'></script>
+
+</head><body><script>hljs.initHighlightingOnLoad();</script><script>
+var system ={};  
+var p = navigator.platform;       
+system.win = p.indexOf('Win') == 0;  
+system.mac = p.indexOf('Mac') == 0;  
+system.x11 = (p == 'X11') || (p.indexOf('Linux') == 0);     
+if(system.win||system.mac||system.xll){
+document.write("<link href='../css/3.css' rel='stylesheet' type='text/css'>");}else{ document.write("<link href='../css/3wap.css' rel='stylesheet' type='text/css'>");}</script><script src='../../js/3.js'></script><div class='div2'><div class='heading_nav'><ul><div><li><a href='../../index.html'>首页</a></li>
+</div><div onclick='hidden1()' >分享</div>
+</ul></div></div>
+<div id='heading_nav2'> 
+<li class='row' >
+<div class='social-share' data-mode='prepend'><a href='javascript:' class='social-share-icon icon-heart'></a></div></li></div><script charset='utf-8' src='../../3/js/hengfu.js'></script><script charset='utf-8' src='../../3/js/hengfu2.js'></script><hr><div class='div1'><div class='biaoti'><center>深入理解static关键字</center></div><div class='banquan'>原文出处:本文由博客园博主宜春提供。<br/>
+原文连接:https://www.cnblogs.com/yichunguo/p/11939538.html</div><br>
+    <p>在开始讲static之前，我想让各位看一段有意思的代码：</p>
+<pre><code><code>public class Test {
+     
+    static{
+        System.out.println(&quot;test static 1&quot;);
+    }
+  
+    static{
+        System.out.println(&quot;test static 2&quot;);
+    }
+    
+    public static void main(String[] args) {
+         
+    }
+}</code></code></pre>
+<p>看完程序，小白童鞋发话了：啥玩意？main方法中啥都没有，能运行啥？博主你个星星星...</p>
+<pre><code><code>运行结果：
+test static 1
+test static 2</code></code></pre>
+<p>小白童鞋:那啥...那啥...博主我说啥了，我啥都没说...</p>
+<p>其实，上面的代码懂的自然懂，不懂的自然就不懂了，因为上面的代码涉及到JVM的类加载了！当然不在本篇博客文章的范畴内，如果有兴趣理解上面的程序，这篇文章可能会对你有所帮助</p>
+<p><a href="https://blog.csdn.net/qq_44543508/article/details/102983363">别翻了，这篇文章绝对让你深刻理解java类的加载以及ClassLoader源码分析【JVM篇二】</a></p>
+<h1 id="static存在的主要意义">1、static存在的主要意义</h1>
+<p>static的主要意义是在于创建独立于具体对象的域变量或者方法。<font color=red><strong>以致于即使没有创建对象，也能使用属性和调用方法</strong>！</font></p>
+<p>static关键字还有一个比较关键的作用就是 <font color=red><strong>用来形成静态代码块以优化程序性能</strong></font>。static块可以置于类中的任何地方，类中可以有多个static块。在类初次被加载的时候，会按照static块的顺序来执行每个static块，并且只会执行一次。</p>
+<p>　　为什么说static块可以用来优化程序性能，是因为它的特性:只会在类加载的时候执行一次。因此，很多时候会将一些只需要进行一次的初始化操作都放在static代码块中进行。</p>
+<h1 id="static的独特之处">2、static的独特之处</h1>
+<p>1、被static修饰的变量或者方法是独立于该类的任何对象，也就是说，这些变量和方法<font color=red><strong>不属于任何一个实例对象，而是被类的实例对象所共享</strong></font>。</p>
+<blockquote>
+<p>怎么理解 “被类的实例对象所共享” 这句话呢？就是说，一个类的静态成员，它是属于大伙的【大伙指的是这个类的多个对象实例，我们都知道一个类可以创建多个实例！】，所有的类对象共享的，不像成员变量是自个的【自个指的是这个类的单个实例对象】...我觉得我已经讲的很通俗了，你明白了咩？</p>
+</blockquote>
+<p>2、在该类被第一次加载的时候，就会去加载被static修饰的部分，而且只在类第一次使用时加载并进行初始化，注意这是第一次用就要初始化，后面根据需要是可以再次赋值的。</p>
+<p>3、static变量值在类加载的时候分配空间，以后创建类对象的时候不会重新分配。赋值的话，是可以任意赋值的！</p>
+<p>4、被static修饰的变量或者方法是优先于对象存在的，也就是说当一个类加载完毕之后，即便没有创建对象，也可以去访问。</p>
+<h1 id="static应用场景">3、static应用场景</h1>
+<p>因为static是被类的实例对象所共享，因此如果<font color=red><strong>某个成员变量是被所有对象所共享的，那么这个成员变量就应该定义为静态变量</strong></font>。</p>
+<p>因此比较常见的static应用场景有：</p>
+<blockquote>
+<p>1、修饰成员变量<br />
+2、修饰成员方法<br />
+3、静态代码块<br />
+4、修饰类【只能修饰内部类也就是静态内部类】<br />
+5、静态导包</p>
+</blockquote>
+<p>以上的应用场景将会在下文陆续讲到...</p>
+<h1 id="静态变量和实例变量的概念">4、静态变量和实例变量的概念</h1>
+<p>静态变量：<br />
+static修饰的成员变量叫做静态变量【也叫做类变量】，静态变量是属于这个类，而不是属于是对象。</p>
+<p>实例变量：<br />
+没有被static修饰的成员变量叫做实例变量，实例变量是属于这个类的实例对象。</p>
+<p>还有一点需要注意的是：<font color=red><strong>static是不允许用来修饰局部变量</strong></font>，不要问我问什么，因为java规定的！</p>
+<h1 id="静态变量和实例变量区别重点常用">5、静态变量和实例变量区别【重点常用】</h1>
+<p>静态变量：<br />
+静态变量由于不属于任何实例对象，属于类的，所以在内存中只会有一份，在类的加载过程中，JVM只为静态变量分配一次内存空间。</p>
+<p>实例变量：<br />
+每次创建对象，都会为每个对象分配成员变量内存空间，实例变量是属于实例对象的，在内存中，创建几次对象，就有几份成员变量。</p>
+<blockquote>
+<p>我相信各位智商都比宜春智商要高，应该都能理解上面的话。下面举了例子完全出于娱乐，理解了大可不必看，下面的例子仅供参考，仅供娱乐一下下气氛，赶时间的熊dei大可略过！</p>
+</blockquote>
+<p>怎么理解呢？打个比喻吧...就比方说程序员小王是一个比较温柔阳光的男孩子，这1024的这一天，老板闲的没事，非要拉着程序员小王来玩耍，怎么个玩法呢？老板和小王一人拿着一把菜刀，规则很简单，互相伤害，一人一刀，你一刀，我一刀....游戏一开始，老板二话不说，跳起来就是一刀，程序员小王二话也没说反手就是一菜刀回去，这个时候老板发飙了，双眼瞪得忒大，跳起来又是一刀，这个时候程序员小王不敢还手了，就没动手。没想到老板越来越生猛，左一刀右一刀全程下来差不多砍个半个时....程序员小王一直没有还过手，因为小王知道他是老板...</p>
+<p>这个程序员小王只会在老板第一次挥刀的时候，回老板一刀，之后就不还手了，这个时候我们把程序员小王看做是静态变量，把老板第一次向小王挥刀看做是类加载，把小王回老板一刀看出是分配内存空间，而一人一刀这个回合过程看成是类加载的过程，之后老板的每一刀都看成是创建一次对象。</p>
+<p>连贯起来就是static变量值在类第一次加载的时候分配空间，以后创建类对象的时候不会重新分配</p>
+<p>之后这个老板挨了一刀之后躺医院了一年，一出院回到公司第一件事就是拉程序员宜春出来玩耍，老板殊不知其然，这个博主程序员宜春性格异常暴躁，老板递给程序员宜春一把菜刀，博主宜春一接过菜刀，猝不及防的被老板跳起来就是一刀，程序员宜春痛的嗷了一声，暴躁的程序员宜春还没嗷完，在嗷的同时跳起来就是给老板一刀，接着老板跳起来又是一刀，程序员宜春嗷的一声又是回一刀，老板跳起来又一刀，程序员宜春嗷的一声又是回一刀，只要老板没停程序员宜春就没停，因为程序员宜春知道，就自己这曝脾气，暴躁起来si都敢摸，肯定有几个老铁知道....</p>
+<p>程序员宜春就类似实例变量，每次创建对象，都会为每个对象分配成员变量内存空间，就像老板来一刀，程序员宜春都会回一刀这样子的...</p>
+<h1 id="访问静态变量和实例变量的两种方式">6、访问静态变量和实例变量的两种方式</h1>
+<p>我们都知道静态变量是属于这个类，而不是属于是对象，static独立于对象。</p>
+<p>但是各位有木有想过：静态成员变量虽然独立于对象，但是不代表不可以通过对象去访问，所有的静态方法和静态变量都可以通过对象访问【只要访问权限足够允许就行】，不理解没关系，来个代码就理解了</p>
+<pre><code><code>public class StaticDemo {
+
+        static int value = 666;
+
+        public static void main(String[] args) throws Exception{
+            new StaticDemo().method();
+        }
+
+        private void method(){
+            int value = 123;
+            System.out.println(this.value);
+        }
+
+}</code></code></pre>
+<p>猜想一下结果，我猜你的结果是123，哈哈是咩？其实</p>
+<pre><code><code>运行结果： 666</code></code></pre>
+<p>回过头再去品味一下上面的那段话，你就能非常客观明了了，这个思想概念要有只是这种用法不推荐！</p>
+<p>因此小结一下访问静态变量和实例变量的两种方法：</p>
+<p>静态变量：</p>
+<blockquote>
+<p>类名.静态变量</p>
+<p>对象.静态变量(不推荐)</p>
+</blockquote>
+<p>静态方法：</p>
+<blockquote>
+<p>类名.静态方法</p>
+<p>对象.静态方法(不推荐)</p>
+</blockquote>
+<h1 id="static静态方法">7、static静态方法</h1>
+<p>static修饰的方法也叫做静态方法，不知道各位发现咩有，其实我们最熟悉的static静态方法就是main方法了~小白童鞋：喔好像真的是哦~。由于对于静态方法来说是不属于任何实例对象的，this指的是当前对象，因为static静态方法不属于任何对象，所以就谈不上this了。</p>
+<p>还有一点就是：<font color=red><strong>构造方法不是静态方法</strong>！</font></p>
+<h1 id="static静态代码块">8、static静态代码块</h1>
+<p>先看个程序吧，看看自个是否掌握了static代码块，下面程序代码继承关系为 <strong>BaseThree——&gt; BaseTwo——&gt; BaseOne</strong></p>
+<p>BaseOne类</p>
+<pre><code><code>package com.gx.initializationblock;
+
+public class BaseOne {
+
+    public BaseOne() {
+        System.out.println(&quot;BaseOne构造器&quot;);
+    }
+
+    {
+        System.out.println(&quot;BaseOne初始化块&quot;);
+        System.out.println();
+    }
+
+    static {
+        System.out.println(&quot;BaseOne静态初始化块&quot;);
+
+    }
+
+}</code></code></pre>
+<p>BaseTwo类</p>
+<pre><code><code>package com.gx.initializationblock;
+
+public class BaseTwo extends BaseOne {
+    public BaseTwo() {
+        System.out.println(&quot;BaseTwo构造器&quot;);
+    }
+
+    {
+        System.out.println(&quot;BaseTwo初始化块&quot;);
+    }
+
+    static {
+        System.out.println(&quot;BaseTwo静态初始化块&quot;);
+    }
+}</code></code></pre>
+<p>BaseThree 类</p>
+<pre><code><code>package com.gx.initializationblock;
+
+public class BaseThree extends BaseTwo {
+    public BaseThree() {
+        System.out.println(&quot;BaseThree构造器&quot;);
+    }
+
+    {
+        System.out.println(&quot;BaseThree初始化块&quot;);
+    }
+
+    static {
+        System.out.println(&quot;BaseThree静态初始化块&quot;);
+    }
+}</code></code></pre>
+<p>测试demo2类</p>
+<pre><code><code>package com.gx.initializationblock;
+
+/*
+     注：这里的ABC对应BaseOne、BaseTwo、BaseThree 
+ * 多个类的继承中初始化块、静态初始化块、构造器的执行顺序
+     在继承中，先后执行父类A的静态块，父类B的静态块，最后子类的静态块，
+     然后再执行父类A的非静态块和构造器，然后是B类的非静态块和构造器，最后执行子类的非静态块和构造器
+ */
+public class Demo2 {
+    public static void main(String[] args) {
+        BaseThree baseThree = new BaseThree();
+        System.out.println(&quot;-----&quot;);
+        BaseThree baseThree2 = new BaseThree();
+
+    }
+}</code></code></pre>
+<p>运行结果</p>
+<pre class="java"><code>BaseOne静态初始化块
+BaseTwo静态初始化块
+BaseThree静态初始化块
+BaseOne初始化块
+
+BaseOne构造器
+BaseTwo初始化块
+BaseTwo构造器
+BaseThree初始化块
+BaseThree构造器
+-----
+BaseOne初始化块
+
+BaseOne构造器
+BaseTwo初始化块
+BaseTwo构造器
+BaseThree初始化块
+BaseThree构造器</code></code></pre>
+<p>至于static代码块运行结果不是很清晰的童鞋，详细讲解请看这篇<a href="https://blog.csdn.net/qq_44543508/article/details/102593419">Static静态代码块以及各代码块之间的执行顺序</a></p>
+<p>以上仅仅是让各位明确代码块之间的运行顺序，显然还是不够的，静态代码块通常用来对静态变量进行一些初始化操作，比如定义枚举类，代码如下：</p>
+<pre><code><code>public enum WeekDayEnum {
+    MONDAY(1,&quot;周一&quot;),
+    TUESDAY(2, &quot;周二&quot;),
+    WEDNESDAY(3, &quot;周三&quot;),
+    THURSDAY(4, &quot;周四&quot;),
+    FRIDAY(5, &quot;周五&quot;),
+    SATURDAY(6, &quot;周六&quot;),
+    SUNDAY(7, &quot;周日&quot;);
+ 
+    private int code;
+    private String desc;
+ 
+    WeekDayEnum(int code, String desc) {
+        this.code = code;
+        this.desc = desc;
+    }
+ 
+    private static final Map&lt;Integer, WeekDayEnum&gt; WEEK_ENUM_MAP = new HashMap&lt;Integer, WeekDayEnum&gt;();
+ 
+    // 对map进行初始化
+    static {
+        for (WeekDayEnum weekDay : WeekDayEnum.values()) {
+            WEEK_ENUM_MAP.put(weekDay.getCode(), weekDay);
+        }
+    }
+ 
+    public static WeekDayEnum findByCode(int code) {
+        return WEEK_ENUM_MAP.get(code);
+    }
+ 
+    public int getCode() {
+        return code;
+    }
+ 
+    public void setCode(int code) {
+        this.code = code;
+    }
+ 
+    public String getDesc() {
+        return desc;
+    }
+ 
+    public void setDesc(String desc) {
+        this.desc = desc;
+    }
+}　</code></code></pre>
+<p>当然不仅仅是枚举这一方面，还有我们熟悉的单例模式同样也用到了静态代码块，如下：</p>
+<pre><code><code>public class Singleton {
+    private static Singleton instance;
+ 
+    static {
+        instance = new Singleton();
+    }
+ 
+    private Singleton() {}
+ 
+    public static Singleton getInstance() {
+        return instance;
+    }
+}</code></code></pre>
+<h1 id="static变量与普通变量区别">9、static变量与普通变量区别</h1>
+<p>static变量也称作静态变量，静态变量和非静态变量的区别是：静态变量被所有的对象所共享，在内存中只有一个副本，它当且仅当在类初次加载时会被初始化。而非静态变量是对象所拥有的，在创建对象的时候被初始化，存在多个副本，各个对象拥有的副本互不影响。</p>
+<p>还有一点就是static成员变量的初始化顺序按照定义的顺序进行初始化。</p>
+<h1 id="静态内部类">10、静态内部类</h1>
+<p>静态内部类与非静态内部类之间存在一个最大的区别，我们知道非静态内部类在编译完成之后会隐含地保存着一个引用，该引用是指向创建它的外围内，但是静态内部类却没有。没有这个引用就意味着：</p>
+<p>1、它的创建是不需要依赖外围类的创建。<br />
+2、它不能使用任何外围类的非static成员变量和方法。</p>
+<p>代码举例（静态内部类实现单例模式）</p>
+<pre><code><code>public class Singleton {
+    
+   // 声明为 private 避免调用默认构造方法创建对象
+    private Singleton() {
+    }
+    
+   // 声明为 private 表明静态内部该类只能在该 Singleton 类中被访问
+    private static class SingletonHolder {
+        private static final Singleton INSTANCE = new Singleton();
+    }
+
+    public static Singleton getUniqueInstance() {
+        return SingletonHolder.INSTANCE;
+    }
+}
+</code></code></pre>
+<p>当 <code>Singleton</code> 类加载时，静态内部类 <code>SingletonHolder</code> 没有被加载进内存。只有当调用 <code>getUniqueInstance()</code>方法从而触发 <code>SingletonHolder.INSTANCE</code> 时 <code>SingletonHolder</code> 才会被加载，此时初始化 <code>INSTANCE</code> 实例，并且 JVM 能确保 <code>INSTANCE</code> 只被实例化一次。</p>
+<p>这种方式不仅具有延迟初始化的好处，而且由 JVM 提供了对线程安全的支持。</p>
+<h1 id="静态导包">11、静态导包</h1>
+<p>静态导包格式：<code>import static</code></p>
+<p>这两个关键字连用可以指定导入某个类中的指定静态资源，并且不需要使用类名调用类中静态成员，可以直接使用类中静态成员变量和成员方法</p>
+<pre><code><code>//  Math. --- 将Math中的所有静态资源导入，这时候可以直接使用里面的静态方法，而不用通过类名进行调用
+//  如果只想导入单一某个静态方法，只需要将换成对应的方法名即可
+ 
+import static java.lang.Math.;
+//  换成import static java.lang.Math.max;具有一样的效果
+ 
+public class Demo {
+    public static void main(String[] args) {
+ 
+        int max = max(1,2);
+        System.out.println(max);
+    }
+}</code></code></pre>
+<p>静态导包在书写代码的时候确实能省一点代码，可以直接调用里面的静态成员，但是会影响代码可读性，所以开发中一般情况下不建议这么使用。</p>
+<h1 id="static注意事项">12、static注意事项</h1>
+<p>1、静态只能访问静态。<br />
+2、非静态既可以访问非静态的，也可以访问静态的。</p>
+<h1 id="final与static的藕断丝连">13、final与static的藕断丝连</h1>
+<p>到这里文章本该结束了的，但是static的使用始终离不开final字眼，二者可谓藕断丝连，常常繁见，我觉得还是很有必要讲讲，那么一起来看看下面这个程序吧。</p>
+<pre><code><code>package Demo;
+
+class FinalDemo {
+    public final double i = Math.random();
+    public static double t = Math.random();
+}
+
+public class DemoDemo {
+    public static void main(String[] args) {
+
+        FinalDemo demo1 = new FinalDemo();
+        FinalDemo demo2 = new FinalDemo();
+        System.out.println(&quot;final修饰的  i=&quot; + demo1.i);
+        System.out.println(&quot;static修饰的 t=&quot; + demo1.t);
+        System.out.println(&quot;final修饰的  i=&quot; + demo2.i);
+        System.out.println(&quot;static修饰的 t=&quot; + demo2.t);
+
+        System.out.println(&quot;t+1= &quot;+ ++demo2.t );
+//      System.out.println( ++demo2.i );//编译失败
+      }
+}
+运行结果：
+    final修饰的  i=0.7282093281367935
+    static修饰的 t=0.30720545678577604
+    final修饰的  i=0.8106990945706758
+    static修饰的 t=0.30720545678577604
+    t+1= 1.307205456785776
+</code></code></pre>
+<p>static修饰的变量没有发生变化是因为<font color=red>static作用于成员变量只是用来表示保存一份副本</font>，其不会发生变化。怎么理解这个副本呢？其实static修饰的在类加载的时候就加载完成了（初始化），而且只会加载一次也就是说初始化一次，所以不会发生变化！</p>
+<p>至于final修饰的反而发生变化了？是不是巅覆你对final的看法？关于final详细讲解博主也准备好了一篇文章<a href="https://blog.csdn.net/qq_44543508/article/details/102720206">程序员你真的理解final关键字吗？</a></p>
+<p>ok,文章就先到这里了，希望这篇文章能够帮助到你对static的认识，若有不足或者不正之处，希望谅解并欢迎批评指正！</p>
+<p>如果本文章对你有帮助，哪怕是一点点，那就请点一个赞呗，谢谢~</p>
+<p>参考：<br />
+《java编程思想》<br />
+<a href="http://baijiahao.baidu.com/s?id=1601254463089390982&amp;wfr=spider&amp;for=pc" class="uri">http://baijiahao.baidu.com/s?id=1601254463089390982&amp;wfr=spider&amp;for=pc</a><br />
+<a href="https://blog.csdn.net/qq_34337272/article/details/82766943" class="uri">https://blog.csdn.net/qq_34337272/article/details/82766943</a><br />
+<a href="https://www.cnblogs.com/dolphin0520/p/3799052.html" class="uri">https://www.cnblogs.com/dolphin0520/p/3799052.html</a></p>
+<p><strong>如果本文对你有一点点帮助，那么请点个赞呗，谢谢~</strong></p>
+<blockquote>
+<p><strong>最后，若有不足或者不正之处，欢迎指正批评，感激不尽！如果有疑问欢迎留言，绝对第一时间回复！</strong></p>
+</blockquote>
+<p>欢迎各位关注我的公众号，一起探讨技术，向往技术，追求技术，说好了来了就是盆友喔...</p>
+<p><img src="./images/深入理解static关键字0.png" alt="在这里插入图片描述" /></p>
+
+
+</div><hr><script charset='utf-8' src='../../js/sming.js'></script></body></html>

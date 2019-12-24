@@ -1,0 +1,147 @@
+<html><head><meta charset='utf-8'><meta name='viewport' content='width=device-width, initial-scale=1'>
+<meta name='applicable-device' content='pc'><meta name='keywords' content='电脑,电脑讲解,电脑技术,编程,电脑故障维修Java自学-类和对象 枚举类型' />
+<script src='../../highlight/highlight.pack.js'></script>
+<link rel='stylesheet' type='text/css' href='../../highlight/styles/monokai.css'/>
+
+<link rel='stylesheet' href='../../fenxiang/dist/css/share.min.css'>
+<script src='../../fenxiang/src/js/social-share.js'></script>
+<script src='../../fenxiang/src/js/qrcode.js'></script>
+
+</head><body><script>hljs.initHighlightingOnLoad();</script><script>
+var system ={};  
+var p = navigator.platform;       
+system.win = p.indexOf('Win') == 0;  
+system.mac = p.indexOf('Mac') == 0;  
+system.x11 = (p == 'X11') || (p.indexOf('Linux') == 0);     
+if(system.win||system.mac||system.xll){
+document.write("<link href='../css/3.css' rel='stylesheet' type='text/css'>");}else{ document.write("<link href='../css/3wap.css' rel='stylesheet' type='text/css'>");}</script><script src='../../js/3.js'></script><div class='div2'><div class='heading_nav'><ul><div><li><a href='../../index.html'>首页</a></li>
+</div><div onclick='hidden1()' >分享</div>
+</ul></div></div>
+<div id='heading_nav2'> 
+<li class='row' >
+<div class='social-share' data-mode='prepend'><a href='javascript:' class='social-share-icon icon-heart'></a></div></li></div><script charset='utf-8' src='../../3/js/hengfu.js'></script><script charset='utf-8' src='../../3/js/hengfu2.js'></script><hr><div class='div1'><div class='biaoti'><center>Java自学-类和对象 枚举类型</center></div><div class='banquan'>原文出处:本文由博客园博主半米高峰提供。<br/>
+原文连接:https://www.cnblogs.com/jeddzd/p/11484790.html</div><br>
+    <h2 id="枚举类型">枚举类型</h2>
+<p>步骤 1 : <strong>预先定义的常量</strong></p>
+<p>枚举enum是一种特殊的类(还是类)，使用枚举可以很方便的定义常量<br />
+比如设计一个枚举类型 季节，里面有4种常量</p>
+<pre><code><code>public enum Season {
+    SPRING,SUMMER,AUTUMN,WINTER
+}</code></code></pre>
+<p>一个常用的场合就是switch语句中，使用枚举来进行判断</p>
+<p>注：因为是常量，所以一般都是全大写</p>
+<pre><code><code>public class HelloWorld {
+    public static void main(String[] args) {
+        Season season = Season.SPRING;
+        switch (season) {
+        case SPRING:
+            System.out.println(&quot;春天&quot;);
+            break;
+        case SUMMER:
+            System.out.println(&quot;夏天&quot;);
+            break;
+        case AUTUMN:
+            System.out.println(&quot;秋天&quot;);
+            break;
+        case WINTER:
+            System.out.println(&quot;冬天&quot;);
+            break;
+        }
+    }
+}
+
+public enum Season {
+    SPRING,SUMMER,AUTUMN,WINTER
+}</code></code></pre>
+<p>步骤 2 : <strong>使用枚举的好处</strong></p>
+<p>假设在使用switch的时候，不是使用枚举，而是使用int，而int的取值范围就不只是1-4，有可能取一个超出1-4之间的值，这样判断结果就似是而非了。（因为只有4个季节）</p>
+<p>但是使用枚举，就能把范围死死的限定在这四个当中<br />
+<strong>SPRING,SUMMER,AUTUMN,WINTER</strong></p>
+<p>而不会出现奇怪的 第5季</p>
+<pre><code><code>public class HelloWorld {
+    public static void main(String[] args) {
+        int season = 5;
+        switch (season) {
+        case 1:
+            System.out.println(&quot;春天&quot;);
+            break;
+        case 2:
+            System.out.println(&quot;夏天&quot;);
+            break;
+        case 3:
+            System.out.println(&quot;秋天&quot;);
+            break;
+        case 4:
+            System.out.println(&quot;冬天&quot;);
+            break;
+        }
+    }
+}</code></code></pre>
+<p>步骤 3 : <strong>遍历枚举</strong></p>
+<p>借助增强型for循环，可以很方便的遍历一个枚举都有哪些常量</p>
+<pre><code><code>public class HelloWorld {
+    public static void main(String[] args) {
+        for (Season s : Season.values()) {
+            System.out.println(s);
+        }
+    }
+}</code></code></pre>
+<p><strong>练习</strong>： <a href="http://how2j.cn/k/class-object/class-object-enum/678.html?p=43278">枚举</a></p>
+<p>(英雄联盟中有这么一些分类：<br />
+TANK (坦克)<br />
+WIZARD (法师 )<br />
+ASSASSIN (刺客)<br />
+ASSIST (辅助)<br />
+WARRIOR (近战)<br />
+RANGED (远程 )<br />
+PUSH (推进)<br />
+FARMING (打野)<br />
+设计一个枚举类型HeroType,使用上述分类作为常量</p>
+<p>再编写一段switch语句，把每种枚举常量输出为中文字符串)</p>
+<p><strong>答案</strong>：</p>
+<pre><code><code>package charactor;
+ 
+public enum HeroType {
+    TANK, WIZARD, ASSASSIN, ASSIST, WARRIOR, RANGED, PUSH, FARMING
+ 
+}</code></code></pre>
+<p>.</p>
+<pre><code><code>package charactor;
+ 
+public class Hero {
+    public String name; // 姓名
+ 
+    public static void main(String[] args) {
+ 
+        HeroType type = HeroType.ASSASSIN;
+        switch (type) {
+        case TANK:
+            System.out.println(&quot;坦克&quot;);
+            break;
+        case WIZARD:
+            System.out.println(&quot;法师&quot;);
+            break;
+        case ASSASSIN:
+            System.out.println(&quot;刺客&quot;);
+            break;
+        case ASSIST:
+            System.out.println(&quot;辅助&quot;);
+            break;
+        case WARRIOR:
+            System.out.println(&quot;近战&quot;);
+            break;
+        case RANGED:
+            System.out.println(&quot;远程战&quot;);
+            break;
+        case PUSH:
+            System.out.println(&quot;推进&quot;);
+            break;
+        case FARMING:
+            System.out.println(&quot;打野&quot;);
+            break;
+        }
+    }
+}</code></code></pre>
+
+
+</div><hr><script charset='utf-8' src='../../js/sming.js'></script></body></html>

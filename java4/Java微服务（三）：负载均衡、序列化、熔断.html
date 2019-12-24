@@ -1,0 +1,162 @@
+<html><head><meta charset='utf-8'><meta name='viewport' content='width=device-width, initial-scale=1'>
+<meta name='applicable-device' content='pc'><meta name='keywords' content='电脑,电脑讲解,电脑技术,编程,电脑故障维修Java微服务（三）：负载均衡、序列化、熔断' />
+<script src='../../highlight/highlight.pack.js'></script>
+<link rel='stylesheet' type='text/css' href='../../highlight/styles/monokai.css'/>
+
+<link rel='stylesheet' href='../../fenxiang/dist/css/share.min.css'>
+<script src='../../fenxiang/src/js/social-share.js'></script>
+<script src='../../fenxiang/src/js/qrcode.js'></script>
+
+</head><body><script>hljs.initHighlightingOnLoad();</script><script>
+var system ={};  
+var p = navigator.platform;       
+system.win = p.indexOf('Win') == 0;  
+system.mac = p.indexOf('Mac') == 0;  
+system.x11 = (p == 'X11') || (p.indexOf('Linux') == 0);     
+if(system.win||system.mac||system.xll){
+document.write("<link href='../css/3.css' rel='stylesheet' type='text/css'>");}else{ document.write("<link href='../css/3wap.css' rel='stylesheet' type='text/css'>");}</script><script src='../../js/3.js'></script><div class='div2'><div class='heading_nav'><ul><div><li><a href='../../index.html'>首页</a></li>
+</div><div onclick='hidden1()' >分享</div>
+</ul></div></div>
+<div id='heading_nav2'> 
+<li class='row' >
+<div class='social-share' data-mode='prepend'><a href='javascript:' class='social-share-icon icon-heart'></a></div></li></div><script charset='utf-8' src='../../3/js/hengfu.js'></script><script charset='utf-8' src='../../3/js/hengfu2.js'></script><hr><div class='div1'><div class='biaoti'><center>Java微服务（三）：负载均衡、序列化、熔断</center></div><div class='banquan'>原文出处:本文由博客园博主从入门到到放弃提供。<br/>
+原文连接:https://www.cnblogs.com/dz-boss/p/11717063.html</div><br>
+    <p>　　本文接着上一篇写的《<a id="cb_post_title_url" class="postTitle2" href="https://www.cnblogs.com/dz-boss/p/11485020.html">Java微服务（二）：服务消费者与提供者搭建</a>》，上一篇文章主要讲述了消费者与服务者的搭建与简单的实现。其中重点需要注意配置文件中的几个坑。</p>
+<p>本章节介绍一些零散的内容：服务的负载均衡，序列化和熔断</p>
+<p><span style="font-size: 18pt;">1.服务负载均衡</span></p>
+<p>负载均衡可分为软件负载均衡和硬件负载均衡。在我们日常开发中，一般很难接触到硬件负载均衡。但软件负载均衡还是可以接触到的，比如 Nginx。dubbo提供的也是软负载。</p>
+<p><img style="display: block; margin-left: auto; margin-right: auto;" src="./images/Java微服务（三）：负载均衡、序列化、熔断0.png" alt="" /></p>
+<p>&nbsp;</p>
+<p>&nbsp;</p>
+<p>&nbsp;</p>
+<p>&nbsp;</p>
+<p>&nbsp;</p>
+<p>详细内容可以阅读dubbo官网关于负载均衡的介绍，这里总结下负载均衡的方式：</p>
+<ul>
+<li>权重随机算法的 RandomLoadBalance</li>
+</ul>
+<p>　　RandomLoadBalance 是加权随机算法的具体实现，它的算法思想很简单。假设我们有一组服务器 servers = [A, B, C]，他们对应的权重为 weights = [5, 3, 2]，权重总和为10。那么就有5/10的请求达到A服务器上，3/10和2/10分别达到B和C上。只要随机数生成器产生的随机数分布性很好，在经过多次选择后，每个服务器被选中的次数比例接近其权重比例。当调用次数比较少时，Random 产生的随机数可能会比较集中，此时多数请求会落到同一台服务器上。</p>
+<ul>
+<li>最少活跃调用数算法的 LeastActiveLoadBalance</li>
+</ul>
+<p>　　每个服务提供者对应一个活跃数 active。初始情况下，所有服务提供者活跃数均为0。每收到一个请求，活跃数加1，完成请求后则将活跃数减1，在服务运行一段时间后，性能好的服务提供者处理请求的速度更快，因此活跃数下降的也越快，此时这样的服务提供者能够优先获取到新的服务请求、这就是最小活跃数负载均衡算法的基本思想，目前此算法还引入了权重值。</p>
+<ul>
+<li>基于 hash 一致性的 ConsistentHashLoadBalance</li>
+</ul>
+<p>　　首先根据 ip 或者其他的信息为缓存节点生成一个 hash，并将这个 hash 投射到 [0, 2<sup>32</sup>&nbsp;- 1] 的圆环上。当有查询或写入请求时，则为缓存项的 key 生成一个 hash 值。然后查找第一个大于或等于该 hash 值的缓存节点，并到这个节点中查询或写入缓存项。如果当前节点挂了，则在下一次查询或写入缓存时，为缓存项查找另一个大于其 hash 值的缓存节点即可。</p>
+<ul>
+<li>基于加权轮询算法的 RoundRobinLoadBalance</li>
+</ul>
+<p>　　所谓轮询是指将请求轮流分配给每台服务器。举个例子，我们有三台服务器 A、B、C。我们将第一个请求分配给服务器 A，第二个请求分配给服务器 B，第三个请求分配给服务器 C，第四个请求再次分配给服务器 A。这个过程就叫做轮询。轮询是一种无状态负载均衡算法，实现简单，适用于每台服务器性能相近的场景下。加权轮询是将服务器赋一个权值，然后按照该权值进行轮训。</p>
+<p>&nbsp;</p>
+<p>代码构建,本例使用轮训算法做demo</p>
+<p>直接在yml配置文件中添加loadbalance注解就可以</p>
+<p><img style="display: block; margin-left: auto; margin-right: auto;" src="./images/Java微服务（三）：负载均衡、序列化、熔断1.png" alt="" /></p>
+<p>&nbsp;</p>
+<p>&nbsp;开启2个服务提供者，并且使用服务消费者消费，查看日志</p>
+<p><img style="display: block; margin-left: auto; margin-right: auto;" src="./images/Java微服务（三）：负载均衡、序列化、熔断2.png" alt="" /></p>
+<p>&nbsp;</p>
+<p><span style="font-size: 18pt;">&nbsp;2.序列化</span></p>
+<p>　　Dubbo 中支持的序列化方式：</p>
+<ul>
+<li>dubbo 序列化：阿里尚未开发成熟的高效 java 序列化实现，阿里不建议在生产环境使用它</li>
+<li>hessian2 序列化：hessian 是一种跨语言的高效二进制序列化方式。但这里实际不是原生的 hessian2 序列化，而是阿里修改过的 hessian lite，它是 dubbo RPC 默认启用的序列化方式</li>
+<li>json 序列化：目前有两种实现，一种是采用的阿里的 fastjson 库，另一种是采用 dubbo 中自己实现的简单 json 库，但其实现都不是特别成熟，而且 json 这种文本序列化性能一般不如上面两种二进制序列化。</li>
+<li>java 序列化：主要是采用 JDK 自带的 Java 序列化实现，性能很不理想。</li>
+</ul>
+<p>　　dubbo自带的序列化方式不成熟，而json和java序列化性能不理想。dubbo可以使用hessian2序列化，但是hessian2是跨语言的，没有单独对java语言做优化，所以很多单独给java提供优化的工具性能比hessian2要好。我们为 dubbo 引入 Kryo 和 FST 这两种高效 Java 序列化实现，来逐步取代 hessian2。</p>
+<p>dubbo有关序列化的实例如下：</p>
+<p><img style="display: block; margin-left: auto; margin-right: auto;" src="./images/Java微服务（三）：负载均衡、序列化、熔断3.png" alt="" /></p>
+<p>&nbsp;</p>
+<p>&nbsp;代码构建，首先增加依赖</p>
+<src class="cnblogs_code">
+<pre><code><span style="color: #008080;"> 1</span>   <span style="color: #0000ff;">&lt;</span><span style="color: #800000;">dependency</span><span style="color: #0000ff;">&gt;</span>
+<span style="color: #008080;"> 2</span>             <span style="color: #0000ff;">&lt;</span><span style="color: #800000;">groupId</span><span style="color: #0000ff;">&gt;</span>de.javakaffee<span style="color: #0000ff;">&lt;/</span><span style="color: #800000;">groupId</span><span style="color: #0000ff;">&gt;</span>
+<span style="color: #008080;"> 3</span>             <span style="color: #0000ff;">&lt;</span><span style="color: #800000;">artifactId</span><span style="color: #0000ff;">&gt;</span>kryo-serializers<span style="color: #0000ff;">&lt;/</span><span style="color: #800000;">artifactId</span><span style="color: #0000ff;">&gt;</span>
+<span style="color: #008080;"> 4</span>             <span style="color: #0000ff;">&lt;</span><span style="color: #800000;">version</span><span style="color: #0000ff;">&gt;</span>0.42<span style="color: #0000ff;">&lt;/</span><span style="color: #800000;">version</span><span style="color: #0000ff;">&gt;</span>
+<span style="color: #008080;"> 5</span>         <span style="color: #0000ff;">&lt;/</span><span style="color: #800000;">dependency</span><span style="color: #0000ff;">&gt;</span>
+<span style="color: #008080;"> 6</span>         <span style="color: #008000;">&lt;!--</span><span style="color: #008000;"> https://mvnrepository.com/artifact/org.springframework.cloud/spring-cloud-starter-hystrix </span><span style="color: #008000;">--&gt;</span>
+<span style="color: #008080;"> 7</span>         <span style="color: #008000;">&lt;!--</span><span style="color: #008000;"> https://mvnrepository.com/artifact/org.springframework.cloud/spring-cloud-starter-netflix-hystrix </span><span style="color: #008000;">--&gt;</span>
+<span style="color: #008080;"> 8</span>         <span style="color: #0000ff;">&lt;</span><span style="color: #800000;">dependency</span><span style="color: #0000ff;">&gt;</span>
+<span style="color: #008080;"> 9</span>             <span style="color: #0000ff;">&lt;</span><span style="color: #800000;">groupId</span><span style="color: #0000ff;">&gt;</span>org.springframework.cloud<span style="color: #0000ff;">&lt;/</span><span style="color: #800000;">groupId</span><span style="color: #0000ff;">&gt;</span>
+<span style="color: #008080;">10</span>             <span style="color: #0000ff;">&lt;</span><span style="color: #800000;">artifactId</span><span style="color: #0000ff;">&gt;</span>spring-cloud-starter-netflix-hystrix<span style="color: #0000ff;">&lt;/</span><span style="color: #800000;">artifactId</span><span style="color: #0000ff;">&gt;</span>
+<span style="color: #008080;">11</span>             <span style="color: #0000ff;">&lt;</span><span style="color: #800000;">version</span><span style="color: #0000ff;">&gt;</span>2.0.1.RELEASE<span style="color: #0000ff;">&lt;/</span><span style="color: #800000;">version</span><span style="color: #0000ff;">&gt;</span>
+<span style="color: #008080;">12</span>         <span style="color: #0000ff;">&lt;/</span><span style="color: #800000;">dependency</span><span style="color: #0000ff;">&gt;</span>
+<span style="color: #008080;">13</span>         <span style="color: #008000;">&lt;!--</span><span style="color: #008000;"> https://mvnrepository.com/artifact/org.springframework.cloud/spring-cloud-starter-netflix-hystrix-dashboard </span><span style="color: #008000;">--&gt;</span>
+<span style="color: #008080;">14</span>         <span style="color: #0000ff;">&lt;</span><span style="color: #800000;">dependency</span><span style="color: #0000ff;">&gt;</span>
+<span style="color: #008080;">15</span>             <span style="color: #0000ff;">&lt;</span><span style="color: #800000;">groupId</span><span style="color: #0000ff;">&gt;</span>org.springframework.cloud<span style="color: #0000ff;">&lt;/</span><span style="color: #800000;">groupId</span><span style="color: #0000ff;">&gt;</span>
+<span style="color: #008080;">16</span>             <span style="color: #0000ff;">&lt;</span><span style="color: #800000;">artifactId</span><span style="color: #0000ff;">&gt;</span>spring-cloud-starter-netflix-hystrix-dashboard<span style="color: #0000ff;">&lt;/</span><span style="color: #800000;">artifactId</span><span style="color: #0000ff;">&gt;</span>
+<span style="color: #008080;">17</span>             <span style="color: #0000ff;">&lt;</span><span style="color: #800000;">version</span><span style="color: #0000ff;">&gt;</span>2.0.1.RELEASE<span style="color: #0000ff;">&lt;/</span><span style="color: #800000;">version</span><span style="color: #0000ff;">&gt;</span>
+<span style="color: #008080;">18</span>         <span style="color: #0000ff;">&lt;/</span><span style="color: #800000;">dependency</span><span style="color: #0000ff;">&gt;</span></code></pre>
+
+<p>在配置文件中增加配置的属性即可：</p>
+<p>&nbsp;</p>
+<p>&nbsp;<img style="display: block; margin-left: auto; margin-right: auto;" src="./images/Java微服务（三）：负载均衡、序列化、熔断4.png" alt="" /></p>
+<p>&nbsp;</p>
+<p>此时序列化配置完成，以下总结了常见序列化方式的性能</p>
+<p><img style="display: block; margin-left: auto; margin-right: auto;" src="./images/Java微服务（三）：负载均衡、序列化、熔断5.png" alt="" /></p>
+<p>&nbsp;</p>
+<p>&nbsp;</p>
+<p><span style="font-size: 18pt;">&nbsp;3.熔断</span></p>
+<p>　　由于网络和自身的原因，RPC之间的调用并不能保证100%可用，如果服务器产生了宕机，同时又有大量的请求过来，就会出现雪崩，为了解决此问题，业界提出了熔断。熔断器打开后，为了避免连锁故障，通过&nbsp;<code>fallback</code>&nbsp;方法可以直接返回一个固定值。此时fallback中可以做很多逻辑处理，比喻日志或者邮件通过开发人员，及时对服务器进行问题排查，降低风险度。</p>
+<p>代码构建，首先增加依赖</p>
+<src class="cnblogs_code">
+<pre><code><span style="color: #008080;"> 1</span> <span style="color: #008000;">&lt;!--</span><span style="color: #008000;"> https://mvnrepository.com/artifact/org.springframework.cloud/spring-cloud-starter-hystrix </span><span style="color: #008000;">--&gt;</span>
+<span style="color: #008080;"> 2</span>         <span style="color: #008000;">&lt;!--</span><span style="color: #008000;"> https://mvnrepository.com/artifact/org.springframework.cloud/spring-cloud-starter-netflix-hystrix </span><span style="color: #008000;">--&gt;</span>
+<span style="color: #008080;"> 3</span>         <span style="color: #0000ff;">&lt;</span><span style="color: #800000;">dependency</span><span style="color: #0000ff;">&gt;</span>
+<span style="color: #008080;"> 4</span>             <span style="color: #0000ff;">&lt;</span><span style="color: #800000;">groupId</span><span style="color: #0000ff;">&gt;</span>org.springframework.cloud<span style="color: #0000ff;">&lt;/</span><span style="color: #800000;">groupId</span><span style="color: #0000ff;">&gt;</span>
+<span style="color: #008080;"> 5</span>             <span style="color: #0000ff;">&lt;</span><span style="color: #800000;">artifactId</span><span style="color: #0000ff;">&gt;</span>spring-cloud-starter-netflix-hystrix<span style="color: #0000ff;">&lt;/</span><span style="color: #800000;">artifactId</span><span style="color: #0000ff;">&gt;</span>
+<span style="color: #008080;"> 6</span>             <span style="color: #0000ff;">&lt;</span><span style="color: #800000;">version</span><span style="color: #0000ff;">&gt;</span>2.0.1.RELEASE<span style="color: #0000ff;">&lt;/</span><span style="color: #800000;">version</span><span style="color: #0000ff;">&gt;</span>
+<span style="color: #008080;"> 7</span>         <span style="color: #0000ff;">&lt;/</span><span style="color: #800000;">dependency</span><span style="color: #0000ff;">&gt;</span>
+<span style="color: #008080;"> 8</span>         <span style="color: #008000;">&lt;!--</span><span style="color: #008000;"> https://mvnrepository.com/artifact/org.springframework.cloud/spring-cloud-starter-netflix-hystrix-dashboard </span><span style="color: #008000;">--&gt;</span>
+<span style="color: #008080;"> 9</span>         <span style="color: #0000ff;">&lt;</span><span style="color: #800000;">dependency</span><span style="color: #0000ff;">&gt;</span>
+<span style="color: #008080;">10</span>             <span style="color: #0000ff;">&lt;</span><span style="color: #800000;">groupId</span><span style="color: #0000ff;">&gt;</span>org.springframework.cloud<span style="color: #0000ff;">&lt;/</span><span style="color: #800000;">groupId</span><span style="color: #0000ff;">&gt;</span>
+<span style="color: #008080;">11</span>             <span style="color: #0000ff;">&lt;</span><span style="color: #800000;">artifactId</span><span style="color: #0000ff;">&gt;</span>spring-cloud-starter-netflix-hystrix-dashboard<span style="color: #0000ff;">&lt;/</span><span style="color: #800000;">artifactId</span><span style="color: #0000ff;">&gt;</span>
+<span style="color: #008080;">12</span>             <span style="color: #0000ff;">&lt;</span><span style="color: #800000;">version</span><span style="color: #0000ff;">&gt;</span>2.0.1.RELEASE<span style="color: #0000ff;">&lt;/</span><span style="color: #800000;">version</span><span style="color: #0000ff;">&gt;</span>
+<span style="color: #008080;">13</span>         <span style="color: #0000ff;">&lt;/</span><span style="color: #800000;">dependency</span><span style="color: #0000ff;">&gt;</span></code></pre>
+
+<p>其中第二个依赖是在熔断仪表盘中使用的。具体代码和相关解释如下如下：</p>
+<p><img style="display: block; margin-left: auto; margin-right: auto;" src="./images/Java微服务（三）：负载均衡、序列化、熔断6.png" alt="" /></p>
+<p>&nbsp;</p>
+<p>&nbsp;<img style="display: block; margin-left: auto; margin-right: auto;" src="./images/Java微服务（三）：负载均衡、序列化、熔断7.png" alt="" /></p>
+<p>&nbsp;</p>
+<p>&nbsp;熔断仪表盘的配置，这里需要注意spring boot2和1的配置是有区别的，具体可以参考官网文档</p>
+<src class="cnblogs_code">
+<pre><code><span style="color: #008080;"> 1</span> <span style="color: #0000ff;">package</span><span style="color: #000000;"> com.edu.hello.dubbo.service.user.consumer.config;
+</span><span style="color: #008080;"> 2</span> 
+<span style="color: #008080;"> 3</span> <span style="color: #0000ff;">import</span><span style="color: #000000;"> com.netflix.hystrix.contrib.metrics.eventstream.HystrixMetricsStreamServlet;
+</span><span style="color: #008080;"> 4</span> <span style="color: #0000ff;">import</span><span style="color: #000000;"> org.springframework.boot.web.servlet.ServletRegistrationBean;
+</span><span style="color: #008080;"> 5</span> <span style="color: #0000ff;">import</span><span style="color: #000000;"> org.springframework.context.annotation.Bean;
+</span><span style="color: #008080;"> 6</span> <span style="color: #0000ff;">import</span><span style="color: #000000;"> org.springframework.context.annotation.Configuration;
+</span><span style="color: #008080;"> 7</span> 
+<span style="color: #008080;"> 8</span> <span style="color: #008000;">/**</span>
+<span style="color: #008080;"> 9</span> <span style="color: #008000;"> * @ClassName HystrixDashboardConfiguration
+</span><span style="color: #008080;">10</span> <span style="color: #008000;"> * @Deccription TODO
+</span><span style="color: #008080;">11</span> <span style="color: #008000;"> * @Author DZ
+</span><span style="color: #008080;">12</span> <span style="color: #008000;"> * @Date 2019/9/3 23:10
+</span><span style="color: #008080;">13</span> <span style="color: #008000;"> *</span><span style="color: #008000;">*/</span>
+<span style="color: #008080;">14</span> <span style="color: #000000;">@Configuration
+</span><span style="color: #008080;">15</span> <span style="color: #0000ff;">public</span> <span style="color: #0000ff;">class</span><span style="color: #000000;"> HystrixDashboardConfiguration {
+</span><span style="color: #008080;">16</span> <span style="color: #000000;">    @Bean
+</span><span style="color: #008080;">17</span>     <span style="color: #0000ff;">public</span><span style="color: #000000;"> ServletRegistrationBean getServlet() {
+</span><span style="color: #008080;">18</span>         HystrixMetricsStreamServlet streamServlet = <span style="color: #0000ff;">new</span><span style="color: #000000;"> HystrixMetricsStreamServlet();
+</span><span style="color: #008080;">19</span>         ServletRegistrationBean registrationBean = <span style="color: #0000ff;">new</span><span style="color: #000000;"> ServletRegistrationBean(streamServlet);
+</span><span style="color: #008080;">20</span>         registrationBean.setLoadOnStartup(1<span style="color: #000000;">);
+</span><span style="color: #008080;">21</span>         registrationBean.addUrlMappings("/hystrix.stream"<span style="color: #000000;">);
+</span><span style="color: #008080;">22</span>         registrationBean.setName("HystrixMetricsStreamServlet"<span style="color: #000000;">);
+</span><span style="color: #008080;">23</span>         <span style="color: #0000ff;">return</span><span style="color: #000000;"> registrationBean;
+</span><span style="color: #008080;">24</span> <span style="color: #000000;">    }
+</span><span style="color: #008080;">25</span> }</code></pre>
+
+<p>&nbsp;启动服务，查看结果。这里只启动了服务消费者，没有启动服务提供者，制造服务超时。</p>
+<p><img style="display: block; margin-left: auto; margin-right: auto;" src="./images/Java微服务（三）：负载均衡、序列化、熔断8.png" alt="" /></p>
+<p>&nbsp;访问<a href="http://localhost:9090/hystrix">http://localhost:9090/hystrix</a>查看熔断界面，其他详细信息可以查看详细信息，其中仪表盘的访问地址是来自于config中，仪表盘如下：</p>
+<p>&nbsp;<img style="display: block; margin-left: auto; margin-right: auto;" src="./images/Java微服务（三）：负载均衡、序列化、熔断9.png" alt="" /></p>
+<p>&nbsp;</p>
+<p>&nbsp;&nbsp;访问<a href="http://localhost:9090/hystrix">http://localhost:9090/hystrix</a>.stream查看熔断仪表盘界面，更加详细查看熔断相关的信息</p>
+<p><img style="display: block; margin-left: auto; margin-right: auto;" src="./images/Java微服务（三）：负载均衡、序列化、熔断10.png" alt="" /></p>
+<p>&nbsp;仪表盘中相关参数解释如下：</p>
+<p><img style="display: block; margin-left: auto; margin-right: auto;" src="./images/Java微服务（三）：负载均衡、序列化、熔断11.png" alt="" /></p>
+<p>&nbsp;</p>
+
+</div><hr><script charset='utf-8' src='../../js/sming.js'></script></body></html>

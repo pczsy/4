@@ -1,0 +1,237 @@
+<html><head><meta charset='utf-8'><meta name='viewport' content='width=device-width, initial-scale=1'>
+<meta name='applicable-device' content='pc'><meta name='keywords' content='电脑,电脑讲解,电脑技术,编程,电脑故障维修3. 彤哥说netty系列之Java BIO NIO AIO进化史' />
+<script src='../../highlight/highlight.pack.js'></script>
+<link rel='stylesheet' type='text/css' href='../../highlight/styles/monokai.css'/>
+
+<link rel='stylesheet' href='../../fenxiang/dist/css/share.min.css'>
+<script src='../../fenxiang/src/js/social-share.js'></script>
+<script src='../../fenxiang/src/js/qrcode.js'></script>
+
+</head><body><script>hljs.initHighlightingOnLoad();</script><script>
+var system ={};  
+var p = navigator.platform;       
+system.win = p.indexOf('Win') == 0;  
+system.mac = p.indexOf('Mac') == 0;  
+system.x11 = (p == 'X11') || (p.indexOf('Linux') == 0);     
+if(system.win||system.mac||system.xll){
+document.write("<link href='../css/3.css' rel='stylesheet' type='text/css'>");}else{ document.write("<link href='../css/3wap.css' rel='stylesheet' type='text/css'>");}</script><script src='../../js/3.js'></script><div class='div2'><div class='heading_nav'><ul><div><li><a href='../../index.html'>首页</a></li>
+</div><div onclick='hidden1()' >分享</div>
+</ul></div></div>
+<div id='heading_nav2'> 
+<li class='row' >
+<div class='social-share' data-mode='prepend'><a href='javascript:' class='social-share-icon icon-heart'></a></div></li></div><script charset='utf-8' src='../../3/js/hengfu.js'></script><script charset='utf-8' src='../../3/js/hengfu2.js'></script><hr><div class='div1'><div class='biaoti'><center>3. 彤哥说netty系列之Java BIO NIO AIO进化史</center></div><div class='banquan'>原文出处:本文由博客园博主彤哥读源码提供。<br/>
+原文连接:https://www.cnblogs.com/tong-yuan/p/11886807.html</div><br>
+    <p><img src="./images/3. 彤哥说netty系列之Java BIO NIO AIO进化史0.png" alt="nio" /></p>
+<p>你好，我是彤哥，本篇是netty系列的第三篇。</p>
+<h1 id="简介">简介</h1>
+<p>上一章我们介绍了IO的五种模型，实际上Java只支持其中的三种，即BIO/NIO/AIO。</p>
+<p>本文将介绍Java中这三种IO的进化史，并从使用的角度剖析它们背后的故事。</p>
+<h1 id="java-bio">Java BIO</h1>
+<h2 id="bio概念解析">BIO概念解析</h2>
+<p>BIO，Blocking IO，阻塞IO，它是Java的上古产品，自出生就有的东西（JDK 1.0）。</p>
+<p>使用BIO则数据准备和数据从内核空间拷贝到用户空间两个阶段都是阻塞的。</p>
+<p><img src="./images/3. 彤哥说netty系列之Java BIO NIO AIO进化史1.png" alt="blocking-io" /></p>
+<h2 id="bio使用案例">BIO使用案例</h2>
+<pre><code><code>public class EchoServer {
+    public static void main(String[] args) throws IOException {
+        ServerSocket serverSocket = new ServerSocket(8080);
+        while (true) {
+            System.out.println(&quot;start accept&quot;);
+            Socket socket = serverSocket.accept();
+            System.out.println(&quot;new conn: &quot; + socket.getRemoteSocketAddress());
+
+            new Thread(()-&gt;{
+                try {
+                    BufferedReader reader = new BufferedReader(new InputStreamReader(socket.getInputStream()));
+                    String msg;
+                                        // 读取消息，本文来源公从号彤哥读源码
+                    while ((msg = reader.readLine()) != null) {
+                        if (msg.equalsIgnoreCase(&quot;quit&quot;)) {
+                            reader.close();
+                            socket.close();
+                            break;
+                        } else {
+                            System.out.println(&quot;receive msg: &quot; + msg);
+                        }
+                    }
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+            }).start();
+        }
+    }
+}</code></code></pre>
+<p>客户端可以使用telnet来测试，而且你可以使用多个telnet来测试：</p>
+<pre><code><code>[c:\~]$ telnet 127.0.0.1 8080
+
+
+Connecting to 127.0.0.1:8080...
+Connection established.
+To escape to local shell, press &#39;Ctrl+Alt+]&#39;.
+hello world
+我是人才
+quit
+Connection closed by foreign host.</code></code></pre>
+<p>BIO的使用方式非常简单，服务端接收到一个连接就启动一个线程来处理这个连接的所有请求。</p>
+<p><img src="./images/3. 彤哥说netty系列之Java BIO NIO AIO进化史2.png" alt="bio_nio_aio" /></p>
+<p>所以，BIO最大的缺点就是浪费资源，只能处理少量的连接，线程数随着连接数线性增加，连接越多线程越多，直到抗不住。</p>
+<h1 id="java-nio">Java NIO</h1>
+<h2 id="nio概念解析">NIO概念解析</h2>
+<p>NIO，New IO，JDK1.4开始支持，内部是基于多路复用的IO模型。</p>
+<p><img src="./images/3. 彤哥说netty系列之Java BIO NIO AIO进化史3.png" alt="multiplexing-io" /></p>
+<p>这里有个歧义，很多人认为Java的NIO是Non-Blocking IO的缩写，其实并不是。</p>
+<p>使用NIO则多条连接的数据准备阶段会阻塞在select上，数据从内核空间拷贝到用户空间依然是阻塞的。</p>
+<p>因为第一阶段并不是连接本身处于阻塞阶段，所以通常来说NIO也可以看作是同步非阻塞IO。</p>
+<h2 id="nio使用案例">NIO使用案例</h2>
+<pre><code><code>public class EchoServer {
+    public static void main(String[] args) throws IOException {
+        Selector selector = Selector.open();
+        ServerSocketChannel serverSocketChannel = ServerSocketChannel.open();
+        serverSocketChannel.bind(new InetSocketAddress(8080));
+        serverSocketChannel.configureBlocking(false);
+        // 将accept事件绑定到selector上
+        serverSocketChannel.register(selector, SelectionKey.OP_ACCEPT);
+
+        while (true) {
+            // 阻塞在select上
+            selector.select();
+            Set&lt;SelectionKey&gt; selectionKeys = selector.selectedKeys();
+            // 遍历selectKeys
+            Iterator&lt;SelectionKey&gt; iterator = selectionKeys.iterator();
+            while (iterator.hasNext()) {
+                SelectionKey selectionKey = iterator.next();
+                // 如果是accept事件
+                if (selectionKey.isAcceptable()) {
+                    ServerSocketChannel ssc = (ServerSocketChannel) selectionKey.channel();
+                    SocketChannel socketChannel = ssc.accept();
+                    System.out.println(&quot;accept new conn: &quot; + socketChannel.getRemoteAddress());
+                    socketChannel.configureBlocking(false);
+                    socketChannel.register(selector, SelectionKey.OP_READ);
+                } else if (selectionKey.isReadable()) {
+                    // 如果是读取事件，本文来源公从号彤哥读源码
+                    SocketChannel socketChannel = (SocketChannel) selectionKey.channel();
+                    ByteBuffer buffer = ByteBuffer.allocate(1024);
+                    // 将数据读入到buffer中
+                    int length = socketChannel.read(buffer);
+                    if (length &gt; 0) {
+                        buffer.flip();
+                        byte[] bytes = new byte[buffer.remaining()];
+                        // 将数据读入到byte数组中
+                        buffer.get(bytes);
+
+                        // 换行符会跟着消息一起传过来
+                        String content = new String(bytes, &quot;UTF-8&quot;).replace(&quot;\r\n&quot;, &quot;&quot;);
+                        if (content.equalsIgnoreCase(&quot;quit&quot;)) {
+                            selectionKey.cancel();
+                            socketChannel.close();
+                        } else {
+                            System.out.println(&quot;receive msg: &quot; + content);
+                        }
+                    }
+                }
+                iterator.remove();
+            }
+        }
+    }
+}</code></code></pre>
+<p>这里同样使用telnet测试，而且你可以使用多个telnet来测试：</p>
+<pre><code><code>[c:\~]$ telnet 127.0.0.1 8080
+
+
+Connecting to 127.0.0.1:8080...
+Connection established.
+To escape to local shell, press &#39;Ctrl+Alt+]&#39;.
+hello world
+我是人才
+quit
+Connection closed by foreign host.
+</code></code></pre>
+<p>NIO的使用方式就有点复杂了，但是一个线程就可以处理很多连接。</p>
+<p>首先，需要注册一个ServerSocketChannel并把它注册到selector上并监听accept事件，然后accept到连接后会获取到SocketChannel，同样把SocketChannel也注册到selector上，但是监听的是read事件。</p>
+<p><img src="./images/3. 彤哥说netty系列之Java BIO NIO AIO进化史4.png" alt="bio_nio_aio" /></p>
+<p>NIO最大的优点，就是一个线程就可以处理大量的连接，缺点是不适合处理阻塞性任务，因为阻塞性任务会把这个线程占有着，其它连接的请求将得不到及时处理。</p>
+<h1 id="java-aio">Java AIO</h1>
+<h2 id="aio概念介绍">AIO概念介绍</h2>
+<p>AIO，Asynchronous IO，异步IO，JDK1.7开始支持，算是一种比较完美的IO，Windows下比较成熟，但Linux下还不太成熟。</p>
+<p><img src="./images/3. 彤哥说netty系列之Java BIO NIO AIO进化史5.png" alt="asynchronous-io" /></p>
+<p>使用异步IO则会在请求时立即返回，并在数据已准备且已拷贝到用户空间后进行回调处理，两个阶段都不会阻塞。</p>
+<h2 id="aio使用案例">AIO使用案例</h2>
+<pre><code><code>public class EchoServer {
+    public static void main(String[] args) throws IOException {
+        AsynchronousServerSocketChannel serverSocketChannel = AsynchronousServerSocketChannel.open();
+        serverSocketChannel.bind(new InetSocketAddress(8080));
+        // 监听accept事件，本文来源公从号彤哥读源码
+        serverSocketChannel.accept(null, new CompletionHandler&lt;AsynchronousSocketChannel, Object&gt;() {
+            @Override
+            public void completed(AsynchronousSocketChannel socketChannel, Object attachment) {
+                try {
+                    System.out.println(&quot;accept new conn: &quot; + socketChannel.getRemoteAddress());
+                    // 再次监听accept事件
+                    serverSocketChannel.accept(null, this);
+
+                    // 消息的处理
+                    while (true) {
+                        ByteBuffer buffer = ByteBuffer.allocate(1024);
+                        // 将数据读入到buffer中
+                        Future&lt;Integer&gt; future = socketChannel.read(buffer);
+                        if (future.get() &gt; 0) {
+                            buffer.flip();
+                            byte[] bytes = new byte[buffer.remaining()];
+                            // 将数据读入到byte数组中
+                            buffer.get(bytes);
+
+                            String content = new String(bytes, &quot;UTF-8&quot;);
+                            // 换行符会当成另一条消息传过来
+                            if (content.equals(&quot;\r\n&quot;)) {
+                                continue;
+                            }
+                            if (content.equalsIgnoreCase(&quot;quit&quot;)) {
+                                socketChannel.close();
+                                break;
+                            } else {
+                                System.out.println(&quot;receive msg: &quot; + content);
+                            }
+                        }
+                    }
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
+            }
+
+            @Override
+            public void failed(Throwable exc, Object attachment) {
+                System.out.println(&quot;failed&quot;);
+            }
+        });
+
+        // 阻塞住主线程
+        System.in.read();
+    }
+}</code></code></pre>
+<p>这里同样使用telnet测试，而且你可以使用多个telnet来测试：</p>
+<pre><code><code>[c:\~]$ telnet 127.0.0.1 8080
+
+
+Connecting to 127.0.0.1:8080...
+Connection established.
+To escape to local shell, press &#39;Ctrl+Alt+]&#39;.
+hello world
+我是人才
+quit
+Connection closed by foreign host.
+</code></code></pre>
+<p>AIO的使用方式不算太复杂，默认会启一组线程来处理用户的请求，而且如果在处理阻塞性任务，还会自动增加新的线程来处理其它连接的任务。</p>
+<p>首先，创建一个AsynchronousServerSocketChannel并调用其accept方法，这一步相当于监听了accept事件，在收到accept事件后会获取到AsynchronousSocketChannel，然后就可以在回调方法completed()里面读取数据了，当然也要继续监听accept事件。</p>
+<p>AIO最大的优点，就是少量的线程就可以处理大量的连接，而且可以处理阻塞性任务，但不能大量阻塞，否则线程数量会膨胀。</p>
+<h1 id="槽点">槽点</h1>
+<p>（1）三种IO的实现方式中对于换行符的处理竟然都不一样，BIO中不会把换行符带过来（其实是带过来了，因为用了readLine()方法，所以换行符没了），NIO中会把换行符加在消息末尾，AIO中会把换行符当成一条新的消息传过来，很神奇，为啥不统一处理呢，也很疑惑。</p>
+<p>（2）JDK自带的ByteBuffer是一个难用的东西。</p>
+<h1 id="总结">总结</h1>
+<p>本文我们从概念和使用两个角度分别介绍了BIO/NIO/AIO三种IO模型。</p>
+<h1 id="问题">问题</h1>
+<p><strong>看起来JDK的实现似乎很完美啊，为什么还会有Netty呢？</strong></p>
+<p>最后，也欢迎来我的公从号<strong>彤哥读源码</strong>系统地学习<strong>源码&amp;架构</strong>的知识。</p>
+<p><img src="./images/3. 彤哥说netty系列之Java BIO NIO AIO进化史6.png" alt="code" /></p>
+
+
+</div><hr><script charset='utf-8' src='../../js/sming.js'></script></body></html>

@@ -1,0 +1,50 @@
+<html><head><meta charset='utf-8'><meta name='viewport' content='width=device-width, initial-scale=1'>
+<meta name='applicable-device' content='pc'><meta name='keywords' content='电脑,电脑讲解,电脑技术,编程,电脑故障维修JSP页面验证码实现' />
+<script src='../../highlight/highlight.pack.js'></script>
+<link rel='stylesheet' type='text/css' href='../../highlight/styles/monokai.css'/>
+
+<link rel='stylesheet' href='../../fenxiang/dist/css/share.min.css'>
+<script src='../../fenxiang/src/js/social-share.js'></script>
+<script src='../../fenxiang/src/js/qrcode.js'></script>
+
+</head><body><script>hljs.initHighlightingOnLoad();</script><script>
+var system ={};  
+var p = navigator.platform;       
+system.win = p.indexOf('Win') == 0;  
+system.mac = p.indexOf('Mac') == 0;  
+system.x11 = (p == 'X11') || (p.indexOf('Linux') == 0);     
+if(system.win||system.mac||system.xll){
+document.write("<link href='../css/3.css' rel='stylesheet' type='text/css'>");}else{ document.write("<link href='../css/3wap.css' rel='stylesheet' type='text/css'>");}</script><script src='../../js/3.js'></script><div class='div2'><div class='heading_nav'><ul><div><li><a href='../../index.html'>首页</a></li>
+</div><div onclick='hidden1()' >分享</div>
+</ul></div></div>
+<div id='heading_nav2'> 
+<li class='row' >
+<div class='social-share' data-mode='prepend'><a href='javascript:' class='social-share-icon icon-heart'></a></div></li></div><script charset='utf-8' src='../../3/js/hengfu.js'></script><script charset='utf-8' src='../../3/js/hengfu2.js'></script><hr><div class='div1'><div class='biaoti'><center>JSP页面验证码实现</center></div><div class='banquan'>原文出处:本文由博客园博主Lo随风的风v提供。<br/>
+原文连接:https://www.cnblogs.com/lovetq520/p/11676333.html</div><br>
+    <p>首先在JSP页面加上生成图片的链接</p>
+<pre><code>&lt;img type="image" src="auth/authCode" id="codeImage" name="codeImage" style="cursor:pointer;"/&gt;，src需要我们自己实现，实现逻辑如下</code></pre>
+<p><img src="./images/JSP页面验证码实现0.png" alt="" /></p>
+<p>&nbsp;</p>
+<p>&nbsp;<img src="./images/JSP页面验证码实现1.png" alt="" /></p>
+<p>&nbsp;</p>
+<p>&nbsp;运行后，jsp页面会发出"auth/code"请求生成验证码，并将验证码放置于session中用于验证，运行效果如下</p>
+<p><img src="./images/JSP页面验证码实现2.png" alt="" /></p>
+<p>&nbsp;</p>
+<p>&nbsp;我们在jsp页面上加上输入验证码的输入框及提交按钮，点击按钮后进行验证码判断</p>
+<p><img src="./images/JSP页面验证码实现3.png" alt="" /></p>
+<p>&nbsp;</p>
+<p>&nbsp;<img src="./images/JSP页面验证码实现4.png" alt="" /></p>
+<p>&nbsp;</p>
+<p>&nbsp;<img src="./images/JSP页面验证码实现5.png" alt="" /></p>
+<p>&nbsp;</p>
+<p>&nbsp;后台会比将收入的验证码与放置于session中的验证码进行比对，并输出结果给JSP页面进行相应处理，当判断为失败，则刷新验证码</p>
+<p><img src="./images/JSP页面验证码实现6.png" alt="" /></p>
+<p>&nbsp;</p>
+<p>&nbsp;</p>
+<p>最后，相对完整的页面和逻辑都已实现，代码如下</p>
+<p>JSP页面代码</p>
+<pre><code><br />&lt;%@ page contentType="text/html;charset=UTF-8" language="java" isELIgnored="false" %&gt;<br />&lt;%@ page import="java.util.*" %&gt;<br />&lt;html&gt;<br />&lt;head&gt;<br />    &lt;title&gt;Title&lt;/title&gt;<br />&lt;/head&gt;<br />&lt;%--&lt;script src="js/jquery.min.js"&gt;&lt;/script&gt;--%&gt;<br />&lt;script src="https://libs.baidu.com/jquery/1.8.3/jquery.js"&gt;&lt;/script&gt;<br />&lt;script type="text/javascript"&gt;<br />    function submitForm() {<br />        var inputCode=$("#authCode").attr("value");<br />        var list={"inputCode":inputCode};<br />        $.ajax({<br />            //请求方式<br />            type : "POST",<br />            //请求的媒体类型<br />            contentType: "application/x-www-form-urlencoded",<br />            //请求地址<br />            url : "auth/checkCode",<br />            //数据，json字符串<br />            data :list,<br />            dataType:"json",<br />            //请求成功<br />            success : function(result) {<br />                alert(result);<br />                if(result=="1"){<br />                    alert("验证通过");<br />                }else{<br />                    alert("验证失败，重新刷新验证码");<br />                    flushAuthCode();<br />                }<br />            },<br />            //请求失败，包含具体的错误信息<br />            error : function(e){<br />                alert(e.responseText);<br />            }<br />        });<br />    }<br />    function flushAuthCode() {<br />        //重新刷新验证码<br />        $("#codeImage").attr("src","auth/authCode?abc="+Math.random());<br />    }<br /><br />&lt;/script&gt;<br />&lt;body&gt;<br /><br />    &lt;form id="authForm" action="checkCode"&gt;<br />        &lt;input type="text" id="authCode" name="authCode"&gt;<br />        &lt;img type="image" src="auth/authCode" id="codeImage" name="codeImage" style="cursor:pointer;"/&gt;<br />        &lt;button type="button" id="submitBtn" name="submitBtn" value="提交" onclick="submitForm()"/&gt;<br />    &lt;/form&gt;<br />&lt;/body&gt;<br />&lt;/html&gt;<br /><br />后台代码</code></pre>
+<pre><code>package com.founderit.controller;<br /><br /><br />import org.springframework.stereotype.Controller;<br />import org.springframework.web.bind.annotation.*;<br /><br />import javax.imageio.ImageIO;<br />import javax.servlet.http.HttpServletRequest;<br />import javax.servlet.http.HttpServletResponse;<br />import javax.servlet.http.HttpSession;<br />import java.awt.*;<br />import java.awt.image.BufferedImage;<br />import java.io.IOException;<br />import java.util.Random;<br /><br />@Controller<br />@RequestMapping("auth")<br />public class Auth {<br />    private char[] codeSequence = { 'A', '1','B', 'C', '2','D','3', 'E','4', 'F', '5','G','6', 'H', '7','I', '8','J',<br />            'K',   '9' ,'L', '1','M',  '2','N',  'P', '3', 'Q', '4', 'R', 'S', 'T', 'U', 'V', 'W',<br />            'X', 'Y', 'Z'};<br />    @RequestMapping("authCode")<br />    public void getCode(HttpServletResponse response, HttpSession session) throws IOException {<br />        int width = 63;<br />        int height = 37;<br />        Random random = new Random();<br />        //设置response头信息<br />        //禁止缓存<br />        response.setHeader("Pragma", "No-cache");<br />        response.setHeader("Cache-Control", "no-cache");<br />        response.setDateHeader("Expires", 0);<br /><br />        //生成缓冲区image类<br />        BufferedImage image = new BufferedImage(width, height, 1);<br />        //产生image类的Graphics用于绘制操作<br />        Graphics g = image.getGraphics();<br />        //Graphics类的样式<br />        g.setColor(this.getColor(200, 250));<br />        g.setFont(new Font("Times New Roman",0,28));<br />        g.fillRect(0, 0, width, height);<br />        //绘制干扰线<br />        for(int i=0;i&lt;40;i++){<br />            g.setColor(this.getColor(130, 200));<br />            int x = random.nextInt(width);<br />            int y = random.nextInt(height);<br />            int x1 = random.nextInt(12);<br />            int y1 = random.nextInt(12);<br />            g.drawLine(x, y, x + x1, y + y1);<br />        }<br /><br />        //绘制字符<br />        String strCode = "";<br />        for(int i=0;i&lt;4;i++){<br />            String rand = String.valueOf(codeSequence[random.nextInt(codeSequence.length)]);<br />            strCode = strCode + rand;<br />            g.setColor(new Color(20+random.nextInt(110),20+random.nextInt(110),20+random.nextInt(110)));<br />            g.drawString(rand, 13*i+6, 28);<br />        }<br />        //将字符保存到session中用于前端的验证<br />        session.setAttribute("authCode", strCode.toLowerCase());<br />        g.dispose();<br /><br />        ImageIO.write(image, "JPEG", response.getOutputStream());<br />        response.getOutputStream().flush();<br />    }<br /><br />    public  Color getColor(int fc,int bc){<br />        Random random = new Random();<br />        if(fc&gt;255)<br />            fc = 255;<br />        if(bc&gt;255)<br />            bc = 255;<br />        int r = fc + random.nextInt(bc - fc);<br />        int g = fc + random.nextInt(bc - fc);<br />        int b = fc + random.nextInt(bc - fc);<br />        return new Color(r,g,b);<br />    }<br /><br />    @RequestMapping(value = "checkCode",method = RequestMethod.POST)<br />    @ResponseBody<br />    public String checkAuthCode(@RequestParam(value = "inputCode") String inputCode, HttpServletRequest request){<br />        String checkCode=(String) request.getSession().getAttribute("authCode");<br />        //返回1 代表判断通过,0代表失败<br />        String isCode=checkCode.equals(inputCode)?"1":"0";<br />        return isCode;<br />    }<br />}</code></pre>
+<p>&nbsp;</p>
+
+</div><hr><script charset='utf-8' src='../../js/sming.js'></script></body></html>

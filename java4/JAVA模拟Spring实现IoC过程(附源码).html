@@ -1,0 +1,564 @@
+<html><head><meta charset='utf-8'><meta name='viewport' content='width=device-width, initial-scale=1'>
+<meta name='applicable-device' content='pc'><meta name='keywords' content='电脑,电脑讲解,电脑技术,编程,电脑故障维修JAVA模拟Spring实现IoC过程(附源码)' />
+<script src='../../highlight/highlight.pack.js'></script>
+<link rel='stylesheet' type='text/css' href='../../highlight/styles/monokai.css'/>
+
+<link rel='stylesheet' href='../../fenxiang/dist/css/share.min.css'>
+<script src='../../fenxiang/src/js/social-share.js'></script>
+<script src='../../fenxiang/src/js/qrcode.js'></script>
+
+</head><body><script>hljs.initHighlightingOnLoad();</script><script>
+var system ={};  
+var p = navigator.platform;       
+system.win = p.indexOf('Win') == 0;  
+system.mac = p.indexOf('Mac') == 0;  
+system.x11 = (p == 'X11') || (p.indexOf('Linux') == 0);     
+if(system.win||system.mac||system.xll){
+document.write("<link href='../css/3.css' rel='stylesheet' type='text/css'>");}else{ document.write("<link href='../css/3wap.css' rel='stylesheet' type='text/css'>");}</script><script src='../../js/3.js'></script><div class='div2'><div class='heading_nav'><ul><div><li><a href='../../index.html'>首页</a></li>
+</div><div onclick='hidden1()' >分享</div>
+</ul></div></div>
+<div id='heading_nav2'> 
+<li class='row' >
+<div class='social-share' data-mode='prepend'><a href='javascript:' class='social-share-icon icon-heart'></a></div></li></div><script charset='utf-8' src='../../3/js/hengfu.js'></script><script charset='utf-8' src='../../3/js/hengfu2.js'></script><hr><div class='div1'><div class='biaoti'><center>JAVA模拟Spring实现IoC过程(附源码)</center></div><div class='banquan'>原文出处:本文由博客园博主林安杰提供。<br/>
+原文连接:https://www.cnblogs.com/linanjie/p/11627861.html</div><br>
+    <p><span style="color: #ff0000;">前言：本人大四学生，第一次写博客，如果有写得不好的地方，请大家多多指正</span></p>
+<h1>一、<strong>IoC(Inversion of Control)</strong><strong>反转控制</strong></h1>
+<p style="margin-left: 30px;"><span style="font-size: 16px;">　　<span style="font-size: 18px;">传统开发都是需要对象就new，但这样做有几个问题：</span></span></p>
+<p style="margin-left: 30px;">&nbsp;</p>
+<ol>
+<li style="list-style-type: none;"><ol>
+<li><span style="font-size: 18px;"><span style="background-color: #ffff00;">效率低下，创建对象时比较耗时，我立马要用对象，可系统说让你等一下，创建和初始化对象需要一定的时间。</span>　</span></li>
+<li><span style="font-size: 16px;"><span style="font-size: 18px; background-color: #ffff00;">对象关联关系，例如：用户有所属部门，那创建用户对象时，如果部门对象不存在，还得创建部门对象。</span></span></li>
+<li><span style="font-size: 16px;"><span style="font-size: 18px; background-color: #ffff00;">代码耦合度较高</span></span></li>
+</ol></li>
+</ol>
+<p>&nbsp;</p>
+<p style="margin-left: 60px;"><span style="font-size: 16px; background-color: #ffffff;"><span style="font-size: 18px;">于是有人就提出了IoC控制反转概念，干嘛我不先创建好呢？如果用户要使用时，我都已经创建好了，用户不就能立马使用了？这就有点像好莱坞法则：&ldquo;你别找我，我去找你&rdquo;。</span></span></p>
+<p style="margin-left: 60px;">&nbsp;</p>
+<p style="margin-left: 60px;"><span style="font-size: 16px; background-color: #ffffff;"><span style="font-size: 18px;">IoC不是一种技术，只是一种思想，一个重要的面向对象编程的法则，它能指导我们如何设计出松耦合、更优良的程序。传统应用程序都是由我们在类内部主动创建依赖对象，从而导致类与类之间高耦合，难于测试；有了IoC容器后，把创建和查找依赖对象的控制权交给了容器，由容器进行注入组合对象，所以对象与对象之间是松散耦合，这样也方便测试，利于功能复用，更重要的是使得程序的整个体系结构变得非常灵活；</span></span></p>
+<p style="margin-left: 60px;">&nbsp;</p>
+<p style="margin-left: 60px;"><span style="font-size: 16px; background-color: #ffffff;"><span style="font-size: 18px;">我个人对IoC是这样简单理解的：</span></span></p>
+<p style="margin-left: 60px;"><strong><span style="font-size: 16px; background-color: #ffe4e1;"><span style="font-size: 18px;">1）对象不是new出来的，而是通过反射事先创建出来的</span></span></strong></p>
+<p style="margin-left: 60px;"><strong><span style="background-color: #ffe4e1;"><span style="font-size: 16px;"><span style="font-size: 18px;">2）既然事先创建出来，在用之前就得找个地方放起来，放哪里呢？就放在一个Map&lt;String, Object&gt;集合中</span></span></span></strong></p>
+<p style="margin-left: 60px;">&nbsp;</p>
+<h1>&nbsp;</h1>
+<h1>二、实现IoC过程中需要考虑的一些问题<strong><br /></strong></h1>
+<p style="margin-left: 60px;"><span style="font-size: 18px;"><strong>&bull;　　</strong>怎么获取要创建的对象？</span></p>
+<p style="margin-left: 60px;"><span style="font-size: 18px;"><strong>&bull;　　</strong>怎么把目录名转换为类名？</span></p>
+<p style="margin-left: 60px;"><span style="font-size: 18px;"><strong>&bull;　　</strong>怎么把类名转换为beanName？</span></p>
+<p style="margin-left: 60px;"><span style="font-size: 18px;"><strong>&bull;　　</strong>哪些类需要创建对象？怎么过滤掉不需要创建对象的类？</span></p>
+<p style="margin-left: 60px;"><span style="font-size: 18px;"><strong>&bull;　　</strong>容器中该怎么存放对象？</span></p>
+<p style="margin-left: 60px;"><span style="font-size: 18px;"><strong>&bull;　　</strong>怎么调用容器中存放的对象？</span></p>
+<p style="margin-left: 60px;"><span style="font-size: 18px;"><strong>&bull;　　</strong>设计分层结构：高内聚，低耦合（相当于专做一件事，不要把使用功能都写在一起）</span></p>
+<p style="margin-left: 60px;">&nbsp;</p>
+<h1>三、模拟Spring实现IoC<strong><br /></strong></h1>
+<p style="margin-left: 60px;"><span style="font-size: 16px;">在这里简单模拟查询用户信息，实际应用中更复杂，但是万变不离其宗，弄懂原理才是重要的</span></p>
+<p style="margin-left: 60px;">&nbsp;</p>
+<p style="margin-left: 60px;"><strong><span style="font-size: 18px;">1)架构图</span></strong></p>
+<p style="margin-left: 60px;"><span style="font-size: 18px;"><img style="display: block; margin-left: auto; margin-right: auto;" src="./images/JAVA模拟Spring实现IoC过程(附源码)0.png" alt="" width="1044" height="392" /></span></p>
+<p>&nbsp;</p>
+<p>&nbsp;</p>
+<p>&nbsp;</p>
+<p style="margin-left: 60px;"><span style="font-size: 18px;"><strong>2)代码结构图</strong></span></p>
+<p style="margin-left: 60px;"><span style="font-size: 18px;">在IDEA中的结构示意图（eclipse也差不多，我用的是IDEA）:</span></p>
+<p style="margin-left: 60px;"><span style="font-size: 18px;"><strong><img style="display: block; margin-left: auto; margin-right: auto;" src="./images/JAVA模拟Spring实现IoC过程(附源码)1.png" alt="" /></strong></span></p>
+<p><span style="font-size: 18px;">各包名以及文件名含义（文件名可能会和架构图中的一些文件名不一致，因为架构图是之前画的，但不影响阅读，大同小异）：</span></p>
+<p style="margin-left: 30px;"><span style="font-size: 18px;">　　</span><span style="font-size: 18px;"><span>annotation包：用来存放注解，在本案例中需要创建对象的类为控制层类、业务层类、持久层类；所有需要3个注解，<span style="background-color: #ffff00;">通过注解的方式来过滤掉不需要创建对象的类，Controller注解是加在控制层，Service注解加在业务层，Respository注解加在持久层；3个注解都是位于类上，保留到运行时期</span>；</span></span></p>
+<p style="margin-left: 30px;"><span style="font-size: 18px;"><span style="font-size: 18px;"><span style="font-size: 18px;">　　pojo包：设置一个pojo类，里面含有一些简单属性；</span></span></span></p>
+<p style="margin-left: 30px;"><span style="font-size: 18px;">　　dao包：模拟持久层，由于本案例是一个简单例子，主要用于初学者查看，所有没有安装数据库，正常情况下持久层应该与数据库进行对接，没有安装数据库，所有就由持久层模拟数据库；</span></p>
+<p style="margin-left: 30px;"><span style="font-size: 18px;"><span style="font-size: 18px;"><span style="font-size: 18px;"><span style="font-size: 18px;">　　service包：模拟业务层，业务层调用持久层；</span></span></span></span></p>
+<p style="margin-left: 30px;"><span style="font-size: 18px;"><span style="font-size: 18px;"><span style="font-size: 18px;"><span style="font-size: 18px;"><span style="font-size: 18px;"><span style="font-size: 18px;">　　controller包：模拟控制层，控制层调用业务层；</span></span></span></span></span></span></p>
+<p style="margin-left: 30px;"><span style="font-size: 18px;"><span style="font-size: 18px;"><span style="font-size: 18px;"><span style="font-size: 18px;"><span style="font-size: 18px;"><span style="font-size: 18px;"><span style="font-size: 18px;">　　utils包：工具类包；</span></span></span></span></span></span></span></p>
+<p style="margin-left: 30px;"><span style="font-size: 18px;"><span style="font-size: 18px;"><span style="font-size: 18px;"><span style="font-size: 18px;"><span style="font-size: 18px;"><span style="font-size: 18px;"><span style="font-size: 18px;"><span style="font-size: 18px;">　　parse包：因为我们采用了分层结构，所以在使用之前，应当把这些组件扫描加载到一起；现在都是面向接口进行开发，这样可以提高程序的灵活性，面向接口开发，同时也体现了JAVA的多态性；</span></span></span></span></span></span></span></span></p>
+<p style="margin-left: 30px;"><span style="font-size: 18px;"><span style="font-size: 18px;"><span style="font-size: 18px;"><span style="font-size: 18px;"><span style="font-size: 18px;"><span style="font-size: 18px;"><span style="font-size: 18px;"><span style="font-size: 18px;"><span style="font-size: 18px;">　　Run文件就相当于整个程序的入口。</span></span></span></span></span></span></span></span></span></p>
+<p style="margin-left: 30px;">&nbsp;</p>
+<p style="margin-left: 30px;">&nbsp;</p>
+<h1>四、案例源码</h1>
+<p>　　　　<strong><span style="font-size: 18px;">1）pojo类(User.java)</span></strong></p>
+<src class="cnblogs_code">
+<pre><code><span style="color: #008080;"> 1</span> <span style="color: #0000ff;">package</span><span style="color: #000000;"> spring.pojo;
+</span><span style="color: #008080;"> 2</span> 
+<span style="color: #008080;"> 3</span> <span style="color: #008000;">/**</span>
+<span style="color: #008080;"> 4</span> <span style="color: #008000;"> * @Auther: 林安杰
+</span><span style="color: #008080;"> 5</span> <span style="color: #008000;"> * @Date: 2019/9/28 19:28
+</span><span style="color: #008080;"> 6</span> <span style="color: #008000;"> * @Description:创建pojo对象，简单设置属性以及get,set,toString方法
+</span><span style="color: #008080;"> 7</span>  <span style="color: #008000;">*/</span>
+<span style="color: #008080;"> 8</span> <span style="color: #0000ff;">public</span> <span style="color: #0000ff;">class</span><span style="color: #000000;"> User {
+</span><span style="color: #008080;"> 9</span>     <span style="color: #0000ff;">private</span><span style="color: #000000;"> Integer id;
+</span><span style="color: #008080;">10</span>     <span style="color: #0000ff;">private</span><span style="color: #000000;"> String name;
+</span><span style="color: #008080;">11</span> 
+<span style="color: #008080;">12</span>     <span style="color: #0000ff;">public</span><span style="color: #000000;"> Integer getId() {
+</span><span style="color: #008080;">13</span>         <span style="color: #0000ff;">return</span><span style="color: #000000;"> id;
+</span><span style="color: #008080;">14</span> <span style="color: #000000;">    }
+</span><span style="color: #008080;">15</span> 
+<span style="color: #008080;">16</span>     <span style="color: #0000ff;">public</span> <span style="color: #0000ff;">void</span><span style="color: #000000;"> setId(Integer id) {
+</span><span style="color: #008080;">17</span>         <span style="color: #0000ff;">this</span>.id =<span style="color: #000000;"> id;
+</span><span style="color: #008080;">18</span> <span style="color: #000000;">    }
+</span><span style="color: #008080;">19</span> 
+<span style="color: #008080;">20</span>     <span style="color: #0000ff;">public</span><span style="color: #000000;"> String getName() {
+</span><span style="color: #008080;">21</span>         <span style="color: #0000ff;">return</span><span style="color: #000000;"> name;
+</span><span style="color: #008080;">22</span> <span style="color: #000000;">    }
+</span><span style="color: #008080;">23</span> 
+<span style="color: #008080;">24</span>     <span style="color: #0000ff;">public</span> <span style="color: #0000ff;">void</span><span style="color: #000000;"> setName(String name) {
+</span><span style="color: #008080;">25</span>         <span style="color: #0000ff;">this</span>.name =<span style="color: #000000;"> name;
+</span><span style="color: #008080;">26</span> <span style="color: #000000;">    }
+</span><span style="color: #008080;">27</span> 
+<span style="color: #008080;">28</span> <span style="color: #000000;">    @Override
+</span><span style="color: #008080;">29</span>     <span style="color: #0000ff;">public</span><span style="color: #000000;"> String toString() {
+</span><span style="color: #008080;">30</span>         <span style="color: #0000ff;">return</span> "User{" +
+<span style="color: #008080;">31</span>                 "id=" + id +
+<span style="color: #008080;">32</span>                 ", name='" + name + '\'' +
+<span style="color: #008080;">33</span>                 '}'<span style="color: #000000;">;
+</span><span style="color: #008080;">34</span> <span style="color: #000000;">    }
+</span><span style="color: #008080;">35</span> }</code></pre>
+
+<p>&nbsp;</p>
+<p>　　　　<span style="font-size: 18px;"><strong>2)注解</strong></span></p>
+<p><span style="font-size: 18px;"><strong>　　　　①Respository.java<br /></strong></span></p>
+<src class="cnblogs_code">
+<pre><code><span style="color: #008080;"> 1</span> <span style="color: #0000ff;">package</span><span style="color: #000000;"> spring.annotation;
+</span><span style="color: #008080;"> 2</span> 
+<span style="color: #008080;"> 3</span> <span style="color: #0000ff;">import</span><span style="color: #000000;"> java.lang.annotation.ElementType;
+</span><span style="color: #008080;"> 4</span> <span style="color: #0000ff;">import</span><span style="color: #000000;"> java.lang.annotation.Retention;
+</span><span style="color: #008080;"> 5</span> <span style="color: #0000ff;">import</span><span style="color: #000000;"> java.lang.annotation.RetentionPolicy;
+</span><span style="color: #008080;"> 6</span> <span style="color: #0000ff;">import</span><span style="color: #000000;"> java.lang.annotation.Target;
+</span><span style="color: #008080;"> 7</span> 
+<span style="color: #008080;"> 8</span> <span style="color: #008000;">/**</span>
+<span style="color: #008080;"> 9</span> <span style="color: #008000;"> * @Auther: 林安杰
+</span><span style="color: #008080;">10</span> <span style="color: #008000;"> * @Date: 2019/9/28 19:31
+</span><span style="color: #008080;">11</span> <span style="color: #008000;"> * @Description:dao层类注解
+</span><span style="color: #008080;">12</span>  <span style="color: #008000;">*/</span>
+<span style="color: #008080;">13</span> 
+<span style="color: #008080;">14</span> @Target(ElementType.TYPE)   <span style="color: #008000;">//</span><span style="color: #008000;"> 注解加在类上</span>
+<span style="color: #008080;">15</span> @Retention(RetentionPolicy.RUNTIME) <span style="color: #008000;">//</span><span style="color: #008000;"> 保留到运行时</span>
+<span style="color: #008080;">16</span> <span style="color: #0000ff;">public</span> @<span style="color: #0000ff;">interface</span><span style="color: #000000;"> Respository {
+</span><span style="color: #008080;">17</span> }</code></pre>
+
+<p>　　　　　<span style="font-size: 18px;"><strong>②Service.java</strong></span></p>
+<src class="cnblogs_code">
+<pre><code><span style="color: #008080;"> 1</span> <span style="color: #0000ff;">package</span><span style="color: #000000;"> spring.annotation;
+</span><span style="color: #008080;"> 2</span> 
+<span style="color: #008080;"> 3</span> <span style="color: #0000ff;">import</span><span style="color: #000000;"> java.lang.annotation.ElementType;
+</span><span style="color: #008080;"> 4</span> <span style="color: #0000ff;">import</span><span style="color: #000000;"> java.lang.annotation.Retention;
+</span><span style="color: #008080;"> 5</span> <span style="color: #0000ff;">import</span><span style="color: #000000;"> java.lang.annotation.RetentionPolicy;
+</span><span style="color: #008080;"> 6</span> <span style="color: #0000ff;">import</span><span style="color: #000000;"> java.lang.annotation.Target;
+</span><span style="color: #008080;"> 7</span> 
+<span style="color: #008080;"> 8</span> <span style="color: #008000;">/**</span>
+<span style="color: #008080;"> 9</span> <span style="color: #008000;"> * @Auther: 林安杰
+</span><span style="color: #008080;">10</span> <span style="color: #008000;"> * @Date: 2019/9/28 19:33
+</span><span style="color: #008080;">11</span> <span style="color: #008000;"> * @Description:业务层注解
+</span><span style="color: #008080;">12</span>  <span style="color: #008000;">*/</span>
+<span style="color: #008080;">13</span> 
+<span style="color: #008080;">14</span> <span style="color: #000000;">@Target(ElementType.TYPE)
+</span><span style="color: #008080;">15</span> <span style="color: #000000;">@Retention(RetentionPolicy.RUNTIME)
+</span><span style="color: #008080;">16</span> <span style="color: #0000ff;">public</span> @<span style="color: #0000ff;">interface</span><span style="color: #000000;"> Service {
+</span><span style="color: #008080;">17</span> }</code></pre>
+
+<p>　　　　　　<span style="font-size: 18px;"><strong>③Controller.java</strong></span></p>
+<src class="cnblogs_code">
+<pre><code><span style="color: #008080;"> 1</span> <span style="color: #0000ff;">package</span><span style="color: #000000;"> spring.annotation;
+</span><span style="color: #008080;"> 2</span> 
+<span style="color: #008080;"> 3</span> <span style="color: #0000ff;">import</span><span style="color: #000000;"> java.lang.annotation.ElementType;
+</span><span style="color: #008080;"> 4</span> <span style="color: #0000ff;">import</span><span style="color: #000000;"> java.lang.annotation.Retention;
+</span><span style="color: #008080;"> 5</span> <span style="color: #0000ff;">import</span><span style="color: #000000;"> java.lang.annotation.RetentionPolicy;
+</span><span style="color: #008080;"> 6</span> <span style="color: #0000ff;">import</span><span style="color: #000000;"> java.lang.annotation.Target;
+</span><span style="color: #008080;"> 7</span> 
+<span style="color: #008080;"> 8</span> <span style="color: #008000;">/**</span>
+<span style="color: #008080;"> 9</span> <span style="color: #008000;"> * @Auther: 林安杰
+</span><span style="color: #008080;">10</span> <span style="color: #008000;"> * @Date: 2019/9/28 19:34
+</span><span style="color: #008080;">11</span> <span style="color: #008000;"> * @Description:控制层注解
+</span><span style="color: #008080;">12</span>  <span style="color: #008000;">*/</span>
+<span style="color: #008080;">13</span> 
+<span style="color: #008080;">14</span> <span style="color: #000000;">@Target(ElementType.TYPE)
+</span><span style="color: #008080;">15</span> <span style="color: #000000;">@Retention(RetentionPolicy.RUNTIME)
+</span><span style="color: #008080;">16</span> <span style="color: #0000ff;">public</span> @<span style="color: #0000ff;">interface</span><span style="color: #000000;"> Controller {
+</span><span style="color: #008080;">17</span> }</code></pre>
+
+<p>　　　　<span style="font-size: 18px;"><strong>3）持久层（UserDao.java）</strong></span></p>
+<src class="cnblogs_code">
+<pre><code><span style="color: #008080;"> 1</span> <span style="color: #0000ff;">package</span><span style="color: #000000;"> spring.dao;
+</span><span style="color: #008080;"> 2</span> 
+<span style="color: #008080;"> 3</span> <span style="color: #0000ff;">import</span><span style="color: #000000;"> spring.annotation.Respository;
+</span><span style="color: #008080;"> 4</span> <span style="color: #0000ff;">import</span><span style="color: #000000;"> spring.pojo.User;
+</span><span style="color: #008080;"> 5</span> 
+<span style="color: #008080;"> 6</span> <span style="color: #0000ff;">import</span><span style="color: #000000;"> java.util.ArrayList;
+</span><span style="color: #008080;"> 7</span> <span style="color: #0000ff;">import</span><span style="color: #000000;"> java.util.List;
+</span><span style="color: #008080;"> 8</span> 
+<span style="color: #008080;"> 9</span> <span style="color: #008000;">/**</span>
+<span style="color: #008080;">10</span> <span style="color: #008000;"> * @Auther: 林安杰
+</span><span style="color: #008080;">11</span> <span style="color: #008000;"> * @Date: 2019/9/28 19:36
+</span><span style="color: #008080;">12</span> <span style="color: #008000;"> * @Description:dao层,模拟数据库数据
+</span><span style="color: #008080;">13</span>  <span style="color: #008000;">*/</span>
+<span style="color: #008080;">14</span> 
+<span style="color: #008080;">15</span> <span style="color: #000000;">@Respository
+</span><span style="color: #008080;">16</span> <span style="color: #0000ff;">public</span> <span style="color: #0000ff;">class</span><span style="color: #000000;"> UserDao {
+</span><span style="color: #008080;">17</span>     <span style="color: #008000;">//</span><span style="color: #008000;"> 模拟查询一条记录，根据进行id查询</span>
+<span style="color: #008080;">18</span>     <span style="color: #0000ff;">public</span><span style="color: #000000;"> User selectOne(Integer id) {
+</span><span style="color: #008080;">19</span>         User user = <span style="color: #0000ff;">new</span><span style="color: #000000;"> User();
+</span><span style="color: #008080;">20</span> <span style="color: #000000;">        user.setId(id);
+</span><span style="color: #008080;">21</span>         user.setName("林安杰"<span style="color: #000000;">);
+</span><span style="color: #008080;">22</span>         <span style="color: #0000ff;">return</span><span style="color: #000000;"> user;
+</span><span style="color: #008080;">23</span> <span style="color: #000000;">    }
+</span><span style="color: #008080;">24</span> 
+<span style="color: #008080;">25</span>     <span style="color: #008000;">//</span><span style="color: #008000;"> 模拟查询所有记录</span>
+<span style="color: #008080;">26</span>     <span style="color: #0000ff;">public</span> List&lt;User&gt;<span style="color: #000000;"> get() {
+</span><span style="color: #008080;">27</span>         <span style="color: #008000;">//</span><span style="color: #008000;"> 用一个集合来存放所有对象</span>
+<span style="color: #008080;">28</span>         List&lt;User&gt; userList = <span style="color: #0000ff;">new</span> ArrayList&lt;&gt;<span style="color: #000000;">();
+</span><span style="color: #008080;">29</span> 
+<span style="color: #008080;">30</span>         User u1 = <span style="color: #0000ff;">new</span><span style="color: #000000;"> User();
+</span><span style="color: #008080;">31</span>         u1.setId(6<span style="color: #000000;">);
+</span><span style="color: #008080;">32</span>         u1.setName("linanjie"<span style="color: #000000;">);
+</span><span style="color: #008080;">33</span> <span style="color: #000000;">        userList.add(u1);
+</span><span style="color: #008080;">34</span> 
+<span style="color: #008080;">35</span>         User u2 = <span style="color: #0000ff;">new</span><span style="color: #000000;"> User();
+</span><span style="color: #008080;">36</span>         u2.setId(7<span style="color: #000000;">);
+</span><span style="color: #008080;">37</span>         u2.setName("linlin"<span style="color: #000000;">);
+</span><span style="color: #008080;">38</span> <span style="color: #000000;">        userList.add(u2);
+</span><span style="color: #008080;">39</span>         <span style="color: #0000ff;">return</span><span style="color: #000000;"> userList;
+</span><span style="color: #008080;">40</span> <span style="color: #000000;">    }
+</span><span style="color: #008080;">41</span> 
+<span style="color: #008080;">42</span> 
+<span style="color: #008080;">43</span> }</code></pre>
+
+<p>　　　　<strong>4</strong><span style="font-size: 18px;"><strong>）业务层（UserService.java）</strong></span></p>
+<p>&nbsp;</p>
+<p style="margin-left: 30px;">&nbsp;</p>
+<src class="cnblogs_code">
+<pre><code><span style="color: #008080;"> 1</span> <span style="color: #0000ff;">package</span><span style="color: #000000;"> spring.service;
+</span><span style="color: #008080;"> 2</span> 
+<span style="color: #008080;"> 3</span> <span style="color: #0000ff;">import</span><span style="color: #000000;"> spring.annotation.Service;
+</span><span style="color: #008080;"> 4</span> <span style="color: #0000ff;">import</span><span style="color: #000000;"> spring.dao.UserDao;
+</span><span style="color: #008080;"> 5</span> <span style="color: #0000ff;">import</span><span style="color: #000000;"> spring.pojo.User;
+</span><span style="color: #008080;"> 6</span> 
+<span style="color: #008080;"> 7</span> <span style="color: #0000ff;">import</span><span style="color: #000000;"> java.util.List;
+</span><span style="color: #008080;"> 8</span> 
+<span style="color: #008080;"> 9</span> <span style="color: #008000;">/**</span>
+<span style="color: #008080;">10</span> <span style="color: #008000;"> * @Auther: 林安杰
+</span><span style="color: #008080;">11</span> <span style="color: #008000;"> * @Date: 2019/9/28 19:48
+</span><span style="color: #008080;">12</span> <span style="color: #008000;"> * @Description:业务层，从dao层中获取数据
+</span><span style="color: #008080;">13</span>  <span style="color: #008000;">*/</span>
+<span style="color: #008080;">14</span> 
+<span style="color: #008080;">15</span> <span style="color: #000000;">@Service
+</span><span style="color: #008080;">16</span> <span style="color: #0000ff;">public</span> <span style="color: #0000ff;">class</span><span style="color: #000000;"> UserService {
+</span><span style="color: #008080;">17</span>     <span style="color: #0000ff;">private</span> UserDao userDao;    <span style="color: #008000;">//</span><span style="color: #008000;"> 把dao层的对象设置为私有成员变量，才能访问dao层中的方法（组合）
+</span><span style="color: #008080;">18</span> 
+<span style="color: #008080;">19</span>     <span style="color: #008000;">//</span><span style="color: #008000;"> 关系绑定（set注入）</span>
+<span style="color: #008080;">20</span>     <span style="color: #0000ff;">public</span> <span style="color: #0000ff;">void</span><span style="color: #000000;"> setUserDao(UserDao userDao) {
+</span><span style="color: #008080;">21</span>         <span style="color: #0000ff;">this</span>.userDao =<span style="color: #000000;"> userDao;
+</span><span style="color: #008080;">22</span> <span style="color: #000000;">    }
+</span><span style="color: #008080;">23</span> 
+<span style="color: #008080;">24</span>     <span style="color: #008000;">//</span><span style="color: #008000;"> 查询一条记录</span>
+<span style="color: #008080;">25</span>     <span style="color: #0000ff;">public</span><span style="color: #000000;"> User getOne(Integer id) {
+</span><span style="color: #008080;">26</span>         <span style="color: #0000ff;">return</span><span style="color: #000000;"> userDao.selectOne(id);
+</span><span style="color: #008080;">27</span> <span style="color: #000000;">    }
+</span><span style="color: #008080;">28</span> 
+<span style="color: #008080;">29</span>     <span style="color: #008000;">//</span><span style="color: #008000;"> 查询所有记录</span>
+<span style="color: #008080;">30</span>     <span style="color: #0000ff;">public</span> List&lt;User&gt;<span style="color: #000000;"> queryAll() {
+</span><span style="color: #008080;">31</span>         <span style="color: #0000ff;">return</span><span style="color: #000000;"> userDao.get();
+</span><span style="color: #008080;">32</span> <span style="color: #000000;">    }
+</span><span style="color: #008080;">33</span> }</code></pre>
+
+<p>　　　　<span style="font-size: 18px;"><strong>5）控制层（UserController.java）</strong></span></p>
+<src class="cnblogs_code">
+<pre><code><span style="color: #008080;"> 1</span> <span style="color: #0000ff;">package</span><span style="color: #000000;"> spring.controller;
+</span><span style="color: #008080;"> 2</span> 
+<span style="color: #008080;"> 3</span> <span style="color: #0000ff;">import</span><span style="color: #000000;"> spring.annotation.Controller;
+</span><span style="color: #008080;"> 4</span> <span style="color: #0000ff;">import</span><span style="color: #000000;"> spring.pojo.User;
+</span><span style="color: #008080;"> 5</span> <span style="color: #0000ff;">import</span><span style="color: #000000;"> spring.service.UserService;
+</span><span style="color: #008080;"> 6</span> 
+<span style="color: #008080;"> 7</span> <span style="color: #0000ff;">import</span><span style="color: #000000;"> java.util.List;
+</span><span style="color: #008080;"> 8</span> 
+<span style="color: #008080;"> 9</span> <span style="color: #008000;">/**</span>
+<span style="color: #008080;">10</span> <span style="color: #008000;"> * @Auther: 林安杰
+</span><span style="color: #008080;">11</span> <span style="color: #008000;"> * @Date: 2019/9/28 19:53
+</span><span style="color: #008080;">12</span> <span style="color: #008000;"> * @Description:控制层,调用业务层
+</span><span style="color: #008080;">13</span>  <span style="color: #008000;">*/</span>
+<span style="color: #008080;">14</span> 
+<span style="color: #008080;">15</span> <span style="color: #000000;">@Controller
+</span><span style="color: #008080;">16</span> <span style="color: #0000ff;">public</span> <span style="color: #0000ff;">class</span><span style="color: #000000;"> UserController {
+</span><span style="color: #008080;">17</span>     <span style="color: #0000ff;">private</span> UserService userService;    <span style="color: #008000;">//</span><span style="color: #008000;"> 把业务层对象设置为私有成员变量
+</span><span style="color: #008080;">18</span> 
+<span style="color: #008080;">19</span>     <span style="color: #008000;">//</span><span style="color: #008000;"> set注入，实现关系绑定</span>
+<span style="color: #008080;">20</span>     <span style="color: #0000ff;">public</span> <span style="color: #0000ff;">void</span><span style="color: #000000;"> setUserService(UserService userService) {
+</span><span style="color: #008080;">21</span>         <span style="color: #0000ff;">this</span>.userService =<span style="color: #000000;"> userService;
+</span><span style="color: #008080;">22</span> <span style="color: #000000;">    }
+</span><span style="color: #008080;">23</span> 
+<span style="color: #008080;">24</span>     <span style="color: #008000;">//</span><span style="color: #008000;"> 查询一条记录</span>
+<span style="color: #008080;">25</span>     <span style="color: #0000ff;">public</span><span style="color: #000000;"> User getOne(Integer id) {
+</span><span style="color: #008080;">26</span>         <span style="color: #0000ff;">return</span><span style="color: #000000;"> userService.getOne(id);
+</span><span style="color: #008080;">27</span> <span style="color: #000000;">    }
+</span><span style="color: #008080;">28</span> 
+<span style="color: #008080;">29</span>     <span style="color: #008000;">//</span><span style="color: #008000;"> 查询多条记录</span>
+<span style="color: #008080;">30</span>     <span style="color: #0000ff;">public</span> List&lt;User&gt;<span style="color: #000000;"> queryAll() {
+</span><span style="color: #008080;">31</span>         <span style="color: #0000ff;">return</span><span style="color: #000000;"> userService.queryAll();
+</span><span style="color: #008080;">32</span> <span style="color: #000000;">    }
+</span><span style="color: #008080;">33</span> }</code></pre>
+
+<p>　　　　<strong>6<span style="font-size: 18px;">）工具类</span></strong></p>
+<p><strong><span style="font-size: 18px;">　　　　①FileUtil.java</span></strong></p>
+<p>&nbsp;</p>
+<src class="cnblogs_code">
+<pre><code><span style="color: #008080;"> 1</span> <span style="color: #0000ff;">package</span><span style="color: #000000;"> spring.utils;
+</span><span style="color: #008080;"> 2</span> 
+<span style="color: #008080;"> 3</span> <span style="color: #0000ff;">import</span><span style="color: #000000;"> java.io.File;
+</span><span style="color: #008080;"> 4</span> <span style="color: #0000ff;">import</span><span style="color: #000000;"> java.util.List;
+</span><span style="color: #008080;"> 5</span> 
+<span style="color: #008080;"> 6</span> <span style="color: #008000;">/**</span>
+<span style="color: #008080;"> 7</span> <span style="color: #008000;"> * @Auther: 林安杰
+</span><span style="color: #008080;"> 8</span> <span style="color: #008000;"> * @Date: 2019/9/28 19:58
+</span><span style="color: #008080;"> 9</span> <span style="color: #008000;"> * @Description:文件扫描工具类
+</span><span style="color: #008080;">10</span>  <span style="color: #008000;">*/</span>
+<span style="color: #008080;">11</span> 
+<span style="color: #008080;">12</span> <span style="color: #0000ff;">public</span> <span style="color: #0000ff;">class</span><span style="color: #000000;"> FileUtil {
+</span><span style="color: #008080;">13</span>     <span style="color: #008000;">//</span><span style="color: #008000;"> 扫描所有.class文件,并存入数组中</span>
+<span style="color: #008080;">14</span>     <span style="color: #0000ff;">public</span> <span style="color: #0000ff;">static</span> List&lt;String&gt; getFileNameList(String dir, List&lt;String&gt;<span style="color: #000000;"> fileNameList) {
+</span><span style="color: #008080;">15</span>         File file = <span style="color: #0000ff;">new</span> File(dir);  <span style="color: #008000;">//</span><span style="color: #008000;"> 把string类型转换为file类型</span>
+<span style="color: #008080;">16</span>         File[] files = file.listFiles();    <span style="color: #008000;">//</span><span style="color: #008000;"> 遍历当前路径下的所有文件（遍历出来的是：所有文件名+所有目录名）</span>
+<span style="color: #008080;">17</span>         <span style="color: #0000ff;">for</span><span style="color: #000000;"> (File f :
+</span><span style="color: #008080;">18</span> <span style="color: #000000;">                files) {
+</span><span style="color: #008080;">19</span>             <span style="color: #0000ff;">if</span> (f.isDirectory()) {  <span style="color: #008000;">//</span><span style="color: #008000;"> 判断当前文件是不是目录，是的话就递归遍历目录中的内容</span>
+<span style="color: #008080;">20</span> <span style="color: #000000;">                getFileNameList(f.getAbsolutePath(), fileNameList);
+</span><span style="color: #008080;">21</span>             } <span style="color: #0000ff;">else</span><span style="color: #000000;"> {
+</span><span style="color: #008080;">22</span>                 fileNameList.add(f.getAbsolutePath());  <span style="color: #008000;">//</span><span style="color: #008000;"> 不是目录就是文件，将文件添加到数组当中</span>
+<span style="color: #008080;">23</span> <span style="color: #000000;">            }
+</span><span style="color: #008080;">24</span> <span style="color: #000000;">        }
+</span><span style="color: #008080;">25</span>         <span style="color: #0000ff;">return</span><span style="color: #000000;"> fileNameList;
+</span><span style="color: #008080;">26</span> <span style="color: #000000;">    }
+</span><span style="color: #008080;">27</span> }</code></pre>
+
+<p>&nbsp;</p>
+<p>　　　　　<span style="font-size: 18px;"><strong>②CoverUtil.java</strong></span></p>
+<p>&nbsp;</p>
+<src class="cnblogs_code">
+<pre><code><span style="color: #008080;"> 1</span> <span style="color: #0000ff;">package</span><span style="color: #000000;"> spring.utils;
+</span><span style="color: #008080;"> 2</span> 
+<span style="color: #008080;"> 3</span> <span style="color: #0000ff;">import</span><span style="color: #000000;"> java.util.List;
+</span><span style="color: #008080;"> 4</span> 
+<span style="color: #008080;"> 5</span> <span style="color: #008000;">/**</span>
+<span style="color: #008080;"> 6</span> <span style="color: #008000;"> * @Auther: 林安杰
+</span><span style="color: #008080;"> 7</span> <span style="color: #008000;"> * @Date: 2019/9/28 21:30
+</span><span style="color: #008080;"> 8</span> <span style="color: #008000;"> * @Description:统一把路径符替换为&ldquo;/&rdquo;，路径符有&ldquo;//&rdquo;、&ldquo;\&rdquo;，统一后就没有差异性了
+</span><span style="color: #008080;"> 9</span>  <span style="color: #008000;">*/</span>
+<span style="color: #008080;">10</span> <span style="color: #0000ff;">public</span> <span style="color: #0000ff;">class</span><span style="color: #000000;"> CoverUtil {
+</span><span style="color: #008080;">11</span>     <span style="color: #008000;">//</span><span style="color: #008000;"> 从存放所有class文件的fileNameList集合中取出每一个文件名（全局限定名），替换为类名形式（包名.类名）</span>
+<span style="color: #008080;">12</span> 
+<span style="color: #008080;">13</span>     <span style="color: #008000;">/**</span>
+<span style="color: #008080;">14</span> <span style="color: #008000;">     * </span><span style="color: #808080;">@param</span><span style="color: #008000;"> baseDir      基准路径
+</span><span style="color: #008080;">15</span> <span style="color: #008000;">     * </span><span style="color: #808080;">@param</span><span style="color: #008000;"> fileNameList 存放所有文件全集限定名的数组
+</span><span style="color: #008080;">16</span> <span style="color: #008000;">     * </span><span style="color: #808080;">@return</span>
+<span style="color: #008080;">17</span>      <span style="color: #008000;">*/</span>
+<span style="color: #008080;">18</span>     <span style="color: #0000ff;">public</span> <span style="color: #0000ff;">static</span> List&lt;String&gt; getClassNameList(String baseDir, List&lt;String&gt;<span style="color: #000000;"> fileNameList) {
+</span><span style="color: #008080;">19</span>         <span style="color: #008000;">//</span><span style="color: #008000;"> 把基准路径中的路径符统一</span>
+<span style="color: #008080;">20</span>         baseDir = baseDir.replace("\\", "/"<span style="color: #000000;">);
+</span><span style="color: #008080;">21</span>         <span style="color: #0000ff;">for</span> (<span style="color: #0000ff;">int</span> i = 0; i &lt; fileNameList.size(); i++<span style="color: #000000;">) {
+</span><span style="color: #008080;">22</span>             <span style="color: #008000;">//</span><span style="color: #008000;"> 获取数组中的元素</span>
+<span style="color: #008080;">23</span>             String fileName =<span style="color: #000000;"> fileNameList.get(i);
+</span><span style="color: #008080;">24</span> 
+<span style="color: #008080;">25</span>             <span style="color: #008000;">//</span><span style="color: #008000;"> 把元素（全集限定名）中的路径统一</span>
+<span style="color: #008080;">26</span>             fileName = fileName.replace("\\", "/"<span style="color: #000000;">);
+</span><span style="color: #008080;">27</span> 
+<span style="color: #008080;">28</span>             <span style="color: #008000;">//</span><span style="color: #008000;"> 把全集限定名中前面一样的基准路径替换为空串</span>
+<span style="color: #008080;">29</span>             fileName = fileName.replace(baseDir, ""<span style="color: #000000;">);
+</span><span style="color: #008080;">30</span> 
+<span style="color: #008080;">31</span>             <span style="color: #008000;">//</span><span style="color: #008000;"> 把替换掉的字符串去掉.class后缀</span>
+<span style="color: #008080;">32</span>             <span style="color: #0000ff;">int</span> pos = fileName.lastIndexOf("."<span style="color: #000000;">);
+</span><span style="color: #008080;">33</span>             fileName = fileName.substring(0<span style="color: #000000;">, pos);
+</span><span style="color: #008080;">34</span> 
+<span style="color: #008080;">35</span>             <span style="color: #008000;">//</span><span style="color: #008000;"> 把字符串的路径符替换为&ldquo;.&rdquo;</span>
+<span style="color: #008080;">36</span>             fileName = fileName.replace("/", "."<span style="color: #000000;">);
+</span><span style="color: #008080;">37</span> 
+<span style="color: #008080;">38</span>             <span style="color: #008000;">//</span><span style="color: #008000;"> 把最终的类名继续放回数组中</span>
+<span style="color: #008080;">39</span> <span style="color: #000000;">            fileNameList.set(i, fileName);
+</span><span style="color: #008080;">40</span> <span style="color: #000000;">        }
+</span><span style="color: #008080;">41</span>         <span style="color: #0000ff;">return</span><span style="color: #000000;"> fileNameList;
+</span><span style="color: #008080;">42</span> <span style="color: #000000;">    }
+</span><span style="color: #008080;">43</span> }</code></pre>
+
+<p>　　　　　　<span style="font-size: 18px;"><strong>③BeanNameUtil.java</strong></span></p>
+<src class="cnblogs_code">
+<pre><code><span style="color: #008080;"> 1</span> <span style="color: #0000ff;">package</span><span style="color: #000000;"> spring.utils;
+</span><span style="color: #008080;"> 2</span> 
+<span style="color: #008080;"> 3</span> 
+<span style="color: #008080;"> 4</span> <span style="color: #008000;">/**</span>
+<span style="color: #008080;"> 5</span> <span style="color: #008000;"> * @Auther: 林安杰
+</span><span style="color: #008080;"> 6</span> <span style="color: #008000;"> * @Date: 2019/9/28 23:06
+</span><span style="color: #008080;"> 7</span> <span style="color: #008000;"> * @Description:把className转换为beanName
+</span><span style="color: #008080;"> 8</span>  <span style="color: #008000;">*/</span>
+<span style="color: #008080;"> 9</span> <span style="color: #0000ff;">public</span> <span style="color: #0000ff;">class</span><span style="color: #000000;"> BeanNameUtil {
+</span><span style="color: #008080;">10</span>     <span style="color: #0000ff;">public</span> <span style="color: #0000ff;">static</span><span style="color: #000000;"> String getbeanName(String className) {
+</span><span style="color: #008080;">11</span>         <span style="color: #008000;">//</span><span style="color: #008000;"> 截取后面的类名</span>
+<span style="color: #008080;">12</span>         <span style="color: #0000ff;">int</span> pos = className.lastIndexOf(".") + 1<span style="color: #000000;">;
+</span><span style="color: #008080;">13</span>         className =<span style="color: #000000;"> className.substring(pos);
+</span><span style="color: #008080;">14</span>         <span style="color: #008000;">//</span><span style="color: #008000;"> 类名的第一个字母小写，后面的不变</span>
+<span style="color: #008080;">15</span>         String beanName = className.toLowerCase().charAt(0) + className.substring(1<span style="color: #000000;">);
+</span><span style="color: #008080;">16</span>         <span style="color: #0000ff;">return</span><span style="color: #000000;"> beanName;
+</span><span style="color: #008080;">17</span> <span style="color: #000000;">    }
+</span><span style="color: #008080;">18</span> }</code></pre>
+
+<p>　　　　<span style="font-size: 18px;"><strong>7）组件扫描</strong></span></p>
+<p><span style="font-size: 18px;"><strong>　　　　　①BeanFactory.java</strong></span></p>
+<src class="cnblogs_code">
+<pre><code><span style="color: #008080;"> 1</span> <span style="color: #0000ff;">package</span><span style="color: #000000;"> spring.parse;
+</span><span style="color: #008080;"> 2</span> 
+<span style="color: #008080;"> 3</span> <span style="color: #0000ff;">import</span><span style="color: #000000;"> java.util.List;
+</span><span style="color: #008080;"> 4</span> 
+<span style="color: #008080;"> 5</span> <span style="color: #008000;">/**</span>
+<span style="color: #008080;"> 6</span> <span style="color: #008000;"> * @Auther: 林安杰
+</span><span style="color: #008080;"> 7</span> <span style="color: #008000;"> * @Date: 2019/9/28 23:26
+</span><span style="color: #008080;"> 8</span> <span style="color: #008000;"> * @Description:面对接口开发；需要设计一个接口
+</span><span style="color: #008080;"> 9</span>  <span style="color: #008000;">*/</span>
+<span style="color: #008080;">10</span> <span style="color: #0000ff;">public</span> <span style="color: #0000ff;">interface</span><span style="color: #000000;"> BeanFactory {
+</span><span style="color: #008080;">11</span>     <span style="color: #0000ff;">public</span> List&lt;String&gt;<span style="color: #000000;"> scan(String dir);
+</span><span style="color: #008080;">12</span> 
+<span style="color: #008080;">13</span>     <span style="color: #0000ff;">public</span> <span style="color: #0000ff;">void</span> creat(String baseDir, List&lt;String&gt; fileNameList) <span style="color: #0000ff;">throws</span><span style="color: #000000;"> Exception;
+</span><span style="color: #008080;">14</span> 
+<span style="color: #008080;">15</span>     <span style="color: #0000ff;">public</span> &lt;T&gt;<span style="color: #000000;"> T getObject(String beanName);
+</span><span style="color: #008080;">16</span> }</code></pre>
+
+<p>　　　　　　<span style="font-size: 18px;"><strong>②ComponentScan.java</strong></span></p>
+<src class="cnblogs_code">
+<pre><code><span style="color: #008080;"> 1</span> <span style="color: #0000ff;">package</span><span style="color: #000000;"> spring.parse;
+</span><span style="color: #008080;"> 2</span> 
+<span style="color: #008080;"> 3</span> <span style="color: #0000ff;">import</span><span style="color: #000000;"> spring.annotation.Controller;
+</span><span style="color: #008080;"> 4</span> <span style="color: #0000ff;">import</span><span style="color: #000000;"> spring.annotation.Respository;
+</span><span style="color: #008080;"> 5</span> <span style="color: #0000ff;">import</span><span style="color: #000000;"> spring.annotation.Service;
+</span><span style="color: #008080;"> 6</span> <span style="color: #0000ff;">import</span><span style="color: #000000;"> spring.utils.BeanNameUtil;
+</span><span style="color: #008080;"> 7</span> <span style="color: #0000ff;">import</span><span style="color: #000000;"> spring.utils.CoverUtil;
+</span><span style="color: #008080;"> 8</span> <span style="color: #0000ff;">import</span><span style="color: #000000;"> spring.utils.FileUtil;
+</span><span style="color: #008080;"> 9</span> 
+<span style="color: #008080;">10</span> <span style="color: #0000ff;">import</span><span style="color: #000000;"> java.util.ArrayList;
+</span><span style="color: #008080;">11</span> <span style="color: #0000ff;">import</span><span style="color: #000000;"> java.util.HashMap;
+</span><span style="color: #008080;">12</span> <span style="color: #0000ff;">import</span><span style="color: #000000;"> java.util.List;
+</span><span style="color: #008080;">13</span> <span style="color: #0000ff;">import</span><span style="color: #000000;"> java.util.Map;
+</span><span style="color: #008080;">14</span> 
+<span style="color: #008080;">15</span> <span style="color: #008000;">/**</span>
+<span style="color: #008080;">16</span> <span style="color: #008000;"> * @Auther: 林安杰
+</span><span style="color: #008080;">17</span> <span style="color: #008000;"> * @Date: 2019/9/28 22:30
+</span><span style="color: #008080;">18</span> <span style="color: #008000;"> * @Description:扫描所有需要的组件，并利用反射创建对象，把对象放在容器中
+</span><span style="color: #008080;">19</span>  <span style="color: #008000;">*/</span>
+<span style="color: #008080;">20</span> <span style="color: #0000ff;">public</span> <span style="color: #0000ff;">class</span> ComponentScan <span style="color: #0000ff;">implements</span><span style="color: #000000;"> BeanFactory{
+</span><span style="color: #008080;">21</span> 
+<span style="color: #008080;">22</span>     <span style="color: #0000ff;">private</span> <span style="color: #0000ff;">static</span> <span style="color: #0000ff;">final</span> Map&lt;String, Object&gt; beans = <span style="color: #0000ff;">new</span> HashMap&lt;&gt;<span style="color: #000000;">();
+</span><span style="color: #008080;">23</span> 
+<span style="color: #008080;">24</span>     <span style="color: #008000;">//</span><span style="color: #008000;"> 扫描所有class文件</span>
+<span style="color: #008080;">25</span>     <span style="color: #0000ff;">public</span> List&lt;String&gt;<span style="color: #000000;"> scan(String dir) {
+</span><span style="color: #008080;">26</span>         List&lt;String&gt; fileNameList = <span style="color: #0000ff;">new</span> ArrayList&lt;&gt;<span style="color: #000000;">();
+</span><span style="color: #008080;">27</span> <span style="color: #000000;">        FileUtil.getFileNameList(dir, fileNameList);
+</span><span style="color: #008080;">28</span>         <span style="color: #008000;">//</span><span style="color: #008000;"> 遍历查看数组的内容</span>
+<span style="color: #008080;">29</span>         <span style="color: #0000ff;">for</span><span style="color: #000000;"> (String fileName :
+</span><span style="color: #008080;">30</span> <span style="color: #000000;">                fileNameList) {
+</span><span style="color: #008080;">31</span> <span style="color: #000000;">            System.out.println(fileName);
+</span><span style="color: #008080;">32</span> <span style="color: #000000;">        }
+</span><span style="color: #008080;">33</span>         <span style="color: #0000ff;">return</span><span style="color: #000000;"> fileNameList;
+</span><span style="color: #008080;">34</span> <span style="color: #000000;">    }
+</span><span style="color: #008080;">35</span> 
+<span style="color: #008080;">36</span>     <span style="color: #008000;">//</span><span style="color: #008000;"> 通过反射根据注解创建对象，并把对象放在容器中</span>
+<span style="color: #008080;">37</span>     <span style="color: #0000ff;">public</span> <span style="color: #0000ff;">void</span> creat(String baseDir, List&lt;String&gt; fileNameList) <span style="color: #0000ff;">throws</span><span style="color: #000000;"> Exception {
+</span><span style="color: #008080;">38</span>         List&lt;String&gt; classNameList =<span style="color: #000000;"> CoverUtil.getClassNameList(baseDir, fileNameList);
+</span><span style="color: #008080;">39</span> 
+<span style="color: #008080;">40</span>         <span style="color: #008000;">//</span><span style="color: #008000;"> 遍历类名数组查看内容，并根据是否有注解创建对象</span>
+<span style="color: #008080;">41</span>         <span style="color: #0000ff;">for</span><span style="color: #000000;"> (String className : classNameList) {
+</span><span style="color: #008080;">42</span>             String beanName = ""<span style="color: #000000;">;
+</span><span style="color: #008080;">43</span>             Class&lt;?&gt; clazz =<span style="color: #000000;"> Class.forName(className);
+</span><span style="color: #008080;">44</span>             <span style="color: #008000;">//</span><span style="color: #008000;"> 获取类上的注解</span>
+<span style="color: #008080;">45</span>             Controller ca = clazz.getAnnotation(Controller.<span style="color: #0000ff;">class</span><span style="color: #000000;">);
+</span><span style="color: #008080;">46</span>             Service sa = clazz.getAnnotation(Service.<span style="color: #0000ff;">class</span><span style="color: #000000;">);
+</span><span style="color: #008080;">47</span>             Respository ra = clazz.getAnnotation(Respository.<span style="color: #0000ff;">class</span><span style="color: #000000;">);
+</span><span style="color: #008080;">48</span> 
+<span style="color: #008080;">49</span>             <span style="color: #008000;">//</span><span style="color: #008000;"> 若注解不为空，就创建对象</span>
+<span style="color: #008080;">50</span>             <span style="color: #0000ff;">if</span> (ca != <span style="color: #0000ff;">null</span> || sa != <span style="color: #0000ff;">null</span> || ra != <span style="color: #0000ff;">null</span><span style="color: #000000;">) {
+</span><span style="color: #008080;">51</span>                 Object obj =<span style="color: #000000;"> clazz.newInstance();
+</span><span style="color: #008080;">52</span> 
+<span style="color: #008080;">53</span>                 <span style="color: #008000;">/*</span><span style="color: #008000;">把对象存放在容器中，容器为Map键值对，值就是对象，key用className表示太复杂，把className转换成beanName
+</span><span style="color: #008080;">54</span> <span style="color: #008000;">                  className的形式：spring.pojo.User；beanName的形式：user；所以需要写一个转换的方法
+</span><span style="color: #008080;">55</span>                  <span style="color: #008000;">*/</span>
+<span style="color: #008080;">56</span>                 beanName =<span style="color: #000000;"> BeanNameUtil.getbeanName(className);
+</span><span style="color: #008080;">57</span> 
+<span style="color: #008080;">58</span>                 <span style="color: #008000;">//</span><span style="color: #008000;"> 把对象存放到容器当中</span>
+<span style="color: #008080;">59</span> <span style="color: #000000;">                beans.put(beanName, obj);
+</span><span style="color: #008080;">60</span> <span style="color: #000000;">            }
+</span><span style="color: #008080;">61</span>             System.out.println(className + " | " +<span style="color: #000000;"> beanName);
+</span><span style="color: #008080;">62</span> <span style="color: #000000;">        }
+</span><span style="color: #008080;">63</span> 
+<span style="color: #008080;">64</span>         <span style="color: #008000;">//</span><span style="color: #008000;"> 查看容器中存放的对象</span>
+<span style="color: #008080;">65</span>         System.out.println("\n容器中存放的对象为："<span style="color: #000000;">);
+</span><span style="color: #008080;">66</span>         <span style="color: #0000ff;">for</span><span style="color: #000000;"> (String key : beans.keySet()) {
+</span><span style="color: #008080;">67</span> <span style="color: #000000;">            System.out.println(beans.get(key));
+</span><span style="color: #008080;">68</span> <span style="color: #000000;">        }
+</span><span style="color: #008080;">69</span> <span style="color: #000000;">    }
+</span><span style="color: #008080;">70</span> 
+<span style="color: #008080;">71</span>     <span style="color: #008000;">//</span><span style="color: #008000;"> 从容器中获取对象</span>
+<span style="color: #008080;">72</span>     <span style="color: #0000ff;">public</span> &lt;T&gt;<span style="color: #000000;"> T getObject(String beanName){
+</span><span style="color: #008080;">73</span>         <span style="color: #0000ff;">return</span><span style="color: #000000;"> (T) beans.get(beanName);
+</span><span style="color: #008080;">74</span> <span style="color: #000000;">    }
+</span><span style="color: #008080;">75</span> }</code></pre>
+
+<p><strong>　　　　<span style="font-size: 18px;">8）程序入口（Run.java）</span></strong></p>
+<src class="cnblogs_code">
+<pre><code><span style="color: #008080;"> 1</span> <span style="color: #0000ff;">package</span><span style="color: #000000;"> spring;
+</span><span style="color: #008080;"> 2</span> 
+<span style="color: #008080;"> 3</span> <span style="color: #0000ff;">import</span><span style="color: #000000;"> spring.controller.UserController;
+</span><span style="color: #008080;"> 4</span> <span style="color: #0000ff;">import</span><span style="color: #000000;"> spring.dao.UserDao;
+</span><span style="color: #008080;"> 5</span> <span style="color: #0000ff;">import</span><span style="color: #000000;"> spring.parse.BeanFactory;
+</span><span style="color: #008080;"> 6</span> <span style="color: #0000ff;">import</span><span style="color: #000000;"> spring.parse.ComponentScan;
+</span><span style="color: #008080;"> 7</span> <span style="color: #0000ff;">import</span><span style="color: #000000;"> spring.pojo.User;
+</span><span style="color: #008080;"> 8</span> <span style="color: #0000ff;">import</span><span style="color: #000000;"> spring.service.UserService;
+</span><span style="color: #008080;"> 9</span> 
+<span style="color: #008080;">10</span> <span style="color: #0000ff;">import</span><span style="color: #000000;"> java.util.List;
+</span><span style="color: #008080;">11</span> 
+<span style="color: #008080;">12</span> 
+<span style="color: #008080;">13</span> <span style="color: #008000;">/**</span>
+<span style="color: #008080;">14</span> <span style="color: #008000;"> * @Auther: 林安杰
+</span><span style="color: #008080;">15</span> <span style="color: #008000;"> * @Date: 2019/9/29 12:53
+</span><span style="color: #008080;">16</span> <span style="color: #008000;"> * @Description:程序入口
+</span><span style="color: #008080;">17</span>  <span style="color: #008000;">*/</span>
+<span style="color: #008080;">18</span> <span style="color: #0000ff;">public</span> <span style="color: #0000ff;">class</span><span style="color: #000000;"> Run {
+</span><span style="color: #008080;">19</span>     <span style="color: #0000ff;">public</span> <span style="color: #0000ff;">static</span> <span style="color: #0000ff;">void</span> main(String[] args) <span style="color: #0000ff;">throws</span><span style="color: #000000;"> Exception {
+</span><span style="color: #008080;">20</span>         <span style="color: #008000;">//</span><span style="color: #008000;"> 面对接口开发，体现了多态性（向上造型）</span>
+<span style="color: #008080;">21</span>         BeanFactory context = <span style="color: #0000ff;">new</span><span style="color: #000000;"> ComponentScan();
+</span><span style="color: #008080;">22</span> 
+<span style="color: #008080;">23</span>         <span style="color: #008000;">//</span><span style="color: #008000;"> 先扫描所有class文件</span>
+<span style="color: #008080;">24</span>         System.out.println("第一步,扫描当前主目录下的所有class文件："<span style="color: #000000;">);
+</span><span style="color: #008080;">25</span>         <span style="color: #008000;">//</span><span style="color: #008000;"> 不能把路径写死，可以根据API获取路径</span>
+<span style="color: #008080;">26</span>         String baseDir = Run.<span style="color: #0000ff;">class</span>.getResource("/").getPath().substring(1<span style="color: #000000;">);
+</span><span style="color: #008080;">27</span>         String packageDir = Run.<span style="color: #0000ff;">class</span><span style="color: #000000;">.getPackage().getName();
+</span><span style="color: #008080;">28</span>         String dir = baseDir + packageDir.replace(".", "/"<span style="color: #000000;">);
+</span><span style="color: #008080;">29</span>         List&lt;String&gt; fileNameList =<span style="color: #000000;"> context.scan(dir);
+</span><span style="color: #008080;">30</span> 
+<span style="color: #008080;">31</span>         System.out.println("\n第二步，获得className,并且用beanName把对象存入容器中："<span style="color: #000000;">);
+</span><span style="color: #008080;">32</span> <span style="color: #000000;">        context.creat(baseDir, fileNameList);
+</span><span style="color: #008080;">33</span> 
+<span style="color: #008080;">34</span>         System.out.println("\n第三步，业务处理："<span style="color: #000000;">);
+</span><span style="color: #008080;">35</span>         <span style="color: #008000;">//</span><span style="color: #008000;"> 不能用new创建对象，需要从容器中获取对象</span>
+<span style="color: #008080;">36</span>         UserController userController = context.getObject("userController"<span style="color: #000000;">);
+</span><span style="color: #008080;">37</span>         UserService userService = context.getObject("userService"<span style="color: #000000;">);
+</span><span style="color: #008080;">38</span>         UserDao userDao = context.getObject("userDao"<span style="color: #000000;">);
+</span><span style="color: #008080;">39</span> 
+<span style="color: #008080;">40</span>         <span style="color: #008000;">//</span><span style="color: #008000;"> 关系注入，调用set方法</span>
+<span style="color: #008080;">41</span> <span style="color: #000000;">        userController.setUserService(userService);
+</span><span style="color: #008080;">42</span> <span style="color: #000000;">        userService.setUserDao(userDao);
+</span><span style="color: #008080;">43</span> 
+<span style="color: #008080;">44</span>         System.out.println("查询一条记录："<span style="color: #000000;">);
+</span><span style="color: #008080;">45</span>         User user = userController.getOne(1<span style="color: #000000;">);
+</span><span style="color: #008080;">46</span> <span style="color: #000000;">        System.out.println(user);
+</span><span style="color: #008080;">47</span> 
+<span style="color: #008080;">48</span>         System.out.println("查询所有记录："<span style="color: #000000;">);
+</span><span style="color: #008080;">49</span>         List&lt;User&gt; users =<span style="color: #000000;"> userController.queryAll();
+</span><span style="color: #008080;">50</span>         <span style="color: #0000ff;">for</span><span style="color: #000000;"> (User u : users) {
+</span><span style="color: #008080;">51</span> <span style="color: #000000;">            System.out.println(u);
+</span><span style="color: #008080;">52</span> <span style="color: #000000;">        }
+</span><span style="color: #008080;">53</span> <span style="color: #000000;">    }
+</span><span style="color: #008080;">54</span> }</code></pre>
+
+<h1>五、运行结果</h1>
+<p><img src="./images/JAVA模拟Spring实现IoC过程(附源码)2.png" alt="" /></p>
+<p>&nbsp;</p>
+<p>&nbsp;<img src="./images/JAVA模拟Spring实现IoC过程(附源码)3.png" alt="" /></p>
+<p>&nbsp;</p>
+<p>&nbsp;<img src="./images/JAVA模拟Spring实现IoC过程(附源码)4.png" alt="" /></p>
+<p>&nbsp;</p>
+<p>&nbsp;</p>
+<p>这就是本期分享的内容，大家可以相互学习，后期会写Spring模拟实现DI（原理其实都差不多）</p>
+<p>&nbsp;</p>
+
+</div><hr><script charset='utf-8' src='../../js/sming.js'></script></body></html>

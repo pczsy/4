@@ -1,0 +1,446 @@
+<html><head><meta charset='utf-8'><meta name='viewport' content='width=device-width, initial-scale=1'>
+<meta name='applicable-device' content='pc'><meta name='keywords' content='电脑,电脑讲解,电脑技术,编程,电脑故障维修RestTemplate的使用和原理你都烂熟于胸了吗？【享学Spring MVC】' />
+<script src='../../highlight/highlight.pack.js'></script>
+<link rel='stylesheet' type='text/css' href='../../highlight/styles/monokai.css'/>
+
+<link rel='stylesheet' href='../../fenxiang/dist/css/share.min.css'>
+<script src='../../fenxiang/src/js/social-share.js'></script>
+<script src='../../fenxiang/src/js/qrcode.js'></script>
+
+</head><body><script>hljs.initHighlightingOnLoad();</script><script>
+var system ={};  
+var p = navigator.platform;       
+system.win = p.indexOf('Win') == 0;  
+system.mac = p.indexOf('Mac') == 0;  
+system.x11 = (p == 'X11') || (p.indexOf('Linux') == 0);     
+if(system.win||system.mac||system.xll){
+document.write("<link href='../css/3.css' rel='stylesheet' type='text/css'>");}else{ document.write("<link href='../css/3wap.css' rel='stylesheet' type='text/css'>");}</script><script src='../../js/3.js'></script><div class='div2'><div class='heading_nav'><ul><div><li><a href='../../index.html'>首页</a></li>
+</div><div onclick='hidden1()' >分享</div>
+</ul></div></div>
+<div id='heading_nav2'> 
+<li class='row' >
+<div class='social-share' data-mode='prepend'><a href='javascript:' class='social-share-icon icon-heart'></a></div></li></div><script charset='utf-8' src='../../3/js/hengfu.js'></script><script charset='utf-8' src='../../3/js/hengfu2.js'></script><hr><div class='div1'><div class='biaoti'><center>RestTemplate的使用和原理你都烂熟于胸了吗？【享学Spring MVC】</center></div><div class='banquan'>原文出处:本文由博客园博主_YourBatman提供。<br/>
+原文连接:https://www.cnblogs.com/fangshixiang/p/11532755.html</div><br>
+    <h4 id="每篇一句">每篇一句</h4>
+<blockquote>
+<p>人圆月圆心圆，人和家和国和---中秋节快乐</p>
+</blockquote>
+<h4 id="前言">前言</h4>
+<p>在阅读本篇之前，建议先阅读<a href="https://fangshixiang.blog.csdn.net/article/details/100713622">开山篇</a>效果更佳。<code>RestTemplate</code>是Spring提供的用于访问<code>Rest</code>服务的客户端工具，它提供了多种<strong>便捷</strong>访问远程Http服务的方法，<strong>能够大大提高客户端的编写效率</strong>。<br />
+弱弱呼吁一句：对于那些在<code>Spring</code>环境下还在使用<code>HttpClient</code>（或其它Client）的同学，今儿看完本文后，建议切换到<code>RestTemplate</code> （有特殊需求的当然除外喽~）。</p>
+<p><code>RestTemplate</code>简化了与http服务的通信，程序代码可以给它提供URL，并提取结果。它默认使用的JDK 的<code>HttpURLConnection</code>进行通信，然而我们是可以通过<code>RestTemplate.setRequestFactory</code>切换到不同的HTTP源：如<code>Apache HttpComponents</code>、<code>Netty</code>、<code>OkHttp</code>等等。</p>
+<h2 id="restoperations">RestOperations</h2>
+<p>指定一组基本restful操作的接口，<strong>定义了基本的Rest操作集合</strong>，它的唯一实现是<code>RestTemplate</code>；不直接使用，但这是增强可测试性的一个有用选项，因为它很容易被模拟或存根（后面这句话请好好理解）。</p>
+<blockquote>
+<p>可以对比参照<code>RedisOperations</code>，它的实现类也只有<code>RedisTemplate</code>一个。他俩都采用了设计模式中的<code>模板模式</code></p>
+</blockquote>
+<h6 id="方法们">方法们：</h6>
+<p>由于此接口里的方法实在太多了（40+个），因此我按照Http标准进行分类如下表格：</p>
+<pre><code><code>// @since 3.0
+public enum HttpMethod {
+    GET, HEAD, POST, PUT, PATCH, DELETE, OPTIONS, TRACE;
+    ...
+}</code></code></pre>
+<table>
+<thead>
+<tr class="header">
+<th>HttpMethod</th>
+<th>方法</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>GET</td>
+<td><img src="./images/RestTemplate的使用和原理你都烂熟于胸了吗？【享学Spring MVC】0.png" alt="在这里插入图片描述" /></td>
+</tr>
+<tr class="even">
+<td>HEAD</td>
+<td><img src="./images/RestTemplate的使用和原理你都烂熟于胸了吗？【享学Spring MVC】1.png" alt="在这里插入图片描述" /></td>
+</tr>
+<tr class="odd">
+<td>POST</td>
+<td><img src="./images/RestTemplate的使用和原理你都烂熟于胸了吗？【享学Spring MVC】2.png" alt="在这里插入图片描述" /></td>
+</tr>
+<tr class="even">
+<td>PUT</td>
+<td><img src="./images/RestTemplate的使用和原理你都烂熟于胸了吗？【享学Spring MVC】3.png" alt="在这里插入图片描述" /></td>
+</tr>
+<tr class="odd">
+<td>PATCH</td>
+<td><img src="./images/RestTemplate的使用和原理你都烂熟于胸了吗？【享学Spring MVC】4.png" alt="在这里插入图片描述" /></td>
+</tr>
+<tr class="even">
+<td>DELETE</td>
+<td><img src="./images/RestTemplate的使用和原理你都烂熟于胸了吗？【享学Spring MVC】5.png" alt="在这里插入图片描述" /></td>
+</tr>
+<tr class="odd">
+<td>OPTIONS</td>
+<td><img src="./images/RestTemplate的使用和原理你都烂熟于胸了吗？【享学Spring MVC】6.png" alt="在这里插入图片描述" /></td>
+</tr>
+<tr class="even">
+<td>TRACE</td>
+<td>无</td>
+</tr>
+<tr class="odd">
+<td>any（执行任何Http方法）</td>
+<td><img src="./images/RestTemplate的使用和原理你都烂熟于胸了吗？【享学Spring MVC】7.png" alt="在这里插入图片描述" /></td>
+</tr>
+</tbody>
+</table>
+<p>观察发现，虽然方法众多但有很强的规律可循。每个方法都有三种重载实现：<strong>2种的url参数为字符串，一种URI参数</strong>，所以掌握规律后再使用，就不用害怕它的多而不知咋使用了。</p>
+<blockquote>
+<p>xxxForObject：返回响应体（也就直接是body体力的内容） <strong>（T）</strong><br />
+xxxForEntity：返回的相应行、响应头、响应码、响应体等等 <strong>（ResponseEntity<T>）</strong><br />
+xxxForLocation：提交成功之后，返回新资源的URI。这个只需要服务提供者返回一个 URI 即可，该 URI 表示新资源的位置，可谓非常轻量。 <strong>（URI）</strong></p>
+</blockquote>
+<p>注意：使用字符串类型的url默认会对url进行转义，如<code>http://example.com/hotel list</code>在执行时会转义为<code>http://example.com/hotel%20list</code>，隐式的转义这样是没有问题的。但如果你自己已经转义过了，那就不ok了。<br />
+若不想要这种隐式的转义，建议使用URI（<code>URI uri = uriComponents.toUri()</code>）来构造。</p>
+<h4 id="resttemplate中post请求的三种方式">==<code>RestTemplate</code>中POST请求的三种方式==</h4>
+<p><code>post</code>请求代表新建/创建一个资源，所以它是有返回值的。因为它的使用最为复杂，因此本文以它为例进行讲解。</p>
+<p>你如果熟练使用过浏览器的<code>开发者工具</code>调试过，你肯定知道<code>POST</code>请求它传参是有两种方式的：</p>
+<ol>
+<li><strong>Form Data方式</strong>：我们用from表单提交的方式就是它；使用ajax（注意：这里指的是jQuery的ajax，而不是源生js的）默认的提交方式也是它~<br />
+<img src="./images/RestTemplate的使用和原理你都烂熟于胸了吗？【享学Spring MVC】8.png" alt="在这里插入图片描述" /></li>
+<li><strong>request payload方式</strong>：多部分方式/json方式<br />
+<img src="./images/RestTemplate的使用和原理你都烂熟于胸了吗？【享学Spring MVC】9.png" alt="在这里插入图片描述" /><br />
+<img src="./images/RestTemplate的使用和原理你都烂熟于胸了吗？【享学Spring MVC】10.png" alt="在这里插入图片描述" /></li>
+</ol>
+<p>这两种方式是通过<code>Content-Type</code>来区别的：若是<code>application/x-www-form-urlencoded</code>那就是<code>formdata</code>方式；若是<code>application/json</code>或者<code>multipart/form-data</code>等方式那就是<code>request payload</code>方式</p>
+<blockquote>
+<p><code>jQuery</code>在执行post请求时，默认会给你设置<code>Content-Type</code>为<code>application/x-www-form-urlencoded</code>，所以服务器能够正确解析。<br />
+若使用js原生的ajax，如果不<code>显示的</code>设置Content-Type，那么默认是text/plain，这时服务器就不知道怎么解析数据了，所以才只能通过获取原始数据流的方式来进行解析请求数据。（相信没人这么干吧~）</p>
+</blockquote>
+<h4 id="exchange和execute方法">exchange和execute方法：</h4>
+<p>exchange方法：更通用的请求方法。它入参必须接受一个<code>RequestEntity</code>，从而可以设置请求的路径、头等等信息，最终全都是返回一个<code>ResponseEntity</code>（可以发送Get、Post、Put等所有请求）。<br />
+execute方法：<strong>最最最底层、通用</strong>的请求方法。</p>
+<blockquote>
+<p>RequestCallback：用于操作请求头和body，在请求发出<code>前</code>执行；ResponseExtractor：解析/提取HTTP响应的数据，而且不需要担心异常和资源的关闭<br />
+<code>RequestCallback.doWithRequest(ClientHttpRequest)</code>说白了就是拿到<code>ClientHttpRequest</code>后对他进行继续处理~<br />
+<code>RestTemplate</code>的<code>acceptHeaderRequestCallback、httpEntityCallback</code>这些方法可以设置它~<br />
+---</p>
+</blockquote>
+<h2 id="httpaccessorinterceptinghttpaccessor">HttpAccessor、InterceptingHttpAccessor</h2>
+<p>这两个抽象类不容忽视，<code>HystrixCommand和Ribbon</code>的逻辑都和它有关系（拦截器）。<br />
+<code>HttpAccessor</code>是个抽象基类，它定义要操作<code>ClientHttpRequestFactory</code>的公共属性，它一般不直接使用。</p>
+<pre><code><code>// @since 3.0
+public abstract class HttpAccessor {
+    
+    // RestTemplate默认使用的客户端工厂：基于源生JDK
+    private ClientHttpRequestFactory requestFactory = new SimpleClientHttpRequestFactory();
+
+    // 若要切换成三方库的底层组件，设置此方法便可
+    public void setRequestFactory(ClientHttpRequestFactory requestFactory) {
+        this.requestFactory = requestFactory;
+    }
+    ... // get方法
+    
+    // 供给子类非常方便的拿到一个ClientHttpRequest
+    protected ClientHttpRequest createRequest(URI url, HttpMethod method) throws IOException {
+        ClientHttpRequest request = getRequestFactory().createRequest(url, method);
+        return request;
+    }   
+}</code></code></pre>
+<p>它的子类是：<code>InterceptingHttpAccessor</code>，也还是个抽象实现，主要是管理起了请求的拦截器们：<code>ClientHttpRequestInterceptor</code>。</p>
+<h4 id="interceptinghttpaccessor">InterceptingHttpAccessor</h4>
+<pre><code><code>// @since 3.0
+// @see InterceptingClientHttpRequestFactory
+public abstract class InterceptingHttpAccessor extends HttpAccessor {
+
+    // 装载需要作用在RestTemplate上的拦截器们~~~
+    private final List&lt;ClientHttpRequestInterceptor&gt; interceptors = new ArrayList&lt;&gt;();
+    @Nullable
+    private volatile ClientHttpRequestFactory interceptingRequestFactory;
+
+    // 这里语意是set，所以是完全的替换掉（支持ordered排序哦~~~）
+    public void setInterceptors(List&lt;ClientHttpRequestInterceptor&gt; interceptors) {
+        if (this.interceptors != interceptors) {
+            this.interceptors.clear();
+            this.interceptors.addAll(interceptors);
+            AnnotationAwareOrderComparator.sort(this.interceptors);
+        }
+    }
+
+    // 复写了父类的这个方法很有意思
+    // 意思为：若你调用者手动set进来了，那就以调用者设置的工厂为准 否则使用的是InterceptingClientHttpRequestFactory
+    @Override
+    public void setRequestFactory(ClientHttpRequestFactory requestFactory) {
+        super.setRequestFactory(requestFactory);
+        this.interceptingRequestFactory = null;
+    }
+
+    // 若配置了拦截器，那么默认就使用InterceptingClientHttpRequestFactory,而不再是SimpleClientHttpRequestFactory了~~~
+    @Override
+    public ClientHttpRequestFactory getRequestFactory() {
+        List&lt;ClientHttpRequestInterceptor&gt; interceptors = getInterceptors();
+        if (!CollectionUtils.isEmpty(interceptors)) {
+            ClientHttpRequestFactory factory = this.interceptingRequestFactory;
+            if (factory == null) {
+                factory = new InterceptingClientHttpRequestFactory(super.getRequestFactory(), interceptors);
+                this.interceptingRequestFactory = factory;
+            }
+            return factory;
+        } else {
+            return super.getRequestFactory();
+        }
+    }
+}</code></code></pre>
+<p><code>InterceptingHttpAccessor</code>最主要的处理逻辑为：若发现调用者设置了请求拦截器，那么它创建的工厂是具有拦截功能的<code>InterceptingClientHttpRequestFactory</code>，否则就是默认的<code>SimpleClientHttpRequestFactory</code>。</p>
+<p><code>InterceptingClientHttpRequestFactory</code>工厂它产生的<code>ClientHttpRequest</code>是<code>InterceptingClientHttpRequest</code>，然而它就会执行拦截器的拦截方法喽：<code>nextInterceptor.intercept(request, body, this)</code></p>
+<p><strong>提问：如有配置有多个请求拦截器，都会执行吗？</strong><br />
+解答：这个千万不要犯迷糊和轻易下结论：以为没有迭代它（for循环）而只是<code>iterator.next()</code>就以为若有多个就只会执行一个，<strong>那就大错特错了</strong>。这里实际是形成了一个执行链条，只要拦截器的<code>intercept</code>方法内最终还调用执行器的<code>intercept()</code>方法，那么拦截器链就会一直执行下去。<strong>其根本缘由是第三个参数传入的是<code>this</code>，至始至终都是同一个执行器（<code>this=InterceptingRequestExecution</code>）</strong></p>
+<h2 id="section">---</h2>
+<hr />
+<h2 id="resttemplate">==RestTemplate==</h2>
+<p><code>RestTemplate</code>采用<strong>同步</strong>方式执行 HTTP 请求的类，底层默认使用<code>JDK</code>原生 <code>HttpURLConnection API</code>。它实现了接口<code>RestOperations</code>，提供了非常多的模版方法（重载方法）让开发者能更简单地发送 HTTP 请求。</p>
+<p>需要注意的是，<code>RestTemplate</code>是<code>Spring 3.0</code>就有了，但在Spring5.0后，Spring官方是推荐使用<code>org.springframework.web.reactive.function.client.WebClient</code>替代它，特别是对于异步的场景。</p>
+<blockquote>
+<p><code>RestTemplate</code>因为使用极其广泛，so即使到了Spring 5.0，官方只是建议替代，但并没有标注<code>@Deprecated</code>，因此至少目前你还可以想咋用就咋用吧。<br />
+但是<code>AsyncRestTemplate</code>是明确标注了<code>@Deprecated</code>，强烈建议使用<code>org.springframework.web.reactive.function.client.WebClient</code>去代替，所以在5.0后不建议再使用它了~。</p>
+</blockquote>
+<p>当然还需要说明一点：若你的项目中没有使用到<code>WebFlux</code>的技术栈来处理请求，那么也没必要说为了使用而使用，所以没必要专门为了它而导包（个人建议）~</p>
+<pre><code><code>// @since 3.0
+public class RestTemplate extends InterceptingHttpAccessor implements RestOperations {
+    // 去classpath探测  是否有这些消息转换器相关的jar~
+    // 一般情况下我们都会导jackson2Present~~~
+    private static boolean romePresent;
+    private static final boolean jaxb2Present;
+    private static final boolean jackson2Present;
+    private static final boolean jackson2XmlPresent;
+    private static final boolean jackson2SmilePresent;
+    private static final boolean jackson2CborPresent;
+    private static final boolean gsonPresent;
+    private static final boolean jsonbPresent;
+    ...
+    
+    // 下面四个变量很重要：
+
+    // 消息转换器们（显然对JSON格式默认是支持得最好的）
+    private final List&lt;HttpMessageConverter&lt;?&gt;&gt; messageConverters = new ArrayList&lt;&gt;();
+    // 默认的请求异常处理器，Spring5.0后其实可以使用它ExtractingResponseErrorHandler
+    // 它能够利用消息换换气提取你的错误内容。并且还支持自定义错误码、错误序列等等~
+    private ResponseErrorHandler errorHandler = new DefaultResponseErrorHandler();
+    // 用于URL的构建
+    private UriTemplateHandler uriTemplateHandler;
+    // 默认的返回值提取器~~~~
+    private final ResponseExtractor&lt;HttpHeaders&gt; headersExtractor = new HeadersExtractor();
+
+    // 空构造，应该是平时使用得最多的了：一切都使用默认的组件配置Resource等等
+    public RestTemplate() {
+        // 这个几个消息转换器是支持的。字节数组、字符串、
+        this.messageConverters.add(new ByteArrayHttpMessageConverter());
+        this.messageConverters.add(new StringHttpMessageConverter());
+        this.messageConverters.add(new ResourceHttpMessageConverter(false));
+        this.messageConverters.add(new SourceHttpMessageConverter&lt;&gt;());
+        // 对form表单提交方式的支持
+        this.messageConverters.add(new AllEncompassingFormHttpMessageConverter());
+
+        // 接下里便是一些列的判断，若类路径上有才会加进来
+        if (jackson2Present) {
+            this.messageConverters.add(new MappingJackson2HttpMessageConverter());
+        }
+        ...
+        // new DefaultUriBuilderFactory()
+        this.uriTemplateHandler = initUriTemplateHandler();
+    }
+
+    // 你懂的，若想用OkHttp，也可以在构造时就指定
+    public RestTemplate(ClientHttpRequestFactory requestFactory) {
+        this();
+        setRequestFactory(requestFactory);
+    }
+
+    // 若不想用默认的消息转换器，也可以自己指定（其实一般都不这么去干，而是后面自己再add进来）
+    public RestTemplate(List&lt;HttpMessageConverter&lt;?&gt;&gt; messageConverters) {
+        Assert.notEmpty(messageConverters, &quot;At least one HttpMessageConverter required&quot;);
+        this.messageConverters.addAll(messageConverters);
+        this.uriTemplateHandler = initUriTemplateHandler();
+    }
+    ... // 省略上面属性的get/set犯法们
+}</code></code></pre>
+<p>这部分源码我列出来，都是在对构建一个<code>RestTemplate</code>实例的准备工作相关方法，包括对各个相关组件的设置。</p>
+<p>接下来更重要的便是它实现的接口方法了，我抽出一些关键点进行描述说明：</p>
+<pre><code><code>RestTemplate：
+
+    @Override
+    @Nullable
+    public &lt;T&gt; T getForObject(String url, Class&lt;T&gt; responseType, Object... uriVariables) throws RestClientException {
+        //1、new AcceptHeaderRequestCallback(responseType)  它能在发送请求的之前这样一件事：
+        // request.getHeaders().setAccept(allSupportedMediaTypes)
+        RequestCallback requestCallback = acceptHeaderRequestCallback(responseType);
+        HttpMessageConverterExtractor&lt;T&gt; responseExtractor = new HttpMessageConverterExtractor&lt;&gt;(responseType, getMessageConverters(), logger);
+
+        // 最终调用的是execute方法，此时URL是个字符串
+        // responseExtractor返回值提取器使用的是消息转换器去读取body哒~
+        // 返回值就是返回的body本身（不含有返回的响应头等等信息~）
+        return execute(url, HttpMethod.GET, requestCallback, responseExtractor, uriVariables);
+    }
+
+    // 它返回的是ResponseEntity，不会返回null的  最终调用的依旧是execute方法
+    // 此时候用的就不是消息转换器的提取器了，而是内部类`ResponseEntityResponseExtractor`（底层还是依赖消息转换器）
+    // 但是这个提取器，提取出来的可都是ResponseEntity&lt;T&gt;实例~
+    @Override
+    public &lt;T&gt; ResponseEntity&lt;T&gt; getForEntity(String url, Class&lt;T&gt; responseType, Object... uriVariables) throws RestClientException {
+        RequestCallback requestCallback = acceptHeaderRequestCallback(responseType);
+        ResponseExtractor&lt;ResponseEntity&lt;T&gt;&gt; responseExtractor = responseEntityExtractor(responseType);
+        return nonNull(execute(url, HttpMethod.GET, requestCallback, responseExtractor, uriVariables));
+    }
+
+    // HEAD请求：很简单，使用的提取器就是headersExtractor，从返回值里把响应header拿出来即可
+    @Override
+    public HttpHeaders headForHeaders(String url, Object... uriVariables) throws RestClientException {
+        return nonNull(execute(url, HttpMethod.HEAD, null, headersExtractor(), uriVariables));
+    }
+
+
+    // POST请求
+    @Override
+    @Nullable
+    public URI postForLocation(String url, @Nullable Object request, Object... uriVariables) throws RestClientException {
+        // 1、HttpEntityRequestCallback  适配：把request适配成一个HttpEntity
+        // 然后执行前，通过消息转换器把头信息、body信息等等都write进去
+        RequestCallback requestCallback = httpEntityCallback(request);
+        // 因为需要拿到URI，所以此处使用headersExtractor提取器先拿到响应的header即可~~~
+        HttpHeaders headers = execute(url, HttpMethod.POST, requestCallback, headersExtractor(), uriVariables);
+        return (headers != null ? headers.getLocation() : null);
+    }
+
+    // 除了httpEntityCallback()不一样，其余和get请求一样
+    @Override
+    @Nullable
+    public &lt;T&gt; T postForObject(String url, @Nullable Object request, Class&lt;T&gt; responseType, Object... uriVariables) throws RestClientException {
+        RequestCallback requestCallback = httpEntityCallback(request, responseType);
+        HttpMessageConverterExtractor&lt;T&gt; responseExtractor =
+                new HttpMessageConverterExtractor&lt;&gt;(responseType, getMessageConverters(), logger);
+        return execute(url, HttpMethod.POST, requestCallback, responseExtractor, uriVariables);
+    }
+
+    // PUT请求：因为没有返回值，所以不需要返回值提取器。所以，非常的简单~~~
+    @Override
+    public void put(String url, @Nullable Object request, Object... uriVariables) throws RestClientException {
+        RequestCallback requestCallback = httpEntityCallback(request);
+        execute(url, HttpMethod.PUT, requestCallback, null, uriVariables);
+    }
+
+    // DELETE请求：也是木有返回值的。
+    // 并且请注意：DELETE请求这里可都是不能接收body的，不能给请求设置请求体的
+    // （虽然可能底层httpCLient支持，但这里不支持，请遵守规范）
+    @Override
+    public void delete(String url, Object... uriVariables) throws RestClientException {
+        execute(url, HttpMethod.DELETE, null, null, uriVariables);
+    }
+
+    // OPTIONS请求：和HEAD请求的处理逻辑几乎一样
+    @Override
+    public Set&lt;HttpMethod&gt; optionsForAllow(String url, Object... uriVariables) throws RestClientException {
+        ResponseExtractor&lt;HttpHeaders&gt; headersExtractor = headersExtractor();
+        HttpHeaders headers = execute(url, HttpMethod.OPTIONS, null, headersExtractor, uriVariables);
+        return (headers != null ? headers.getAllow() : Collections.emptySet());
+    }</code></code></pre>
+<p>所有方法大体执行逻辑一致，都是和<code>RequestCallback</code>、<code>responseExtractor</code>等有关，且最终都是委托给了最为底层的<code>execute()</code>方法去执行。</p>
+<p>你是否疑问：它提供的put方法返回值都是void，若我put请求就有返回值肿么办呢？那么接下来就介绍更为通用的一个方法：<code>exchange()</code></p>
+<pre><code><code>RestTemplate：
+
+    @Override
+    public &lt;T&gt; ResponseEntity&lt;T&gt; exchange(String url, HttpMethod method, @Nullable HttpEntity&lt;?&gt; requestEntity, Class&lt;T&gt; responseType, Map&lt;String, ?&gt; uriVariables) throws RestClientException {
+        // 把请求体适配为HttpEntity
+        RequestCallback requestCallback = httpEntityCallback(requestEntity, responseType);
+        // 消息提取器使用ResponseEntityResponseExtractor
+        ResponseExtractor&lt;ResponseEntity&lt;T&gt;&gt; responseExtractor = responseEntityExtractor(responseType);
+
+        // 从上两个部分就能看到：exchange方法的入参、出参都是非常通用的~~~
+        return nonNull(execute(url, method, requestCallback, responseExtractor, uriVariables));
+    }
+
+    // ParameterizedTypeReference参数化类型，用于处理泛型
+    // 上面的responseType就是个Class。这里是个参数化类型~~~~~
+    @Override
+    public &lt;T&gt; ResponseEntity&lt;T&gt; exchange(String url, HttpMethod method, @Nullable HttpEntity&lt;?&gt; requestEntity, ParameterizedTypeReference&lt;T&gt; responseType, Object... uriVariables) throws RestClientException {
+
+        Type type = responseType.getType();
+        RequestCallback requestCallback = httpEntityCallback(requestEntity, type);
+        ResponseExtractor&lt;ResponseEntity&lt;T&gt;&gt; responseExtractor = responseEntityExtractor(type);
+        return nonNull(execute(url, method, requestCallback, responseExtractor, uriVariables));
+    }
+
+    // 这个方法就非常精简了，让调用者自己去构造RequestEntity，里面是包含了请求的URL和方法等信息的
+    @Override
+    public &lt;T&gt; ResponseEntity&lt;T&gt; exchange(RequestEntity&lt;?&gt; requestEntity, Class&lt;T&gt; responseType) throws RestClientException {
+        RequestCallback requestCallback = httpEntityCallback(requestEntity, responseType);
+        ResponseExtractor&lt;ResponseEntity&lt;T&gt;&gt; responseExtractor = responseEntityExtractor(responseType);
+        return nonNull(doExecute(requestEntity.getUrl(), requestEntity.getMethod(), requestCallback, responseExtractor));
+    }</code></code></pre>
+<p><code>exchange</code>所有方法使用的都是<code>HttpEntity</code>和<code>ResponseEntity</code>代表请求实体和响应实体，足以见到它设计的通用性。</p>
+<blockquote>
+<p>在Spring3.2后提供了<code>ParameterizedTypeReference</code>来处理参数化类型---&gt; 主要是为了处理List等的泛型</p>
+</blockquote>
+<p>可以发现即使是<code>exchange()</code>方法，最终还是委托给<code>execute/doExecute</code>去执行的：</p>
+<pre><code><code>RestTemplate：
+
+    // 3个execute方法。最终调用的都是doExecute方法
+    // 它做的一件事：使用UriTemplateHandler把URL的参数填进去~~~
+    // 底层使用的是我上文介绍的`UriComponentsBuilder`，还是比较简单的
+    @Override
+    @Nullable
+    public &lt;T&gt; T execute(String url, HttpMethod method, @Nullable RequestCallback requestCallback, @Nullable ResponseExtractor&lt;T&gt; responseExtractor, Object... uriVariables) throws RestClientException {
+        URI expanded = getUriTemplateHandler().expand(url, uriVariables);
+        return doExecute(expanded, method, requestCallback, responseExtractor);
+    }
+
+doExecute方法：
+    @Nullable
+    protected &lt;T&gt; T doExecute(URI url, @Nullable HttpMethod method, @Nullable RequestCallback requestCallback, @Nullable ResponseExtractor&lt;T&gt; responseExtractor) throws RestClientException {
+        ClientHttpResponse response = null;
+        ClientHttpRequest request = createRequest(url, method);
+        // 如果有回调，那就先回调处理一下子请求
+        if (requestCallback != null) {
+            requestCallback.doWithRequest(request);
+        }
+        // 真正意义上的发送请求。
+        // 请注意：如果这里的request是`InterceptingClientHttpRequest`，那就回执行拦截器的intercept方法哦~~~
+        // 至于什么时候是InterceptingClientHttpRequest呢？这个上面有讲的
+        response = request.execute();
+        // 处理结果（若有错误，那就抛出异常~~~）
+        handleResponse(url, method, response);
+        
+        // 请求正常。那就使用返回值提取器responseExtractor提取出内容即可了~~~
+        return (responseExtractor != null ? responseExtractor.extractData(response) : null);
+        ...
+        // 关闭响应（ClientHttpResponse继承了Closeable接口）
+        finally {
+            if (response != null) {
+                response.close();
+            }
+        }
+    }</code></code></pre>
+<p>看完<code>doExecute()</code>的模板式的实现步骤，就清楚了<code>RestTemplate</code>从发出一个请求到收到一个响应的完整过程。<code>Spring</code>设计了多个相关组件，提供钩子程序让我们可以干预到流程里面去，最常见的当然就是请求拦截器了，<strong>它在Ribbon负载均衡和Hystrix熔断器里面有很好的应用~</strong></p>
+<h2 id="asyncresttemplate"><del>AsyncRestTemplate</del></h2>
+<p>它是<code>@since 4.0</code>新增的用于解决一些异步Http请求的场景，但它寿命比较短，在<code>Spring5.0</code>就标记为<code>@Deprecated</code>，而被推荐使用<code>WebClient</code>去代替它。</p>
+<p>它的实现基础原理是：<code>RestTemplate</code> + <code>SimpleAsyncTaskExecutor</code>任务池的方式去实现的异步请求，返回值均为<code>ListenableFuture</code>。掌握了<code>RestTemplate</code>后，它使用起来是没有什么障碍的</p>
+<h3 id="极简使用demo-show">极简使用Demo Show</h3>
+<p>看过了原理的描述，我有理由相信你已经烂熟于胸并对<code>RestTemplate</code>能够运用自如了。因此关于使用方面，本文只给如下非常简单的一个Demo Show我认为是够了的：</p>
+<pre><code><code>public static void main(String[] args) throws IOException {
+    RestTemplate restTemplate = new RestTemplate();
+    String pageHtml = restTemplate.getForObject(&quot;http://www.baidu.com&quot;, String.class);
+    System.out.println(pageHtml); // 百度首页的html...
+}</code></code></pre>
+<p>解释一点：这里请求得到的是一个html网页，所以<code>HttpMessageConverterExtractor</code>去提取响应时，使用的是<code>StringHttpMessageConverter</code>去处理的，提取代码如下：</p>
+<pre><code><code>StringHttpMessageConverter：
+    @Override
+    protected String readInternal(Class&lt;? extends String&gt; clazz, HttpInputMessage inputMessage) throws IOException {
+        // 从响应头的contentType里提取（若是application/json,那默认也是urf-8）
+        // 若没有指定编码，就取值getDefaultCharset。比如本处访问百度，就取值默认值`ISO-8859-1`对body体进行编码的~
+        Charset charset = getContentTypeCharset(inputMessage.getHeaders().getContentType());
+        return StreamUtils.copyToString(inputMessage.getBody(), charset);
+    }</code></code></pre>
+<p>小伙伴把此请求案例可以和上面我使用<code>ClientHttpRequestFactory</code>发送请求的案例对比（或者和你自己使用<code>HttpClient</code>步骤对比），感受感受使用<code>RestTemplate</code>是多么的优雅~</p>
+<h4 id="推荐阅读">推荐阅读</h4>
+<p><a href="https://fangshixiang.blog.csdn.net/article/details/100713622">RestTemplate组件：ClientHttpRequestFactory、ClientHttpRequestInterceptor、ResponseExtractor【享学Spring MVC】</a><br />
+<a href="https://fangshixiang.blog.csdn.net/article/details/100788040">为何一个@LoadBalanced注解就能让RestTemplate拥有负载均衡的能力？【享学Spring Cloud】</a></p>
+<h4 id="总结">总结</h4>
+<p>微服务作为主流的今天，<code>RestTemplate</code>可谓是一把利器，每个程序员都应该掌握它。深入理解它对实际应用、调优都有很现实的意义，所以我相信本文能够帮助到你，做到烂熟于胸。<br />
+预告一下：下篇文章会原理分析告诉大家为何一个简单的<code>@LoadBalanced</code>注解就能让<code>RestTemplate</code>拥有负载均衡的能力？</p>
+<p>== <strong>若对Spring、SpringBoot、MyBatis等源码分析感兴趣，可加我wx：fsx641385712，手动邀请你入群一起飞</strong> ==<br />
+== <strong>若对Spring、SpringBoot、MyBatis等源码分析感兴趣，可加我wx：fsx641385712，手动邀请你入群一起飞</strong> ==</p>
+
+
+</div><hr><script charset='utf-8' src='../../js/sming.js'></script></body></html>

@@ -1,0 +1,188 @@
+<html><head><meta charset='utf-8'><meta name='viewport' content='width=device-width, initial-scale=1'>
+<meta name='applicable-device' content='pc'><meta name='keywords' content='电脑,电脑讲解,电脑技术,编程,电脑故障维修五、Spring之自动装配' />
+<script src='../../highlight/highlight.pack.js'></script>
+<link rel='stylesheet' type='text/css' href='../../highlight/styles/monokai.css'/>
+
+<link rel='stylesheet' href='../../fenxiang/dist/css/share.min.css'>
+<script src='../../fenxiang/src/js/social-share.js'></script>
+<script src='../../fenxiang/src/js/qrcode.js'></script>
+
+</head><body><script>hljs.initHighlightingOnLoad();</script><script>
+var system ={};  
+var p = navigator.platform;       
+system.win = p.indexOf('Win') == 0;  
+system.mac = p.indexOf('Mac') == 0;  
+system.x11 = (p == 'X11') || (p.indexOf('Linux') == 0);     
+if(system.win||system.mac||system.xll){
+document.write("<link href='../css/3.css' rel='stylesheet' type='text/css'>");}else{ document.write("<link href='../css/3wap.css' rel='stylesheet' type='text/css'>");}</script><script src='../../js/3.js'></script><div class='div2'><div class='heading_nav'><ul><div><li><a href='../../index.html'>首页</a></li>
+</div><div onclick='hidden1()' >分享</div>
+</ul></div></div>
+<div id='heading_nav2'> 
+<li class='row' >
+<div class='social-share' data-mode='prepend'><a href='javascript:' class='social-share-icon icon-heart'></a></div></li></div><script charset='utf-8' src='../../3/js/hengfu.js'></script><script charset='utf-8' src='../../3/js/hengfu2.js'></script><hr><div class='div1'><div class='biaoti'><center>五、Spring之自动装配</center></div><div class='banquan'>原文出处:本文由博客园博主ねぇ提供。<br/>
+原文连接:https://www.cnblogs.com/lee0527/p/11755361.html</div><br>
+    <h2 id="spring之自动装配">Spring之自动装配</h2>
+<p>​ Spring利用依赖注入(DI)，完成对IOC容器中各个组件依赖关系的赋值。</p>
+<h3 id="autowired">【1】@Autowired</h3>
+<p>@Autowired 注解，它可以对类成员变量、方法及构造函数进行标注，完成自动装配的工作。</p>
+<p>通过 @Autowired的使用来消除 set ，get方法。在使用@Autowired之前，我们对一个bean配置其属性时，是这样做的：</p>
+<pre><code><code>&lt;property name=&quot;属性名&quot; value=&quot;属性值&quot;/&gt;    </code></code></pre>
+<p>通过这种方式来，配置比较繁琐，而且代码比较多。在Spring 2.5 引入了 @Autowired 注解。</p>
+<p>由于该注解比较简单，这里就不再用代码举例说明了，主要来说一下@Autowired的原理和使用它的注意事项。</p>
+<p><strong>那么使用@Autowired的原理是什么？</strong></p>
+<p>​ 其实在启动Spring容器时，容器自动装载了一个AutowiredAnnotationBeanPostProcessor后置处理器，当容器扫描到@Autowied、@Resource或@Inject时，就会在IOC容器自动查找需要的bean，并装配给该对象的属性。</p>
+<p>这里说明一下@Resource和@Inject这两个注解：</p>
+<p>@Resource是通过JSR250规范实现的，通过<strong>CommonAnnotationBeanPostProcessor</strong>类实现依赖注入</p>
+<p>@Inject是通过JSR330规范实现的，通过<strong>AutowiredAnnotationBeanPostProcessor</strong>类实现的依赖注入</p>
+<p><strong>三个注解的相异之处：</strong></p>
+<p>@Autowired和@Inject基本是一样的，因为两者都是使用AutowiredAnnotationBeanPostProcessor来处理依赖注入。但是@Resource是个例外，它使用的是CommonAnnotationBeanPostProcessor来处理依赖注入。当然，两者都是BeanPostProcessor。</p>
+<p>​ @Resource默认是按照组件名称进行装配的，不能支持@Primary(标注在配置类的Bean上，在自动注入时优先注入该Bean)和@Autowired(required=false)功能</p>
+<p>​ @Inject需要导入javax.inject包，和@Autowired功能一样，不支持@Autowired(required=false)<strong>功能</strong></p>
+<p><strong>@Autowired</strong>可以标注的位置：</p>
+<pre class="java"><code>@Target({ElementType.CONSTRUCTOR, ElementType.METHOD, ElementType.PARAMETER, ElementType.FIELD, ElementType.ANNOTATION_TYPE})
+@Retention(RetentionPolicy.RUNTIME)
+@Documented
+public @interface Autowired {
+    boolean required() default true;
+}</code></code></pre>
+<p>​ 标注到构造器、参数、方法、属性都是从容器中获取参数组件的值</p>
+<ul>
+<li>构造器：如果当前类只有一个有参构造器，这个有参构造器上的@Autowired可以省略。</li>
+<li>方法：在标注@Bean注解的方法上，参数可以不用标注@Autowired注解，也会自动从容器中获取。</li>
+</ul>
+<h3 id="aware">【2】Aware</h3>
+<p>​ Spring的依赖注入的最大亮点就是你所有的Bean对Spring容器的存在是没有意识的。即你可以将你的容器替换成别的容器，例如Goggle Guice,这时Bean之间的耦合度很低。</p>
+<p>​ 但是在实际的项目中，我们不可避免的要用到Spring容器本身的功能资源，这时候Bean必须要意识到Spring容器的存在，才能调用Spring所提供的资源，这就是所谓的Spring Aware。其实Spring Aware本来就是Spring设计用来框架内部使用的，若使用了Spring Aware，你的Bean将会和Spring框架耦合。</p>
+<p>​ 比如BeanNameAware、BeanFactoryAware、ApplicationContextAware接口。假设我们的类继承了BeanNameAware这个接口，对应这个接口有一个方法setBeanName的方法，spring在依赖注入的初始化阶段会调用生成对象的这个方法，把beanName传为入参传进来。一般我们在会自己写的类里面定义一个属性来接收这个beanName，然后这个beanName我们就可以在开发中使用了。</p>
+<p>​ 常用的Aware接口:</p>
+<table>
+<thead>
+<tr class="header">
+<th style="text-align: left;">Aware子接口</th>
+<th style="text-align: left;">描述</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td style="text-align: left;">BeanNameAware</td>
+<td style="text-align: left;">获取容器中 Bean 的名称</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">BeanFactoryAware</td>
+<td style="text-align: left;">获取当前 BeanFactory</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;">ApplicationContextAware</td>
+<td style="text-align: left;">获取当前容器</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">MessageSourceAware</td>
+<td style="text-align: left;">与国际化相关</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;">ApplicationEventPublisherAware</td>
+<td style="text-align: left;">主要用于发布事件</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">ResourceLoaderAware</td>
+<td style="text-align: left;">获取资源加载器，这样获取外部资源文件</td>
+</tr>
+</tbody>
+</table>
+<p>​ 下面以实现BeanNameAware为例：</p>
+<pre class="java"><code>public class Person implements BeanNameAware {
+    private String name;
+
+    public String getName() {
+        return name;
+    }
+
+    public void setName(String name) {
+        this.name = name;
+    }
+
+    public Person() {
+    }
+
+    @Override
+    public String toString() {
+        return &quot;Person{&quot; +
+                &quot;name=&#39;&quot; + name + &#39;\&#39;&#39; +
+                &#39;}&#39;;
+    }
+    
+    @Override
+    public void setBeanName(String s) {
+        this.name = s;
+    }
+}</code></code></pre>
+<p>​ 在配置类中注入Person</p>
+<pre class="java"><code>@Configuration
+public class MyConfig {
+    @Bean(&quot;Jack&quot;)
+    public Person person(){
+        return new Person();
+    }
+}
+
+/**在测试类中获取该Bean并打印
+Person{name=&#39;Jack&#39;}
+*/</code></code></pre>
+<h3 id="profile">【3】@Profile</h3>
+<p><strong>1.Spring中的@Profile 是什么?</strong></p>
+<p>​ Spring中的Profile功能其实早在Spring 3.1的版本就已经出来，它可以理解为我们在Spring容器中所定义的Bean的<strong>逻辑组名称</strong>，只有当这些Profile被激活的时候，才会将Profile中所对应的Bean注册到Spring容器中。举个更具体的例子，我们以前所定义的Bean，当Spring容器一启动的时候，就会一股脑的全部加载这些信息完成对Bean的创建；而使用了Profile之后，它会将Bean的定义进行更细粒度的划分，将这些定义的Bean划分为几个不同的组，当Spring容器加载配置信息的时候，首先查找激活的Profile，然后只会去加载被激活的组中所定义的Bean信息，而不被激活的Profile中所定义的Bean定义信息是不会加载用于创建Bean的。</p>
+<p><strong>2.@Profile如何使用</strong></p>
+<p>​ 下面我们定义两个数据源，分别使用@Profile注解指定在测试和开发阶段使用</p>
+<pre class="java"><code>@Configuration
+public class MyConfig {
+    @Bean
+    @Profile(&quot;test&quot;)
+    public DataSource dataSourceTest() throws PropertyVetoException {
+        ComboPooledDataSource dataSource = new ComboPooledDataSource();
+        dataSource.setDriverClass(&quot;com.mysql.jdbc.driver&quot;);
+        dataSource.setJdbcUrl(&quot;jdbc:mysql:///test&quot;);
+        dataSource.setUser(&quot;root&quot;);
+        dataSource.setPassword(&quot;root&quot;);
+        return dataSource;
+    }
+    @Bean
+    @Profile(&quot;dev&quot;)
+    public DataSource dataSourceDev() throws PropertyVetoException {
+        ComboPooledDataSource dataSource = new ComboPooledDataSource();
+        dataSource.setDriverClass(&quot;com.mysql.jdbc.driver&quot;);
+        dataSource.setJdbcUrl(&quot;jdbc:mysql:///test&quot;);
+        dataSource.setUser(&quot;root&quot;);
+        dataSource.setPassword(&quot;root&quot;);
+        return dataSource;
+    }
+}</code></code></pre>
+<p>​ 在测试类中我们设置当前激活环境为test：</p>
+<pre class="java"><code>public class ProfileTest {
+    @Test
+    public void test(){
+        AnnotationConfigApplicationContext applicationContext = new AnnotationConfigApplicationContext();
+        ConfigurableEnvironment environment = applicationContext.getEnvironment();
+        environment.setActiveProfiles(&quot;test&quot;);
+        applicationContext.register(MyConfig.class);
+        applicationContext.refresh();
+        String[] names = applicationContext.getBeanDefinitionNames();
+        for (String name : names) {
+            System.out.println(name);
+        }
+    }
+}
+
+/**测试结果
+org.springframework.context.annotation.internalConfigurationAnnotationProcessor
+org.springframework.context.annotation.internalAutowiredAnnotationProcessor
+org.springframework.context.annotation.internalCommonAnnotationProcessor
+org.springframework.context.event.internalEventListenerProcessor
+org.springframework.context.event.internalEventListenerFactory
+myConfig
+dataSourceTest
+*/</code></code></pre>
+<p>​ 在当前环境为test环境时，只有dataSourceTest被注入到容器当中。</p>
+<p>​ @Profile不仅可以标注到方法上面，还可以标注到类上，即整个类根据环境进行加载。</p>
+
+
+</div><hr><script charset='utf-8' src='../../js/sming.js'></script></body></html>

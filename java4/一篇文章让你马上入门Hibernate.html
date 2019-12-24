@@ -1,0 +1,259 @@
+<html><head><meta charset='utf-8'><meta name='viewport' content='width=device-width, initial-scale=1'>
+<meta name='applicable-device' content='pc'><meta name='keywords' content='电脑,电脑讲解,电脑技术,编程,电脑故障维修一篇文章让你马上入门Hibernate' />
+<script src='../../highlight/highlight.pack.js'></script>
+<link rel='stylesheet' type='text/css' href='../../highlight/styles/monokai.css'/>
+
+<link rel='stylesheet' href='../../fenxiang/dist/css/share.min.css'>
+<script src='../../fenxiang/src/js/social-share.js'></script>
+<script src='../../fenxiang/src/js/qrcode.js'></script>
+
+</head><body><script>hljs.initHighlightingOnLoad();</script><script>
+var system ={};  
+var p = navigator.platform;       
+system.win = p.indexOf('Win') == 0;  
+system.mac = p.indexOf('Mac') == 0;  
+system.x11 = (p == 'X11') || (p.indexOf('Linux') == 0);     
+if(system.win||system.mac||system.xll){
+document.write("<link href='../css/3.css' rel='stylesheet' type='text/css'>");}else{ document.write("<link href='../css/3wap.css' rel='stylesheet' type='text/css'>");}</script><script src='../../js/3.js'></script><div class='div2'><div class='heading_nav'><ul><div><li><a href='../../index.html'>首页</a></li>
+</div><div onclick='hidden1()' >分享</div>
+</ul></div></div>
+<div id='heading_nav2'> 
+<li class='row' >
+<div class='social-share' data-mode='prepend'><a href='javascript:' class='social-share-icon icon-heart'></a></div></li></div><script charset='utf-8' src='../../3/js/hengfu.js'></script><script charset='utf-8' src='../../3/js/hengfu2.js'></script><hr><div class='div1'><div class='biaoti'><center>一篇文章让你马上入门Hibernate</center></div><div class='banquan'>原文出处:本文由博客园博主#Temptation提供。<br/>
+原文连接:https://www.cnblogs.com/blizzawang/p/11411611.html</div><br>
+    <p><strong>在前面我们学完了Struts2，接下来我们就要去学习第二个框架Hibernate。</strong><br />
+那什么是Hibernate？<br />
+Hibernate是一个开放源代码的对象关系映射框架，它对JDBC进行了非常轻量级的对象封装，它将POJO与数据库表建立映射关系，是一个全自动的ORM框架，Hibernate可以自动生成SQL语句，自动执行，使得Java程序员可以随心所欲地使用对象编程思维来操纵数据库，Hibernate可以应用在任何使用JDBC的场合，既可以在Java的客户端程序使用，也可以在Servlet/JSP的Web应用中使用。<br />
+顺带介绍一下什么是ORM。<br />
+ORM：对象关系映射，是一种程序技术，简单来说就是把我们程序中的实体类和数据库表建立起来对应关系。<br />
+那为什么要有对象关系映射呢？<br />
+假设一下，当你开发一个应用程序的时候，你可能会写不少数据访问层的代码，用来从数据库保存、删除、读取对象信息等等。你在DAO中写了很多的方法来读取对象数据，改变状态对象等等任务，而这些代码很多都是重复的。<br />
+对象映射关系赋予了程序一种强大的能力，让开发者仅仅掌握面向对象的思维来操作数据库，即在关系型数据库和业务实体对象之间作一个映射，这样，我们在具体的操作业务对象的时候，就不需要再去和复杂的SQL语句打交道，只要像平时操作对象一样操作它就可以了。</p>
+<h4 id="helloworld">HelloWorld</h4>
+<p>关于Hibernate的一些基本知识了解完之后，我们来编写一个Hibernate的入门项目。<br />
+首先我们得编写hibernate的配置文件，在src目录下新建hibernate.cfg.xml文件：</p>
+<pre><code><code>&lt;?xml version=&quot;1.0&quot; encoding=&quot;UTF-8&quot;?&gt;
+&lt;!DOCTYPE hibernate-configuration PUBLIC
+        &quot;-//Hibernate/Hibernate Configuration DTD 3.0//EN&quot;
+        &quot;http://hibernate.sourceforge.net/hibernate-configuration-3.0.dtd&quot;&gt;
+&lt;hibernate-configuration&gt;
+    &lt;session-factory&gt;
+        &lt;!-- 配置连接数据库的基本信息 --&gt;
+        &lt;property name=&quot;connection.username&quot;&gt;root&lt;/property&gt;
+        &lt;property name=&quot;connection.password&quot;&gt;123456&lt;/property&gt;
+        &lt;property name=&quot;connection.driver_class&quot;&gt;com.mysql.jdbc.Driver&lt;/property&gt;
+        &lt;property name=&quot;connection.url&quot;&gt;jdbc:mysql:///test&lt;/property&gt;
+
+        &lt;!-- 配置hibernate的基本信息 --&gt;
+        &lt;property name=&quot;dialect&quot;&gt;org.hibernate.dialect.MySQL5InnoDBDialect&lt;/property&gt;
+
+        &lt;!-- 执行操作时是否在控制台打印sql --&gt;
+        &lt;property name=&quot;show_sql&quot;&gt;true&lt;/property&gt;
+
+        &lt;!-- 是否对sql进行格式化 --&gt;
+        &lt;property name=&quot;format_sql&quot;&gt;true&lt;/property&gt;
+
+        &lt;!-- 指定自动生成数据表的策略 --&gt;
+        &lt;property name=&quot;hbm2ddl.auto&quot;&gt;update&lt;/property&gt;
+
+        &lt;!-- 指定关联的.hbm.xml文件 --&gt;
+        &lt;mapping
+            resource=&quot;com/itcast/hibernate/helloworld/Account.hbm.xml&quot; /&gt;
+    &lt;/session-factory&gt;
+&lt;/hibernate-configuration&gt;</code></code></pre>
+<p>这里面就是配置一些相关的信息。<br />
+然后我们创建一个Bean类Account：</p>
+<pre class="java"><code>package com.itcast.hibernate.helloworld;
+
+public class Account {
+
+    private Integer id;
+    private String name;
+    private double money;
+
+    public Account() {
+
+    }
+
+    public Account(String name, double money) {
+        this.name = name;
+        this.money = money;
+    }
+
+    public Integer getId() {
+        return id;
+    }
+
+    public void setId(Integer id) {
+        this.id = id;
+    }
+
+    public String getName() {
+        return name;
+    }
+
+    public void setName(String name) {
+        this.name = name;
+    }
+
+    public double getMoney() {
+        return money;
+    }
+
+    public void setMoney(double money) {
+        this.money = money;
+    }
+
+    @Override
+    public String toString() {
+        return &quot;Account [id=&quot; + id + &quot;, name=&quot; + name + &quot;, money=&quot; + money + &quot;]&quot;;
+    }
+}</code></code></pre>
+<p>接下来我们需要创建对象关系映射的配置文件，在与该类同级的目录下新建Account.hbm.xml文件：</p>
+<pre><code><code>&lt;?xml version=&quot;1.0&quot;?&gt;
+&lt;!DOCTYPE hibernate-mapping PUBLIC &quot;-//Hibernate/Hibernate Mapping DTD 3.0//EN&quot;
+&quot;http://hibernate.sourceforge.net/hibernate-mapping-3.0.dtd&quot;&gt;
+&lt;hibernate-mapping&gt;
+    &lt;!-- 使Account类对应数据表ACCOUNT --&gt;
+    &lt;class name=&quot;com.itcast.hibernate.helloworld.Account&quot; table=&quot;ACCOUNT&quot;&gt;
+        &lt;!-- id标签中的name为类中的属性名;colum标签中的name为数据表中的列名 --&gt;
+        &lt;id name=&quot;id&quot; type=&quot;java.lang.Integer&quot;&gt;
+            &lt;column name=&quot;ID&quot; /&gt;
+            &lt;!-- 指定主键的生成方式  native:使用数据库本地的方式--&gt;
+            &lt;generator class=&quot;native&quot; /&gt;
+        &lt;/id&gt;
+        &lt;!-- property表示非id的其它列 --&gt;
+        &lt;property name=&quot;name&quot; type=&quot;java.lang.String&quot;&gt;
+            &lt;column name=&quot;NAME&quot; /&gt;
+        &lt;/property&gt;
+        &lt;property name=&quot;money&quot; type=&quot;double&quot;&gt;
+            &lt;column name=&quot;MONEY&quot; /&gt;
+        &lt;/property&gt;
+    &lt;/class&gt;
+&lt;/hibernate-mapping&gt;</code></code></pre>
+<p>简单地配置一下，该配置文件目的是使类和表进行一个映射。<br />
+然后我们编写一下测试代码：</p>
+<pre class="java"><code>        // 1、创建一个SessionFactory对象
+        SessionFactory sessionFactory = null;
+        // 1)、创建Configuration对象:对应hibernate的基本配置信息和对象关系映射信息
+        // 默认关联的是hibernate.hbm.xml文件，如果你的配置文件名是hibernate.hbm.xml，使用无参构造即可
+        Configuration configuration = new Configuration().configure();
+        sessionFactory = configuration.buildSessionFactory();
+        // 2、创建一个Session对象
+        Session session = sessionFactory.openSession();
+        // 3、开启事务
+        Transaction transaction = session.beginTransaction();
+        // 4、执行保存操作
+        Account account = new Account(&quot;张三&quot;,1000);
+        session.save(account);
+        // 5、提交事务
+        transaction.commit();
+        // 6、关闭Session
+        session.close();
+        // 7、关闭SessionFactory
+        sessionFactory.close();</code></code></pre>
+<p>然后运行测试代码，hibernate就会把数据保存到数据库，如果你没有这张表，hibernate会自动帮我们创建好表然后插入数据。<br />
+因为hibernate版本的问题，所以这里面会有很多的坑，具体报了什么错大家可以自己百度解决。我这里的hibernate版本是5.X的。</p>
+<pre><code><code>+----+------+-------+
+| ID | NAME | MONEY |
++----+------+-------+
+|  1 | 张三 |  1000 |
++----+------+-------+
+1 row in set (0.00 sec)</code></code></pre>
+<p>那么在创建持久化类的时候需要注意下面几个问题：</p>
+<ul>
+<li>必须提供一个无参的构造器<br />
+因为Hibernate需要使用Constructor.newInstance()来实例化持久化类</li>
+<li>提供一个标识属性<br />
+通常映射为数据表的主键字段，如果没有该属性，一些功能将不起作用</li>
+<li>为类的持久化类字段声明访问方法</li>
+<li>使用非final类<br />
+在运行时生成代理是Hibernate的一个重要的功能，如果持久化类没有实现任何接口，Hibernate将使用CGLIB生成代理，如果使用的是final类，则无法生成CGLIB代理</li>
+<li>重写equals和hashCode方法<br />
+如果需要把持久化类的实例放到Set中(当需要进行关联映射时)，则应该重写这两个方法</li>
+</ul>
+<p>入门案例我们就编写完了， 相信两个配置文件的配置信息大家都能明白，注释也写得很清楚，那么关于测试代码的一些类API，这里分别介绍一下。</p>
+<ol>
+<li>Configuration：<br />
+Configuration类负责管理Hibernate的配置信息，包括如下内容：<br />
+Hibernate运行的底层信息：数据库的URL、用户名、密码、JDBC驱动类，数据库Dialect、数据库连接池等(对应hibernate.cfg.xml文件)<br />
+创建Configuration的两种方式：<br />
+属性文件(hibernate.properties)：<br />
+Configuration cfg = new Configuration();<br />
+Xml文件(hibernate.cfg.xml)<br />
+Configuration cfg = new Configuration().configure();<br />
+Configuration的configure方法还支持带参访问：<br />
+File file = new File(&quot;文件名&quot;);<br />
+Configuration cfg = new Configuration().configure(file);</li>
+<li>SessionFactory：<br />
+针对单个数据库映射关系经过编译后的内存镜像，是线程安全的<br />
+SessionFactory对象一旦构造完毕，即被赋予特定的配置信息<br />
+SessionFactory是生产Session的工厂<br />
+构造SessionFactory很消耗资源，一般情况下一个应用中只初始化一个SessionFactory对象</li>
+<li>Session：<br />
+Session是应用程序与数据库之间交互操作的一个而单线程对象，是Hibernate运作的中心，所有持久化对象必须在session的管理下才可以进行持久化操作。此对象的生命周期很短。Session对象有一个一级缓存，显式执行flush之前，所有的持久化层操作的数据都缓存在session对象处，相当于JDBC中的Connection</li>
+<li>Transaction：<br />
+事务，学过数据库的应该都明白，不重复说</li>
+</ol>
+<h4 id="更新">更新</h4>
+<p>上面说到了插入数据，那么这里说一下如何使用hibernate完成更新操作。</p>
+<ul>
+<li>session.save(obj); 【保存一个对象】</li>
+<li>session.update(obj); 【更新一个对象】</li>
+<li>session.saveOrUpdate(obj); 【保存或者更新的方法】<br />
+没有设置主键，执行保存；<br />
+有设置主键，执行更新操作;<br />
+如果设置主键不存在报错！</li>
+</ul>
+<pre class="java"><code>        SessionFactory sessionFactory = null;
+        Configuration configuration = new Configuration().configure();
+        sessionFactory = configuration.buildSessionFactory();
+        Session session = sessionFactory.openSession();
+        Transaction transaction = session.beginTransaction();
+        Account account = session.get(Account.class, 1);
+        account.setMoney(2000);
+        session.update(account);
+        transaction.commit();
+        session.close();
+        sessionFactory.close();</code></code></pre>
+<p>运行然后查询数据库：</p>
+<pre><code><code>+----+------+-------+
+| ID | NAME | MONEY |
++----+------+-------+
+|  1 | 张三 |  2000 |
++----+------+-------+
+1 row in set (0.00 sec)</code></code></pre>
+<h4 id="查询">查询</h4>
+<p>接下来是查询。</p>
+<pre class="java"><code>        SessionFactory sessionFactory = null;
+        Configuration configuration = new Configuration().configure();
+        sessionFactory = configuration.buildSessionFactory();
+        Session session = sessionFactory.openSession();
+        Transaction transaction = session.beginTransaction();
+        Account account = session.load(Account.class, 1);
+        System.out.println(account);
+        transaction.commit();
+        session.close();
+        sessionFactory.close();</code></code></pre>
+<p>运行结果：<br />
+<img src="./images/一篇文章让你马上入门Hibernate0.png" alt="在这里插入图片描述" /></p>
+<h4 id="删除">删除</h4>
+<p>最后是删除。</p>
+<pre class="java"><code>        SessionFactory sessionFactory = null;
+        Configuration configuration = new Configuration().configure();
+        sessionFactory = configuration.buildSessionFactory();
+        Session session = sessionFactory.openSession();
+        Transaction transaction = session.beginTransaction();
+        Account account = session.get(Account.class, 1);
+        session.delete(account);
+        transaction.commit();
+        session.close();
+        sessionFactory.close();</code></code></pre>
+<p>运行结果：</p>
+<pre><code><code>mysql&gt; select * from account;
+Empty set (0.00 sec)</code></code></pre>
+<h4 id="总结">总结</h4>
+<p>关于增删改查的操作是非常简单的，只要会一个，其它的就都能会，因为道理是一样的。当然关于hibernate的使用远不止这么点功能，但本篇文章只是为了让你尽快入门，所以一些更高级的功能我打算写在进阶里。</p>
+
+
+</div><hr><script charset='utf-8' src='../../js/sming.js'></script></body></html>

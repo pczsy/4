@@ -1,0 +1,107 @@
+<html><head><meta charset='utf-8'><meta name='viewport' content='width=device-width, initial-scale=1'>
+<meta name='applicable-device' content='pc'><meta name='keywords' content='电脑,电脑讲解,电脑技术,编程,电脑故障维修springboot 自定义LocaleResolver切换语言' />
+<script src='../../highlight/highlight.pack.js'></script>
+<link rel='stylesheet' type='text/css' href='../../highlight/styles/monokai.css'/>
+
+<link rel='stylesheet' href='../../fenxiang/dist/css/share.min.css'>
+<script src='../../fenxiang/src/js/social-share.js'></script>
+<script src='../../fenxiang/src/js/qrcode.js'></script>
+
+</head><body><script>hljs.initHighlightingOnLoad();</script><script>
+var system ={};  
+var p = navigator.platform;       
+system.win = p.indexOf('Win') == 0;  
+system.mac = p.indexOf('Mac') == 0;  
+system.x11 = (p == 'X11') || (p.indexOf('Linux') == 0);     
+if(system.win||system.mac||system.xll){
+document.write("<link href='../css/3.css' rel='stylesheet' type='text/css'>");}else{ document.write("<link href='../css/3wap.css' rel='stylesheet' type='text/css'>");}</script><script src='../../js/3.js'></script><div class='div2'><div class='heading_nav'><ul><div><li><a href='../../index.html'>首页</a></li>
+</div><div onclick='hidden1()' >分享</div>
+</ul></div></div>
+<div id='heading_nav2'> 
+<li class='row' >
+<div class='social-share' data-mode='prepend'><a href='javascript:' class='social-share-icon icon-heart'></a></div></li></div><script charset='utf-8' src='../../3/js/hengfu.js'></script><script charset='utf-8' src='../../3/js/hengfu2.js'></script><hr><div class='div1'><div class='biaoti'><center>springboot 自定义LocaleResolver切换语言</center></div><div class='banquan'>原文出处:本文由博客园博主ITfxsen提供。<br/>
+原文连接:https://www.cnblogs.com/fxsenblog/p/11696604.html</div><br>
+    <p><input type="hidden" id="head_bg_img" value="https://i.loli.net/2019/10/17/rTQDKBaZjdLFvwI.jpg"/></p>
+<h1 id="springboot-自定义localeresolver切换语言">springboot 自定义LocaleResolver切换语言</h1>
+<h2 id="我们在做项目的时候往往有很多项目需要根据用户的需要来切换不同的语言使用国际化就可以轻松解决">我们在做项目的时候，往往有很多项目需要根据用户的需要来切换不同的语言，使用国际化就可以轻松解决。</h2>
+<h2 id="我们可以自定义springboor中的localeresolver来进行简单的国际化处理下面来通过简单demo来简单的了解国际化">我们可以自定义springboor中的LocaleResolver来进行简单的国际化处理，下面来通过简单Demo来简单的了解国际化。</h2>
+<h2 id="在下面的demo中我用的是thymeleaf模板引擎标签的形式对国际化进行取值">在下面的Demo中，我用的是thymeleaf模板引擎标签的形式对国际化进行取值。</h2>
+<h3 id="在pom中引入thymeleaf模板引擎">1、在pom中引入thymeleaf模板引擎</h3>
+<pre><code><code>//引入thymeleaf
+&lt;dependency&gt;
+  &lt;groupId&gt;org.springframework.boot&lt;/groupId&gt;
+  &lt;artifactId&gt;spring-boot-starter-thymeleaf&lt;/artifactId&gt;
+&lt;/dependency&gt;</code></code></pre>
+<h3 id="我这里是以登录界面为例">我这里是以登录界面为例</h3>
+<p><img src="./images/springboot 自定义LocaleResolver切换语言0.png" /></p>
+<h3 id="在resources下面创建一个i18n的文件夹然后创建一个login.properties">2、在resources下面创建一个i18n的文件夹，然后创建一个login.properties</h3>
+<p><img src="./images/springboot 自定义LocaleResolver切换语言1.png" /></p>
+<h3 id="login.propertie默认显示的语言">login.propertie：默认显示的语言</h3>
+<pre class="properties"><code>login.button=登陆
+login.password=密码
+login.remember=记住我
+login.tip=请登陆
+login.username=用户名</code></code></pre>
+<h3 id="login_en_us.properties美国英语">login_en_US.properties：美国（英语）</h3>
+<pre class="properties"><code>login.button=Sign In
+login.password=PassWord
+login.remember=Remember Me
+login.tip=Please sign in
+login.username=UserName</code></code></pre>
+<h3 id="login_zh_cn.properties中文">login_zh_CN.properties：中文</h3>
+<pre class="properties"><code>login.button=登陆
+login.password=密码
+login.remember=记住我
+login.tip=请登陆
+login.username=用户名</code></code></pre>
+<h3 id="在登录页面通过thymeleaf标签引入国际化">3、在登录页面通过thymeleaf标签引入国际化</h3>
+<p><img src="./images/springboot 自定义LocaleResolver切换语言2.png" /></p>
+<h3 id="注意input标签需要用来进行取值">注意：input标签需要用[[]]来进行取值</h3>
+<h3 id="运行项目将浏览器语言设置为英语美国或者中文我们的页面就会切换语言">4、运行项目，将浏览器语言设置为英语（美国）或者中文，我们的页面就会切换语言。</h3>
+<p><img src="./images/springboot 自定义LocaleResolver切换语言0.png" /></p>
+<p><img src="./images/springboot 自定义LocaleResolver切换语言4.png" /></p>
+<h2 id="但是这里必须要手动设置浏览器语言才可以实现中英文切换最终的效果是点击页面上中文和english来进行切换语言下面来实现这个功能">但是这里必须要手动设置浏览器语言才可以实现中英文切换，最终的效果是点击页面上中文和English来进行切换语言，下面来实现这个功能：</h2>
+<h3 id="springboot为我们自动配置了localeresolver组件实现国际化我们需要自定义localeresolver才能起作用代码如下">1、SpringBoot为我们自动配置了LocaleResolver组件，实现国际化我们需要自定义LocaleResolver才能起作用，代码如下：</h3>
+<pre class="java"><code>**
+ * Describe: 国际化
+ * Copyright: ITfxsen
+ * Date: 2019/10/17
+ * Time: 16:18
+ * @author fu.qiang
+ * @version 1.0
+ */
+@Configuration
+public class MyLocaleResolver implements LocaleResolver {
+    @Override
+    public Locale resolveLocale(HttpServletRequest httpServletRequest) {
+        String l = httpServletRequest.getParameter(&quot;l&quot;);
+        if (StringUtils.isEmpty(l)){
+            Locale locale = Locale.getDefault();
+            return locale;
+        }else {
+            String[] split = l.split(&quot;_&quot;);
+            return new Locale(split[0],split[1]);
+        }
+    }</code></code></pre>
+<h3 id="再将自定义localeresolver注入到spring容器中">2、再将自定义LocaleResolver注入到spring容器中：</h3>
+<pre class="java"><code>/**
+     * Describe: 注入自定义的LocaleResolver
+     * @param
+     * @return
+     * @Time: 2019/10/18 9:38
+     * @autho: fu.qiang
+     * @version 1.0
+     */
+    @Bean
+    public LocaleResolver localeResolver(){
+        return new MyLocaleResolver();
+    }</code></code></pre>
+<h3 id="在页面上使用thymeleaf模板引擎对中英文切换的a标签的href属性覆盖">3、在页面上使用Thymeleaf模板引擎，对中英文切换的a标签的href属性覆盖：</h3>
+<pre class="html"><code>&lt;a class=&quot;btn btn-sm&quot; th:href=&quot;@{/login(l=&#39;zh_CN&#39;)}&quot;&gt;中文&lt;/a&gt;
+&lt;a class=&quot;btn btn-sm&quot;th:href=&quot;@{/login(l=&#39;en_US&#39;)}&quot;&gt;
+  English&lt;/a&gt;</code></code></pre>
+<h3 id="我们来看一下最终效果注意左上角地址的变化">4、我们来看一下最终效果（注意左上角地址的变化）：</h3>
+<p><img src="./images/springboot 自定义LocaleResolver切换语言5.png" /></p>
+
+
+</div><hr><script charset='utf-8' src='../../js/sming.js'></script></body></html>

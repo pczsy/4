@@ -1,0 +1,147 @@
+<html><head><meta charset='utf-8'><meta name='viewport' content='width=device-width, initial-scale=1'>
+<meta name='applicable-device' content='pc'><meta name='keywords' content='电脑,电脑讲解,电脑技术,编程,电脑故障维修188W+程序员关注过的问题：Java到底是值传递还是引用传递？' />
+<script src='../../highlight/highlight.pack.js'></script>
+<link rel='stylesheet' type='text/css' href='../../highlight/styles/monokai.css'/>
+
+<link rel='stylesheet' href='../../fenxiang/dist/css/share.min.css'>
+<script src='../../fenxiang/src/js/social-share.js'></script>
+<script src='../../fenxiang/src/js/qrcode.js'></script>
+
+</head><body><script>hljs.initHighlightingOnLoad();</script><script>
+var system ={};  
+var p = navigator.platform;       
+system.win = p.indexOf('Win') == 0;  
+system.mac = p.indexOf('Mac') == 0;  
+system.x11 = (p == 'X11') || (p.indexOf('Linux') == 0);     
+if(system.win||system.mac||system.xll){
+document.write("<link href='../css/3.css' rel='stylesheet' type='text/css'>");}else{ document.write("<link href='../css/3wap.css' rel='stylesheet' type='text/css'>");}</script><script src='../../js/3.js'></script><div class='div2'><div class='heading_nav'><ul><div><li><a href='../../index.html'>首页</a></li>
+</div><div onclick='hidden1()' >分享</div>
+</ul></div></div>
+<div id='heading_nav2'> 
+<li class='row' >
+<div class='social-share' data-mode='prepend'><a href='javascript:' class='social-share-icon icon-heart'></a></div></li></div><script charset='utf-8' src='../../3/js/hengfu.js'></script><script charset='utf-8' src='../../3/js/hengfu2.js'></script><hr><div class='div1'><div class='biaoti'><center>188W+程序员关注过的问题：Java到底是值传递还是引用传递？</center></div><div class='banquan'>原文出处:本文由博客园博主沉默王二提供。<br/>
+原文连接:https://www.cnblogs.com/qing-gee/p/12020253.html</div><br>
+    <p>在逛 Stack Overflow 的时候，发现了一些访问量像阿尔卑斯山一样高的问题，比如说这个：Java 到底是值传递还是引用传递？访问量足足有 188万+，这不得了啊！说明有很多很多的程序员被这个问题困扰过。实话实说吧，<a href="https://mp.weixin.qq.com/s/feoOINGSyivBO8Z1gaQVOA">我</a>就是其中之一。</p>
+<p>来回顾一下提问者的问题：</p>
+<blockquote>
+<p>我一直认为 Java 是按引用传递的，但是我看一些博客上说不是的。我就纳闷了，Java 到底是值传递还是引用传递？值传递和引用传递有什么区别呢？</p>
+</blockquote>
+<p>如果你也曾被这个问题困扰过，或者正在被困扰，就请随我一起来梳理一下问题的答案。打怪进阶喽！</p>
+<h3 id="值传递和引用传递">01、值传递和引用传递</h3>
+<p>什么是值传递，什么是引用传递？我们需要先把这两个定义搞清楚，才能搞清楚 Java 是按值传递还是按引用传递。</p>
+<blockquote>
+<p>值传递（pass by value）是指在调用方法时将实参复制一份传递到方法中，这样当方法对形参进行修改时不会影响到实参。<br><br />
+引用传递（pass by reference）是指在调用方法时将实参的地址直接传递到方法中，那么在方法中对形参所进行的修改，将影响到实参。</p>
+</blockquote>
+<p>上面是比较官方的定义，读起来不免生硬。在我看来，值传递和引用传递的关键区别有两点：</p>
+<p>1）调用方法时有没有对实参进行复制。</p>
+<p>2）方法内对形参的修改会不会影响到实参。</p>
+<p>what？值传递和引用传递还没有搞清楚，又来两个新名词：实参和形参。别急，别急。</p>
+<h3 id="实参和形参">02、实参和形参</h3>
+<p>实参和形参理解起来比值传递和引用传递容易的多，前者就好像是一元一次方程，后者就像是一元二次方程。</p>
+<blockquote>
+<p>形参：定义方法名和方法体的时候使用的参数，目的是用来接收调用该方法时传入的参数。<br><br />
+实参：在调用有参方法时传入的参数，方法名后面的括号中的参数通常被称为“实参”。</p>
+</blockquote>
+<p>大家应该都写过“hello world”程序了，就像下面这样。</p>
+<pre><code><code>public class Cmower {
+    public static void main(String[] args) {
+        System.out.println(&quot;hello world&quot;);
+    }
+}</code></code></pre>
+<p>其中 <code>args</code> 就相当于是形参，而字符串“hello world”就相当于是实参。如果觉得这个例子不容易理解，那再来看一个。</p>
+<pre><code><code>public class Cmower {
+    public static void main(String[] args) {
+        Cmower cmower = new Cmower();
+        cmower.sop(&quot;沉默王二&quot;);
+    }
+
+    public void sop(String name) {
+        System.out.println(&quot;hello &quot; + name);
+    }
+}</code></code></pre>
+<p>其中“沉默王二”为实参；有参方法 <code>sop(String name)</code> 中的 name 为形参。形参就好像实参与被调用方法之间的一个桥梁，否则调用者没法传递参数，被调用的方法无法接收参数。</p>
+<h3 id="基本类型是值传递的">03、基本类型是值传递的</h3>
+<p>Java 中的数据类型可以分为两种，一种是基本类型，一种是引用类型。我相信大家在看本篇文章之前，就能够达成这样一个共识：基本类型是值传递的。这一点毫无疑问。</p>
+<pre><code><code>public class Cmower {
+    public static void main(String[] args) {
+        Cmower cmower = new Cmower();
+        int age = 18;
+        cmower.sop(age);
+        System.out.println(&quot;main 中的 age &quot; + age);
+    }
+
+    public void sop(int age) {
+        age = 28;
+        System.out.println(&quot;sop 中的 age &quot; + age);
+    }
+}</code></code></pre>
+<p>上面这段代码中，<code>sop()</code> 方法的实参 age 为 18，尽管 <code>sop()</code> 方法的形参被修改为 28，但并不会影响实参的值。这一点可以从输出结果中加以证明。</p>
+<pre><code><code>sop 中的 age 28
+main 中的 age 18</code></code></pre>
+<p>具体的执行过程如下图所示。</p>
+<p><img src="./images/188W+程序员关注过的问题：Java到底是值传递还是引用传递？0.png" /></p>
+<h3 id="引用类型是值传递吗">04、引用类型是值传递吗？</h3>
+<p>大家之所以不确定 Java 是值传递的还是引用传递的，原因就出在这个引用类型上面。单从字面的意思上就容易搞混：引用类型不是引用传递难道还是值传递？</p>
+<pre><code><code>public class Cmower {
+    private String name;
+
+    public String getName() {
+        return name;
+    }
+
+    public void setName(String name) {
+        this.name = name;
+    }
+
+    public static void main(String[] args) {
+        Cmower cmower = new Cmower();
+        cmower.setName(&quot;沉默王二&quot;);
+        cmower.sop(cmower);
+        System.out.println(&quot;main 中的 cmower &quot; + cmower.getName());
+    }
+
+    public void sop(Cmower cmower) {
+        cmower.setName(&quot;沉默王三&quot;);
+        System.out.println(&quot;sop 中的 cmower &quot; + cmower.getName());
+    }
+}</code></code></pre>
+<p>在 <code>main()</code> 方法中，我们通过 new 关键字创建了一个对象 cmower，并将其 name 属性设置为“沉默王二”；然后将实参 cmower 传递给 <code>sop()</code> 方法，在 <code>sop()</code> 方法中将形参 cmower 的 name 属性修改为“沉默王三”。输出结果是什么样子呢？</p>
+<pre><code><code>sop 中的 cmower 沉默王三
+main 中的 cmower 沉默王三</code></code></pre>
+<p>呀！实参 cmower 的属性 name 竟然不是“沉默王二”而是“沉默王三”了！看看，看看，Java 不是值传递吧？</p>
+<p>别急别急。我们在 main 方法中追加几行代码。</p>
+<pre><code><code>Cmower cmower = new Cmower();
+cmower.setName(&quot;沉默王二&quot;);
+
+Cmower old = cmower;
+cmower.sop(cmower);
+System.out.println(&quot;main 中的 cmower &quot; + cmower.getName());
+
+System.out.println(old == cmower);</code></code></pre>
+<p><code>old == cmower</code> 会是 true 还是 false 呢？闭上眼睛想一想。如果实在是想不出，抛一枚硬币吧，反正不是 true 就是 false。假如引用类型是引用传递的，根据引用传递的定义（形参的修改将会影响到实参），那么结果一定就是 false。</p>
+<p>我们来看一下输出结果：</p>
+<pre><code><code>sop 中的 cmower 沉默王三
+main 中的 cmower 沉默王三
+true</code></code></pre>
+<p>true？开什么玩笑？</p>
+<p>不好意思，没有开玩笑。Java 的确是值传递的。只不过，引用类型在调用有参方法的时候，传递的是对象的引用，并不是对象本身。而对象的引用在传递的过程中并没有发生改变，虽然对象本身发生了变化。可以通过下面这幅图感受一下。</p>
+<p><img src="./images/188W+程序员关注过的问题：Java到底是值传递还是引用传递？1.png" /></p>
+<p>这下理解了吧？</p>
+<h3 id="总结">05、总结</h3>
+<p>来看下面这段代码。</p>
+<pre><code><code>int age = 18;
+String name = &quot;沉默王二&quot;;</code></code></pre>
+<p>age 是基本类型，所以值就直接保存在变量中；而 name 是引用类型，变量中保存的只是对象的内存地址，这种变量一般称之为<a href="http://www.itwanger.com/java/2019/11/05/java-eat-human-words.html">对象</a>的引用。</p>
+<p>基本类型作为参数被传递时肯定是值传递；引用类型作为参数被传递时也是值传递，只不过“值”为对应的引用。</p>
+<hr />
+<p>好了各位读者朋友们，以上就是本文的全部内容了。<strong>能看到这里的都是最优秀的程序员，我必须要为大家点个赞</strong>👍。如果觉得不过瘾，还想看到更多，我再推荐几篇给大家。</p>
+<p><a href="https://mp.weixin.qq.com/s/WyrRCUlelzOxyfVBrxAGUg">370W+程序员关注过的问题：如何比较 Java 的字符串？</a><br />
+<a href="https://mp.weixin.qq.com/s/PBqR_uj6dd4xKEX8SUWIYQ">250W+程序员关注过的问题：什么是 NullPointerException？</a><br />
+<a href="https://mp.weixin.qq.com/s/TRyVTQqMGmqs4lmHtsgRuw">50W+程序员关注过的问题：为什么会发生ArrayIndexOutOfBoundsException？</a></p>
+<h4 id="有收获就点赞留言让更多的人看到这篇文章">有收获？就点赞、留言，让更多的人看到这篇文章。</h4>
+<p>如果想要第一时间看到我更新的文章，可以微信搜索「<strong>沉默王二</strong>」，关注我的公众号，回复「<strong>java</strong>」再送你一份<strong>精选电子书大礼包</strong>，包含这十年来我读过的最优质的 Java 书籍。</p>
+<p><img src="./images/188W+程序员关注过的问题：Java到底是值传递还是引用传递？2.png" /></p>
+
+
+</div><hr><script charset='utf-8' src='../../js/sming.js'></script></body></html>

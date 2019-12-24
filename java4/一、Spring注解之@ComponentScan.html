@@ -1,0 +1,177 @@
+<html><head><meta charset='utf-8'><meta name='viewport' content='width=device-width, initial-scale=1'>
+<meta name='applicable-device' content='pc'><meta name='keywords' content='电脑,电脑讲解,电脑技术,编程,电脑故障维修一、Spring注解之@ComponentScan' />
+<script src='../../highlight/highlight.pack.js'></script>
+<link rel='stylesheet' type='text/css' href='../../highlight/styles/monokai.css'/>
+
+<link rel='stylesheet' href='../../fenxiang/dist/css/share.min.css'>
+<script src='../../fenxiang/src/js/social-share.js'></script>
+<script src='../../fenxiang/src/js/qrcode.js'></script>
+
+</head><body><script>hljs.initHighlightingOnLoad();</script><script>
+var system ={};  
+var p = navigator.platform;       
+system.win = p.indexOf('Win') == 0;  
+system.mac = p.indexOf('Mac') == 0;  
+system.x11 = (p == 'X11') || (p.indexOf('Linux') == 0);     
+if(system.win||system.mac||system.xll){
+document.write("<link href='../css/3.css' rel='stylesheet' type='text/css'>");}else{ document.write("<link href='../css/3wap.css' rel='stylesheet' type='text/css'>");}</script><script src='../../js/3.js'></script><div class='div2'><div class='heading_nav'><ul><div><li><a href='../../index.html'>首页</a></li>
+</div><div onclick='hidden1()' >分享</div>
+</ul></div></div>
+<div id='heading_nav2'> 
+<li class='row' >
+<div class='social-share' data-mode='prepend'><a href='javascript:' class='social-share-icon icon-heart'></a></div></li></div><script charset='utf-8' src='../../3/js/hengfu.js'></script><script charset='utf-8' src='../../3/js/hengfu2.js'></script><hr><div class='div1'><div class='biaoti'><center>一、Spring注解之@ComponentScan</center></div><div class='banquan'>原文出处:本文由博客园博主ねぇ提供。<br/>
+原文连接:https://www.cnblogs.com/lee0527/p/11734122.html</div><br>
+    <h2 id="spring注解之componentscan">Spring注解之@ComponentScan</h2>
+<h3 id="componentscan注解是什么">【1】@ComponentScan注解是什么</h3>
+<p>@ComponentScan主要就是定义<strong>扫描的路径</strong>从中找出标识了<strong>需要装配</strong>的类自动装配到spring的bean容器中</p>
+<h3 id="componentscan注解的详细使用">【2】@ComponentScan注解的详细使用</h3>
+<p><strong>1、创建一个配置类，在配置类上添加 @ComponentScan 注解。该注解默认会扫描该类所在的包下所有的类</strong></p>
+<pre><code><code>package com.zl.springbase.config;
+
+import org.springframework.context.annotation.ComponentScan;
+import org.springframework.context.annotation.Configuration;
+
+@Configuration
+@ComponentScan
+public class MyConfig {
+}</code></code></pre>
+<p>我的类结构如下：类MyDao上面添加了@Repository注解</p>
+<p><img src="./images/一、Spring注解之@ComponentScan0.png" /></p>
+<p>测试程序：</p>
+<pre><code><code>public class TestComponentScan {
+    @Test
+    public void test1(){
+        AnnotationConfigApplicationContext context = new AnnotationConfigApplicationContext(MyConfig.class);
+        String[] names = context.getBeanDefinitionNames();
+        for (String name : names) {
+            System.out.println(&quot;beanName&quot;+name);
+        }
+    }
+}
+/**
+beanName: org.springframework.context.annotation.internalConfigurationAnnotationProcessor
+beanName: org.springframework.context.annotation.internalAutowiredAnnotationProcessor
+beanName: org.springframework.context.annotation.internalCommonAnnotationProcessor
+beanName: org.springframework.context.event.internalEventListenerProcessor
+beanName: org.springframework.context.event.internalEventListenerFactory
+beanName: myConfig
+beanName: myDao
+*/</code></code></pre>
+<p><strong>2、指定要扫描的包（使用@ComponentScan 的 valule 属性来配置），创建一个controller 包，并在该包下新建一个 MyController 类并添加@Controller注解。</strong></p>
+<pre><code><code>@Configuration
+@ComponentScan(value = {&quot;com.zl.springBase.controller&quot;})
+public class MyConfig {
+}
+
+/**测试结果
+beanName: org.springframework.context.annotation.internalConfigurationAnnotationProcessor
+beanName: org.springframework.context.annotation.internalAutowiredAnnotationProcessor
+beanName: org.springframework.context.annotation.internalCommonAnnotationProcessor
+beanName: org.springframework.context.event.internalEventListenerProcessor
+beanName: org.springframework.context.event.internalEventListenerFactory
+beanName: myConfig
+beanName: myController
+*/</code></code></pre>
+<p><strong>3、excludeFilters 和 includeFilters 的使用</strong></p>
+<ul>
+<li><strong>excludeFilters</strong></li>
+</ul>
+<p>①使用 excludeFilters 来按照注解类型排除某些包的扫描</p>
+<pre><code><code>@Configuration
+@ComponentScan(value = {&quot;com.zl.springBase&quot;},excludeFilters = {
+        @Filter(type = FilterType.ANNOTATION,value = {Controller.class})
+})
+public class MyConfig {
+}
+
+/**测试结果
+beanName: org.springframework.context.annotation.internalConfigurationAnnotationProcessor
+beanName: org.springframework.context.annotation.internalAutowiredAnnotationProcessor
+beanName: org.springframework.context.annotation.internalCommonAnnotationProcessor
+beanName: org.springframework.context.event.internalEventListenerProcessor
+beanName: org.springframework.context.event.internalEventListenerFactory
+beanName: myConfig
+beanName: myDao
+*/</code></code></pre>
+<p>​ excludeFilters 的参数是一个 Filter[] 数组，然后指定 FilterType 的类型为 ANNOTATION，也就是通过注解来过滤，最后的 value 则是Controller 注解类。配置之后，在 spring 扫描的时候，就会跳过 com.zl.springBase包下，所有被 @Controller 注解标注的类。</p>
+<p>②使用 excludeFilters 来按照指定类型排除某些包的扫描</p>
+<pre><code><code>@Configuration
+@ComponentScan(value = {&quot;com.zl.springBase&quot;},excludeFilters = {
+        @Filter(type = FilterType.ASSIGNABLE_TYPE,value = {MyDao.class})
+})
+public class MyConfig {
+}
+
+/**测试结果
+beanName: org.springframework.context.annotation.internalConfigurationAnnotationProcessor
+beanName: org.springframework.context.annotation.internalAutowiredAnnotationProcessor
+beanName: org.springframework.context.annotation.internalCommonAnnotationProcessor
+beanName: org.springframework.context.event.internalEventListenerProcessor
+beanName: org.springframework.context.event.internalEventListenerFactory
+beanName: myConfig
+beanName: myController
+*/</code></code></pre>
+<p>FilterType 的类型为 ASSIGNABLE_TYPE，就是通过指定类型来过滤，value指定为MyDao，则会过滤掉MyDao这个类。</p>
+<p>③使用 excludeFilters 来按照自定义类型排除某些包的扫描</p>
+<p>首先创建一个实现 TypeFilter 接口的 CustomTypeFilter 类，并实现其 match 方法。</p>
+<p>这里简单对扫描到的类名进行判断，如果类名包含”Co“的就符合条件，也就会注入到容器中。</p>
+<pre><code><code>public class CustomTypeFilter implements TypeFilter {
+    public boolean match(MetadataReader metadataReader, MetadataReaderFactory metadataReaderFactory) throws IOException {
+        //获取到当前扫描到的类的注解信息
+        AnnotationMetadata annotationMetadata = metadataReader.getAnnotationMetadata();
+        //获取到当前扫描到的类的信息
+        ClassMetadata classMetadata = metadataReader.getClassMetadata();
+        //获取到当前扫描到的类的资源
+        Resource resource = metadataReader.getResource();
+        if (classMetadata.getClassName().contains(&quot;Co&quot;)) {
+            return true;
+        }
+        return false;
+    }
+}</code></code></pre>
+<p>MyConfig：</p>
+<pre><code><code>@Configuration
+@ComponentScan(value = {&quot;com.zl.springBase&quot;},excludeFilters = {
+        @Filter(type = FilterType.CUSTOM,value = {CustomTypeFilter.class})
+})
+public class MyConfig {
+}
+
+/**测试结果
+beanName: org.springframework.context.annotation.internalConfigurationAnnotationProcessor
+beanName: org.springframework.context.annotation.internalAutowiredAnnotationProcessor
+beanName: org.springframework.context.annotation.internalCommonAnnotationProcessor
+beanName: org.springframework.context.event.internalEventListenerProcessor
+beanName: org.springframework.context.event.internalEventListenerFactory
+beanName: myConfig
+beanName: myDao
+*/</code></code></pre>
+<p>可以看到MyController已经被过滤掉了，myCofig之所以没有被过滤掉是因为它本身是一个配置类，@Configuration注解类里面包含了@Component注解，所以IOC容器启动后MyConfig会被自动加入容器当中。</p>
+<ul>
+<li><strong>includeFilters</strong></li>
+</ul>
+<p>使用 includeFilters 来按照规则只包含某些包的扫描</p>
+<p>在创建一个 service 的包，并创建一个 MyService 类，再加上一个 @Service 注解</p>
+<p>修改MyConfig类：</p>
+<pre><code><code>@Configuration
+@ComponentScan(value = {&quot;com.zl.springBase&quot;},includeFilters = {
+        @Filter(type = FilterType.ANNOTATION,value = {Controller.class})
+})
+public class MyConfig {
+}
+
+/**测试结果
+beanName: org.springframework.context.annotation.internalConfigurationAnnotationProcessor
+beanName: org.springframework.context.annotation.internalAutowiredAnnotationProcessor
+beanName: org.springframework.context.annotation.internalCommonAnnotationProcessor
+beanName: org.springframework.context.event.internalEventListenerProcessor
+beanName: org.springframework.context.event.internalEventListenerFactory
+beanName: myConfig
+beanName: myDao
+beanName: myController
+beanName: myService
+*/</code></code></pre>
+<p>​ 配置里面，应该是只包含 @Controller 注解的类才会被注册到容器中，为什么 @Service，@Repository 注解的类也被注册了呢？这里涉及到 @ComponentScan 的一个 useDefaultFilters 属性的用法，该属性默认值为 true，也就是说 spring 默认会自动发现被 @Component、@Repository、@Service 和 @Controller 标注的类，并注册进容器中。要达到只包含某些包的扫描效果，就必须将这个默认行为给禁用掉（在 @ComponentScan 中将 useDefaultFilters 设为 false 即可）。</p>
+
+
+</div><hr><script charset='utf-8' src='../../js/sming.js'></script></body></html>

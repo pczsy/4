@@ -1,0 +1,106 @@
+<html><head><meta charset='utf-8'><meta name='viewport' content='width=device-width, initial-scale=1'>
+<meta name='applicable-device' content='pc'><meta name='keywords' content='电脑,电脑讲解,电脑技术,编程,电脑故障维修Response的应用' />
+<script src='../../highlight/highlight.pack.js'></script>
+<link rel='stylesheet' type='text/css' href='../../highlight/styles/monokai.css'/>
+
+<link rel='stylesheet' href='../../fenxiang/dist/css/share.min.css'>
+<script src='../../fenxiang/src/js/social-share.js'></script>
+<script src='../../fenxiang/src/js/qrcode.js'></script>
+
+</head><body><script>hljs.initHighlightingOnLoad();</script><script>
+var system ={};  
+var p = navigator.platform;       
+system.win = p.indexOf('Win') == 0;  
+system.mac = p.indexOf('Mac') == 0;  
+system.x11 = (p == 'X11') || (p.indexOf('Linux') == 0);     
+if(system.win||system.mac||system.xll){
+document.write("<link href='../css/3.css' rel='stylesheet' type='text/css'>");}else{ document.write("<link href='../css/3wap.css' rel='stylesheet' type='text/css'>");}</script><script src='../../js/3.js'></script><div class='div2'><div class='heading_nav'><ul><div><li><a href='../../index.html'>首页</a></li>
+</div><div onclick='hidden1()' >分享</div>
+</ul></div></div>
+<div id='heading_nav2'> 
+<li class='row' >
+<div class='social-share' data-mode='prepend'><a href='javascript:' class='social-share-icon icon-heart'></a></div></li></div><script charset='utf-8' src='../../3/js/hengfu.js'></script><script charset='utf-8' src='../../3/js/hengfu2.js'></script><hr><div class='div1'><div class='biaoti'><center>Response的应用</center></div><div class='banquan'>原文出处:本文由博客园博主撑起一片阳光提供。<br/>
+原文连接:https://www.cnblogs.com/cqyp/p/11479722.html</div><br>
+    <p>&nbsp;</p>
+<h3>1．HttpServletResponse概述</h3>
+<p><span lang="EN-US">service方法中的<span lang="EN-US">response的类型是<span lang="EN-US">ServletResponse，而<span lang="EN-US">doGet/doPost方法的<span lang="EN-US">response的类型是<span lang="EN-US">HttpServletResponse，<span lang="EN-US">HttpServletResponse是<span lang="EN-US">ServletResponse的子接口，功能和方法更加强大。</span></span></span></span></span></span></span></span></p>
+<p>&nbsp;</p>
+<h3>2．response的运行流程</h3>
+<p><img title="1" src="E:\桌面" alt="" /><img src="./images/Response的应用1.png" alt="" /></p>
+<h3>3．通过response设置响应行</h3>
+<p>1）设置响应行的状态码</p>
+<p><strong><span style="color: #333399; font-family: 宋体; font-size: 16px;">setStatus(int sc);</span></strong></p>
+<p>2）封装成一个重定向的方法sendRedirect(url);<br /><span style="color: #333399; font-family: 宋体; font-size: 16px;"><strong>response.sendRedirect("/WEB3/servlet2");</strong></span></p>
+<h3>4．通过response设置响应头</h3>
+<p><span style="font-family: 宋体; font-size: 16px;"><strong><span style="color: #333399;"><span style="color: #333399;">addHeader</span><code>(</code><span style="color: #333399;">String</span><code> name, </code><span style="color: #333399;">String</span><code> value);</code></span></strong></span></p>
+<p><span style="font-family: 宋体; font-size: 16px;"><strong><span style="color: #333399;"><span style="color: #333399;">addIntHeader</span><code>(</code><span style="color: #333399;">String</span><code> name, int value);</code></span></strong></span></p>
+<p><span style="font-family: 宋体; font-size: 16px;"><strong><span style="color: #333399;"><span style="color: #333399;">addDateHeader</span><code>(</code><span style="color: #333399;">String</span><code> name, long date);</code></span></strong></span></p>
+<p><span style="font-family: 宋体; font-size: 16px;"><strong><span style="color: #333399;"><span style="color: #333399;">setHeader</span><code>(</code><span style="color: #333399;">String</span><code> name, </code><span style="color: #333399;">String</span><code> value);</code></span></strong></span></p>
+<p><span style="font-family: 宋体; font-size: 16px;"><strong><span style="color: #333399;"><span style="color: #333399;">setDateHeader</span><code>(</code><span style="color: #333399;">String</span><code> name, long date);</code></span></strong></span></p>
+<p><span style="font-family: 宋体; font-size: 16px;"><strong><span style="color: #333399;"><span style="color: #333399;">setIntHeader</span><code>(</code><span style="color: #333399;">String</span></span></strong></span><code><span style="font-family: 宋体; font-size: 16px;"><strong><span style="color: #333399;"> name, int value)</span></strong></span>;</code></p>
+<p><span lang="EN-US">add表示添加，而<span lang="EN-US">set表示设置</span></span>;</p>
+<h3>5．通过response设置响应体</h3>
+<h4>(1)响应体设置文本</h4>
+<p><strong><span style="color: #333399; font-family: 宋体; font-size: 16px;"><span style="color: #333399;">PrintWriter</span><code> </code><span style="color: #333399;">getWriter</span><code>()</code></span></strong></p>
+<p>获得字符流，通过字符流的<span style="font-family: 宋体; font-size: 16px;"><strong><span style="color: #333399;"><span style="color: #333399;">write</span><code>(</code><span style="color: #333399;">String</span><code> s)</code></span></strong></span>方法可以将字符串设置到response&nbsp;&nbsp;&nbsp;&nbsp; 缓冲区中，随后Tomcat会将response缓冲区中的内容组装成Http响应返回给浏览器端。</p>
+<p>&nbsp;</p>
+<p>关于设置中文的乱码问题</p>
+<p>原因：response缓冲区的默认编码是iso8859-1，此码表中没有中文，可以通过&nbsp;&nbsp;&nbsp; response的<strong><span style="color: #333399; font-family: 宋体; font-size: 16px;">setCharacterEncoding<code>(</code>String<code> charset)</code></span></strong><code> </code>设置response的编码</p>
+<p>但我们发现客户端还是不能正常显示文字</p>
+<p>原因：我们将response缓冲区的编码设置成UTF-8，但浏览器的默认编码是本地系统的编码，因为我们都是中文系统，所以客户端浏览器的默认编码是GBK，我们可以手动修改浏览器的编码是UTF-8。</p>
+<p>我们还可以在代码中指定浏览器解析页面的编码方式，</p>
+<p>通过response的<strong><span style="color: #333399; font-family: 宋体; font-size: 16px;"><span style="color: #333399;">setContentType</span><code>(</code><span style="color: #333399;">String</span><code> type)</code></span></strong>方法指定页面解析时的编码是UTF-8</p>
+<p><span style="font-family: 宋体; font-size: 16px;"><strong><span style="color: #333399;">response.setContentType("text/html;charset=UTF-8");</span></strong></span></p>
+<p>&nbsp;</p>
+<p>上面的代码不仅可以指定浏览器解析页面时的编码，同时也内含setCharacterEncoding的功能，所以在实际开发中只要编写 <strong>response.setContentType("text/html;charset=UTF-8");</strong>就可以解决页面输出中文乱码问题。</p>
+<p>&nbsp;</p>
+<h4>(2)响应头设置字节</h4>
+<p><span style="font-family: 宋体; font-size: 16px;"><strong><span style="color: #333399;">ServletOutputStream<code> servlet=response.</code>getOutputStream</span></strong><code>()</code></span></p>
+<p>获得字节流，通过该字节流的write(byte[] bytes)可以向response缓冲区中写入字节，在由Tomcat服务器将字节内容组成Http响应返回给浏览器。</p>
+<p>设置定时刷新的头<br /><span style="color: #333399; font-family: 宋体; font-size: 16px;"><strong>response.setHeader("Refresh", "5;url=http://www.baidu.com");</strong></span></p>
+<h3>7．案例-完成文件下载</h3>
+<src class="cnblogs_code">
+<pre><code><span style="color: #008080;"> 1</span> <span style="color: #008000;">//</span><span style="color: #008000;">获得要下载的文件的名称</span>
+<span style="color: #008080;"> 2</span>         String filename =request.getParameter("filename"<span style="color: #000000;">);
+</span><span style="color: #008080;"> 3</span>         <span style="color: #008000;">//</span><span style="color: #008000;">解决中文参数乱码</span>
+<span style="color: #008080;"> 4</span>         filename=<span style="color: #0000ff;">new</span> String(filename.getBytes("ISO8859-1"),"UTF-8");<span style="color: #008000;">//</span><span style="color: #008000;">编码
+</span><span style="color: #008080;"> 5</span>         
+<span style="color: #008080;"> 6</span>         <span style="color: #008000;">//</span><span style="color: #008000;">获取请求头中的user-Agent</span>
+<span style="color: #008080;"> 7</span>         String agent=request.getHeader("User-Agent"<span style="color: #000000;">);
+</span><span style="color: #008080;"> 8</span>         <span style="color: #008000;">//</span><span style="color: #008000;">根据不同浏览器，进行不同编码</span>
+<span style="color: #008080;"> 9</span>         String filenameEncoder=""<span style="color: #000000;">;
+</span><span style="color: #008080;">10</span>         <span style="color: #0000ff;">if</span>(agent.contains("MSIE"<span style="color: #000000;">)) {<span style="color: #339966;">//IE浏览器
+</span></span><span style="color: #008080;">11</span>             filenameEncoder=URLEncoder.encode(filename,"UTF-8"<span style="color: #000000;">);
+</span><span style="color: #008080;">12</span>             filenameEncoder=filenameEncoder.replace("+"," "<span style="color: #000000;">);
+</span><span style="color: #008080;">13</span>         }<span style="color: #0000ff;">else</span> <span style="color: #0000ff;">if</span>(agent.contains("Firefox"<span style="color: #000000;">)) {<span style="color: #339966;">//火狐浏览器  
+</span></span><span style="color: #008080;">14</span>             BASE64Encoder base64Encoder =<span style="color: #0000ff;">new</span><span style="color: #000000;"> BASE64Encoder();
+</span><span style="color: #008080;">15</span>             filenameEncoder="=?utf-8?B?"
+<span style="color: #008080;">16</span>                     +base64Encoder.encode(filename.getBytes("utf-8")) + "?="<span style="color: #000000;">;
+</span><span style="color: #008080;">17</span>         }<span style="color: #0000ff;">else</span><span style="color: #000000;"> {
+</span><span style="color: #008080;">18</span>         <span style="color: #339966;">    //其他浏览器</span>
+<span style="color: #008080;">19</span>             filenameEncoder=URLEncoder.encode(filename,"UTF-8"<span style="color: #000000;">); 
+</span><span style="color: #008080;">20</span> <span style="color: #000000;">        }
+</span><span style="color: #008080;">21</span>         
+<span style="color: #008080;">22</span>         <span style="color: #008000;">//</span><span style="color: #008000;">要下载的这个文件的类型-----客户端通过文件的MIME类型去区分类型</span>
+<span style="color: #008080;">23</span>         response.setContentType(<span style="color: #0000ff;">this</span><span style="color: #000000;">.getServletContext().getMimeType(filename));
+</span><span style="color: #008080;">24</span>         <span style="color: #008000;">//</span><span style="color: #008000;">告诉客户端该文件不是直接解析 而是以附件形式打开(下载)</span>
+<span style="color: #008080;">25</span>         response.setHeader("Content-Disposition", "attachment;filename="+<span style="color: #000000;">filenameEncoder);
+</span><span style="color: #008080;">26</span>         <span style="color: #008000;">//</span><span style="color: #008000;">获取文件的绝对路径</span>
+<span style="color: #008080;">27</span>         String path =<span style="color: #0000ff;">this</span>.getServletContext().getRealPath("download/"+<span style="color: #000000;">filename);
+</span><span style="color: #008080;">28</span>         <span style="color: #008000;">//</span><span style="color: #008000;">获得该文件的输入流</span>
+<span style="color: #008080;">29</span>         InputStream in =<span style="color: #0000ff;">new</span><span style="color: #000000;"> FileInputStream(path);
+</span><span style="color: #008080;">30</span>         <span style="color: #008000;">//</span><span style="color: #008000;">获得输出流---通过response获得的输出流 用于向客户端写内容</span>
+<span style="color: #008080;">31</span>         ServletOutputStream out =<span style="color: #000000;">response.getOutputStream();
+</span><span style="color: #008080;">32</span>         <span style="color: #008000;">//</span><span style="color: #008000;">文件拷贝的模板代码</span>
+<span style="color: #008080;">33</span>         <span style="color: #0000ff;">int</span> len=-1<span style="color: #000000;">;
+</span><span style="color: #008080;">34</span>         <span style="color: #0000ff;">byte</span>[] buffer =<span style="color: #0000ff;">new</span> <span style="color: #0000ff;">byte</span>[1024<span style="color: #000000;">];
+</span><span style="color: #008080;">35</span>         <span style="color: #0000ff;">while</span>((len=in.read(buffer))!=-1<span style="color: #000000;">) {
+</span><span style="color: #008080;">36</span>             out.write(buffer,0<span style="color: #000000;">,len);
+</span><span style="color: #008080;">37</span>             
+<span style="color: #008080;">38</span> <span style="color: #000000;">        }
+</span><span style="color: #008080;">39</span> <span style="color: #000000;">        in.close();
+</span><span style="color: #008080;">40</span>     }</code></pre>
+
+<p>&nbsp;</p>
+
+</div><hr><script charset='utf-8' src='../../js/sming.js'></script></body></html>

@@ -1,0 +1,177 @@
+<html><head><meta charset='utf-8'><meta name='viewport' content='width=device-width, initial-scale=1'>
+<meta name='applicable-device' content='pc'><meta name='keywords' content='电脑,电脑讲解,电脑技术,编程,电脑故障维修Redis持久化--Redis宕机或者出现意外删库导致数据丢失--解决方案' />
+<script src='../../highlight/highlight.pack.js'></script>
+<link rel='stylesheet' type='text/css' href='../../highlight/styles/monokai.css'/>
+
+<link rel='stylesheet' href='../../fenxiang/dist/css/share.min.css'>
+<script src='../../fenxiang/src/js/social-share.js'></script>
+<script src='../../fenxiang/src/js/qrcode.js'></script>
+
+</head><body><script>hljs.initHighlightingOnLoad();</script><script>
+var system ={};  
+var p = navigator.platform;       
+system.win = p.indexOf('Win') == 0;  
+system.mac = p.indexOf('Mac') == 0;  
+system.x11 = (p == 'X11') || (p.indexOf('Linux') == 0);     
+if(system.win||system.mac||system.xll){
+document.write("<link href='../css/3.css' rel='stylesheet' type='text/css'>");}else{ document.write("<link href='../css/3wap.css' rel='stylesheet' type='text/css'>");}</script><script src='../../js/3.js'></script><div class='div2'><div class='heading_nav'><ul><div><li><a href='../../index.html'>首页</a></li>
+</div><div onclick='hidden1()' >分享</div>
+</ul></div></div>
+<div id='heading_nav2'> 
+<li class='row' >
+<div class='social-share' data-mode='prepend'><a href='javascript:' class='social-share-icon icon-heart'></a></div></li></div><script charset='utf-8' src='../../3/js/hengfu.js'></script><script charset='utf-8' src='../../3/js/hengfu2.js'></script><hr><div class='div1'><div class='biaoti'><center>Redis持久化--Redis宕机或者出现意外删库导致数据丢失--解决方案</center></div><div class='banquan'>原文出处:本文由博客园博主xlecho提供。<br/>
+原文连接:https://www.cnblogs.com/xlecho/p/11834011.html</div><br>
+    <p>echo编辑整理，欢迎转载，转载请声明文章来源。欢迎添加echo微信(微信号：t2421499075)交流学习。 百战不败，依不自称常胜，百败不颓，依能奋力前行。——这才是真正的堪称强大！！！</p>
+<hr />
+<blockquote>
+<p>Redis持久化的方案其实是很多人接触的比较少的，因为相对应的数据故障不会很多，一次初始化的设置就能保证后续故障的全部顺利解决。本文讲述一下该机制的主要设置方法和持久化方案的对比，同时也会讲述一些持久化的原理。如果对于Redis持久化比较熟悉的希望能够给到你帮助，如果不熟悉的，你大可参考本文对你的Redis进行设置。</p>
+</blockquote>
+<h3 id="什么是redis的持久化">什么是Redis的持久化？</h3>
+<p>可能很多人很少接触这个词，总觉的我们Redis的所有数据都是全部能够永久存储的。然而你可能不知道的是，Redis的数据都是在内存当中的，如果没有持久化策略，你关闭Redis或者之后，你的数据有可能全部都丢失了。我们每再一次登录Redis访问上一次数据的时候，我们都看到了原来的数据，就是得益于Redis的持久化。Redis的持久化简单说就是，将Redis存在内存中的值存储到可以永久存储的地方（磁盘等）</p>
+<h3 id="redis的持久化方案">Redis的持久化方案</h3>
+<ul>
+<li>RDB Redis DataBase</li>
+<li>AOF Append Only File</li>
+</ul>
+<h3 id="rdb-redis-database">RDB [Redis DataBase]</h3>
+<p>RDB 是 Redis 默认的持久化方案。当满足一定条件的时候，会把当前内存中的数据写入磁盘，生成一个快照文件 dump.rdb。Redis 重启会通过加载 dump.rdb 文件恢复数据。dump.rdb是我们redis文件当中的一个，位置如下图：<br />
+<img src="./images/Redis持久化--Redis宕机或者出现意外删库导致数据丢失--解决方案0.png" alt="在这里插入图片描述" /></p>
+<h3 id="rdb是怎么实现持久化的">RDB是怎么实现持久化的</h3>
+<p>RDB是按照规则来触发持久化存储的，在我们的redis.conf中我们可以看到如下的几个配置：</p>
+<pre><code><code>save 900 1 # 900 秒内至少有一个 key 被修改（包括添加）
+save 300 10 # 300 秒内至少有 10 个 key 被修改
+save 60 10000 # 60 秒内至少有 10000 个 key 被修改</code></code></pre>
+<p><img src="./images/Redis持久化--Redis宕机或者出现意外删库导致数据丢失--解决方案1.png" alt="在这里插入图片描述" /></p>
+<blockquote>
+<p>这几个配置是不冲突的，只要满足任意一个都会触发。</p>
+</blockquote>
+<ul>
+<li>RDB方式的优点</li>
+<li><ul>
+<li>RDB 是一个紧凑的单一文件,很方便传送到另一个远端数据中心，非常适用于灾难恢复。</li>
+</ul></li>
+<li><ul>
+<li>与AOF相比,在恢复大的数据集的时候，RDB 方式会更快一些。</li>
+</ul></li>
+<li>RDB方式的缺点</li>
+<li><ul>
+<li>RDB 方式数据没办法做到实时持久化/秒级持久化。因为 bgsave 每次运行都要<br />
+执行 fork 操作创建子进程，频繁执行成本过高。</li>
+</ul></li>
+<li><ul>
+<li>在一定间隔时间做一次备份，所以如果 redis 意外 down 掉的话，就会丢失最后<br />
+一次快照之后的所有修改（数据有丢失）。如果数据相对来说比较重要，希望将损失降到最小，则可以使用 AOF 方式进行持久化。</li>
+</ul></li>
+</ul>
+<h3 id="rdb持久化的演示">RDB持久化的演示</h3>
+<blockquote>
+<p>如果我们都按照正常程序走的话，我们是很难看到没有持久化，或者出现持久化问题的故障现场的。所以我们要学会持久化操作，或者只管看到持久化就需要手动触发持久化问题。这里主要演示两种情况，一种是数据正常备份，一种是数据丢失，我们恢复备份数据。</p>
+</blockquote>
+<h4 id="注意">注意</h4>
+<p>这两个操作都算是危险操作，我们需要在操作之前进行一下设置一下Redis快照，Redis<br />
+提供了两条命令：</p>
+<ul>
+<li>save: 在生成快照的时候会阻塞当前 Redis 服务器， Redis 不能处理其他命令。如果<br />
+内存中的数据比较多，会造成Redis长时间的阻塞。生产环境不建议使用这个命令。为了解决这个问题，Redis 提供了第二种方式。</li>
+<li>bgsave:执行 bgsave 时，Redis 会在后台异步进行快照操作，快照同时还可以响应客户端请<br />
+求。具体操作是 Redis 进程执行fork操作创建子进程（copy-on-write），RDB持久化过程由子进程负责，完成后自动结束。它不会记录fork之后后续的命令。阻塞只发生在fork阶段，一般时间很短。用 lastsave 命令可以查看最近一次成功生成快照的时间。</li>
+</ul>
+<h4 id="使用shutdown-持久化">使用shutdown 持久化</h4>
+<p>我们先在Redis库中设置如下几个值</p>
+<pre><code><code>set k1 1
+set k2 2
+set k3 3
+set k4 4
+set k5 5
+
+# 操作完成上面的步骤之后我们停止服务器，触发RDB的自动保存save
+shutdown
+
+# 然后再次启动Redis服务
+redis-server redis.conf
+
+# 启动完成，查看我们那些刚刚保存的数据是否被持久化了
+keys *</code></code></pre>
+<blockquote>
+<p>执行完上面的步骤之后，我们可以看到我们的数据都在，就说明我们的触发备份是成功的。</p>
+</blockquote>
+<h4 id="使用flushall模拟数据丢失">使用flushall模拟数据丢失</h4>
+<p>该操作有一定的风险性，如果是演示练习按照操作来基本不会出现问题，但是生产上慎重操作。我们做该操作之前，一定要注意先备份RDB对应的持久化问题dump.rdb</p>
+<pre><code><code># 先备份dump.rdb
+cp dump.rdb dump.rdb.bak
+
+# 备份完成之后我们确定备份成功在进行下一步操作---清空库
+flushall
+
+# 清空之后我们停止服务器
+shutdown
+
+# 再次启动服务器，查看之前存储的kye
+keys * 
+</code></code></pre>
+<p>再次启动查看的时候，我们发现我们的数据丢失了<br />
+<img src="./images/Redis持久化--Redis宕机或者出现意外删库导致数据丢失--解决方案2.png" alt="在这里插入图片描述" /></p>
+<h4 id="恢复丢失的数据">恢复丢失的数据</h4>
+<pre><code><code># 停服务器
+shutdown
+
+# 删除我们现有dump.rdb
+rm -rf ./dump.rdb
+
+# 删除成功之后，将我们的备份的dump.rdb.bak重新命名成为dump.rdb
+mv dump.rdb.bak dump.rdb
+ 
+# 确定之后我们再次启动redis服务
+redis-server redis.conf
+
+# 检查我们之前丢失的数据是否存在
+keys * </code></code></pre>
+<p>完成之后我们查看的数据就出现啦！</p>
+<p><img src="./images/Redis持久化--Redis宕机或者出现意外删库导致数据丢失--解决方案3.png" alt="在这里插入图片描述" /></p>
+<h3 id="aof-append-only-file">AOF [Append Only File]</h3>
+<p>AOF：Redis 默认不开启。AOF采用日志的形式来记录每个写操作，并追加到文件中。开启后，执行更改 Redis 数据的命令时，就会把命令写入到AOF文件中。Redis重启时会根据日志文件的内容把写指令从前到后执行一次以完成数据的恢复工作。</p>
+<h4 id="该方式默认关闭需要使用我们需要修改如下配置">该方式默认关闭，需要使用我们需要修改如下配置</h4>
+<pre><code><code># 开关 Redis 默认只开启 RDB 持久化，开启 AOF 需要修改为 yes
+appendonly no
+# 文件名 路径也是通过 dir 参数配置 config get dir
+appendfilename &quot;appendonly.aof&quot;</code></code></pre>
+<h3 id="数据都是实时持久化到磁盘吗">数据都是实时持久化到磁盘吗？</h3>
+<p>由于操作系统的缓存机制，AOF数据并没有真正地写入硬盘，而是进入了系统的硬盘缓存。什么时候把缓冲区的内容写入到 AOF 文件？</p>
+<h3 id="aof的保存规则有三种">AOF的保存规则有三种</h3>
+<p><img src="./images/Redis持久化--Redis宕机或者出现意外删库导致数据丢失--解决方案4.png" alt="在这里插入图片描述" /><br />
+AOF 持久化策略（硬盘缓存到磁盘），默认 everysec</p>
+<ul>
+<li>no 表示不执行 fsync，由操作系统保证数据同步到磁盘，速度最快，但是不太安全；</li>
+<li>always 表示每次写入都执行 fsync，以保证数据同步到磁盘，效率很低；</li>
+<li>everysec 表示每秒执行一次 fsync，可能会导致丢失这 1s 数据。通常选择 everysec ，<br />
+兼顾安全性和效率。</li>
+</ul>
+<h3 id="文件越来越大怎么办">文件越来越大，怎么办？</h3>
+<p>由于 AOF 持久化是 Redis 不断将写命令记录到 AOF 文件中，随着 Redis 不断的进行，AOF 的文件会越来越大，文件越大，占用服务器内存越大以及 AOF恢复要求时间越长。<br />
+可以使用命令 bgrewriteaof来重写。AOF文件重写并不是对原文件进行重新整理，而是直接读取服务器现有的键值对，然后用一条命令去代替之前记录这个键值对的多条命令，生成一个新的文件后去替换原来的 AOF 文件。</p>
+<h4 id="aof指定大小开始重写">AOF指定大小开始重写</h4>
+<p><img src="./images/Redis持久化--Redis宕机或者出现意外删库导致数据丢失--解决方案5.png" alt="在这里插入图片描述" /></p>
+<ul>
+<li>auto-aof-rewrite-percentage:默认值为100。aof自动重写配置，当目前aof文件大小超过上一次重写的aof文件大小的百分之多少进行重写，即当aof文件增长到一定大小的时候，Redis能够调用bgrewriteaof对日志文件进行重写。当前AOF文件大小是上次日志重写得到AOF文件大小的二倍（设置为100）时，自动启动新的日志重写过程。</li>
+<li><p>auto-aof-rewrite-min-size:默认64M。设置允许重写的最小aof文件大小，避免了达到约定百分比但尺寸仍然很小的情况还要重写。</p></li>
+<li>AOF方式的优点</li>
+<li><ul>
+<li>AOF 持久化的方法提供了多种的同步频率，即使使用默认的同步频率每秒同步一次，Redis最多也就丢失 1 秒的数据而已。</li>
+</ul></li>
+<li>AOF方式的缺点</li>
+<li><ul>
+<li>对于具有相同数据的的Redis，AOF文件通常会比RDF文件体积更大（RDB存的是数据快照）。</li>
+</ul></li>
+<li><ul>
+<li>虽然 AOF 提供了多种同步的频率，默认情况下，每秒同步一次的频率也具有较高的性能。在高并发的情况下，RDB 比 AOF 具好更好的性能保证。</li>
+</ul></li>
+</ul>
+<h3 id="两种方案比较">两种方案比较</h3>
+<p>那么对于AOF和RDB两种持久化方式，我们应该如何选择呢？<br />
+如果可以忍受一小段时间内数据的丢失，毫无疑问使用 RDB 是最好的，定时生成RDB 快照（snapshot）非常便于进行数据库备份， 并且 RDB 恢复数据集的速度也要比 AOF 恢复的速度要快。否则就使用AOF重写。但是一般情况下建议不要单独使用某一种持久化机制，而是应该两种一起用，在这种情况下,当 redis 重启的时候会优先载入 AOF文件来恢复原始<br />
+的数据，因为在通常情况下 AOF 文件保存的数据集要比 RDB 文件保存的数据集要完整。<br />
+---<br />
+做一个有底线的博客主</p>
+
+
+</div><hr><script charset='utf-8' src='../../js/sming.js'></script></body></html>

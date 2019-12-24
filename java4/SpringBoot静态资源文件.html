@@ -1,0 +1,67 @@
+<html><head><meta charset='utf-8'><meta name='viewport' content='width=device-width, initial-scale=1'>
+<meta name='applicable-device' content='pc'><meta name='keywords' content='电脑,电脑讲解,电脑技术,编程,电脑故障维修SpringBoot静态资源文件' />
+<script src='../../highlight/highlight.pack.js'></script>
+<link rel='stylesheet' type='text/css' href='../../highlight/styles/monokai.css'/>
+
+<link rel='stylesheet' href='../../fenxiang/dist/css/share.min.css'>
+<script src='../../fenxiang/src/js/social-share.js'></script>
+<script src='../../fenxiang/src/js/qrcode.js'></script>
+
+</head><body><script>hljs.initHighlightingOnLoad();</script><script>
+var system ={};  
+var p = navigator.platform;       
+system.win = p.indexOf('Win') == 0;  
+system.mac = p.indexOf('Mac') == 0;  
+system.x11 = (p == 'X11') || (p.indexOf('Linux') == 0);     
+if(system.win||system.mac||system.xll){
+document.write("<link href='../css/3.css' rel='stylesheet' type='text/css'>");}else{ document.write("<link href='../css/3wap.css' rel='stylesheet' type='text/css'>");}</script><script src='../../js/3.js'></script><div class='div2'><div class='heading_nav'><ul><div><li><a href='../../index.html'>首页</a></li>
+</div><div onclick='hidden1()' >分享</div>
+</ul></div></div>
+<div id='heading_nav2'> 
+<li class='row' >
+<div class='social-share' data-mode='prepend'><a href='javascript:' class='social-share-icon icon-heart'></a></div></li></div><script charset='utf-8' src='../../3/js/hengfu.js'></script><script charset='utf-8' src='../../3/js/hengfu2.js'></script><hr><div class='div1'><div class='biaoti'><center>SpringBoot静态资源文件</center></div><div class='banquan'>原文出处:本文由博客园博主lion-one提供。<br/>
+原文连接:https://www.cnblogs.com/lifefamily/p/11795659.html</div><br>
+    <h1>1、默认静态资源映射</h1>
+<p><span style="font-size: 18px;">　　Spring Boot对静态资源映射提供了默认配置</span></p>
+<p><span style="font-size: 18px;">　　Spring Boot默认将 /** 所有访问映射到一下目录</span></p>
+<p><span style="font-size: 18px;">　　　　classpath:/static</span></p>
+<p><span style="font-size: 18px;">　　　　classpath:/public</span></p>
+<p><span style="font-size: 18px;">　　　　classpath:/resources</span></p>
+<p><span style="font-size: 18px;">　　　　classpath:/META-INF/resources</span></p>
+<p><span style="font-size: 18px;">　　</span></p>
+<p><span style="font-family: 宋体;">　　&nbsp;<span style="font-size: 18px;">在</span></span><span style="font-size: 18px;">resources<span style="font-family: 宋体;">目录下新建 META-INF/resources、</span><span style="font-family: Calibri;">public</span><span style="font-family: 宋体;">、resources、</span><span style="font-family: Calibri;">static </span><span style="font-family: 宋体;">四个目录，并分别放入 </span><span style="font-family: Calibri;">4.jpg 3.jpg 2.jpg&nbsp; 1.jpg</span><span style="font-family: 宋体;">图片</span></span></p>
+<p><span style="font-size: 18px;"><span style="font-family: 宋体;">　　<img src="./images/SpringBoot静态资源文件0.png" alt="" /></span></span></p>
+<p>&nbsp;</p>
+<p>&nbsp;</p>
+<p><span style="font-size: 18px;"><span style="font-family: 宋体;">　　</span></span><span style="font-family: 宋体;">启动项目，在浏览器分别输入</span></p>
+<p>　　　　&nbsp;<strong>http://localhost:8080/4.jpg</strong></p>
+<p>&nbsp;</p>
+<p>&nbsp;</p>
+<p><strong>&nbsp;　　　　http://localhost:8080/3.jpg</strong></p>
+<p><strong>&nbsp;　　　　http://localhost:8080/2.jpg</strong></p>
+<p><strong>&nbsp;　　　　http://localhost:8080/1.jpg</strong></p>
+<p>例如：</p>
+<p><img src="./images/SpringBoot静态资源文件1.png" alt="" /></p>
+<p>&nbsp;</p>
+<p>&nbsp;</p>
+<h1>2、自定义静态资源文件访问</h1>
+<h2>　　(1)、第一种方式：配置类</h2>
+<p>　　　　<img src="./images/SpringBoot静态资源文件2.png" alt="" /></p>
+<p>&nbsp;</p>
+<p>&nbsp;</p>
+<p>　　<strong><span style="font-size: 18px;">将所有C:\\Users\\Administrator\\Pictures\\Fairy\\访问都映射到/myPic/**路径下</span></strong></p>
+<p><strong><span style="font-size: 18px;">　&nbsp; 　　重启项目后，例如在C:\Users\Administrator\Pictures\Fairy中有一张1.jpg图片，</span></strong></p>
+<p><strong><span style="font-size: 18px;">　　　&nbsp; 在浏览器输入<strong>http://localhost:8080/myPic/1.jpg即可访问</strong></span></strong></p>
+<p>&nbsp;</p>
+<h2>　　(2)、配置application.properties</h2>
+<p>　　　　<strong>web.upload-path=C:\Users\Administrator\Pictures\Fairy</strong></p>
+<p><strong>　　　　spring.mvc.static-path-pattern=/**</strong></p>
+<p><strong>　　　　spring.resources.static-locations=classpath:/META-INF/resources/,classpath:/resources/,classpath:/static/,classpath:/public/,file:${web.upload-path}</strong></p>
+<p>　　web.upload-path<span style="font-family: 宋体;">：这个属于自定义的属性，指定了一个路径，注意要以</span><span style="font-family: Calibri;">/</span><span style="font-family: 宋体;">结尾；</span></p>
+<p>　　spring.mvc.static-path-pattern=/**<span style="font-family: 宋体;">：表示所有的访问都经过静态资源路径；</span></p>
+<p>　　spring.resources.static-locations<span style="font-family: 宋体;">：在这里配置静态资源路径，前面说了这里的配置是覆盖默认配置，所以需要将默认的也加上否则</span><span style="font-family: Calibri;">static</span><span style="font-family: 宋体;">、</span><span style="font-family: Calibri;">public</span><span style="font-family: 宋体;">等这些路径将不能被当作静态资源路径，在这个最末尾的</span><span style="font-family: Calibri;">file:${web.upload-path}</span><span style="font-family: 宋体;">之所有要加</span><span style="font-family: Calibri;">file:</span><span style="font-family: 宋体;">是因为指定的是一个具体的硬盘路径，其他的使用</span><span style="font-family: Calibri;">classpath</span><span style="font-family: 宋体;">指的是系统环境变量。</span></p>
+<p><span style="font-family: 宋体;">&nbsp; 重启项目，例如在<strong>C:\Users\Administrator\Pictures\Fairy下有一张lion.jpg</strong></span></p>
+<p><span style="font-family: 宋体;"><strong>　　在浏览器地址中输入<strong><strong>http://localhost:8080/lion.jpg即可</strong></strong></strong></span></p>
+<p>&nbsp;</p>
+
+</div><hr><script charset='utf-8' src='../../js/sming.js'></script></body></html>

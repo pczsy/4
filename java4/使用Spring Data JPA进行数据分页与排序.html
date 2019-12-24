@@ -1,0 +1,128 @@
+<html><head><meta charset='utf-8'><meta name='viewport' content='width=device-width, initial-scale=1'>
+<meta name='applicable-device' content='pc'><meta name='keywords' content='电脑,电脑讲解,电脑技术,编程,电脑故障维修使用Spring Data JPA进行数据分页与排序' />
+<script src='../../highlight/highlight.pack.js'></script>
+<link rel='stylesheet' type='text/css' href='../../highlight/styles/monokai.css'/>
+
+<link rel='stylesheet' href='../../fenxiang/dist/css/share.min.css'>
+<script src='../../fenxiang/src/js/social-share.js'></script>
+<script src='../../fenxiang/src/js/qrcode.js'></script>
+
+</head><body><script>hljs.initHighlightingOnLoad();</script><script>
+var system ={};  
+var p = navigator.platform;       
+system.win = p.indexOf('Win') == 0;  
+system.mac = p.indexOf('Mac') == 0;  
+system.x11 = (p == 'X11') || (p.indexOf('Linux') == 0);     
+if(system.win||system.mac||system.xll){
+document.write("<link href='../css/3.css' rel='stylesheet' type='text/css'>");}else{ document.write("<link href='../css/3wap.css' rel='stylesheet' type='text/css'>");}</script><script src='../../js/3.js'></script><div class='div2'><div class='heading_nav'><ul><div><li><a href='../../index.html'>首页</a></li>
+</div><div onclick='hidden1()' >分享</div>
+</ul></div></div>
+<div id='heading_nav2'> 
+<li class='row' >
+<div class='social-share' data-mode='prepend'><a href='javascript:' class='social-share-icon icon-heart'></a></div></li></div><script charset='utf-8' src='../../3/js/hengfu.js'></script><script charset='utf-8' src='../../3/js/hengfu2.js'></script><hr><div class='div1'><div class='biaoti'><center>使用Spring Data JPA进行数据分页与排序</center></div><div class='banquan'>原文出处:本文由博客园博主字母哥博客提供。<br/>
+原文连接:https://www.cnblogs.com/zimug/p/11809827.html</div><br>
+    <p><img src="./images/使用Spring Data JPA进行数据分页与排序0.png" alt="file" /></p>
+<h2 id="一导读">一、导读</h2>
+<p>如果一次性加载成千上万的列表数据，在网页上显示将十分的耗时，用户体验不好。所以处理较大数据查询结果展现的时候，分页查询是必不可少的。分页查询必然伴随着一定的排序规则，否则分页数据的状态很难控制，导致用户可能在不同的页看到同一条数据。那么，本文的主要内容就是给大家介绍一下，如何使用Spring Data JPA进行分页与排序。</p>
+<h2 id="二实体定义">二、实体定义</h2>
+<p>我们使用一个简单的实体定义：Article(文章)</p>
+<pre><code><code>@Data
+@AllArgsConstructor
+@NoArgsConstructor
+@Builder
+@Entity
+@Table(name=&quot;article&quot;)
+public class Article {
+
+    @Id
+    @GeneratedValue
+    private Long id;
+
+    @Column(nullable = false,length = 32)
+    private String author;
+
+    @Column(nullable = false, unique = true,length = 32)
+    private String title;
+
+    @Column(length = 512)
+    private String content;
+
+    private Date createTime;
+}</code></code></pre>
+<ul>
+<li>@Entity 表示这个类是一个实体类，接受JPA控制管理，对应数据库中的一个表</li>
+<li>@Table 指定这个类对应数据库中的表名。如果这个类名和数据库表名符合驼峰及下划线规则，可以省略这个注解。如FlowType类名对应表名flow_type。</li>
+<li>@Id 指定这个字段为表的主键</li>
+<li>@GeneratedValue(strategy=GenerationType.IDENTITY) 指定主键的生成方式，一般主键为自增的话，就采用GenerationType.IDENTITY的生成方式</li>
+<li>@Column 注解针对一个字段，对应表中的一列。nullable = false表示数据库字段不能为空, unique = true表示数据库字段不能有重复值,length = 32表示数据库字段最大程度为32.</li>
+<li>@Data、@AllArgsConstructor、@NoArgsConstructor、@Builder都是插件lombok的注解，用来帮助我们生成set、get方法、构造函数等实体类的模板代码。</li>
+</ul>
+<h2 id="三repository定义">三、Repository定义</h2>
+<p>定义一个接口ArticleRepository继承 PagingAndSortingRepository。PagingAndSortingRepository接口不仅包含基础的CURD函数，还支持排序、分页的接口函数定义。</p>
+<pre><code><code>public interface ArticleRepository extends PagingAndSortingRepository&lt;Article,Long&gt; {
+     //查询article表的所有数据，传入Pageable分页参数，不需要自己写SQL
+    Page&lt;Article&gt; findAll(Pageable pageable);
+    //根据author字段查询article表数据，传入Pageable分页参数，不需要自己写SQL
+    Page&lt;Article&gt; findByAuthor(String author, Pageable pageable);
+    //根据author字段和title字段，查询article表数据，传入Pageable分页参数，不需要自己写SQL
+    Slice&lt;Article&gt; findByAuthorAndTitle(String author, String title, Pageable pageable);
+}</code></code></pre>
+<h2 id="四实现分页">四、实现分页</h2>
+<p> Pageable 是Spring定义的接口，用于分页参数的传递，我们看看如何使用它。首先将ArticleRepository注入到你需要进行持久层操作的类里面，通常是一个@Service注解的类，然后在服务方法内使用如下代码进行分页操作：查询第一页(从0开始)的数据，每页10条数据。</p>
+<pre><code><code>Pageable pageable = PageRequest.of(0, 10);   //第一页
+//Pageable pageable = PageRequest.of(0, 10);  //第二页
+//Pageable pageable = PageRequest.of(0, 10);  // 第三页
+//数据库操作获取查询结果
+Page&lt;Article&gt; articlePage = articleRepository.findAll(pageable);
+//将查询结果转换为List
+List&lt;Article&gt; articleList = articlePage.getContent();
+</code></code></pre>
+<p>findAll方法以Page类的对象作为响应，如果我们想获取查询结果List，可以使用getContent()方法。但是笔者不建议这样进行转换，因为前端展示一个分页列表，不仅需要数据，而且还需要一些分页信息。如：当前第几页，每页多少条，总共多少页，总共多少条。这些信息在Page(articlePage)对象里面均可以获取到(下文中有介绍)。</p>
+<h2 id="五实现排序">五、实现排序</h2>
+<p>Spring Data JPA提供了一个 <code>Sort</code>对象，用以提供一种排序机制。让我们看一下排序的方式。</p>
+<pre><code><code>
+articleRepository.findAll(Sort.by(&quot;createTime&quot;));
+
+articleRepository.findAll(Sort.by(&quot;author&quot;).ascending()
+                        .and(Sort.by(&quot;createTime&quot;).descending()));
+</code></code></pre>
+<ul>
+<li>第一个findAll方法是按照createTime的升序进行排序</li>
+<li>第一个findAll方法是按照author的升序排序，再按照createTime的降序进行排序</li>
+</ul>
+<h3 id="分页和排序在一起"><strong>分页和排序在一起</strong></h3>
+<pre><code><code>Pageable pageable = PageRequest.of(0, 10,Sort.by(&quot;createTime&quot;));</code></code></pre>
+<h2 id="六slice与page">六、Slice与Page</h2>
+<p>在ArticleRepository我们看到了一个方法返回Slice和另一个方法返回了Page。它们都是Spring Data JPA的数据响应接口，其中 Page 是 Slice的子接口。它们都用于保存和返回数据。</p>
+<h3 id="slice">6.1.<strong>Slice</strong></h3>
+<p>让我们看一下 Slice的一些重要方法。</p>
+<pre><code><code>List &lt;T&gt;  getContent（）; //获取切片的内容
+
+Pageable  getPageable（）; //当前切片的分页信息
+
+boolean  hasContent（）; //是否有查询结果？
+
+boolean  isFirst（）;  //是否是第一个切片
+
+boolean  isLast（）;  //是否是最后一个切片
+
+Pageable nextPageable(); // 下一个切片的分页信息
+
+Pageable previousPageable(); // 上一个切片的分页信息</code></code></pre>
+<h3 id="page">6.2.<strong>Page</strong></h3>
+<p> Page是Slice的子接口，以下是的一些重要方法。</p>
+<pre><code><code>//总页数
+int getTotalPages();
+
+//总数据条数
+long getTotalElements();</code></code></pre>
+<p><strong>那么，什么时候使用Slice？什么时候使用Page？</strong><br />
+答：通过这两个接口的函数定义可以看出，Slice只关心是不是存在下一个分片(分页)，不会去数据库count计算总条数、总页数。所以比较适合大数据量列表的的鼠标或手指滑屏操作，不关心总共有多少页，只关心有没有下一页。Page比较适合传统应用中的table开发，需要知道总页数和总条数。</p>
+<h2 id="期待您的关注">期待您的关注</h2>
+<ul>
+<li>博主最近新写了一本书：<a href="http://springboot.zimug.com">《手摸手教您学习SpringBoot系列-16章97节》</a></li>
+<li>本文转载注明出处（必须带连接，不能只转文字）：<a href="http://www.zimug.com">字母哥博客</a>。</li>
+</ul>
+
+
+</div><hr><script charset='utf-8' src='../../js/sming.js'></script></body></html>

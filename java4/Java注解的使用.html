@@ -1,0 +1,157 @@
+<html><head><meta charset='utf-8'><meta name='viewport' content='width=device-width, initial-scale=1'>
+<meta name='applicable-device' content='pc'><meta name='keywords' content='电脑,电脑讲解,电脑技术,编程,电脑故障维修Java注解的使用' />
+<script src='../../highlight/highlight.pack.js'></script>
+<link rel='stylesheet' type='text/css' href='../../highlight/styles/monokai.css'/>
+
+<link rel='stylesheet' href='../../fenxiang/dist/css/share.min.css'>
+<script src='../../fenxiang/src/js/social-share.js'></script>
+<script src='../../fenxiang/src/js/qrcode.js'></script>
+
+</head><body><script>hljs.initHighlightingOnLoad();</script><script>
+var system ={};  
+var p = navigator.platform;       
+system.win = p.indexOf('Win') == 0;  
+system.mac = p.indexOf('Mac') == 0;  
+system.x11 = (p == 'X11') || (p.indexOf('Linux') == 0);     
+if(system.win||system.mac||system.xll){
+document.write("<link href='../css/3.css' rel='stylesheet' type='text/css'>");}else{ document.write("<link href='../css/3wap.css' rel='stylesheet' type='text/css'>");}</script><script src='../../js/3.js'></script><div class='div2'><div class='heading_nav'><ul><div><li><a href='../../index.html'>首页</a></li>
+</div><div onclick='hidden1()' >分享</div>
+</ul></div></div>
+<div id='heading_nav2'> 
+<li class='row' >
+<div class='social-share' data-mode='prepend'><a href='javascript:' class='social-share-icon icon-heart'></a></div></li></div><script charset='utf-8' src='../../3/js/hengfu.js'></script><script charset='utf-8' src='../../3/js/hengfu2.js'></script><hr><div class='div1'><div class='biaoti'><center>Java注解的使用</center></div><div class='banquan'>原文出处:本文由博客园博主Way_Run提供。<br/>
+原文连接:https://www.cnblogs.com/way-sunshine/p/11648710.html</div><br>
+    <h2>一，基本概念</h2>
+<p>Java 注解是JDK5.0引入的注释机制，可以被使用在类，方法，参数等地方中，并且可以通过Java的反射机制获取注解中的内容，</p>
+<p>注解相当于标签，可以标识方法，类或属性具有某些特征，在编译器生<span>成的类文件时，可以被嵌入到字节码中。另外用户可以自</span></p>
+<p><span>定义注解，完成定制化的开发，尤其是在利用springboot进行项目开发时，我们会</span>经常使用注解管理spring容器的bean，从而大大</p>
+<p>提高了开发的效率。</p>
+<h2>&nbsp;二，常用注解</h2>
+<p>在开发过程中，我们可以经常看到一些内置的注解：</p>
+<p>@Override ：用于校验该方法是否是重载方法，如果不是重载方法，而且还是使用这个注解则会报错。</p>
+<p>@Deprecated ：用于过时的用法，如果继续使用，编译器会给出警告</p>
+<p>@SuppressWarnings ：用于指示编译器忽略注解中声明的警告</p>
+<p>在编写自定义注解时，也会使用一些<strong>元注解</strong>：</p>
+<p>1，@Retention：定义了注解的保留策略（RetentionPolicy）</p>
+<src class="cnblogs_code">
+<pre><code><span style="color: #000000;">@Documented
+@Retention(RetentionPolicy.RUNTIME)
+@Target(ElementType.ANNOTATION_TYPE)
+</span><span style="color: #0000ff;">public</span> @<span style="color: #0000ff;">interface</span><span style="color: #000000;"> Retention {
+    </span><span style="color: #008000;">/**</span><span style="color: #008000;">
+     * Returns the retention policy.
+     * </span><span style="color: #808080;">@return</span><span style="color: #008000;"> the retention policy
+     </span><span style="color: #008000;">*/</span><span style="color: #000000;">
+    RetentionPolicy value();
+}</span></code></pre>
+
+<p>其中RetentionPolicy是一个枚举类型，共有三种枚举值</p>
+<p>（1）CLASS：此注解的缺省行为，表明在程序运行期间，注解可以被编译器保存在类文件中，但不会被虚拟机保留。</p>
+<p>（2）RUNTIME：表明在程序运行期间，既可以被编译器保存在类文件中，也被虚拟机保留，所以注解的内容可以通过反射机制读取</p>
+<p>（3）SOURCE：注解会被编译器丢弃</p>
+<p>2，@Target：定义了注解的作用目标</p>
+<src class="cnblogs_code">
+<pre><code><span style="color: #000000;">@Documented
+@Retention(RetentionPolicy.RUNTIME)
+@Target(ElementType.ANNOTATION_TYPE)
+</span><span style="color: #0000ff;">public</span> @<span style="color: #0000ff;">interface</span><span style="color: #000000;"> Target {
+    </span><span style="color: #008000;">/**</span><span style="color: #008000;">
+     * Returns an array of the kinds of elements an annotation type
+     * can be applied to.
+     * </span><span style="color: #808080;">@return</span><span style="color: #008000;"> an array of the kinds of elements an annotation type
+     * can be applied to
+     </span><span style="color: #008000;">*/</span><span style="color: #000000;">
+    ElementType[] value();
+}</span></code></pre>
+
+<p>其中ElementType是一个枚举类型，并且表明@Target注解拥有的是枚举类型的数组，可以被指定多个值。</p>
+<p>（1）TYPE：允许作用在类，接口或者枚举声明上</p>
+<p>（2）FIELD：允许作用在属性字段上</p>
+<p>（3）METHOD：允许作用在方法上</p>
+<p>（4）PARAMETER：允许作用在参数上</p>
+<p>（5）CONSTRUCTOR：允许作用在构造器上</p>
+<p>（6）LOCAL_VARIABLE：允许作用在本地变量上</p>
+<p>（7）ANNOTATION_TYPE：允许作用在注解类型上</p>
+<p>（8）PACKAGE：允许作用在包上</p>
+<p>JDK1.8之后，新增TYPE_PARAMETER和TYPE_USE两个属性</p>
+<p>（9）TYPE_PARAMETER：允许作用在类型参数上</p>
+<p>（10）TYPE_USE：允许作用在使用类型的地方上</p>
+<p>3，@Documented 定义注解可以包含在javadoc中</p>
+<p>4，@Inherited：表明注解可以被子类集成使用</p>
+<h2>三，自定义注解</h2>
+<p>1，使用关键字@interface进行自定义注解，注解内容可以指定注解属性的类型，缺省值等</p>
+<src class="cnblogs_code">
+<pre><code><span style="color: #008080;">1</span> <span style="color: #000000;">@Documented
+</span><span style="color: #008080;">2</span> <span style="color: #000000;">@Retention(RetentionPolicy.RUNTIME)
+</span><span style="color: #008080;">3</span> <span style="color: #000000;">@Target({ElementType.METHOD, ElementType.FIELD})
+</span><span style="color: #008080;">4</span> <span style="color: #0000ff;">public</span> @<span style="color: #0000ff;">interface</span><span style="color: #000000;"> MyAnnotation {
+</span><span style="color: #008080;">5</span> 
+<span style="color: #008080;">6</span>     <span style="color: #0000ff;">int</span> id() <span style="color: #0000ff;">default</span> 0<span style="color: #000000;">;
+</span><span style="color: #008080;">7</span> 
+<span style="color: #008080;">8</span> <span style="color: #000000;">    String[] value();
+</span><span style="color: #008080;">9</span> }</code></pre>
+
+<p>自定义的注解MyAnnotation包含id和value两个属性，其中属性id的类型为int，且缺省值为0，属性value的类型为String数组。</p>
+<p>注意，在声明属性时，属性名后跟的小括号一定要加上。@MyAnnotation表明可以被使用在方法或属性字段上，并且被编译器保存在类文件中，</p>
+<p>一直驻留在JVM虚拟机中，所以可以通过反射访问到注解中的内容。</p>
+<p>2，使用方法</p>
+<src class="cnblogs_code">
+<pre><code><span style="color: #008080;">1</span> <span style="color: #0000ff;">public</span> <span style="color: #0000ff;">class</span><span style="color: #000000;"> User {
+</span><span style="color: #008080;">2</span>     
+<span style="color: #008080;">3</span>     @MyAnnotation(value = {"male", "female"<span style="color: #000000;">})
+</span><span style="color: #008080;">4</span>     <span style="color: #0000ff;">public</span> <span style="color: #0000ff;">void</span> getUser(String name, <span style="color: #0000ff;">int</span><span style="color: #000000;"> age) {
+</span><span style="color: #008080;">5</span> 
+<span style="color: #008080;">6</span>         System.out.println("user: [" + name + "," + age + "]"<span style="color: #000000;">);
+</span><span style="color: #008080;">7</span> <span style="color: #000000;">    }
+</span><span style="color: #008080;">8</span> }</code></pre>
+
+<p>@MyAnnotation被使用在getUser方法上，并且指定注解的vlue属性值为male和female</p>
+<p>3，利用反射获取注解</p>
+<src class="cnblogs_code">
+<pre><code><span style="color: #008080;"> 1</span> <span style="color: #0000ff;">public</span> <span style="color: #0000ff;">class</span><span style="color: #000000;"> MyAnnotationTest {
+</span><span style="color: #008080;"> 2</span> 
+<span style="color: #008080;"> 3</span>     <span style="color: #0000ff;">public</span> <span style="color: #0000ff;">static</span> <span style="color: #0000ff;">void</span> main(String[] args) <span style="color: #0000ff;">throws</span><span style="color: #000000;"> Exception {
+</span><span style="color: #008080;"> 4</span> 
+<span style="color: #008080;"> 5</span> 
+<span style="color: #008080;"> 6</span>         User user = <span style="color: #0000ff;">new</span><span style="color: #000000;"> User();
+</span><span style="color: #008080;"> 7</span>         <span style="color: #008000;">//</span><span style="color: #008000;">通过返回获取实例</span>
+<span style="color: #008080;"> 8</span>         Class&lt;User&gt; userClass = User.<span style="color: #0000ff;">class</span><span style="color: #000000;">;
+</span><span style="color: #008080;"> 9</span> 
+<span style="color: #008080;">10</span>         Method method = userClass.getMethod("getUser", String.<span style="color: #0000ff;">class</span>, <span style="color: #0000ff;">int</span>.<span style="color: #0000ff;">class</span><span style="color: #000000;">);
+</span><span style="color: #008080;">11</span>         <span style="color: #008000;">//</span><span style="color: #008000;">利用反射调用方法</span>
+<span style="color: #008080;">12</span>         method.invoke(user, "Rose", 24<span style="color: #000000;">);
+</span><span style="color: #008080;">13</span> 
+<span style="color: #008080;">14</span>         <span style="color: #008000;">//</span><span style="color: #008000;">获取方法上的MyAnnotation注解</span>
+<span style="color: #008080;">15</span>         <span style="color: #0000ff;">if</span> (method.isAnnotationPresent(MyAnnotation.<span style="color: #0000ff;">class</span><span style="color: #000000;">)) {
+</span><span style="color: #008080;">16</span> 
+<span style="color: #008080;">17</span>             <span style="color: #008000;">//</span><span style="color: #008000;">获取方法上的注解实例</span>
+<span style="color: #008080;">18</span>             MyAnnotation annotation = method.getAnnotation(MyAnnotation.<span style="color: #0000ff;">class</span><span style="color: #000000;">);
+</span><span style="color: #008080;">19</span> 
+<span style="color: #008080;">20</span>             String[] value =<span style="color: #000000;"> annotation.value();
+</span><span style="color: #008080;">21</span> 
+<span style="color: #008080;">22</span>             <span style="color: #0000ff;">for</span><span style="color: #000000;"> (String v : value) {
+</span><span style="color: #008080;">23</span>                 System.out.printf("%s "<span style="color: #000000;">, v);
+</span><span style="color: #008080;">24</span> <span style="color: #000000;">            }
+</span><span style="color: #008080;">25</span>         } <span style="color: #0000ff;">else</span><span style="color: #000000;"> {
+</span><span style="color: #008080;">26</span>             System.out.println("没有应用MyAnnotation注解"<span style="color: #000000;">);
+</span><span style="color: #008080;">27</span> <span style="color: #000000;">        }
+</span><span style="color: #008080;">28</span> 
+<span style="color: #008080;">29</span> <span style="color: #000000;">        System.out.println();
+</span><span style="color: #008080;">30</span> 
+<span style="color: #008080;">31</span>         <span style="color: #008000;">//</span><span style="color: #008000;">获取方法上的所有注解</span>
+<span style="color: #008080;">32</span>         Annotation[] annotations =<span style="color: #000000;"> method.getAnnotations();
+</span><span style="color: #008080;">33</span>         <span style="color: #0000ff;">for</span><span style="color: #000000;"> (Annotation annotation : annotations) {
+</span><span style="color: #008080;">34</span> <span style="color: #000000;">            System.out.println(annotation);
+</span><span style="color: #008080;">35</span> <span style="color: #000000;">        }
+</span><span style="color: #008080;">36</span> 
+<span style="color: #008080;">37</span> <span style="color: #000000;">    }
+</span><span style="color: #008080;">38</span> 
+<span style="color: #008080;">39</span> }</code></pre>
+
+<p>利用Java的反射机制获取方法上的注解内容，通过Method类的getAnnotation方法可以获取到指定的注解，getAnnotations方法可以获取到方法上的所用注解。</p>
+<p>运行结果：</p>
+<p><img src="./images/Java注解的使用0.png" alt="" /></p>
+<h2>四，小结</h2>
+<p>注解相当于标签，利用反射机制可以获取到注解中的内容，可以作用在类，方法，参数等地方，使其具有某些属性，通过注解对程序进行标识来实现特定的处理，让编写的程序更加简洁。</p>
+
+</div><hr><script charset='utf-8' src='../../js/sming.js'></script></body></html>

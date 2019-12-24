@@ -1,0 +1,37 @@
+<html><head><meta charset='utf-8'><meta name='viewport' content='width=device-width, initial-scale=1'>
+<meta name='applicable-device' content='pc'><meta name='keywords' content='电脑,电脑讲解,电脑技术,编程,电脑故障维修String,StringBuffer,StringBuilder区别（笔记）' />
+<script src='../../highlight/highlight.pack.js'></script>
+<link rel='stylesheet' type='text/css' href='../../highlight/styles/monokai.css'/>
+
+<link rel='stylesheet' href='../../fenxiang/dist/css/share.min.css'>
+<script src='../../fenxiang/src/js/social-share.js'></script>
+<script src='../../fenxiang/src/js/qrcode.js'></script>
+
+</head><body><script>hljs.initHighlightingOnLoad();</script><script>
+var system ={};  
+var p = navigator.platform;       
+system.win = p.indexOf('Win') == 0;  
+system.mac = p.indexOf('Mac') == 0;  
+system.x11 = (p == 'X11') || (p.indexOf('Linux') == 0);     
+if(system.win||system.mac||system.xll){
+document.write("<link href='../css/3.css' rel='stylesheet' type='text/css'>");}else{ document.write("<link href='../css/3wap.css' rel='stylesheet' type='text/css'>");}</script><script src='../../js/3.js'></script><div class='div2'><div class='heading_nav'><ul><div><li><a href='../../index.html'>首页</a></li>
+</div><div onclick='hidden1()' >分享</div>
+</ul></div></div>
+<div id='heading_nav2'> 
+<li class='row' >
+<div class='social-share' data-mode='prepend'><a href='javascript:' class='social-share-icon icon-heart'></a></div></li></div><script charset='utf-8' src='../../3/js/hengfu.js'></script><script charset='utf-8' src='../../3/js/hengfu2.js'></script><hr><div class='div1'><div class='biaoti'><center>String,StringBuffer,StringBuilder区别（笔记）</center></div><div class='banquan'>原文出处:本文由博客园博主vibe提供。<br/>
+原文连接:https://www.cnblogs.com/vibe/p/11767080.html</div><br>
+    <p><span style="font-size: 14pt;">String类被final修饰，创建的对象为不可变对象，属于字符串常量。</span></p>
+<p><span style="font-size: 14pt;">而StringBuffer与StringBuilder创建的属于字符串常量。</span></p>
+<p><span style="font-size: 14pt;">StringBuffer的方法大多用了Synchronized关键字修饰添加了同步锁。而StringBuilder没有。</span></p>
+<p><span style="font-size: 14pt;">所以StringBuffer是线程安全的而StringBuilder是线程不安全的。</span></p>
+<p><span style="font-size: 14pt;">由于String的对象属于不可变对象，所以在一些情况下对其操作会产生许多无用的中间对象，如拼接截取和替换，</span></p>
+<p><span style="font-size: 14pt;">如果频繁地操作会对性能有所影响。当内存里的无用对象多了以后，JVM的GC就会开始工作，速度是非常慢的。</span></p>
+<p><span style="font-size: 14pt;">StringBuffer与StringBuilder对比，前者线程安全后者线程不安全。所以多线程情况下，若有大量的字符串操作，应</span></p>
+<p><span style="font-size: 14pt;">使用StringBuffer。若为单线程，由于StringBuilder没有加锁，而StringBuffer加了许多同步锁，每次操作都得判断锁，</span></p>
+<p><span style="font-size: 14pt;">所以效率没有StringBuilder高。但对字符串有大量操作时，StringBuffer和StringBuilder都是比String快的。</span></p>
+<p><span style="font-size: 14pt;">总结：</span></p>
+<p><span style="font-size: 14pt; color: #ff6600;">若并没有大量字符串操作则使用String。否则根据线程情况，</span></p>
+<p><span style="font-size: 14pt; color: #ff6600;">若为单线程，则使用StringBuilder；若为多线程，则使用StringBuffer。</span></p>
+
+</div><hr><script charset='utf-8' src='../../js/sming.js'></script></body></html>

@@ -1,0 +1,190 @@
+<html><head><meta charset='utf-8'><meta name='viewport' content='width=device-width, initial-scale=1'>
+<meta name='applicable-device' content='pc'><meta name='keywords' content='电脑,电脑讲解,电脑技术,编程,电脑故障维修rocketmq学习(二) rocketmq集群部署与图形化控制台安装' />
+<script src='../../highlight/highlight.pack.js'></script>
+<link rel='stylesheet' type='text/css' href='../../highlight/styles/monokai.css'/>
+
+<link rel='stylesheet' href='../../fenxiang/dist/css/share.min.css'>
+<script src='../../fenxiang/src/js/social-share.js'></script>
+<script src='../../fenxiang/src/js/qrcode.js'></script>
+
+</head><body><script>hljs.initHighlightingOnLoad();</script><script>
+var system ={};  
+var p = navigator.platform;       
+system.win = p.indexOf('Win') == 0;  
+system.mac = p.indexOf('Mac') == 0;  
+system.x11 = (p == 'X11') || (p.indexOf('Linux') == 0);     
+if(system.win||system.mac||system.xll){
+document.write("<link href='../css/3.css' rel='stylesheet' type='text/css'>");}else{ document.write("<link href='../css/3wap.css' rel='stylesheet' type='text/css'>");}</script><script src='../../js/3.js'></script><div class='div2'><div class='heading_nav'><ul><div><li><a href='../../index.html'>首页</a></li>
+</div><div onclick='hidden1()' >分享</div>
+</ul></div></div>
+<div id='heading_nav2'> 
+<li class='row' >
+<div class='social-share' data-mode='prepend'><a href='javascript:' class='social-share-icon icon-heart'></a></div></li></div><script charset='utf-8' src='../../3/js/hengfu.js'></script><script charset='utf-8' src='../../3/js/hengfu2.js'></script><hr><div class='div1'><div class='biaoti'><center>rocketmq学习(二) rocketmq集群部署与图形化控制台安装</center></div><div class='banquan'>原文出处:本文由博客园博主小熊餐馆提供。<br/>
+原文连接:https://www.cnblogs.com/xiaoxiongcanguan/p/11579300.html</div><br>
+    <h1>1.rocketmq图形化控制台安装</h1>
+<p>　　虽然rocketmq为用户提供了使用命令行管理主题、消费组以及broker配置的功能，但对于不够熟练的非运维人员来说，命令行的管理界面还是较难使用的。为此，我们可以使用图形化的管理界面来简化管理操作。</p>
+<p>　　rocketmq官方推荐的图形化控制台目前还处在不成熟的孵化阶段。仓库地址为(<a href="https://github.com/apache/rocketmq-externals" target="_blank"><span style="background-color: #ffffff;">https://github.com/apache/rocketmq-externals</span></a>)，其中包含了rocketmq相关拓展的、属于孵化期的各种项目。下载源码之后，找到rocketmq-console文件夹，这就是rocketmq官方推荐的图形化控制台项目，基于springboot和angularJS。</p>
+<p>　　打开application.properties，能看到一些重要参数的配置，例如端口，nameServer地址，登录权限控制等等。对于启动参数的设置，可以选择直接在配置文件中修改；也可在启动项目时通过命令行指定。</p>
+<p>　　<img src="./images/rocketmq学习(二) rocketmq集群部署与图形化控制台安装0.png" alt="" /></p>
+<p>　　为部署项目，先执行maven的打包命令(mvn clean package)，生成jar包。</p>
+<p>　　然后执行java -jar rocketmq-console-ng-1.0.1.jar --rocketmq.config.namesrvAddr=localhost:9876(nameServer地址) --server.port=8080(启动端口)。</p>
+<p>　　通过浏览器访问项目启动的ip/port，即可看到以下管理界面(右上角可以中英文切换)。</p>
+<p><img src="./images/rocketmq学习(二) rocketmq集群部署与图形化控制台安装1.png" alt="" /></p>
+<p>&nbsp;　　至此，rocketmq图形化控制台安装成功。</p>
+<h1>2.rocketmq集群部署</h1>
+<p>　　rocketmq的单机部署虽然简单方便，却存在着单点故障的问题。通过集群部署nameServer和broker可以实现rocketmq服务端的高可用。</p>
+<p>　　下面介绍rocketmq的集群部署，以在两台机器上搭建一个双主双从的高可用rocketmq集群为例子，这两台机器<strong>(linux环境)</strong>的IP地址分别是192.168.32.130,和192.168.32.131。</p>
+<h2>2.1 nameServer集群部署</h2>
+<p>　　由于nameServer的集群节点之间互不通信，所以不需要额外的配置。</p>
+<p>　　在两台机器的rocketmq安装的根路径下分别执行<strong>"sh bin/mqnamesrv"</strong>，各启动一个nameServer，使用其默认的端口9876。</p>
+<p>　　现在，192.168.32.130:9876和192.168.32.131:9876上都各运行着一个nameServer服务。</p>
+<h2>2.2 broker集群部署</h2>
+<p>　　broker作为rocketmq的核心，其运行的稳定性至关重要。前面提到的双主双从(<strong>2-master-2-slave</strong>)实际上指代的是broker的集群运行模式，从broker作为主broker的备份，负责和主broker保持数据同步，可读不可写。</p>
+<p>　　rocketmq通过赋予broker名称来区别不同角色的broker。我们把当前两个角色的broker分别命名为<strong>broker-a</strong>和<strong>broker-b。</strong></p>
+<p>　　在192.168.32.130 部署broker-a的主和broker-b的从，在192.168.32.131 部署broker-b的主和broker-a的从，同一角色的主从分别部署在不同的机器上。这样，<strong>即使任意一台机器挂掉，由于从broker的存在，broker-a和broker-b依然可以对外提供服务。</strong></p>
+<p><strong>　　</strong>启动broker时，可以通过指定配置文件的方式为broker设置一系列参数。不同角色的broker，主从broker之间的配置文件参数内容各不相同。</p>
+<h3><strong>broker配置文件中参数介绍：</strong></h3>
+<p><strong>　　brokerName：</strong>broker名称，互为主从的broker名称保持一致。</p>
+<p><strong>　　namesrvAddr：</strong>关联的nameserver地址，多个用<strong>";"</strong>隔开。</p>
+<p><strong>　　listenPort：</strong>broker监听端口，同一机器部署多个broker不能监听端口不能相同，避免冲突</p>
+<p><strong>　　storePathRootDir：</strong>broker存储数据的根目录</p>
+<p><strong>　　brokerClusterName：</strong>broker集群名称，相同集群的master能互相识别</p>
+<p><strong>　　brokerId：</strong>0代表master，大于0代表不同的slave-broker</p>
+<p><strong>　　deleteWhen：</strong>删除过时消息的时间，04代表凌晨4点</p>
+<p><strong>　　fileReservedTime：</strong>落盘数据文件保存的时长，单位小时</p>
+<p><strong>　　brokerRole：</strong>brokerRole有三种类型，<strong>SYNC_MASTER</strong>、<strong>ASYNC_MASTER</strong>和<strong>SLAVE</strong>，SYNC_M和ASYNC_M都代表主broker，区别在于主从之间进行数据同步的方式不同。SYNC代表主从数据同步完成，才向客户端返回消息发送成功结果；反之ASYNC代表主库收到消息后立即返回发送消息成功结果。</p>
+<p>　　可以看到，ASYNC_MASTER的效率更高，但是当MASTER出现故障时，可能出现消息丢失的问题。需要用户进行效率与可靠性之间的取舍。</p>
+<p><strong>　　flushDiskType：</strong>flushDiskType有两种类型，<strong>SYNC_FLUSH(同步刷盘)</strong>和<strong>ASYNC_FLUSH(异步刷盘)</strong>，用于指定broker在接收到消息后，返回消息发送结果和数据落盘处理的策略。当选择同步刷盘时，只有当消息数据真正的写入磁盘持久化时，才返回消息发送成功。选择异步刷盘时，消息数据写入本地虚拟内存映射后，就直接返回。</p>
+<p>　　broker的本地落盘策略和主从同步策略的选择类似，都需要在效率与可靠性、一致性之间进行取舍。</p>
+<p>　　比较推荐的一种配置方案是主从同步策略选择SYNC_MASTER而本地落盘策略选择SYNC_FLUSH。从可靠性的角度来看，只要主从broker没有同时挂掉(避免了单点故障)，消息将不会丢失；从效率的角度来看，由于主从broker都是异步落盘，执行效率也有一定的保障，是一个优秀的折中方案。<strong><br /></strong></p>
+<h3>broker配置文件详情：</h3>
+<p><strong>broker-a主broker&nbsp; 配置文件(broker-a.properties)：</strong></p>
+<src class="cnblogs_code">
+<pre><code>brokerName=broker-<span style="color: #000000;">a
+namesrvAddr</span>=192.168.32.130:9876;192.168.32.131:9876<span style="color: #000000;">
+listenPort</span>=10911<span style="color: #000000;">
+storePathRootDir</span>=/root/rocketmq/data/store/store-<span style="color: #000000;">a
+brokerClusterName</span>=<span style="color: #000000;">DefaultCluster
+brokerId</span>=0<span style="color: #000000;">
+deleteWhen</span>=04<span style="color: #000000;">
+fileReservedTime</span>=48<span style="color: #000000;">
+brokerRole</span>=<span style="color: #000000;">SYNC_MASTER
+flushDiskType</span>=ASYNC_FLUSH</code></pre>
+
+<p><strong>broker-b主broker&nbsp; 配置文件(broker-b.properties)：</strong></p>
+<src class="cnblogs_code">
+<pre><code>brokerName=broker-<span style="color: #000000;">b
+namesrvAddr</span>=192.168.32.130:9876;192.168.32.131:9876<span style="color: #000000;">
+listenPort</span>=10911<span style="color: #000000;">
+storePathRootDir</span>=/root/rocketmq/data/store/store-<span style="color: #000000;">b
+brokerClusterName</span>=<span style="color: #000000;">DefaultCluster
+brokerId</span>=0<span style="color: #000000;">
+deleteWhen</span>=04<span style="color: #000000;">
+fileReservedTime</span>=48<span style="color: #000000;">
+brokerRole</span>=<span style="color: #000000;">SYNC_MASTER
+flushDiskType</span>=ASYNC_FLUSH</code></pre>
+
+<p><strong>broker-a从broker&nbsp; 配置文件(broker-a-s.properties)：</strong></p>
+<src class="cnblogs_code">
+<pre><code>brokerName=broker-<span style="color: #000000;">a
+namesrvAddr</span>=192.168.32.130:9876;192.168.32.131:9876<span style="color: #000000;">
+listenPort</span>=11011<span style="color: #000000;">
+storePathRootDir</span>=/root/rocketmq/data/store/store-<span style="color: #000000;">a
+brokerClusterName</span>=<span style="color: #000000;">DefaultCluster
+brokerId</span>=1<span style="color: #000000;">
+deleteWhen</span>=04<span style="color: #000000;">
+fileReservedTime</span>=48<span style="color: #000000;">
+brokerRole</span>=<span style="color: #000000;">SLAVE
+flushDiskType</span>=ASYNC_FLUSH</code></pre>
+
+<p><strong>broker-b从broker&nbsp; 配置文件(broker-b-s.properties)：</strong></p>
+<src class="cnblogs_code">
+<pre><code>brokerName=broker-<span style="color: #000000;">b
+namesrvAddr</span>=192.168.32.130:9876;192.168.32.131:9876<span style="color: #000000;">
+listenPort</span>=11011<span style="color: #000000;">
+storePathRootDir</span>=/root/rocketmq/data/store/store-<span style="color: #000000;">b
+brokerClusterName</span>=<span style="color: #000000;">DefaultCluster
+brokerId</span>=1<span style="color: #000000;">
+deleteWhen</span>=04<span style="color: #000000;">
+fileReservedTime</span>=48<span style="color: #000000;">
+brokerRole</span>=<span style="color: #000000;">SLAVE
+flushDiskType</span>=ASYNC_FLUSH</code></pre>
+
+<p>&nbsp;　　在对应机器依次执行以下命令，依次启动broker(先启动主broker，后启动从broker)。</p>
+<p>　　192.168.32.130执行：sh bin/mqbroker -c [配置文件路径 eg: rocketmq/data/conf/broker-a.properties]</p>
+<p>　　192.168.32.131执行：sh bin/mqbroker -c [配置文件路径 eg: rocketmq/data/conf/broker-b.properties]</p>
+<p>　　192.168.32.131执行：sh bin/mqbroker -c [配置文件路径 eg: rocketmq/data/conf/broker-a-s.properties]</p>
+<p>　　192.168.32.130执行：sh bin/mqbroker -c [配置文件路径 eg:&nbsp;rocketmq/data/conf/broker-b-s.properties]</p>
+<p>　　此时，rocketmq双主双从的broker集群已经搭建完毕。启动图形控制台，指定命令行参数namesrvAddr=192.168.32.130:9876;192.168.32.131:9876，可看到以下信息：</p>
+<h1><img src="./images/rocketmq学习(二) rocketmq集群部署与图形化控制台安装2.png" alt="" /></h1>
+<h1>3. 使用java客户端收发消息</h1>
+<p>　　前面我们通过命令行的方式进行了rocketmq收发消息的测试。但在实际使用过程中，还是需要sdk客户端来进行收发消息。这里，我们使用rocketmq提供的java sdk来进行rocketmq的消息收发实验。</p>
+<p>　　先通过图形控制台创建一个主题用于测试，主题名称为"TopicTest"(随便取的)。</p>
+<p><img src="./images/rocketmq学习(二) rocketmq集群部署与图形化控制台安装3.png" alt="" /></p>
+<p>　　接着启动一个java项目，加入rocketmq-client的依赖。</p>
+<p><strong>maven坐标：</strong></p>
+<src class="cnblogs_code">
+<pre><code><span style="color: #008000;">&lt;!--</span><span style="color: #008000;"> 原生rocketmq client </span><span style="color: #008000;">--&gt;</span>
+<span style="color: #0000ff;">&lt;</span><span style="color: #800000;">dependency</span><span style="color: #0000ff;">&gt;</span>
+     <span style="color: #0000ff;">&lt;</span><span style="color: #800000;">groupId</span><span style="color: #0000ff;">&gt;</span>org.apache.rocketmq<span style="color: #0000ff;">&lt;/</span><span style="color: #800000;">groupId</span><span style="color: #0000ff;">&gt;</span>
+     <span style="color: #0000ff;">&lt;</span><span style="color: #800000;">artifactId</span><span style="color: #0000ff;">&gt;</span>rocketmq-client<span style="color: #0000ff;">&lt;/</span><span style="color: #800000;">artifactId</span><span style="color: #0000ff;">&gt;</span>
+     <span style="color: #0000ff;">&lt;</span><span style="color: #800000;">version</span><span style="color: #0000ff;">&gt;</span>4.4.0<span style="color: #0000ff;">&lt;/</span><span style="color: #800000;">version</span><span style="color: #0000ff;">&gt;</span>
+<span style="color: #0000ff;">&lt;/</span><span style="color: #800000;">dependency</span><span style="color: #0000ff;">&gt;</span></code></pre>
+
+<p><strong>生产者producer示例代码：</strong></p>
+<src class="cnblogs_code">
+<pre><code><span style="color: #0000ff;">public</span> <span style="color: #0000ff;">class</span><span style="color: #000000;"> Producer {
+    </span><span style="color: #0000ff;">public</span> <span style="color: #0000ff;">static</span> <span style="color: #0000ff;">void</span> main(String[] args) <span style="color: #0000ff;">throws</span><span style="color: #000000;"> Exception {
+        </span><span style="color: #0000ff;">final</span> DefaultMQProducer producer = <span style="color: #0000ff;">new</span> DefaultMQProducer("test_producer_group"<span style="color: #000000;">);
+        </span><span style="color: #008000;">//</span><span style="color: #008000;"> 设置nameServer地址</span>
+        producer.setNamesrvAddr("192.168.32.130:9876;192.168.32.131:9876"<span style="color: #000000;">);
+        producer.start();
+        </span><span style="color: #0000ff;">for</span> (<span style="color: #0000ff;">int</span> i = 0; i &lt; 1000; i++<span style="color: #000000;">) {
+            </span><span style="color: #0000ff;">try</span><span style="color: #000000;"> {
+                </span><span style="color: #008000;">//</span><span style="color: #008000;"> 构造消息对象，topic=TopicTest，tag=TagA</span>
+                Message msg = <span style="color: #0000ff;">new</span> Message("TopicTest", "TagA"<span style="color: #000000;"> ,
+                    (</span>"Hello RocketMQ TopicTest" +<span style="color: #000000;"> i).getBytes(RemotingHelper.DEFAULT_CHARSET));
+                </span><span style="color: #008000;">//</span><span style="color: #008000;"> 发送消息</span>
+                SendResult sendResult =<span style="color: #000000;"> producer.send(msg);
+                System.out.printf(</span>"%s%n"<span style="color: #000000;">, sendResult);
+            } </span><span style="color: #0000ff;">catch</span><span style="color: #000000;"> (Exception e) {
+                e.printStackTrace();
+                Thread.sleep(</span>1000<span style="color: #000000;">);
+            }
+        }
+        producer.shutdown();
+    }
+}</span></code></pre>
+
+<p><strong>消费者consumer示例代码：</strong></p>
+<src class="cnblogs_code">
+<pre><code><span style="color: #0000ff;">public</span> <span style="color: #0000ff;">class</span><span style="color: #000000;"> Consumer {
+    </span><span style="color: #0000ff;">public</span> <span style="color: #0000ff;">static</span> <span style="color: #0000ff;">void</span> main(String[] args) <span style="color: #0000ff;">throws</span><span style="color: #000000;"> Exception {
+        DefaultMQPushConsumer consumer </span>= <span style="color: #0000ff;">new</span> DefaultMQPushConsumer("test_consumer_group"<span style="color: #000000;">);
+        </span><span style="color: #008000;">//</span><span style="color: #008000;"> 设置nameServer地址</span>
+        consumer.setNamesrvAddr("192.168.32.130:9876;192.168.32.131:9876"<span style="color: #000000;">);
+        consumer.setConsumeFromWhere(ConsumeFromWhere.CONSUME_FROM_FIRST_OFFSET);
+
+        </span><span style="color: #008000;">//</span><span style="color: #008000;"> 订阅主题 tag="*"代表订阅TopicTest主题下所有子主题消息</span>
+        consumer.subscribe("TopicTest", "*"<span style="color: #000000;">);
+        </span><span style="color: #008000;">//</span><span style="color: #008000;"> 注册消息监听回调函数</span>
+        consumer.registerMessageListener((MessageListenerConcurrently)(msgs, context) -&gt;<span style="color: #000000;"> {
+            </span><span style="color: #0000ff;">for</span><span style="color: #000000;">(MessageExt messageExt : msgs){
+                String strMsg </span>= <span style="color: #0000ff;">new</span><span style="color: #000000;"> String(messageExt.getBody());
+                System.out.printf(</span>"%s Receive New Messages: %s %n"<span style="color: #000000;">, Thread.currentThread().getName(), strMsg);
+            }
+            </span><span style="color: #0000ff;">return</span><span style="color: #000000;"> ConsumeConcurrentlyStatus.CONSUME_SUCCESS;
+        });
+        consumer.start();
+        System.out.printf(</span>"Consumer Started.%n"<span style="color: #000000;">);
+    }
+}</span></code></pre>
+
+<p>　　生产者和消费者都是简单的main方法启动，先启动producer发送消息，然后启动consumer接受消息，控制台上将会看到接受时消息的日志。可以试试主动关闭一个master-broker，看看broker集群的消息收发是否正常。</p>
+<p>　　至此，通过java客户端使用rocketmq的测试告一段落。</p>
+<h1>总结</h1>
+<p>　　本篇博客介绍了rocketmq的集群部署，图形化界面的安装以及如何使用java客户端与rocketmq进行交互。rocketmq还有着许多好用，强大的功能，后续的博客将结合着rocketmq的源码来介绍它们。</p>
+<p>　　去阅读并理解源码，可以在解决问题时能看得更深、更远。通过阅读rocketmq的源码，除了更好地掌握rocketmq外，也能够从源码中学习到许多架构设计和编程实践相关的知识。</p>
+<p>　　如有理解不到位的地方，请多多指教。</p>
+
+</div><hr><script charset='utf-8' src='../../js/sming.js'></script></body></html>

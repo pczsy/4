@@ -1,0 +1,285 @@
+<html><head><meta charset='utf-8'><meta name='viewport' content='width=device-width, initial-scale=1'>
+<meta name='applicable-device' content='pc'><meta name='keywords' content='电脑,电脑讲解,电脑技术,编程,电脑故障维修17.JAVA-Dom、Sax解析XML详解' />
+<script src='../../highlight/highlight.pack.js'></script>
+<link rel='stylesheet' type='text/css' href='../../highlight/styles/monokai.css'/>
+
+<link rel='stylesheet' href='../../fenxiang/dist/css/share.min.css'>
+<script src='../../fenxiang/src/js/social-share.js'></script>
+<script src='../../fenxiang/src/js/qrcode.js'></script>
+
+</head><body><script>hljs.initHighlightingOnLoad();</script><script>
+var system ={};  
+var p = navigator.platform;       
+system.win = p.indexOf('Win') == 0;  
+system.mac = p.indexOf('Mac') == 0;  
+system.x11 = (p == 'X11') || (p.indexOf('Linux') == 0);     
+if(system.win||system.mac||system.xll){
+document.write("<link href='../css/3.css' rel='stylesheet' type='text/css'>");}else{ document.write("<link href='../css/3wap.css' rel='stylesheet' type='text/css'>");}</script><script src='../../js/3.js'></script><div class='div2'><div class='heading_nav'><ul><div><li><a href='../../index.html'>首页</a></li>
+</div><div onclick='hidden1()' >分享</div>
+</ul></div></div>
+<div id='heading_nav2'> 
+<li class='row' >
+<div class='social-share' data-mode='prepend'><a href='javascript:' class='social-share-icon icon-heart'></a></div></li></div><script charset='utf-8' src='../../3/js/hengfu.js'></script><script charset='utf-8' src='../../3/js/hengfu2.js'></script><hr><div class='div1'><div class='biaoti'><center>17.JAVA-Dom、Sax解析XML详解</center></div><div class='banquan'>原文出处:本文由博客园博主NQian提供。<br/>
+原文连接:https://www.cnblogs.com/lifexy/p/12025336.html</div><br>
+    <p><span style="font-size: 15px;">在JAVA中,解析有三种方式:</span></p>
+<ul>
+<li><span style="font-size: 15px;">Dom解析<span style="color: #ff0000;">(支持改删,耗内存)</span>、</span></li>
+<li><span style="font-size: 15px;">Sax解析<span style="color: #ff0000;">(不支持改删,不耗内存)</span>、</span></li>
+<li><span style="font-size: 15px;"><span style="font-size: 15px;">Pull解析<span style="color: #ff0000;">(在Android中推荐使用的一种解析XML的方式,在下章<span style="text-decoration: underline;"><span style="color: #0000ff;"><a id="cb_post_title_url" class="postTitle2" href="https://www.cnblogs.com/lifexy/p/12028842.html"><span style="color: #0000ff; text-decoration: underline;">18.JAVA-pull解析XML</span></a></span></span>学习)</span></span></span><span style="font-size: 15px;"><br /></span></li>
+</ul>
+<p><span style="font-size: 15px;">&nbsp;</span></p>
+<p><span style="font-size: 18px; color: #008000; background-color: #ffff99;"><strong>1.</strong><strong>支持Dom</strong><strong>与Sax</strong><strong>解析的开发包 </strong></span></p>
+<p><span style="font-size: 15px;">分为两种.</span></p>
+<ul>
+<li><span style="font-size: 15px;"><span style="color: #ff0000;"><strong>JAXP:&nbsp;</strong> </span>由sun公司推出的解析标准实现(本章只学习该包的解析方法)</span></li>
+<li><span style="font-size: 15px;"><span style="color: #ff0000;"><strong>Dom4j:&nbsp;</strong></span> 一种开源的解析开发包.</span></li>
+</ul>
+<p><span style="font-size: 15px;">jaxp是java api中自带的一个包，而dom4j需要我们加入jar文件才能使用</span></p>
+<p><span style="font-size: 15px;">&nbsp;</span></p>
+<p><span style="font-size: 18px; color: #008000; background-color: #ffff99;"><strong>2.JAXP</strong><strong>使用</strong></span></p>
+<p><span style="font-size: 15px;">JAXP（Java API for XMLProcessing）主要由下面几个包组成:</span></p>
+<ul>
+<li><span style="font-size: 15px;"><span style="color: #ff0000;"><strong>org.w3c.dom:</strong></span> 定义DOM解析器的标准接口</span></li>
+<li><span style="font-size: 15px;"><span style="color: #ff0000;"><strong>org.w3c.sax:</strong> </span>定义SAX解析器的标准接口</span></li>
+<li><span style="font-size: 15px;"><span style="color: #ff0000;"><strong>javax.xml:</strong></span>提供解析xml文档的类</span></li>
+<li><span style="font-size: 15px;"><span style="color: #ff0000;"><strong>javax.xml.parsers:</strong></span>提供了用来获取DOM和SAX解析器对象的工厂类,比如:DocumentBuilderFactory(创建DOM解析器对象)、SAXParserFactory,如下图所示:</span></li>
+</ul>
+<p><span style="font-size: 15px;"><img style="display: block; margin-left: auto; margin-right: auto;" src="./images/17.JAVA-Dom、Sax解析XML详解0.png" alt="" /></span></p>
+<p>&nbsp;</p>
+<p><span style="font-size: 18px; color: #008000; background-color: #ffff99;"><strong>3.</strong><strong>使用JAXP</strong><strong>进行</strong><strong>DOM</strong><strong>解析</strong></span></p>
+<p><span style="font-size: 15px;">会将XML文档全部内容都读入内存中，并且将文档里的每个数据都创建为一个个对象,所以方便增删改.并且遍历简单。</span></p>
+<p><span style="font-size: 15px;">DOM的缺点主要表现在：效率低，解析速度慢，内存占用量过高，对于大文件来说几乎不可能使用。</span></p>
+<p><span style="color: #0000ff; background-color: #ccffcc; font-size: 16px;"><strong>3.1 persons.xml示例如下:</strong></span></p>
+<src class="cnblogs_code">
+<pre><code><span style="color: #0000ff;">&lt;?</span><span style="color: #ff00ff;">xml version="1.0" encoding="UTF-8"</span><span style="color: #0000ff;">?&gt;</span>
+<span style="color: #0000ff;">&lt;</span><span style="color: #800000;">persons</span><span style="color: #0000ff;">&gt;</span>
+ <span style="color: #0000ff;">&lt;</span><span style="color: #800000;">person</span><span style="color: #0000ff;">&gt;</span>
+    <span style="color: #0000ff;">&lt;</span><span style="color: #800000;">姓名</span><span style="color: #0000ff;">&gt;</span>张三<span style="color: #0000ff;">&lt;/</span><span style="color: #800000;">姓名</span><span style="color: #0000ff;">&gt;</span>
+    <span style="color: #0000ff;">&lt;</span><span style="color: #800000;">性别</span><span style="color: #0000ff;">&gt;</span>男<span style="color: #0000ff;">&lt;/</span><span style="color: #800000;">性别</span><span style="color: #0000ff;">&gt;</span>
+    <span style="color: #0000ff;">&lt;</span><span style="color: #800000;">年龄</span><span style="color: #0000ff;">&gt;</span>22<span style="color: #0000ff;">&lt;/</span><span style="color: #800000;">年龄</span><span style="color: #0000ff;">&gt;</span>
+  <span style="color: #0000ff;">&lt;/</span><span style="color: #800000;">person</span><span style="color: #0000ff;">&gt;</span>
+
+  <span style="color: #0000ff;">&lt;</span><span style="color: #800000;">person</span><span style="color: #0000ff;">&gt;</span>
+    <span style="color: #0000ff;">&lt;</span><span style="color: #800000;">姓名</span><span style="color: #0000ff;">&gt;</span>李四<span style="color: #0000ff;">&lt;/</span><span style="color: #800000;">姓名</span><span style="color: #0000ff;">&gt;</span>
+    <span style="color: #0000ff;">&lt;</span><span style="color: #800000;">性别</span><span style="color: #0000ff;">&gt;</span>男<span style="color: #0000ff;">&lt;/</span><span style="color: #800000;">性别</span><span style="color: #0000ff;">&gt;</span>
+    <span style="color: #0000ff;">&lt;</span><span style="color: #800000;">年龄</span><span style="color: #0000ff;">&gt;</span>17<span style="color: #0000ff;">&lt;/</span><span style="color: #800000;">年龄</span><span style="color: #0000ff;">&gt;</span>
+  <span style="color: #0000ff;">&lt;/</span><span style="color: #800000;">person</span><span style="color: #0000ff;">&gt;</span>
+<span style="color: #0000ff;">&lt;/</span><span style="color: #800000;">persons</span><span style="color: #0000ff;">&gt;</span></code></pre>
+
+<p><span style="font-size: 16px;"><strong><span style="color: #0000ff; background-color: #ccffcc;">3.2 DOM读取xml步骤</span></strong></span></p>
+<p><span style="font-size: 15px;">1.通过<span style="color: #800000;"><strong>DocumentBuilderFactory.newInstance()</strong></span>静态方法得到创建 DOM 解析器的工厂对象(DocumentBuilderFactory)</span></p>
+<p><span style="font-size: 15px;">2.通过工厂对象的<span style="color: #800000;"><strong>newDocumentBuilder()</strong></span>方法得到 DocumentBuilder解析器对象</span></p>
+<p><span style="font-size: 15px;">3.然后通过DocumentBuilder解析器对象的<span style="color: #800000;"><strong>parse(filename)</strong></span>方法来得到解析xml文档的Document对象</span></p>
+<p><span style="font-size: 15px;">4.通过Document对象的成员方法来获取XML文档的元素信息，比如<span style="color: #800000;"><strong>getElementsByTagName("person")</strong></span>方法来获取xml文件中的person元素(返回的类为<span style="color: #800000;"><strong>NodeList</strong></span>,保存person所有的集合,比如list.item(0). getTextContent()打印第一个元素的内容)</span></p>
+<p><strong><span style="font-size: 15px;">具体实现方法如下:</span></strong></p>
+<src class="cnblogs_code">
+<pre><code><span style="color: #000000;">@Test
+    </span><span style="color: #0000ff;">public</span> <span style="color: #0000ff;">void</span> DomReadXml() <span style="color: #0000ff;">throws</span><span style="color: #000000;"> Exception{
+        
+     </span><span style="color: #008000;">//</span><span style="color: #008000;">获取工厂实例</span>
+     DocumentBuilderFactory documentBuilderFactory =<span style="color: #000000;"> DocumentBuilderFactory.newInstance();
+     </span><span style="color: #008000;">//</span><span style="color: #008000;">创建builder</span>
+     DocumentBuilder documentBuilder =<span style="color: #000000;"> documentBuilderFactory.newDocumentBuilder();
+     </span><span style="color: #008000;">//</span><span style="color: #008000;">解析xml</span>
+     Document document = documentBuilder.parse("src//persons.xml"<span style="color: #000000;">);
+     </span><span style="color: #008000;">//</span><span style="color: #008000;">读出元素内容</span>
+     System.out.println("第一个姓名:"+document.getElementsByTagName("姓名").item(0<span style="color: #000000;">).getTextContent());
+     </span><span style="color: #008000;">//</span><span style="color: #008000;">读出元素内容</span>
+     System.out.println("第二个姓名:"+document.getElementsByTagName("姓名").item(1<span style="color: #000000;">).getTextContent());
+     
+    }</span></code></pre>
+
+<p><span style="font-size: 15px;">&nbsp;打印:</span></p>
+<p><span style="font-size: 15px;"><img src="./images/17.JAVA-Dom、Sax解析XML详解1.png" alt="" /></span></p>
+<p>&nbsp;</p>
+<p><span style="font-size: 16px; background-color: #ccffcc; color: #0000ff;"><strong>3.3 DOM</strong><strong>修改xml</strong><strong>步骤</strong></span></p>
+<p><span style="font-size: 15px;">1.先将xml信息读取到<span style="color: #800000;"><strong>Document对象</strong></span>中</span></p>
+<p><span style="font-size: 15px;">2.然后通过<span style="color: #800000;"><strong>getElementsByTagName("person")</strong></span>方法来获取xml文件中的person元素(返回的类为NodeList),然后通过<span style="color: #800000;"><strong>NodeList.item(i).setTextContent("text")</strong></span>来修改节点内容</span></p>
+<p><span style="font-size: 15px;">3.修改完成后通过Transformer类的<span style="color: #800000;"><strong>transform(Source&nbsp;, Result&nbsp;)</strong></span>方法来将改过的Document对象写入XML文件</span></p>
+<p><strong><span style="font-size: 15px;">具体实现方法如下:</span></strong></p>
+<src class="cnblogs_code">
+<pre><code><span style="color: #000000;">  @Test
+
+    </span><span style="color: #0000ff;">public</span> <span style="color: #0000ff;">void</span> DomWriteXml() <span style="color: #0000ff;">throws</span><span style="color: #000000;"> Exception{
+     DocumentBuilder documentBuilder </span>=<span style="color: #000000;"> DocumentBuilderFactory.newInstance().newDocumentBuilder();
+     </span><span style="color: #008000;">//</span><span style="color: #008000;">1.先将xml信息读取到Document对象中</span><span style="color: #000000;">
+     Document document </span>= documentBuilder.parse("src//persons.xml"<span style="color: #000000;">);
+
+     </span><span style="color: #008000;">//</span><span style="color: #008000;">2.修改第一个节点内容为99</span><span style="color: #000000;">
+     document.getElementsByTagName(</span>"年龄").item(0).setTextContent("99"<span style="color: #000000;">);
+
+     </span><span style="color: #008000;">//</span><span style="color: #008000;">3.通过transform(Source , Result )方法来将改过的Document对象写入XML文件</span><span style="color: #000000;">
+     Transformer transformer </span>=<span style="color: #000000;"> TransformerFactory.newInstance().newTransformer();
+     Source xmlSource </span>= <span style="color: #0000ff;">new</span><span style="color: #000000;"> DOMSource(document);
+     Result outputTarget </span>= <span style="color: #0000ff;">new</span> StreamResult("src//persons.xml"<span style="color: #000000;">);
+     transformer.transform(xmlSource, outputTarget);
+    }</span></code></pre>
+
+<p><span style="font-size: 15px;">&nbsp;</span></p>
+<p><span style="font-size: 18px; color: #008000; background-color: #ffff99;"><strong>4.</strong><strong>使用JAXP</strong><strong>进行</strong><strong>SAX</strong><strong>解析</strong></span></p>
+<p><span style="font-size: 15px;">sax解析的优点是边读边解析,占用内存少，解析速度快，缺点是不能对XML文件改删,并且不支持向后遍历,只能从头到尾读取.</span></p>
+<p><span style="color: #0000ff; background-color: #ccffcc; font-size: 16px;"><strong>4.1 SAX读取XML步骤</strong></span></p>
+<p><span style="font-size: 15px;">1.获取SAXParser对象,该对象通过<strong><span style="color: #800000;">SAXParserFactory</span></strong>构造</span></p>
+<p><span style="font-size: 15px;">2.通过<span style="color: #800000;"><strong>SAXParser.getXMLReader()</strong></span>获取XMLReder对象</span></p>
+<p><span style="font-size: 15px;">3.实现一个<strong><span style="color: #800000;">ContentHandler的子类</span></strong>(PersonHandler),其实就是构造一个DefaultHandler的子类(因为contentHandler接口太多方法没实现),如下图所示:</span></p>
+<p><span style="font-size: 15px;"><img style="display: block; margin-left: auto; margin-right: auto;" src="./images/17.JAVA-Dom、Sax解析XML详解2.png" alt="" width="596" height="128" /></span></p>
+<p><span style="font-size: 15px;">然后重写startElement()等方法(用来实现具体的XML读取)</span></p>
+<p><span style="font-size: 15px;">4.再调用XMLReder对象的<span style="color: #800000;"><strong>setContentHandler(new PersonHandler())</strong></span>来设置我们要解析的具体handler</span></p>
+<p><span style="font-size: 15px;">5.最后调用XMLReder对象的<span style="color: #800000;"><strong>parse(file)</strong></span>,开始进行解析</span></p>
+<p><span style="background-color: #ccffcc; color: #0000ff; font-size: 16px;"><strong>4.2 Myhandler需要重写的方法有以下几个</strong></span></p>
+<src class="cnblogs_code">
+<pre><code>startDocument();    <span style="color: #008000;">//</span><span style="color: #008000;">当文档开始解析时,触发该方法</span><span style="color: #000000;">
+endDocument();    </span><span style="color: #008000;">//</span><span style="color: #008000;">当文档解析完成时,触发该方法</span>
+<span style="color: #000000;">
+
+startElement(String uri, String localName, String qName, Attributes attributes)
+</span><span style="color: #008000;">//</span><span style="color: #008000;">解析到开始元素时,触发该方法</span>
+<span style="color: #000000;">
+endElement(String uri, String localName, String qName)
+</span><span style="color: #008000;">//</span><span style="color: #008000;">解析到结束元素时,触发该方法
+</span><span style="color: #008000;">//</span><span style="color: #008000;">uri：名称空间URI，如果元素没有名称空间，没有则为空字符串。
+</span><span style="color: #008000;">//</span><span style="color: #008000;">localName：本地名称（不带前缀），没有则为空字符串。
+</span><span style="color: #008000;">//</span><span style="color: #008000;">qName：元素名（带有前缀），如果元素名不可用则为空字符串。
+</span><span style="color: #008000;">//</span><span style="color: #008000;">attributes：该元素的所有属性。如果没有属性，则为空对象.</span>
+<span style="color: #000000;">
+characters(</span><span style="color: #0000ff;">char</span>[] ch, <span style="color: #0000ff;">int</span> start, <span style="color: #0000ff;">int</span><span style="color: #000000;"> length)
+</span><span style="color: #008000;">//</span><span style="color: #008000;">接收字符内容时,触发该方法,比如"&lt;姓名&gt;李四&lt;/姓名&gt;",当解析到"李四"时,会调用到该方法,并将"李四"作为参数传递进来.</span></code></pre>
+
+<p><span style="color: #0000ff; background-color: #ccffcc; font-size: 16px;"><strong>4.3 persons.xml示例如下:</strong></span></p>
+<src class="cnblogs_code">
+<pre><code><span style="color: #0000ff;">&lt;?</span><span style="color: #ff00ff;">xml version="1.0" encoding="UTF-8" standalone="no"</span><span style="color: #0000ff;">?&gt;</span>
+<span style="color: #0000ff;">&lt;</span><span style="color: #800000;">persons</span><span style="color: #0000ff;">&gt;</span>
+    <span style="color: #0000ff;">&lt;</span><span style="color: #800000;">person</span><span style="color: #0000ff;">&gt;</span>
+    <span style="color: #0000ff;">&lt;</span><span style="color: #800000;">姓名</span><span style="color: #0000ff;">&gt;</span>张三<span style="color: #0000ff;">&lt;/</span><span style="color: #800000;">姓名</span><span style="color: #0000ff;">&gt;</span>
+    <span style="color: #0000ff;">&lt;</span><span style="color: #800000;">性别</span><span style="color: #0000ff;">&gt;</span>男<span style="color: #0000ff;">&lt;/</span><span style="color: #800000;">性别</span><span style="color: #0000ff;">&gt;</span>
+    <span style="color: #0000ff;">&lt;</span><span style="color: #800000;">年龄</span><span style="color: #0000ff;">&gt;</span>99<span style="color: #0000ff;">&lt;/</span><span style="color: #800000;">年龄</span><span style="color: #0000ff;">&gt;</span>
+    <span style="color: #0000ff;">&lt;/</span><span style="color: #800000;">person</span><span style="color: #0000ff;">&gt;</span>
+
+    <span style="color: #0000ff;">&lt;</span><span style="color: #800000;">person</span><span style="color: #0000ff;">&gt;</span>
+    <span style="color: #0000ff;">&lt;</span><span style="color: #800000;">姓名</span><span style="color: #0000ff;">&gt;</span>李四<span style="color: #0000ff;">&lt;/</span><span style="color: #800000;">姓名</span><span style="color: #0000ff;">&gt;</span>
+    <span style="color: #0000ff;">&lt;</span><span style="color: #800000;">性别</span><span style="color: #0000ff;">&gt;</span>男<span style="color: #0000ff;">&lt;/</span><span style="color: #800000;">性别</span><span style="color: #0000ff;">&gt;</span>
+    <span style="color: #0000ff;">&lt;</span><span style="color: #800000;">年龄</span><span style="color: #0000ff;">&gt;</span>17<span style="color: #0000ff;">&lt;/</span><span style="color: #800000;">年龄</span><span style="color: #0000ff;">&gt;</span>
+    <span style="color: #0000ff;">&lt;/</span><span style="color: #800000;">person</span><span style="color: #0000ff;">&gt;</span>
+<span style="color: #0000ff;">&lt;/</span><span style="color: #800000;">persons</span><span style="color: #0000ff;">&gt;</span></code></pre>
+
+<p><span style="background-color: #ccffcc; color: #0000ff; font-size: 16px;"><strong>4.4 Person类如下所示:</strong></span></p>
+<src class="cnblogs_code">
+<pre><code><span style="color: #0000ff;">public</span> <span style="color: #0000ff;">class</span><span style="color: #000000;"> Person {
+    </span><span style="color: #0000ff;">private</span><span style="color: #000000;"> String name;
+    </span><span style="color: #0000ff;">private</span><span style="color: #000000;"> String sex;
+    </span><span style="color: #0000ff;">private</span><span style="color: #000000;"> String age;
+    </span><span style="color: #0000ff;">public</span><span style="color: #000000;"> String getName() {
+        </span><span style="color: #0000ff;">return</span><span style="color: #000000;"> name;
+    }
+    </span><span style="color: #0000ff;">public</span> <span style="color: #0000ff;">void</span><span style="color: #000000;"> setName(String name) {
+        </span><span style="color: #0000ff;">this</span>.name =<span style="color: #000000;"> name;
+    }
+    </span><span style="color: #0000ff;">public</span><span style="color: #000000;"> String getSex() {
+        </span><span style="color: #0000ff;">return</span><span style="color: #000000;"> sex;
+    }
+    </span><span style="color: #0000ff;">public</span> <span style="color: #0000ff;">void</span><span style="color: #000000;"> setSex(String sex) {
+        </span><span style="color: #0000ff;">this</span>.sex =<span style="color: #000000;"> sex;
+    }
+    </span><span style="color: #0000ff;">public</span><span style="color: #000000;"> String getAge() {
+        </span><span style="color: #0000ff;">return</span><span style="color: #000000;"> age;
+    }
+    </span><span style="color: #0000ff;">public</span> <span style="color: #0000ff;">void</span><span style="color: #000000;"> setAge(String age) {
+        </span><span style="color: #0000ff;">this</span>.age =<span style="color: #000000;"> age;
+    }
+    @Override
+    </span><span style="color: #0000ff;">public</span><span style="color: #000000;"> String toString() {
+        </span><span style="color: #0000ff;">return</span> "Person [name=" + name + ", sex=" + sex + ", age=" + age + "]"<span style="color: #000000;">;
+    }
+}</span></code></pre>
+
+<p><span style="background-color: #ccffcc; color: #0000ff; font-size: 16px;"><strong>4.5 SaxParseTest类如下所示:</strong></span></p>
+<src class="cnblogs_code">
+<pre><code><span style="color: #0000ff;">package</span><span style="color: #000000;"> com.my.xmlparser;
+</span><span style="color: #0000ff;">import</span><span style="color: #000000;"> java.util.ArrayList;
+</span><span style="color: #0000ff;">import</span><span style="color: #000000;"> java.util.List;
+</span><span style="color: #0000ff;">import</span><span style="color: #000000;"> javax.xml.parsers.ParserConfigurationException;
+</span><span style="color: #0000ff;">import</span><span style="color: #000000;"> javax.xml.parsers.SAXParser;
+</span><span style="color: #0000ff;">import</span><span style="color: #000000;"> javax.xml.parsers.SAXParserFactory;
+</span><span style="color: #0000ff;">import</span><span style="color: #000000;"> org.junit.Test;
+</span><span style="color: #0000ff;">import</span><span style="color: #000000;"> org.xml.sax.Attributes;
+</span><span style="color: #0000ff;">import</span><span style="color: #000000;"> org.xml.sax.SAXException;
+</span><span style="color: #0000ff;">import</span><span style="color: #000000;"> org.xml.sax.XMLReader;
+</span><span style="color: #0000ff;">import</span><span style="color: #000000;"> org.xml.sax.helpers.DefaultHandler;
+</span><span style="color: #0000ff;">import</span><span style="color: #000000;"> com.my.bean.Person;
+
+</span><span style="color: #0000ff;">class</span> PersonHandler <span style="color: #0000ff;">extends</span><span style="color: #000000;"> DefaultHandler{
+    </span><span style="color: #0000ff;">private</span> String status=<span style="color: #0000ff;">null</span><span style="color: #000000;">;
+    </span><span style="color: #0000ff;">private</span> ArrayList&lt;Person&gt; persons=<span style="color: #0000ff;">null</span><span style="color: #000000;">;
+    </span><span style="color: #0000ff;">private</span> Person person=<span style="color: #0000ff;">null</span><span style="color: #000000;">;
+    @Override
+    </span><span style="color: #0000ff;">public</span> <span style="color: #0000ff;">void</span> startDocument() <span style="color: #0000ff;">throws</span><span style="color: #000000;"> SAXException {
+        
+        persons </span>= <span style="color: #0000ff;">new</span> ArrayList&lt;Person&gt;<span style="color: #000000;">();
+        person </span>= <span style="color: #0000ff;">new</span><span style="color: #000000;"> Person();
+    }
+
+    @Override
+    </span><span style="color: #0000ff;">public</span> <span style="color: #0000ff;">void</span> endDocument() <span style="color: #0000ff;">throws</span><span style="color: #000000;"> SAXException {
+        </span><span style="color: #0000ff;">for</span>(Person person1:persons){        <span style="color: #008000;">//</span><span style="color: #008000;">打印所有信息</span><span style="color: #000000;">
+            System.out.println(person1);
+        }
+    }
+
+    @Override
+    </span><span style="color: #0000ff;">public</span> <span style="color: #0000ff;">void</span> startElement(String uri, String localName, String qName, Attributes attributes) <span style="color: #0000ff;">throws</span><span style="color: #000000;"> SAXException {
+        status </span>=<span style="color: #000000;"> qName;  
+    }
+
+    @Override
+    </span><span style="color: #0000ff;">public</span> <span style="color: #0000ff;">void</span> endElement(String uri, String localName, String qName) <span style="color: #0000ff;">throws</span><span style="color: #000000;"> SAXException {
+        status </span>=<span style="color: #0000ff;">null</span><span style="color: #000000;">;
+        </span><span style="color: #0000ff;">if</span>("person".equals(qName))   <span style="color: #008000;">//</span><span style="color: #008000;">添加一个person</span>
+<span style="color: #000000;">        {
+            persons.add(person);
+            person </span>= <span style="color: #0000ff;">new</span><span style="color: #000000;"> Person();
+        }
+    }
+    
+    @Override
+    </span><span style="color: #0000ff;">public</span> <span style="color: #0000ff;">void</span> characters(<span style="color: #0000ff;">char</span>[] ch, <span style="color: #0000ff;">int</span> start, <span style="color: #0000ff;">int</span> length) <span style="color: #0000ff;">throws</span><span style="color: #000000;"> SAXException {
+        String text </span>= <span style="color: #0000ff;">new</span><span style="color: #000000;"> String(ch,start,length);
+        </span><span style="color: #0000ff;">if</span>(status == <span style="color: #0000ff;">null</span><span style="color: #000000;">)
+            </span><span style="color: #0000ff;">return</span><span style="color: #000000;">;
+        </span><span style="color: #0000ff;">else</span> <span style="color: #0000ff;">if</span>("姓名"<span style="color: #000000;">.equals(status))
+        {
+            person.setName(text);
+        }
+        </span><span style="color: #0000ff;">else</span> <span style="color: #0000ff;">if</span>("性别"<span style="color: #000000;">.equals(status))
+        {
+            person.setSex(text);
+        }
+        </span><span style="color: #0000ff;">else</span> <span style="color: #0000ff;">if</span>("年龄"<span style="color: #000000;">.equals(status))
+        {
+            person.setAge(text);
+        }
+    }
+}
+
+
+</span><span style="color: #0000ff;">public</span> <span style="color: #0000ff;">class</span><span style="color: #000000;"> SaxParseTest {
+
+    @Test
+    </span><span style="color: #0000ff;">public</span> <span style="color: #0000ff;">void</span> SaxParse() <span style="color: #0000ff;">throws</span><span style="color: #000000;"> Exception{
+        </span><span style="color: #008000;">//</span><span style="color: #008000;">1.获取SAXParser对象,该对象通过SAXParserFactory构造</span>
+        SAXParserFactory saxParserFactory =<span style="color: #000000;"> SAXParserFactory.newInstance();
+        SAXParser saxParser </span>=<span style="color: #000000;"> saxParserFactory.newSAXParser();
+        
+        </span><span style="color: #008000;">//</span><span style="color: #008000;">2.通过SAXParser.getXMLReader()获取XMLReder对象</span>
+        XMLReader reader =<span style="color: #000000;"> saxParser.getXMLReader();
+        </span><span style="color: #008000;">//</span><span style="color: #008000;">3~4:实现一个ContentHandler的子类(Myhandler),然后来设置我们要解析的具体handler</span>
+        reader.setContentHandler(<span style="color: #0000ff;">new</span><span style="color: #000000;"> PersonHandler());
+        </span><span style="color: #008000;">//</span><span style="color: #008000;">5.最后调用XMLReder对象的parse(file),开始进行解析</span>
+        reader.parse(<span style="color: #ff0000;">"src//persons.xml"</span><span style="color: #000000;">);
+    }
+}</span></code></pre>
+
+<p><span style="font-size: 15px;">测试运行:</span></p>
+<p><span style="font-size: 15px;">&nbsp;<img src="./images/17.JAVA-Dom、Sax解析XML详解3.png" alt="" width="557" height="105" /></span></p>
+<p><span style="font-size: 15px; color: #ff0000;">未完待续,下章学习：<span style="text-decoration: underline;"><span style="color: #0000ff;"><a id="cb_post_title_url" class="postTitle2" href="https://www.cnblogs.com/lifexy/p/12028842.html"><span style="color: #0000ff; text-decoration: underline;">18.JAVA-pull解析XML</span></a></span></span></span></p>
+
+</div><hr><script charset='utf-8' src='../../js/sming.js'></script></body></html>

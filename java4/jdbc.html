@@ -1,0 +1,297 @@
+<html><head><meta charset='utf-8'><meta name='viewport' content='width=device-width, initial-scale=1'>
+<meta name='applicable-device' content='pc'><meta name='keywords' content='电脑,电脑讲解,电脑技术,编程,电脑故障维修jdbc' />
+<script src='../../highlight/highlight.pack.js'></script>
+<link rel='stylesheet' type='text/css' href='../../highlight/styles/monokai.css'/>
+
+<link rel='stylesheet' href='../../fenxiang/dist/css/share.min.css'>
+<script src='../../fenxiang/src/js/social-share.js'></script>
+<script src='../../fenxiang/src/js/qrcode.js'></script>
+
+</head><body><script>hljs.initHighlightingOnLoad();</script><script>
+var system ={};  
+var p = navigator.platform;       
+system.win = p.indexOf('Win') == 0;  
+system.mac = p.indexOf('Mac') == 0;  
+system.x11 = (p == 'X11') || (p.indexOf('Linux') == 0);     
+if(system.win||system.mac||system.xll){
+document.write("<link href='../css/3.css' rel='stylesheet' type='text/css'>");}else{ document.write("<link href='../css/3wap.css' rel='stylesheet' type='text/css'>");}</script><script src='../../js/3.js'></script><div class='div2'><div class='heading_nav'><ul><div><li><a href='../../index.html'>首页</a></li>
+</div><div onclick='hidden1()' >分享</div>
+</ul></div></div>
+<div id='heading_nav2'> 
+<li class='row' >
+<div class='social-share' data-mode='prepend'><a href='javascript:' class='social-share-icon icon-heart'></a></div></li></div><script charset='utf-8' src='../../3/js/hengfu.js'></script><script charset='utf-8' src='../../3/js/hengfu2.js'></script><hr><div class='div1'><div class='biaoti'><center>jdbc</center></div><div class='banquan'>原文出处:本文由博客园博主下雨天,真好提供。<br/>
+原文连接:https://www.cnblogs.com/Dean0731/p/11565226.html</div><br>
+    <p>jdbc.driver=com.mysql.jdbc.Driver<br />jdbc.url=jdbc:mysql://localhost:3306/dangdang<br />jdbc.username=root<br />jdbc.password=root</p>
+<p>----------------------------------------------------------------</p>
+<p>class.forName(oracle.jdbc.OracleDriver)<br />jdbc:oracle:thin:@localhost:1521:xe<br />"com.mysql.jdbc.Driver"<br />jdbc:mysql://localhost:3306/student</p>
+<p>JDBC <br />一,JDBC内容<br />	接口:sun定义 java.sql 和javax.sql<br />	实现类:数据库厂商提供<br />二,jdbc使用<br />	1,如何使用jar<br />		--dos使用<br />			classpath中添加jar路径<br />	2,jdbc流程<br />		a:注册驱动类<br />		b:创建链接<br />		c:创建statement(不常用)<br />		d:执行sql<br />		e:处理结果<br />		f:释放资源statement 也要close<br />		get列时序号从1开始<br />	3,prepareStatementjava.sql statement子接口<br />		PrepareStatement ps =conn.prepareStatement(sql);<br />		ps.setxxx(1,name)<br />		ps.setxxx(2,password)<br />		ps.exq exu (使用午餐的构造)<br />		里面的参数不用拼接<br />		在执行前时插入<br />	4.两者区别<br />	state = com.cre...<br />	stat.execute(sql)<br />	不安全,有注入<br />	prep = conn.create..(sql)<br />	prep.execute()<br />	无sql注入,切性能更高<br />			服务器操作<br />			1检查权限,<br />			2检查语法<br />			3,sql转化为内部指令 前三是编译过程<br />			4,执行指令<br />			statement创建成功时不发送sql,执行时发送<br />			例:for(int i=0;i&lt;10;i++{<br />			stat.ex(insert...)  <br />			}<br />			prep 可只把setxxx写在for循环中<br />			只用编译一次即可,所以说也叫作预编译语句<br />	stat:异构sql<br />	prep:同构sql(只有参数不同<br />日期转换：日期转换 strDate --- util.Date---sql.Date<br />//插入或修改字段的类型是时间类型Date时，需要使用时间转换<br />//<br />1.设置格式，格式应与字符串相匹配。和数据库中to_date方法类似<br />SimpleDateFormat format = new SimpleDateFormat("yyyy-MM-dd");<br />//<br />2.strDate--util.Date<br />Date util<br />Date = format.parse(strDate);<br />//<br />3.util.Date---sql.Date<br />java.sql.Date date = new java.sql.Date(utilDate.getTime());</p>
+<p><br />1.事务控制 <br />	JDBC默认的是自动的事务提交<br />	<br />相关API：控制事务提交的对象为连接 Connection<br />		<br />//设置事务提交方式为手动<br />		<br />conn.setAutoCommit(false)；//true---自动提交   false---手动提交<br />		<br />//事务提交<br />		conn.commit();<br />		<br />//事务回滚<br />		conn.rollback();</p>
+<p>2.业务类方法的书写步骤<br />	<br />//1.获取Connection<br />    conn = JdbcUtil2.getConnection();<br />	<br />System.out.println("这是service获得连接："+conn);<br />	<br />//2.设置事务提交为手动提交<br />	conn.setAutoCommit(false);	<br />	<br />//3.调用DAO中的方法完成业务操作<br />	dao.insert(clazz);<br />	<br />//4.提交事务 or 回滚事务<br />	conn.commit();<br />	<br />conn.rollback</p>
+<p>3.当前的事务控制存在问题<br />	<br />首先service层获得的连接与Dao不是一条 其次通过单例可以解决这样的问题，但是会存在线程不安全的情况。<br />	<br />为了解决线程安全，且可以控制事务的问题<br />	我们需要使用线程局部表变量，ThreadLocal<br />~~~</p>
+<p>#### <br />九、线程局部变量</p>
+<p>~~~java<br />线程局部变量，再多线程环境下，可以为每个使用该变量的线程 分配线程内部独有的 线程变量值。</p>
+<p>1.API:<br />	ThreadLocal th = new ThreadLocal();<br />	<br />th.set（obj）;//往线程局部变量中设置<br />	<br />obj = th.get();//返回该线程局变量的值<br />	<br />th.remove()；//移除该线程局变量的值</p>
+<p>2.作用：<br />	1）保证 同一个线程内部 使用相同的值<br />	2）保证不用线程使用不用的值</p>
+<p>3.原理：<br />	当调用 set方法时，会将当前线程对象当做Key，将set中的参数当做value 放入到一个map集合中 ，这个集合由Thread进行管理的。<br />当使用get方法时，以当前线程为key来向该map集合取值。</p>
+<p>4.使用ThreadLoacl来修改getConnection方法<br />	//创建连接的方法<br />	<br />private static ThreadLocal&lt;Connection&gt; th = new ThreadLocal&lt;Connection&gt;();<br />	<br />public static Connection getConnection(){<br />		<br />Connection conn = th.get();<br />		<br />if(conn==null){//如果为空就创建<br />			<br />//1.注册驱动<br />			<br />try {<br />				<br />Class.forName(p.getProperty("driver"));<br />			<br />//2.建立连接<br />				<br />conn = DriverManager.getConnection(p.getProperty("url"),p.getProperty("username"),p.getProperty("password"));<br />		<br />	//3.并把连接放入ThreadLocal<br />				<br />th.set(conn);<br />			</p>
+<p>} catch (Exception e) {<br />				// TODO Auto-generated catch block<br />				<br />e.printStackTrace();<br />			}<br />		}<br />		<br />return conn;<br />	}</p>
+<p>if(conn!=null){<br />	<br />		try {<br />				<br />conn.close();<br />				th.remove();<br />			} catch (SQLException e) {<br />			<br />	// TODO Auto-generated catch block<br />				e.printStackTrace();<br />			}<br />		}</p>
+<p><br />注意：1)在控制事务时，dao内不要关闭连接<br />	<br />2)在关闭连接后，要清空线程局部变量中的废连接<br />~~~</p>
+<p>#### <br />十、JDBC的</p>
+<p>分层分包：</p>
+<p>都在域名倒写的包下 比如 com.zzu.xjh</p>
+<p><br />1）sql  存放了关于该项目相关的一些sql语句文档</p>
+<p><br />2）conf 放置了配置文件</p>
+<p><br />3）util 放置了该项目的工具类</p>
+<p><br />4）test 放置了该项目相关的测试类</p>
+<p><br />5）entity 放置了该项目的实体类</p>
+<p><br />6）dao 放置该项目的DAO接口  在该包下应有一个impl包 里面放置 对应dao的实现类</p>
+<p><br />7）service 放置该项目的service 接口  在该包下应有一个impl包 里面放置 对应service 的实现类</p>
+<p><br />8）conroller/action 放置该项目的控制器</p>
+<p><br />9）view （可能出现）</p>
+<src class="cnblogs_Highlighter">
+<pre><code>import java.sql.Connection;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+import java.util.ArrayList;
+import java.util.List;
+
+
+
+public class JdbcTemplate&lt;T&gt; {
+    /*
+     * 专门完成增 删 改操作
+     * 
+     * insert into t_user (id,name,password) values (suns_seq.nextval,?,?);
+     * 
+     * jdbcTemplate.update(sql,new Object[]{"suns","123456"});
+     * 
+     * delete from t_user where id = ?
+     * 
+     * jdbcTemplate.delete(sql,new Object[]{1});
+     * 
+     * update t_product set name=?,price=? where id = ? 
+     * 
+     * jdbcTemplate.update(sql,new Object[]{"suns",10.2,1});
+     * 
+     * 可变长参数  1 等同于数组
+     *          2 只能放在参数表最后 ，只能有一个
+     *          
+     *  "delete from t_user where id = 10";        
+     * 
+     */
+	public void update(String sql,Object... args){
+		Connection conn = null;
+		PreparedStatement pstmt = null;
+		try{
+			conn = JDBCUtil.getConnection();
+			pstmt = conn.prepareStatement(sql);
+			
+			if(hasUpdateParam(args)){
+			   for(int i=0;i&lt;args.length;i++){
+				 pstmt.setObject(i+1,args[i]);
+			   }
+			}   
+			
+			pstmt.executeUpdate();
+		}catch(Exception e){
+			e.printStackTrace();
+		}finally{
+			JDBCUtil.close(null, pstmt);
+		}
+		
+	}
+
+	private boolean hasUpdateParam(Object... args) {
+		return args.length!=0;
+	}
+	
+	
+	public List&lt;T&gt; query(String sql,RowMapper&lt;T&gt; rowMapper,Object... args){
+		Connection conn = null;
+		PreparedStatement pstmt = null;
+		ResultSet rs = null;
+		List&lt;T&gt; rets = new ArrayList&lt;T&gt;();
+		try{
+			conn = JDBCUtil.getConnection();
+			pstmt = conn.prepareStatement(sql);
+			if(hasUpdateParam(args)){
+   			  for(int i=0;i&lt;args.length;i++){
+				pstmt.setObject(i+1, args[i]);
+			  }
+			}
+			rs = pstmt.executeQuery();
+			while(rs.next()){
+			     T ret = rowMapper.mapRow(rs);
+			     rets.add(ret);
+			}
+			return rets;
+		}catch(Exception e){
+			e.printStackTrace();
+			return null;
+		}finally{
+			JDBCUtil.close(null, pstmt, rs);
+		}
+	}
+	
+	
+	public T queryForObject(String sql,RowMapper&lt;T&gt; rowMapper,Object... args){
+		Connection conn = null;
+		PreparedStatement pstmt = null;
+		ResultSet rs = null;
+		T ret = null;
+		try{
+			conn = JDBCUtil.getConnection();
+			pstmt = conn.prepareStatement(sql);
+			if(hasUpdateParam(args)){
+   			  for(int i=0;i&lt;args.length;i++){
+				pstmt.setObject(i+1, args[i]);
+			  }
+			}
+			rs = pstmt.executeQuery();
+			if(rs.next()){
+			    ret = rowMapper.mapRow(rs);
+			}
+			return ret;
+		}catch(Exception e){
+			e.printStackTrace();
+			return null;
+		}finally{
+			JDBCUtil.close(null, pstmt, rs);
+		}
+	}
+	
+	
+	
+	
+}<br /><br />
+</code></pre>
+
+<p>　　</p>
+<src class="cnblogs_code">
+<pre><code><span style="color: #0000ff;">import</span><span style="color: #000000;"> java.io.IOException;
+</span><span style="color: #0000ff;">import</span><span style="color: #000000;"> java.io.InputStream;
+</span><span style="color: #0000ff;">import</span><span style="color: #000000;"> java.sql.Connection;
+
+</span><span style="color: #0000ff;">import</span><span style="color: #000000;"> java.sql.DriverManager;
+</span><span style="color: #0000ff;">import</span><span style="color: #000000;"> java.sql.PreparedStatement;
+</span><span style="color: #0000ff;">import</span><span style="color: #000000;"> java.sql.ResultSet;
+</span><span style="color: #0000ff;">import</span><span style="color: #000000;"> java.util.Properties;
+
+</span><span style="color: #008000;">/*</span><span style="color: #008000;">
+ * 性能 效率 内存使用
+ * 维护性 （便于修改）
+ * 基本功能
+ </span><span style="color: #008000;">*/</span>
+
+<span style="color: #0000ff;">public</span> <span style="color: #0000ff;">class</span><span style="color: #000000;"> JDBCUtil {
+    </span><span style="color: #0000ff;">private</span> <span style="color: #0000ff;">static</span> Properties p = <span style="color: #0000ff;">new</span><span style="color: #000000;"> Properties();
+    </span><span style="color: #0000ff;">private</span> <span style="color: #0000ff;">static</span> ThreadLocal&lt;Connection&gt; tl = <span style="color: #0000ff;">new</span> ThreadLocal&lt;Connection&gt;<span style="color: #000000;">();
+    
+    </span><span style="color: #0000ff;">static</span><span style="color: #000000;">{
+        </span><span style="color: #008000;">//</span><span style="color: #008000;">1 读入Properties文件</span>
+          InputStream is = JDBCUtil.<span style="color: #0000ff;">class</span>.getResourceAsStream("/jdbc.properties"<span style="color: #000000;">);
+         </span><span style="color: #008000;">//</span><span style="color: #008000;">2 传入Properties集合</span>
+          <span style="color: #0000ff;">try</span><span style="color: #000000;"> {
+            p.load(is);
+        } </span><span style="color: #0000ff;">catch</span><span style="color: #000000;"> (IOException e) {
+            </span><span style="color: #008000;">//</span><span style="color: #008000;"> TODO Auto-generated catch block</span>
+<span style="color: #000000;">            e.printStackTrace();
+        }
+    }
+    
+   
+    </span><span style="color: #008000;">//</span><span style="color: #008000;">创建连接</span>
+    <span style="color: #0000ff;">public</span> <span style="color: #0000ff;">static</span> Connection getConnection() <span style="color: #0000ff;">throws</span><span style="color: #000000;"> Exception{
+          Connection conn </span>=<span style="color: #000000;"> tl.get();
+          </span><span style="color: #0000ff;">if</span>(conn==<span style="color: #0000ff;">null</span><span style="color: #000000;">){
+              Class.forName(p.getProperty(</span>"driver"<span style="color: #000000;">));
+              conn </span>= DriverManager.getConnection(p.getProperty("url"),p.getProperty("username"),p.getProperty("password"<span style="color: #000000;">));
+              tl.set(conn);  
+              </span><span style="color: #0000ff;">return</span><span style="color: #000000;"> conn;
+          }
+          </span><span style="color: #0000ff;">return</span><span style="color: #000000;"> conn;
+    }
+    
+    
+    </span><span style="color: #008000;">//</span><span style="color: #008000;">关闭资源</span>
+    <span style="color: #0000ff;">public</span> <span style="color: #0000ff;">static</span> <span style="color: #0000ff;">void</span><span style="color: #000000;"> close(Connection conn,PreparedStatement pstmt,ResultSet rs){
+        </span><span style="color: #0000ff;">if</span>(rs!=<span style="color: #0000ff;">null</span>){<span style="color: #0000ff;">try</span>{rs.close();}<span style="color: #0000ff;">catch</span><span style="color: #000000;">(Exception e){}}
+        </span><span style="color: #0000ff;">if</span>(pstmt!=<span style="color: #0000ff;">null</span>){<span style="color: #0000ff;">try</span>{pstmt.close();}<span style="color: #0000ff;">catch</span><span style="color: #000000;">(Exception e){}}
+        </span><span style="color: #0000ff;">if</span>(conn!=<span style="color: #0000ff;">null</span>){<span style="color: #0000ff;">try</span>{conn.close();tl.remove();}<span style="color: #0000ff;">catch</span><span style="color: #000000;">(Exception e){}}
+    }
+    
+    </span><span style="color: #0000ff;">public</span> <span style="color: #0000ff;">static</span> <span style="color: #0000ff;">void</span><span style="color: #000000;"> close(Connection conn,PreparedStatement pstmt){
+        </span><span style="color: #0000ff;">if</span>(pstmt!=<span style="color: #0000ff;">null</span>){<span style="color: #0000ff;">try</span>{pstmt.close();}<span style="color: #0000ff;">catch</span><span style="color: #000000;">(Exception e){}}
+        </span><span style="color: #0000ff;">if</span>(conn!=<span style="color: #0000ff;">null</span>){<span style="color: #0000ff;">try</span>{conn.close();tl.remove();}<span style="color: #0000ff;">catch</span><span style="color: #000000;">(Exception e){}}
+    }
+    
+}</span></code></pre>
+
+<p>&nbsp;</p>
+<p>1:1,一般是双向关系<br />建实体类时,两边都建<br /> 但建表时只有一个外键,建在不主要一方<br /> 定义表时,定义外键,做唯一<br /> 	private Integer id;<br />	private String name;<br />	private String password;<br />	private Date birthday;<br />	private PassPort passport;<br />	---------------------------<br />		private Integer id;<br />	private String serial;<br />	private Integer expire;<br />	private Person person;<br />	----------------------------<br /> create table t_person(<br />id integer primary key,<br />name varchar(12),<br />password varchar(12),<br />birthday date<br />);<br />create table t_passport(<br />id integer primary key,<br />serial varchar(12),<br />expire varchar(12),<br />person_id integer unique references t_person(id) <br />);<br />--------------------------------------------------------------------------------------------<br />&lt;?xml version="1.0" encoding="UTF-8"?&gt;<br />&lt;!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "mybatis-3-mapper.dtd" &gt;<br />&lt;mapper namespace="com.dzf.dao.o2o.PersonDao"&gt;</p>
+<p>	&lt;resultMap id="personResultMap" type="Person" &gt;<br />		&lt;id property="id" column="person_id"/&gt;<br />		&lt;result property="name" column="person_name"/&gt;<br />		&lt;result property="password" column="person_password"/&gt;<br />		&lt;result property="birthday" column="person_birthday"/&gt;<br />		&lt;!-- 当只有passport一个对象 --&gt;<br />		&lt;association property="passport" javaType="PassPort"&gt;<br />			&lt;id property="id" column="passport_id"&gt;&lt;/id&gt;<br />			&lt;result property="serial" column="passport_serial"/&gt;<br />			&lt;result property="expire" column="passport_expire"/&gt;<br />		&lt;/association&gt;<br />	&lt;/resultMap&gt;<br />     &lt;select id="queryPersonById" resultMap="personResultMap"&gt;<br />     	select p.id as person_id,p.name as person_name,p.password as person_password,p.birthday as person_birthday<br />     	,pp.id as passport_id,pp.serial as passport_serial,pp.expire as passport_expire<br />     	from t_person p inner join t_passport pp<br />     	on p.id = pp.person_id<br />     	where p.id = #{id}<br />     &lt;/select&gt;<br />&lt;/mapper&gt;</p>
+<p>----------------------------------------------<br />n:1<br /> 多对一单向<br />private Integer id;<br />	private String name;<br />	private Double salary;<br />	private Dept dept;<br />private Integer id;<br />	private String code;<br />	private String name;<br />create  table t_employee(<br />  id integer primary key,<br />  name varchar(12),<br />  salary decimal(12,2),<br />  dept_id integer references t_dept(id)<br />  );<br />  create table t_dept(<br />  id integer primary key,<br />  code varchar(12),<br /> name varchar(12) <br /> );<br />&lt;resultMap id="employeeResultMap" type="Employee" &gt;<br />		&lt;id property="id" column="employee_id"/&gt;<br />		&lt;result property="name" column="employee_name"/&gt;<br />		&lt;result property="salary" column="employee_salary"/&gt;<br />		&lt;association property="dept" javaType="Dept"&gt;<br />			&lt;id property="id" column="dept_id"&gt;&lt;/id&gt;<br />			&lt;result property="code" column="dept_code"/&gt;<br />			&lt;result property="name" column="dept_name"/&gt;<br />		&lt;/association&gt;<br />	&lt;/resultMap&gt;<br />     &lt;select id="queryEmployeeByName" resultMap="employeeResultMap"&gt;<br />     	select e.id as employee_id,e.name as employee_name,e.salary as employee_salary,<br />     	d.id as dept_id,d.code as dept_code,d.name as dept_name<br />     	from t_employee e inner join t_dept d<br />     	on e.dept_id = d.id<br />     	where e.name = #{name}<br />     &lt;/select&gt;<br /> &lt;select id="queryDeptById" resultType="Dept"&gt;<br />     	select id,name,code<br />     	from t_dept<br />     	where id = #{id}<br />     &lt;/select&gt;<br />--------------------------------------------------------------------------------------------------------------<br />1:n单向(n:1注意更换时 表不用改,表天生是双向的,俩表就一外键,在多的一方)<br />private Integer id;<br />	private String name;<br />	private Double salary;<br />private Integer id;<br />	private String code;<br />	private String name;<br />	private List&lt;Employee&gt; list = new ArrayList&lt;Employee&gt;();记得初始化<br /> &lt;resultMap id ="deptResultMap" type="Dept" &gt;<br />      	&lt;id property="id" column = "dept_id"/&gt;<br />      	&lt;result property = "code" column="dept_code"/&gt;<br />      	&lt;result property = "name" column="dept_name"/&gt;<br />      	&lt;collection property="list" ofType="Employee"&gt;&lt;!-- 集合中元素类型 --&gt;<br />      		&lt;id property="id" column="employee_id"/&gt;<br />			&lt;result property="name" column="employee_name"/&gt;<br />			&lt;result property="salary" column="employee_salary"/&gt;<br />      	&lt;/collection&gt;<br />      &lt;/resultMap&gt;<br />      &lt;select id="queryDeptByName" resultMap="deptResultMap"&gt;<br />     	select d.id as dept_id ,d.code as dept_code,d.name as dept_name,<br />     	e.id as employee_id,e.name as employee_name,e.salary as employee_salary<br />     	from t_dept d inner join t_employee e<br />     	on d.id = e.dept_id<br />     	where d.name = #{name}<br />     &lt;/select&gt;<br />&lt;select id="queryEmployeeById" resultType="Employee"&gt;<br />     	select id,name,salary <br />     	from t_employee<br />     	where id= #{id}<br />     &lt;/select&gt;<br />-----------------------------------------------------------------------------------------------------------------<br />多对多双向,student,course<br />外键如何建?,不能建, <br />解决办法:引入第三张关系表</p>
+<p>______________________________________________________________________</p>
+<src class="cnblogs_code">
+<pre><code><span style="color: #0000ff;">import</span><span style="color: #000000;"> java.sql.Connection;
+</span><span style="color: #0000ff;">import</span><span style="color: #000000;"> java.sql.SQLException;
+
+</span><span style="color: #008000;">/*</span><span style="color: #008000;">
+ *  事务管理器 用于控制事务
+ </span><span style="color: #008000;">*/</span>
+<span style="color: #0000ff;">public</span> <span style="color: #0000ff;">class</span><span style="color: #000000;"> TransactionManager {
+
+    </span><span style="color: #0000ff;">public</span> <span style="color: #0000ff;">static</span> <span style="color: #0000ff;">void</span><span style="color: #000000;"> begin(){
+        </span><span style="color: #0000ff;">try</span><span style="color: #000000;"> {
+            Connection conn </span>=<span style="color: #000000;"> JDBCUtil.getConnection();
+            conn.setAutoCommit(</span><span style="color: #0000ff;">false</span><span style="color: #000000;">);
+        } </span><span style="color: #0000ff;">catch</span><span style="color: #000000;"> (SQLException e) {
+            </span><span style="color: #008000;">//</span><span style="color: #008000;"> TODO Auto-generated catch block</span>
+<span style="color: #000000;">            e.printStackTrace();
+        } </span><span style="color: #0000ff;">catch</span><span style="color: #000000;"> (Exception e) {
+            </span><span style="color: #008000;">//</span><span style="color: #008000;"> TODO Auto-generated catch block</span>
+<span style="color: #000000;">            e.printStackTrace();
+        }
+    }
+    
+    </span><span style="color: #0000ff;">public</span> <span style="color: #0000ff;">static</span> <span style="color: #0000ff;">void</span><span style="color: #000000;"> commit(){
+        Connection conn </span>= <span style="color: #0000ff;">null</span><span style="color: #000000;">;
+        </span><span style="color: #0000ff;">try</span><span style="color: #000000;"> {
+            conn </span>=<span style="color: #000000;"> JDBCUtil.getConnection();
+            conn.commit();
+        } </span><span style="color: #0000ff;">catch</span><span style="color: #000000;"> (SQLException e) {
+            </span><span style="color: #008000;">//</span><span style="color: #008000;"> TODO Auto-generated catch block</span>
+<span style="color: #000000;">            e.printStackTrace();
+        } </span><span style="color: #0000ff;">catch</span><span style="color: #000000;"> (Exception e) {
+            </span><span style="color: #008000;">//</span><span style="color: #008000;"> TODO Auto-generated catch block</span>
+<span style="color: #000000;">            e.printStackTrace();
+        }</span><span style="color: #0000ff;">finally</span><span style="color: #000000;">{
+            JDBCUtil.close(conn, </span><span style="color: #0000ff;">null</span><span style="color: #000000;">);
+        }
+        
+        
+    }
+    
+    </span><span style="color: #0000ff;">public</span> <span style="color: #0000ff;">static</span> <span style="color: #0000ff;">void</span><span style="color: #000000;"> rollback(){
+        Connection conn </span>= <span style="color: #0000ff;">null</span><span style="color: #000000;">;
+        </span><span style="color: #0000ff;">try</span><span style="color: #000000;"> {
+            conn </span>=<span style="color: #000000;"> JDBCUtil.getConnection();
+            conn.rollback();
+        } </span><span style="color: #0000ff;">catch</span><span style="color: #000000;"> (SQLException e) {
+            </span><span style="color: #008000;">//</span><span style="color: #008000;"> TODO Auto-generated catch block</span>
+<span style="color: #000000;">            e.printStackTrace();
+        } </span><span style="color: #0000ff;">catch</span><span style="color: #000000;"> (Exception e) {
+            </span><span style="color: #008000;">//</span><span style="color: #008000;"> TODO Auto-generated catch block</span>
+<span style="color: #000000;">            e.printStackTrace();
+        }</span><span style="color: #0000ff;">finally</span><span style="color: #000000;">{
+            JDBCUtil.close(conn, </span><span style="color: #0000ff;">null</span><span style="color: #000000;">);
+        }
+        
+    }
+    
+}</span></code></pre>
+
+<p>&nbsp;</p>
+
+</div><hr><script charset='utf-8' src='../../js/sming.js'></script></body></html>

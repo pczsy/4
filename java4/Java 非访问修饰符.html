@@ -1,0 +1,95 @@
+<html><head><meta charset='utf-8'><meta name='viewport' content='width=device-width, initial-scale=1'>
+<meta name='applicable-device' content='pc'><meta name='keywords' content='电脑,电脑讲解,电脑技术,编程,电脑故障维修Java 非访问修饰符' />
+<script src='../../highlight/highlight.pack.js'></script>
+<link rel='stylesheet' type='text/css' href='../../highlight/styles/monokai.css'/>
+
+<link rel='stylesheet' href='../../fenxiang/dist/css/share.min.css'>
+<script src='../../fenxiang/src/js/social-share.js'></script>
+<script src='../../fenxiang/src/js/qrcode.js'></script>
+
+</head><body><script>hljs.initHighlightingOnLoad();</script><script>
+var system ={};  
+var p = navigator.platform;       
+system.win = p.indexOf('Win') == 0;  
+system.mac = p.indexOf('Mac') == 0;  
+system.x11 = (p == 'X11') || (p.indexOf('Linux') == 0);     
+if(system.win||system.mac||system.xll){
+document.write("<link href='../css/3.css' rel='stylesheet' type='text/css'>");}else{ document.write("<link href='../css/3wap.css' rel='stylesheet' type='text/css'>");}</script><script src='../../js/3.js'></script><div class='div2'><div class='heading_nav'><ul><div><li><a href='../../index.html'>首页</a></li>
+</div><div onclick='hidden1()' >分享</div>
+</ul></div></div>
+<div id='heading_nav2'> 
+<li class='row' >
+<div class='social-share' data-mode='prepend'><a href='javascript:' class='social-share-icon icon-heart'></a></div></li></div><script charset='utf-8' src='../../3/js/hengfu.js'></script><script charset='utf-8' src='../../3/js/hengfu2.js'></script><hr><div class='div1'><div class='biaoti'><center>Java 非访问修饰符</center></div><div class='banquan'>原文出处:本文由博客园博主吉子提供。<br/>
+原文连接:https://www.cnblogs.com/jizizh/p/11973331.html</div><br>
+    <p><span style="font-family: 'Microsoft YaHei'; font-size: 14px;">除了访问性修饰符，我们还有非访问性修饰符。这里主要说明static与final修饰符，其他修饰符以后用到再说。</span></p>
+<p><span style="font-family: 'Microsoft YaHei'; font-size: 14px;"><strong>一、static修饰符</strong></span></p>
+<p><span style="font-family: 'Microsoft YaHei'; font-size: 14px;">static修饰符是用来修饰<span style="background-color: #ffff99;">方法与变量</span>。</span></p>
+<p><span style="font-family: 'Microsoft YaHei'; font-size: 14px;">1、创建StaticTest.java</span></p>
+<src class="cnblogs_Highlighter">
+<pre><code><span style="font-family: 'Microsoft YaHei'; font-size: 14px;">public class StaticTest {
+    private static int num = 0;////&ldquo;静态变量（类变量）&rdquo;不能被使用在类的非静态方法中。
+    public static int getNum() {
+        //static int num = 2;  //static变量为类变量，局部变量不能声明为static变量
+        return num;
+    }
+
+    public static void add() { //&ldquo;静态方法&rdquo;不能使用类的非静态变量。
+        num++;
+    }
+
+    public static void main(String[] args) {
+        System.out.println("num:" + StaticTest.getNum() + " start");
+        for (int i = 0; i &lt; 10; ++i){                                                                                                                                                                        
+            add();//不属于任何对象，即使没有创建对象，也能使用变量和调用方法
+        }
+        System.out.println("num:" + StaticTest.getNum() + " end");
+    }
+}</span></code></pre>
+
+<p><span style="font-family: 'Microsoft YaHei'; font-size: 14px;">这里的static用法与c有些不同，观察细微点，才能更好的理解java。</span></p>
+<p><span style="font-family: 'Microsoft YaHei'; font-size: 14px;">2、运行</span></p>
+<src class="cnblogs_Highlighter">
+<pre class="brush:bash;gutter:true;"><span style="font-family: 'Microsoft YaHei'; font-size: 14px;">javac StaticTest.java
+java StaticTest</span></code></pre>
+
+<p><span style="font-family: 'Microsoft YaHei'; font-size: 14px;">结果如下图：</span></p>
+<p><span style="font-family: 'Microsoft YaHei'; font-size: 14px;"><img src="./images/Java 非访问修饰符0.png" alt="" /></span></p>
+<p><span style="font-family: 'Microsoft YaHei'; font-size: 14px;"><strong>&nbsp;二、final修饰符</strong></span></p>
+<p><span style="font-family: 'Microsoft YaHei'; font-size: 14px;">1、创建FinalTest.java</span></p>
+<src class="cnblogs_Highlighter">
+<pre><code><span style="font-family: 'Microsoft YaHei'; font-size: 14px;">public class FinalTest {
+    final int value = 10; //实例变量
+    final int value2;
+
+    public FinalTest() {
+        value2 = 10;//不会报错，在构造方法可以直接赋值。
+        System.out.println("value2=: " + value2);
+    }
+    public final void test() {
+        int value = 9;//局部变量：不会报错，因为重新赋值给int类型了。                                                                                                                                        
+        //value = 9; //报错，final定义的变量不能重新赋值。
+        //value2 = 8;//报错，不能在方法中赋值
+        System.out.println("value=: " + value);
+    }
+    public static void main(String []args) {
+        FinalTest getText = new FinalTest();
+        getText.test();
+    }
+}　</span></code></pre>
+
+<p><span style="font-family: 'Microsoft YaHei'; font-size: 14px;">这里主要关注的final变量与方法。final变量主要是不能再次复制，而final方法主要是不能被重写。</span></p>
+<p><span style="font-family: 'Microsoft YaHei'; font-size: 14px;">2、运行</span></p>
+<src class="cnblogs_Highlighter">
+<pre class="brush:bash;gutter:true;"><span style="font-family: 'Microsoft YaHei'; font-size: 14px;">javac FinalTest.java
+java FinalTest　</span></code></pre>
+
+<p><span style="font-family: 'Microsoft YaHei'; font-size: 14px;">结果如下：</span></p>
+<p><span style="font-family: 'Microsoft YaHei'; font-size: 14px;"><img src="./images/Java 非访问修饰符1.png" alt="" /></span></p>
+<p><span style="font-family: 'Microsoft YaHei'; font-size: 14px;">&nbsp;3、注意点</span></p>
+<ul>
+<li><span class="bjh-p" style="font-family: 'Microsoft YaHei'; font-size: 14px;"><span class="bjh-strong"><span class="bjh-p"><span class="bjh-p"><span class="bjh-p"><span class="bjh-strong"><span class="bjh-strong">final修饰一个类的时候，表示这个类不能被继承。</span></span></span></span></span></span></span></li>
+<li><span class="bjh-p" style="font-family: 'Microsoft YaHei'; font-size: 14px;"><span class="bjh-strong"><span class="bjh-p"><span class="bjh-p"><span class="bjh-p"><span class="bjh-strong"><span class="bjh-strong">一个类的<span style="background-color: #ffff99;">private方法</span>会<span style="background-color: #ffff99;">隐式</span>的被指定为final方法。被final修饰的方法不能被重写（包括子类）。</span></span></span></span></span></span></span></li>
+<li><span class="bjh-p" style="font-family: 'Microsoft YaHei'; font-size: 14px;"><span class="bjh-strong"><span class="bjh-p"><span class="bjh-p"><span class="bjh-p"><span class="bjh-strong"><span class="bjh-strong">final定义的变量必须赋初值（不能在方法中赋值），并且只能初始化一次。</span></span></span></span></span></span></span></li>
+</ul>
+
+</div><hr><script charset='utf-8' src='../../js/sming.js'></script></body></html>

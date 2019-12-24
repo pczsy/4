@@ -1,0 +1,177 @@
+<html><head><meta charset='utf-8'><meta name='viewport' content='width=device-width, initial-scale=1'>
+<meta name='applicable-device' content='pc'><meta name='keywords' content='电脑,电脑讲解,电脑技术,编程,电脑故障维修Java异常及异常处理' />
+<script src='../../highlight/highlight.pack.js'></script>
+<link rel='stylesheet' type='text/css' href='../../highlight/styles/monokai.css'/>
+
+<link rel='stylesheet' href='../../fenxiang/dist/css/share.min.css'>
+<script src='../../fenxiang/src/js/social-share.js'></script>
+<script src='../../fenxiang/src/js/qrcode.js'></script>
+
+</head><body><script>hljs.initHighlightingOnLoad();</script><script>
+var system ={};  
+var p = navigator.platform;       
+system.win = p.indexOf('Win') == 0;  
+system.mac = p.indexOf('Mac') == 0;  
+system.x11 = (p == 'X11') || (p.indexOf('Linux') == 0);     
+if(system.win||system.mac||system.xll){
+document.write("<link href='../css/3.css' rel='stylesheet' type='text/css'>");}else{ document.write("<link href='../css/3wap.css' rel='stylesheet' type='text/css'>");}</script><script src='../../js/3.js'></script><div class='div2'><div class='heading_nav'><ul><div><li><a href='../../index.html'>首页</a></li>
+</div><div onclick='hidden1()' >分享</div>
+</ul></div></div>
+<div id='heading_nav2'> 
+<li class='row' >
+<div class='social-share' data-mode='prepend'><a href='javascript:' class='social-share-icon icon-heart'></a></div></li></div><script charset='utf-8' src='../../3/js/hengfu.js'></script><script charset='utf-8' src='../../3/js/hengfu2.js'></script><hr><div class='div1'><div class='biaoti'><center>Java异常及异常处理</center></div><div class='banquan'>原文出处:本文由博客园博主MrHH提供。<br/>
+原文连接:https://www.cnblogs.com/HuiH/p/11943112.html</div><br>
+    <p><span style="font-size: 16px;">　　如果某个方法不能按照正常的途径完成任务，就可以通过另一种路径退出方法。在这种情况下会抛出一个封装了错误信息的对象。此时，这个方法会立刻退出同时不返回任何值。另外，调用这个方法的其他代码也无法继续执行，异常处理机制会将代码执行交给异常处理器。</span></p>
+<p><span style="font-size: 16px;">　　<img src="./images/Java异常及异常处理0.png" alt="" width="551" height="338" /></span></p>
+<p><span style="color: #ff0000;"><strong><span style="font-size: 16px;">异常的分类</span></strong></span></p>
+<p><span style="font-size: 16px;">　　<strong>Throwable是Java语言中所有错误或异常的超类。下一层分为Error和Exception。</strong></span></p>
+<p><span style="font-size: 16px;">　　Throwable的常用方法：</span></p>
+<p><span style="font-size: 16px;">　　　　String getMessage()　　返回此throwable的详细消息字符串；</span></p>
+<p><span style="font-size: 16px;">　　　　void printStackTrace()　　将此throwable及其追踪输出至标准错误流；</span></p>
+<p><span style="font-size: 16px;">　　　　String toString()　　返回此throwable的简短描述；</span></p>
+<p><span style="color: #0000ff;"><strong><span style="font-size: 16px;">Error</span></strong></span></p>
+<p><span style="font-size: 16px;">　　Error类是指Java运行时系统的内部错误和资源耗尽错误。应用程序不会抛出该类对象。如果出现了这样的错误，除了告知用户，剩下的就是尽力使程序安全的终止，它是由Java虚拟机抛出的。</span></p>
+<p><strong><span style="font-size: 16px; color: #0000ff;">Exception（RuntimeException、CheckedException）</span></strong></p>
+<p><span style="font-size: 16px;">　　Exception又有两个分支，一个是运行时异常RuntimeException，一个是检查时异常CheckedException。</span></p>
+<p><span style="font-size: 16px;">　　RuntimeException如：NullPointerException、ClassCastException；一个是检查异常CheckedException，如IO错误导致的IOException、SQLException。RuntimeException是那些可能在Java虚拟机正常运行期间抛出的异常的超类。如果出现RuntimeException，那么一定是程序员的错误。</span></p>
+<p><span style="font-size: 16px;">　　检查异常CheckedException：一般是外部错误，这种异常都发生在编译阶段，Java编译器会强制程序去捕获此类异常，即会出现要求你把这段可能出现异常的程序进行try...catch，该类异常一般包括几个方面：</span></p>
+<p><span style="font-size: 16px;">　　　　1）试图在文件尾部读取数据；</span></p>
+<p><span style="font-size: 16px;">　　　　2）试图打开一个错误格式的URL；</span></p>
+<p><span style="font-size: 16px;">　　　　3）试图根据给定的字符串查找class对象，而这个字符串表示的类并不存在；</span></p>
+<p><span style="color: #ff0000;"><strong><span style="font-size: 16px;">异常的处理方式</span></strong></span></p>
+<p><span style="font-size: 16px;">抛出异常有三种形式，一是throw，一个throws，还有一种系统自动抛异常。</span></p>
+<p><strong><span style="font-size: 16px; color: #0000ff;">1）对代码块用try...catch进行异常捕获处理</span></strong></p>
+<p><span style="font-size: 16px;">单个异常的处理</span></p>
+<src class="cnblogs_code">
+<pre><code><span style="font-size: 15px;"><span style="color: #008080;">1</span>    <span style="color: #0000ff;">try</span><span style="color: #000000;"> {
+</span><span style="color: #008080;">2</span> <span style="color: #000000;">        这里写可能出错的代码               
+</span><span style="color: #008080;">3</span>          } <span style="color: #0000ff;">catch</span><span style="color: #000000;"> (Exception e) {
+</span><span style="color: #008080;">4</span> <span style="color: #000000;">                        这里写可能出现的错误异常的处理
+</span><span style="color: #008080;">5</span>          }<span style="color: #0000ff;">finally</span><span style="color: #000000;">{
+</span><span style="color: #008080;">6</span> <span style="color: #000000;">                        这里写一定会执行的代码，有些资源需要关闭的时候
+</span><span style="color: #008080;">7</span>          }   </span> </code></pre>
+
+<p><span style="font-size: 16px;">多个异常的处理</span></p>
+<src class="cnblogs_code">
+<pre><code><span style="font-size: 15px;"><span style="color: #008080;"> 1</span> <span style="color: #0000ff;">try</span><span style="color: #000000;">{
+</span><span style="color: #008080;"> 2</span> <span style="color: #000000;">        可能出现问题的代码    
+</span><span style="color: #008080;"> 3</span>      }<span style="color: #0000ff;">catch</span><span style="color: #000000;">(异常类名1 对象名1){
+</span><span style="color: #008080;"> 4</span>           <span style="color: #008000;">//</span><span style="color: #008000;">异常处理</span>
+<span style="color: #008080;"> 5</span>       }<span style="color: #0000ff;">catch</span><span style="color: #000000;">(异常类名2 对象名2(){
+</span><span style="color: #008080;"> 6</span>           <span style="color: #008000;">//</span><span style="color: #008000;">异常处理</span>
+<span style="color: #008080;"> 7</span> <span style="color: #000000;">        }
+</span><span style="color: #008080;"> 8</span> <span style="color: #000000;">Jdk7以后出现另一种方式处理多个异常：
+</span><span style="color: #008080;"> 9</span> <span style="color: #0000ff;">try</span><span style="color: #000000;"> {
+</span><span style="color: #008080;">10</span>             String strDate = "2018-6-20"<span style="color: #000000;"> ;
+</span><span style="color: #008080;">11</span>             SimpleDateFormat sdf = <span style="color: #0000ff;">new</span> SimpleDateFormat("yyyy-MM-dd HH:mm:ss"<span style="color: #000000;">) ;
+</span><span style="color: #008080;">12</span>             <span style="color: #008000;">//</span><span style="color: #008000;">解析</span>
+<span style="color: #008080;">13</span>             Date d =<span style="color: #000000;"> sdf.parse(strDate) ; 
+</span><span style="color: #008080;">14</span> <span style="color: #000000;">            System.out.println(d);            
+</span><span style="color: #008080;">15</span>      }<span style="color: #0000ff;">catch</span>(ParseException e) {  <span style="color: #008000;">//</span><span style="color: #008000;">创建一个异常对象:PareException e = new ParseException() ;
+</span><span style="color: #008080;">16</span>             <span style="color: #008000;">//</span><span style="color: #008000;">使用throwable里面的一些方法</span>
+<span style="color: #008080;">17</span>             String str =<span style="color: #000000;"> e.getMessage() ;
+</span><span style="color: #008080;">18</span>             System.out.println(str);<span style="color: #008000;">//</span><span style="color: #008000;">Unparseable date: "2018-6-20"            </span>
+<span style="color: #008080;">19</span>             String str = e.toString() ;<span style="color: #008000;">//</span><span style="color: #008000;">简单描述</span>
+<span style="color: #008080;">20</span>             System.out.println(str);<span style="color: #008000;">//</span><span style="color: #008000;">包名.类名: getMessage() ;</span>
+<span style="color: #008080;">21</span> <span style="color: #000000;">            e.printStackTrace();
+</span><span style="color: #008080;">22</span> <span style="color: #000000;">     }
+</span><span style="color: #008080;">23</span> <span style="color: #0000ff;">finally</span><span style="color: #000000;">{
+</span><span style="color: #008080;">24</span>       <span style="color: #008000;">//</span><span style="color: #008000;">里面的代码一定会被执行，除非jvm退出了      </span>
+<span style="color: #008080;">25</span> <span style="color: #000000;">}
+</span><span style="color: #008080;">26</span> <span style="color: #0000ff;">public</span> <span style="color: #0000ff;">static</span> <span style="color: #0000ff;">void</span><span style="color: #000000;"> main(String[] args) { 
+</span><span style="color: #008080;">27</span>      String s = "abc"<span style="color: #000000;">; 
+</span><span style="color: #008080;">28</span>      <span style="color: #0000ff;">if</span>(s.equals("abc"<span style="color: #000000;">)) { 
+</span><span style="color: #008080;">29</span>      <span style="color: #0000ff;">throw</span> <span style="color: #0000ff;">new</span><span style="color: #000000;"> NumberFormatException(); 
+</span><span style="color: #008080;">30</span>      } <span style="color: #0000ff;">else</span><span style="color: #000000;"> { 
+</span><span style="color: #008080;">31</span> <span style="color: #000000;">         System.out.println(s); 
+</span><span style="color: #008080;">32</span> <span style="color: #000000;">     } 
+</span><span style="color: #008080;">33</span> <span style="color: #000000;">} 
+</span><span style="color: #008080;">34</span> <span style="color: #0000ff;">int</span> div(<span style="color: #0000ff;">int</span> a,<span style="color: #0000ff;">int</span> b) <span style="color: #0000ff;">throws</span><span style="color: #000000;"> Exception{
+</span><span style="color: #008080;">35</span> <span style="color: #0000ff;">return</span> a/<span style="color: #000000;">b;
+</span><span style="color: #008080;">36</span> }</span></code></pre>
+
+<p><span style="font-size: 16px;">&nbsp;<span style="color: #0000ff;"><strong>2）在该代码的方法体外用throws（表示可能出现的异常）进行抛出声明，告知此方法的调用者这段代码可能会出现这些异常，你需要谨慎处理。</strong></span>此时有两种情况：</span></p>
+<p><span style="font-size: 16px;">　　如果声明抛出的异常是非运行时异常，此方法的调用者必须显式地用try...catch块进行捕获或者继续向上层抛出异常。</span></p>
+<p><span style="font-size: 16px;">　　如果声明抛出的异常是运行时异常，此方法的调用者可以选择地进行异常捕获处理。<br /></span></p>
+<p><span style="font-size: 16px;">　throws也是表示抛出异常，它后面跟的异常类名，并且可以多个异常类名中间用逗号隔开；</span></p>
+<p><span style="font-size: 16px;">　　　xxx　　返回值　　方法名()throws 异常类名{}</span></p>
+<p><span style="font-size: 16px;">　　例如：</span></p>
+<p><span style="font-size: 16px;">　　　　public void show() throws IOException,ClassNotFoundException{...}</span></p>
+<p><span style="font-size: 16px;"><strong><span style="color: #0000ff;">3）在代码块用throw手动抛出一个异常对象，</span></strong>此时也有两种情况：</span></p>
+<p><span style="font-size: 16px;">　　如果抛出的异常对象是非运行时异常，此方法的调用者必须显式地用try...catch块进行捕获或者继续向上层抛出异常（使用throws）。</span></p>
+<p><span style="font-size: 16px;">　　如果抛出的异常对象是运行时异常，此方法的调用者可以选择地进行异常捕获处理。（如果最终将异常抛给main方法，则相当于交给JVM自动处理，此时JVM会简单地打印异常信息）。</span></p>
+<p><strong><span style="font-size: 16px; color: #ff0000;">## throw和throws的区别</span></strong></p>
+<p><span style="color: #0000ff;"><strong><span style="font-size: 16px;">位置不同</span></strong></span></p>
+<p><span style="font-size: 16px;">　　1）throws用在函数上，后面跟的是异常类，可以跟多个；而throw用在函数内，后面跟的是具体的异常对象。</span></p>
+<p><span style="color: #0000ff;"><strong><span style="font-size: 16px;">功能不同</span></strong></span></p>
+<p><span style="font-size: 16px;">　　2）throws用来声明异常，让调用者只知道该功能可能出现的问题，可以给出预先的处理方式；throw抛出具体的问题对象，执行到throw，功能就已经结束了，跳转到调用者，并将具体的问题对象抛给调用者。也就是说throw语句独立存在时，下面不要定义其他语句，因为执行不到。</span></p>
+<p><span style="font-size: 16px;">　　3）throws表示出现异常的一种可能性，并不一定会发生这些异常；throw则是抛出了异常，执行throw则一定抛出了某种异常对象。</span></p>
+<p><span style="font-size: 16px;">　　4）两者都是消极处理异常的方式，只是抛出或者可能抛出异常，但是不会由函数去处理异常，真正的处理异常由函数的上层调用处理。</span></p>
+<p><span style="font-size: 16px;"><span style="color: #ff0000;"><strong>throws：</strong></span>用来声明一个方法可能产生的所有异常，不做任何处理而是将异常上传，谁调用我我就抛给谁。</span></p>
+<p><span style="font-size: 16px;">　　　　用在方法声明后面，跟的是异常类名；</span></p>
+<p><span style="font-size: 16px;">　　　　可以跟多个异常类名，用逗号隔开；</span></p>
+<p><span style="font-size: 16px;">　　　　表示抛出异常，由该方法的调用者来处理；</span></p>
+<p><span style="font-size: 16px;">　　　　throws表示出现异常的一种可能性，并不一定会发生这些异常；</span></p>
+<src class="cnblogs_code">
+<pre><code><span style="font-size: 15px;"><span style="color: #008080;">1</span> <span style="color: #0000ff;">package</span><span style="color: #000000;"> com.xinkaipu.Exception;
+</span><span style="color: #008080;">2</span> <span style="color: #0000ff;">class</span><span style="color: #000000;"> Math{
+</span><span style="color: #008080;">3</span>     <span style="color: #0000ff;">public</span> <span style="color: #0000ff;">int</span> div(<span style="color: #0000ff;">int</span> i,<span style="color: #0000ff;">int</span> j) <span style="color: #0000ff;">throws</span> Exception{   <span style="color: #0000ff;">int</span> t=i/j;    <span style="color: #0000ff;">return</span><span style="color: #000000;"> t; }
+</span><span style="color: #008080;">4</span> <span style="color: #000000;">}
+</span><span style="color: #008080;">5</span> <span style="color: #0000ff;">public</span> <span style="color: #0000ff;">class</span><span style="color: #000000;"> ThrowsDemo {
+</span><span style="color: #008080;">6</span>     <span style="color: #0000ff;">public</span> <span style="color: #0000ff;">static</span> <span style="color: #0000ff;">void</span> main(String args[]) <span style="color: #0000ff;">throws</span> Exception{   Math m=<span style="color: #0000ff;">new</span><span style="color: #000000;"> Math(); }
+</span><span style="color: #008080;">7</span> }</span></code></pre>
+
+<p><span style="font-size: 16px;"><span style="color: #ff0000;"><strong>throw：</strong></span>用来抛出一个具体的异常类型</span></p>
+<p><span style="font-size: 16px;">　　　　用在方法体内，跟的是异常对象名；</span></p>
+<p><span style="font-size: 16px;">　　　　只能抛出一个异常对象名；</span></p>
+<p><span style="font-size: 16px;">　　　　表示抛出异常，由方法体内的语句处理；</span></p>
+<p><span style="font-size: 16px;">　　　　throw则是抛出了异常，执行throw则一定抛出了某种异常；</span></p>
+<src class="cnblogs_code">
+<pre><code><span style="font-size: 15px;"><span style="color: #008080;"> 1</span> <span style="color: #0000ff;">package</span><span style="color: #000000;"> com.xinkaipu.Exception;
+</span><span style="color: #008080;"> 2</span> <span style="color: #0000ff;">public</span> <span style="color: #0000ff;">class</span><span style="color: #000000;"> TestThrow
+</span><span style="color: #008080;"> 3</span> <span style="color: #000000;">{
+</span><span style="color: #008080;"> 4</span>     <span style="color: #0000ff;">public</span> <span style="color: #0000ff;">static</span> <span style="color: #0000ff;">void</span><span style="color: #000000;"> main(String[] args) 
+</span><span style="color: #008080;"> 5</span> <span style="color: #000000;">    {
+</span><span style="color: #008080;"> 6</span>         <span style="color: #0000ff;">try</span>
+<span style="color: #008080;"> 7</span> <span style="color: #000000;">        {
+</span><span style="color: #008080;"> 8</span>             <span style="color: #008000;">//</span><span style="color: #008000;">调用带throws声明的方法，必须显式捕获该异常。否则，必须在main方法中再次声明抛出</span>
+<span style="color: #008080;"> 9</span>             throwChecked(-3<span style="color: #000000;">);            
+</span><span style="color: #008080;">10</span> <span style="color: #000000;">        }
+</span><span style="color: #008080;">11</span>         <span style="color: #0000ff;">catch</span><span style="color: #000000;"> (Exception e)
+</span><span style="color: #008080;">12</span> <span style="color: #000000;">        {
+</span><span style="color: #008080;">13</span> <span style="color: #000000;">            System.out.println(e.getMessage());
+</span><span style="color: #008080;">14</span> <span style="color: #000000;">        }
+</span><span style="color: #008080;">15</span>         <span style="color: #008000;">//</span><span style="color: #008000;">调用抛出Runtime异常的方法既可以显式捕获该异常，也可不理会该异常</span>
+<span style="color: #008080;">16</span>         throwRuntime(3<span style="color: #000000;">);
+</span><span style="color: #008080;">17</span> <span style="color: #000000;">    }
+</span><span style="color: #008080;">18</span>     <span style="color: #0000ff;">public</span> <span style="color: #0000ff;">static</span> <span style="color: #0000ff;">void</span> throwChecked(<span style="color: #0000ff;">int</span> a)<span style="color: #0000ff;">throws</span><span style="color: #000000;"> Exception
+</span><span style="color: #008080;">19</span> <span style="color: #000000;">    {
+</span><span style="color: #008080;">20</span>         <span style="color: #0000ff;">if</span> (a &gt; 0<span style="color: #000000;">)
+</span><span style="color: #008080;">21</span> <span style="color: #000000;">        {
+</span><span style="color: #008080;">22</span>             <span style="color: #008000;">//</span><span style="color: #008000;">自行抛出Exception异常。该代码必须处于try块里，或处于带throws声明的方法中</span>
+<span style="color: #008080;">23</span>             <span style="color: #0000ff;">throw</span> <span style="color: #0000ff;">new</span> Exception("a的值大于0，不符合要求"<span style="color: #000000;">);
+</span><span style="color: #008080;">24</span> <span style="color: #000000;">        }
+</span><span style="color: #008080;">25</span> <span style="color: #000000;">    }
+</span><span style="color: #008080;">26</span>     <span style="color: #0000ff;">public</span> <span style="color: #0000ff;">static</span> <span style="color: #0000ff;">void</span> throwRuntime(<span style="color: #0000ff;">int</span><span style="color: #000000;"> a)
+</span><span style="color: #008080;">27</span> <span style="color: #000000;">    {
+</span><span style="color: #008080;">28</span>         <span style="color: #0000ff;">if</span> (a &gt; 0<span style="color: #000000;">)
+</span><span style="color: #008080;">29</span> <span style="color: #000000;">        {
+</span><span style="color: #008080;">30</span>         <span style="color: #008000;">//</span><span style="color: #008000;">自行抛出RuntimeException异常，既可以显式捕获该异常。也可完全不理会该异常，把该异常交给该方法调用者处理</span>
+<span style="color: #008080;">31</span>             <span style="color: #0000ff;">throw</span> <span style="color: #0000ff;">new</span> RuntimeException("a的值大于0，不符合要求"<span style="color: #000000;">);
+</span><span style="color: #008080;">32</span> <span style="color: #000000;">        }
+</span><span style="color: #008080;">33</span> <span style="color: #000000;">    }
+</span><span style="color: #008080;">34</span> }</span></code></pre>
+
+<p><strong><span style="font-size: 16px; color: #ff0000;">try...catch...finally 语句执行顺序</span></strong></p>
+<p><span style="font-size: 16px;">　　1）finally语句总会执行。不管前面try..catch语句中是否有return，是否有异常，finally都会执行！</span></p>
+<p><span style="font-size: 16px;">　　2）如果try...catch中有return语句，finally中没有return，那么在finally中修改除包装类型和静态变量、全局变量以外的数据都不会对try...catch中返回的变量有任何影响</span></p>
+<p><span style="font-size: 16px;">　　3）尽量不要在finally中使用return语句，如果使用的话，会忽略try、catch中的返回语句，也会忽略try、catch中的异常，屏蔽了错误的发生</span></p>
+<p><span style="font-size: 16px;">　　4）finally中避免再次抛出异常，一旦finally中发生异常，代码执行将会抛出finally中的异常信息，try、catch中的异常将被忽略</span></p>
+<p><span style="font-size: 16px;">　　5）finally不能单独使用</span></p>
+<p><strong><span style="font-size: 16px; color: #ff0000;">异常中的注意事项</span></strong></p>
+<p><span style="font-size: 16px;">　　1）运行到try块中，如果有异常抛出，则转到catch块，catch块执行完毕后，执行finally块的代码，再执行finally块后面的代码。如果没有异常抛出，执行完try块，也要去执行finally块的代码，然后执行finally块后面的语句。</span></p>
+<p><span style="font-size: 16px;">　　2）throw是语句抛出一个异常；throws是方法抛出一个异常；</span></p>
+<p><span style="font-size: 16px;">　　3）throws可以单独使用，但throw不能，throw要么和try...catch...finally语句配套使用，要么与throws配套使用。但throws可以单独使用，然后再由处理异常的方法捕获。</span></p>
+<p><span style="font-size: 16px;">　　4）如果finally有return语句，永远返回finally中的结果，避免该情况。</span></p>
+
+</div><hr><script charset='utf-8' src='../../js/sming.js'></script></body></html>

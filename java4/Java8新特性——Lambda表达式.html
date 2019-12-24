@@ -1,0 +1,120 @@
+<html><head><meta charset='utf-8'><meta name='viewport' content='width=device-width, initial-scale=1'>
+<meta name='applicable-device' content='pc'><meta name='keywords' content='电脑,电脑讲解,电脑技术,编程,电脑故障维修Java8新特性——Lambda表达式' />
+<script src='../../highlight/highlight.pack.js'></script>
+<link rel='stylesheet' type='text/css' href='../../highlight/styles/monokai.css'/>
+
+<link rel='stylesheet' href='../../fenxiang/dist/css/share.min.css'>
+<script src='../../fenxiang/src/js/social-share.js'></script>
+<script src='../../fenxiang/src/js/qrcode.js'></script>
+
+</head><body><script>hljs.initHighlightingOnLoad();</script><script>
+var system ={};  
+var p = navigator.platform;       
+system.win = p.indexOf('Win') == 0;  
+system.mac = p.indexOf('Mac') == 0;  
+system.x11 = (p == 'X11') || (p.indexOf('Linux') == 0);     
+if(system.win||system.mac||system.xll){
+document.write("<link href='../css/3.css' rel='stylesheet' type='text/css'>");}else{ document.write("<link href='../css/3wap.css' rel='stylesheet' type='text/css'>");}</script><script src='../../js/3.js'></script><div class='div2'><div class='heading_nav'><ul><div><li><a href='../../index.html'>首页</a></li>
+</div><div onclick='hidden1()' >分享</div>
+</ul></div></div>
+<div id='heading_nav2'> 
+<li class='row' >
+<div class='social-share' data-mode='prepend'><a href='javascript:' class='social-share-icon icon-heart'></a></div></li></div><script charset='utf-8' src='../../3/js/hengfu.js'></script><script charset='utf-8' src='../../3/js/hengfu2.js'></script><hr><div class='div1'><div class='biaoti'><center>Java8新特性——Lambda表达式</center></div><div class='banquan'>原文出处:本文由博客园博主小毛驴Lucas提供。<br/>
+原文连接:https://www.cnblogs.com/LucasBlog/p/12026053.html</div><br>
+    <h3 id="一.-基本介绍">一. 基本介绍</h3>
+<ol>
+<li><p>Lambda</p>
+<p>Lambda是java 8引入的一个新特性，一个Lambda表达式是一个匿名函数，它提供了更为简单的语法和协作方式，能够让我们通过表达式来代替函数式接口。</p>
+<p>Lambda表达式完全可以用在简化创建匿名内部类上。</p></li>
+<li><p>函数式接口</p>
+<p>所谓的函数式接口，就是指<strong>只有一个抽象方法的接口</strong></p></li>
+</ol>
+<h3 id="二.lambda格式">二.Lambda格式</h3>
+<p>Lambda格式由3个部分组成：<strong>一些参数</strong>，<strong>一个箭头</strong>，<strong>一段代码</strong></p>
+<ol>
+<li><p><strong>标准格式</strong>为：</p>
+<p><code>(参数类型 参数名称) -&gt; { 代码语句 }</code></p>
+<p>说明：</p>
+<ul>
+<li>小括号里的语法与传统方法的参数列表一致，如果没有参数，就留空；如果有多个参数，用逗号分隔。</li>
+<li><code>-&gt;</code>是新引入的语法格式，代表指向动作</li>
+<li>大括号内的语法与传统方法体要求基本一致。</li>
+</ul></li>
+<li><p><strong>省略样式</strong>：</p>
+<p>在Lambda标准格式的基础上，省略样式写法的规则为：</p>
+<ul>
+<li>小括号内参数类型可以省略</li>
+<li>如果小括号内有且仅有一个参数，则小括号可以省略</li>
+<li>如果大括号内有且仅有一个语句，则无论是否有返回值，都可以省略<strong>大括号、return关键字及语句分号</strong></li>
+</ul></li>
+</ol>
+<h3 id="三.lambda的使用前提">三.Lambda的使用前提</h3>
+<ol>
+<li>使用Lambda必须具有接口，并且要求接口有且仅有一个抽象方法。（函数式接口）</li>
+<li>使用Lambda必须具有上下文推断。也就是调用方法的参数或局部变量类型必须为Lambda对应的接口类型，才能使用Lambda作为该接口的实例。</li>
+</ol>
+<h3 id="四.实例">四.实例</h3>
+<ol>
+<li><p>基本的Lambda例子</p>
+<p>假设有一个List，使用for循环遍历</p>
+<pre><code><code>import java.util.*;
+
+public class LambdaDemo {
+    public static void main(String[] args) {
+        String[] fruits = {&quot;apple&quot;, &quot;banana&quot;, &quot;peach&quot;, &quot;watermelon&quot;, &quot;strawberry&quot;, &quot;pear&quot;};
+        List&lt;String&gt; fruitsList = Arrays.asList(fruits);
+
+        // java8 之前的循环
+        for (String f : fruitsList) {
+            System.out.println(f + &quot; &quot;);
+        }
+     System.out.println(&quot;--------------------&quot;);
+        // 使用lambda表达式操作循环
+        fruitsList.forEach(f -&gt; System.out.println(f + &quot; &quot;));
+    }
+}</code></code></pre></li>
+<li><p>实现Runnable接口时</p>
+<pre><code><code>public class LambdaDemo {
+    public static void main(String[] args) {
+        // 创建线程实例
+        Thread t = new Thread(new Runnable(){
+
+            @Override
+            public void run() {
+                System.out.println(Thread.currentThread().getName());
+            }
+        });
+
+        // 使用lambda表达式 创建Runnable接口
+        new Thread(() -&gt; System.out.println(Thread.currentThread().getName())).start();
+
+        t.start();
+
+        System.out.println(Thread.currentThread().getName());
+    }
+}</code></code></pre></li>
+<li><p>Lambda对集合进行排序</p>
+<pre><code><code>import java.util.*;
+
+public class LambdaDemo {
+    public static void main(String[] args) {
+        String[] fruits = {&quot;apple&quot;, &quot;peach&quot;, &quot;watermelon&quot;, &quot;banana&quot;, &quot;strawberry&quot;, &quot;pear&quot;};
+
+        // 使用匿名内部类排序
+        // Arrays.sort(fruits, new Comparator&lt;String&gt;() {
+        //     @Override
+        //     public int compare(String s1, String s2) {
+        //         return s1.compareTo(s2);
+        //     }
+        // });
+
+        // 使用lambda表达式排序
+        Arrays.sort(fruits, (s1, s2) -&gt; s1.compareTo(s2));
+
+        System.out.println(Arrays.toString(fruits));
+    }
+}</code></code></pre></li>
+</ol>
+
+
+</div><hr><script charset='utf-8' src='../../js/sming.js'></script></body></html>

@@ -1,0 +1,150 @@
+<html><head><meta charset='utf-8'><meta name='viewport' content='width=device-width, initial-scale=1'>
+<meta name='applicable-device' content='pc'><meta name='keywords' content='电脑,电脑讲解,电脑技术,编程,电脑故障维修SpingBoot之集成Redis集群' />
+<script src='../../highlight/highlight.pack.js'></script>
+<link rel='stylesheet' type='text/css' href='../../highlight/styles/monokai.css'/>
+
+<link rel='stylesheet' href='../../fenxiang/dist/css/share.min.css'>
+<script src='../../fenxiang/src/js/social-share.js'></script>
+<script src='../../fenxiang/src/js/qrcode.js'></script>
+
+</head><body><script>hljs.initHighlightingOnLoad();</script><script>
+var system ={};  
+var p = navigator.platform;       
+system.win = p.indexOf('Win') == 0;  
+system.mac = p.indexOf('Mac') == 0;  
+system.x11 = (p == 'X11') || (p.indexOf('Linux') == 0);     
+if(system.win||system.mac||system.xll){
+document.write("<link href='../css/3.css' rel='stylesheet' type='text/css'>");}else{ document.write("<link href='../css/3wap.css' rel='stylesheet' type='text/css'>");}</script><script src='../../js/3.js'></script><div class='div2'><div class='heading_nav'><ul><div><li><a href='../../index.html'>首页</a></li>
+</div><div onclick='hidden1()' >分享</div>
+</ul></div></div>
+<div id='heading_nav2'> 
+<li class='row' >
+<div class='social-share' data-mode='prepend'><a href='javascript:' class='social-share-icon icon-heart'></a></div></li></div><script charset='utf-8' src='../../3/js/hengfu.js'></script><script charset='utf-8' src='../../3/js/hengfu2.js'></script><hr><div class='div1'><div class='biaoti'><center>SpingBoot之集成Redis集群</center></div><div class='banquan'>原文出处:本文由博客园博主yuriy2提供。<br/>
+原文连接:https://www.cnblogs.com/muyl/p/11886481.html</div><br>
+    <h5 id="一安装redis集群">一、安装Redis集群</h5>
+<p>安装步骤参照网上教程，Mac安装步骤参照https://github.com/muyl/mac-docker-redis-cluster</p>
+<h5 id="二创建springboot工程">二、创建SpringBoot工程</h5>
+<p><img src="./images/SpingBoot之集成Redis集群0.png" alt="file" /></p>
+<ol>
+<li><p>创建Redis配置类</p>
+<pre><code><code>package com.example.chapterredis.common.config;
+
+import org.apache.commons.pool2.impl.GenericObjectPoolConfig;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
+import redis.clients.jedis.HostAndPort;
+import redis.clients.jedis.JedisCluster;
+
+import java.util.HashSet;
+import java.util.Set;
+
+/**
+ * @author tony
+ */
+@Configuration
+public class RedisConfiguration {
+
+    private static final Logger logger = LoggerFactory.getLogger(RedisConfiguration.class);
+
+    @Value(&quot;${spring.redis.clusterNodes}&quot;)
+    private String  clusterNodes;
+    @Value(&quot;${spring.redis.password}&quot;)
+    private String  auth;
+    @Value(&quot;${spring.redis.pool.maxActive}&quot;)
+    private Integer maxTotal;
+    @Value(&quot;${spring.redis.pool.minIdle}&quot;)
+    private Integer minIdle;
+    @Value(&quot;${spring.redis.pool.maxIdle}&quot;)
+    private Integer maxIdle;
+    @Value(&quot;${spring.redis.pool.maxWait}&quot;)
+    private Long    maxWaitMillis;
+    @Value(&quot;${spring.redis.pool.commandTimeout}&quot;)
+    private int     commandTimeout;
+
+
+    @Bean
+    public JedisCluster jedisCluster() {
+        String[] serverArray = clusterNodes.split(&quot;,&quot;);
+        Set&lt;HostAndPort&gt; nodes = new HashSet&lt;&gt;();
+        for (String ipPort : serverArray) {
+            String[] ipPortPair = ipPort.split(&quot;:&quot;);
+            nodes.add(new HostAndPort(ipPortPair[0].trim(), Integer.valueOf(ipPortPair[1].trim())));
+        }
+
+        if (!nodes.isEmpty()) {
+            String password = getAuth(auth);
+            logger.info(&quot;redis password:{}&quot;, password);
+            GenericObjectPoolConfig pool = new GenericObjectPoolConfig();
+            pool.setMaxTotal(maxTotal);
+            pool.setMinIdle(minIdle);
+            pool.setMaxIdle(maxIdle);
+            pool.setMaxWaitMillis(maxWaitMillis);
+            return new JedisCluster(nodes, commandTimeout, commandTimeout, 5, password, pool);
+        }
+        return null;
+    }
+
+    private String getAuth(String auth) {
+        return &quot;&quot;.equals(auth) ? null : auth;
+    }
+}
+</code></code></pre></li>
+<li><p>SpringBoot属性文件</p>
+<pre class="properties"><code>spring.redis.clusterNodes=localhost:7000,localhost:7001,localhost:7002,localhost:7003,localhost:7004,localhost:7005
+spring.redis.password=
+spring.redis.pool.maxActive=5
+spring.redis.pool.minIdle=5
+spring.redis.pool.maxIdle=1
+spring.redis.pool.maxWait=3000
+spring.redis.pool.commandTimeout=5000</code></code></pre></li>
+<li><p>SpringBoot启动类</p>
+<pre><code><code>package com.example.chapterredis;
+
+import org.springframework.boot.SpringApplication;
+import org.springframework.boot.autoconfigure.SpringBootApplication;
+
+@SpringBootApplication
+public class ChapterRedisApplication {
+
+    public static void main(String[] args) {
+        SpringApplication.run(ChapterRedisApplication.class, args);
+    }
+}
+</code></code></pre></li>
+<li><p>测试类</p>
+<pre><code><code>package com.example.chapterredis;
+
+import org.junit.Test;
+import org.junit.runner.RunWith;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.test.context.junit4.SpringRunner;
+import redis.clients.jedis.JedisCluster;
+
+@RunWith(SpringRunner.class)
+@SpringBootTest(classes={ChapterRedisApplication.class})
+public class ChapterRedisApplicationTests {
+
+    @Autowired
+    private JedisCluster jedisCluster;
+
+
+    @Test
+    public void test2() {
+        jedisCluster.set(&quot;aaa&quot;,&quot;123&quot;);
+        System.out.println(jedisCluster.get(&quot;aaa&quot;));
+    }
+
+}
+</code></code></pre></li>
+</ol>
+<h5 id="三工程源代码">三、工程源代码</h5>
+<p>https://gitee.com/shanksV/chapter-redis.git</p>
+<h5 id="section"></h5>
+<p>比你优秀的人比你还努力，你有什么资格不去奋斗!!!</p>
+
+
+</div><hr><script charset='utf-8' src='../../js/sming.js'></script></body></html>

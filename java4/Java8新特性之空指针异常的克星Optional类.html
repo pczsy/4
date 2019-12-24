@@ -1,0 +1,156 @@
+<html><head><meta charset='utf-8'><meta name='viewport' content='width=device-width, initial-scale=1'>
+<meta name='applicable-device' content='pc'><meta name='keywords' content='电脑,电脑讲解,电脑技术,编程,电脑故障维修Java8新特性之空指针异常的克星Optional类' />
+<script src='../../highlight/highlight.pack.js'></script>
+<link rel='stylesheet' type='text/css' href='../../highlight/styles/monokai.css'/>
+
+<link rel='stylesheet' href='../../fenxiang/dist/css/share.min.css'>
+<script src='../../fenxiang/src/js/social-share.js'></script>
+<script src='../../fenxiang/src/js/qrcode.js'></script>
+
+</head><body><script>hljs.initHighlightingOnLoad();</script><script>
+var system ={};  
+var p = navigator.platform;       
+system.win = p.indexOf('Win') == 0;  
+system.mac = p.indexOf('Mac') == 0;  
+system.x11 = (p == 'X11') || (p.indexOf('Linux') == 0);     
+if(system.win||system.mac||system.xll){
+document.write("<link href='../css/3.css' rel='stylesheet' type='text/css'>");}else{ document.write("<link href='../css/3wap.css' rel='stylesheet' type='text/css'>");}</script><script src='../../js/3.js'></script><div class='div2'><div class='heading_nav'><ul><div><li><a href='../../index.html'>首页</a></li>
+</div><div onclick='hidden1()' >分享</div>
+</ul></div></div>
+<div id='heading_nav2'> 
+<li class='row' >
+<div class='social-share' data-mode='prepend'><a href='javascript:' class='social-share-icon icon-heart'></a></div></li></div><script charset='utf-8' src='../../3/js/hengfu.js'></script><script charset='utf-8' src='../../3/js/hengfu2.js'></script><hr><div class='div1'><div class='biaoti'><center>Java8新特性之空指针异常的克星Optional类</center></div><div class='banquan'>原文出处:本文由博客园博主程序新视界提供。<br/>
+原文连接:https://www.cnblogs.com/secbro/p/11689773.html</div><br>
+    <p>Java8新特性系列我们已经介绍了Stream、Lambda表达式、DateTime日期时间处理，最后以“NullPointerException” 的克星Optional类的讲解来收尾。</p>
+<h3 id="背景">背景</h3>
+<p>作为开发人员每天与NullPointerException斗智斗勇。每接收到参数或调用方法获得值得判断一下是否为null。稍不留意，空指针异常就像幽灵一样出现了。</p>
+<p>这篇文章我们来学习Java8是如何通过Optional类来避免空指针异常的。</p>
+<p>先来看一下不使用Optional类时，我们为了防止NullPointerException会怎么处理。</p>
+<pre><code><code>public String getParentName(Person son) {
+    if (son != null) {
+        Person parent = son.getParent();
+        if (parent != null) {
+            return parent.getUsername();
+        } else {
+            return &quot;--&quot;;
+        }
+    }
+
+    return &quot;--&quot;;
+}</code></code></pre>
+<p>为了防止出现异常，需要不停的判断对象是否为null。但如果业务逻辑比较复杂，会涌现出大量的ifelse。看似逻辑缜密，但易读性却并不高。</p>
+<p>为了解决相关问题，在Effective Java中建议若方法返回类型为集合，则通过返回空集合以避免 NullPointerException，真是煞费苦心。</p>
+<p>先看一下上面的代码使用Optional之后会变成什么样子。</p>
+<pre><code><code>public String getParentNameWithOptional(Person son) {
+    return Optional.ofNullable(son).map(Person::getParent).map(Person::getUsername).orElse(&quot;--&quot;);
+}</code></code></pre>
+<p>对照一下代码，看看神不神奇？！</p>
+<h3 id="optional类简介">Optional类简介</h3>
+<p>java.util.Optional<T>类的引入很好的解决空指针异常，类声明如下：</p>
+<pre><code><code>public final class Optional&lt;T&gt; {}</code></code></pre>
+<p>java.util.Optional<T>类是一个封装了Optional值的容器对象，Optional值可以为null，如果值存在，调用isPresent()方法返回true，调用get()方法可以获取值。</p>
+<p>通过源代码会发现，它并没有实现java.io.Serializable接口，因此应避免在类属性中使用，防止意想不到的问题。</p>
+<p>除了Optional类之外，还扩展了一些常用类型的Optional对象，比如：OptionalDouble、OptionalInt、OptionalLong。用法基本上相似。</p>
+<p>下面通过具体的操作和功能来了解Optional类。</p>
+<h3 id="创建optional对象">创建Optional对象</h3>
+<p>创建Optional对象有三种方法：empty()、of()、ofNullable()，均为静态方法。</p>
+<p>如果Optional对象没有值则用empty()方法。</p>
+<pre><code><code>Optional empty = Optional.empty();</code></code></pre>
+<p>如果确定Optional对象的值不为null，则可用of()方法。</p>
+<pre><code><code>Optional stringOptional = Optional.of(&quot;Hello 公众号：程序新视界&quot;);</code></code></pre>
+<p>如果不确定Optional对象的值是否为null，则可用ofNullable()。比如上面，不确定Person对象是不否null，就用了ofNullable()方法。当然，也可以直接给该方法传null。</p>
+<pre><code><code>Optional ofNullOptional = Optional.ofNullable(null);</code></code></pre>
+<p>此时，通过调用其isPresent方法可以查看该Optional中是否值为null。</p>
+<pre><code><code>boolean bool = ofNullOptional.isPresent();
+System.out.println(bool);</code></code></pre>
+<p>此时如果直接调用get方法获取值，则会抛出异常。</p>
+<pre><code><code>ofNullOptional.get();</code></code></pre>
+<h3 id="get获取optional中的值">get获取Optional中的值</h3>
+<p>通过get方法可获取Optional中的值，但如果值为null，则会抛出异常。</p>
+<pre><code><code>Optional ofNullOptional = Optional.ofNullable(null);
+ofNullOptional.get();</code></code></pre>
+<p>异常信息：</p>
+<pre><code><code>java.util.NoSuchElementException: No value present
+    at java.util.Optional.get(Optional.java:135)
+...</code></code></pre>
+<p>此时，需要另外一个方法的辅助：isPresent()。该方法可判定Optional中是否有值，如果有则返回true，如果没有则返回false。</p>
+<pre><code><code>Optional ofNullOptional = Optional.ofNullable(null);
+boolean bool = ofNullOptional.isPresent();
+if(bool){
+    ofNullOptional.get();
+}</code></code></pre>
+<h3 id="map获取optional中的值">map获取Optional中的值</h3>
+<p>对于对象操作，也可以通过map来获取值，最开始简化的例子就是如此。</p>
+<pre><code><code>Optional&lt;Person&gt; sonOptional = Optional.ofNullable(son);
+System.out.println(sonOptional.map(Person::getUsername));</code></code></pre>
+<p>map方法，如果有值，则对其执行调用映射函数得到返回值。如果返回值不为null，则创建包含映射返回值的Optional作为map方法返回值，否则返回空Optional。</p>
+<h3 id="flatmap获取optional中的值">flatMap获取Optional中的值</h3>
+<p>如果有值，则返回Optional类型返回值，否则返回空Optional。flatMap与map方法类似。但flatMap中的mapper返回值必须是Optional。调用结束时，flatMap不会对结果用Optional封装。</p>
+<pre><code><code>Optional&lt;Person&gt; sonOptional = Optional.ofNullable(son);
+sonOptional.flatMap(OptionalTest::getOptionalPerson);</code></code></pre>
+<p>调用的是当前类OptionalTest的另外一个方法：</p>
+<pre><code><code>public static Optional&lt;Person&gt; getOptionalPerson(Person person){
+    return Optional.ofNullable(person);
+}</code></code></pre>
+<h3 id="orelse获取optional中的值">orElse获取Optional中的值</h3>
+<p>orElse方法，如果有值就返回，否则返回一个给定的值作为默认值；</p>
+<pre><code><code>Optional.empty().orElse(&quot;--&quot;);</code></code></pre>
+<p>上面这种情况就会返回“--”。</p>
+<p>在此，这种操作与三目运算效果一样。</p>
+<pre><code><code>str != null ? str : &quot;--&quot;</code></code></pre>
+<h3 id="orelseget获取optional中的值">orElseGet获取Optional中的值</h3>
+<p>orElseGet()方法与orElse()方法作用类似，但生成默认值的方式不同。该方法接受一个Supplier&lt;? extends T&gt;函数式接口参数，用于生成默认值；</p>
+<pre><code><code>Optional.empty().orElseGet(() -&gt; {
+            String a = &quot;关注&quot;;
+            String b = &quot;公众号：程序新视界&quot;;
+            return a + b;
+        });</code></code></pre>
+<p>很显然，这里可以处理更多的业务逻辑。</p>
+<h3 id="orelsethrow获取optional中的值">orElseThrow获取Optional中的值</h3>
+<p>orElseThrow()方法与get()方法类似，当值为null时调用会抛出NullPointerException异常，但该方法可以指定抛出的异常类型。</p>
+<pre><code><code>Optional.empty().orElseThrow(()-&gt; new RuntimeException(&quot;请先关注公众号！&quot;));</code></code></pre>
+<p>此时打印异常信息为：</p>
+<pre><code><code>Optional.empty().orElseThrow(()-&gt; new RuntimeException(&quot;请先关注公众号！&quot;));</code></code></pre>
+<h3 id="判断并执行操作">判断并执行操作</h3>
+<p>ifPresent方法，可对值进行判断然后打印，接收参数为Consumer&lt;? super T&gt;函数式接口。</p>
+<pre><code><code>Optional.of(&quot;公众号：程序新视界&quot;).ifPresent(System.out::println);</code></code></pre>
+<p>当然，也可以在函数中执行其他复杂操作：</p>
+<pre><code><code>Optional.of(&quot;公众号：程序新视界&quot;).ifPresent((val)-&gt;{
+            System.out.println(&quot;欢迎关注&quot; + val);
+        });</code></code></pre>
+<h3 id="filter方法过滤">filter()方法过滤</h3>
+<p>filter()方法可用于判断Optional对象是否满足给定条件，一般用于条件过滤：</p>
+<pre><code><code>Optional.of(&quot;公众号：程序新视界&quot;).filter((val)-&gt;{
+    return val.contains(&quot;程序新视界&quot;);
+});
+// 简化写法
+Optional.of(&quot;公众号：程序新视界&quot;).filter((val)-&gt; val.contains(&quot;程序新视界&quot;));</code></code></pre>
+<h3 id="使用误区">使用误区</h3>
+<p>关于使用Optional的误区有以下：</p>
+<ul>
+<li>正确的使用创建方法，不确定是否为null时尽量选择ofNullable方法。</li>
+<li>避免用在成员变量上（原因上面已经提到）；</li>
+<li>避免直接调用Optional对象的get和isPresent方法；</li>
+</ul>
+<p>最后一条可能难理解，试想一下如果先用isPresent方法获得是否存在，然后决定是否调用get方法和之前的ifelse判断并无二致。</p>
+<p>Java8提倡函数式编程，新增的许多API都可以用函数式编程表示，Optional类也是其中之一。</p>
+<h3 id="小结">小结</h3>
+<p>至此，Java8新特性相关的内容便完结了。</p>
+<p>Java8新特性系列相关文章：</p>
+<ul>
+<li>《<a href="https://www.choupangxia.com/2019/10/14/java8%e6%96%b0%e7%89%b9%e6%80%a7%e6%97%b6%e9%97%b4%e6%97%a5%e6%9c%9f%e5%ba%93datetime-api%e5%8f%8a%e7%a4%ba%e4%be%8b/">JAVA8新特性时间日期库DATETIME API及示例</a>》</li>
+<li>《<a href="https://www.choupangxia.com/2019/10/13/java8-lambda表达式详解手册及实例/">JAVA8 LAMBDA表达式详解手册及实例</a>》</li>
+<li>《<a href="https://www.choupangxia.com/2019/10/11/java8-stream性能如何及评测工具推荐/">JAVA8 STREAM性能如何及评测工具推荐</a>》</li>
+<li>《<a href="https://www.choupangxia.com/2019/10/09/java8-stream新特性详解及实战/">JAVA8 STREAM新特性详解及实战</a>》</li>
+<li>《<a href="https://www.choupangxia.com/2019/10/17/java8%e6%96%b0%e7%89%b9%e6%80%a7%e4%b9%8b%e7%a9%ba%e6%8c%87%e9%92%88%e5%bc%82%e5%b8%b8%e7%9a%84%e5%85%8b%e6%98%9foptional%e7%b1%bb/">Java8新特性之空指针异常的克星Optional类</a>》</li>
+</ul>
+<blockquote>
+<p>关注公众号“程序新视界”，回复“001”，获得整个《Java8新特性系列》的PDF版本。</p>
+</blockquote>
+<p>原文链接：《<a href="https://www.choupangxia.com/2019/10/17/java8%e6%96%b0%e7%89%b9%e6%80%a7%e4%b9%8b%e7%a9%ba%e6%8c%87%e9%92%88%e5%bc%82%e5%b8%b8%e7%9a%84%e5%85%8b%e6%98%9foptional%e7%b1%bb/">Java8新特性之空指针异常的克星Optional类</a>》</p>
+<h2 id="section"><br></h2>
+<center><b>程序新视界</b>：精彩和成长都不容错过</center>
+<p><img src="./images/Java8新特性之空指针异常的克星Optional类0.png" alt="程序新视界-微信公众号" /></p>
+
+
+</div><hr><script charset='utf-8' src='../../js/sming.js'></script></body></html>

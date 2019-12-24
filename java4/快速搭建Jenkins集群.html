@@ -1,0 +1,117 @@
+<html><head><meta charset='utf-8'><meta name='viewport' content='width=device-width, initial-scale=1'>
+<meta name='applicable-device' content='pc'><meta name='keywords' content='电脑,电脑讲解,电脑技术,编程,电脑故障维修快速搭建Jenkins集群' />
+<script src='../../highlight/highlight.pack.js'></script>
+<link rel='stylesheet' type='text/css' href='../../highlight/styles/monokai.css'/>
+
+<link rel='stylesheet' href='../../fenxiang/dist/css/share.min.css'>
+<script src='../../fenxiang/src/js/social-share.js'></script>
+<script src='../../fenxiang/src/js/qrcode.js'></script>
+
+</head><body><script>hljs.initHighlightingOnLoad();</script><script>
+var system ={};  
+var p = navigator.platform;       
+system.win = p.indexOf('Win') == 0;  
+system.mac = p.indexOf('Mac') == 0;  
+system.x11 = (p == 'X11') || (p.indexOf('Linux') == 0);     
+if(system.win||system.mac||system.xll){
+document.write("<link href='../css/3.css' rel='stylesheet' type='text/css'>");}else{ document.write("<link href='../css/3wap.css' rel='stylesheet' type='text/css'>");}</script><script src='../../js/3.js'></script><div class='div2'><div class='heading_nav'><ul><div><li><a href='../../index.html'>首页</a></li>
+</div><div onclick='hidden1()' >分享</div>
+</ul></div></div>
+<div id='heading_nav2'> 
+<li class='row' >
+<div class='social-share' data-mode='prepend'><a href='javascript:' class='social-share-icon icon-heart'></a></div></li></div><script charset='utf-8' src='../../3/js/hengfu.js'></script><script charset='utf-8' src='../../3/js/hengfu2.js'></script><hr><div class='div1'><div class='biaoti'><center>快速搭建Jenkins集群</center></div><div class='banquan'>原文出处:本文由博客园博主zq2599提供。<br/>
+原文连接:https://www.cnblogs.com/bolingcavalry/p/11874717.html</div><br>
+    <h3 id="关于jenkins集群">关于Jenkins集群</h3>
+<p>在Jenkins上同时执行多个任务时，单机性能可能达到瓶颈，使用Jenkins集群可以有效的解决此问题，让多台机器同时处理这些任务可以将压力分散，对单机版Jenkins的单点故障的隐患也有分散作用，今天就来实战快速搭建Jenkins集群，Jenkins版本是2.190.2；</p>
+<h3 id="如何做到快速搭建集群">如何做到快速搭建集群</h3>
+<p>通过Docker可以省去大部分准备工作，您只需在Linux电脑上安装docker，在辅以少量命令和操作即可完成集群搭建；</p>
+<h3 id="环境信息">环境信息</h3>
+<p>本次实战的环境一共要用三台电脑，它们的设置都是一样的，如下：</p>
+<ol>
+<li>操作系统：CentOS Linux release 7.6.1810</li>
+<li>防火墙关闭</li>
+<li>docker：1.13.1</li>
+</ol>
+<p>三台电脑的信息如下：<br />
+| 主机名 | IP地址 | 作用 |<br />
+|--|--|--|<br />
+| master | 192.168.133.131 | Jenkins集群的master节点，提供web服务 |<br />
+| agent1 | 192.168.133.132 | Jenkins集群的一号工作接节点，标签是<font color="blue">maven</font> |<br />
+| agent2 | 192.168.133.133 | Jenkins集群的二号工作接节点，标签是<font color="blue">gradle</font> |</p>
+<p>建议agent2节点的内存大于4G，因为下一篇的实战操作会用agent2编译构建spring-framework，对内存的需求略大；</p>
+<h3 id="准备工作">准备工作</h3>
+<ol>
+<li>后面的所有操作都是root账号；</li>
+<li><p>在每台电脑上创建文件夹<font color="blue">/usr/local/jenkins</font></p>
+<h3 id="创建jenkins的master">创建Jenkins的master</h3></li>
+<li>登录master机器，执行以下命令：</li>
+</ol>
+<pre><code><code>docker run \
+  -u root \
+  -idt \
+  --name master \
+  -p 8080:8080 \
+  -p 50000:50000 \
+  -v /usr/local/jenkins:/var/jenkins_home \
+  -v /var/run/docker.sock:/var/run/docker.sock \
+  jenkinsci/blueocean:1.19.0</code></code></pre>
+<ol>
+<li>执行<font color="blue">docker logs master</font>，会在控制台显示jenkins的登录秘钥，如下图红框所示：<br />
+<img src="./images/快速搭建Jenkins集群0.png" alt="在这里插入图片描述" /></li>
+<li>浏览器输入地址：<a href="http://192.168.133.131:8080" class="uri">http://192.168.133.131:8080</a> ，显示Jenkins登录页面，如下图所示，在红框位置输入刚才复制的登录秘钥即可登录：<br />
+<img src="./images/快速搭建Jenkins集群1.png" alt="在这里插入图片描述" /></li>
+<li>选择<font color="blue">安装推荐的插件</font>：<br />
+<img src="./images/快速搭建Jenkins集群2.png" alt="在这里插入图片描述" /></li>
+<li>静候插件在线安装完成：<br />
+<img src="./images/快速搭建Jenkins集群3.png" alt="在这里插入图片描述" /></li>
+<li><p>接下来是创建管理员和使用实例url的操作，这里就不多说了，您按实际情况自行斟酌；<br><br />
+至此，Jenkins的master已经搭建好，接下来将agent1和agent2作为工作节点加入集群；</p>
+<h3 id="加入agent1">加入agent1</h3></li>
+<li>在Jenkins网页上新增节点，操作如下图，先进入节点管理页面：<br />
+<img src="./images/快速搭建Jenkins集群4.png" alt="在这里插入图片描述" /></li>
+<li>如下图，新增一个节点，名为<font color="blue">agent1</font>：<br />
+<img src="./images/快速搭建Jenkins集群5.png" alt="在这里插入图片描述" /></li>
+<li>接下来的节点详情信息如下图，注意四个红框中的内容要和图中保持一致：<br />
+<img src="./images/快速搭建Jenkins集群6.png" alt="在这里插入图片描述" /></li>
+<li>保存成功后会显示机器列表，如下图，图标上的红叉表示机器不在线（此时agent1还没有接入），点击红框：<br />
+<img src="./images/快速搭建Jenkins集群7.png" alt="在这里插入图片描述" /></li>
+<li>如下图所示，红框中的命令就是agent1的启动命令，执行该命令的机器会以agent1的身份加入集群：<br />
+<img src="./images/快速搭建Jenkins集群8.png" alt="在这里插入图片描述" /></li>
+<li>注意上图红框中的<font color="red">agent.jar</font>是个名为agent.jar的文件的下载链接，将此文件下载到agent1电脑的<font color="blue">/usr/local/jenkins</font>目录下；</li>
+<li>ssh登录agent1电脑，执行以下命令，即可将agent1加入Jenkins集群：</li>
+</ol>
+<pre><code><code>docker run \
+  -u root \
+  -idt \
+  --name agent \
+  -v /usr/local/jenkins:/usr/local/jenkins \
+  bolingcavalry/openjdk-with-sshpass:8u232 \
+  java -jar /usr/local/jenkins/agent.jar \
+  -jnlpUrl http://192.168.133.131:8080/computer/agent1/slave-agent.jnlp \
+  -secret 44c3e8d1531754b8655b53294bbde6dd99b3aaa91a250092d0d3425534ae1058 \
+  -workDir &quot;/usr/local/jenkins&quot;</code></code></pre>
+<p>上述命令中的后半部分，即<font color="blue">java -jar ......</font>就是前面图片红框中的agent1启动命令，唯一要改变的是将<font color="blue">agent.jar</font>改成绝对路径<font color="blue">/usr/local/jenkins/agent.jar</font></p>
+<ol>
+<li>上述命令的镜像是<font color="blue">bolingcavalry/openjdk-with-sshpass:8u232</font>，其Dockerfile内容如下，可见非常简单，就是OpenJDK镜像里面安装了sshpass，这样的容器可以在执行ssh命令时带上远程机器的密码，而不用等待用户输入密码，这样便于shell脚本执行ssh命令：</li>
+</ol>
+<pre><code><code>FROM openjdk:8u232
+
+ARG DEBIAN_FRONTEND=noninteractive
+RUN apt-get update &amp;&amp; apt-get install --assume-yes sshpass</code></code></pre>
+<ol>
+<li><p>去Jenkins的网页上查看节点列表，如下图，可见agent1已经成功加入：<br />
+<img src="./images/快速搭建Jenkins集群9.png" alt="在这里插入图片描述" /></p>
+<h3 id="加入agent2">加入agent2</h3>
+agent2加入集群的方式和agent1大部分是一样的，只有以下两点要注意：</li>
+<li>在Jenkins页面上创建节点，名称是<font color="blue">agent2</font></li>
+<li>agent2的标签是<font color="blue">gradle</font>,如下图红框所示：<br />
+<img src="./images/快速搭建Jenkins集群10.png" alt="在这里插入图片描述" /></li>
+<li><p>此时agent2也加入成功：<br />
+<img src="./images/快速搭建Jenkins集群11.png" alt="在这里插入图片描述" /><br />
+<br><br />
+至此，Jenkins集群搭建完成，这两个节点带有不同的标签，下一篇文章<a href="https://xinchen.blog.csdn.net/article/details/103104441">《Jenkins集群下的pipeline实战》</a>中，我们在这个集群环境创建pipeline任务，并通过标签被分配到不同的节点上，实现多节点并行执行；</p>
+<h3 id="欢迎关注公众号程序员欣宸">欢迎关注公众号：程序员欣宸</h3></li>
+</ol>
+
+
+</div><hr><script charset='utf-8' src='../../js/sming.js'></script></body></html>

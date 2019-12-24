@@ -1,0 +1,182 @@
+<html><head><meta charset='utf-8'><meta name='viewport' content='width=device-width, initial-scale=1'>
+<meta name='applicable-device' content='pc'><meta name='keywords' content='电脑,电脑讲解,电脑技术,编程,电脑故障维修Tomcat源码分析一：编译Tomcat源码' />
+<script src='../../highlight/highlight.pack.js'></script>
+<link rel='stylesheet' type='text/css' href='../../highlight/styles/monokai.css'/>
+
+<link rel='stylesheet' href='../../fenxiang/dist/css/share.min.css'>
+<script src='../../fenxiang/src/js/social-share.js'></script>
+<script src='../../fenxiang/src/js/qrcode.js'></script>
+
+</head><body><script>hljs.initHighlightingOnLoad();</script><script>
+var system ={};  
+var p = navigator.platform;       
+system.win = p.indexOf('Win') == 0;  
+system.mac = p.indexOf('Mac') == 0;  
+system.x11 = (p == 'X11') || (p.indexOf('Linux') == 0);     
+if(system.win||system.mac||system.xll){
+document.write("<link href='../css/3.css' rel='stylesheet' type='text/css'>");}else{ document.write("<link href='../css/3wap.css' rel='stylesheet' type='text/css'>");}</script><script src='../../js/3.js'></script><div class='div2'><div class='heading_nav'><ul><div><li><a href='../../index.html'>首页</a></li>
+</div><div onclick='hidden1()' >分享</div>
+</ul></div></div>
+<div id='heading_nav2'> 
+<li class='row' >
+<div class='social-share' data-mode='prepend'><a href='javascript:' class='social-share-icon icon-heart'></a></div></li></div><script charset='utf-8' src='../../3/js/hengfu.js'></script><script charset='utf-8' src='../../3/js/hengfu2.js'></script><hr><div class='div1'><div class='biaoti'><center>Tomcat源码分析一：编译Tomcat源码</center></div><div class='banquan'>原文出处:本文由博客园博主web_bird提供。<br/>
+原文连接:https://www.cnblogs.com/zhiyouwu/p/11654442.html</div><br>
+    <h2 id="tomcat源码分析一编译tomcat源码">Tomcat源码分析一：编译Tomcat源码</h2>
+<h3 id="内容介绍">1 内容介绍</h3>
+<p>在之前的《Servlet与Tomcat运行示例》一文中，给大家带来如何在Tomcat中部署Servlet应用的相关步骤，本文将就上文为基础，开始Tomcat源码分析之旅，我将详细的分析Tomcat的启动过程及运行原理。本文将是最基础的一节课，也就是本地编译好Tomcat源码，为后面的分析做基础！</p>
+<h3 id="编译tomcat源码">2 编译Tomcat源码</h3>
+<h4 id="下载tomcat源码">2.1 下载Tomcat源码</h4>
+<p>我们去Tomcat官网下载最新的Tomcat源码包，目前最新的版本为9.0.26，我们下载其source源码包tar.gz版本，如下图：</p>
+<p><img src="./images/Tomcat源码分析一：编译Tomcat源码0.png" /></p>
+<h4 id="解压源码包apache-tomcat-9.0.26-src.tar.gz">2.2 解压源码包apache-tomcat-9.0.26-src.tar.gz</h4>
+<p>解压源码包apache-tomcat-9.0.26-src.tar.gz之后得到的内容为：</p>
+<p><img src="./images/Tomcat源码分析一：编译Tomcat源码1.png" /></p>
+<h4 id="解压后的文件夹中添加pom.xml">2.3 解压后的文件夹中添加pom.xml</h4>
+<p>因为要使用Maven的方式导入Tomcat项目，故需要添加相应的maven依赖，此处添加pom.xml文件，该文件内容如下：</p>
+<pre><code><code>&lt;?xml version=&quot;1.0&quot; encoding=&quot;UTF-8&quot;?&gt;
+&lt;project xmlns=&quot;http://maven.apache.org/POM/4.0.0&quot;
+         xmlns:xsi=&quot;http://www.w3.org/2001/XMLSchema-instance&quot;
+         xsi:schemaLocation=&quot;http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd&quot;&gt;
+    &lt;modelVersion&gt;4.0.0&lt;/modelVersion&gt;
+
+    &lt;groupId&gt;com.github.sources&lt;/groupId&gt;
+    &lt;artifactId&gt;source-tomcat&lt;/artifactId&gt;
+    &lt;version&gt;9.0.26&lt;/version&gt;
+    &lt;name&gt;source-tomcat&lt;/name&gt;
+    &lt;dependencies&gt;
+        &lt;dependency&gt;
+            &lt;groupId&gt;junit&lt;/groupId&gt;
+            &lt;artifactId&gt;junit&lt;/artifactId&gt;
+            &lt;version&gt;4.12&lt;/version&gt;
+            &lt;scope&gt;test&lt;/scope&gt;
+        &lt;/dependency&gt;
+        &lt;dependency&gt;
+            &lt;groupId&gt;org.easymock&lt;/groupId&gt;
+            &lt;artifactId&gt;easymock&lt;/artifactId&gt;
+            &lt;version&gt;3.5.1&lt;/version&gt;
+        &lt;/dependency&gt;
+        &lt;dependency&gt;
+            &lt;groupId&gt;org.apache.ant&lt;/groupId&gt;
+            &lt;artifactId&gt;ant&lt;/artifactId&gt;
+            &lt;version&gt;1.10.1&lt;/version&gt;
+        &lt;/dependency&gt;
+        &lt;dependency&gt;
+            &lt;groupId&gt;wsdl4j&lt;/groupId&gt;
+            &lt;artifactId&gt;wsdl4j&lt;/artifactId&gt;
+            &lt;version&gt;1.6.2&lt;/version&gt;
+        &lt;/dependency&gt;
+        &lt;dependency&gt;
+            &lt;groupId&gt;javax.xml&lt;/groupId&gt;
+            &lt;artifactId&gt;jaxrpc&lt;/artifactId&gt;
+            &lt;version&gt;1.1&lt;/version&gt;
+        &lt;/dependency&gt;
+        &lt;dependency&gt;
+            &lt;groupId&gt;org.eclipse.jdt&lt;/groupId&gt;
+            &lt;artifactId&gt;org.eclipse.jdt.core&lt;/artifactId&gt;
+            &lt;version&gt;3.18.0&lt;/version&gt;
+        &lt;/dependency&gt;
+        &lt;dependency&gt;
+            &lt;groupId&gt;org.eclipse.jdt.core.compiler&lt;/groupId&gt;
+            &lt;artifactId&gt;ecj&lt;/artifactId&gt;
+            &lt;version&gt;4.6.1&lt;/version&gt;
+        &lt;/dependency&gt;
+    &lt;/dependencies&gt;
+
+    &lt;build&gt;
+        &lt;finalName&gt;Tomcat9.0&lt;/finalName&gt;
+        &lt;sourceDirectory&gt;java&lt;/sourceDirectory&gt;
+        &lt;testSourceDirectory&gt;test&lt;/testSourceDirectory&gt;
+        &lt;resources&gt;
+            &lt;resource&gt;
+                &lt;directory&gt;java&lt;/directory&gt;
+            &lt;/resource&gt;
+        &lt;/resources&gt;
+        &lt;testResources&gt;
+            &lt;testResource&gt;
+                &lt;directory&gt;test&lt;/directory&gt;
+            &lt;/testResource&gt;
+        &lt;/testResources&gt;
+        &lt;plugins&gt;
+            &lt;plugin&gt;
+                &lt;groupId&gt;org.apache.maven.plugins&lt;/groupId&gt;
+                &lt;artifactId&gt;maven-compiler-plugin&lt;/artifactId&gt;
+                &lt;version&gt;3.6.1&lt;/version&gt;
+                &lt;configuration&gt;
+                    &lt;encoding&gt;UTF-8&lt;/encoding&gt;
+                    &lt;source&gt;1.8&lt;/source&gt;
+                    &lt;target&gt;1.8&lt;/target&gt;
+                &lt;/configuration&gt;
+            &lt;/plugin&gt;
+        &lt;/plugins&gt;
+    &lt;/build&gt;
+
+&lt;/project&gt;
+</code></code></pre>
+<h4 id="idea导入tomcat源码工程">2.4 IDEA导入tomcat源码工程</h4>
+<p>使用IDEA开发工具，以Maven的方式导入tomcat工程，导入之后工程结构如下：</p>
+<p><img src="./images/Tomcat源码分析一：编译Tomcat源码2.png" /></p>
+<h4 id="启动tomcat工程">2.5 启动Tomcat工程</h4>
+<p>运行<code>org.apache.catalina.startup</code>包下的Bootstrap类的main方法</p>
+<p><img src="./images/Tomcat源码分析一：编译Tomcat源码3.png" /></p>
+<p>此时，我们发现了一些错误，下面我们来解决这些错误。</p>
+<h3 id="异常问题解决">3 异常问题解决</h3>
+<h4 id="trailers.responsetrailers不存在">3.1 trailers.ResponseTrailers不存在</h4>
+<p>我们可以去<code>webapps/examples/WEB_INF/classes/trailers</code> 目录下找到该类，我们将这个类复制一份到test下：</p>
+<p><img src="./images/Tomcat源码分析一：编译Tomcat源码4.png" /></p>
+<p>拷贝完成之后的情况如下：</p>
+<p><img src="./images/Tomcat源码分析一：编译Tomcat源码5.png" /></p>
+<h4 id="cookiefilter不存在">3.2 CookieFilter不存在</h4>
+<p>同样，我们去将<code>home\webapps\examples\WEB-INF\classes\util\CookieFilter.java</code>文件拷贝到 <code>test\util</code> 目录下:</p>
+<p><img src="./images/Tomcat源码分析一：编译Tomcat源码6.png" /></p>
+<h4 id="filenotfoundexception-libraryapachetomcatsourcetestsource-tomcatconfserver.xml-no-such-file-or-directory">3.3 FileNotFoundException: /Library/ApacheTomcat/source/test/source-tomcat/conf/server.xml (No such file or directory)</h4>
+<p>在解决上述3.1和3.2的问题之后，又出现了下图所示的问题：</p>
+<p><img src="./images/Tomcat源码分析一：编译Tomcat源码7.png" /></p>
+<ul>
+<li>解决方案：<br />
+在启动的配置中，添加VM options的参数，添加项目路径，本机为<code>/Library/ApacheTomcat/source/test/apache-tomcat-9.0.26-src</code>，故而添加参数内容为：<br />
+<code>-Dcatalina.home=/Library/ApacheTomcat/source/test/apache-tomcat-9.0.26-src</code>， 如下图所示：</li>
+</ul>
+<p><img src="./images/Tomcat源码分析一：编译Tomcat源码8.png" /></p>
+<h4 id="java.lang.classnotfoundexception-listeners.contextlistener">3.4 java.lang.ClassNotFoundException: listeners.ContextListener</h4>
+<p>在解决上述3.3问题之后，再次启动Bootstrap类的main方法，程序出现以下错误信息：</p>
+<p><img src="./images/Tomcat源码分析一：编译Tomcat源码9.png" /></p>
+<ul>
+<li>解决方案： 删除 webapps 下的 examples 文件夹！程序再次运行不报此错误！</li>
+</ul>
+<h4 id="servlet.service-for-servlet-jsp-in-context-with-path-threw-exception-org.apache.jasper.jasperexception-unable-to-compile-class-for-jsp-with-root-cause">3.5 Servlet.service() for servlet [jsp] in context with path [] threw exception [org.apache.jasper.JasperException: Unable to compile class for JSP] with root cause</h4>
+<p>在解决上述问题之后，启动Bootstrap类的main方法，程序正常启动，此时我们在浏览器访问<code>127.0.0.1:8080</code>， 程序出现以下错误信息：</p>
+<p><img src="./images/Tomcat源码分析一：编译Tomcat源码10.png" /></p>
+<p><img src="./images/Tomcat源码分析一：编译Tomcat源码11.png" /></p>
+<ul>
+<li>解决方案：编辑 org.apache.catalina.startup.ContextConfig 文件的 configureStart() 方法，添加初始化 JSP 解析器的代码：</li>
+</ul>
+<pre><code><code>context.addServletContainerInitializer(new JasperInitializer(), null);</code></code></pre>
+<p><img src="./images/Tomcat源码分析一：编译Tomcat源码12.png" /></p>
+<p>添加之后，再次启动main方法，浏览器输入127.0.0.1:8080得到的结果为Tomcat的界面：</p>
+<p><img src="./images/Tomcat源码分析一：编译Tomcat源码13.png" /></p>
+<h4 id="日志乱码">3.6 日志乱码</h4>
+<p>启动的日志中含有很多的乱码，虽然对程序整体并不影响，但是在之后查看日志时，还是影响比较大的，先看下日志乱码的情况：</p>
+<p><img src="./images/Tomcat源码分析一：编译Tomcat源码14.png" /></p>
+<ul>
+<li>解决方案：<br />
+修改vm options 内容，将环境设置为美国-英文，设置内容如下：</li>
+</ul>
+<pre><code><code>-Duser.language=en -Duser.region=US -Dfile.encoding=UTF-8</code></code></pre>
+<p><img src="./images/Tomcat源码分析一：编译Tomcat源码15.png" /></p>
+<p>再次运行main方法，程序日志正常显示：</p>
+<p><img src="./images/Tomcat源码分析一：编译Tomcat源码16.png" /></p>
+<p>至此，我们已经将Tomcat的源码导入到IDEA的工具中，也解决了一些问题，之后，我们将利用这份源码来分析Tomcat的启动及运行原理。</p>
+<hr />
+<h3 id="blog">Blog:</h3>
+<ul>
+<li>简书： <a href="https://www.jianshu.com/u/91378a397ffe" class="uri">https://www.jianshu.com/u/91378a397ffe</a></li>
+<li>csdn： <a href="https://blog.csdn.net/ZhiyouWu" class="uri">https://blog.csdn.net/ZhiyouWu</a></li>
+<li>开源中国： <a href="https://my.oschina.net/u/3204088" class="uri">https://my.oschina.net/u/3204088</a></li>
+<li>掘金： <a href="https://juejin.im/user/5b5979efe51d451949094265" class="uri">https://juejin.im/user/5b5979efe51d451949094265</a></li>
+<li>博客园： <a href="https://www.cnblogs.com/zhiyouwu/" class="uri">https://www.cnblogs.com/zhiyouwu/</a></li>
+<li>微信公众号： 源码湾</li>
+<li>微信： WZY1782357529 (欢迎沟通交流)</li>
+</ul>
+
+
+</div><hr><script charset='utf-8' src='../../js/sming.js'></script></body></html>

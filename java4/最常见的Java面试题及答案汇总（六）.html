@@ -1,0 +1,168 @@
+<html><head><meta charset='utf-8'><meta name='viewport' content='width=device-width, initial-scale=1'>
+<meta name='applicable-device' content='pc'><meta name='keywords' content='电脑,电脑讲解,电脑技术,编程,电脑故障维修最常见的Java面试题及答案汇总（六）' />
+<script src='../../highlight/highlight.pack.js'></script>
+<link rel='stylesheet' type='text/css' href='../../highlight/styles/monokai.css'/>
+
+<link rel='stylesheet' href='../../fenxiang/dist/css/share.min.css'>
+<script src='../../fenxiang/src/js/social-share.js'></script>
+<script src='../../fenxiang/src/js/qrcode.js'></script>
+
+</head><body><script>hljs.initHighlightingOnLoad();</script><script>
+var system ={};  
+var p = navigator.platform;       
+system.win = p.indexOf('Win') == 0;  
+system.mac = p.indexOf('Mac') == 0;  
+system.x11 = (p == 'X11') || (p.indexOf('Linux') == 0);     
+if(system.win||system.mac||system.xll){
+document.write("<link href='../css/3.css' rel='stylesheet' type='text/css'>");}else{ document.write("<link href='../css/3wap.css' rel='stylesheet' type='text/css'>");}</script><script src='../../js/3.js'></script><div class='div2'><div class='heading_nav'><ul><div><li><a href='../../index.html'>首页</a></li>
+</div><div onclick='hidden1()' >分享</div>
+</ul></div></div>
+<div id='heading_nav2'> 
+<li class='row' >
+<div class='social-share' data-mode='prepend'><a href='javascript:' class='social-share-icon icon-heart'></a></div></li></div><script charset='utf-8' src='../../3/js/hengfu.js'></script><script charset='utf-8' src='../../3/js/hengfu2.js'></script><hr><div class='div1'><div class='biaoti'><center>最常见的Java面试题及答案汇总（六）</center></div><div class='banquan'>原文出处:本文由博客园博主Java团长提供。<br/>
+原文连接:https://www.cnblogs.com/java1024/p/11422323.html</div><br>
+    <h1 data-mpa-powered-by="yiban.io"><strong>异常</strong></h1>
+<p><strong>74. throw 和 throws 的区别？</strong></p>
+<p>throws是用来声明一个方法可能抛出的所有异常信息，throws是将异常声明但是不处理，而是将异常往上传，谁调用我就交给谁处理。而throw则是指抛出的一个具体的异常类型。</p>
+<p>&nbsp;</p>
+<p><strong>75. final、finally、finalize 有什么区别？</strong></p>
+<ul class="list-paddingleft-2">
+<li>
+<p>final可以修饰类、变量、方法，修饰类表示该类不能被继承、修饰方法表示该方法不能被重写、修饰变量表示该变量是一个常量不能被重新赋值。</p>
+</li>
+<li>
+<p>finally一般作用在try-catch代码块中，在处理异常的时候，通常我们将一定要执行的代码方法finally代码块中，表示不管是否出现异常，该代码块都会执行，一般用来存放一些关闭资源的代码。</p>
+</li>
+<li>
+<p>finalize是一个方法，属于Object类的一个方法，而Object类是所有类的父类，该方法一般由垃圾回收器来调用，当我们调用System的gc()方法的时候，由垃圾回收器调用finalize(),回收垃圾。&nbsp;</p>
+</li>
+</ul>
+<p>&nbsp;</p>
+<p><strong>76. try-catch-finally 中哪个部分可以省略？</strong></p>
+<p>答：catch 可以省略</p>
+<p><strong>原因：</strong></p>
+<p>更为严格的说法其实是：try只适合处理运行时异常，try+catch适合处理运行时异常+普通异常。也就是说，如果你只用try去处理普通异常却不加以catch处理，编译是通不过的，因为编译器硬性规定，普通异常如果选择捕获，则必须用catch显示声明以便进一步处理。而运行时异常在编译时没有如此规定，所以catch可以省略，你加上catch编译器也觉得无可厚非。</p>
+<p>理论上，编译器看任何代码都不顺眼，都觉得可能有潜在的问题，所以你即使对所有代码加上try，代码在运行期时也只不过是在正常运行的基础上加一层皮。但是你一旦对一段代码加上try，就等于显示地承诺编译器，对这段代码可能抛出的异常进行捕获而非向上抛出处理。如果是普通异常，编译器要求必须用catch捕获以便进一步处理；如果运行时异常，捕获然后丢弃并且+finally扫尾处理，或者加上catch捕获以便进一步处理。</p>
+<p>至于加上finally，则是在不管有没捕获异常，都要进行的&ldquo;扫尾&rdquo;处理。</p>
+<p>&nbsp;</p>
+<p><strong>77. try-catch-finally 中，如果 catch 中 return 了，finally 还会执行吗？</strong></p>
+<p>答：会执行，在 return 前执行。</p>
+<p><strong>代码示例1：</strong></p>
+<src class="cnblogs_Highlighter">
+<pre><code>/*
+ * java面试题--如果catch里面有return语句，finally里面的代码还会执行吗？
+ */
+public class FinallyDemo2 {
+    public static void main(String[] args) {
+        System.out.println(getInt());
+    }
+
+    public static int getInt() {
+        int a = 10;
+        try {
+            System.out.println(a / 0);
+            a = 20;
+        } catch (ArithmeticException e) {
+            a = 30;
+            return a;
+            /*
+             * return a 在程序执行到这一步的时候，这里不是return a 而是 return 30；这个返回路径就形成了
+             * 但是呢，它发现后面还有finally，所以继续执行finally的内容，a=40
+             * 再次回到以前的路径,继续走return 30，形成返回路径之后，这里的a就不是a变量了，而是常量30
+             */
+        } finally {
+            a = 40;
+        }
+
+//      return a;
+    }
+}
+</code></pre>
+
+<p>执行结果：30</p>
+<h3><strong>代码示例2：</strong></h3>
+<src class="cnblogs_code">
+<pre><code><span style="color: #008080;"> 1</span> <span style="color: #0000ff;">package</span><span style="color: #000000;"> com.java_02;
+</span><span style="color: #008080;"> 2</span> 
+<span style="color: #008080;"> 3</span> <span style="color: #008000;">/*</span>
+<span style="color: #008080;"> 4</span> <span style="color: #008000;"> * java面试题--如果catch里面有return语句，finally里面的代码还会执行吗？
+</span><span style="color: #008080;"> 5</span>  <span style="color: #008000;">*/</span>
+<span style="color: #008080;"> 6</span> <span style="color: #0000ff;">public</span> <span style="color: #0000ff;">class</span><span style="color: #000000;"> FinallyDemo2 {
+</span><span style="color: #008080;"> 7</span>     <span style="color: #0000ff;">public</span> <span style="color: #0000ff;">static</span> <span style="color: #0000ff;">void</span><span style="color: #000000;"> main(String[] args) {
+</span><span style="color: #008080;"> 8</span> <span style="color: #000000;">        System.out.println(getInt());
+</span><span style="color: #008080;"> 9</span> <span style="color: #000000;">    }
+</span><span style="color: #008080;">10</span> 
+<span style="color: #008080;">11</span>     <span style="color: #0000ff;">public</span> <span style="color: #0000ff;">static</span> <span style="color: #0000ff;">int</span><span style="color: #000000;"> getInt() {
+</span><span style="color: #008080;">12</span>         <span style="color: #0000ff;">int</span> a = 10<span style="color: #000000;">;
+</span><span style="color: #008080;">13</span>         <span style="color: #0000ff;">try</span><span style="color: #000000;"> {
+</span><span style="color: #008080;">14</span>             System.out.println(a / 0<span style="color: #000000;">);
+</span><span style="color: #008080;">15</span>             a = 20<span style="color: #000000;">;
+</span><span style="color: #008080;">16</span>         } <span style="color: #0000ff;">catch</span><span style="color: #000000;"> (ArithmeticException e) {
+</span><span style="color: #008080;">17</span>             a = 30<span style="color: #000000;">;
+</span><span style="color: #008080;">18</span>             <span style="color: #0000ff;">return</span><span style="color: #000000;"> a;
+</span><span style="color: #008080;">19</span>             <span style="color: #008000;">/*</span>
+<span style="color: #008080;">20</span> <span style="color: #008000;">             * return a 在程序执行到这一步的时候，这里不是return a 而是 return 30；这个返回路径就形成了
+</span><span style="color: #008080;">21</span> <span style="color: #008000;">             * 但是呢，它发现后面还有finally，所以继续执行finally的内容，a=40
+</span><span style="color: #008080;">22</span> <span style="color: #008000;">             * 再次回到以前的路径,继续走return 30，形成返回路径之后，这里的a就不是a变量了，而是常量30
+</span><span style="color: #008080;">23</span>              <span style="color: #008000;">*/</span>
+<span style="color: #008080;">24</span>         } <span style="color: #0000ff;">finally</span><span style="color: #000000;"> {
+</span><span style="color: #008080;">25</span>             a = 40<span style="color: #000000;">;
+</span><span style="color: #008080;">26</span>             <span style="color: #0000ff;">return</span> a; <span style="color: #008000;">//</span><span style="color: #008000;">如果这样，就又重新形成了一条返回路径，由于只能通过1个return返回，所以这里直接返回40</span>
+<span style="color: #008080;">27</span> <span style="color: #000000;">        }
+</span><span style="color: #008080;">28</span> 
+<span style="color: #008080;">29</span> <span style="color: #008000;">//</span><span style="color: #008000;">      return a;</span>
+<span style="color: #008080;">30</span> <span style="color: #000000;">    }
+</span><span style="color: #008080;">31</span> }</code></pre>
+
+<p>执行结果：40</p>
+<p>&nbsp;</p>
+<p><strong>78. 常见的异常类有哪些？</strong></p>
+<ul class="list-paddingleft-2">
+<li>
+<p>NullPointerException：当应用程序试图访问空对象时，则抛出该异常。</p>
+</li>
+<li>
+<p>SQLException：提供关于数据库访问错误或其他错误信息的异常。</p>
+</li>
+<li>
+<p>IndexOutOfBoundsException：指示某排序索引（例如对数组、字符串或向量的排序）超出范围时抛出。&nbsp;</p>
+</li>
+<li>
+<p>NumberFormatException：当应用程序试图将字符串转换成一种数值类型，但该字符串不能转换为适当格式时，抛出该异常。</p>
+</li>
+<li>
+<p>FileNotFoundException：当试图打开指定路径名表示的文件失败时，抛出此异常。</p>
+</li>
+<li>
+<p>IOException：当发生某种I/O异常时，抛出此异常。此类是失败或中断的I/O操作生成的异常的通用类。</p>
+</li>
+<li>
+<p>ClassCastException：当试图将对象强制转换为不是实例的子类时，抛出该异常。</p>
+</li>
+<li>
+<p>ArrayStoreException：试图将错误类型的对象存储到一个对象数组时抛出的异常。</p>
+</li>
+<li>
+<p>IllegalArgumentException：抛出的异常表明向方法传递了一个不合法或不正确的参数。</p>
+</li>
+<li>
+<p>ArithmeticException：当出现异常的运算条件时，抛出此异常。例如，一个整数&ldquo;除以零&rdquo;时，抛出此类的一个实例。&nbsp;</p>
+</li>
+<li>
+<p>NegativeArraySizeException：如果应用程序试图创建大小为负的数组，则抛出该异常。</p>
+</li>
+<li>
+<p>NoSuchMethodException：无法找到某一特定方法时，抛出该异常。</p>
+</li>
+<li>
+<p>SecurityException：由安全管理器抛出的异常，指示存在安全侵犯。</p>
+</li>
+<li>
+<p>UnsupportedOperationException：当不支持请求的操作时，抛出该异常。</p>
+</li>
+<li>
+<p>RuntimeExceptionRuntimeException：是那些可能在Java虚拟机正常运行期间抛出的异常的超类。</p>
+</li>
+</ul>
+
+</div><hr><script charset='utf-8' src='../../js/sming.js'></script></body></html>

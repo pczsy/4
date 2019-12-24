@@ -1,0 +1,61 @@
+<html><head><meta charset='utf-8'><meta name='viewport' content='width=device-width, initial-scale=1'>
+<meta name='applicable-device' content='pc'><meta name='keywords' content='电脑,电脑讲解,电脑技术,编程,电脑故障维修SpringBoot&quot;热&quot;部署解决方案' />
+<script src='../../highlight/highlight.pack.js'></script>
+<link rel='stylesheet' type='text/css' href='../../highlight/styles/monokai.css'/>
+
+<link rel='stylesheet' href='../../fenxiang/dist/css/share.min.css'>
+<script src='../../fenxiang/src/js/social-share.js'></script>
+<script src='../../fenxiang/src/js/qrcode.js'></script>
+
+</head><body><script>hljs.initHighlightingOnLoad();</script><script>
+var system ={};  
+var p = navigator.platform;       
+system.win = p.indexOf('Win') == 0;  
+system.mac = p.indexOf('Mac') == 0;  
+system.x11 = (p == 'X11') || (p.indexOf('Linux') == 0);     
+if(system.win||system.mac||system.xll){
+document.write("<link href='../css/3.css' rel='stylesheet' type='text/css'>");}else{ document.write("<link href='../css/3wap.css' rel='stylesheet' type='text/css'>");}</script><script src='../../js/3.js'></script><div class='div2'><div class='heading_nav'><ul><div><li><a href='../../index.html'>首页</a></li>
+</div><div onclick='hidden1()' >分享</div>
+</ul></div></div>
+<div id='heading_nav2'> 
+<li class='row' >
+<div class='social-share' data-mode='prepend'><a href='javascript:' class='social-share-icon icon-heart'></a></div></li></div><script charset='utf-8' src='../../3/js/hengfu.js'></script><script charset='utf-8' src='../../3/js/hengfu2.js'></script><hr><div class='div1'><div class='biaoti'><center>SpringBoot&quot;热&quot;部署解决方案</center></div><div class='banquan'>原文出处:本文由博客园博主故事我忘了&#176;提供。<br/>
+原文连接:https://www.cnblogs.com/jsccc520/p/11979076.html</div><br>
+    <src style="text-align:right">作者:<font color="brown">故事我忘了<sup>￠</sup></font><br/>个人微信公众号:<font color="blue">程序猿的月光宝盒</font><br/><img src="./images/SpringBoot&quot;热&quot;部署解决方案0.png"  width="15%"/>
+<hr>
+<h5 id="section"></h5>
+<h1 id="springboot热部署两种方式">SpringBoot热部署两种方式</h1>
+<p>1.SpringLoader 插件</p>
+<p>​ 缺点: Java 代码做部署处理。但是对页面无能为力。</p>
+<p>2.DevTools 工具</p>
+<p>​ 可以全自动化部署</p>
+<hr/>
+<p>SpringLoader 与 DevTools 的区别：<br />
+SpringLoader：在部署项目时使用的是热部署的方式。<br />
+DevTools： 在部署项目时使用的是重新部署的方式</p>
+<p>第二种准确的说是重新部署,本篇博客主要介绍第二种,所以本文是用&quot;热&quot;</p>
+<h1 id="devtools-工具使用">DevTools 工具使用:</h1>
+<p>在pom文件中添加依赖</p>
+<pre><code><code>&lt;dependency&gt;
+            &lt;groupId&gt;org.springframework.boot&lt;/groupId&gt;
+            &lt;artifactId&gt;spring-boot-devtools&lt;/artifactId&gt;
+            &lt;optional&gt;true&lt;/optional&gt;
+&lt;/dependency&gt;</code></code></pre>
+<p>在eclipse中这样是没问题了,但是博主用的idea(pj的,emmm),发现没用哦,然后又baidu+google了一波</p>
+<p>最终成功,解决方案如下:</p>
+<p><img src="./images/SpringBoot&quot;热&quot;部署解决方案1.png" alt="图片" /></p>
+<p>然后 <code>Shift+Ctrl+Alt+/</code>，选择<code>Registry</code></p>
+<p><img src="./images/SpringBoot&quot;热&quot;部署解决方案2.png" alt="图片" /></p>
+<p>进去之后，找到如下图所示的选项，打勾</p>
+<p><img src="./images/SpringBoot&quot;热&quot;部署解决方案3.png" alt="图片" /></p>
+<p>再到配置文件里配置</p>
+<pre class="properties"><code>spring.devtools.restart.poll-interval=3000ms
+spring.devtools.restart.quiet-period=2999ms</code></code></pre>
+<blockquote>
+<p>我理解的话就是：DevTools的检测时间和idea的编译所需时间存在差异。在idea还没完成编译工作前，DevTools就开始进行重启和加载，导致@RequestMapping没有被全部正常处理。牺牲一点时间，去加长devtools的轮询时间，增大等待时间</p>
+</blockquote>
+<p>该解决方案来自:</p>
+<p><code>stackoverflow</code>的<a href="https://stackoverflow.com/questions/39019938/springboot-devtools-restcontroller-not-always-mapped-when-rebuild-project">帖子,点击查看</a></p>
+
+
+</div><hr><script charset='utf-8' src='../../js/sming.js'></script></body></html>

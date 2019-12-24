@@ -1,0 +1,105 @@
+<html><head><meta charset='utf-8'><meta name='viewport' content='width=device-width, initial-scale=1'>
+<meta name='applicable-device' content='pc'><meta name='keywords' content='电脑,电脑讲解,电脑技术,编程,电脑故障维修SpringCloud超简单的入门(1)--一些简单的介绍' />
+<script src='../../highlight/highlight.pack.js'></script>
+<link rel='stylesheet' type='text/css' href='../../highlight/styles/monokai.css'/>
+
+<link rel='stylesheet' href='../../fenxiang/dist/css/share.min.css'>
+<script src='../../fenxiang/src/js/social-share.js'></script>
+<script src='../../fenxiang/src/js/qrcode.js'></script>
+
+</head><body><script>hljs.initHighlightingOnLoad();</script><script>
+var system ={};  
+var p = navigator.platform;       
+system.win = p.indexOf('Win') == 0;  
+system.mac = p.indexOf('Mac') == 0;  
+system.x11 = (p == 'X11') || (p.indexOf('Linux') == 0);     
+if(system.win||system.mac||system.xll){
+document.write("<link href='../css/3.css' rel='stylesheet' type='text/css'>");}else{ document.write("<link href='../css/3wap.css' rel='stylesheet' type='text/css'>");}</script><script src='../../js/3.js'></script><div class='div2'><div class='heading_nav'><ul><div><li><a href='../../index.html'>首页</a></li>
+</div><div onclick='hidden1()' >分享</div>
+</ul></div></div>
+<div id='heading_nav2'> 
+<li class='row' >
+<div class='social-share' data-mode='prepend'><a href='javascript:' class='social-share-icon icon-heart'></a></div></li></div><script charset='utf-8' src='../../3/js/hengfu.js'></script><script charset='utf-8' src='../../3/js/hengfu2.js'></script><hr><div class='div1'><div class='biaoti'><center>SpringCloud超简单的入门(1)--一些简单的介绍</center></div><div class='banquan'>原文出处:本文由博客园博主炉窑知码力提供。<br/>
+原文连接:https://www.cnblogs.com/justalittlecoder/p/11519741.html</div><br>
+    <h1 id="简介">简介</h1>
+<p>简单来说，springcloud的就是由一组springboot应用(服务)组成，相互之间通过REST等方式进行通信。</p>
+<p>两个springboot应用，其中一个作为服务提供者，一个作为服务消费者，我认为这就构成了一个最简单的springcloud应用，之后其他的工具都是为这两个应用来服务的。</p>
+<p>我们来看下，官方给的架构图，可以看出，核心就是microservices，其他都是为了保证microservices正常运转的工具。</p>
+<p>架构图<img src="./images/SpringCloud超简单的入门(1)--一些简单的介绍0.png" alt="img" /></p>
+<p>既然是最简单的入门教程，那么其他概念什么的就不说了，下面咱们现在就直奔主题，先开个头，之后的丰富可以在入门之后再细细研究。</p>
+<p>Let's go code now !</p>
+<p>为了省事，我们先构建一个父项目，一个pom应用，主要用来对依赖统一管理。下面是我的一个父pom文件：</p>
+<pre><code><code>&lt;?xml version=&quot;1.0&quot; encoding=&quot;UTF-8&quot;?&gt;
+&lt;project xmlns=&quot;http://maven.apache.org/POM/4.0.0&quot;
+         xmlns:xsi=&quot;http://www.w3.org/2001/XMLSchema-instance&quot;
+         xsi:schemaLocation=&quot;http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd&quot;&gt;
+    &lt;modelVersion&gt;4.0.0&lt;/modelVersion&gt;
+    &lt;groupId&gt;com.microservice.springcloud&lt;/groupId&gt;
+    &lt;artifactId&gt;springcloudparent&lt;/artifactId&gt;
+    &lt;version&gt;1.0&lt;/version&gt;
+    
+    &lt;!-- 这里打包形式为pom --&gt;
+    &lt;packaging&gt;pom&lt;/packaging&gt;
+    
+    &lt;!-- 一些属性设置--&gt;
+    &lt;properties&gt;
+        &lt;project.build.sourceEncoding&gt;UTF-8&lt;/project.build.sourceEncoding&gt;
+        &lt;project.reporting.outputEncoding&gt;UTF-8&lt;/project.reporting.outputEncoding&gt;
+        &lt;java.version&gt;1.8&lt;/java.version&gt;
+        &lt;maven.compiler.source&gt;1.8&lt;/maven.compiler.source&gt;
+        &lt;maven.compiler.target&gt;1.8&lt;/maven.compiler.target&gt;
+    &lt;/properties&gt;
+    
+    &lt;!-- 基本其他应用都需要用到web依赖，就添加父pom里--&gt;
+    &lt;dependencies&gt;
+        &lt;dependency&gt;
+            &lt;groupId&gt;org.springframework.boot&lt;/groupId&gt;
+            &lt;artifactId&gt;spring-boot-starter-web&lt;/artifactId&gt;
+        &lt;/dependency&gt;
+    &lt;/dependencies&gt;
+    
+    &lt;!-- 重点来了，添加cloud及springboot的依赖管理--&gt;
+&lt;dependencyManagement&gt;
+    &lt;dependencies&gt;
+        &lt;dependency&gt;
+            &lt;groupId&gt;org.springframework.cloud&lt;/groupId&gt;
+            &lt;artifactId&gt;spring-cloud-dependencies&lt;/artifactId&gt;
+            &lt;version&gt;Greenwich.SR2&lt;/version&gt;
+            &lt;type&gt;pom&lt;/type&gt;
+            &lt;scope&gt;import&lt;/scope&gt;
+        &lt;/dependency&gt;
+        &lt;dependency&gt;
+            &lt;groupId&gt;org.springframework.boot&lt;/groupId&gt;
+            &lt;artifactId&gt;spring-boot-dependencies&lt;/artifactId&gt;
+            &lt;version&gt;2.1.7.RELEASE&lt;/version&gt;
+            &lt;type&gt;pom&lt;/type&gt;
+            &lt;scope&gt;import&lt;/scope&gt;
+        &lt;/dependency&gt;
+    &lt;/dependencies&gt;
+&lt;/dependencyManagement&gt;
+    
+    &lt;build&gt;
+        &lt;finalName&gt;microservice&lt;/finalName&gt;
+        &lt;resources&gt;
+            &lt;resource&gt;
+                &lt;directory&gt;src/main/resources&lt;/directory&gt;
+                &lt;filtering&gt;true&lt;/filtering&gt;
+            &lt;/resource&gt;
+        &lt;/resources&gt;
+        &lt;plugins&gt;
+            &lt;plugin&gt;
+                &lt;groupId&gt;org.apache.maven.plugins&lt;/groupId&gt;
+                &lt;artifactId&gt;maven-resources-plugin&lt;/artifactId&gt;
+                &lt;configuration&gt;
+                    &lt;delimiters&gt;
+                        &lt;delimit&gt;$&lt;/delimit&gt;
+                    &lt;/delimiters&gt;
+                &lt;/configuration&gt;
+            &lt;/plugin&gt;
+        &lt;/plugins&gt;
+    &lt;/build&gt;
+&lt;/project&gt;</code></code></pre>
+<p>其他的应用都是作为moudles存在的（Intellij IDEA工具，其他自己换算把）。</p>
+
+
+</div><hr><script charset='utf-8' src='../../js/sming.js'></script></body></html>

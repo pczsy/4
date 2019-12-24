@@ -1,0 +1,313 @@
+<html><head><meta charset='utf-8'><meta name='viewport' content='width=device-width, initial-scale=1'>
+<meta name='applicable-device' content='pc'><meta name='keywords' content='电脑,电脑讲解,电脑技术,编程,电脑故障维修Java基础第四天--常用API' />
+<script src='../../highlight/highlight.pack.js'></script>
+<link rel='stylesheet' type='text/css' href='../../highlight/styles/monokai.css'/>
+
+<link rel='stylesheet' href='../../fenxiang/dist/css/share.min.css'>
+<script src='../../fenxiang/src/js/social-share.js'></script>
+<script src='../../fenxiang/src/js/qrcode.js'></script>
+
+</head><body><script>hljs.initHighlightingOnLoad();</script><script>
+var system ={};  
+var p = navigator.platform;       
+system.win = p.indexOf('Win') == 0;  
+system.mac = p.indexOf('Mac') == 0;  
+system.x11 = (p == 'X11') || (p.indexOf('Linux') == 0);     
+if(system.win||system.mac||system.xll){
+document.write("<link href='../css/3.css' rel='stylesheet' type='text/css'>");}else{ document.write("<link href='../css/3wap.css' rel='stylesheet' type='text/css'>");}</script><script src='../../js/3.js'></script><div class='div2'><div class='heading_nav'><ul><div><li><a href='../../index.html'>首页</a></li>
+</div><div onclick='hidden1()' >分享</div>
+</ul></div></div>
+<div id='heading_nav2'> 
+<li class='row' >
+<div class='social-share' data-mode='prepend'><a href='javascript:' class='social-share-icon icon-heart'></a></div></li></div><script charset='utf-8' src='../../3/js/hengfu.js'></script><script charset='utf-8' src='../../3/js/hengfu2.js'></script><hr><div class='div1'><div class='biaoti'><center>Java基础第四天--常用API</center></div><div class='banquan'>原文出处:本文由博客园博主双眼皮的小眼睛提供。<br/>
+原文连接:https://www.cnblogs.com/energy-xjq/p/fourth_day.html</div><br>
+    <h1 id="常用api">常用API</h1>
+<h2 id="基本类型包装类概述">基本类型包装类概述</h2>
+<blockquote>
+<p>将基本数据类型封装成对象的好处可以在对象中定义更多的功能方法操作该数据 <br/><br />
+常用的操作之一：用于基本数据类型与字符串之间的转换</p>
+</blockquote>
+<table>
+<thead>
+<tr class="header">
+<th>基本数据类型</th>
+<th>包装类</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>byte</td>
+<td>Byte</td>
+</tr>
+<tr class="even">
+<td>short</td>
+<td>Short</td>
+</tr>
+<tr class="odd">
+<td>int</td>
+<td>Integer</td>
+</tr>
+<tr class="even">
+<td>long</td>
+<td>Long</td>
+</tr>
+<tr class="odd">
+<td>float</td>
+<td>Float</td>
+</tr>
+<tr class="even">
+<td>double</td>
+<td>Double</td>
+</tr>
+<tr class="odd">
+<td>char</td>
+<td>Character</td>
+</tr>
+<tr class="even">
+<td>boolean</td>
+<td>Boolean</td>
+</tr>
+</tbody>
+</table>
+<h2 id="integer类的概述和使用">Integer类的概述和使用</h2>
+<blockquote>
+<p>Integer:包装一个对象中的原始类型int的值</p>
+</blockquote>
+<table>
+<thead>
+<tr class="header">
+<th>方法名</th>
+<th>说明</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>public Integer (int value)</td>
+<td>根据int值创建Integer对象(过时)</td>
+</tr>
+<tr class="even">
+<td>public Integer (String s)</td>
+<td>根据String值创建Integer对象(过时)</td>
+</tr>
+<tr class="odd">
+<td>public static Integer valueOf(int i)</td>
+<td>返回表示指定的int值的Integer实例</td>
+</tr>
+<tr class="even">
+<td>public static Integer valueOf(String s)</td>
+<td>返回一个保存指定值的Integer对象String</td>
+</tr>
+</tbody>
+</table>
+<h2 id="int和string的相互转换">int和String的相互转换</h2>
+<blockquote>
+<p>基本类型包装类的最常见操作是：用于基本类型和字符串之间的相互转换</p>
+</blockquote>
+<blockquote>
+<p>1.int转换为String <br/><br />
+public static String <strong>valueOf(int i)</strong>:返回int参数的字符串表示形式。该方法是String类中的方法 <br/><br />
+2.String转换为int <br/><br />
+public static int <strong>parseInt(String s)</strong>:将字符串解析为int类型。该方法是Integer类中的方法</p>
+</blockquote>
+<pre><code><code>    /*
+    int和String的相互转换
+    */
+    public class IntegerDemo {
+        public static void main(String[] args) {
+            //int---String
+            int number = 100;
+            //方式1
+            String s1 = &quot;&quot; + number;
+            System.out.println(s1);
+            //方式2
+            String s2 = String.valueOf(number);
+            System.out.println(s2);
+            System.out.println(&quot;========&quot;);
+
+            //String---int
+            String 2 = &quot;100&quot;;
+            //方式1
+            //String---Integer---int
+            Integer i =Integer.valueOf(s);
+            int x = i.intValue();
+            System.out.println(x);
+            //方式2
+            int y = Integer.parseInt(s);
+            System.out.println(y);
+        }
+    }</code></code></pre>
+<p><strong><em>案例</em>：字符串中数据排序</strong><br/><br />
+需求:有一个字符串&quot;91 27 46 38 50&quot;，请写程序实现最终输出结果是&quot;27 38 46 50 91&quot;</p>
+<pre><code><code>    public class IntegerTest {
+        public static void main(String[] args) {
+            //定义一个字符串
+            String s = &quot;91 27 46 38 50&quot;;
+            
+            //把字符串中的数据存储到一个int类型的数组中
+            String[] strArray = s.split(&quot; &quot;);
+    //        for (int i = 0; i &lt; strArray.length; i++) {
+    //        System.out.println(strArray[i]);
+    //        }
+            
+            //定义一个int数组，把String[]数组中的每一个元素存储到int数组中
+            int[] arr = new int[strArray.length];
+            for (int i = 0; i &lt; arr.length; i++) {
+                arr[i] = Integer.parseInt(strArray[i]);
+            }
+    //        for (int i = 0; i &lt; arr.length; i++) {
+    //            System.out.println(arr[i]);
+    //        }
+            
+            //对int数组进行排序
+            Arrays.sort(arr);
+            
+            //把排序后的int数组中的元素进行拼接得到一个字符串，这里拼接采用StringBuilder来实现
+            StringBuilder sb = new StringBuilder();
+            for (int i = 0; i &lt; arr.length; i++) {
+                if(i == arr.length - 1) {
+                    sb.append(arr[i]);
+                }else {
+                    sb.append(arr[i]).append(&quot; &quot;);
+                }
+            }
+            String result = sb.toString();
+            
+            //输出结果
+            System.out.println(&quot;result:&quot; + result);
+            //result:27 38 46 50 91
+        }
+    }</code></code></pre>
+<h2 id="自动装箱和拆箱">自动装箱和拆箱</h2>
+<blockquote>
+<ul>
+<li>装箱：把基本数据类型转换为对应的包装类类型</li>
+<li>拆箱：把包装类类型转换为对应的基本数据类型<br/><br />
+<strong>注意</strong>:在使用包装类类型的时候，如果做操作，最好先判断是否为null，推荐的是，<strong>只要是对象，在使用前就必须进行不为null的判断</strong></li>
+</ul>
+</blockquote>
+<pre><code><code>    public class IntegerDemo {
+        public static void main(String[] args) {
+            //装箱：把基本数据类型转换为对应的包装类类型
+            Integer.valueOf(100);
+            Integer ii = 100;//Integer.valueOf(100);
+            
+            //拆箱：把包装类类型转换为对应的基本数据类型
+            //ii += 200;
+    //        ii = ii.intValue() + 200;
+            ii += 200;
+            System.out.println(ii);
+            
+            Integer iii = null;
+            if(iii != null) {
+                iii += 300;
+            }       
+        }
+    }</code></code></pre>
+<h2 id="日期类">日期类</h2>
+<h2 id="date类概述和构造方法">Date类概述和构造方法</h2>
+<blockquote>
+<p>Date代表了一个特定的时间，精确到毫秒</p>
+</blockquote>
+<table>
+<thead>
+<tr class="header">
+<th>方法名</th>
+<th>说明</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>public Date()</td>
+<td>分配一个Date对象，并初始化，以使它代表它被分割的时间，精确到毫秒</td>
+</tr>
+<tr class="even">
+<td>public Date(long date)</td>
+<td>分配一个Date对象，并将其初始化为表示从标准化时间起指定的毫秒值</td>
+</tr>
+</tbody>
+</table>
+<h2 id="date类的常用方法">Date类的常用方法</h2>
+<table>
+<thead>
+<tr class="header">
+<th>方法名</th>
+<th>说明</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>public long getTime()</td>
+<td>获取的是日期对象从1970年1月1日00：00：00到现在的毫秒值</td>
+</tr>
+<tr class="even">
+<td>Public void setTime(long time)</td>
+<td>设置时间，给的是毫秒值</td>
+</tr>
+</tbody>
+</table>
+<h2 id="simpledateformat类概述">SimpleDateFormat类概述</h2>
+<blockquote>
+<p>1.SimpleDateFormat是一个具体的类，用于以区域设置敏感的方式格式和解析日期。<br/><br />
+2.日期和时间格式由日期和时间模式字符串指定，在日期和时间模式字符串中，从'A'到'Z'以及从'a'到'z'引号的字母被解释为时间日期或时间字符串的组件的模式字母<br/><br />
+3.常用的模式字母以及对应关系如下：</p>
+<ul>
+<li>y        年</li>
+<li>M       月</li>
+<li>d        日</li>
+<li>H        时</li>
+<li>m       分</li>
+<li>s         秒</li>
+</ul>
+</blockquote>
+<h2 id="simpledateformat的构造方法">SimpleDateFormat的构造方法</h2>
+<table>
+<thead>
+<tr class="header">
+<th>方法名</th>
+<th>说明</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>public SimpleDateFormat()</td>
+<td>构造一个SimpleDateFormat，使用默认模式和日期格式</td>
+</tr>
+<tr class="even">
+<td>public SimpleDateFormat(String pattern)</td>
+<td>构造一个SimpleDateFormat使用给定的模式和默认的日期格式</td>
+</tr>
+</tbody>
+</table>
+<h2 id="simpledateformat格式化和解析日期">SimpleDateFormat格式化和解析日期</h2>
+<blockquote>
+<p>1.格式化(从Date到String) <br/><br />
+public final String <strong>format(Date date)</strong>:将日期格式化成日期/时间字符串 <br/><br />
+2.解析(从String到Date) <br/><br />
+public Date <strong>parse(String source)</strong>:从给定字符串的开始解析文本以生成日期</p>
+</blockquote>
+<h2 id="calendar的常用方法">Calendar的常用方法</h2>
+<table>
+<thead>
+<tr class="header">
+<th>方法名</th>
+<th>说明</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>public int get(int field)</td>
+<td>返回给定日历字段的值</td>
+</tr>
+<tr class="even">
+<td>public abstract void add(int field,int amount)</td>
+<td>根据日历的规则，将指定的时间量添加或减去给定的日历字段</td>
+</tr>
+<tr class="odd">
+<td>public final void set(int year,int mouth,int date)</td>
+<td>设置当前日历的年月日</td>
+</tr>
+</tbody>
+</table>
+
+
+</div><hr><script charset='utf-8' src='../../js/sming.js'></script></body></html>

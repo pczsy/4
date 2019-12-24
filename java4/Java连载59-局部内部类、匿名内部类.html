@@ -1,0 +1,167 @@
+<html><head><meta charset='utf-8'><meta name='viewport' content='width=device-width, initial-scale=1'>
+<meta name='applicable-device' content='pc'><meta name='keywords' content='电脑,电脑讲解,电脑技术,编程,电脑故障维修Java连载59-局部内部类、匿名内部类' />
+<script src='../../highlight/highlight.pack.js'></script>
+<link rel='stylesheet' type='text/css' href='../../highlight/styles/monokai.css'/>
+
+<link rel='stylesheet' href='../../fenxiang/dist/css/share.min.css'>
+<script src='../../fenxiang/src/js/social-share.js'></script>
+<script src='../../fenxiang/src/js/qrcode.js'></script>
+
+</head><body><script>hljs.initHighlightingOnLoad();</script><script>
+var system ={};  
+var p = navigator.platform;       
+system.win = p.indexOf('Win') == 0;  
+system.mac = p.indexOf('Mac') == 0;  
+system.x11 = (p == 'X11') || (p.indexOf('Linux') == 0);     
+if(system.win||system.mac||system.xll){
+document.write("<link href='../css/3.css' rel='stylesheet' type='text/css'>");}else{ document.write("<link href='../css/3wap.css' rel='stylesheet' type='text/css'>");}</script><script src='../../js/3.js'></script><div class='div2'><div class='heading_nav'><ul><div><li><a href='../../index.html'>首页</a></li>
+</div><div onclick='hidden1()' >分享</div>
+</ul></div></div>
+<div id='heading_nav2'> 
+<li class='row' >
+<div class='social-share' data-mode='prepend'><a href='javascript:' class='social-share-icon icon-heart'></a></div></li></div><script charset='utf-8' src='../../3/js/hengfu.js'></script><script charset='utf-8' src='../../3/js/hengfu2.js'></script><hr><div class='div1'><div class='biaoti'><center>Java连载59-局部内部类、匿名内部类</center></div><div class='banquan'>原文出处:本文由博客园博主心悦君兮君不知-睿提供。<br/>
+原文连接:https://www.cnblogs.com/ruigege0000/p/12014303.html</div><br>
+    <p>一、局部内部类</p>
+<p>1.局部内部类等同于局部变量</p>
+<p>2.局部内部类在访问局部变量的时候，局部变量必须使用final修饰。</p>
+<p>3.举个例子：</p>
+<src class="cnblogs_code">
+<pre><code> 
+
+<span style="color: #0000ff;">package</span><span style="color: #000000;"> com.bjpowernode.java_learning;
+
+​
+
+</span><span style="color: #0000ff;">public</span> <span style="color: #0000ff;">class</span><span style="color: #000000;"> D59_1_LocalInnerClass {
+
+  </span><span style="color: #0000ff;">public</span> <span style="color: #0000ff;">static</span> <span style="color: #0000ff;">void</span><span style="color: #000000;"> main(String[] args) {
+
+    D59_1_LocalInnerClass d1 </span>= <span style="color: #0000ff;">new</span><span style="color: #000000;"> D59_1_LocalInnerClass();
+
+    d1.m1();
+
+   
+
+  }
+
+  </span><span style="color: #008000;">//</span><span style="color: #008000;">方法</span>
+
+  <span style="color: #0000ff;">public</span> <span style="color: #0000ff;">void</span><span style="color: #000000;"> m1() {
+
+    </span><span style="color: #0000ff;">final</span> <span style="color: #0000ff;">int</span> i = 10;<span style="color: #008000;">//</span><span style="color: #008000;">如果不加final的话，这个变量就会变了，那我们执行内部类中的
+
+    </span><span style="color: #008000;">//</span><span style="color: #008000;">方法的时候，里面用到i的话，值就不能确定了
+
+    </span><span style="color: #008000;">//</span><span style="color: #008000;">局部内部类
+
+    </span><span style="color: #008000;">//</span><span style="color: #008000;">局部内部类不能访问控制权限修饰符修饰</span>
+
+    <span style="color: #0000ff;">class</span><span style="color: #000000;"> InnerClass59 {
+
+      </span><span style="color: #008000;">//</span><span style="color: #008000;">内部类不能有静态
+
+</span><span style="color: #008000;">//</span><span style="color: #008000;">      public static void m1() {}
+
+      </span><span style="color: #008000;">//</span><span style="color: #008000;">成员方法</span>
+
+      <span style="color: #0000ff;">public</span> <span style="color: #0000ff;">void</span><span style="color: #000000;"> m2() {
+
+        System.out.println(i);
+
+      }
+
+    }
+
+    InnerClass59 inner </span>= <span style="color: #0000ff;">new</span><span style="color: #000000;"> InnerClass59();
+
+    inner.m2();
+
+  }
+
+}
+
+​</span></code></pre>
+
+<p><img src="./images/Java连载59-局部内部类、匿名内部类0.png" alt="" /></p>
+<p>二、匿名内部类</p>
+<p>1.匿名内部类：指的是类没有名字</p>
+<p>2.举例</p>
+<p>&nbsp;</p>
+<src class="cnblogs_code">
+<pre><code><span style="color: #0000ff;">package</span><span style="color: #000000;"> com.bjpowernode.java_learning;
+
+​
+
+</span><span style="color: #0000ff;">public</span> <span style="color: #0000ff;">class</span><span style="color: #000000;"> D59_2_AnonymousInnerClass {
+
+  </span><span style="color: #0000ff;">public</span> <span style="color: #0000ff;">static</span> <span style="color: #0000ff;">void</span><span style="color: #000000;"> main(String[] args) {
+
+</span><span style="color: #008000;">//</span><span style="color: #008000;">    test(new CustomerService59)</span><span style="color: #008000;">//</span><span style="color: #008000;">这种调用方法是不对的，因为接口是不能创建对象的</span>
+<span style="color: #000000;">
+    CustomerServiceImp1 c1 </span>= <span style="color: #0000ff;">new</span><span style="color: #000000;"> CustomerServiceImp1();
+
+    test(c1);
+
+   
+
+    </span><span style="color: #008000;">//</span><span style="color: #008000;">接下来使用匿名内部类来进行创建，这是只需要保留接口就行，下面的接口实现的类可有可无了</span>
+<span style="color: #000000;">
+    test(</span><span style="color: #0000ff;">new</span><span style="color: #000000;"> CustomerService59() {
+
+      </span><span style="color: #0000ff;">public</span> <span style="color: #0000ff;">void</span><span style="color: #000000;"> logout(){
+
+        System.out.println(</span>"再一次退出了"<span style="color: #000000;">);
+
+      }
+
+    });
+
+   
+
+  }
+
+  </span><span style="color: #008000;">//</span><span style="color: #008000;">静态方法</span>
+
+  <span style="color: #0000ff;">public</span> <span style="color: #0000ff;">static</span> <span style="color: #0000ff;">void</span><span style="color: #000000;"> test(CustomerService59 cs) {
+
+    cs.logout();
+
+  }
+
+ 
+
+}
+
+</span><span style="color: #0000ff;">interface</span><span style="color: #000000;"> CustomerService59{
+
+  </span><span style="color: #0000ff;">void</span><span style="color: #000000;"> logout();
+
+ 
+
+}
+
+</span><span style="color: #0000ff;">class</span> CustomerServiceImp1 <span style="color: #0000ff;">implements</span><span style="color: #000000;"> CustomerService59{
+
+  </span><span style="color: #0000ff;">public</span> <span style="color: #0000ff;">void</span><span style="color: #000000;"> logout(){
+
+    System.out.println(</span>"系统已经退出了"<span style="color: #000000;">);
+
+  }
+
+}</span></code></pre>
+
+<p><img src="./images/Java连载59-局部内部类、匿名内部类1.png" alt="" /></p>
+<p>3.优点：可以少定义一个类，缺点就是不可以重复使用类，而且形式上不够简洁明了，易错。</p>
+<p>三、源码：</p>
+<p>D59_1_LocalInnerClass.java</p>
+<p>D59_2_AnonymousInnerClass.java</p>
+<p>地址：</p>
+<p>https://github.com/ruigege66/Java/blob/master/D59_1_LocalInnerClass.java</p>
+<p>https://github.com/ruigege66/Java/blob/master/D59_2_AnonymousInnerClass.java</p>
+<p>2.CSDN：https://blog.csdn.net/weixin_44630050（心悦君兮君不知-睿）</p>
+<p>3.博客园：https://www.cnblogs.com/ruigege0000/</p>
+<p>4.欢迎关注微信公众号：傅里叶变换，个人公众号，仅用于学习交流，后台回复&rdquo;礼包&ldquo;，获取大数据学习资料</p>
+<p>&nbsp;<img src="./images/Java连载59-局部内部类、匿名内部类2.png" alt="" /></p>
+<p>&nbsp;</p>
+
+</div><hr><script charset='utf-8' src='../../js/sming.js'></script></body></html>

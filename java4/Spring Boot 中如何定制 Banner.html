@@ -1,0 +1,123 @@
+<html><head><meta charset='utf-8'><meta name='viewport' content='width=device-width, initial-scale=1'>
+<meta name='applicable-device' content='pc'><meta name='keywords' content='电脑,电脑讲解,电脑技术,编程,电脑故障维修Spring Boot 中如何定制 Banner' />
+<script src='../../highlight/highlight.pack.js'></script>
+<link rel='stylesheet' type='text/css' href='../../highlight/styles/monokai.css'/>
+
+<link rel='stylesheet' href='../../fenxiang/dist/css/share.min.css'>
+<script src='../../fenxiang/src/js/social-share.js'></script>
+<script src='../../fenxiang/src/js/qrcode.js'></script>
+
+</head><body><script>hljs.initHighlightingOnLoad();</script><script>
+var system ={};  
+var p = navigator.platform;       
+system.win = p.indexOf('Win') == 0;  
+system.mac = p.indexOf('Mac') == 0;  
+system.x11 = (p == 'X11') || (p.indexOf('Linux') == 0);     
+if(system.win||system.mac||system.xll){
+document.write("<link href='../css/3.css' rel='stylesheet' type='text/css'>");}else{ document.write("<link href='../css/3wap.css' rel='stylesheet' type='text/css'>");}</script><script src='../../js/3.js'></script><div class='div2'><div class='heading_nav'><ul><div><li><a href='../../index.html'>首页</a></li>
+</div><div onclick='hidden1()' >分享</div>
+</ul></div></div>
+<div id='heading_nav2'> 
+<li class='row' >
+<div class='social-share' data-mode='prepend'><a href='javascript:' class='social-share-icon icon-heart'></a></div></li></div><script charset='utf-8' src='../../3/js/hengfu.js'></script><script charset='utf-8' src='../../3/js/hengfu2.js'></script><hr><div class='div1'><div class='biaoti'><center>Spring Boot 中如何定制 Banner</center></div><div class='banquan'>原文出处:本文由博客园博主Java博客手留余香提供。<br/>
+原文连接:https://www.cnblogs.com/yuxiang1/p/11674447.html</div><br>
+    <blockquote>
+<p><span style="font-size: 16px;"><span style="color: #ff0000;">本人免费整理了Java高级资料，涵盖了Java、Redis、MongoDB、MySQL、Zookeeper、Spring Cloud、Dubbo高并发分布式等教程，一共30G，需要自己领取。</span><br /><span style="color: #ff0000;">传送门：</span><a class=" wrap external" href="https://link.zhihu.com/?target=https%3A//links.jianshu.com/go%3Fto%3Dhttps%253A%252F%252Flink.zhihu.com%252F%253Ftarget%253Dhttps%25253A%252F%252Fmp.weixin.qq.com%252Fs%252FJzddfH-7yNudmkjT0IRL8Q" rel="nofollow noreferrer" target="_blank" data-za-detail-view-id="1043">https://mp.weixin.qq.com/s/JzddfH-7yNudmkjT0IRL8Q</a></span></p>
+</blockquote>
+<p>&nbsp;</p>
+<ul>
+<li><span style="font-size: 16px;">简介</span></li>
+<li><span style="font-size: 16px;">变量</span></li>
+<li><span style="font-size: 16px;">配置</span></li>
+<li><span style="font-size: 16px;">编程</span></li>
+</ul>
+<p><span style="font-size: 16px;">Spring Boot 启动时默认会显示以下 logo：</span></p>
+<src class="highlight">
+<src class="cnblogs_code">
+<pre><code><span style="color: #000000;">.   ____          _            __ _ _
+ </span>/\\ / ___'_ __ _ _(_)_ __  __ _ \ \ \ \
+( ( )\___ | '_ | '_| | '_ \/ _` | \ \ \ \
+ \\/  ___)| |_)| | | | | || (_| |<span style="color: #000000;">  ) ) ) )
+  </span>'  |____| .__|_| |_|_| |_\__, | / / / /
+ =========|_|==============|___/=/_/_/_/<span style="color: #000000;">
+ :: Spring Boot ::        (v2.</span>1.1.RELEASE)</code></pre>
+
+<p>&nbsp;</p>
+
+<p><span style="font-size: 16px;">实际上，Spring Boot 支持自定义 logo 的功能。</span></p>
+<p><span style="font-size: 16px;">让我们来看看如何实现的。</span></p>
+<h2><span style="font-size: 16px;">简介</span></h2>
+<p><span style="font-size: 16px;">只要你在&nbsp;<code>resources</code>&nbsp;目录下放置名为&nbsp;<code>banner.txt</code>、<code>banner.gif</code>&nbsp;、<code>banner.jpg</code>&nbsp;或&nbsp;<code>banner.png</code>&nbsp;的文件，Spring Boot 会自动加载，将其作为启动时打印的 logo。</span></p>
+<ul>
+<li><span style="font-size: 16px;">对于文本文件，Spring Boot 会将其直接输出。</span></li>
+<li><span style="font-size: 16px;">对于图像文件（&nbsp;<code>banner.gif</code>&nbsp;、<code>banner.jpg</code>&nbsp;或&nbsp;<code>banner.png</code>&nbsp;），Spring Boot 会将图像转为 ASCII 字符，然后输出。</span></li>
+</ul>
+<h3><span style="font-size: 16px;">变量</span></h3>
+<p><span style="font-size: 16px;">banner.txt 文件中还可以使用变量来设置字体、颜色、版本号。</span></p>
+<p><span style="font-size: 16px;">变量描述<code>${application.version}MANIFEST.MF</code>中定义的版本。如：<code>1.0${application.formatted-version}MANIFEST.MF</code>中定义的版本，并添加一个<code>v</code>前缀。如：<code>v1.0${spring-boot.version}</code>Spring Boot 版本。如：<code>2.1.1.RELEASE</code>.<code>${spring-boot.formatted-version}</code>Spring Boot 版本，并添加一个<code>v</code>前缀。如：<code>v2.1.1.RELEASE${Ansi.NAME}</code>(or<code>${AnsiColor.NAME}</code>,<code>${AnsiBackground.NAME}</code>,<code>${AnsiStyle.NAME}</code>)ANSI 颜色、字体。更多细节，参考：<code><a class=" wrap external" href="https://link.zhihu.com/?target=https%3A//github.com/spring-projects/spring-boot/tree/v2.1.1.RELEASE/spring-boot-project/spring-boot/src/main/java/org/springframework/boot/ansi/AnsiPropertySource.java" rel="nofollow noreferrer" target="_blank" data-za-detail-view-id="1043">AnsiPropertySource</a></code>。<code>${application.title}MANIFEST.MF</code>中定义的应用名。</span></p>
+<p><span style="font-size: 16px;">示例：</span></p>
+<p><span style="font-size: 16px;">在 Spring Boot 项目中的&nbsp;<code>resources</code>&nbsp;目录下添加一个名为 banner.txt 的文件，内容如下：</span></p>
+<src class="highlight">
+<src class="cnblogs_code">
+<pre><code><span style="color: #000000;">${AnsiColor.BRIGHT_YELLOW}${AnsiStyle.BOLD}
+ ________  ___  ___  ________   ___       __   ___  ___
+</span>|\   ___ \|\  \|\  \|\   ___  \|\  \     |\  \|\  \|<span style="color: #000000;">\  \
+\ \  \_</span>|<span style="color: #000000;">\ \ \  \\\  \ \  \\ \  \ \  \    \ \  \ \  \\\  \
+ \ \  \ \\ \ \  \\\  \ \  \\ \  \ \  \  __\ \  \ \  \\\  \
+  \ \  \_\\ \ \  \\\  \ \  \\ \  \ \  \</span>|<span style="color: #000000;">\__\_\  \ \  \\\  \
+   \ \_______\ \_______\ \__\\ \__\ \____________\ \_______\
+    \</span>|_______|\|_______|\|__| \|__|\|____________|\|_______|<span style="color: #000000;">
+${AnsiBackground.WHITE}${AnsiColor.RED}${AnsiStyle.UNDERLINE}
+:: Spring Boot ::             (v${spring</span>-<span style="color: #000000;">boot.version})
+:: Spring Boot Tutorial ::    (v1.</span>0.0)</code></pre>
+
+<p>&nbsp;</p>
+
+<blockquote><span style="font-size: 16px;">注：<code>${}</code>&nbsp;设置字体颜色的变量之间不能换行或空格分隔，否则会导致除最后一个变量外，都不生效。</span></blockquote>
+<p><span style="font-size: 16px;">启动应用后，控制台将打印如下 logo：</span></p>
+<p class="ztext-empty-paragraph"><span style="font-size: 16px;">&nbsp;</span></p>
+<p><span style="font-size: 16px;"><img class="origin_image zh-lightbox-thumb lazy" src="./images/Spring Boot 中如何定制 Banner0.png" alt="" width="968" data-caption="" data-size="normal" data-rawwidth="968" data-rawheight="380" data-original="https://pic2.zhimg.com/v2-9acf3e30b46506577b88597b38c828d9_r.jpg" data-actualsrc="https://pic2.zhimg.com/v2-9acf3e30b46506577b88597b38c828d9_b.jpg" data-lazy-status="ok" /></span></p>
+<p class="ztext-empty-paragraph"><span style="font-size: 16px;">&nbsp;</span></p>
+<p><span style="font-size: 16px;">推荐两个生成字符画的网站，可以将生成的字符串放入这个<code>banner.txt</code>&nbsp;文件：</span></p>
+<ul>
+<li><span style="font-size: 16px;"><a class=" external" href="https://link.zhihu.com/?target=http%3A//www.network-science.de/ascii/" rel="nofollow noreferrer" target="_blank" data-za-detail-view-id="1043"><span class="invisible">http://www.<span class="visible">network-science.de/asci<span class="invisible">i/</span></span></span></a></span></li>
+<li><span style="font-size: 16px;"><a class=" external" href="https://link.zhihu.com/?target=http%3A//patorjk.com/software/taag/" rel="nofollow noreferrer" target="_blank" data-za-detail-view-id="1043"><span class="invisible">http://<span class="visible">patorjk.com/software/ta<span class="invisible">ag/</span></span></span></a></span></li>
+</ul>
+<h3><span style="font-size: 16px;">配置</span></h3>
+<p><span style="font-size: 16px;"><code>application.properties</code>&nbsp;中与 Banner 相关的配置：</span></p>
+<src class="highlight">
+<pre><code><span style="font-size: 16px;"><code class="language-java"><span class="err"># <span class="n">banner <span class="n">模式<span class="err">。<span class="n">有三种模式<span class="err">：<span class="n">console<span class="o">/<span class="n">log<span class="o">/<span class="n">off
+<span class="err"># <span class="n">console <span class="n">打印到控制台<span class="err">（<span class="n">通过 <span class="n">System<span class="o">.<span class="na">out<span class="err">）
+<span class="err"># <span class="n">log <span class="o">- <span class="n">打印到日志中
+<span class="err"># <span class="n">off <span class="o">- <span class="n">关闭打印
+<span class="n">spring<span class="o">.<span class="na">main<span class="o">.<span class="na">banner<span class="o">-<span class="n">mode <span class="o">= <span class="n">off
+<span class="err"># <span class="n">banner <span class="n">文件编码
+<span class="n">spring<span class="o">.<span class="na">banner<span class="o">.<span class="na">charset <span class="o">= <span class="n">UTF<span class="o">-<span class="n">8
+<span class="err"># <span class="n">banner <span class="n">文本文件路径
+<span class="n">spring<span class="o">.<span class="na">banner<span class="o">.<span class="na">location <span class="o">= <span class="nl">classpath:<span class="n">banner<span class="o">.<span class="na">txt
+<span class="err"># <span class="n">banner <span class="n">图像文件路径<span class="err">（<span class="n">可以选择 <span class="n">png<span class="o">,<span class="n">jpg<span class="o">,<span class="n">gif <span class="n">文件<span class="err">）
+<span class="n">spring<span class="o">.<span class="na">banner<span class="o">.<span class="na">image<span class="o">.<span class="na">location <span class="o">= <span class="nl">classpath:<span class="n">banner<span class="o">.<span class="na">gif
+<span class="n">used<span class="o">).
+<span class="err"># <span class="n">图像 <span class="n">banner <span class="n">的宽度<span class="err">（<span class="n">字符数<span class="err">）
+<span class="n">spring<span class="o">.<span class="na">banner<span class="o">.<span class="na">image<span class="o">.<span class="na">width <span class="o">= <span class="n">76
+<span class="err"># <span class="n">图像 <span class="n">banner <span class="n">的高度<span class="err">（<span class="n">字符数<span class="err">）
+<span class="n">spring<span class="o">.<span class="na">banner<span class="o">.<span class="na">image<span class="o">.<span class="na">height <span class="o">=
+<span class="err"># <span class="n">图像 <span class="n">banner <span class="n">的左边界<span class="err">（<span class="n">字符数<span class="err">）
+<span class="n">spring<span class="o">.<span class="na">banner<span class="o">.<span class="na">image<span class="o">.<span class="na">margin <span class="o">= <span class="n">2
+<span class="err"># <span class="n">是否将图像转为黑色控制台主题
+<span class="n">spring<span class="o">.<span class="na">banner<span class="o">.<span class="na">image<span class="o">.<span class="na">invert <span class="o">= <span class="kc">false</span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></code></span></code></pre>
+
+<p><span style="font-size: 16px;">当然，你也可以在 YAML 文件中配置，例如：</span></p>
+<src class="highlight">
+<src class="cnblogs_code">
+<pre><code><span style="color: #000000;">spring:
+  main:
+    banner</span>-mode: off</code></pre>
+
+<p>&nbsp;</p>
+
+<h3><span style="font-size: 16px;">编程</span></h3>
+<p><span style="font-size: 16px;">默认，Spring Boot 会注册一个&nbsp;<code>SpringBootBanner</code>&nbsp;的单例 Bean，用来负责打印 Banner。</span></p>
+<p><span style="font-size: 16px;">如果想完全个人定制 Banner，可以这么做：先实现&nbsp;<code>org.springframework.boot.Banner#printBanner</code>&nbsp;接口来自己定制 Banner。在将这个 Banner 通过&nbsp;<code>SpringApplication.setBanner(&hellip;)</code>&nbsp;方法注入 Spring Boot。</span></p>
+
+</div><hr><script charset='utf-8' src='../../js/sming.js'></script></body></html>

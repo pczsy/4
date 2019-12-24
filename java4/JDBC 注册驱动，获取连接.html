@@ -1,0 +1,131 @@
+<html><head><meta charset='utf-8'><meta name='viewport' content='width=device-width, initial-scale=1'>
+<meta name='applicable-device' content='pc'><meta name='keywords' content='电脑,电脑讲解,电脑技术,编程,电脑故障维修JDBC 注册驱动，获取连接' />
+<script src='../../highlight/highlight.pack.js'></script>
+<link rel='stylesheet' type='text/css' href='../../highlight/styles/monokai.css'/>
+
+<link rel='stylesheet' href='../../fenxiang/dist/css/share.min.css'>
+<script src='../../fenxiang/src/js/social-share.js'></script>
+<script src='../../fenxiang/src/js/qrcode.js'></script>
+
+</head><body><script>hljs.initHighlightingOnLoad();</script><script>
+var system ={};  
+var p = navigator.platform;       
+system.win = p.indexOf('Win') == 0;  
+system.mac = p.indexOf('Mac') == 0;  
+system.x11 = (p == 'X11') || (p.indexOf('Linux') == 0);     
+if(system.win||system.mac||system.xll){
+document.write("<link href='../css/3.css' rel='stylesheet' type='text/css'>");}else{ document.write("<link href='../css/3wap.css' rel='stylesheet' type='text/css'>");}</script><script src='../../js/3.js'></script><div class='div2'><div class='heading_nav'><ul><div><li><a href='../../index.html'>首页</a></li>
+</div><div onclick='hidden1()' >分享</div>
+</ul></div></div>
+<div id='heading_nav2'> 
+<li class='row' >
+<div class='social-share' data-mode='prepend'><a href='javascript:' class='social-share-icon icon-heart'></a></div></li></div><script charset='utf-8' src='../../3/js/hengfu.js'></script><script charset='utf-8' src='../../3/js/hengfu2.js'></script><hr><div class='div1'><div class='biaoti'><center>JDBC 注册驱动，获取连接</center></div><div class='banquan'>原文出处:本文由博客园博主+1+1提供。<br/>
+原文连接:https://www.cnblogs.com/promise-ljy/p/11524891.html</div><br>
+    <p>jdbc 动力节点视频教程</p>
+<src><strong>JDBC编程六步</strong>
+<src>1.注册驱动（作用：告诉Java程序，即将要连接的是哪个品牌的数据库）
+<src>2.获取连接 （表示JVM进程和数据库进程之间的通道打开了，属于进程间的通信，重量级的，使用完一定要关闭）
+<src>3.获取数据库操作对象（专门执行SQL 语句的对象）
+<src>4.执行sql（主要DQL DML）
+<src>5.处理查询结果集（只有第四步执行select语句时，才有第五步）
+<src>6.释放资源
+<src>&nbsp;
+<src><strong>注册驱动</strong>
+<src>方式1
+<src>
+<src>
+<src class="cnblogs_code">
+<pre><code>java.sql.Driver driver = <span style="color: #0000ff;">new</span><span style="color: #000000;"> com.mysql.jdbc.Driver();(父类型引用指向子类型对象)
+DriverManager.registerDriver(dirver);
+</span><span style="color: #008000;">//</span><span style="color: #008000;">Driver类的包名是com.mysql.jdbc
+</span><span style="color: #008000;">//</span><span style="color: #008000;">Driver接口的包名是java.sql</span></code></pre>
+
+<p>方式2 更常用</p>
+<src class="cnblogs_code">
+<pre><code><span style="color: #008000;">//</span><span style="color: #008000;">反射机制</span>
+    Class.forName("com.mysql.cj.jdbc.Driver");<span style="color: #008000;">//</span><span style="color: #008000;">为什么方式2更常用，因为参数是一个字符串，字符串可以写到配置文件（xxx.properties）中
+   </span><span style="color: #008000;">//</span><span style="color: #008000;">Class.forName方法的执行 会导致后面类的加载<br /><span data-mce-="">　　 <span data-mce-="">//<span data-mce-="">该方法不需要接收返回值 ，只需要它的类加载动作<br /></span></span></span>　　 </span><span style="color: #008000;">//</span><span style="color: #008000;">类加载时，静态代码块会执行（代码块中有驱动的注册）</span>
+            </code></pre>
+
+<p>&nbsp;</p>
+
+
+<src>&nbsp;
+<src><strong>建立连接</strong>
+<src>
+<p>需要获取 ip 端口 数据库名 用户名 密码</p>
+
+<src>
+<src class="cnblogs_code">
+<pre><code>   String url = "jdbc:mysql://localhost:3306/powernode?serverTimezone=UTC"<span style="color: #000000;">;
+   String user </span>= "root"<span style="color: #000000;">;
+   String password </span>= "****"<span style="color: #000000;">;
+   Connection conn </span>=<span style="color: #000000;"> DriverManager.getConnection(url, user, password);
+   System.out.println(</span>"数据库连接对象 =" + conn);</code></pre>
+
+<p>&nbsp;</p>
+
+<src>
+<src>
+<src><strong>url :统一资源定位符</strong>（网络中某个资源得绝对路径）
+<src>　　<a href="https://www.baidu.com/">https://www.baidu.com/</a>这就是url
+<src>　　&nbsp;url 包括哪几部分？
+<src>&nbsp;
+<src>　以百度为例 <a href="http://183.232.231.174/index.html">http://183.232.231.174：80/index.html</a>
+
+<ul>
+<li>
+<src>通信协议 http://
+</li>
+<li>
+<src>IP&nbsp; &nbsp; &nbsp;183.232.231.174 服务器IP地址（IP是计算机的代号）
+</li>
+<li>
+<src>PORT 服务器上软件的端口&nbsp; 80&nbsp; （端口号是计算机上某个软件的代号）
+</li>
+<li>
+<src>资源名&nbsp; index.html是服务器上某个资源名
+</li>
+</ul>
+
+<src>
+<src>　
+<src>　MySQL：String url = "jdbc:<a href="mysql://localhost:3306/powernode?serverTimezone=UTC">mysql://localhost:3306/powernode?serverTimezone=UTC</a>";
+<ul>
+<li>
+<src>通信协议 jdbc:mysql://
+</li>
+<li>
+<src>IP&nbsp; &nbsp; &nbsp;127.0.0.1 服务器IP地址&nbsp; &nbsp;localhost 本机IP（IP是计算机的代号）
+</li>
+<li>
+<src>PORT 服务器上mysql的端口号 3306&nbsp; （端口号是计算机上某个软件的代号）
+</li>
+<li>
+<src>资源名&nbsp;powernode 是已有数据库实例名
+</li>
+</ul>
+
+<src>
+<src>&nbsp;
+<src><strong>版本问题</strong>MySQL 8.0 以上版本的数据库连接
+<src>1、com.mysql.jdbc.Driver 需要改为为 com.mysql.cj.jdbc.Driver。
+
+<src>
+<src>2. 在数据库驱动的url后需要加上serverTimezone=UTC参数。
+<src>String url = "jdbc:<a href="mysql://localhost:3306/powernode?serverTimezone=UTC">mysql://localhost:3306/powernode?serverTimezone=UTC</a>";
+<src>&nbsp;
+<src><strong>补充</strong>
+<src>
+<src>oracle 的url:&nbsp;
+<src>jdbc:oracle:thin:@localhost:1521:orcl
+<src>oracle 的驱动：
+<src>Driver driver = new orcale.jdbc.driver.OrcaleDriver();
+
+
+<src>&nbsp;
+<src>
+<src>&nbsp;
+
+
+</div><hr><script charset='utf-8' src='../../js/sming.js'></script></body></html>

@@ -1,0 +1,122 @@
+<html><head><meta charset='utf-8'><meta name='viewport' content='width=device-width, initial-scale=1'>
+<meta name='applicable-device' content='pc'><meta name='keywords' content='电脑,电脑讲解,电脑技术,编程,电脑故障维修Java连载41-this关键字其他注意事项、static方法' />
+<script src='../../highlight/highlight.pack.js'></script>
+<link rel='stylesheet' type='text/css' href='../../highlight/styles/monokai.css'/>
+
+<link rel='stylesheet' href='../../fenxiang/dist/css/share.min.css'>
+<script src='../../fenxiang/src/js/social-share.js'></script>
+<script src='../../fenxiang/src/js/qrcode.js'></script>
+
+</head><body><script>hljs.initHighlightingOnLoad();</script><script>
+var system ={};  
+var p = navigator.platform;       
+system.win = p.indexOf('Win') == 0;  
+system.mac = p.indexOf('Mac') == 0;  
+system.x11 = (p == 'X11') || (p.indexOf('Linux') == 0);     
+if(system.win||system.mac||system.xll){
+document.write("<link href='../css/3.css' rel='stylesheet' type='text/css'>");}else{ document.write("<link href='../css/3wap.css' rel='stylesheet' type='text/css'>");}</script><script src='../../js/3.js'></script><div class='div2'><div class='heading_nav'><ul><div><li><a href='../../index.html'>首页</a></li>
+</div><div onclick='hidden1()' >分享</div>
+</ul></div></div>
+<div id='heading_nav2'> 
+<li class='row' >
+<div class='social-share' data-mode='prepend'><a href='javascript:' class='social-share-icon icon-heart'></a></div></li></div><script charset='utf-8' src='../../3/js/hengfu.js'></script><script charset='utf-8' src='../../3/js/hengfu2.js'></script><hr><div class='div1'><div class='biaoti'><center>Java连载41-this关键字其他注意事项、static方法</center></div><div class='banquan'>原文出处:本文由博客园博主心悦君兮君不知-睿提供。<br/>
+原文连接:https://www.cnblogs.com/ruigege0000/p/11689607.html</div><br>
+    <p>一、this关键字</p>
+<p>1.this在多数情况下都会省略</p>
+<p>2.this不能用在含有static的方法之中。</p>
+<p>3.static的方法的调用是不需要对象的，直接使用格式：类名.方法名；没有当前对象，自然不能访问当前对象的name。</p>
+<p>&nbsp;</p>
+<src class="cnblogs_code">
+<pre><code><span style="color: #0000ff;">package</span><span style="color: #000000;"> com.bjpowernode.java_learning;
+
+​
+
+</span><span style="color: #0000ff;">public</span> <span style="color: #0000ff;">class</span><span style="color: #000000;"> D41_ {
+
+  String name2 </span>= "fjajf"<span style="color: #000000;">;
+
+  </span><span style="color: #0000ff;">public</span> <span style="color: #0000ff;">static</span> <span style="color: #0000ff;">void</span><span style="color: #000000;"> main(String[] args) {
+
+    String name1 </span>= "zhangsan"<span style="color: #000000;">;
+
+    Customer2 c1 </span>= <span style="color: #0000ff;">new</span><span style="color: #000000;"> Customer2();
+
+    c1.name </span>=<span style="color: #000000;"> name1;
+
+    Customer2.dosome(name1);
+
+    c1.dosome2();
+
+    </span><span style="color: #008000;">//</span><span style="color: #008000;">System.out.println(name2);编译报错，下面才是对的</span>
+<span style="color: #000000;">
+    D41_ d1 </span>= <span style="color: #0000ff;">new</span><span style="color: #000000;"> D41_();
+
+    System.out.println(d1.name2);
+
+  }
+
+​
+
+}
+
+</span><span style="color: #0000ff;">class</span><span style="color: #000000;"> Customer2{
+
+  String name;
+
+  </span><span style="color: #0000ff;">public</span> <span style="color: #0000ff;">static</span> <span style="color: #0000ff;">void</span><span style="color: #000000;"> dosome(String name) {
+
+    System.out.println(name);</span><span style="color: #008000;">//</span><span style="color: #008000;">一开始写了this.name，导致编译错误，这是因为这是个静态方法，所以
+
+    </span><span style="color: #008000;">//</span><span style="color: #008000;">不能用this,this只可以用于对象调用的情况，也就是实例方法。</span>
+<span style="color: #000000;">
+  }
+
+  </span><span style="color: #0000ff;">public</span> <span style="color: #0000ff;">void</span><span style="color: #000000;"> dosome2() {
+
+    System.out.println(</span><span style="color: #0000ff;">this</span>.name);<span style="color: #008000;">//</span><span style="color: #008000;">这种不带static的方法才是对象的方法。</span>
+<span style="color: #000000;">
+  }
+
+}</span></code></pre>
+
+<p><img src="./images/Java连载41-this关键字其他注意事项、static方法0.png" alt="" /></p>
+<p>4.在static方法之中不能直接访问实例变量和实例方法，因为实例方法和实例变量都是需要对象存在才可以，而static的方法之中，是没有this的，也就是说，当前对象是不存在的，自然也无法访问当前对象的​变量和实例方法。</p>
+<src class="cnblogs_code">
+<pre><code><span style="color: #0000ff;">package</span><span style="color: #000000;"> com.bjpowernode.java_learning;
+
+​
+
+</span><span style="color: #0000ff;">public</span> <span style="color: #0000ff;">class</span><span style="color: #000000;"> D41_this_keyword3 {
+
+ 
+
+  </span><span style="color: #0000ff;">public</span> <span style="color: #0000ff;">void</span><span style="color: #000000;"> do1() {
+
+    System.out.println(</span>"youxiu"<span style="color: #000000;">);
+
+  }
+
+  </span><span style="color: #0000ff;">public</span> <span style="color: #0000ff;">void</span><span style="color: #000000;"> do2() {
+
+    System.out.println(</span>"youxiu"<span style="color: #000000;">);
+
+    do1();</span><span style="color: #008000;">//</span><span style="color: #008000;">编译成功，因为do2调用就必须创建了对象，因此do1这个实例方法肯定能调用</span>
+<span style="color: #000000;">
+  }
+
+}</span></code></pre>
+
+<p>&nbsp;</p>
+<p>​</p>
+<p>三、源码：</p>
+<p>D41_this_keyword2.java</p>
+<p>D41_this_keyword3.java</p>
+<p>地址：</p>
+<p>https://github.com/ruigege66/Java/blob/master/D41_this_keyword2.java</p>
+<p>https://github.com/ruigege66/Java/blob/master/D41_this_keyword3.java</p>
+<p>2.CSDN：https://blog.csdn.net/weixin_44630050（心悦君兮君不知-睿）</p>
+<p>3.博客园：https://www.cnblogs.com/ruigege0000/</p>
+<p>4.欢迎关注微信公众号：傅里叶变换，个人公众号，仅用于学习交流，后台回复&rdquo;礼包&ldquo;，获取大数据学习资料</p>
+<p><img src="./images/Java连载41-this关键字其他注意事项、static方法1.png" alt="" /></p>
+
+</div><hr><script charset='utf-8' src='../../js/sming.js'></script></body></html>

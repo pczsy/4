@@ -1,0 +1,57 @@
+<html><head><meta charset='utf-8'><meta name='viewport' content='width=device-width, initial-scale=1'>
+<meta name='applicable-device' content='pc'><meta name='keywords' content='电脑,电脑讲解,电脑技术,编程,电脑故障维修Mycat分布式数据库架构解决方案--rule.xml详解' />
+<script src='../../highlight/highlight.pack.js'></script>
+<link rel='stylesheet' type='text/css' href='../../highlight/styles/monokai.css'/>
+
+<link rel='stylesheet' href='../../fenxiang/dist/css/share.min.css'>
+<script src='../../fenxiang/src/js/social-share.js'></script>
+<script src='../../fenxiang/src/js/qrcode.js'></script>
+
+</head><body><script>hljs.initHighlightingOnLoad();</script><script>
+var system ={};  
+var p = navigator.platform;       
+system.win = p.indexOf('Win') == 0;  
+system.mac = p.indexOf('Mac') == 0;  
+system.x11 = (p == 'X11') || (p.indexOf('Linux') == 0);     
+if(system.win||system.mac||system.xll){
+document.write("<link href='../css/3.css' rel='stylesheet' type='text/css'>");}else{ document.write("<link href='../css/3wap.css' rel='stylesheet' type='text/css'>");}</script><script src='../../js/3.js'></script><div class='div2'><div class='heading_nav'><ul><div><li><a href='../../index.html'>首页</a></li>
+</div><div onclick='hidden1()' >分享</div>
+</ul></div></div>
+<div id='heading_nav2'> 
+<li class='row' >
+<div class='social-share' data-mode='prepend'><a href='javascript:' class='social-share-icon icon-heart'></a></div></li></div><script charset='utf-8' src='../../3/js/hengfu.js'></script><script charset='utf-8' src='../../3/js/hengfu2.js'></script><hr><div class='div1'><div class='biaoti'><center>Mycat分布式数据库架构解决方案--rule.xml详解</center></div><div class='banquan'>原文出处:本文由博客园博主xlecho提供。<br/>
+原文连接:https://www.cnblogs.com/xlecho/p/11796592.html</div><br>
+    <p>echo编辑整理，欢迎转载，转载请声明文章来源。欢迎添加echo微信(微信号：t2421499075)交流学习。 百战不败，依不自称常胜，百败不颓，依能奋力前行。——这才是真正的堪称强大！！！</p>
+<hr />
+<blockquote>
+<p>该文件是一个包含Mycat的系统配置信息文件我们对该文件做一个详解，该文件在我们安装包/mycat/conf中（该文是基于“Mycat分布式数据库架构解决方案--Linux安装运行Mycat”）的后续，可以了解安装之后目录结构。</p>
+</blockquote>
+<pre><code><code>&lt;?xml version=&quot;1.0&quot; encoding=&quot;UTF-8&quot;?&gt;
+&lt;!DOCTYPE mycat:rule SYSTEM &quot;rule.dtd&quot;&gt;
+&lt;mycat:rule xmlns:mycat=&quot;http://io.mycat/&quot;&gt;
+
+    &lt;!-- tableRule标签主要用于定义表规则 --&gt;
+    &lt;!-- name属性指定唯一的名字,用于标识不同的表规则 --&gt;
+    &lt;!-- columns指定要拆分的列名字 --&gt;
+    &lt;!-- algorithm使用function标签中的name属性，用于连接表规则和具体的路由算法，多个表规则可以连接到一个路由算法 --&gt;
+    &lt;tableRule name=&quot;rule1&quot;&gt;
+        &lt;rule&gt;
+            &lt;columns&gt;id&lt;/columns&gt;
+            &lt;algorithm&gt;func1&lt;/algorithm&gt;
+        &lt;/rule&gt;
+    &lt;/tableRule&gt;
+
+    &lt;!-- function标签用于定义具体的拆分路由算法，对应我们上面的algorthm --&gt;
+    &lt;!-- name指定算法的名称,在文件中唯一 --&gt;
+    &lt;!-- class指定对应的具体的分片算法的具体类 --&gt; 
+    &lt;!-- property具体算法的必须参数对应具体算法用到的一些属性 --&gt;
+    &lt;function name=&quot;func1&quot; class=&quot;io.mycat.route.function.PartitionByLong&quot;&gt;
+        &lt;property name=&quot;partitionCount&quot;&gt;8&lt;/property&gt;
+        &lt;property name=&quot;partitionLength&quot;&gt;128&lt;/property&gt;
+    &lt;/function&gt;
+&lt;/mycat:rule&gt;</code></code></pre>
+<hr />
+<p>做一个有底线的博客主</p>
+
+
+</div><hr><script charset='utf-8' src='../../js/sming.js'></script></body></html>

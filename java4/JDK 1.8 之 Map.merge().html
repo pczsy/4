@@ -1,0 +1,203 @@
+<html><head><meta charset='utf-8'><meta name='viewport' content='width=device-width, initial-scale=1'>
+<meta name='applicable-device' content='pc'><meta name='keywords' content='电脑,电脑讲解,电脑技术,编程,电脑故障维修JDK 1.8 之 Map.merge()' />
+<script src='../../highlight/highlight.pack.js'></script>
+<link rel='stylesheet' type='text/css' href='../../highlight/styles/monokai.css'/>
+
+<link rel='stylesheet' href='../../fenxiang/dist/css/share.min.css'>
+<script src='../../fenxiang/src/js/social-share.js'></script>
+<script src='../../fenxiang/src/js/qrcode.js'></script>
+
+</head><body><script>hljs.initHighlightingOnLoad();</script><script>
+var system ={};  
+var p = navigator.platform;       
+system.win = p.indexOf('Win') == 0;  
+system.mac = p.indexOf('Mac') == 0;  
+system.x11 = (p == 'X11') || (p.indexOf('Linux') == 0);     
+if(system.win||system.mac||system.xll){
+document.write("<link href='../css/3.css' rel='stylesheet' type='text/css'>");}else{ document.write("<link href='../css/3wap.css' rel='stylesheet' type='text/css'>");}</script><script src='../../js/3.js'></script><div class='div2'><div class='heading_nav'><ul><div><li><a href='../../index.html'>首页</a></li>
+</div><div onclick='hidden1()' >分享</div>
+</ul></div></div>
+<div id='heading_nav2'> 
+<li class='row' >
+<div class='social-share' data-mode='prepend'><a href='javascript:' class='social-share-icon icon-heart'></a></div></li></div><script charset='utf-8' src='../../3/js/hengfu.js'></script><script charset='utf-8' src='../../3/js/hengfu2.js'></script><hr><div class='div1'><div class='biaoti'><center>JDK 1.8 之 Map.merge()</center></div><div class='banquan'>原文出处:本文由博客园博主风尘博客提供。<br/>
+原文连接:https://www.cnblogs.com/vandusty/p/11644487.html</div><br>
+    <p><code>Map</code> 中<code>ConcurrentHashMap</code>是线程安全的，但不是所有操作都是，例如<code>get()</code>之后再<code>put()</code>就不是了，这时使用<code>merge()</code>确保没有更新会丢失。</p>
+<p>因为<code>Map.merge()</code>意味着我们可以原子地执行插入或更新操作，它是线程安全的。</p>
+<h2 id="一源码解析">一、源码解析</h2>
+<pre><code><code>default V merge(K key, V value, BiFunction&lt;? super V, ? super V, ? extends V&gt; remappingFunction) {
+    Objects.requireNonNull(remappingFunction);
+    Objects.requireNonNull(value);
+    V oldValue = get(key);
+    V newValue = (oldValue == null) ? value :
+               remappingFunction.apply(oldValue, value);
+    if(newValue == null) {
+        remove(key);
+    } else {
+        put(key, newValue);
+    }
+    return newValue;
+}</code></code></pre>
+<p>该方法接收三个参数，一个 <code>key</code> 值，一个 <code>value</code>，一个 <code>remappingFunction</code> 。如果给定的<code>key</code>不存在，它就变成了<code>put(key, value)</code>；但是，如果<code>key</code>已经存在一些值，我们 <code>remappingFunction</code> 可以选择合并的方式:</p>
+<ol>
+<li>只返回新值即可覆盖旧值： <code>(old, new) -&gt; new</code>;</li>
+<li>只需返回旧值即可保留旧值：<code>(old, new) -&gt; old</code>;</li>
+<li>合并两者，例如：<code>(old, new) -&gt; old + new</code>;</li>
+<li>删除旧值：<code>(old, new) -&gt; null</code>。</li>
+</ol>
+<h2 id="二使用场景">二、使用场景</h2>
+<p><code>merge()</code>方法在统计时用的场景比较多，例如：有一个学生成绩对象的列表，对象包含学生姓名、科目、科目分数三个属性，求得每个学生的总成绩。</p>
+<h3 id="准备数据">2.1 准备数据</h3>
+<ul>
+<li>学生对象<code>StudentEntity.java</code></li>
+</ul>
+<pre><code><code>@Data
+public class StudentEntity {
+    /**
+     * 学生姓名
+     */
+    private String studentName;
+    /**
+     * 学科
+     */
+    private String subject;
+    /**
+     * 分数
+     */
+    private Integer score;
+}</code></code></pre>
+<ul>
+<li>学生成绩数据</li>
+</ul>
+<pre><code><code>private List&lt;StudentEntity&gt; buildATestList() {
+    List&lt;StudentEntity&gt; studentEntityList = new ArrayList&lt;&gt;();
+    StudentEntity studentEntity1 = new StudentEntity() {{
+        setStudentName(&quot;张三&quot;);
+        setSubject(&quot;语文&quot;);
+        setScore(60);
+    }};
+    StudentEntity studentEntity2 = new StudentEntity() {{
+        setStudentName(&quot;张三&quot;);
+        setSubject(&quot;数学&quot;);
+        setScore(70);
+    }};
+    StudentEntity studentEntity3 = new StudentEntity() {{
+        setStudentName(&quot;张三&quot;);
+        setSubject(&quot;英语&quot;);
+        setScore(80);
+    }};
+    StudentEntity studentEntity4 = new StudentEntity() {{
+        setStudentName(&quot;李四&quot;);
+        setSubject(&quot;语文&quot;);
+        setScore(85);
+    }};
+    StudentEntity studentEntity5 = new StudentEntity() {{
+        setStudentName(&quot;李四&quot;);
+        setSubject(&quot;数学&quot;);
+        setScore(75);
+    }};
+    StudentEntity studentEntity6 = new StudentEntity() {{
+        setStudentName(&quot;李四&quot;);
+        setSubject(&quot;英语&quot;);
+        setScore(65);
+    }};
+    StudentEntity studentEntity7 = new StudentEntity() {{
+        setStudentName(&quot;王五&quot;);
+        setSubject(&quot;语文&quot;);
+        setScore(80);
+    }};
+    StudentEntity studentEntity8 = new StudentEntity() {{
+        setStudentName(&quot;王五&quot;);
+        setSubject(&quot;数学&quot;);
+        setScore(85);
+    }};
+    StudentEntity studentEntity9 = new StudentEntity() {{
+        setStudentName(&quot;王五&quot;);
+        setSubject(&quot;英语&quot;);
+        setScore(90);
+    }};
+
+    studentEntityList.add(studentEntity1);
+    studentEntityList.add(studentEntity2);
+    studentEntityList.add(studentEntity3);
+    studentEntityList.add(studentEntity4);
+    studentEntityList.add(studentEntity5);
+    studentEntityList.add(studentEntity6);
+    studentEntityList.add(studentEntity7);
+    studentEntityList.add(studentEntity8);
+    studentEntityList.add(studentEntity9);
+
+    return studentEntityList;
+}</code></code></pre>
+<h3 id="一般方案">2.2 一般方案</h3>
+<p>思路：用<code>Map</code>的一组<code>key/value</code>存储一个学生的总成绩(学生姓名作为<code>key</code>,总成绩为<code>value</code>)</p>
+<ol>
+<li><code>Map</code>中不存在指定的<code>key</code>时，将传入的<code>value</code>设置为<code>key</code>的值；</li>
+<li>当<code>key</code>存在值时,取出存在的值与当前值相加，然后放入<code>Map</code>中。</li>
+</ol>
+<pre><code><code>public void normalMethod() {
+    Long startTime = System.currentTimeMillis();
+    // 造一个学生成绩列表
+    List&lt;StudentEntity&gt; studentEntityList = buildATestList();
+
+    Map&lt;String, Integer&gt; studentScore = new HashMap&lt;&gt;();
+    studentEntityList.forEach(studentEntity -&gt; {
+        if (studentScore.containsKey(studentEntity.getStudentName())) {
+            studentScore.put(studentEntity.getStudentName(),
+                    studentScore.get(studentEntity.getStudentName()) + studentEntity.getScore());
+        } else {
+            studentScore.put(studentEntity.getStudentName(), studentEntity.getScore());
+        }
+    });
+    log.info(&quot;各个学生成绩:{},耗时：{}ms&quot;,studentScore, System.currentTimeMillis() - startTime);
+}</code></code></pre>
+<h3 id="map.merge">2.3 <code>Map.merge()</code></h3>
+<blockquote>
+<p>很明显，这里需要采用<code>remappingFunction</code>的合并方式。</p>
+</blockquote>
+<pre><code><code>public void mergeMethod() {
+    Long startTime = System.currentTimeMillis();
+    // 造一个学生成绩列表
+    List&lt;StudentEntity&gt; studentEntityList = buildATestList();
+    Map&lt;String, Integer&gt; studentScore = new HashMap&lt;&gt;();
+    studentEntityList.forEach(studentEntity -&gt; studentScore.merge(
+            studentEntity.getStudentName(),
+            studentEntity.getScore(),
+            Integer::sum));
+    log.info(&quot;各个学生成绩:{},耗时：{}ms&quot;,studentScore, System.currentTimeMillis() - startTime);
+}</code></code></pre>
+<h3 id="测试及小结">2.4 测试及小结</h3>
+<ul>
+<li>测试方法</li>
+</ul>
+<pre><code><code>@Test
+public void testAll() {
+    // 一般写法
+    normalMethod();
+    // merge()方法
+    mergeMethod();
+}</code></code></pre>
+<ul>
+<li>测试结果</li>
+</ul>
+<pre class="xml"><code>00:21:28.305 [main] INFO cn.van.jdk.eight.map.merge.MapOfMergeTest - 各个学生成绩:{李四=225, 张三=210, 王五=255},耗时：75ms
+00:21:28.310 [main] INFO cn.van.jdk.eight.map.merge.MapOfMergeTest - 各个学生成绩:{李四=225, 张三=210, 王五=255},耗时：2ms
+</code></code></pre>
+<ul>
+<li>结果小结</li>
+</ul>
+<ol>
+<li><code>merger()</code>方法使用起来在一定程度上减少了代码量，使得代码更加简洁。同时，通过打印的方法耗时可以看出，<code>merge()</code>方法效率更高。</li>
+<li><code>Map.merge()</code>的出现，和<code>ConcurrentHashMap</code>的结合，完美处理那些自动执行插入或者更新操作的单线程安全的逻辑.</li>
+</ol>
+<h2 id="三总结">三、总结</h2>
+<h3 id="示例源码">3.1 示例源码</h3>
+<p><a href="https://github.com/vanDusty/JDK/tree/master/JDK-8/src/test/java/cn/van/jdk/eight/map/merge">Github 示例代码</a></p>
+<h3 id="技术交流">3.2 技术交流</h3>
+<ol>
+<li><a href="https://www.dustyblog.cn/">风尘博客</a></li>
+<li><a href="https://blog.csdn.net/weixin_42036952">风尘博客-CSDN</a></li>
+<li><a href="https://juejin.im/user/5d5ea68e6fb9a06afa328f56/posts">风尘博客-掘金</a></li>
+</ol>
+
+
+</div><hr><script charset='utf-8' src='../../js/sming.js'></script></body></html>

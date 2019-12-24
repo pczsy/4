@@ -1,0 +1,307 @@
+<html><head><meta charset='utf-8'><meta name='viewport' content='width=device-width, initial-scale=1'>
+<meta name='applicable-device' content='pc'><meta name='keywords' content='电脑,电脑讲解,电脑技术,编程,电脑故障维修Netty源码分析 （二）----- ServerBootstrap' />
+<script src='../../highlight/highlight.pack.js'></script>
+<link rel='stylesheet' type='text/css' href='../../highlight/styles/monokai.css'/>
+
+<link rel='stylesheet' href='../../fenxiang/dist/css/share.min.css'>
+<script src='../../fenxiang/src/js/social-share.js'></script>
+<script src='../../fenxiang/src/js/qrcode.js'></script>
+
+</head><body><script>hljs.initHighlightingOnLoad();</script><script>
+var system ={};  
+var p = navigator.platform;       
+system.win = p.indexOf('Win') == 0;  
+system.mac = p.indexOf('Mac') == 0;  
+system.x11 = (p == 'X11') || (p.indexOf('Linux') == 0);     
+if(system.win||system.mac||system.xll){
+document.write("<link href='../css/3.css' rel='stylesheet' type='text/css'>");}else{ document.write("<link href='../css/3wap.css' rel='stylesheet' type='text/css'>");}</script><script src='../../js/3.js'></script><div class='div2'><div class='heading_nav'><ul><div><li><a href='../../index.html'>首页</a></li>
+</div><div onclick='hidden1()' >分享</div>
+</ul></div></div>
+<div id='heading_nav2'> 
+<li class='row' >
+<div class='social-share' data-mode='prepend'><a href='javascript:' class='social-share-icon icon-heart'></a></div></li></div><script charset='utf-8' src='../../3/js/hengfu.js'></script><script charset='utf-8' src='../../3/js/hengfu2.js'></script><hr><div class='div1'><div class='biaoti'><center>Netty源码分析 （二）----- ServerBootstrap</center></div><div class='banquan'>原文出处:本文由博客园博主chen_hao提供。<br/>
+原文连接:https://www.cnblogs.com/java-chen-hao/p/11459808.html</div><br>
+    <p>BootStrap在netty的应用程序中负责引导服务器和客户端。netty包含了两种不同类型的引导： <br />1. 使用服务器的ServerBootStrap，用于接受客户端的连接以及为已接受的连接创建子通道。 <br />2. 用于客户端的BootStrap，不接受新的连接，并且是在父通道类完成一些操作。</p>
+<p>一般服务端的代码如下所示：</p>
+<p><strong>SimpleServer.java</strong></p>
+<src class="cnblogs_code">
+<pre><code><span style="color: #008000;">/**</span><span style="color: #008000;">
+ * Created by chenhao on 2019/9/4.
+ </span><span style="color: #008000;">*/</span>
+<span style="color: #0000ff;">public</span> <span style="color: #0000ff;">final</span> <span style="color: #0000ff;">class</span><span style="color: #000000;"> SimpleServer {
+
+    </span><span style="color: #0000ff;">public</span> <span style="color: #0000ff;">static</span> <span style="color: #0000ff;">void</span> main(String[] args) <span style="color: #0000ff;">throws</span><span style="color: #000000;"> Exception {
+        EventLoopGroup bossGroup </span>= <span style="color: #0000ff;">new</span> NioEventLoopGroup(1<span style="color: #000000;">);
+        EventLoopGroup workerGroup </span>= <span style="color: #0000ff;">new</span><span style="color: #000000;"> NioEventLoopGroup();
+
+        </span><span style="color: #0000ff;">try</span><span style="color: #000000;"> {
+            ServerBootstrap b </span>= <span style="color: #0000ff;">new</span><span style="color: #000000;"> ServerBootstrap();
+            b.group(bossGroup, workerGroup)
+                    .channel(NioServerSocketChannel.</span><span style="color: #0000ff;">class</span><span style="color: #000000;">)
+                    .handler(</span><span style="color: #0000ff;">new</span><span style="color: #000000;"> SimpleServerHandler())
+                    .childHandler(</span><span style="color: #0000ff;">new</span><span style="color: #000000;"> SimpleServerInitializer())
+                    .option(ChannelOption.SO_BACKLOG, </span>128<span style="color: #000000;">)
+                    .childOption(ChannelOption.SO_KEEPALIVE, </span><span style="color: #0000ff;">true</span><span style="color: #000000;">);
+
+            ChannelFuture f </span>= b.bind(8888<span style="color: #000000;">).sync();
+
+            f.channel().closeFuture().sync();
+        } </span><span style="color: #0000ff;">finally</span><span style="color: #000000;"> {
+            bossGroup.shutdownGracefully();
+            workerGroup.shutdownGracefully();
+        }
+    }
+}</span></code></pre>
+
+<p><strong>SimpleServerHandler.java</strong></p>
+<src class="cnblogs_code">
+<pre><code><span style="color: #0000ff;">private</span> <span style="color: #0000ff;">static</span> <span style="color: #0000ff;">class</span> SimpleServerHandler <span style="color: #0000ff;">extends</span><span style="color: #000000;"> ChannelInboundHandlerAdapter {
+    @Override
+    </span><span style="color: #0000ff;">public</span> <span style="color: #0000ff;">void</span> channelActive(ChannelHandlerContext ctx) <span style="color: #0000ff;">throws</span><span style="color: #000000;"> Exception {
+        System.out.println(</span>"channelActive"<span style="color: #000000;">);
+    }
+
+    @Override
+    </span><span style="color: #0000ff;">public</span> <span style="color: #0000ff;">void</span> channelRegistered(ChannelHandlerContext ctx) <span style="color: #0000ff;">throws</span><span style="color: #000000;"> Exception {
+        System.out.println(</span>"channelRegistered"<span style="color: #000000;">);
+    }
+
+    @Override
+    </span><span style="color: #0000ff;">public</span> <span style="color: #0000ff;">void</span> handlerAdded(ChannelHandlerContext ctx) <span style="color: #0000ff;">throws</span><span style="color: #000000;"> Exception {
+        System.out.println(</span>"handlerAdded"<span style="color: #000000;">);
+    }
+}</span></code></pre>
+
+<p><strong>SimpleServerInitializer.java</strong></p>
+<src class="cnblogs_code">
+<pre><code><span style="color: #0000ff;">public</span> <span style="color: #0000ff;">class</span> SimpleServerInitializer <span style="color: #0000ff;">extends</span> ChannelInitializer&lt;SocketChannel&gt;<span style="color: #000000;">{
+
+    @Override
+    </span><span style="color: #0000ff;">protected</span> <span style="color: #0000ff;">void</span> initChannel(SocketChannel ch) <span style="color: #0000ff;">throws</span><span style="color: #000000;"> Exception {
+        ChannelPipeline pipeline </span>=<span style="color: #000000;"> ch.pipeline();
+
+        pipeline.addLast(</span>"framer", <span style="color: #0000ff;">new</span> DelimiterBasedFrameDecoder(8192<span style="color: #000000;">, Delimiters.lineDelimiter()));
+        pipeline.addLast(</span>"decoder", <span style="color: #0000ff;">new</span><span style="color: #000000;"> StringDecoder());
+        pipeline.addLast(</span>"encoder", <span style="color: #0000ff;">new</span><span style="color: #000000;"> StringEncoder());
+        pipeline.addLast(</span>"handler", <span style="color: #0000ff;">new</span><span style="color: #000000;"> SimpleChatServerHandler());
+
+        System.out.println(</span>"SimpleChatClient:" + ch.remoteAddress()+"连接上"<span style="color: #000000;">);
+    }
+}</span></code></pre>
+
+<p>在上篇博文（<a id="post_title_link_11453562" href="https://www.cnblogs.com/java-chen-hao/p/11453562.html">Netty源码分析 （一）----- NioEventLoopGroup</a>）中 剖析了如下的两行代码内部的构造函数中干了些什么。</p>
+<src class="cnblogs_code">
+<pre><code>EventLoopGroup bossGroup = <span style="color: #0000ff;">new</span> NioEventLoopGroup(1<span style="color: #000000;">);
+EventLoopGroup workerGroup </span>= <span style="color: #0000ff;">new</span> NioEventLoopGroup();</code></pre>
+
+<p>具体可以见上篇博文，对于如上的两行代码得到的结论是：</p>
+<p>１、 如果不指定线程数，则线程数为：CPU的核数*２</p>
+<p>２、根据线程个数是否为2的幂次方，采用不同策略初始化chooser</p>
+<p>３、产生nThreads个NioEventLoop对象保存在children数组中。</p>
+<p>可以理解NioEventLoop就是一个线程，线程NioEventLoop中里面有如下几个属性：</p>
+<p>1、NioEventLoopGroup　（在父类SingleThreadEventExecutor中）</p>
+<p>2、selector</p>
+<p>3、provider</p>
+<p>4、thread （在父类SingleThreadEventExecutor中）</p>
+<p><span style="color: #ff0000;">更通俗点就是： NioEventLoopGroup就是一个线程池，NioEventLoop就是一个线程。NioEventLoopGroup线程池中有N个NioEventLoop线程。</span></p>
+<h2 id="serverbootstrap类分析">ServerBootstrap类分析</h2>
+<p>本篇博文将分析如下几行代码里面做了些什么。</p>
+<src class="cnblogs_code">
+<pre><code>ServerBootstrap b = <span style="color: #0000ff;">new</span><span style="color: #000000;"> ServerBootstrap();
+            b.group(bossGroup, workerGroup)
+                .channel(NioServerSocketChannel.</span><span style="color: #0000ff;">class</span><span style="color: #000000;">)
+                .handler(</span><span style="color: #0000ff;">new</span><span style="color: #000000;"> SimpleServerHandler())
+                .childHandler(</span><span style="color: #0000ff;">new</span><span style="color: #000000;"> SimpleServerInitializer())
+                .option(ChannelOption.SO_BACKLOG, </span>128<span style="color: #000000;">)
+                .childOption(ChannelOption.SO_KEEPALIVE, </span><span style="color: #0000ff;">true</span>);</code></pre>
+
+<p>ServerBootstrap类的继承结构如下：</p>
+<p><img src="./images/Netty源码分析 （二）----- ServerBootstrap0.png" alt="" /></p>
+<p>该类的参数，有必要列出：</p>
+<src class="cnblogs_code">
+<pre><code><span style="color: #0000ff;">private</span> <span style="color: #0000ff;">final</span> Map&lt;ChannelOption&lt;?&gt;, Object&gt; childOptions = <span style="color: #0000ff;">new</span> LinkedHashMap&lt;ChannelOption&lt;?&gt;, Object&gt;<span style="color: #000000;">();
+</span><span style="color: #0000ff;">private</span> <span style="color: #0000ff;">final</span> Map&lt;AttributeKey&lt;?&gt;, Object&gt; childAttrs = <span style="color: #0000ff;">new</span> LinkedHashMap&lt;AttributeKey&lt;?&gt;, Object&gt;<span style="color: #000000;">();
+</span><span style="color: #0000ff;">private</span> <span style="color: #0000ff;">volatile</span><span style="color: #000000;"> EventLoopGroup childGroup;
+</span><span style="color: #0000ff;">private</span> <span style="color: #0000ff;">volatile</span> ChannelHandler childHandler; </code></pre>
+
+<p>其父类AbstractBootstrap的参数</p>
+<src class="cnblogs_code">
+<pre><code><span style="color: #0000ff;">private</span> <span style="color: #0000ff;">volatile</span><span style="color: #000000;"> EventLoopGroup group;
+</span><span style="color: #0000ff;">private</span> <span style="color: #0000ff;">volatile</span> ChannelFactory&lt;? <span style="color: #0000ff;">extends</span> C&gt;<span style="color: #000000;"> channelFactory;
+</span><span style="color: #0000ff;">private</span> <span style="color: #0000ff;">volatile</span><span style="color: #000000;"> SocketAddress localAddress;
+</span><span style="color: #0000ff;">private</span> <span style="color: #0000ff;">final</span> Map&lt;ChannelOption&lt;?&gt;, Object&gt; options = <span style="color: #0000ff;">new</span> LinkedHashMap&lt;ChannelOption&lt;?&gt;, Object&gt;<span style="color: #000000;">();
+</span><span style="color: #0000ff;">private</span> <span style="color: #0000ff;">final</span> Map&lt;AttributeKey&lt;?&gt;, Object&gt; attrs = <span style="color: #0000ff;">new</span> LinkedHashMap&lt;AttributeKey&lt;?&gt;, Object&gt;<span style="color: #000000;">();
+</span><span style="color: #0000ff;">private</span> <span style="color: #0000ff;">volatile</span> ChannelHandler handler;  </code></pre>
+
+<p>下面主要看下这个链式设置相关的参数。</p>
+<h3>group(bossGroup, workerGroup)</h3>
+<src class="cnblogs_code">
+<pre><code><span style="color: #0000ff;">public</span><span style="color: #000000;"> ServerBootstrap group(EventLoopGroup parentGroup, EventLoopGroup childGroup) {
+    </span><span style="color: #0000ff;">super</span><span style="color: #000000;">.group(parentGroup);
+    </span><span style="color: #0000ff;">if</span> (childGroup == <span style="color: #0000ff;">null</span><span style="color: #000000;">) {
+        </span><span style="color: #0000ff;">throw</span> <span style="color: #0000ff;">new</span> NullPointerException("childGroup"<span style="color: #000000;">);
+    }
+    </span><span style="color: #0000ff;">if</span> (<span style="color: #0000ff;">this</span>.childGroup != <span style="color: #0000ff;">null</span><span style="color: #000000;">) {
+        </span><span style="color: #0000ff;">throw</span> <span style="color: #0000ff;">new</span> IllegalStateException("childGroup set already"<span style="color: #000000;">);
+    }
+    </span><span style="color: #0000ff;">this</span>.childGroup =<span style="color: #000000;"> childGroup;
+    </span><span style="color: #0000ff;">return</span> <span style="color: #0000ff;">this</span><span style="color: #000000;">;
+}</span></code></pre>
+
+<p>即将workerGroup保存在 ServerBootstrap对象的childGroup属性上。 bossGroup保存在ServerBootstrap对象的group属性上</p>
+<h3>channel(NioServerSocketChannel.class)</h3>
+<src class="cnblogs_code">
+<pre><code><span style="color: #0000ff;">public</span> B channel(Class&lt;? <span style="color: #0000ff;">extends</span> C&gt;<span style="color: #000000;"> channelClass) {
+    </span><span style="color: #0000ff;">if</span> (channelClass == <span style="color: #0000ff;">null</span><span style="color: #000000;">) {
+        </span><span style="color: #0000ff;">throw</span> <span style="color: #0000ff;">new</span> NullPointerException("channelClass"<span style="color: #000000;">);
+    }
+    </span><span style="color: #0000ff;">return</span> channelFactory(<strong><span style="color: #0000ff;">new</span> BootstrapChannelFactory&lt;C&gt;</strong><span style="color: #000000;"><strong>(channelClass)</strong>);
+} 
+</span><span style="color: #0000ff;">public</span> B channelFactory(ChannelFactory&lt;? <span style="color: #0000ff;">extends</span> C&gt;<span style="color: #000000;"> channelFactory) {
+    </span><span style="color: #0000ff;">if</span> (channelFactory == <span style="color: #0000ff;">null</span><span style="color: #000000;">) {
+        </span><span style="color: #0000ff;">throw</span> <span style="color: #0000ff;">new</span> NullPointerException("channelFactory"<span style="color: #000000;">);
+    }
+    </span><span style="color: #0000ff;">if</span> (<span style="color: #0000ff;">this</span>.channelFactory != <span style="color: #0000ff;">null</span><span style="color: #000000;">) {
+        </span><span style="color: #0000ff;">throw</span> <span style="color: #0000ff;">new</span> IllegalStateException("channelFactory set already"<span style="color: #000000;">);
+    }
+
+    </span><span style="color: #0000ff;">this</span>.channelFactory =<span style="color: #000000;"> channelFactory;
+    </span><span style="color: #0000ff;">return</span> (B) <span style="color: #0000ff;">this</span><span style="color: #000000;">;
+} </span></code></pre>
+
+<p>函数功能：设置父类属性channelFactory 为： BootstrapChannelFactory类的对象。其中这里BootstrapChannelFactory对象中包括一个clazz属性为：NioServerSocketChannel.class，从如下该类的构造函数中可以明显的得到这一点。</p>
+<src class="cnblogs_code">
+<pre><code><span style="color: #0000ff;">private</span> <span style="color: #0000ff;">static</span> <span style="color: #0000ff;">final</span> <span style="color: #0000ff;">class</span> BootstrapChannelFactory&lt;T <span style="color: #0000ff;">extends</span> Channel&gt; <span style="color: #0000ff;">implements</span> ChannelFactory&lt;T&gt;<span style="color: #000000;"> {
+    </span><strong><span style="color: #0000ff;">private</span> <span style="color: #0000ff;">final</span> Class&lt;? <span style="color: #0000ff;">extends</span> T&gt;</strong><span style="color: #000000;"><strong> clazz;</strong>
+
+    BootstrapChannelFactory(Class</span>&lt;? <span style="color: #0000ff;">extends</span> T&gt;<span style="color: #000000;"> clazz) {
+        </span><strong><span style="color: #0000ff;">this</span>.clazz =</strong><span style="color: #000000;"><strong> clazz;</strong>
+    }
+
+    @Override
+    </span><span style="color: #0000ff;">public</span><span style="color: #000000;"> T newChannel() {
+        </span><span style="color: #0000ff;">try</span><span style="color: #000000;"> {
+            </span><strong><span style="color: #0000ff;">return</span></strong><span style="color: #000000;"><strong> clazz.newInstance();</strong>
+        } </span><span style="color: #0000ff;">catch</span><span style="color: #000000;"> (Throwable t) {
+            </span><span style="color: #0000ff;">throw</span> <span style="color: #0000ff;">new</span> ChannelException("Unable to create Channel from class " +<span style="color: #000000;"> clazz, t);
+        }
+    }
+
+    @Override
+    </span><span style="color: #0000ff;">public</span><span style="color: #000000;"> String toString() {
+        </span><span style="color: #0000ff;">return</span> StringUtil.simpleClassName(clazz) + ".class"<span style="color: #000000;">;
+    }
+}</span></code></pre>
+
+<p>并且BootstrapChannelFactory中提供&nbsp;newChannel()方法，我们可以看到&nbsp;<strong>clazz.newInstance()，</strong>主要是通过反射来实例化NioServerSocketChannel.class</p>
+<h3>handler(new SimpleServerHandler())</h3>
+<src class="cnblogs_code">
+<pre><code><span style="color: #0000ff;">public</span><span style="color: #000000;"> B handler(ChannelHandler handler) {
+    </span><span style="color: #0000ff;">if</span> (handler == <span style="color: #0000ff;">null</span><span style="color: #000000;">) {
+        </span><span style="color: #0000ff;">throw</span> <span style="color: #0000ff;">new</span> NullPointerException("handler"<span style="color: #000000;">);
+    }
+    </span><strong><span style="color: #0000ff;">this</span>.handler =<span style="color: #000000;"> handler;
+    </span></strong><span style="color: #0000ff;">return</span> (B) <span style="color: #0000ff;">this</span><span style="color: #000000;">;
+}</span></code></pre>
+
+<p>注意：这里的handler函数的入参类是我们自己提供的。如下，后面的博文中将会分析这个handler将会在哪里以及何时被调用，这里只需要记住这一点即可</p>
+<src class="cnblogs_code">
+<pre><code><span style="color: #0000ff;">private</span> <span style="color: #0000ff;">static</span> <span style="color: #0000ff;">class</span> SimpleServerHandler <span style="color: #0000ff;">extends</span><span style="color: #000000;"> ChannelInboundHandlerAdapter {
+    @Override
+    </span><span style="color: #0000ff;">public</span> <span style="color: #0000ff;">void</span> channelActive(ChannelHandlerContext ctx) <span style="color: #0000ff;">throws</span><span style="color: #000000;"> Exception {
+        System.out.println(</span>"channelActive"<span style="color: #000000;">);
+    }
+
+    @Override
+    </span><span style="color: #0000ff;">public</span> <span style="color: #0000ff;">void</span> channelRegistered(ChannelHandlerContext ctx) <span style="color: #0000ff;">throws</span><span style="color: #000000;"> Exception {
+        System.out.println(</span>"channelRegistered"<span style="color: #000000;">);
+    }
+
+    @Override
+    </span><span style="color: #0000ff;">public</span> <span style="color: #0000ff;">void</span> handlerAdded(ChannelHandlerContext ctx) <span style="color: #0000ff;">throws</span><span style="color: #000000;"> Exception {
+        System.out.println(</span>"handlerAdded"<span style="color: #000000;">);
+    }
+}</span></code></pre>
+
+<h3><span>childHandler(new<span> SimpleServerInitializer())</span></span></h3>
+<src class="cnblogs_code">
+<pre><code><span style="color: #0000ff;">public</span><span style="color: #000000;"> ServerBootstrap childHandler(ChannelHandler childHandler) {
+    </span><span style="color: #0000ff;">if</span> (childHandler == <span style="color: #0000ff;">null</span><span style="color: #000000;">) {
+        </span><span style="color: #0000ff;">throw</span> <span style="color: #0000ff;">new</span> NullPointerException("childHandler"<span style="color: #000000;">);
+    }
+    </span><span style="color: #0000ff;">this</span>.childHandler =<span style="color: #000000;"> childHandler;
+    </span><span style="color: #0000ff;">return</span> <span style="color: #0000ff;">this</span><span style="color: #000000;">;
+}</span></code></pre>
+
+<p>由最后一句可知，其实就是讲传入的childHandler赋值给ServerBootstrap的childHandler属性。</p>
+<p>该函数的主要作用是设置channelHandler来处理客户端的请求的channel的IO。&nbsp;这里我们一般都用ChannelInitializer这个类的实例或则继承自这个类的实例<br />这里我是通过新建类SimpleChatServerInitializer继承自ChannelInitializer。具体的代码如下：</p>
+<src class="cnblogs_code">
+<pre><code><span style="color: #0000ff;">public</span> <span style="color: #0000ff;">class</span> SimpleChatServerInitializer <span style="color: #0000ff;">extends</span> ChannelInitializer&lt;SocketChannel&gt;<span style="color: #000000;">{
+
+    @Override
+    </span><span style="color: #0000ff;">protected</span> <span style="color: #0000ff;">void</span> initChannel(SocketChannel ch) <span style="color: #0000ff;">throws</span><span style="color: #000000;"> Exception {
+        ChannelPipeline pipeline </span>=<span style="color: #000000;"> ch.pipeline();
+
+        pipeline.addLast(</span>"framer", <span style="color: #0000ff;">new</span> DelimiterBasedFrameDecoder(8192<span style="color: #000000;">, Delimiters.lineDelimiter()));
+        pipeline.addLast(</span>"decoder", <span style="color: #0000ff;">new</span><span style="color: #000000;"> StringDecoder());
+        pipeline.addLast(</span>"encoder", <span style="color: #0000ff;">new</span><span style="color: #000000;"> StringEncoder());
+        pipeline.addLast(</span>"handler", <span style="color: #0000ff;">new</span><span style="color: #000000;"> SimpleChatServerHandler());
+
+        System.out.println(</span>"SimpleChatClient:" + ch.remoteAddress()+"连接上"<span style="color: #000000;">);
+    }
+}</span></code></pre>
+
+<p>我们再看看ChannelInitializer这个类的继承图可知ChannelInitializer其实就是继承自ChannelHandler的&nbsp;</p>
+<p><img src="./images/Netty源码分析 （二）----- ServerBootstrap1.png" alt="" /></p>
+<p>&nbsp;</p>
+<p>可知，这个类其实就是往pipeline中添加了很多的channelHandler。</p>
+<h3 id="5配置serverbootstrap的optionchanneloption-option-t-value">配置ServerBootstrap的option</h3>
+<p>这里调用的是父类的AbstractBootstrap的option()方法，源码如下：</p>
+<src class="cnblogs_code">
+<pre><code><span style="color: #0000ff;">public</span> &lt;T&gt; B option(ChannelOption&lt;T&gt;<span style="color: #000000;"> option, T value) {
+    </span><span style="color: #0000ff;">if</span> (option == <span style="color: #0000ff;">null</span><span style="color: #000000;">) {
+        </span><span style="color: #0000ff;">throw</span> <span style="color: #0000ff;">new</span> NullPointerException("option"<span style="color: #000000;">);
+    }
+    </span><span style="color: #0000ff;">if</span> (value == <span style="color: #0000ff;">null</span><span style="color: #000000;">) {
+        </span><span style="color: #0000ff;">synchronized</span><span style="color: #000000;"> (options) {
+            options.remove(option);
+        }
+    } </span><span style="color: #0000ff;">else</span><span style="color: #000000;"> {
+        </span><span style="color: #0000ff;">synchronized</span><span style="color: #000000;"> (options) {
+            options.put(option, value);
+        }
+    }
+    </span><span style="color: #0000ff;">return</span> (B) <span style="color: #0000ff;">this</span><span style="color: #000000;">;
+}</span></code></pre>
+
+<p>其中最重要的一行代码就是： <br />options.put(option, value); <br />这里用到了options这个参数，在AbstractBootstrap的定义如下： <br />private final Map&lt;ChannelOption&lt;?&gt;, Object&gt; options = new LinkedHashMap&lt;ChannelOption&lt;?&gt;, Object&gt;(); <br />可知是私有变量，而且是一个Map集合。这个变量主要是设置TCP连接中的一些可选项,而且这些属性是作用于每一个连接到服务器被创建的channel。</p>
+<h3 id="6配置serverbootstrap的childoptionchanneloption-childoption-t-value">配置ServerBootstrap的childOption</h3>
+<p>这里调用的是父类的ServerBootstrap的childOption()方法，源码如下：</p>
+<src class="cnblogs_code">
+<pre><code><span style="color: #0000ff;">public</span> &lt;T&gt; ServerBootstrap childOption(ChannelOption&lt;T&gt;<span style="color: #000000;"> childOption, T value) {
+    </span><span style="color: #0000ff;">if</span> (childOption == <span style="color: #0000ff;">null</span><span style="color: #000000;">) {
+        </span><span style="color: #0000ff;">throw</span> <span style="color: #0000ff;">new</span> NullPointerException("childOption"<span style="color: #000000;">);
+    }
+    </span><span style="color: #0000ff;">if</span> (value == <span style="color: #0000ff;">null</span><span style="color: #000000;">) {
+        </span><span style="color: #0000ff;">synchronized</span><span style="color: #000000;"> (childOptions) {
+            childOptions.remove(childOption);
+        }
+    } </span><span style="color: #0000ff;">else</span><span style="color: #000000;"> {
+        </span><span style="color: #0000ff;">synchronized</span><span style="color: #000000;"> (childOptions) {
+            childOptions.put(childOption, value);
+        }
+    }
+    </span><span style="color: #0000ff;">return</span> <span style="color: #0000ff;">this</span><span style="color: #000000;">;
+}</span></code></pre>
+
+<p>这个函数功能与option()函数几乎一样，唯一的区别是该属性设定只作用于被acceptor(也就是boss EventLoopGroup)接收之后的channel。</p>
+<h2 id="总结">总结</h2>
+<p>比较简单哈，主要是将我们提供的参数设置到其相应的对象属性中去了。 因为后面会用到如下的几个属性，因此最好知道下，这些属性是何时以及在那里赋值的。</p>
+<p>1、group：workerGroup保存在 ServerBootstrap对象的childGroup属性上。 bossGroup保存在ServerBootstrap对象的group属性上</p>
+<p>2、channelFactory：BootstrapChannelFactory类的对象（clazz属性为：NioServerSocketChannel.class）</p>
+<p>3、handler：SimpleServerHandler</p>
+<p>4、childHandler</p>
+<p>5、option</p>
+<p>6、childOption</p>
+
+</div><hr><script charset='utf-8' src='../../js/sming.js'></script></body></html>

@@ -1,0 +1,99 @@
+<html><head><meta charset='utf-8'><meta name='viewport' content='width=device-width, initial-scale=1'>
+<meta name='applicable-device' content='pc'><meta name='keywords' content='电脑,电脑讲解,电脑技术,编程,电脑故障维修本月16日SpringBoot2.2发布，有哪些变化先知晓' />
+<script src='../../highlight/highlight.pack.js'></script>
+<link rel='stylesheet' type='text/css' href='../../highlight/styles/monokai.css'/>
+
+<link rel='stylesheet' href='../../fenxiang/dist/css/share.min.css'>
+<script src='../../fenxiang/src/js/social-share.js'></script>
+<script src='../../fenxiang/src/js/qrcode.js'></script>
+
+</head><body><script>hljs.initHighlightingOnLoad();</script><script>
+var system ={};  
+var p = navigator.platform;       
+system.win = p.indexOf('Win') == 0;  
+system.mac = p.indexOf('Mac') == 0;  
+system.x11 = (p == 'X11') || (p.indexOf('Linux') == 0);     
+if(system.win||system.mac||system.xll){
+document.write("<link href='../css/3.css' rel='stylesheet' type='text/css'>");}else{ document.write("<link href='../css/3wap.css' rel='stylesheet' type='text/css'>");}</script><script src='../../js/3.js'></script><div class='div2'><div class='heading_nav'><ul><div><li><a href='../../index.html'>首页</a></li>
+</div><div onclick='hidden1()' >分享</div>
+</ul></div></div>
+<div id='heading_nav2'> 
+<li class='row' >
+<div class='social-share' data-mode='prepend'><a href='javascript:' class='social-share-icon icon-heart'></a></div></li></div><script charset='utf-8' src='../../3/js/hengfu.js'></script><script charset='utf-8' src='../../3/js/hengfu2.js'></script><hr><div class='div1'><div class='biaoti'><center>本月16日SpringBoot2.2发布，有哪些变化先知晓</center></div><div class='banquan'>原文出处:本文由博客园博主字母哥博客提供。<br/>
+原文连接:https://www.cnblogs.com/zimug/p/11741715.html</div><br>
+    <p><img src="./images/本月16日SpringBoot2.2发布，有哪些变化先知晓0.png" alt="本月16日SpringBoot2.2发布了，有哪些新变化呢？我来告诉你" /></p>
+<p>本月（2019年10月16日）Spring Boot 2.2已经正式发布了!在此篇文章中，将给大家介绍一下2.2版为大家带来了哪些重要的新变化。笔者用心书写，<strong>希望阅读完成之后转发关注，你的支持是我不竭的创作动力！</strong></p>
+<h2 id="一spring-bean全局延迟初始化配置">一、Spring bean全局延迟初始化配置</h2>
+<p>Spring Boot 2.2引入的一项新功能是<strong>全局延迟bean初始化</strong>的支持（默认情况下，此功能处于禁用状态）。那么如果启用全局延迟bean初始化时会如何？</p>
+<ul>
+<li><strong>所有Spring Bean</strong>及其依赖项的初始化，只有当他们被使用到的时候才被创建。</li>
+</ul>
+<p>为了减少应用程序的初始化过程和启动时间，您现在可以使用以下的属性配置启用全局延迟初始化Spring bean：</p>
+<pre><code><code>spring.main.lazy.initialization=true
+</code></code></pre>
+<p>但是全局延迟初始化的缺点是显而易见的，在进行任何延迟的初始化时，HTTP请求的第一次处理可能需要更长的时间。后续请求不受影响。所以应该谨慎使用。如果您不想在全局范围内使用延迟初始化Spring Bean，则可以考虑使用@Lazy注释为特定bean配置延迟初始化。</p>
+<h2 id="二默认情况下禁用jmx">二、默认情况下禁用JMX</h2>
+<p>从Spring Boot 2.2开始，默认情况下禁用JMX。这有助于缩短应用程序的启动时间，并且不会在运行时浪费大量资源。如果您依赖JMX，则可以再次启用它：</p>
+<pre><code><code>spring.jmx.enabled=true
+</code></code></pre>
+<h2 id="三被configurationproperties注解的类被初始化为bean">三、被@ConfigurationProperties注解的类被初始化为bean</h2>
+<p>Spring Boot将为每个@ConfigurationProperties通过类路径扫描发现的配置类创建一个Bean。在之前版本的开发过程中，如果我们希望配置类被初始化为一个bean ,则需要在配置类上使用@Component注解使其成为bean。现在不需要了，只需要一个@ConfigurationProperties注解。</p>
+<blockquote>
+<p>注意：如果两个注解都用，被注解的类可能会创建两个bean，所以请把@Component注解移除掉。不要两个一起用。</p>
+</blockquote>
+<h2 id="四java-13支持">四、Java 13支持</h2>
+<p><img src="./images/本月16日SpringBoot2.2发布，有哪些变化先知晓1.png" alt="本月16日SpringBoot2.2发布了，有哪些新变化呢？我来告诉你" /></p>
+<p>Java 13于2019年9月17日正式发布了。</p>
+<p>Spring Framework 5.2和Spring Boot 2.2也支持Java13。LTS Java版本8和11将与Spring Boot 2.2保持兼容。</p>
+<h2 id="五配置键更改">五、配置（键）更改</h2>
+<p>Spring Boot 2.2引入了许多新的配置。还有一些不推荐使用和被删除的配置。比较重要的更改是：</p>
+<ul>
+<li>logging.file属性已重命名为logging.file.name</li>
+<li>logging.path属性已重命名为logging.file.path</li>
+</ul>
+<p><img src="./images/本月16日SpringBoot2.2发布，有哪些变化先知晓2.png" alt="本月16日SpringBoot2.2发布了，有哪些新变化呢？我来告诉你" /></p>
+<h2 id="六-依赖升级">六、 依赖升级</h2>
+<p>Spring Boot 2.2附带了许多依赖项升级。</p>
+<p><strong>与Spring相关的依赖项升级：</strong></p>
+<ul>
+<li>Spring Framework 5.2.0</li>
+<li>Spring AMQP 2.2.0</li>
+<li>Spring Batch 4.2.0</li>
+<li>Spring Data Moore RELEASE</li>
+<li>Spring HATEOAS 1.0.0</li>
+<li>Spring Integration 5.2.0</li>
+<li>Spring Kafka 2.3.0</li>
+<li>Spring Security 5.2.0</li>
+<li>Spring Session Corn</li>
+</ul>
+<p><strong>其他最重要的依赖项升级：</strong></p>
+<ul>
+<li>Elasticsearch 6.8.3(see breaking changes: in6.5,6.6and6.7)</li>
+<li>Flyway 6.0.6</li>
+<li>HSQLDB 2.5.0</li>
+<li>Jackson 2.10.0</li>
+<li>Jersey 2.29.1</li>
+<li>Kafka 2.3.0</li>
+<li>Kotlin 1.3.50</li>
+<li>Lombok 1.18.10</li>
+<li>Micrometer 1.3</li>
+<li>Netty 4.1.42</li>
+<li>Reactor Dysprosium</li>
+<li>Solr 8.2.0</li>
+<li>Tomcat 9.0.27</li>
+</ul>
+<p><strong>测试依赖项升级：</strong></p>
+<ul>
+<li>AssertJ 3.13.2(breaking changes)</li>
+<li>Hamcrest 2.1</li>
+<li>Mockito 3.1.0</li>
+<li>Junit 5.5.2(JUnit 5’s vintage engine still support existing JUnit 4-based test classes so no breaking changes here)</li>
+</ul>
+<h2 id="期待您的关注">期待您的关注</h2>
+<ul>
+<li>博主最近新写了一本书：<a href="http://springboot.zimug.com">《手摸手教您学习SpringBoot系列-16章97节》</a></li>
+<li>本文转载注明出处（必须带连接，不能只转文字）：<a href="http://www.zimug.com">字母哥博客</a>。</li>
+</ul>
+
+
+</div><hr><script charset='utf-8' src='../../js/sming.js'></script></body></html>

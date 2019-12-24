@@ -1,0 +1,81 @@
+<html><head><meta charset='utf-8'><meta name='viewport' content='width=device-width, initial-scale=1'>
+<meta name='applicable-device' content='pc'><meta name='keywords' content='电脑,电脑讲解,电脑技术,编程,电脑故障维修如何在Idea中编译构建Spring Framework 5.x' />
+<script src='../../highlight/highlight.pack.js'></script>
+<link rel='stylesheet' type='text/css' href='../../highlight/styles/monokai.css'/>
+
+<link rel='stylesheet' href='../../fenxiang/dist/css/share.min.css'>
+<script src='../../fenxiang/src/js/social-share.js'></script>
+<script src='../../fenxiang/src/js/qrcode.js'></script>
+
+</head><body><script>hljs.initHighlightingOnLoad();</script><script>
+var system ={};  
+var p = navigator.platform;       
+system.win = p.indexOf('Win') == 0;  
+system.mac = p.indexOf('Mac') == 0;  
+system.x11 = (p == 'X11') || (p.indexOf('Linux') == 0);     
+if(system.win||system.mac||system.xll){
+document.write("<link href='../css/3.css' rel='stylesheet' type='text/css'>");}else{ document.write("<link href='../css/3wap.css' rel='stylesheet' type='text/css'>");}</script><script src='../../js/3.js'></script><div class='div2'><div class='heading_nav'><ul><div><li><a href='../../index.html'>首页</a></li>
+</div><div onclick='hidden1()' >分享</div>
+</ul></div></div>
+<div id='heading_nav2'> 
+<li class='row' >
+<div class='social-share' data-mode='prepend'><a href='javascript:' class='social-share-icon icon-heart'></a></div></li></div><script charset='utf-8' src='../../3/js/hengfu.js'></script><script charset='utf-8' src='../../3/js/hengfu2.js'></script><hr><div class='div1'><div class='biaoti'><center>如何在Idea中编译构建Spring Framework 5.x</center></div><div class='banquan'>原文出处:本文由博客园博主陈其苗提供。<br/>
+原文连接:https://www.cnblogs.com/think-in-java/p/11780427.html</div><br>
+    <h2 id="如何在idea中编译构建spring-framework-5.x">如何在Idea中编译构建Spring Framework 5.x</h2>
+<ol>
+<li><p>安装配置Gradle<code>(略)</code></p></li>
+<li><p>下载源码：git clone <a href="https://github.com/spring-projects/spring-framework.git" class="uri">https://github.com/spring-projects/spring-framework.git</a></p></li>
+<li><p>按照工程下<code>import-into-idea.md</code>文件的提示进行操作</p>
+<pre><code><code>The following has been tested against IntelliJ IDEA 2016.2.2
+
+## Steps
+
+_Within your locally cloned spring-framework working directory:_
+
+1. Precompile `spring-oxm` with `./gradlew :spring-oxm:compileTestJava`
+2. Import into IntelliJ (File -&gt; New -&gt; Project from Existing Sources -&gt; Navigate to directory -&gt; Select build.gradle)
+3. When prompted exclude the `spring-aspects` module (or after the import via File-&gt; Project Structure -&gt; Modules)
+4. Code away
+
+## Known issues
+
+1. `spring-core` and `spring-oxm` should be pre-compiled due to repackaged dependencies.
+See `*RepackJar` tasks in the build and https://youtrack.jetbrains.com/issue/IDEA-160605).
+2. `spring-aspects` does not compile due to references to aspect types unknown to
+IntelliJ IDEA. See https://youtrack.jetbrains.com/issue/IDEA-64446 for details. In the meantime, the
+&#39;spring-aspects&#39; can be excluded from the project to avoid compilation errors.
+3. While JUnit tests pass from the command line with Gradle, some may fail when run from
+IntelliJ IDEA. Resolving this is a work in progress. If attempting to run all JUnit tests from within
+IntelliJ IDEA, you will likely need to set the following VM options to avoid out of memory errors:
+    -XX:MaxPermSize=2048m -Xmx2048m -XX:MaxHeapSize=2048m
+4. If you invoke &quot;Rebuild Project&quot; in the IDE, you&#39;ll have to generate some test
+resources of the `spring-oxm` module again (`./gradlew :spring-oxm:compileTestJava`)    
+
+
+## Tips
+
+In any case, please do not check in your own generated .iml, .ipr, or .iws files.
+You&#39;ll notice these files are already intentionally in .gitignore. The same policy goes for eclipse metadata.
+
+## FAQ
+
+Q. What about IntelliJ IDEA&#39;s own [Gradle support](https://confluence.jetbrains.net/display/IDEADEV/Gradle+integration)?
+
+A. Keep an eye on https://youtrack.jetbrains.com/issue/IDEA-53476</code></code></pre>
+<ul>
+<li><p>按照<code>steps</code>和<code>Known issues</code>指示进行操作即可,第一次构建可能要下载大量依赖，可能需要花费一些时间，慢的可能需要一到俩小时，需要耐心等待。</p></li>
+<li><p>编译完<code>spring-core</code>和<code>spring-oxm</code>之后，再去编译<code>spring-context</code>时候，你会发现报错了，有来自<code>.gradle</code>文件的报错，有因为xxx类找不到的报错，这里报出的任何错误，一律通过注释对应的代码进行解决。</p>
+<blockquote>
+<p>.gradle文件报错,将对应报错行的构建代码注释掉，xxx类找不到，将对xxx类的引用注释掉</p>
+</blockquote></li>
+<li><p>新增<code>module</code>进行测试</p></li>
+</ul>
+<blockquote>
+<p>Note: 由于<code>spring-aspects</code>的实现依赖了<code>aspectj</code>,需要另外引入，所以不调试<code>spring-aspects</code>模块内容的同学，可以直接把这个模块给移除掉。</p>
+</blockquote></li>
+</ol>
+<p>​</p>
+<h4 id="我这边构建一份最新的工程2019-11-2-226放在github上供大家参考">我这边构建一份最新的工程(2019-11-2 2:26)放在<a href="https://github.com/chenqimiao/spring-framework/tree/study-5.x">Github</a>上供大家参考</h4>
+
+
+</div><hr><script charset='utf-8' src='../../js/sming.js'></script></body></html>

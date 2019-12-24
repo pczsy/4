@@ -1,0 +1,158 @@
+<html><head><meta charset='utf-8'><meta name='viewport' content='width=device-width, initial-scale=1'>
+<meta name='applicable-device' content='pc'><meta name='keywords' content='电脑,电脑讲解,电脑技术,编程,电脑故障维修zipkin+elk微服务日志收集分析系统' />
+<script src='../../highlight/highlight.pack.js'></script>
+<link rel='stylesheet' type='text/css' href='../../highlight/styles/monokai.css'/>
+
+<link rel='stylesheet' href='../../fenxiang/dist/css/share.min.css'>
+<script src='../../fenxiang/src/js/social-share.js'></script>
+<script src='../../fenxiang/src/js/qrcode.js'></script>
+
+</head><body><script>hljs.initHighlightingOnLoad();</script><script>
+var system ={};  
+var p = navigator.platform;       
+system.win = p.indexOf('Win') == 0;  
+system.mac = p.indexOf('Mac') == 0;  
+system.x11 = (p == 'X11') || (p.indexOf('Linux') == 0);     
+if(system.win||system.mac||system.xll){
+document.write("<link href='../css/3.css' rel='stylesheet' type='text/css'>");}else{ document.write("<link href='../css/3wap.css' rel='stylesheet' type='text/css'>");}</script><script src='../../js/3.js'></script><div class='div2'><div class='heading_nav'><ul><div><li><a href='../../index.html'>首页</a></li>
+</div><div onclick='hidden1()' >分享</div>
+</ul></div></div>
+<div id='heading_nav2'> 
+<li class='row' >
+<div class='social-share' data-mode='prepend'><a href='javascript:' class='social-share-icon icon-heart'></a></div></li></div><script charset='utf-8' src='../../3/js/hengfu.js'></script><script charset='utf-8' src='../../3/js/hengfu2.js'></script><hr><div class='div1'><div class='biaoti'><center>zipkin+elk微服务日志收集分析系统</center></div><div class='banquan'>原文出处:本文由博客园博主heroic_zjx提供。<br/>
+原文连接:https://www.cnblogs.com/z-jx/p/11581883.html</div><br>
+    <h1 id="docker安装elk日志分析系统">docker安装elk日志分析系统</h1>
+<h3 id="在win10上安装docker环境">在win10上安装docker环境</h3>
+<h4 id="tipwin78">tip：win7/8</h4>
+<pre><code><code>win7、win8 系统
+win7、win8 等需要利用 docker toolbox 来安装，国内可以使用阿里云的镜像来下载，下载地址：http://mirrors.aliyun.com/docker-toolbox/windows/docker-toolbox/</code></code></pre>
+<h4 id="win10">win10</h4>
+<p>现在 Docker 有专门的 Win10 专业版系统的安装包，需要开启Hyper-V。</p>
+<h5 id="程序和功能-启用或关闭windows功能-选中hyper-v">程序和功能-&gt;启用或关闭Windows功能-&gt;选中Hyper-V</h5>
+<h4 id="安装-toolbox">1、安装 Toolbox</h4>
+<p>最新版 Toolbox 下载地址： <a href="https://www.docker.com/get-docker" class="uri">https://www.docker.com/get-docker</a></p>
+<p>点击 <a href="https://www.runoob.com/wp-content/uploads/2016/05/70E63727-8DAD-4BBC-80D4-81E45963C8F3.png">Download Desktop and Take a Tutorial</a>，并下载 Windows 的版本，如果你还没有登录，会要求注册登录。</p>
+<h4 id="运行安装文件">2、运行安装文件</h4>
+<p>双击下载的 Docker for Windows Installer 安装文件，一路 Next，点击 Finish 完成安装。</p>
+<h4 id="安装完成">安装完成</h4>
+<p>Docker 会自动启动。通知栏上会出现个小鲸鱼的图标<img src="./images/zipkin+elk微服务日志收集分析系统0.png" alt="img" />，这表示 Docker 正在运行。</p>
+<p>我们可以在命令行执行 docker version 来查看版本号，docker run hello-world 来载入测试镜像测试。</p>
+<p>如果没启动，你可以在 Windows 搜索 Docker 来启动。</p>
+<h4 id="镜像加速">镜像加速</h4>
+<p>鉴于国内网络问题，后续拉取 Docker 镜像十分缓慢，我们可以需要配置加速器来解决，我使用的是网易的镜像地址：<strong><a href="http://hub-mirror.c.163.com" class="uri">http://hub-mirror.c.163.com</a></strong>。</p>
+<ol>
+<li><strong>Win10</strong>可以点击docker图标在Settings中的Daemon来配置。</li>
+<li>新版的 Docker 使用 /etc/docker/daemon.json<strong>（Linux）</strong> 或者 %programdata%\docker\config\daemon.json（Windows） 来配置 Daemon。</li>
+</ol>
+<p>请在该配置文件中加入（没有该文件的话，请先建一个）：</p>
+<pre><code><code>{
+  &quot;registry-mirrors&quot;: [&quot;http://hub-mirror.c.163.com&quot;]
+}</code></code></pre>
+<h3 id="安装elk">安装elk</h3>
+<p>打开cmd\powershell，输入docker命令：</p>
+<pre class="powershell"><code>docker run --ulimit nofile=65536:65536 -p 5601:5601 -p 9200:9200 -p 5044:5044 -p 5045:5045 -p 5046:5046 -d --restart=always --name elk sebp/elk</code></code></pre>
+<p>下载完会自动启动，现在需要修改logstash配置：</p>
+<pre class="shell"><code>docker exec -it elk /bin/bash #进入容器
+
+cd etc/logstash/conf.d/
+
+vim 02-beats-input.conf #修改input配置
+--------------------------------------------覆盖
+input {    
+    tcp {         
+        port =&gt; 5044         
+        codec =&gt; json_lines     
+    } 
+} 
+output{  
+    elasticsearch { 
+    hosts =&gt; [&quot;localhost:9200&quot;] 
+    }  
+}</code></code></pre>
+<p>退出容器，重启elk</p>
+<pre class="shell"><code>docker restart elk</code></code></pre>
+<h3 id="访问localhost5601可以进入kibana界面">访问localhost:5601可以进入kibana界面</h3>
+<h3 id="zipkin">Zipkin</h3>
+<p>需要安装zipkin最新版本，最新版可以前往<a href="https://github.com/openzipkin/zipkin">zipkin的github</a>进行获取</p>
+<p>Maven仓库链接：<a href="https://search.maven.org/remote_content?g=io.zipkin&amp;a=zipkin-server&amp;v=LATEST&amp;c=exec" class="uri">https://search.maven.org/remote_content?g=io.zipkin&amp;a=zipkin-server&amp;v=LATEST&amp;c=exec</a></p>
+<h3 id="下载jar包运行">下载jar包，运行</h3>
+<p>下载jar包(版本可能会变)，在jar的目录下执行命令：</p>
+<pre class="shell"><code>java -jar zipkin-server-2.16.2-exec.jar --STORAGE_TYPE=elasticsearch --DES_HOSTS=http://ip:9200（若在本机，可以使用localhost）
+
+--STORAGE_TYPE 指明数据服务
+--DES_HOSTS 指明地址</code></code></pre>
+<h3 id="附录">附录</h3>
+<p>pom.xml依赖：</p>
+<pre><code><code>&lt;dependency&gt;
+&lt;groupId&gt;net.logstash.logback&lt;/groupId&gt;
+&lt;artifactId&gt;logstash-logback-encoder&lt;/artifactId&gt;
+&lt;version&gt;5.2&lt;/version&gt;
+&lt;/dependency&gt;</code></code></pre>
+<p>logback.xml配置：</p>
+<pre class="xml"><code>&lt;?xml version=&quot;1.0&quot; encoding=&quot;UTF-8&quot;?&gt;
+&lt;!--该日志将日志级别不同的log信息保存到不同的文件中 --&gt;
+&lt;configuration&gt;
+    &lt;include resource=&quot;org/springframework/boot/logging/logback/defaults.xml&quot; /&gt;
+ 
+    &lt;springProperty scope=&quot;context&quot; name=&quot;springAppName&quot;
+                    source=&quot;spring.application.name&quot; /&gt;
+ 
+    &lt;!-- 日志在工程中的输出位置 --&gt;
+    &lt;property name=&quot;LOG_FILE&quot; value=&quot;${BUILD_FOLDER:-build}/${springAppName}&quot; /&gt;
+ 
+    &lt;!-- 控制台的日志输出样式 --&gt;
+    &lt;property name=&quot;CONSOLE_LOG_PATTERN&quot;
+              value=&quot;%clr(%d{yyyy-MM-dd HH:mm:ss.SSS}){faint} %clr(${LOG_LEVEL_PATTERN:-%5p}) %clr(${PID:- }){magenta} %clr(---){faint} %clr([%15.15t]){faint} %m%n${LOG_EXCEPTION_CONVERSION_WORD:-%wEx}}&quot; /&gt;
+ 
+    &lt;!-- 控制台输出 --&gt;
+    &lt;appender name=&quot;console&quot; class=&quot;ch.qos.logback.core.ConsoleAppender&quot;&gt;
+        &lt;filter class=&quot;ch.qos.logback.classic.filter.ThresholdFilter&quot;&gt;
+            &lt;level&gt;INFO&lt;/level&gt;
+        &lt;/filter&gt;
+        &lt;!-- 日志输出编码 --&gt;
+        &lt;encoder&gt;
+            &lt;pattern&gt;${CONSOLE_LOG_PATTERN}&lt;/pattern&gt;
+            &lt;charset&gt;utf8&lt;/charset&gt;
+        &lt;/encoder&gt;
+    &lt;/appender&gt;
+ 
+    &lt;!-- 为logstash输出的JSON格式的Appender --&gt;
+    &lt;appender name=&quot;logstash&quot;
+              class=&quot;net.logstash.logback.appender.LogstashTcpSocketAppender&quot;&gt;
+        &lt;destination&gt;127.0.0.1:5044&lt;/destination&gt;
+        &lt;!-- 日志输出编码 --&gt;
+        &lt;encoder
+                class=&quot;net.logstash.logback.encoder.LoggingEventCompositeJsonEncoder&quot;&gt;
+            &lt;providers&gt;
+                &lt;timestamp&gt;
+                    &lt;timeZone&gt;UTC&lt;/timeZone&gt;
+                &lt;/timestamp&gt;
+                &lt;pattern&gt;
+                    &lt;pattern&gt;
+                        {
+                        &quot;severity&quot;: &quot;%level&quot;,
+                        &quot;service&quot;: &quot;${springAppName:-}&quot;,
+                        &quot;trace&quot;: &quot;%X{X-B3-TraceId:-}&quot;,
+                        &quot;span&quot;: &quot;%X{X-B3-SpanId:-}&quot;,
+                        &quot;exportable&quot;: &quot;%X{X-Span-Export:-}&quot;,
+                        &quot;pid&quot;: &quot;${PID:-}&quot;,
+                        &quot;thread&quot;: &quot;%thread&quot;,
+                        &quot;class&quot;: &quot;%logger{40}&quot;,
+                        &quot;rest&quot;: &quot;%message&quot;
+                        }
+                    &lt;/pattern&gt;
+                &lt;/pattern&gt;
+            &lt;/providers&gt;
+        &lt;/encoder&gt;
+    &lt;/appender&gt;
+ 
+    &lt;!-- 日志输出级别 --&gt;
+    &lt;root level=&quot;INFO&quot;&gt;
+        &lt;appender-ref ref=&quot;console&quot; /&gt;
+        &lt;appender-ref ref=&quot;logstash&quot; /&gt;
+    &lt;/root&gt;
+&lt;/configuration&gt;</code></code></pre>
+<p>来自blog.koreyoshi.work</p>
+
+
+</div><hr><script charset='utf-8' src='../../js/sming.js'></script></body></html>

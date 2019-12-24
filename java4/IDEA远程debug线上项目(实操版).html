@@ -1,0 +1,67 @@
+<html><head><meta charset='utf-8'><meta name='viewport' content='width=device-width, initial-scale=1'>
+<meta name='applicable-device' content='pc'><meta name='keywords' content='电脑,电脑讲解,电脑技术,编程,电脑故障维修IDEA远程debug线上项目(实操版)' />
+<script src='../../highlight/highlight.pack.js'></script>
+<link rel='stylesheet' type='text/css' href='../../highlight/styles/monokai.css'/>
+
+<link rel='stylesheet' href='../../fenxiang/dist/css/share.min.css'>
+<script src='../../fenxiang/src/js/social-share.js'></script>
+<script src='../../fenxiang/src/js/qrcode.js'></script>
+
+</head><body><script>hljs.initHighlightingOnLoad();</script><script>
+var system ={};  
+var p = navigator.platform;       
+system.win = p.indexOf('Win') == 0;  
+system.mac = p.indexOf('Mac') == 0;  
+system.x11 = (p == 'X11') || (p.indexOf('Linux') == 0);     
+if(system.win||system.mac||system.xll){
+document.write("<link href='../css/3.css' rel='stylesheet' type='text/css'>");}else{ document.write("<link href='../css/3wap.css' rel='stylesheet' type='text/css'>");}</script><script src='../../js/3.js'></script><div class='div2'><div class='heading_nav'><ul><div><li><a href='../../index.html'>首页</a></li>
+</div><div onclick='hidden1()' >分享</div>
+</ul></div></div>
+<div id='heading_nav2'> 
+<li class='row' >
+<div class='social-share' data-mode='prepend'><a href='javascript:' class='social-share-icon icon-heart'></a></div></li></div><script charset='utf-8' src='../../3/js/hengfu.js'></script><script charset='utf-8' src='../../3/js/hengfu2.js'></script><hr><div class='div1'><div class='biaoti'><center>IDEA远程debug线上项目(实操版)</center></div><div class='banquan'>原文出处:本文由博客园博主瞎琢磨先生提供。<br/>
+原文连接:https://www.cnblogs.com/xiazuomo/p/11576000.html</div><br>
+    # 1.在服务器上 tomcat 的 bin目录下找到并打开 catalina.sh
+
+在文件中搜索：
+```
+JPDA_ADDRESS=
+```
+
+找一个服务器上没有被使用的端口，填入，如50005，保存并退出。
+
+> 如何知道某端口有没有被占用?
+> 命令：
+> ```
+> lsof -i:50005
+> ```
+> 没有pid值的显示即没被占用，否则，重新选一个端口尝试。
+
+修改完毕后的效果：
+![](https://img2018.cnblogs.com/blog/1558389/201909/1558389-20190924001716800-815012169.png)
+
+# 2.杀死原来的服务
+```
+./shutdown.sh
+```
+# 3.启动服务
+使用命令 sh catalina.sh jdpa start 进行启动服务(务必注意：此时不要再启动原来的服务，即 ./start.sh )
+```
+sh catalina.sh jpda start
+```
+
+# 4.配置 IDEA 相关
+4.1 在 IDEA 的 Run/Debug Configurations 中填入相应的信息 -- ip和端口。
+
+![](https://img2018.cnblogs.com/blog/1558389/201909/1558389-20190924001717065-1762371216.png)
+
+4.2 点击 debug ，启动本地服务
+![](https://img2018.cnblogs.com/blog/1558389/201909/1558389-20190924001717326-1590578785.png)
+
+
+> 如何判断是否远程 debug 操作成功?
+> 看到控制台出现下面信息，即为远程debug成功。
+> 
+> ![](https://img2018.cnblogs.com/blog/1558389/201909/1558389-20190924001717583-1093992109.png)
+
+</div><hr><script charset='utf-8' src='../../js/sming.js'></script></body></html>

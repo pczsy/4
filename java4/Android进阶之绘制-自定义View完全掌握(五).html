@@ -1,0 +1,207 @@
+<html><head><meta charset='utf-8'><meta name='viewport' content='width=device-width, initial-scale=1'>
+<meta name='applicable-device' content='pc'><meta name='keywords' content='电脑,电脑讲解,电脑技术,编程,电脑故障维修Android进阶之绘制-自定义View完全掌握(五)' />
+<script src='../../highlight/highlight.pack.js'></script>
+<link rel='stylesheet' type='text/css' href='../../highlight/styles/monokai.css'/>
+
+<link rel='stylesheet' href='../../fenxiang/dist/css/share.min.css'>
+<script src='../../fenxiang/src/js/social-share.js'></script>
+<script src='../../fenxiang/src/js/qrcode.js'></script>
+
+</head><body><script>hljs.initHighlightingOnLoad();</script><script>
+var system ={};  
+var p = navigator.platform;       
+system.win = p.indexOf('Win') == 0;  
+system.mac = p.indexOf('Mac') == 0;  
+system.x11 = (p == 'X11') || (p.indexOf('Linux') == 0);     
+if(system.win||system.mac||system.xll){
+document.write("<link href='../css/3.css' rel='stylesheet' type='text/css'>");}else{ document.write("<link href='../css/3wap.css' rel='stylesheet' type='text/css'>");}</script><script src='../../js/3.js'></script><div class='div2'><div class='heading_nav'><ul><div><li><a href='../../index.html'>首页</a></li>
+</div><div onclick='hidden1()' >分享</div>
+</ul></div></div>
+<div id='heading_nav2'> 
+<li class='row' >
+<div class='social-share' data-mode='prepend'><a href='javascript:' class='social-share-icon icon-heart'></a></div></li></div><script charset='utf-8' src='../../3/js/hengfu.js'></script><script charset='utf-8' src='../../3/js/hengfu2.js'></script><hr><div class='div1'><div class='biaoti'><center>Android进阶之绘制-自定义View完全掌握(五)</center></div><div class='banquan'>原文出处:本文由博客园博主#Temptation提供。<br/>
+原文连接:https://www.cnblogs.com/blizzawang/p/11411749.html</div><br>
+    <p><strong>在自定义类继承View实现自定义控件的过程中，我们还应该对一些自定义属性有所了解。</strong><br />
+我们通过一个案例来学习一下。<br />
+新建一个android项目，然后我们创建一个类MyAttributeView继承View。<br />
+贴出MyAttributeView的代码。</p>
+<pre><code><code>package com.itcast.test0501;
+
+import android.content.Context;
+import android.support.annotation.Nullable;
+import android.util.AttributeSet;
+import android.view.View;
+
+/**
+ *  自定义属性
+ */
+public class MyAttributeView extends View {
+
+    public MyAttributeView(Context context, @Nullable AttributeSet attrs) {
+        super(context, attrs);
+    }
+
+}</code></code></pre>
+<p>然后我们在activity_main.xml文件来使用。</p>
+<pre class="xml"><code>&lt;?xml version=&quot;1.0&quot; encoding=&quot;utf-8&quot;?&gt;
+&lt;RelativeLayout xmlns:android=&quot;http://schemas.android.com/apk/res/android&quot;
+    xmlns:app=&quot;http://schemas.android.com/apk/res-auto&quot;
+    xmlns:tools=&quot;http://schemas.android.com/tools&quot;
+    android:layout_width=&quot;match_parent&quot;
+    android:layout_height=&quot;match_parent&quot;
+    tools:context=&quot;com.itcast.test0501.MainActivity&quot;&gt;
+
+    &lt;com.itcast.test0501.MyAttributeView
+        app:my_age=&quot;100&quot;
+        app:my_name=&quot;Android0501&quot;
+        app:my_bg=&quot;@drawable/a&quot;
+        android:layout_width=&quot;match_parent&quot;
+        android:layout_height=&quot;match_parent&quot;/&gt;
+
+&lt;/RelativeLayout&gt;</code></code></pre>
+<p>发现没有，my_age，my_name，my_bg都是我们自定义的属性，前面的命名空间我们可以随意命名，不一定非得叫app。那现在运行项目的话显然是不行的，因为我们属性还没去定义呢。<br />
+那么接下来我们就去定义我们的属性。<br />
+在values文件夹下新建attrs.xml文件。</p>
+<pre class="xml"><code>&lt;?xml version=&quot;1.0&quot; encoding=&quot;utf-8&quot;?&gt;
+&lt;resources&gt;
+    &lt;!--定义名字为MyAttributeView的属性集合--&gt;
+    &lt;declare-styleable name=&quot;MyAttributeView&quot;&gt;
+        &lt;!--定义名字为my_name，并且类型为string的属性--&gt;
+        &lt;attr name=&quot;my_name&quot; format=&quot;string&quot; /&gt;
+        &lt;!--定义名字为my_age，并且类型为integer的属性--&gt;
+        &lt;attr name=&quot;my_age&quot; format=&quot;integer&quot; /&gt;
+        &lt;!--定义名字为my_bg，并且类型为reference|color的属性--&gt;
+        &lt;attr name=&quot;my_bg&quot; format=&quot;reference|color&quot; /&gt;
+    &lt;/declare-styleable&gt;
+&lt;/resources&gt;</code></code></pre>
+<p>这样我们的属性就定义好了。<br />
+我们可以思考一下，一个类在布局文件中使用，它是如何被呈现到屏幕上的，我们知道，在java中，一个类要想被使用，该类就必须被实例化，那么在android中，它是如何对这个自定义的View类进行实例化显示的呢？它使用的是反射技术。它会把所有属性封装到AttributeSet类中，那么你会发现，在自定义类中重写的构造方法的参数里就存在这么一个属性的集合类。所以我们就可以知道为什么自定义的控件需要写类的全路径，因为反射是需要一个类的完整路径的。在编译的时候，会对布局文件进行pull解析，遇到类，就利用类路径通过反射技术封装属性。<br />
+那接下来就是获取属性了，获取属性我们有三种方式。</p>
+<p>1、用命名空间去获取</p>
+<p>2、遍历属性集合</p>
+<p>3、使用系统工具，获取属性</p>
+<p>修改MyAttributeView类的代码。</p>
+<pre><code><code>package com.itcast.test0501;
+
+import android.content.Context;
+import android.content.res.TypedArray;
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
+import android.graphics.drawable.BitmapDrawable;
+import android.graphics.drawable.Drawable;
+import android.support.annotation.Nullable;
+import android.util.AttributeSet;
+import android.util.Log;
+import android.view.View;
+
+/**
+ *  自定义属性
+ */
+public class MyAttributeView extends View {
+
+    private int myAge;
+    private String myName;
+    private Bitmap myBg;
+
+    public MyAttributeView(Context context, @Nullable AttributeSet attrs) {
+        super(context, attrs);
+
+        //获取属性三种方式
+        //1、用命名空间去获取
+        String age = attrs.getAttributeValue(&quot;http://schemas.android.com/apk/res-auto&quot;, &quot;my_age&quot;);
+        String name = attrs.getAttributeValue(&quot;http://schemas.android.com/apk/res-auto&quot;, &quot;my_name&quot;);
+        String bg = attrs.getAttributeValue(&quot;http://schemas.android.com/apk/res-auto&quot;, &quot;my_bg&quot;);
+        Log.d(&quot;TAG1&quot;,&quot;age==&quot; + age + &quot;,name==&quot; + name + &quot;,bg==&quot; + bg);
+
+        //2、遍历属性集合
+        for(int i = 0;i &lt; attrs.getAttributeCount();i++){
+            Log.d(&quot;TAG2&quot;,attrs.getAttributeName(i) + &quot;==&quot; + attrs.getAttributeValue(i));
+        }
+
+        //3、使用系统工具，获取属性
+       
+    }
+}</code></code></pre>
+<p>运行项目，查看日志。<br />
+<img src="./images/Android进阶之绘制-自定义View完全掌握(五)0.png" alt="在这里插入图片描述" /><br />
+这样就把我们设置的属性值拿出来了。<br />
+但是，不知道大家发现了没有，这两种方法拿到的图片值都是地址值吧，我们要想将设置的图片属性值通过某种方法显式到屏幕上，对于地址值，我们有办法操作吗？应该是没有的，所以，我们采用第三种方式，使用系统工具来获取属性值。<br />
+我们修改MyAttributeView的代码。</p>
+<pre><code><code>package com.itcast.test0501;
+
+import android.content.Context;
+import android.content.res.TypedArray;
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
+import android.graphics.Canvas;
+import android.graphics.Paint;
+import android.graphics.drawable.BitmapDrawable;
+import android.graphics.drawable.Drawable;
+import android.support.annotation.Nullable;
+import android.util.AttributeSet;
+import android.util.Log;
+import android.view.View;
+
+/**
+ *  自定义属性
+ */
+public class MyAttributeView extends View {
+
+    private int myAge;
+    private String myName;
+    private Bitmap myBg;
+
+    public MyAttributeView(Context context, @Nullable AttributeSet attrs) {
+        super(context, attrs);
+
+        //获取属性三种方式
+        //1、用命名空间去获取
+        String age = attrs.getAttributeValue(&quot;http://schemas.android.com/apk/res-auto&quot;, &quot;my_age&quot;);
+        String name = attrs.getAttributeValue(&quot;http://schemas.android.com/apk/res-auto&quot;, &quot;my_name&quot;);
+        String bg = attrs.getAttributeValue(&quot;http://schemas.android.com/apk/res-auto&quot;, &quot;my_bg&quot;);
+        Log.d(&quot;TAG1&quot;,&quot;age==&quot; + age + &quot;,name==&quot; + name + &quot;,bg==&quot; + bg);
+
+        //2、遍历属性集合
+        for(int i = 0;i &lt; attrs.getAttributeCount();i++){
+            Log.d(&quot;TAG2&quot;,attrs.getAttributeName(i) + &quot;==&quot; + attrs.getAttributeValue(i));
+        }
+
+        //3、使用系统工具，获取属性
+        TypedArray typedArray = context.obtainStyledAttributes(attrs,R.styleable.MyAttributeView);
+        for(int i = 0;i &lt; typedArray.getIndexCount();i++){
+            int index = typedArray.getIndex(i);
+
+            switch (index){
+                case R.styleable.MyAttributeView_my_age:
+                    myAge = typedArray.getInt(index,0);
+                    break;
+                case R.styleable.MyAttributeView_my_name:
+                    myName = typedArray.getString(index);
+                    break;
+                case R.styleable.MyAttributeView_my_bg:
+                    Drawable drawable = typedArray.getDrawable(index);
+                    BitmapDrawable drawable1 = (BitmapDrawable) drawable;
+                    myBg = drawable1.getBitmap();
+                    break;
+            }
+        }
+    }
+
+    @Override
+    protected void onDraw(Canvas canvas) {
+        super.onDraw(canvas);
+        Paint paint = new Paint();
+        canvas.drawText(myName + &quot;---&quot; + myAge,50,50,paint);
+        canvas.drawBitmap(myBg,60,60,paint);
+    }
+}</code></code></pre>
+<p>通过系统工具，我们可以把图片的属性值转换为Bitmap，然后在onDraw()方法中将位图绘制出来。<br />
+我们运行项目，预览效果。<br />
+<img src="./images/Android进阶之绘制-自定义View完全掌握(五)1.png" alt="在这里插入图片描述" /><br />
+我们设置的属性信息都被成功绘制上来了。<br />
+由此，我们必须得掌握第三种获取属性值的方法，前两种有能力去掌握的也可以去理解一下。<br />
+源码我已上传至GitHub，感兴趣的同学可以下载阅读一下。<br />
+<a href="https://github.com/blizzawang/DIYView.git">点击下载源码</a></p>
+
+
+</div><hr><script charset='utf-8' src='../../js/sming.js'></script></body></html>

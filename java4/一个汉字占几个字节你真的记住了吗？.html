@@ -1,0 +1,70 @@
+<html><head><meta charset='utf-8'><meta name='viewport' content='width=device-width, initial-scale=1'>
+<meta name='applicable-device' content='pc'><meta name='keywords' content='电脑,电脑讲解,电脑技术,编程,电脑故障维修一个汉字占几个字节你真的记住了吗？' />
+<script src='../../highlight/highlight.pack.js'></script>
+<link rel='stylesheet' type='text/css' href='../../highlight/styles/monokai.css'/>
+
+<link rel='stylesheet' href='../../fenxiang/dist/css/share.min.css'>
+<script src='../../fenxiang/src/js/social-share.js'></script>
+<script src='../../fenxiang/src/js/qrcode.js'></script>
+
+</head><body><script>hljs.initHighlightingOnLoad();</script><script>
+var system ={};  
+var p = navigator.platform;       
+system.win = p.indexOf('Win') == 0;  
+system.mac = p.indexOf('Mac') == 0;  
+system.x11 = (p == 'X11') || (p.indexOf('Linux') == 0);     
+if(system.win||system.mac||system.xll){
+document.write("<link href='../css/3.css' rel='stylesheet' type='text/css'>");}else{ document.write("<link href='../css/3wap.css' rel='stylesheet' type='text/css'>");}</script><script src='../../js/3.js'></script><div class='div2'><div class='heading_nav'><ul><div><li><a href='../../index.html'>首页</a></li>
+</div><div onclick='hidden1()' >分享</div>
+</ul></div></div>
+<div id='heading_nav2'> 
+<li class='row' >
+<div class='social-share' data-mode='prepend'><a href='javascript:' class='social-share-icon icon-heart'></a></div></li></div><script charset='utf-8' src='../../3/js/hengfu.js'></script><script charset='utf-8' src='../../3/js/hengfu2.js'></script><hr><div class='div1'><div class='biaoti'><center>一个汉字占几个字节你真的记住了吗？</center></div><div class='banquan'>原文出处:本文由博客园博主执偕提供。<br/>
+原文连接:https://www.cnblogs.com/zhixie/p/11968710.html</div><br>
+    <p>一个汉字占几个字节是不是不太好记呢，编码不一样则占字节位就不一样。下面用一段简短的代码了解一下一个汉字占几个字节。</p>
+<h2 id="示例">示例</h2>
+<pre><code><code>String s = &quot;情系IT&quot;;
+        try {
+            byte[] bytes1 = s.getBytes(&quot;gbk&quot;);
+            for (byte b : bytes1) {
+                System.out.print(Integer.toHexString(b &amp; 0xff)+&quot;  &quot;);
+            }
+            System.out.println();
+            byte[] bytes2 = s.getBytes(&quot;utf-8&quot;);
+            for (byte b : bytes2) {
+                System.out.print(Integer.toHexString(b &amp; 0xff)+&quot;  &quot;);
+
+            }
+        } catch (UnsupportedEncodingException e) {
+            // TODO Auto-generated catch block
+            e.printStackTrace();
+        }</code></code></pre>
+<p>下面是运行结果：<br />
+<img src="./images/一个汉字占几个字节你真的记住了吗？0.png" /></p>
+<h2 id="解析">解析</h2>
+<ol>
+<li>Integer.toHexString(int a)，这个是java API提供的一个方法，目的是返回整数参数的字符串表示形式，作为16位中的无符号整数。</li>
+<li>为什么要用b &amp; 0xff ？
+<ul>
+<li>Integer.toHexString(int a)，需要的是一个int类型的参数。<br />
+</li>
+<li>0xff代表的就是16进制的11111111。<br />
+</li>
+<li>我们知道byte是1个字节，int是4个字节，也就是要将8位转换为32位。如果无符号位的话，我们直接补0即可。因此&amp;0xff就是为了保证符号位。<br />
+</li>
+<li>举个例子：-127转为二进制为11111111，取反求补则为10000001，转十六进制则为81，继续转成十进制，看成无符号数就会发现变成了129。</li>
+</ul></li>
+</ol>
+<h2 id="总结">总结</h2>
+<p>根据结果我们可看出，<br />
+<strong>字符串是utf-8编码，一个汉字三个字节，一个字母一个字节。<br />
+字符串是gbk编码时，一个汉字两个字节，一个字母一个字节。</strong><br />
+如果想看其他编码下的情况，可复制上面的代码，将字符串进行其他编码查看即可。<br />
+<strong>注意：如果字符串不进行编码，则默认为项目的编码。</strong></p>
+<blockquote>
+<p>如果文章对您有帮助，请记得点赞关注哟~<br />
+欢迎大家关注我的公众号：情系IT，每日推送技术文章供大家学习参考。</p>
+</blockquote>
+
+
+</div><hr><script charset='utf-8' src='../../js/sming.js'></script></body></html>

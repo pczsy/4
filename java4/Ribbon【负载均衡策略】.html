@@ -1,0 +1,221 @@
+<html><head><meta charset='utf-8'><meta name='viewport' content='width=device-width, initial-scale=1'>
+<meta name='applicable-device' content='pc'><meta name='keywords' content='电脑,电脑讲解,电脑技术,编程,电脑故障维修Ribbon【负载均衡策略】' />
+<script src='../../highlight/highlight.pack.js'></script>
+<link rel='stylesheet' type='text/css' href='../../highlight/styles/monokai.css'/>
+
+<link rel='stylesheet' href='../../fenxiang/dist/css/share.min.css'>
+<script src='../../fenxiang/src/js/social-share.js'></script>
+<script src='../../fenxiang/src/js/qrcode.js'></script>
+
+</head><body><script>hljs.initHighlightingOnLoad();</script><script>
+var system ={};  
+var p = navigator.platform;       
+system.win = p.indexOf('Win') == 0;  
+system.mac = p.indexOf('Mac') == 0;  
+system.x11 = (p == 'X11') || (p.indexOf('Linux') == 0);     
+if(system.win||system.mac||system.xll){
+document.write("<link href='../css/3.css' rel='stylesheet' type='text/css'>");}else{ document.write("<link href='../css/3wap.css' rel='stylesheet' type='text/css'>");}</script><script src='../../js/3.js'></script><div class='div2'><div class='heading_nav'><ul><div><li><a href='../../index.html'>首页</a></li>
+</div><div onclick='hidden1()' >分享</div>
+</ul></div></div>
+<div id='heading_nav2'> 
+<li class='row' >
+<div class='social-share' data-mode='prepend'><a href='javascript:' class='social-share-icon icon-heart'></a></div></li></div><script charset='utf-8' src='../../3/js/hengfu.js'></script><script charset='utf-8' src='../../3/js/hengfu2.js'></script><hr><div class='div1'><div class='biaoti'><center>Ribbon【负载均衡策略】</center></div><div class='banquan'>原文出处:本文由博客园博主KingJames、提供。<br/>
+原文连接:https://www.cnblogs.com/idoljames/p/11698923.html</div><br>
+    <p>ribbon有7种负载均衡策略可供选择：</p>
+<table style="height: 252px; width: 1695px;" border="0">
+<tbody>
+<tr>
+<td>策略类　　</td>
+<td>命名</td>
+<td>描述</td>
+</tr>
+<tr>
+<td>RandomRule</td>
+<td>随机策略</td>
+<td>随机选择server</td>
+</tr>
+<tr>
+<td>RoundRobinRule</td>
+<td>轮询策略</td>
+<td>按照顺序选择server（ribbon默认策略）</td>
+</tr>
+<tr>
+<td>RetryRule</td>
+<td>重试策略</td>
+<td>在一个配置时间段内，当选择server不成功，则一直尝试选择一个可用的server</td>
+</tr>
+<tr>
+<td>BestAvailableRule</td>
+<td>最低并发策略</td>
+<td>逐个考察server，如果server断路器打开，则忽略，再选择其中并发链接最低的server</td>
+</tr>
+<tr>
+<td>AvailabilityFilteringRule</td>
+<td>可用过滤策略</td>
+<td>过滤掉一直失败并被标记为circuit tripped的server，过滤掉那些高并发链接的server（active connections超过配置的阈值）</td>
+</tr>
+<tr>
+<td>ResponseTimeWeightedRule</td>
+<td>响应时间加权重策略</td>
+<td>根据server的响应时间分配权重，响应时间越长，权重越低，被选择到的概率也就越低。响应时间越短，权重越高，被选中的概率越高，这个策略很贴切，综合了各种因素，比如：网络，磁盘，io等，都直接影响响应时间</td>
+</tr>
+<tr>
+<td>ZoneAvoidanceRule</td>
+<td>区域权重策略</td>
+<td>综合判断server所在区域的性能，和server的可用性，轮询选择server并且判断一个AWS Zone的运行性能是否可用，剔除不可用的Zone中的所有server</td>
+</tr>
+</tbody>
+</table>
+<p>&nbsp;</p>
+<p>如果想要创建一个全局的负载策略，只需添加一个配置类，也可自己扩展，添加逻辑，如下：</p>
+<src class="cnblogs_code">
+<pre><code><span style="color: #0000ff;">import</span><span style="color: #000000;"> org.springframework.beans.factory.annotation.Autowired;
+</span><span style="color: #0000ff;">import</span><span style="color: #000000;"> org.springframework.context.annotation.Bean;
+</span><span style="color: #0000ff;">import</span><span style="color: #000000;"> org.springframework.context.annotation.Configuration;
+
+</span><span style="color: #0000ff;">import</span><span style="color: #000000;"> com.netflix.client.config.IClientConfig;
+</span><span style="color: #0000ff;">import</span><span style="color: #000000;"> com.netflix.loadbalancer.IRule;
+</span><span style="color: #0000ff;">import</span><span style="color: #000000;"> com.netflix.loadbalancer.RandomRule;
+
+@Configuration
+</span><span style="color: #0000ff;">public</span> <span style="color: #0000ff;">class</span><span style="color: #000000;"> RibbonConfiguration {
+</span><span style="color: #000000;">
+    @Bean
+    </span><span style="color: #0000ff;">public</span><span style="color: #000000;"> IRule ribbonRule() {
+        </span><span style="color: #0000ff;">return</span> <span style="color: #0000ff;">new</span><span style="color: #000000;"> RandomRule();
+    }
+}</span></code></pre>
+
+<p>&nbsp;</p>
+<p>如果想要对某个服务源设置特有的策略，可以在工程启动类上添加@RibbonClient注解，当然，对应配置代码也需要调整：</p>
+<src class="cnblogs_code">
+<pre><code><span style="color: #008000;">/**</span><span style="color: #008000;">
+ * 自定义-标记注解
+ </span><span style="color: #008000;">*/</span>
+<span style="color: #0000ff;">public</span> @<span style="color: #0000ff;">interface</span><span style="color: #000000;"> AvoidScan {
+
+}</span></code></pre>
+
+<src class="cnblogs_code">
+<pre><code><span style="color: #0000ff;">import</span><span style="color: #000000;"> org.springframework.beans.factory.annotation.Autowired;
+</span><span style="color: #0000ff;">import</span><span style="color: #000000;"> org.springframework.context.annotation.Bean;
+</span><span style="color: #0000ff;">import</span><span style="color: #000000;"> org.springframework.context.annotation.Configuration;
+
+</span><span style="color: #0000ff;">import</span><span style="color: #000000;"> com.netflix.client.config.IClientConfig;
+</span><span style="color: #0000ff;">import</span><span style="color: #000000;"> com.netflix.loadbalancer.IRule;
+</span><span style="color: #0000ff;">import</span><span style="color: #000000;"> com.netflix.loadbalancer.RandomRule;
+
+</span><span style="color: #008000;">/**</span><span style="color: #008000;">
+ * Ribbon负载策略配置类，IClientConfig是针对客户端的管理配置器，配合@RibbonClient注解使用
+ </span><span style="color: #008000;">*/</span><span style="color: #000000;">
+@Configuration
+@AvoidScan
+</span><span style="color: #0000ff;">public</span> <span style="color: #0000ff;">class</span><span style="color: #000000;"> RibbonConfiguration {
+
+    @Autowired
+    </span><span style="color: #0000ff;">private</span><span style="color: #000000;"> IClientConfig config;
+
+    @Bean
+    </span><span style="color: #0000ff;">public</span><span style="color: #000000;"> IRule ribbonRule(IClientConfig config) {
+        </span><span style="color: #0000ff;">return</span> <span style="color: #0000ff;">new</span><span style="color: #000000;"> RandomRule();
+    }
+}</span></code></pre>
+
+<src class="cnblogs_code">
+<pre><code><span style="color: #0000ff;">import</span><span style="color: #000000;"> org.springframework.boot.SpringApplication;
+</span><span style="color: #0000ff;">import</span><span style="color: #000000;"> org.springframework.boot.autoconfigure.SpringBootApplication;
+</span><span style="color: #0000ff;">import</span><span style="color: #000000;"> org.springframework.cloud.client.discovery.EnableDiscoveryClient;
+</span><span style="color: #0000ff;">import</span><span style="color: #000000;"> org.springframework.cloud.netflix.ribbon.RibbonClient;
+</span><span style="color: #0000ff;">import</span><span style="color: #000000;"> org.springframework.cloud.netflix.ribbon.RibbonClients;
+</span><span style="color: #0000ff;">import</span><span style="color: #000000;"> org.springframework.context.annotation.ComponentScan;
+</span><span style="color: #0000ff;">import</span><span style="color: #000000;"> org.springframework.context.annotation.FilterType;
+</span><span style="color: #0000ff;">import</span><span style="color: #000000;"> cn.springcloud.book.config.AvoidScan;
+</span><span style="color: #0000ff;">import</span><span style="color: #000000;"> cn.springcloud.book.config.TestConfiguration;
+
+</span><span style="color: #008000;">/**</span><span style="color: #008000;">
+ * 工程启动类
+ </span><span style="color: #008000;">*/</span><span style="color: #000000;">
+@SpringBootApplication
+@EnableDiscoveryClient
+@RibbonClient(name </span>= "client-a", configuration = RibbonConfiguration.<span style="color: #0000ff;">class</span>)<span style="color: #008000;">//</span><span style="color: #008000;">表示针对client-a服务使用的负责策略是经过RibbonConfiguration配置类的。
+</span><span style="color: #008000;">//</span><span style="color: #008000;">@RibbonClients(value = {
+</span><span style="color: #008000;">//</span><span style="color: #008000;">        @RibbonClient(name = "client-a", configuration = RibbonConfiguration.class),
+</span><span style="color: #008000;">//</span><span style="color: #008000;">        @RibbonClient(name = "client-b", configuration = RibbonConfiguration.class)
+</span><span style="color: #008000;">//</span><span style="color: #008000;">})</span><span style="color: #008000;">//</span><span style="color: #008000;">这种方式跟@RibbonClient类似，不过这个是针对多个服务进行策略指定。</span>
+@ComponentScan(excludeFilters = {@ComponentScan.Filter(type = FilterType.ANNOTATION, value = {AvoidScan.<span style="color: #0000ff;">class</span>})})<span style="color: #008000;">//</span><span style="color: #008000;">表示让工程在启动的时候，不让Spring扫描被@AvoidScan注解标记的类，
+                                                                                                                 </span><span style="color: #008000;">//</span><span style="color: #008000;">因为配置的是针对特殊服务的负载策略，不是全局的，如果不排除，启动就会报错。</span>
+<span style="color: #0000ff;">public</span> <span style="color: #0000ff;">class</span><span style="color: #000000;"> RibbonLoadbalancerApplication {
+
+    </span><span style="color: #0000ff;">public</span> <span style="color: #0000ff;">static</span> <span style="color: #0000ff;">void</span><span style="color: #000000;"> main(String[] args) {
+        SpringApplication.run(RibbonLoadbalancerApplication.</span><span style="color: #0000ff;">class</span><span style="color: #000000;">, args);
+    }
+
+}</span></code></pre>
+
+<p>&nbsp;</p>
+<p>如果想使用配置文件的方式，进行配置负责策略，语法是 <strong>client name.ribbon.*</strong>，client name是我们自己给服务取的名字，即：spring.application.name设置的值。如下：</p>
+<src class="cnblogs_code">
+<pre><code><span style="color: #000000;">client-a:
+  ribbon:
+    NFLoadBalancerRuleClassName: com.netflix.loadbalancer.RandomRule #针对client-a服务使用随机策略</span></code></pre>
+
+<p>&nbsp;</p>
+<p>ribbon的重试机制，默认是开启的，需要添加超时与重试的策略配置，如下：</p>
+<src class="cnblogs_code">
+<pre><code><span style="color: #000000;">client-a:
+  ribbon:
+    <strong>ConnectTimeout</strong>: 30000
+    <strong>ReadTimeout</strong>: 60000
+    MaxAutoRetries: 1 #对第一次请求的服务的重试次数
+    MaxAutoRetriesNextServer: 1 #要重试的下一个服务的最大数量（不包括第一个服务）
+    OkToRetryOnAllOperations: true<br /><strong>#说明：这里配置的ConnectTimeout和ReadTimeout是当HTTP客户端使用的是HttpClient才生效，这个时间最终会被设置到HttpClient中。<br />#在设置的时候需要结合hystrix的超时时间来综合考虑，针对使用的场景，设置太小会导致很多请求失败，设置太大会导致熔断控制变差。</strong></span></code></pre>
+<p>提供了7个核心接口：</p>
+<pre><code></code></pre>
+<table border="0">
+<tbody>
+<tr>
+<td>接口</td>
+<td>简述</td>
+<td>默认实现</td>
+</tr>
+<tr>
+<td>IClientConfig</td>
+<td>定义ribbon中管理配置的接口</td>
+<td>DefaultClientConfigImpl</td>
+</tr>
+<tr>
+<td>IRule</td>
+<td>定义ribbon中负载均衡策略的接口</td>
+<td>ZoneAvoidanceRule</td>
+</tr>
+<tr>
+<td>IPing</td>
+<td>定义定期ping服务，检查可用性的接口</td>
+<td>DummyPing</td>
+</tr>
+<tr>
+<td>ServerList&lt;Server&gt;</td>
+<td>定义获取服务列表方法的接口</td>
+<td>ConfigurationBasedServerList</td>
+</tr>
+<tr>
+<td>ServerListFilter&lt;Server&gt;</td>
+<td>定义特定场景下，获取服务列表的方法接口</td>
+<td>ZonePreferenceServerListFilter</td>
+</tr>
+<tr>
+<td>ILoadBalancer</td>
+<td>定义负载均衡选择服务的核心方法接口</td>
+<td>ZoneAwareLoadBalancer</td>
+</tr>
+<tr>
+<td>ServerListUpdater</td>
+<td>为DynamicServerListLoadBalancer定义动态更新服务列表的接口</td>
+<td>PollingServerListUpdater</td>
+</tr>
+</tbody>
+</table>
+<pre><code></code></pre>
+
+
+</div><hr><script charset='utf-8' src='../../js/sming.js'></script></body></html>

@@ -1,0 +1,539 @@
+<html><head><meta charset='utf-8'><meta name='viewport' content='width=device-width, initial-scale=1'>
+<meta name='applicable-device' content='pc'><meta name='keywords' content='电脑,电脑讲解,电脑技术,编程,电脑故障维修Shiro集成SSM基于动态URL权限管理(二)' />
+<script src='../../highlight/highlight.pack.js'></script>
+<link rel='stylesheet' type='text/css' href='../../highlight/styles/monokai.css'/>
+
+<link rel='stylesheet' href='../../fenxiang/dist/css/share.min.css'>
+<script src='../../fenxiang/src/js/social-share.js'></script>
+<script src='../../fenxiang/src/js/qrcode.js'></script>
+
+</head><body><script>hljs.initHighlightingOnLoad();</script><script>
+var system ={};  
+var p = navigator.platform;       
+system.win = p.indexOf('Win') == 0;  
+system.mac = p.indexOf('Mac') == 0;  
+system.x11 = (p == 'X11') || (p.indexOf('Linux') == 0);     
+if(system.win||system.mac||system.xll){
+document.write("<link href='../css/3.css' rel='stylesheet' type='text/css'>");}else{ document.write("<link href='../css/3wap.css' rel='stylesheet' type='text/css'>");}</script><script src='../../js/3.js'></script><div class='div2'><div class='heading_nav'><ul><div><li><a href='../../index.html'>首页</a></li>
+</div><div onclick='hidden1()' >分享</div>
+</ul></div></div>
+<div id='heading_nav2'> 
+<li class='row' >
+<div class='social-share' data-mode='prepend'><a href='javascript:' class='social-share-icon icon-heart'></a></div></li></div><script charset='utf-8' src='../../3/js/hengfu.js'></script><script charset='utf-8' src='../../3/js/hengfu2.js'></script><hr><div class='div1'><div class='biaoti'><center>Shiro集成SSM基于动态URL权限管理(二)</center></div><div class='banquan'>原文出处:本文由博客园博主Kaspar_Choo提供。<br/>
+原文连接:https://www.cnblogs.com/kaspar/p/11654419.html</div><br>
+    <p><span style="font-family: 宋体;">这个案例基于上一个</span>demo<span style="font-family: 宋体;">扩展而来。所以数据库表，在<a href="https://www.cnblogs.com/kaspar/p/11648276.html" target="_blank">Shiro集成SSM基于URL权限管理(一)</a>开篇的一致。如果上个demo操作的建议重新导入一次，避免出现问题。<br /></span></p>
+<p><span style="font-family: 宋体;">而这次</span><span style="font-family: Helvetica;">都</span><strong><span style="font-family: Helvetica;">不是通过固定写在方法上的注解实现</span></strong><span style="font-family: Helvetica;">的，而是通过权限灵活配置实现的</span><span style="font-family: 宋体;">。</span></p>
+<h2>PageController.java</h2>
+<p><span style="font-family: Helvetica;">首先是</span>PageController.java 里原本通过注解方式的@RequiresPermissions和@RequiresRoles 注释掉了<span style="font-family: 宋体;">。</span></p>
+<p><span style="font-family: 宋体;"><img src="./images/Shiro集成SSM基于动态URL权限管理(二)0.png" alt="" /></span></p>
+<src class="cnblogs_code" onclick="cnblogs_code_show('8e2b66d3-cc5f-4661-ab03-a244927c7700')"><img id="code_img_closed_8e2b66d3-cc5f-4661-ab03-a244927c7700" class="code_img_closed" src="./images/Shiro集成SSM基于动态URL权限管理(二)1.png" alt="" /><img id="code_img_opened_8e2b66d3-cc5f-4661-ab03-a244927c7700" class="code_img_opened" style="display: none;" onclick="cnblogs_code_hide('8e2b66d3-cc5f-4661-ab03-a244927c7700',event)" src="./images/Shiro集成SSM基于动态URL权限管理(二)2.png" alt="" />
+<src id="cnblogs_code_open_8e2b66d3-cc5f-4661-ab03-a244927c7700" class="cnblogs_code_hide">
+<pre><code><span style="color: #008080;"> 1</span> <span style="color: #0000ff;">import</span><span style="color: #000000;"> org.springframework.stereotype.Controller;
+</span><span style="color: #008080;"> 2</span> <span style="color: #0000ff;">import</span><span style="color: #000000;"> org.springframework.web.bind.annotation.RequestMapping;
+</span><span style="color: #008080;"> 3</span> <span style="color: #0000ff;">import</span><span style="color: #000000;"> org.springframework.web.bind.annotation.RequestMethod;
+</span><span style="color: #008080;"> 4</span>  
+<span style="color: #008080;"> 5</span> <span style="color: #008000;">//</span><span style="color: #008000;">专门用于显示页面的控制器</span>
+<span style="color: #008080;"> 6</span> <span style="color: #000000;">@Controller
+</span><span style="color: #008080;"> 7</span> @RequestMapping(""<span style="color: #000000;">)
+</span><span style="color: #008080;"> 8</span> <span style="color: #0000ff;">public</span> <span style="color: #0000ff;">class</span><span style="color: #000000;"> PageController {
+</span><span style="color: #008080;"> 9</span>      
+<span style="color: #008080;">10</span>     @RequestMapping("index"<span style="color: #000000;">)
+</span><span style="color: #008080;">11</span>     <span style="color: #0000ff;">public</span><span style="color: #000000;"> String index(){
+</span><span style="color: #008080;">12</span>         <span style="color: #0000ff;">return</span> "index"<span style="color: #000000;">;
+</span><span style="color: #008080;">13</span> <span style="color: #000000;">    }
+</span><span style="color: #008080;">14</span>      
+<span style="color: #008080;">15</span> <span style="color: #008000;">//</span><span style="color: #008000;">  @RequiresPermissions("deleteOrder")</span>
+<span style="color: #008080;">16</span>     @RequestMapping("deleteOrder"<span style="color: #000000;">)
+</span><span style="color: #008080;">17</span>     <span style="color: #0000ff;">public</span><span style="color: #000000;"> String deleteOrder(){
+</span><span style="color: #008080;">18</span>         <span style="color: #0000ff;">return</span> "deleteOrder"<span style="color: #000000;">;
+</span><span style="color: #008080;">19</span> <span style="color: #000000;">    }
+</span><span style="color: #008080;">20</span> <span style="color: #008000;">//</span><span style="color: #008000;">  @RequiresRoles("productManager")</span>
+<span style="color: #008080;">21</span>     @RequestMapping("deleteProduct"<span style="color: #000000;">)
+</span><span style="color: #008080;">22</span>     <span style="color: #0000ff;">public</span><span style="color: #000000;"> String deleteProduct(){
+</span><span style="color: #008080;">23</span>         <span style="color: #0000ff;">return</span> "deleteProduct"<span style="color: #000000;">;
+</span><span style="color: #008080;">24</span> <span style="color: #000000;">    }
+</span><span style="color: #008080;">25</span>     @RequestMapping("listProduct"<span style="color: #000000;">)
+</span><span style="color: #008080;">26</span>     <span style="color: #0000ff;">public</span><span style="color: #000000;"> String listProduct(){
+</span><span style="color: #008080;">27</span>         <span style="color: #0000ff;">return</span> "listProduct"<span style="color: #000000;">;
+</span><span style="color: #008080;">28</span> <span style="color: #000000;">    }
+</span><span style="color: #008080;">29</span>      
+<span style="color: #008080;">30</span>     @RequestMapping(value="/login",method=<span style="color: #000000;">RequestMethod.GET) 
+</span><span style="color: #008080;">31</span>     <span style="color: #0000ff;">public</span><span style="color: #000000;"> String login(){
+</span><span style="color: #008080;">32</span>         <span style="color: #0000ff;">return</span> "login"<span style="color: #000000;">;
+</span><span style="color: #008080;">33</span> <span style="color: #000000;">    }
+</span><span style="color: #008080;">34</span>     @RequestMapping("unauthorized"<span style="color: #000000;">)
+</span><span style="color: #008080;">35</span>     <span style="color: #0000ff;">public</span><span style="color: #000000;"> String noPerms(){
+</span><span style="color: #008080;">36</span>         <span style="color: #0000ff;">return</span> "unauthorized"<span style="color: #000000;">;
+</span><span style="color: #008080;">37</span> <span style="color: #000000;">    }
+</span><span style="color: #008080;">38</span>  
+<span style="color: #008080;">39</span> }</code></pre>
+
+<span class="cnblogs_code_collapse">View Code</span>
+<h2><strong>PermissionService.java</strong></h2>
+<p><span style="font-family: Helvetica;">增加了两个方法</span> needInterceptor，listPermissionURLs</p>
+<p><span style="font-family: 宋体;">代码如下:</span></p>
+<src class="cnblogs_code" onclick="cnblogs_code_show('a523f9f3-2da4-4dc2-8026-8d747eb71c36')"><img id="code_img_closed_a523f9f3-2da4-4dc2-8026-8d747eb71c36" class="code_img_closed" src="./images/Shiro集成SSM基于动态URL权限管理(二)1.png" alt="" /><img id="code_img_opened_a523f9f3-2da4-4dc2-8026-8d747eb71c36" class="code_img_opened" style="display: none;" onclick="cnblogs_code_hide('a523f9f3-2da4-4dc2-8026-8d747eb71c36',event)" src="./images/Shiro集成SSM基于动态URL权限管理(二)2.png" alt="" />
+<src id="cnblogs_code_open_a523f9f3-2da4-4dc2-8026-8d747eb71c36" class="cnblogs_code_hide">
+<pre><code><span style="color: #008080;"> 1</span> <span style="color: #0000ff;">import</span><span style="color: #000000;"> java.util.List;
+</span><span style="color: #008080;"> 2</span> <span style="color: #0000ff;">import</span><span style="color: #000000;"> java.util.Set;
+</span><span style="color: #008080;"> 3</span>  
+<span style="color: #008080;"> 4</span> <span style="color: #0000ff;">import</span><span style="color: #000000;"> com.how2java.pojo.Permission;
+</span><span style="color: #008080;"> 5</span> <span style="color: #0000ff;">import</span><span style="color: #000000;"> com.how2java.pojo.Role;
+</span><span style="color: #008080;"> 6</span>  
+<span style="color: #008080;"> 7</span> <span style="color: #0000ff;">public</span> <span style="color: #0000ff;">interface</span><span style="color: #000000;"> PermissionService {
+</span><span style="color: #008080;"> 8</span>     <span style="color: #0000ff;">public</span> Set&lt;String&gt;<span style="color: #000000;"> listPermissions(String userName);
+</span><span style="color: #008080;"> 9</span>  
+<span style="color: #008080;">10</span>     <span style="color: #0000ff;">public</span> List&lt;Permission&gt;<span style="color: #000000;"> list();
+</span><span style="color: #008080;">11</span>  
+<span style="color: #008080;">12</span>     <span style="color: #0000ff;">public</span> <span style="color: #0000ff;">void</span><span style="color: #000000;"> add(Permission permission);
+</span><span style="color: #008080;">13</span>  
+<span style="color: #008080;">14</span>     <span style="color: #0000ff;">public</span> <span style="color: #0000ff;">void</span><span style="color: #000000;"> delete(Long id);
+</span><span style="color: #008080;">15</span>  
+<span style="color: #008080;">16</span>     <span style="color: #0000ff;">public</span><span style="color: #000000;"> Permission get(Long id);
+</span><span style="color: #008080;">17</span>  
+<span style="color: #008080;">18</span>     <span style="color: #0000ff;">public</span> <span style="color: #0000ff;">void</span><span style="color: #000000;"> update(Permission permission);
+</span><span style="color: #008080;">19</span>  
+<span style="color: #008080;">20</span>     <span style="color: #0000ff;">public</span> List&lt;Permission&gt;<span style="color: #000000;"> list(Role role);
+</span><span style="color: #008080;">21</span>  
+<span style="color: #008080;">22</span>     <span style="color: #0000ff;">public</span> <span style="color: #0000ff;">boolean</span><span style="color: #000000;"> needInterceptor(String requestURI);
+</span><span style="color: #008080;">23</span>  
+<span style="color: #008080;">24</span>     <span style="color: #0000ff;">public</span> Set&lt;String&gt;<span style="color: #000000;"> listPermissionURLs(String userName);
+</span><span style="color: #008080;">25</span>  
+<span style="color: #008080;">26</span> }</code></pre>
+
+<span class="cnblogs_code_collapse">View Code</span>
+<h2>PermissionServiceImpl.java</h2>
+<p><span style="font-family: Helvetica;">为两个方法</span> needInterceptor，listPermissionURLs 增加了实现<br />needInterceptor 表示是否要进行拦截，判断依据是如果访问的某个url,在权限系统里存在，就要进行拦截。 如果不存在，就放行了。<br /><span style="font-family: Helvetica;">这一种策略，也可以切换成另一个，即，访问的地址如果不存在于权限系统中，就提示没有拦截。</span> <span style="font-family: Helvetica;">这两种做法没有对错之分，取决于业务上希望如何制定权限策略。</span><br /><br />listPermissionURLs(User user) 用来获取某个用户所拥有的权限地址集合</p>
+<src class="cnblogs_code" onclick="cnblogs_code_show('3877d736-ef38-4d4e-a82f-043873366d0b')"><img id="code_img_closed_3877d736-ef38-4d4e-a82f-043873366d0b" class="code_img_closed" src="./images/Shiro集成SSM基于动态URL权限管理(二)1.png" alt="" /><img id="code_img_opened_3877d736-ef38-4d4e-a82f-043873366d0b" class="code_img_opened" style="display: none;" onclick="cnblogs_code_hide('3877d736-ef38-4d4e-a82f-043873366d0b',event)" src="./images/Shiro集成SSM基于动态URL权限管理(二)2.png" alt="" />
+<src id="cnblogs_code_open_3877d736-ef38-4d4e-a82f-043873366d0b" class="cnblogs_code_hide">
+<pre><code><span style="color: #008080;">  1</span> <span style="color: #0000ff;">import</span><span style="color: #000000;"> java.util.ArrayList;
+</span><span style="color: #008080;">  2</span> <span style="color: #0000ff;">import</span><span style="color: #000000;"> java.util.HashSet;
+</span><span style="color: #008080;">  3</span> <span style="color: #0000ff;">import</span><span style="color: #000000;"> java.util.List;
+</span><span style="color: #008080;">  4</span> <span style="color: #0000ff;">import</span><span style="color: #000000;"> java.util.Set;
+</span><span style="color: #008080;">  5</span>  
+<span style="color: #008080;">  6</span> <span style="color: #0000ff;">import</span><span style="color: #000000;"> org.springframework.beans.factory.annotation.Autowired;
+</span><span style="color: #008080;">  7</span> <span style="color: #0000ff;">import</span><span style="color: #000000;"> org.springframework.stereotype.Service;
+</span><span style="color: #008080;">  8</span>  
+<span style="color: #008080;">  9</span> <span style="color: #0000ff;">import</span><span style="color: #000000;"> com.how2java.mapper.PermissionMapper;
+</span><span style="color: #008080;"> 10</span> <span style="color: #0000ff;">import</span><span style="color: #000000;"> com.how2java.mapper.RolePermissionMapper;
+</span><span style="color: #008080;"> 11</span> <span style="color: #0000ff;">import</span><span style="color: #000000;"> com.how2java.pojo.Permission;
+</span><span style="color: #008080;"> 12</span> <span style="color: #0000ff;">import</span><span style="color: #000000;"> com.how2java.pojo.PermissionExample;
+</span><span style="color: #008080;"> 13</span> <span style="color: #0000ff;">import</span><span style="color: #000000;"> com.how2java.pojo.Role;
+</span><span style="color: #008080;"> 14</span> <span style="color: #0000ff;">import</span><span style="color: #000000;"> com.how2java.pojo.RolePermission;
+</span><span style="color: #008080;"> 15</span> <span style="color: #0000ff;">import</span><span style="color: #000000;"> com.how2java.pojo.RolePermissionExample;
+</span><span style="color: #008080;"> 16</span> <span style="color: #0000ff;">import</span><span style="color: #000000;"> com.how2java.service.PermissionService;
+</span><span style="color: #008080;"> 17</span> <span style="color: #0000ff;">import</span><span style="color: #000000;"> com.how2java.service.RoleService;
+</span><span style="color: #008080;"> 18</span> <span style="color: #0000ff;">import</span><span style="color: #000000;"> com.how2java.service.UserService;
+</span><span style="color: #008080;"> 19</span>  
+<span style="color: #008080;"> 20</span> <span style="color: #000000;">@Service
+</span><span style="color: #008080;"> 21</span> <span style="color: #0000ff;">public</span> <span style="color: #0000ff;">class</span> PermissionServiceImpl <span style="color: #0000ff;">implements</span><span style="color: #000000;"> PermissionService {
+</span><span style="color: #008080;"> 22</span>  
+<span style="color: #008080;"> 23</span> <span style="color: #000000;">    @Autowired
+</span><span style="color: #008080;"> 24</span> <span style="color: #000000;">    PermissionMapper permissionMapper;
+</span><span style="color: #008080;"> 25</span> <span style="color: #000000;">    @Autowired
+</span><span style="color: #008080;"> 26</span> <span style="color: #000000;">    UserService userService;
+</span><span style="color: #008080;"> 27</span> <span style="color: #000000;">    @Autowired
+</span><span style="color: #008080;"> 28</span> <span style="color: #000000;">    RoleService roleService;
+</span><span style="color: #008080;"> 29</span> <span style="color: #000000;">    @Autowired
+</span><span style="color: #008080;"> 30</span> <span style="color: #000000;">    RolePermissionMapper rolePermissionMapper;
+</span><span style="color: #008080;"> 31</span>  
+<span style="color: #008080;"> 32</span> <span style="color: #000000;">    @Override
+</span><span style="color: #008080;"> 33</span>     <span style="color: #0000ff;">public</span> Set&lt;String&gt;<span style="color: #000000;"> listPermissions(String userName) {
+</span><span style="color: #008080;"> 34</span>         Set&lt;String&gt; result = <span style="color: #0000ff;">new</span> HashSet&lt;&gt;<span style="color: #000000;">();
+</span><span style="color: #008080;"> 35</span>         List&lt;Role&gt; roles =<span style="color: #000000;"> roleService.listRoles(userName);
+</span><span style="color: #008080;"> 36</span>  
+<span style="color: #008080;"> 37</span>         List&lt;RolePermission&gt; rolePermissions = <span style="color: #0000ff;">new</span> ArrayList&lt;&gt;<span style="color: #000000;">();
+</span><span style="color: #008080;"> 38</span>  
+<span style="color: #008080;"> 39</span>         <span style="color: #0000ff;">for</span><span style="color: #000000;"> (Role role : roles) {
+</span><span style="color: #008080;"> 40</span>             RolePermissionExample example = <span style="color: #0000ff;">new</span><span style="color: #000000;"> RolePermissionExample();
+</span><span style="color: #008080;"> 41</span> <span style="color: #000000;">            example.createCriteria().andRidEqualTo(role.getId());
+</span><span style="color: #008080;"> 42</span>             List&lt;RolePermission&gt; rps =<span style="color: #000000;"> rolePermissionMapper.selectByExample(example);
+</span><span style="color: #008080;"> 43</span> <span style="color: #000000;">            rolePermissions.addAll(rps);
+</span><span style="color: #008080;"> 44</span> <span style="color: #000000;">        }
+</span><span style="color: #008080;"> 45</span>  
+<span style="color: #008080;"> 46</span>         <span style="color: #0000ff;">for</span><span style="color: #000000;"> (RolePermission rolePermission : rolePermissions) {
+</span><span style="color: #008080;"> 47</span>             Permission p =<span style="color: #000000;"> permissionMapper.selectByPrimaryKey(rolePermission.getPid());
+</span><span style="color: #008080;"> 48</span> <span style="color: #000000;">            result.add(p.getName());
+</span><span style="color: #008080;"> 49</span> <span style="color: #000000;">        }
+</span><span style="color: #008080;"> 50</span>  
+<span style="color: #008080;"> 51</span>         <span style="color: #0000ff;">return</span><span style="color: #000000;"> result;
+</span><span style="color: #008080;"> 52</span> <span style="color: #000000;">    }
+</span><span style="color: #008080;"> 53</span>  
+<span style="color: #008080;"> 54</span> <span style="color: #000000;">    @Override
+</span><span style="color: #008080;"> 55</span>     <span style="color: #0000ff;">public</span> <span style="color: #0000ff;">void</span><span style="color: #000000;"> add(Permission u) {
+</span><span style="color: #008080;"> 56</span> <span style="color: #000000;">        permissionMapper.insert(u);
+</span><span style="color: #008080;"> 57</span> <span style="color: #000000;">    }
+</span><span style="color: #008080;"> 58</span>  
+<span style="color: #008080;"> 59</span> <span style="color: #000000;">    @Override
+</span><span style="color: #008080;"> 60</span>     <span style="color: #0000ff;">public</span> <span style="color: #0000ff;">void</span><span style="color: #000000;"> delete(Long id) {
+</span><span style="color: #008080;"> 61</span> <span style="color: #000000;">        permissionMapper.deleteByPrimaryKey(id);
+</span><span style="color: #008080;"> 62</span> <span style="color: #000000;">    }
+</span><span style="color: #008080;"> 63</span>  
+<span style="color: #008080;"> 64</span> <span style="color: #000000;">    @Override
+</span><span style="color: #008080;"> 65</span>     <span style="color: #0000ff;">public</span> <span style="color: #0000ff;">void</span><span style="color: #000000;"> update(Permission u) {
+</span><span style="color: #008080;"> 66</span> <span style="color: #000000;">        permissionMapper.updateByPrimaryKeySelective(u);
+</span><span style="color: #008080;"> 67</span> <span style="color: #000000;">    }
+</span><span style="color: #008080;"> 68</span>  
+<span style="color: #008080;"> 69</span> <span style="color: #000000;">    @Override
+</span><span style="color: #008080;"> 70</span>     <span style="color: #0000ff;">public</span><span style="color: #000000;"> Permission get(Long id) {
+</span><span style="color: #008080;"> 71</span>         <span style="color: #0000ff;">return</span><span style="color: #000000;"> permissionMapper.selectByPrimaryKey(id);
+</span><span style="color: #008080;"> 72</span> <span style="color: #000000;">    }
+</span><span style="color: #008080;"> 73</span>  
+<span style="color: #008080;"> 74</span> <span style="color: #000000;">    @Override
+</span><span style="color: #008080;"> 75</span>     <span style="color: #0000ff;">public</span> List&lt;Permission&gt;<span style="color: #000000;"> list() {
+</span><span style="color: #008080;"> 76</span>         PermissionExample example = <span style="color: #0000ff;">new</span><span style="color: #000000;"> PermissionExample();
+</span><span style="color: #008080;"> 77</span>         example.setOrderByClause("id desc"<span style="color: #000000;">);
+</span><span style="color: #008080;"> 78</span>         <span style="color: #0000ff;">return</span><span style="color: #000000;"> permissionMapper.selectByExample(example);
+</span><span style="color: #008080;"> 79</span>  
+<span style="color: #008080;"> 80</span> <span style="color: #000000;">    }
+</span><span style="color: #008080;"> 81</span>  
+<span style="color: #008080;"> 82</span> <span style="color: #000000;">    @Override
+</span><span style="color: #008080;"> 83</span>     <span style="color: #0000ff;">public</span> List&lt;Permission&gt;<span style="color: #000000;"> list(Role role) {
+</span><span style="color: #008080;"> 84</span>         List&lt;Permission&gt; result = <span style="color: #0000ff;">new</span> ArrayList&lt;&gt;<span style="color: #000000;">();
+</span><span style="color: #008080;"> 85</span>         RolePermissionExample example = <span style="color: #0000ff;">new</span><span style="color: #000000;"> RolePermissionExample();
+</span><span style="color: #008080;"> 86</span> <span style="color: #000000;">        example.createCriteria().andRidEqualTo(role.getId());
+</span><span style="color: #008080;"> 87</span>         List&lt;RolePermission&gt; rps =<span style="color: #000000;"> rolePermissionMapper.selectByExample(example);
+</span><span style="color: #008080;"> 88</span>         <span style="color: #0000ff;">for</span><span style="color: #000000;"> (RolePermission rolePermission : rps) {
+</span><span style="color: #008080;"> 89</span> <span style="color: #000000;">            result.add(permissionMapper.selectByPrimaryKey(rolePermission.getPid()));
+</span><span style="color: #008080;"> 90</span> <span style="color: #000000;">        }
+</span><span style="color: #008080;"> 91</span>  
+<span style="color: #008080;"> 92</span>         <span style="color: #0000ff;">return</span><span style="color: #000000;"> result;
+</span><span style="color: #008080;"> 93</span> <span style="color: #000000;">    }
+</span><span style="color: #008080;"> 94</span>  
+<span style="color: #008080;"> 95</span> <span style="color: #000000;">    @Override
+</span><span style="color: #008080;"> 96</span>     <span style="color: #0000ff;">public</span> <span style="color: #0000ff;">boolean</span><span style="color: #000000;"> needInterceptor(String requestURI) {
+</span><span style="color: #008080;"> 97</span>         List&lt;Permission&gt; ps =<span style="color: #000000;"> list();
+</span><span style="color: #008080;"> 98</span>         <span style="color: #0000ff;">for</span><span style="color: #000000;"> (Permission p : ps) {
+</span><span style="color: #008080;"> 99</span>             <span style="color: #0000ff;">if</span><span style="color: #000000;"> (p.getUrl().equals(requestURI))
+</span><span style="color: #008080;">100</span>                 <span style="color: #0000ff;">return</span> <span style="color: #0000ff;">true</span><span style="color: #000000;">;
+</span><span style="color: #008080;">101</span> <span style="color: #000000;">        }
+</span><span style="color: #008080;">102</span>         <span style="color: #0000ff;">return</span> <span style="color: #0000ff;">false</span><span style="color: #000000;">;
+</span><span style="color: #008080;">103</span> <span style="color: #000000;">    }
+</span><span style="color: #008080;">104</span>  
+<span style="color: #008080;">105</span> <span style="color: #000000;">    @Override
+</span><span style="color: #008080;">106</span>     <span style="color: #0000ff;">public</span> Set&lt;String&gt;<span style="color: #000000;"> listPermissionURLs(String userName) {
+</span><span style="color: #008080;">107</span>         Set&lt;String&gt; result = <span style="color: #0000ff;">new</span> HashSet&lt;&gt;<span style="color: #000000;">();
+</span><span style="color: #008080;">108</span>         List&lt;Role&gt; roles =<span style="color: #000000;"> roleService.listRoles(userName);
+</span><span style="color: #008080;">109</span>  
+<span style="color: #008080;">110</span>         List&lt;RolePermission&gt; rolePermissions = <span style="color: #0000ff;">new</span> ArrayList&lt;&gt;<span style="color: #000000;">();
+</span><span style="color: #008080;">111</span>  
+<span style="color: #008080;">112</span>         <span style="color: #0000ff;">for</span><span style="color: #000000;"> (Role role : roles) {
+</span><span style="color: #008080;">113</span>             RolePermissionExample example = <span style="color: #0000ff;">new</span><span style="color: #000000;"> RolePermissionExample();
+</span><span style="color: #008080;">114</span> <span style="color: #000000;">            example.createCriteria().andRidEqualTo(role.getId());
+</span><span style="color: #008080;">115</span>             List&lt;RolePermission&gt; rps =<span style="color: #000000;"> rolePermissionMapper.selectByExample(example);
+</span><span style="color: #008080;">116</span> <span style="color: #000000;">            rolePermissions.addAll(rps);
+</span><span style="color: #008080;">117</span> <span style="color: #000000;">        }
+</span><span style="color: #008080;">118</span>  
+<span style="color: #008080;">119</span>         <span style="color: #0000ff;">for</span><span style="color: #000000;"> (RolePermission rolePermission : rolePermissions) {
+</span><span style="color: #008080;">120</span>             Permission p =<span style="color: #000000;"> permissionMapper.selectByPrimaryKey(rolePermission.getPid());
+</span><span style="color: #008080;">121</span> <span style="color: #000000;">            result.add(p.getUrl());
+</span><span style="color: #008080;">122</span> <span style="color: #000000;">        }
+</span><span style="color: #008080;">123</span>  
+<span style="color: #008080;">124</span>         <span style="color: #0000ff;">return</span><span style="color: #000000;"> result;
+</span><span style="color: #008080;">125</span> <span style="color: #000000;">    }
+</span><span style="color: #008080;">126</span>  
+<span style="color: #008080;">127</span> }</code></pre>
+
+<span class="cnblogs_code_collapse">View Code</span>
+<h2>URLPathMatchingFilter.java</h2>
+<p>PathMatchingFilter 是shiro 内置过滤器 PathMatchingFilter 继承了这个它。<br /><span style="font-family: Helvetica;">基本思路如下：</span><br />1. 如果没登录就跳转到登录<br />2. 如果当前访问路径没有在权限系统里维护，则允许访问<br />3. 当前用户所拥有的权限如果不包含当前的访问地址，则跳转到/unauthorized，否则就允许访问<span style="font-family: 宋体;">。</span></p>
+<p><span style="font-family: 宋体;">代码如下:</span></p>
+<src class="cnblogs_code" onclick="cnblogs_code_show('4df09e6b-2408-46e7-9823-7d1e5a298da5')"><img id="code_img_closed_4df09e6b-2408-46e7-9823-7d1e5a298da5" class="code_img_closed" src="./images/Shiro集成SSM基于动态URL权限管理(二)1.png" alt="" /><img id="code_img_opened_4df09e6b-2408-46e7-9823-7d1e5a298da5" class="code_img_opened" style="display: none;" onclick="cnblogs_code_hide('4df09e6b-2408-46e7-9823-7d1e5a298da5',event)" src="./images/Shiro集成SSM基于动态URL权限管理(二)2.png" alt="" />
+<src id="cnblogs_code_open_4df09e6b-2408-46e7-9823-7d1e5a298da5" class="cnblogs_code_hide">
+<pre><code><span style="color: #008080;"> 1</span> <span style="color: #0000ff;">import</span><span style="color: #000000;"> java.util.Set;
+</span><span style="color: #008080;"> 2</span>  
+<span style="color: #008080;"> 3</span> <span style="color: #0000ff;">import</span><span style="color: #000000;"> javax.servlet.ServletRequest;
+</span><span style="color: #008080;"> 4</span> <span style="color: #0000ff;">import</span><span style="color: #000000;"> javax.servlet.ServletResponse;
+</span><span style="color: #008080;"> 5</span>  
+<span style="color: #008080;"> 6</span> <span style="color: #0000ff;">import</span><span style="color: #000000;"> org.apache.shiro.SecurityUtils;
+</span><span style="color: #008080;"> 7</span> <span style="color: #0000ff;">import</span><span style="color: #000000;"> org.apache.shiro.authz.UnauthorizedException;
+</span><span style="color: #008080;"> 8</span> <span style="color: #0000ff;">import</span><span style="color: #000000;"> org.apache.shiro.subject.Subject;
+</span><span style="color: #008080;"> 9</span> <span style="color: #0000ff;">import</span><span style="color: #000000;"> org.apache.shiro.web.filter.PathMatchingFilter;
+</span><span style="color: #008080;">10</span> <span style="color: #0000ff;">import</span><span style="color: #000000;"> org.apache.shiro.web.util.WebUtils;
+</span><span style="color: #008080;">11</span> <span style="color: #0000ff;">import</span><span style="color: #000000;"> org.springframework.beans.factory.annotation.Autowired;
+</span><span style="color: #008080;">12</span>  
+<span style="color: #008080;">13</span> <span style="color: #0000ff;">import</span><span style="color: #000000;"> com.how2java.service.PermissionService;
+</span><span style="color: #008080;">14</span>  
+<span style="color: #008080;">15</span> <span style="color: #0000ff;">public</span> <span style="color: #0000ff;">class</span> URLPathMatchingFilter <span style="color: #0000ff;">extends</span><span style="color: #000000;"> PathMatchingFilter {
+</span><span style="color: #008080;">16</span> <span style="color: #000000;">    @Autowired
+</span><span style="color: #008080;">17</span> <span style="color: #000000;">    PermissionService permissionService;
+</span><span style="color: #008080;">18</span>  
+<span style="color: #008080;">19</span> <span style="color: #000000;">    @Override
+</span><span style="color: #008080;">20</span>     <span style="color: #0000ff;">protected</span> <span style="color: #0000ff;">boolean</span><span style="color: #000000;"> onPreHandle(ServletRequest request, ServletResponse response, Object mappedValue)
+</span><span style="color: #008080;">21</span>             <span style="color: #0000ff;">throws</span><span style="color: #000000;"> Exception {
+</span><span style="color: #008080;">22</span>         String requestURI =<span style="color: #000000;"> getPathWithinApplication(request);
+</span><span style="color: #008080;">23</span>  
+<span style="color: #008080;">24</span>         System.out.println("requestURI:" +<span style="color: #000000;"> requestURI);
+</span><span style="color: #008080;">25</span>  
+<span style="color: #008080;">26</span>         Subject subject =<span style="color: #000000;"> SecurityUtils.getSubject();
+</span><span style="color: #008080;">27</span>         <span style="color: #008000;">//</span><span style="color: #008000;"> 如果没有登录，就跳转到登录页面</span>
+<span style="color: #008080;">28</span>         <span style="color: #0000ff;">if</span> (!<span style="color: #000000;">subject.isAuthenticated()) {
+</span><span style="color: #008080;">29</span>             WebUtils.issueRedirect(request, response, "/login"<span style="color: #000000;">);
+</span><span style="color: #008080;">30</span>             <span style="color: #0000ff;">return</span> <span style="color: #0000ff;">false</span><span style="color: #000000;">;
+</span><span style="color: #008080;">31</span> <span style="color: #000000;">        }
+</span><span style="color: #008080;">32</span>  
+<span style="color: #008080;">33</span>         <span style="color: #008000;">//</span><span style="color: #008000;"> 看看这个路径权限里有没有维护，如果没有维护，一律放行(也可以改为一律不放行)</span>
+<span style="color: #008080;">34</span>         <span style="color: #0000ff;">boolean</span> needInterceptor =<span style="color: #000000;"> permissionService.needInterceptor(requestURI);
+</span><span style="color: #008080;">35</span>         <span style="color: #0000ff;">if</span> (!<span style="color: #000000;">needInterceptor) {
+</span><span style="color: #008080;">36</span>             <span style="color: #0000ff;">return</span> <span style="color: #0000ff;">true</span><span style="color: #000000;">;
+</span><span style="color: #008080;">37</span>         } <span style="color: #0000ff;">else</span><span style="color: #000000;"> {
+</span><span style="color: #008080;">38</span>             <span style="color: #0000ff;">boolean</span> hasPermission = <span style="color: #0000ff;">false</span><span style="color: #000000;">;
+</span><span style="color: #008080;">39</span>             String userName =<span style="color: #000000;"> subject.getPrincipal().toString();
+</span><span style="color: #008080;">40</span>             Set&lt;String&gt; permissionUrls =<span style="color: #000000;"> permissionService.listPermissionURLs(userName);
+</span><span style="color: #008080;">41</span>             <span style="color: #0000ff;">for</span><span style="color: #000000;"> (String url : permissionUrls) {
+</span><span style="color: #008080;">42</span>                 <span style="color: #008000;">//</span><span style="color: #008000;"> 这就表示当前用户有这个权限</span>
+<span style="color: #008080;">43</span>                 <span style="color: #0000ff;">if</span><span style="color: #000000;"> (url.equals(requestURI)) {
+</span><span style="color: #008080;">44</span>                     hasPermission = <span style="color: #0000ff;">true</span><span style="color: #000000;">;
+</span><span style="color: #008080;">45</span>                     <span style="color: #0000ff;">break</span><span style="color: #000000;">;
+</span><span style="color: #008080;">46</span> <span style="color: #000000;">                }
+</span><span style="color: #008080;">47</span> <span style="color: #000000;">            }
+</span><span style="color: #008080;">48</span>  
+<span style="color: #008080;">49</span>             <span style="color: #0000ff;">if</span><span style="color: #000000;"> (hasPermission)
+</span><span style="color: #008080;">50</span>                 <span style="color: #0000ff;">return</span> <span style="color: #0000ff;">true</span><span style="color: #000000;">;
+</span><span style="color: #008080;">51</span>             <span style="color: #0000ff;">else</span><span style="color: #000000;"> {
+</span><span style="color: #008080;">52</span>                 UnauthorizedException ex = <span style="color: #0000ff;">new</span> UnauthorizedException("当前用户没有访问路径 " + requestURI + " 的权限"<span style="color: #000000;">);
+</span><span style="color: #008080;">53</span>  
+<span style="color: #008080;">54</span>                 subject.getSession().setAttribute("ex"<span style="color: #000000;">, ex);
+</span><span style="color: #008080;">55</span>  
+<span style="color: #008080;">56</span>                 WebUtils.issueRedirect(request, response, "/unauthorized"<span style="color: #000000;">);
+</span><span style="color: #008080;">57</span>                 <span style="color: #0000ff;">return</span> <span style="color: #0000ff;">false</span><span style="color: #000000;">;
+</span><span style="color: #008080;">58</span> <span style="color: #000000;">            }
+</span><span style="color: #008080;">59</span>  
+<span style="color: #008080;">60</span> <span style="color: #000000;">        }
+</span><span style="color: #008080;">61</span>  
+<span style="color: #008080;">62</span> <span style="color: #000000;">    }
+</span><span style="color: #008080;">63</span> }</code></pre>
+
+<span class="cnblogs_code_collapse">View Code</span>
+<h2>applicationContext-shiro.xml</h2>
+<p><span style="font-family: Helvetica;">首先声明</span>URLPathMatchingFilter 过滤器</p>
+<p>&lt;bean id="urlPathMatchingFilter" class="com.how2java.filter.URLPathMatchingFilter"/&gt;</p>
+<p><br /><span style="font-family: Helvetica;">在</span>shiro中使用这个过滤器</p>
+<p>&lt;entry key="url" value-ref="urlPathMatchingFilter" /&gt;</p>
+<p><span style="font-family: Helvetica;">过滤规则是所有访问</span></p>
+<p>/** = url</p>
+<p><span style="font-family: 宋体;">代码如下：</span></p>
+<src class="cnblogs_code" onclick="cnblogs_code_show('93255087-f7dc-456c-a915-9565b23caf05')"><img id="code_img_closed_93255087-f7dc-456c-a915-9565b23caf05" class="code_img_closed" src="./images/Shiro集成SSM基于动态URL权限管理(二)1.png" alt="" /><img id="code_img_opened_93255087-f7dc-456c-a915-9565b23caf05" class="code_img_opened" style="display: none;" onclick="cnblogs_code_hide('93255087-f7dc-456c-a915-9565b23caf05',event)" src="./images/Shiro集成SSM基于动态URL权限管理(二)2.png" alt="" />
+<src id="cnblogs_code_open_93255087-f7dc-456c-a915-9565b23caf05" class="cnblogs_code_hide">
+<pre><code><span style="color: #008080;">  1</span> &lt;?xml version="1.0" encoding="UTF-8"?&gt;
+<span style="color: #008080;">  2</span> &lt;beans xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+<span style="color: #008080;">  3</span>     xmlns="http://www.springframework.org/schema/beans" xmlns:util="http://www.springframework.org/schema/util"
+<span style="color: #008080;">  4</span>     xmlns:context="http://www.springframework.org/schema/context" xmlns:p="http://www.springframework.org/schema/p"
+<span style="color: #008080;">  5</span>     xmlns:tx="http://www.springframework.org/schema/tx" xmlns:mvc="http://www.springframework.org/schema/mvc"
+<span style="color: #008080;">  6</span>     xmlns:aop="http://www.springframework.org/schema/aop"
+<span style="color: #008080;">  7</span>     xsi:schemaLocation="http://www.springframework.org/schema/beans
+<span style="color: #008080;">  8</span>     http:<span style="color: #008000;">//</span><span style="color: #008000;">www.springframework.org/schema/beans/spring-beans-4.0.xsd </span><span style="color: #008000; text-decoration: underline;">http://www.springframework.org/schema/tx</span>
+<span style="color: #008080;">  9</span>     http:<span style="color: #008000;">//</span><span style="color: #008000;">www.springframework.org/schema/tx/spring-tx-4.0.xsd </span><span style="color: #008000; text-decoration: underline;">http://www.springframework.org/schema/context</span>
+<span style="color: #008080;"> 10</span>     http:<span style="color: #008000;">//</span><span style="color: #008000;">www.springframework.org/schema/context/spring-context-4.0.xsd </span><span style="color: #008000; text-decoration: underline;">http://www.springframework.org/schema/mvc</span>
+<span style="color: #008080;"> 11</span>     http:<span style="color: #008000;">//</span><span style="color: #008000;">www.springframework.org/schema/mvc/spring-mvc.xsd </span><span style="color: #008000; text-decoration: underline;">http://www.springframework.org/schema/aop</span>
+<span style="color: #008080;"> 12</span>     http:<span style="color: #008000;">//</span><span style="color: #008000;">www.springframework.org/schema/aop/spring-aop-4.0.xsd </span><span style="color: #008000; text-decoration: underline;">http://www.springframework.org/schema/util</span>
+<span style="color: #008080;"> 13</span>     http:<span style="color: #008000;">//</span><span style="color: #008000;">www.springframework.org/schema/util/spring-util.xsd"&gt;</span>
+<span style="color: #008080;"> 14</span>       
+<span style="color: #008080;"> 15</span>     &lt;!-- url过滤器 --&gt;        
+<span style="color: #008080;"> 16</span>     &lt;bean id="urlPathMatchingFilter" <span style="color: #0000ff;">class</span>="com.how2java.filter.URLPathMatchingFilter"/&gt;
+<span style="color: #008080;"> 17</span>           
+<span style="color: #008080;"> 18</span>     &lt;!-- 配置shiro的过滤器工厂类，id- shiroFilter要和我们在web.xml中配置的过滤器一致 --&gt;
+<span style="color: #008080;"> 19</span>     &lt;bean id="shiroFilter" <span style="color: #0000ff;">class</span>="org.apache.shiro.spring.web.ShiroFilterFactoryBean"&gt;
+<span style="color: #008080;"> 20</span>         &lt;!-- 调用我们配置的权限管理器 --&gt;
+<span style="color: #008080;"> 21</span>         &lt;property name="securityManager" ref="securityManager" /&gt;
+<span style="color: #008080;"> 22</span>         &lt;!-- 配置我们的登录请求地址 --&gt;
+<span style="color: #008080;"> 23</span>         &lt;property name="loginUrl" value="/login" /&gt;
+<span style="color: #008080;"> 24</span>         &lt;!-- 如果您请求的资源不再您的权限范围，则跳转到/403请求地址 --&gt;
+<span style="color: #008080;"> 25</span>         &lt;property name="unauthorizedUrl" value="/unauthorized" /&gt;
+<span style="color: #008080;"> 26</span>         &lt;!-- 退出 --&gt;
+<span style="color: #008080;"> 27</span>         &lt;property name="filters"&gt;
+<span style="color: #008080;"> 28</span>             &lt;util:map&gt;
+<span style="color: #008080;"> 29</span>                 &lt;entry key="logout" value-ref="logoutFilter" /&gt;
+<span style="color: #008080;"> 30</span>                 &lt;entry key="url" value-ref="urlPathMatchingFilter" /&gt;
+<span style="color: #008080;"> 31</span>             &lt;/util:map&gt;
+<span style="color: #008080;"> 32</span>         &lt;/property&gt;
+<span style="color: #008080;"> 33</span>         &lt;!-- 权限配置 --&gt;
+<span style="color: #008080;"> 34</span>         &lt;property name="filterChainDefinitions"&gt;
+<span style="color: #008080;"> 35</span>             &lt;value&gt;
+<span style="color: #008080;"> 36</span>                 &lt;!-- anon表示此地址不需要任何权限即可访问 --&gt;
+<span style="color: #008080;"> 37</span>                 /login=<span style="color: #000000;">anon
+</span><span style="color: #008080;"> 38</span>                 /index=<span style="color: #000000;">anon
+</span><span style="color: #008080;"> 39</span>                 /<span style="color: #0000ff;">static</span><span style="color: #008000;">/**</span><span style="color: #008000;">=anon
+</span><span style="color: #008080;"> 40</span> <span style="color: #008000;">                &lt;!-- 只对业务功能进行权限管理，权限配置本身不需要没有做权限要求，这样做是为了不让初学者混淆 --&gt;
+</span><span style="color: #008080;"> 41</span> <span style="color: #008000;">                /config/**=anon
+</span><span style="color: #008080;"> 42</span> <span style="color: #008000;">                /doLogout=logout
+</span><span style="color: #008080;"> 43</span> <span style="color: #008000;">                &lt;!--所有的请求(除去配置的静态资源请求或请求地址为anon的请求)都要通过过滤器url --&gt;
+</span><span style="color: #008080;"> 44</span> <span style="color: #008000;">                /** = url
+</span><span style="color: #008080;"> 45</span> <span style="color: #008000;">            &lt;/value&gt;
+</span><span style="color: #008080;"> 46</span> <span style="color: #008000;">        &lt;/property&gt;
+</span><span style="color: #008080;"> 47</span> <span style="color: #008000;">    &lt;/bean&gt;
+</span><span style="color: #008080;"> 48</span> <span style="color: #008000;">    &lt;!-- 退出过滤器 --&gt;
+</span><span style="color: #008080;"> 49</span> <span style="color: #008000;">    &lt;bean id="logoutFilter" class="org.apache.shiro.web.filter.authc.LogoutFilter"&gt;
+</span><span style="color: #008080;"> 50</span> <span style="color: #008000;">        &lt;property name="redirectUrl" value="/index" /&gt;
+</span><span style="color: #008080;"> 51</span> <span style="color: #008000;">    &lt;/bean&gt;
+</span><span style="color: #008080;"> 52</span>   
+<span style="color: #008080;"> 53</span> <span style="color: #008000;">    &lt;!-- 会话ID生成器 --&gt;
+</span><span style="color: #008080;"> 54</span> <span style="color: #008000;">    &lt;bean id="sessionIdGenerator"
+</span><span style="color: #008080;"> 55</span> <span style="color: #008000;">        class="org.apache.shiro.session.mgt.eis.JavaUuidSessionIdGenerator" /&gt;
+</span><span style="color: #008080;"> 56</span> <span style="color: #008000;">    &lt;!-- 会话Cookie模板 关闭浏览器立即失效 --&gt;
+</span><span style="color: #008080;"> 57</span> <span style="color: #008000;">    &lt;bean id="sessionIdCookie" class="org.apache.shiro.web.servlet.SimpleCookie"&gt;
+</span><span style="color: #008080;"> 58</span> <span style="color: #008000;">        &lt;constructor-arg value="sid" /&gt;
+</span><span style="color: #008080;"> 59</span> <span style="color: #008000;">        &lt;property name="httpOnly" value="true" /&gt;
+</span><span style="color: #008080;"> 60</span> <span style="color: #008000;">        &lt;property name="maxAge" value="-1" /&gt;
+</span><span style="color: #008080;"> 61</span> <span style="color: #008000;">    &lt;/bean&gt;
+</span><span style="color: #008080;"> 62</span> <span style="color: #008000;">    &lt;!-- 会话DAO --&gt;
+</span><span style="color: #008080;"> 63</span> <span style="color: #008000;">    &lt;bean id="sessionDAO"
+</span><span style="color: #008080;"> 64</span> <span style="color: #008000;">        class="org.apache.shiro.session.mgt.eis.EnterpriseCacheSessionDAO"&gt;
+</span><span style="color: #008080;"> 65</span> <span style="color: #008000;">        &lt;property name="sessionIdGenerator" ref="sessionIdGenerator" /&gt;
+</span><span style="color: #008080;"> 66</span> <span style="color: #008000;">    &lt;/bean&gt;
+</span><span style="color: #008080;"> 67</span> <span style="color: #008000;">    &lt;!-- 会话验证调度器，每30分钟执行一次验证 ，设定会话超时及保存 --&gt;
+</span><span style="color: #008080;"> 68</span> <span style="color: #008000;">    &lt;bean name="sessionValidationScheduler"
+</span><span style="color: #008080;"> 69</span> <span style="color: #008000;">        class="org.apache.shiro.session.mgt.ExecutorServiceSessionValidationScheduler"&gt;
+</span><span style="color: #008080;"> 70</span> <span style="color: #008000;">        &lt;property name="interval" value="1800000" /&gt;
+</span><span style="color: #008080;"> 71</span> <span style="color: #008000;">        &lt;property name="sessionManager" ref="sessionManager" /&gt;
+</span><span style="color: #008080;"> 72</span> <span style="color: #008000;">    &lt;/bean&gt;
+</span><span style="color: #008080;"> 73</span> <span style="color: #008000;">    &lt;!-- 会话管理器 --&gt;
+</span><span style="color: #008080;"> 74</span> <span style="color: #008000;">    &lt;bean id="sessionManager"
+</span><span style="color: #008080;"> 75</span> <span style="color: #008000;">        class="org.apache.shiro.web.session.mgt.DefaultWebSessionManager"&gt;
+</span><span style="color: #008080;"> 76</span> <span style="color: #008000;">        &lt;!-- 全局会话超时时间（单位毫秒），默认30分钟 --&gt;
+</span><span style="color: #008080;"> 77</span> <span style="color: #008000;">        &lt;property name="globalSessionTimeout" value="1800000" /&gt;
+</span><span style="color: #008080;"> 78</span> <span style="color: #008000;">        &lt;property name="deleteInvalidSessions" value="true" /&gt;
+</span><span style="color: #008080;"> 79</span> <span style="color: #008000;">        &lt;property name="sessionValidationSchedulerEnabled" value="true" /&gt;
+</span><span style="color: #008080;"> 80</span> <span style="color: #008000;">        &lt;property name="sessionValidationScheduler" ref="sessionValidationScheduler" /&gt;
+</span><span style="color: #008080;"> 81</span> <span style="color: #008000;">        &lt;property name="sessionDAO" ref="sessionDAO" /&gt;
+</span><span style="color: #008080;"> 82</span> <span style="color: #008000;">        &lt;property name="sessionIdCookieEnabled" value="true" /&gt;
+</span><span style="color: #008080;"> 83</span> <span style="color: #008000;">        &lt;property name="sessionIdCookie" ref="sessionIdCookie" /&gt;
+</span><span style="color: #008080;"> 84</span> <span style="color: #008000;">    &lt;/bean&gt;
+</span><span style="color: #008080;"> 85</span>   
+<span style="color: #008080;"> 86</span> <span style="color: #008000;">    &lt;!-- 安全管理器 --&gt;
+</span><span style="color: #008080;"> 87</span> <span style="color: #008000;">    &lt;bean id="securityManager" class="org.apache.shiro.web.mgt.DefaultWebSecurityManager"&gt;
+</span><span style="color: #008080;"> 88</span> <span style="color: #008000;">        &lt;property name="realm" ref="databaseRealm" /&gt;
+</span><span style="color: #008080;"> 89</span> <span style="color: #008000;">        &lt;property name="sessionManager" ref="sessionManager" /&gt;
+</span><span style="color: #008080;"> 90</span> <span style="color: #008000;">    &lt;/bean&gt;
+</span><span style="color: #008080;"> 91</span> <span style="color: #008000;">    &lt;!-- 相当于调用SecurityUtils.setSecurityManager(securityManager) --&gt;
+</span><span style="color: #008080;"> 92</span> <span style="color: #008000;">    &lt;bean
+</span><span style="color: #008080;"> 93</span> <span style="color: #008000;">        class="org.springframework.beans.factory.config.MethodInvokingFactoryBean"&gt;
+</span><span style="color: #008080;"> 94</span> <span style="color: #008000;">        &lt;property name="staticMethod"
+</span><span style="color: #008080;"> 95</span> <span style="color: #008000;">            value="org.apache.shiro.SecurityUtils.setSecurityManager" /&gt;
+</span><span style="color: #008080;"> 96</span> <span style="color: #008000;">        &lt;property name="arguments" ref="securityManager" /&gt;
+</span><span style="color: #008080;"> 97</span> <span style="color: #008000;">    &lt;/bean&gt;
+</span><span style="color: #008080;"> 98</span>   
+<span style="color: #008080;"> 99</span> <span style="color: #008000;">    &lt;!-- 密码匹配器 --&gt;
+</span><span style="color: #008080;">100</span> <span style="color: #008000;">    &lt;bean id="credentialsMatcher" class="org.apache.shiro.authc.credential.HashedCredentialsMatcher"&gt;
+</span><span style="color: #008080;">101</span> <span style="color: #008000;">        &lt;property name="hashAlgorithmName" value="md5"/&gt;
+</span><span style="color: #008080;">102</span> <span style="color: #008000;">        &lt;property name="hashIterations" value="2"/&gt;
+</span><span style="color: #008080;">103</span> <span style="color: #008000;">        &lt;property name="storedCredentialsHexEncoded" value="true"/&gt;
+</span><span style="color: #008080;">104</span> <span style="color: #008000;">    &lt;/bean&gt;
+</span><span style="color: #008080;">105</span>   
+<span style="color: #008080;">106</span> <span style="color: #008000;">    &lt;bean id="databaseRealm" class="com.how2java.realm.DatabaseRealm"&gt;
+</span><span style="color: #008080;">107</span> <span style="color: #008000;">        &lt;property name="credentialsMatcher" ref="credentialsMatcher"/&gt;
+</span><span style="color: #008080;">108</span> <span style="color: #008000;">    &lt;/bean&gt;
+</span><span style="color: #008080;">109</span>       
+<span style="color: #008080;">110</span> <span style="color: #008000;">    &lt;!-- 保证实现了Shiro内部lifecycle函数的bean执行 --&gt;
+</span><span style="color: #008080;">111</span> <span style="color: #008000;">    &lt;bean id="lifecycleBeanPostProcessor" class="org.apache.shiro.spring.LifecycleBeanPostProcessor" /&gt;
+</span><span style="color: #008080;">112</span> <span style="color: #008000;">&lt;/beans&gt;</span></code></pre>
+
+<span class="cnblogs_code_collapse">View Code</span>
+<h2>jsp做了些文字上的改动</h2>
+<p><strong>index.jsp</strong></p>
+<src class="cnblogs_code" onclick="cnblogs_code_show('d138be12-d653-4b7d-bf94-b8c913056689')"><img id="code_img_closed_d138be12-d653-4b7d-bf94-b8c913056689" class="code_img_closed" src="./images/Shiro集成SSM基于动态URL权限管理(二)1.png" alt="" /><img id="code_img_opened_d138be12-d653-4b7d-bf94-b8c913056689" class="code_img_opened" style="display: none;" onclick="cnblogs_code_hide('d138be12-d653-4b7d-bf94-b8c913056689',event)" src="./images/Shiro集成SSM基于动态URL权限管理(二)2.png" alt="" />
+<src id="cnblogs_code_open_d138be12-d653-4b7d-bf94-b8c913056689" class="cnblogs_code_hide">
+<pre><code><span style="color: #008080;"> 1</span> &lt;%@ page language="java" contentType="text/html; charset=UTF-8"
+<span style="color: #008080;"> 2</span>     pageEncoding="UTF-8"%&gt;
+<span style="color: #008080;"> 3</span> &lt;html&gt;
+<span style="color: #008080;"> 4</span> &lt;head&gt;
+<span style="color: #008080;"> 5</span> &lt;meta http-equiv="Content-Type" content="text/html; charset=UTF-8"&gt;
+<span style="color: #008080;"> 6</span>  
+<span style="color: #008080;"> 7</span> &lt;%@ taglib uri="http://java.sun.com/jsp/jstl/core" prefix="c"%&gt;
+<span style="color: #008080;"> 8</span>  
+<span style="color: #008080;"> 9</span> &lt;link rel="stylesheet" type="text/css" href="static/css/style.css" /&gt;
+<span style="color: #008080;">10</span>  
+<span style="color: #008080;">11</span> &lt;/head&gt;
+<span style="color: #008080;">12</span> &lt;body&gt;
+<span style="color: #008080;">13</span>  
+<span style="color: #008080;">14</span> &lt;div <span style="color: #0000ff;">class</span>="workingroom"&gt;
+<span style="color: #008080;">15</span>     &lt;div <span style="color: #0000ff;">class</span>="loginDiv"&gt;
+<span style="color: #008080;">16</span>      
+<span style="color: #008080;">17</span>     &lt;c:<span style="color: #0000ff;">if</span> test="${empty subject.principal}"&gt;
+<span style="color: #008080;">18</span>         &lt;a href="login"&gt;登录&lt;/a&gt;&lt;br&gt;
+<span style="color: #008080;">19</span>     &lt;/c:<span style="color: #0000ff;">if</span>&gt;
+<span style="color: #008080;">20</span>     &lt;c:<span style="color: #0000ff;">if</span> test="${!empty subject.principal}"&gt;
+<span style="color: #008080;">21</span>         &lt;span <span style="color: #0000ff;">class</span>="desc"&gt;你好，${subject.principal}，&lt;/span&gt;
+<span style="color: #008080;">22</span>         &lt;a href="doLogout"&gt;退出&lt;/a&gt;&lt;br&gt;
+<span style="color: #008080;">23</span>     &lt;/c:<span style="color: #0000ff;">if</span>&gt;
+<span style="color: #008080;">24</span>          
+<span style="color: #008080;">25</span>     &lt;a href="listProduct"&gt;查看产品&lt;/a&gt;&lt;span <span style="color: #0000ff;">class</span>="desc"&gt;(要有查看产品权限, zhang3有，li4 有)&lt;/span&gt;&lt;br&gt;
+<span style="color: #008080;">26</span>     &lt;a href="deleteProduct"&gt;删除产品&lt;/a&gt;&lt;span  <span style="color: #0000ff;">class</span>="desc"&gt;(要有删除产品权限, zhang3有，li4 有)&lt;/span&gt;&lt;br&gt;
+<span style="color: #008080;">27</span>     &lt;a href="deleteOrder"&gt;删除订单&lt;/a&gt;&lt;span <span style="color: #0000ff;">class</span>="desc"&gt;(要有删除订单权限, zhang3有，li4没有)&lt;/span&gt;&lt;br&gt;
+<span style="color: #008080;">28</span> &lt;/div&gt;
+<span style="color: #008080;">29</span>  
+<span style="color: #008080;">30</span> &lt;/body&gt;
+<span style="color: #008080;">31</span> &lt;/html&gt;</code></pre>
+
+<span class="cnblogs_code_collapse">View Code</span>
+<p><strong>deleteOrder.jsp</strong></p>
+<src class="cnblogs_code" onclick="cnblogs_code_show('100df4be-7c76-4dba-ae40-fd2889f18d13')"><img id="code_img_closed_100df4be-7c76-4dba-ae40-fd2889f18d13" class="code_img_closed" src="./images/Shiro集成SSM基于动态URL权限管理(二)1.png" alt="" /><img id="code_img_opened_100df4be-7c76-4dba-ae40-fd2889f18d13" class="code_img_opened" style="display: none;" onclick="cnblogs_code_hide('100df4be-7c76-4dba-ae40-fd2889f18d13',event)" src="./images/Shiro集成SSM基于动态URL权限管理(二)2.png" alt="" />
+<src id="cnblogs_code_open_100df4be-7c76-4dba-ae40-fd2889f18d13" class="cnblogs_code_hide">
+<pre><code><span style="color: #008080;"> 1</span> &lt;%@ page language="java" contentType="text/html; charset=UTF-8"
+<span style="color: #008080;"> 2</span>     pageEncoding="UTF-8" <span style="color: #0000ff;">import</span>="java.util.*"%&gt;
+<span style="color: #008080;"> 3</span>   
+<span style="color: #008080;"> 4</span> &lt;!DOCTYPE html&gt;
+<span style="color: #008080;"> 5</span>   
+<span style="color: #008080;"> 6</span> &lt;meta http-equiv="Content-Type" content="text/html; charset=UTF-8"&gt;
+<span style="color: #008080;"> 7</span> &lt;link rel="stylesheet" type="text/css" href="static/css/style.css" /&gt;
+<span style="color: #008080;"> 8</span>  
+<span style="color: #008080;"> 9</span> &lt;div <span style="color: #0000ff;">class</span>="workingroom"&gt;
+<span style="color: #008080;">10</span>  
+<span style="color: #008080;">11</span>     deleteOrder.jsp，能进来&lt;br&gt;<span style="color: #000000;">就表示拥有 deleteOrder 权限
+</span><span style="color: #008080;">12</span>     &lt;br&gt;
+<span style="color: #008080;">13</span>     &lt;a href="#" onClick="javascript:history.back()"&gt;返回&lt;/a&gt;
+<span style="color: #008080;">14</span> &lt;/div&gt;</code></pre>
+
+<span class="cnblogs_code_collapse">View Code</span>
+<p><strong>deleteProduct.jsp</strong></p>
+<src class="cnblogs_code" onclick="cnblogs_code_show('2de8f8b2-5daf-44e3-b50e-0b443b1ecc60')"><img id="code_img_closed_2de8f8b2-5daf-44e3-b50e-0b443b1ecc60" class="code_img_closed" src="./images/Shiro集成SSM基于动态URL权限管理(二)1.png" alt="" /><img id="code_img_opened_2de8f8b2-5daf-44e3-b50e-0b443b1ecc60" class="code_img_opened" style="display: none;" onclick="cnblogs_code_hide('2de8f8b2-5daf-44e3-b50e-0b443b1ecc60',event)" src="./images/Shiro集成SSM基于动态URL权限管理(二)2.png" alt="" />
+<src id="cnblogs_code_open_2de8f8b2-5daf-44e3-b50e-0b443b1ecc60" class="cnblogs_code_hide">
+<pre><code><span style="color: #008080;"> 1</span> &lt;%@ page language="java" contentType="text/html; charset=UTF-8"
+<span style="color: #008080;"> 2</span>     pageEncoding="UTF-8" <span style="color: #0000ff;">import</span>="java.util.*"%&gt;
+<span style="color: #008080;"> 3</span>   
+<span style="color: #008080;"> 4</span> &lt;!DOCTYPE html&gt;
+<span style="color: #008080;"> 5</span>   
+<span style="color: #008080;"> 6</span> &lt;meta http-equiv="Content-Type" content="text/html; charset=UTF-8"&gt;
+<span style="color: #008080;"> 7</span> &lt;link rel="stylesheet" type="text/css" href="static/css/style.css" /&gt;
+<span style="color: #008080;"> 8</span>  
+<span style="color: #008080;"> 9</span> &lt;div <span style="color: #0000ff;">class</span>="workingroom"&gt;
+<span style="color: #008080;">10</span>  
+<span style="color: #008080;">11</span>     deleteProduct.jsp，能进来&lt;br&gt;<span style="color: #000000;">就表示拥有 deleteProduct 权限
+</span><span style="color: #008080;">12</span>     &lt;br&gt;
+<span style="color: #008080;">13</span>     &lt;a href="#" onClick="javascript:history.back()"&gt;返回&lt;/a&gt;
+<span style="color: #008080;">14</span> &lt;/div&gt;</code></pre>
+
+<span class="cnblogs_code_collapse">View Code</span>
+<p><strong>listProduct.jsp</strong></p>
+<src class="cnblogs_code" onclick="cnblogs_code_show('2b9ff2e5-c088-4955-91c5-3892523e3c6b')"><img id="code_img_closed_2b9ff2e5-c088-4955-91c5-3892523e3c6b" class="code_img_closed" src="./images/Shiro集成SSM基于动态URL权限管理(二)1.png" alt="" /><img id="code_img_opened_2b9ff2e5-c088-4955-91c5-3892523e3c6b" class="code_img_opened" style="display: none;" onclick="cnblogs_code_hide('2b9ff2e5-c088-4955-91c5-3892523e3c6b',event)" src="./images/Shiro集成SSM基于动态URL权限管理(二)2.png" alt="" />
+<src id="cnblogs_code_open_2b9ff2e5-c088-4955-91c5-3892523e3c6b" class="cnblogs_code_hide">
+<pre><code><span style="color: #008080;"> 1</span> &lt;%@ page language="java" contentType="text/html; charset=UTF-8"
+<span style="color: #008080;"> 2</span>     pageEncoding="UTF-8" <span style="color: #0000ff;">import</span>="java.util.*"%&gt;
+<span style="color: #008080;"> 3</span>   
+<span style="color: #008080;"> 4</span> &lt;!DOCTYPE html&gt;
+<span style="color: #008080;"> 5</span>   
+<span style="color: #008080;"> 6</span> &lt;meta http-equiv="Content-Type" content="text/html; charset=UTF-8"&gt;
+<span style="color: #008080;"> 7</span> &lt;link rel="stylesheet" type="text/css" href="static/css/style.css" /&gt;
+<span style="color: #008080;"> 8</span>  
+<span style="color: #008080;"> 9</span> &lt;div <span style="color: #0000ff;">class</span>="workingroom"&gt;
+<span style="color: #008080;">10</span>  
+<span style="color: #008080;">11</span>     listProduct.jsp，能进来&lt;br&gt;<span style="color: #000000;">就表示拥有 listProduct 权限
+</span><span style="color: #008080;">12</span>     &lt;br&gt;
+<span style="color: #008080;">13</span>     &lt;a href="#" onClick="javascript:history.back()"&gt;返回&lt;/a&gt;
+<span style="color: #008080;">14</span> &lt;/div&gt;</code></pre>
+
+<span class="cnblogs_code_collapse">View Code</span>
+<p><strong><span style="font-family: 宋体;">打开浏览器测试，</span>finish<span style="font-family: 宋体;">。</span></strong></p>
+<p><strong><span style="font-family: 宋体;">重启Tomcat测试，业务测试地址：</span></strong></p>
+<src class="code">
+<src class="codeodd">http://127.0.0.1:8080/shirossm_dynamicURL/index
+
+<p><strong><span style="font-family: 宋体;">权限配置测试地址：</span></strong>&nbsp;</p>
+<src class="code">
+<src class="codeodd">http://127.0.0.1:8080/shirossm_dynamicURL/config/listUser
+<h2 class="codeeven codelast">为什么角色不对应URL</h2>
+
+<p><span style="font-family: Helvetica;">权限通过</span>url进行灵活配置了。 但是角色还没有和url对应起来。<strong>&nbsp;<span style="font-family: Helvetica;">为什么不把角色也对应起来呢？</span></strong><br /><span style="font-family: Helvetica;">从代码开发的角度讲是可以做的，无非就是在</span> role表上增加一个url 字段。 但是从权限管理本身的角度看，当一个url 既对应权限表的数据，又对应角色表的数据，反而容易产生混淆。<br /><span style="font-family: Helvetica;">反倒是现在这种，</span>url地址，仅仅和权限表关联起来，在逻辑上明晰简单，也更容易维护。 所以就放弃了角色表也进行url维护的做法了。</p>
+<p>&nbsp;最后，同样地，需要demo的留言私发！！！</p>
+
+</div><hr><script charset='utf-8' src='../../js/sming.js'></script></body></html>

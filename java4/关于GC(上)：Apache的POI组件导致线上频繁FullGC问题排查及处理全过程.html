@@ -1,0 +1,147 @@
+<html><head><meta charset='utf-8'><meta name='viewport' content='width=device-width, initial-scale=1'>
+<meta name='applicable-device' content='pc'><meta name='keywords' content='电脑,电脑讲解,电脑技术,编程,电脑故障维修关于GC(上)：Apache的POI组件导致线上频繁FullGC问题排查及处理全过程' />
+<script src='../../highlight/highlight.pack.js'></script>
+<link rel='stylesheet' type='text/css' href='../../highlight/styles/monokai.css'/>
+
+<link rel='stylesheet' href='../../fenxiang/dist/css/share.min.css'>
+<script src='../../fenxiang/src/js/social-share.js'></script>
+<script src='../../fenxiang/src/js/qrcode.js'></script>
+
+</head><body><script>hljs.initHighlightingOnLoad();</script><script>
+var system ={};  
+var p = navigator.platform;       
+system.win = p.indexOf('Win') == 0;  
+system.mac = p.indexOf('Mac') == 0;  
+system.x11 = (p == 'X11') || (p.indexOf('Linux') == 0);     
+if(system.win||system.mac||system.xll){
+document.write("<link href='../css/3.css' rel='stylesheet' type='text/css'>");}else{ document.write("<link href='../css/3wap.css' rel='stylesheet' type='text/css'>");}</script><script src='../../js/3.js'></script><div class='div2'><div class='heading_nav'><ul><div><li><a href='../../index.html'>首页</a></li>
+</div><div onclick='hidden1()' >分享</div>
+</ul></div></div>
+<div id='heading_nav2'> 
+<li class='row' >
+<div class='social-share' data-mode='prepend'><a href='javascript:' class='social-share-icon icon-heart'></a></div></li></div><script charset='utf-8' src='../../3/js/hengfu.js'></script><script charset='utf-8' src='../../3/js/hengfu2.js'></script><hr><div class='div1'><div class='biaoti'><center>关于GC(上)：Apache的POI组件导致线上频繁FullGC问题排查及处理全过程</center></div><div class='banquan'>原文出处:本文由博客园博主五岳提供。<br/>
+原文连接:https://www.cnblogs.com/wuyuegb2312/p/11799352.html</div><br>
+    <p>某线上应用在进行查询结果导出Excel时，大概率出现持续的FullGC。解决这个问题时，记录了一下整个的流程，也可以作为一般性的FullGC问题排查指导。</p>
+<h1 id="生成dump文件">1. 生成dump文件</h1>
+<p>为了定位FullGC的原因，首先需要获取heap dump文件，看下发生FullGC时堆内存的分配情况，定位可能出现问题的地方。</p>
+<h2 id="通过jvm参数自动生成">1. 1 通过JVM参数自动生成</h2>
+<p>可以在JVM参数中设置<code>-XX:+ HeapDumpBeforeFullGC</code>参数。<br />
+建议动态增加这个参数，直接在线上镜像中增加一方面是要重新打包发布，另一方面风险比较高</p>
+<p>sudo -u admin /opt/taobao/java/bin/jinfo -flag +HeapDumpBeforeFullGC pid<br />
+sudo -u admin /opt/taobao/java/bin/jinfo -flag +HeapDumpAfterFullGC pid</p>
+<p>也可以用HeapDumpOnOutOfMemoryError这个参数，只在outOfMemoryError发生时才dump。实测只有在fullgc完成时才会产生该文件，fullgc期间看不到。<br />
+此外还需要<code>-XX:HeapDumpPath=/home/admin/logs/java.hprof</code>这个参数来指定dump文件存放路径。</p>
+<h2 id="通过jdk工具生成">1.2 通过JDK工具生成</h2>
+<h3 id="jmap">1.2.1 jmap</h3>
+<p>先获取java进程ID，再使用jmap进行dump。<br />
+注意，虚拟机上的jmap可能没有做路径映射，需要手动选择jdk路径下来执行</p>
+<pre><code><code>ps -aux | grep java
+jmap -dump:file=test.hprof,format=b XXXX</code></code></pre>
+<h3 id="通过jcmd">1.2.2 通过jcmd</h3>
+<p>JDK7后新增的多功能命令，其中<code>jcmd pid GC.heap_dump FILE_NAME</code>的效果和<code>jmap -dump:file=test.hprof,format=b pid</code>一样。</p>
+<h2 id="jconsole">1.3 JConsole</h2>
+<p>可以生成本机或远程JVM的dump。还有一些其他工具就不详细介绍了。</p>
+<h1 id="下载dump文件">2. 下载dump文件</h1>
+<p>由于使用的是阿里云的服务器，可以直接将dump文件上传到OSS上通过公司内部工具来分析，或通过OSS再下载到本地。<br />
+设置OSSCMD：<br />
+操作命令 osscmd config --host=oss-cn-hangzhou-am101.aliyuncs.com --id=** --key=**<br />
+创建bucke：osscmd cb 000001<br />
+上传文件：osscmd put 1.txt oss://000001/<br />
+下载文件：osscmd get oss://000001/1.txt 1.txt</p>
+<p>其他类型的Linux主机可以使用SCP命令，参考：<a href="https://www.runoob.com/linux/linux-comm-scp.html">Linux scp命令</a></p>
+<h1 id="分析工具">3. 分析工具</h1>
+<p>通过dump文件来分析fullGC的原因，需要关注哪些类占用内存空间较多、不可到达类等。<br />
+由于使用的是公司内部工具Zprofiler和grace，详细的使用过程这里就不截图了。一些其他可用的工具和命令(参考<a href="https://www.cnblogs.com/wyb628/p/8567610.html">Java内存泄漏分析系列之六：JVM Heap Dump（堆转储文件）的生成和MAT的使用</a>):</p>
+<ul>
+<li>jhat, JDK自带，使用<code>jhat &lt;heap-dump-file&gt;</code>生成网页，通过浏览器访问<code>http://localhost:7000</code>查看</li>
+<li>jvisualvm</li>
+<li>Eclipse Memory Analyzer(MAT)</li>
+<li>IBM Heap Analyzer</li>
+</ul>
+<p>需要注意的是，只看dump文件有时还不能得到结论，因为占用空间大头的有可能是String、ArrayBlockingList这样的对象，而且内容可能是null或null对象的集合，无从排查。此时还要结合发生fullgc前后业务系统发生了什么动作来确定。如果有条件的话可以在日常环境或预发环境重现一下。<br />
+当然，如果内存中的空间消耗对象是特殊的类，就比较好排查了。</p>
+<h1 id="分析和改进">4. 分析和改进</h1>
+<p>具体情况具体分析。</p>
+<h2 id="本次排查的场景">4.1 本次排查的场景</h2>
+<p>查询DB中数据-&gt;在异步线程中通过poi转换成Excel-&gt;上传到OSS。</p>
+<p>示例代码：</p>
+<pre class="java"><code>// 导出代码中将变量直接作为lambda表达式的值传入
+List&lt;XXData&gt;  data = queryData(request);
+SheetDownloadProperty property = sheetDownloadProperties.get(0);
+property.setTotalCount(request.getQueryRequest().getPageSize());
+property.setPageSize(request.getQueryRequest().getPageSize());
+property.setQueryFunction((currentPage, pageSize) -&gt;  data);
+// 该组件会在线程池异步调用poi组件转换为excel、上传OSS、下载
+asyncDownloadService.downloadFile(downloadTask);</code></code></pre>
+<pre class="java"><code>private List&lt;XXData&gt; queryData(ExportRequest request) {
+    //查询DB，略
+}</code></code></pre>
+<pre class="java"><code>// 查询方法
+@FunctionalInterface
+public interface PageFunction&lt;T&gt; {
+
+    /**
+     * 方法执行
+     */
+    List&lt;T&gt; apply(Integer currentPage,Integer pageSize);
+}</code></code></pre>
+<h2 id="dump文件分析">4.2 dump文件分析</h2>
+<p>通过内部工具可见，fullGC前有三个占据内存较高的ArrayBlockingList，里面有大量的内容为null的Object。<br />
+<img src="./images/关于GC(上)：Apache的POI组件导致线上频繁FullGC问题排查及处理全过程0.png" /></p>
+<p>这三个ArrayBlockingList所属的中间件，虽然本身和业务流程没有关系，但是仍不能排除嫌疑。</p>
+<h2 id="尝试解决">4.3 尝试解决</h2>
+<h3 id="方案1poi相关解决方案">4.3.1 方案1：poi相关解决方案</h3>
+<p>由于依赖了二方库poi，这个库的usermodel模式很容易引起fullGC，同时也怀疑是因为lambda表达式直接传了变量。<br />
+把poi的usermodel改为事件模式（https://my.oschina.net/OutOfMemory/blog/1068972）可以避免这个问题。<br />
+但是该功能是一个二次封装的三方包中的，同时其他引用该组件的应用fullgc频率并不高，没有采用这个方案。</p>
+<h3 id="方案2中间件升级">4.3.2 方案2：中间件升级</h3>
+<p>持有大量null对象的中间件版本较低，且新版目前已不再维护，老版本的releas note虽然没有提到这条bug fix，有一定嫌疑。<br />
+该中间件初始化时会创建三个容量为8<em>1024</em>1024的ArrayBlockingList，和dump文件相符合。<br />
+同样是因为这个中间件是在三方包中封装，不方便直接该版本，同样没有采用这个方案。</p>
+<h3 id="方案3增大堆大小">4.3.3 方案3：增大堆大小</h3>
+<p>可以调整metaspace参数来实现，本次想找到代码中相关的线索来解决，未采用该方案。</p>
+<h3 id="方案4业务代码修改">4.3.4 方案4：业务代码修改</h3>
+<p>仔细观察了这段代码在其他系统的的实现，发现其他系统的lambda表达式是匿名方法，而不是直接传值，即：</p>
+<pre><code><code>property.setQueryFunction((currentPage, pageSize) -&gt;  {
+    // 查询逻辑, 略
+);
+</code></code></pre>
+<p>怀疑是直接传变量进去导致的垃圾回收问题。更改到这种模式后，触发下载功能时，连续长时间的fullGC仍然时有发生，没有解决问题。</p>
+<h3 id="方案5替换垃圾回收器">4.3.5 方案5：替换垃圾回收器</h3>
+<p>暂时能确定的原因是，公司中间件本身占用堆内存较多，运行poi增加了GC的频率。但是由于它们都在二方库的原因，不方便修改。<br />
+此时搜索到stackoverflow有关于poi反复GC的<a href="https://stackoverflow.com/questions/53780497/apache-poi-garbage-collection-does-not-free-memory-java">一个问题</a>，和我的情况类似，也是反复GC但是仍然不能释放内存。有回复建议将GC回收器替换为G1GC，将默认的UseConcMarkSweepGC替换后效果明显，一次FullGC就可以完成回收释放，不会反复FullGC，如下图，20:30前的fullGC是CMS，持续时间长且反复进行；20:30后是替换后第一次触发excel转换下载，进行了多次下载，即使发生FullGC也只有1次，大大缓解了之前的问题：</p>
+<p><img src="./images/关于GC(上)：Apache的POI组件导致线上频繁FullGC问题排查及处理全过程1.png" /></p>
+<p>本次暂定只采用方案5。</p>
+<p>G1GC在JDK9已替代CMS成为了正式的垃圾回收器，低版本JDK需要手动设置。具体需要设置的JVM参数：</p>
+<pre><code><code>-Xms32m
+-Xmx1g
+-XX:+UnlockExperimentalVMOptions
+-XX:+UseG1GC 
+-XX:MaxHeapFreeRatio=15 
+-XX:MinHeapFreeRatio=5</code></code></pre>
+<p>注意前两行一般应用都会设置，不要覆盖掉。最后两行需要视情况调整。另外，默认的<code>-XX:+UseConcMarkSweepGC</code>需要去掉。</p>
+<p>使用G1GC时需要确认工作线程数是否和预期一致，不要太多，一般来说和CPU核数一致即可。出现非预期数目的原因可能是，镜像脚本指定核数时，直接按照物理机而不是虚拟机核数来生成。<br />
+查看方式是看gc日志：<br />
+<img src="./images/关于GC(上)：Apache的POI组件导致线上频繁FullGC问题排查及处理全过程2.png" /><br />
+虚拟机设置核数的dokcker脚本示例：</p>
+<pre><code><code>export CPU_COUNT=&quot;$(grep -c &#39;cpu[0-9][0-9]*&#39; /proc/stat)&quot;</code></code></pre>
+<h1 id="其他">5. 其他</h1>
+<h2 id="典型fullgc场景举例">5.1 典型fullGC场景举例</h2>
+<ul>
+<li>外部资源未释放，如将利用tair实现的分布式锁放在Map中，未做解锁</li>
+<li>fastjson的反序列化异常抛出后没有处理</li>
+<li>框架固有缺陷，如本例apache的poi组件，使用usermodel模式做excel导出时，当操作比较频繁或有其他内存泄漏有可能造成</li>
+<li>JVM的metaspace设置过小</li>
+</ul>
+<h2 id="core-dump和heap-dump">5.2 core dump和heap dump</h2>
+<p>core dump是针对线程某一时刻的运行情况的，可以看到执行到哪个类哪个方法哪一行以及执行栈的；heap dump是针对内存某一时刻的分配情况的。</p>
+<h2 id="stackoverflow上关于poi内存占用问题的讨论">5.3 stackoverflow上关于poi内存占用问题的讨论：</h2>
+<p>简单摘译了一些，可以直接看原文。</p>
+<ol>
+<li>Java对堆内存分配是懒回收的，如果JVM不想这么做，即使运行Runtime.gc()，也可能什么也不做。<a href="https://stackoverflow.com/questions/53780497/apache-poi-garbage-collection-does-not-free-memory-java">sapiensl和Amongalen的回答</a></li>
+<li>触发FullGC，并不是因为内存泄漏，仅仅是因为poi占用了太多的内存。<a href="https://stackoverflow.com/questions/34850130/java-memory-issue-using-apache-poi-to-read-write-excel/34851894#34851894">Michael的回答</a></li>
+</ol>
+<p>关于G1GC，会在后续文章中研究。</p>
+
+
+</div><hr><script charset='utf-8' src='../../js/sming.js'></script></body></html>

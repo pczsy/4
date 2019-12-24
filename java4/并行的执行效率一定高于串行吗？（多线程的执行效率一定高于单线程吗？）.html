@@ -1,0 +1,45 @@
+<html><head><meta charset='utf-8'><meta name='viewport' content='width=device-width, initial-scale=1'>
+<meta name='applicable-device' content='pc'><meta name='keywords' content='电脑,电脑讲解,电脑技术,编程,电脑故障维修并行的执行效率一定高于串行吗？（多线程的执行效率一定高于单线程吗？）' />
+<script src='../../highlight/highlight.pack.js'></script>
+<link rel='stylesheet' type='text/css' href='../../highlight/styles/monokai.css'/>
+
+<link rel='stylesheet' href='../../fenxiang/dist/css/share.min.css'>
+<script src='../../fenxiang/src/js/social-share.js'></script>
+<script src='../../fenxiang/src/js/qrcode.js'></script>
+
+</head><body><script>hljs.initHighlightingOnLoad();</script><script>
+var system ={};  
+var p = navigator.platform;       
+system.win = p.indexOf('Win') == 0;  
+system.mac = p.indexOf('Mac') == 0;  
+system.x11 = (p == 'X11') || (p.indexOf('Linux') == 0);     
+if(system.win||system.mac||system.xll){
+document.write("<link href='../css/3.css' rel='stylesheet' type='text/css'>");}else{ document.write("<link href='../css/3wap.css' rel='stylesheet' type='text/css'>");}</script><script src='../../js/3.js'></script><div class='div2'><div class='heading_nav'><ul><div><li><a href='../../index.html'>首页</a></li>
+</div><div onclick='hidden1()' >分享</div>
+</ul></div></div>
+<div id='heading_nav2'> 
+<li class='row' >
+<div class='social-share' data-mode='prepend'><a href='javascript:' class='social-share-icon icon-heart'></a></div></li></div><script charset='utf-8' src='../../3/js/hengfu.js'></script><script charset='utf-8' src='../../3/js/hengfu2.js'></script><hr><div class='div1'><div class='biaoti'><center>并行的执行效率一定高于串行吗？（多线程的执行效率一定高于单线程吗？）</center></div><div class='banquan'>原文出处:本文由博客园博主赖皮梅提供。<br/>
+原文连接:https://www.cnblogs.com/laipimei/p/11757209.html</div><br>
+    <p><span style="background-color: #ffffff; color: #ff0000;"><span style="color: #000000;"><span style="color: #ff0000; font-size: 18px;"><strong>一、什么是串行？什么是并行？</strong></span>　　</span></span></p>
+<p>　　<strong><span style="font-size: 16px;">串行：</span></strong>任务进行排队，一个一个执行；<br />　　<span style="font-size: 16px;"><strong>并行：</strong></span>多个任务齐头并进。</p>
+<p><strong><span style="font-size: 18px; color: #ff0000;">&nbsp;</span></strong></p>
+<p><span style="font-size: 18px;"><strong><span style="color: #ff0000;">二、单核、多核这两种情况下的并行。</span></strong></span></p>
+<p>　　<span style="font-size: 16px;"><strong>单核情况下的并行：</strong></span>并非真的是多个任务同时进行的，是需要在这任务之间来回切换（即上下文切换）的。</p>
+<p>　　<span style="font-size: 16px;"><strong>多核情况下的并行：</strong></span>是几核，就能真正做到几核同时执行各自的任务。</p>
+<p>&nbsp;</p>
+<p><span style="font-size: 18px;"><strong><span style="color: #ff0000;">三、任务的两大类型。</span></strong></span></p>
+<p>　　<span style="font-size: 16px;"><strong>&ldquo;计算密集型&rdquo;任务：</strong></span></p>
+<p>　　特点是要进行大量的计算，消耗CPU资源，比如计算圆周率、对视频进行高清解码等等，全靠CPU的运算能力。<br />　　这种计算密集型任务虽然也可以用多任务完成，但是任务越多，花在任务切换的时间就越多，CPU执行任务的效率就越低，所以，要最高效地利用CPU，计算密集型任务同时进行的数量应当等于CPU的核心数。</p>
+<p>　　<strong><span style="font-size: 16px;">&ldquo;IO密集型&rdquo;任务：</span></strong></p>
+<p>　　涉及到网络、磁盘IO的任务都是IO密集型任务，这类任务的特点是CPU消耗很少，任务的大部分时间都在等待IO操作完成（因为IO（指把内容从硬盘上读到内存的过程，或者是从网络上接收信息到本机内存的过程）的速度远远低于CPU和内存的速度）。<br />　　对于IO密集型任务，任务越多，CPU效率越高，但也有一个限度。常见的大部分任务都是IO密集型任务，比如Web应用。</p>
+<p>&nbsp;</p>
+<p><span style="color: #ff0000;"><strong><span style="font-size: 18px;">四、看完了上面几点，我们就可以对&ldquo;并行的执行效率一定会高于串行吗&rdquo;这个问题作出解答了。</span></strong></span></p>
+<p>　　<span style="font-size: 16px; color: #000000;"><strong>答：</strong></span><span style="text-decoration: underline;"><span style="font-size: 16px; color: #000000;">并不一定，取决于机器的核数和任务类型。</span></span></p>
+<p>　　<span style="font-size: 16px;"><strong>1.如果是执行多个计算密集型任务</strong></span>：<br />    　　　　①单核：串行 &gt; 并行。<br />    　　　　②多核：并行 &gt; 串行。</p>
+<p>　　<strong><span style="font-size: 16px;">2.如果是执行多个IO密集型任务：</span></strong><br />    　　　　①单核：并行 &gt; 串行。<br />    　　　　②多核：并行 &gt; 串行。</p>
+<p>　　在多核或多CPU，或支持Hyper-threading的CPU上使用多线程程序设计的好处是显而易见，即提高了程序的执行吞吐率。</p>
+<p>　　在单CPU或单核的计算机上，使用多线程技术，也可以把进程中负责I/O处理、人机交互而常被阻塞的部分与密集计算的部分分开来执行，编写专门的workhorse线程执行密集计算，从而提高了程序的执行效率。</p>
+<p>&nbsp;</p>
+
+</div><hr><script charset='utf-8' src='../../js/sming.js'></script></body></html>

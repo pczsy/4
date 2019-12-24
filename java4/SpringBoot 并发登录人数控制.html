@@ -1,0 +1,197 @@
+<html><head><meta charset='utf-8'><meta name='viewport' content='width=device-width, initial-scale=1'>
+<meta name='applicable-device' content='pc'><meta name='keywords' content='电脑,电脑讲解,电脑技术,编程,电脑故障维修SpringBoot 并发登录人数控制' />
+<script src='../../highlight/highlight.pack.js'></script>
+<link rel='stylesheet' type='text/css' href='../../highlight/styles/monokai.css'/>
+
+<link rel='stylesheet' href='../../fenxiang/dist/css/share.min.css'>
+<script src='../../fenxiang/src/js/social-share.js'></script>
+<script src='../../fenxiang/src/js/qrcode.js'></script>
+
+</head><body><script>hljs.initHighlightingOnLoad();</script><script>
+var system ={};  
+var p = navigator.platform;       
+system.win = p.indexOf('Win') == 0;  
+system.mac = p.indexOf('Mac') == 0;  
+system.x11 = (p == 'X11') || (p.indexOf('Linux') == 0);     
+if(system.win||system.mac||system.xll){
+document.write("<link href='../css/3.css' rel='stylesheet' type='text/css'>");}else{ document.write("<link href='../css/3wap.css' rel='stylesheet' type='text/css'>");}</script><script src='../../js/3.js'></script><div class='div2'><div class='heading_nav'><ul><div><li><a href='../../index.html'>首页</a></li>
+</div><div onclick='hidden1()' >分享</div>
+</ul></div></div>
+<div id='heading_nav2'> 
+<li class='row' >
+<div class='social-share' data-mode='prepend'><a href='javascript:' class='social-share-icon icon-heart'></a></div></li></div><script charset='utf-8' src='../../3/js/hengfu.js'></script><script charset='utf-8' src='../../3/js/hengfu2.js'></script><hr><div class='div1'><div class='biaoti'><center>SpringBoot 并发登录人数控制</center></div><div class='banquan'>原文出处:本文由博客园博主画画123提供。<br/>
+原文连接:https://www.cnblogs.com/yunxi520/p/12055593.html</div><br>
+    <p>通常系统都会限制同一个账号的登录人数，多人登录要么限制后者登录，要么踢出前者，Spring Security 提供了这样的功能，本文讲解一下在没有使用Security的时候如何手动实现这个功能</p>
+<p>demo 技术选型</p>
+<ul>
+<li>SpringBoot</li>
+<li>JWT</li>
+<li>Filter</li>
+<li>Redis + Redisson</li>
+</ul>
+<p>JWT（token）存储在Redis中，类似 JSessionId-Session的关系，用户登录后每次请求在Header中携带jwt</p>
+<p>如果你是使用session的话，也完全可以借鉴本文的思路，只是代码上需要加些改动</p>
+<p>两种实现思路</p>
+<p>比较时间戳</p>
+<p>维护一个 username: jwtToken 这样的一个 key-value 在Reids中, Filter逻辑如下</p>
+<p class="ztext-empty-paragraph">&nbsp;</p>
+<p><img class="origin_image zh-lightbox-thumb lazy" src="./images/SpringBoot 并发登录人数控制0.png" alt="" width="1070" data-caption="" data-size="normal" data-rawwidth="1070" data-rawheight="402" data-original="https://pic1.zhimg.com/v2-abfccdc8d8fb107da1a97e4e1d99450c_r.jpg" data-actualsrc="https://pic1.zhimg.com/v2-abfccdc8d8fb107da1a97e4e1d99450c_b.jpg" data-lazy-status="ok" /></p>
+<p class="ztext-empty-paragraph">&nbsp;</p>
+<src class="highlight">
+<src class="cnblogs_code">
+<pre><code><span style="color: #0000ff;">public</span> <span style="color: #0000ff;">class</span> CompareKickOutFilter <span style="color: #0000ff;">extends</span><span style="color: #000000;"> KickOutFilter {
+
+    @Autowired
+    </span><span style="color: #0000ff;">private</span><span style="color: #000000;"> UserService userService;
+
+    @Override
+    </span><span style="color: #0000ff;">public</span> <span style="color: #0000ff;">boolean</span><span style="color: #000000;"> isAccessAllowed(HttpServletRequest request, HttpServletResponse response) {
+        String token </span>= request.getHeader("Authorization"<span style="color: #000000;">);
+        String username </span>=<span style="color: #000000;"> JWTUtil.getUsername(token);
+        String userKey </span>= PREFIX +<span style="color: #000000;"> username;
+
+        RBucket</span>&lt;String&gt; bucket =<span style="color: #000000;"> redissonClient.getBucket(userKey);
+        String redisToken </span>=<span style="color: #000000;"> bucket.get();
+
+        </span><span style="color: #0000ff;">if</span><span style="color: #000000;"> (token.equals(redisToken)) {
+            </span><span style="color: #0000ff;">return</span> <span style="color: #0000ff;">true</span><span style="color: #000000;">;
+
+        } </span><span style="color: #0000ff;">else</span> <span style="color: #0000ff;">if</span><span style="color: #000000;"> (StringUtils.isBlank(redisToken)) {
+            bucket.set(token);
+
+        } </span><span style="color: #0000ff;">else</span><span style="color: #000000;"> {
+            Long redisTokenUnixTime </span>= JWTUtil.getClaim(redisToken, "createTime"<span style="color: #000000;">).asLong();
+            Long tokenUnixTime </span>= JWTUtil.getClaim(token, "createTime"<span style="color: #000000;">).asLong();
+
+            </span><span style="color: #008000;">//</span><span style="color: #008000;"> token &gt; redisToken 则覆盖</span>
+            <span style="color: #0000ff;">if</span> (tokenUnixTime.compareTo(redisTokenUnixTime) &gt; 0<span style="color: #000000;">) {
+                bucket.set(token);
+
+            } </span><span style="color: #0000ff;">else</span><span style="color: #000000;"> {
+                </span><span style="color: #008000;">//</span><span style="color: #008000;"> 注销当前token</span>
+<span style="color: #000000;">                userService.logout(token);
+                sendJsonResponse(response, </span>4001, "您的账号已在其他设备登录"<span style="color: #000000;">);
+                </span><span style="color: #0000ff;">return</span> <span style="color: #0000ff;">false</span><span style="color: #000000;">;
+
+            }
+
+        }
+
+        </span><span style="color: #0000ff;">return</span> <span style="color: #0000ff;">true</span><span style="color: #000000;">;
+
+    }
+}</span></code></pre>
+
+<p>&nbsp;</p>
+
+<p class="ztext-empty-paragraph">&nbsp;</p>
+<p>队列踢出</p>
+<p class="ztext-empty-paragraph">&nbsp;</p>
+<p><img class="content_image lazy" src="./images/SpringBoot 并发登录人数控制1.png" alt="" width="401" data-caption="" data-size="normal" data-rawwidth="401" data-rawheight="413" data-actualsrc="https://pic3.zhimg.com/v2-ec0c43a2452e2944bc9461301df085f2_b.jpg" data-lazy-status="ok" /></p>
+<src class="highlight">
+<src class="cnblogs_code">
+<pre><code><span style="color: #0000ff;">public</span> <span style="color: #0000ff;">class</span> QueueKickOutFilter <span style="color: #0000ff;">extends</span><span style="color: #000000;"> KickOutFilter {
+    </span><span style="color: #008000;">/**</span><span style="color: #008000;">
+     * 踢出之前登录的/之后登录的用户 默认踢出之前登录的用户
+     </span><span style="color: #008000;">*/</span>
+    <span style="color: #0000ff;">private</span> <span style="color: #0000ff;">boolean</span> kickoutAfter = <span style="color: #0000ff;">false</span><span style="color: #000000;">;
+    </span><span style="color: #008000;">/**</span><span style="color: #008000;">
+     * 同一个帐号最大会话数 默认1
+     </span><span style="color: #008000;">*/</span>
+    <span style="color: #0000ff;">private</span> <span style="color: #0000ff;">int</span> maxSession = 1<span style="color: #000000;">;
+
+    </span><span style="color: #0000ff;">public</span> <span style="color: #0000ff;">void</span> setKickoutAfter(<span style="color: #0000ff;">boolean</span><span style="color: #000000;"> kickoutAfter) {
+        </span><span style="color: #0000ff;">this</span>.kickoutAfter =<span style="color: #000000;"> kickoutAfter;
+    }
+
+    </span><span style="color: #0000ff;">public</span> <span style="color: #0000ff;">void</span> setMaxSession(<span style="color: #0000ff;">int</span><span style="color: #000000;"> maxSession) {
+        </span><span style="color: #0000ff;">this</span>.maxSession =<span style="color: #000000;"> maxSession;
+    }
+
+    @Override
+    </span><span style="color: #0000ff;">public</span> <span style="color: #0000ff;">boolean</span> isAccessAllowed(HttpServletRequest request, HttpServletResponse response) <span style="color: #0000ff;">throws</span><span style="color: #000000;"> Exception {
+        String token </span>= request.getHeader("Authorization"<span style="color: #000000;">);
+        UserBO currentSession </span>=<span style="color: #000000;"> CurrentUser.get();
+        Assert.notNull(currentSession, </span>"currentSession cannot null"<span style="color: #000000;">);
+        String username </span>=<span style="color: #000000;"> currentSession.getUsername();
+        String userKey </span>= PREFIX + "deque_" +<span style="color: #000000;"> username;
+        String lockKey </span>= PREFIX_LOCK +<span style="color: #000000;"> username;
+
+        RLock lock </span>=<span style="color: #000000;"> redissonClient.getLock(lockKey);
+
+        lock.lock(</span>2<span style="color: #000000;">, TimeUnit.SECONDS);
+
+        </span><span style="color: #0000ff;">try</span><span style="color: #000000;"> {
+            RDeque</span>&lt;String&gt; deque =<span style="color: #000000;"> redissonClient.getDeque(userKey);
+
+            </span><span style="color: #008000;">//</span><span style="color: #008000;"> 如果队列里没有此token，且用户没有被踢出；放入队列</span>
+            <span style="color: #0000ff;">if</span> (!deque.contains(token) &amp;&amp; currentSession.isKickout() == <span style="color: #0000ff;">false</span><span style="color: #000000;">) {
+                deque.push(token);
+            }
+
+            </span><span style="color: #008000;">//</span><span style="color: #008000;"> 如果队列里的sessionId数超出最大会话数，开始踢人</span>
+            <span style="color: #0000ff;">while</span> (deque.size() &gt;<span style="color: #000000;"> maxSession) {
+                String kickoutSessionId;
+                </span><span style="color: #0000ff;">if</span> (kickoutAfter) { <span style="color: #008000;">//</span><span style="color: #008000;"> 如果踢出后者</span>
+                    kickoutSessionId =<span style="color: #000000;"> deque.removeFirst();
+                } </span><span style="color: #0000ff;">else</span> { <span style="color: #008000;">//</span><span style="color: #008000;"> 否则踢出前者</span>
+                    kickoutSessionId =<span style="color: #000000;"> deque.removeLast();
+                }
+
+                </span><span style="color: #0000ff;">try</span><span style="color: #000000;"> {
+                    RBucket</span>&lt;UserBO&gt; bucket =<span style="color: #000000;"> redissonClient.getBucket(kickoutSessionId);
+                    UserBO kickoutSession </span>=<span style="color: #000000;"> bucket.get();
+
+                    </span><span style="color: #0000ff;">if</span> (kickoutSession != <span style="color: #0000ff;">null</span><span style="color: #000000;">) {
+                        </span><span style="color: #008000;">//</span><span style="color: #008000;"> 设置会话的kickout属性表示踢出了</span>
+                        kickoutSession.setKickout(<span style="color: #0000ff;">true</span><span style="color: #000000;">);
+                        bucket.set(kickoutSession);
+                    }
+
+                } </span><span style="color: #0000ff;">catch</span><span style="color: #000000;"> (Exception e) {
+                }
+
+            }
+
+            </span><span style="color: #008000;">//</span><span style="color: #008000;"> 如果被踢出了，直接退出，重定向到踢出后的地址</span>
+            <span style="color: #0000ff;">if</span><span style="color: #000000;"> (currentSession.isKickout()) {
+                </span><span style="color: #008000;">//</span><span style="color: #008000;"> 会话被踢出了</span>
+                <span style="color: #0000ff;">try</span><span style="color: #000000;"> {
+                    </span><span style="color: #008000;">//</span><span style="color: #008000;"> 注销</span>
+<span style="color: #000000;">                    userService.logout(token);
+                    sendJsonResponse(response, </span>4001, "您的账号已在其他设备登录"<span style="color: #000000;">);
+
+                } </span><span style="color: #0000ff;">catch</span><span style="color: #000000;"> (Exception e) {
+                }
+
+                </span><span style="color: #0000ff;">return</span> <span style="color: #0000ff;">false</span><span style="color: #000000;">;
+
+            }
+
+        } </span><span style="color: #0000ff;">finally</span><span style="color: #000000;"> {
+            </span><span style="color: #0000ff;">if</span><span style="color: #000000;"> (lock.isHeldByCurrentThread()) {
+                lock.unlock();
+                LOGGER.info(Thread.currentThread().getName() </span>+ " unlock"<span style="color: #000000;">);
+
+            } </span><span style="color: #0000ff;">else</span><span style="color: #000000;"> {
+                LOGGER.info(Thread.currentThread().getName() </span>+ " already automatically release lock"<span style="color: #000000;">);
+            }
+        }
+
+        </span><span style="color: #0000ff;">return</span> <span style="color: #0000ff;">true</span><span style="color: #000000;">;
+    }
+
+}</span></code></pre>
+
+<p>&nbsp;</p>
+
+<p>比较两种方法</p>
+<ol>
+<li>第一种方法逻辑简单粗暴, 只维护一个key-value 不需要使用锁，非要说缺点的话没有第二种方法灵活。</li>
+<li>第二种方法我很喜欢，代码很优雅灵活，但是逻辑相对麻烦一些，而且为了保证线程安全地操作队列，要使用分布式锁。目前我们项目中使用的是第一种方法</li>
+</ol>
+<blockquote>
+<p>本人免费整理了Java高级资料，涵盖了Java、Redis、MongoDB、MySQL、Zookeeper、Spring Cloud、Dubbo高并发分布式等教程，一共30G，需要自己领取。<br data-filtered="filtered" />传送门：<a href="https://links.jianshu.com/go?to=https%3A%2F%2Fmp.weixin.qq.com%2Fs%2FosB-BOl6W-ZLTSttTkqMPQ" target="_blank">https://mp.weixin.qq.com/s/osB-BOl6W-ZLTSttTkqMPQ</a></p>
+</blockquote>
+
+</div><hr><script charset='utf-8' src='../../js/sming.js'></script></body></html>

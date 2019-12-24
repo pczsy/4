@@ -1,0 +1,195 @@
+<html><head><meta charset='utf-8'><meta name='viewport' content='width=device-width, initial-scale=1'>
+<meta name='applicable-device' content='pc'><meta name='keywords' content='电脑,电脑讲解,电脑技术,编程,电脑故障维修Java网络编程 -- AIO异步网络编程' />
+<script src='../../highlight/highlight.pack.js'></script>
+<link rel='stylesheet' type='text/css' href='../../highlight/styles/monokai.css'/>
+
+<link rel='stylesheet' href='../../fenxiang/dist/css/share.min.css'>
+<script src='../../fenxiang/src/js/social-share.js'></script>
+<script src='../../fenxiang/src/js/qrcode.js'></script>
+
+</head><body><script>hljs.initHighlightingOnLoad();</script><script>
+var system ={};  
+var p = navigator.platform;       
+system.win = p.indexOf('Win') == 0;  
+system.mac = p.indexOf('Mac') == 0;  
+system.x11 = (p == 'X11') || (p.indexOf('Linux') == 0);     
+if(system.win||system.mac||system.xll){
+document.write("<link href='../css/3.css' rel='stylesheet' type='text/css'>");}else{ document.write("<link href='../css/3wap.css' rel='stylesheet' type='text/css'>");}</script><script src='../../js/3.js'></script><div class='div2'><div class='heading_nav'><ul><div><li><a href='../../index.html'>首页</a></li>
+</div><div onclick='hidden1()' >分享</div>
+</ul></div></div>
+<div id='heading_nav2'> 
+<li class='row' >
+<div class='social-share' data-mode='prepend'><a href='javascript:' class='social-share-icon icon-heart'></a></div></li></div><script charset='utf-8' src='../../3/js/hengfu.js'></script><script charset='utf-8' src='../../3/js/hengfu2.js'></script><hr><div class='div1'><div class='biaoti'><center>Java网络编程 -- AIO异步网络编程</center></div><div class='banquan'>原文出处:本文由博客园博主CodingDiary提供。<br/>
+原文连接:https://www.cnblogs.com/coding-diary/p/11426575.html</div><br>
+    <src class="markdown-here-wrapper" data-md-url="https://i.cnblogs.com/EditPosts.aspx?opt=1">
+<p style="margin: 0px 0px 1.2em !important;">AIO中的A即Asynchronous，AIO即异步IO。它是异步非阻塞的，客户端的I/O请求都是由OS先完成了再通知服务器应用去启动线程进行处理，一般我们的业务处理逻辑会变成一个回调函数，等待IO操作完成后，由系统自动触发。</p>
+<p style="margin: 0px 0px 1.2em !important;">在进行读写操作时，只需直接调用API的read/write方法即可。这两种方法均为异步的，对于读操作而言，当有流可读取时，操作系统会将可读的流传入read方法的缓冲区，并通知应用程序；对于写操作而言，当操作系统将write方法传递的流写入完毕时，操作系统主动通知应用程序。即可以理解为，read/write方法都是异步的，完成后会主动调用回调函数。</p>
+<p style="margin: 0px 0px 1.2em !important;">AIO其实是对NIO的增强，新增了许多支持异步的类如AsynchronousServerSocketChannel，AsynchronousChannel，AsynchronousChannelGroup，CompletionHandler等。</p>
+<p style="margin: 0px 0px 1.2em !important;">在Linux系统中AIO和NIO的底层实现都是epoll，epoll本身是轮询模型，AIO只不过是对epoll又包了一层，而在windows系统中AIO是通过IOCP（完成端口）实现。而目前大多数的服务器都是Linux系统，这也是Netty中使用NIO而非AIO的一个原因，在实际使用中由于操作系统的差异，AIO的性能有时并没有NIO高效，因此AIO的使用并没有很广泛。</p>
+<p style="margin: 0px 0px 1.2em !important;">AIO服务端代码示例：</p>
+<pre><code><code style="font-size: 0.85em; font-family: Consolas, Inconsolata, Courier, monospace; margin: 0px 0.15em; padding: 0.5em 0.7em; white-space: pre; border: 1px solid #cccccc; background-color: #f8f8f8; border-radius: 3px; display: block !important; overflow: auto;">public class AIOServer {
+
+  public static void main(String[] args) throws IOException {
+
+    // 多线程版本
+    //    ExecutorService executorService = Executors.newCachedThreadPool();
+    //    AsynchronousChannelGroup channelGroup =
+    //        AsynchronousChannelGroup.withCachedThreadPool(executorService, 1);
+    //      AsynchronousServerSocketChannel serverSocketChannel =
+    //              AsynchronousServerSocketChannel.open(channelGroup).bind(new
+    // InetSocketAddress(8080));
+
+    // 单线程版本
+    AsynchronousServerSocketChannel serverSocketChannel =
+        AsynchronousServerSocketChannel.open().bind(new InetSocketAddress(8080));
+
+    serverSocketChannel.accept(
+        null,
+        new CompletionHandler&lt;AsynchronousSocketChannel, Object&gt;() {
+          @Override
+          public void completed(AsynchronousSocketChannel client, Object attachment) {
+            serverSocketChannel.accept(null, this);
+            try {
+              System.out.println(client.getRemoteAddress());
+              ByteBuffer byteBuffer = ByteBuffer.allocate(1024);
+              client.read(
+                  byteBuffer,
+                  byteBuffer,
+                  new CompletionHandler&lt;Integer, ByteBuffer&gt;() {
+                    @Override
+                    public void completed(Integer result, ByteBuffer attachment) {
+                      attachment.flip();
+                      byte[] content = new byte[attachment.limit()];
+                      attachment.get(content);
+                      System.out.println(new String(content));
+                      try {
+                        System.out.println("Client: " + client.getRemoteAddress());
+                      } catch (IOException e) {
+                        e.printStackTrace();
+                      }
+                    }
+
+                    @Override
+                    public void failed(Throwable exc, ByteBuffer attachment) {
+                      System.out.println("failed: " + exc.getMessage());
+                    }
+                  });
+
+            } catch (Exception e) {
+              e.printStackTrace();
+            }
+          }
+
+          @Override
+          public void failed(Throwable exc, Object attachment) {}
+        });
+
+    while (true) {
+      try {
+        Thread.sleep(1000);
+      } catch (InterruptedException e) {
+        e.printStackTrace();
+      }
+    }
+  }
+}
+</code></code></pre>
+<p style="margin: 0px 0px 1.2em !important;">AIO客户端代码示例：</p>
+<pre><code><code style="font-size: 0.85em; font-family: Consolas, Inconsolata, Courier, monospace; margin: 0px 0.15em; padding: 0.5em 0.7em; white-space: pre; border: 1px solid #cccccc; background-color: #f8f8f8; border-radius: 3px; display: block !important; overflow: auto;">public class AIOClient {
+
+  public static void main(String[] args) throws Exception {
+    AsynchronousSocketChannel socketChannel = AsynchronousSocketChannel.open();
+    socketChannel.connect(new InetSocketAddress("127.0.0.1", 8080));
+    Thread.sleep(1000);
+    ByteBuffer buffer = ByteBuffer.wrap("Hello Server".getBytes());
+    socketChannel.write(buffer).get();
+  }
+}
+</code></code></pre>
+<p style="margin: 0px 0px 1.2em !important;"><img src="./images/Java网络编程 -- AIO异步网络编程0.png" alt="" /></p>
+<src style="height: 0; width: 0; max-height: 0; max-width: 0; overflow: hidden; font-size: 0em; padding: 0; margin: 0;" title="MDH:PHA+QUlP5Lit55qEQeWNs0FzeW5jaHJvbm91c++8jEFJT+WNs+W8guatpUlP44CC5a6D5piv5byC
+5q2l6Z2e6Zi75aGe55qE77yM5a6i5oi356uv55qESS9P6K+35rGC6YO95piv55SxT1PlhYjlrozm
+iJDkuoblho3pgJrnn6XmnI3liqHlmajlupTnlKjljrvlkK/liqjnur/nqIvov5vooYzlpITnkIbv
+vIzkuIDoiKzmiJHku6znmoTkuJrliqHlpITnkIbpgLvovpHkvJrlj5jmiJDkuIDkuKrlm57osIPl
+h73mlbDvvIznrYnlvoVJT+aTjeS9nOWujOaIkOWQju+8jOeUseezu+e7n+iHquWKqOinpuWPkeOA
+gjwvcD48cD7lnKjov5vooYzor7vlhpnmk43kvZzml7bvvIzlj6rpnIDnm7TmjqXosIPnlKhBUEnn
+moRyZWFkL3dyaXRl5pa55rOV5Y2z5Y+v44CC6L+Z5Lik56eN5pa55rOV5Z2H5Li65byC5q2l55qE
+77yM5a+55LqO6K+75pON5L2c6ICM6KiA77yM5b2T5pyJ5rWB5Y+v6K+75Y+W5pe277yM5pON5L2c
+57O757uf5Lya5bCG5Y+v6K+755qE5rWB5Lyg5YWlcmVhZOaWueazleeahOe8k+WGsuWMuu+8jOW5
+tumAmuefpeW6lOeUqOeoi+W6j++8m+WvueS6juWGmeaTjeS9nOiAjOiogO+8jOW9k+aTjeS9nOez
+u+e7n+WwhndyaXRl5pa55rOV5Lyg6YCS55qE5rWB5YaZ5YWl5a6M5q+V5pe277yM5pON5L2c57O7
+57uf5Li75Yqo6YCa55+l5bqU55So56iL5bqP44CC5Y2z5Y+v5Lul55CG6Kej5Li677yMcmVhZC93
+cml0ZeaWueazlemDveaYr+W8guatpeeahO+8jOWujOaIkOWQjuS8muS4u+WKqOiwg+eUqOWbnuiw
+g+WHveaVsOOAgjwvcD48cD5BSU/lhbblrp7mmK/lr7lOSU/nmoTlop7lvLrvvIzmlrDlop7kuobo
+rrjlpJrmlK/mjIHlvILmraXnmoTnsbvlpoJBc3luY2hyb25vdXNTZXJ2ZXJTb2NrZXRDaGFubmVs
+77yMQXN5bmNocm9ub3VzQ2hhbm5lbO+8jEFzeW5jaHJvbm91c0NoYW5uZWxHcm91cO+8jENvbXBs
+ZXRpb25IYW5kbGVy562J44CCPC9wPjxwPuWcqExpbnV457O757uf5LitQUlP5ZKMTklP55qE5bqV
+5bGC5a6e546w6YO95pivZXBvbGzvvIxlcG9sbOacrOi6q+aYr+i9ruivouaooeWei++8jEFJT+WP
+quS4jei/h+aYr+WvuWVwb2xs5Y+I5YyF5LqG5LiA5bGC77yM6ICM5Zyod2luZG93c+ezu+e7n+S4
+rUFJT+aYr+mAmui/h0lPQ1DvvIjlrozmiJDnq6/lj6PvvInlrp7njrDjgILogIznm67liY3lpKfl
+pJrmlbDnmoTmnI3liqHlmajpg73mmK9MaW51eOezu+e7n++8jOi/meS5n+aYr05ldHR55Lit5L2/
+55SoTklP6ICM6Z2eQUlP55qE5LiA5Liq5Y6f5Zug77yM5Zyo5a6e6ZmF5L2/55So5Lit55Sx5LqO
+5pON5L2c57O757uf55qE5beu5byC77yMQUlP55qE5oCn6IO95pyJ5pe25bm25rKh5pyJTklP6auY
+5pWI77yM5Zug5q2kQUlP55qE5L2/55So5bm25rKh5pyJ5b6I5bm/5rOb44CCPC9wPjxwPkFJT+ac
+jeWKoeerr+S7o+eggeekuuS+i++8mjwvcD48cD5gYGA8YnI+cHVibGljIGNsYXNzIEFJT1NlcnZl
+ciB7PC9wPjxwPiAgcHVibGljIHN0YXRpYyB2b2lkIG1haW4oU3RyaW5nW10gYXJncykgdGhyb3dz
+IElPRXhjZXB0aW9uIHs8L3A+PHA+ICAgIC8vIOWkmue6v+eoi+eJiOacrDxicj4gICAgLy8gICAg
+RXhlY3V0b3JTZXJ2aWNlIGV4ZWN1dG9yU2VydmljZSA9IEV4ZWN1dG9ycy5uZXdDYWNoZWRUaHJl
+YWRQb29sKCk7PGJyPiAgICAvLyAgICBBc3luY2hyb25vdXNDaGFubmVsR3JvdXAgY2hhbm5lbEdy
+b3VwID08YnI+ICAgIC8vICAgICAgICBBc3luY2hyb25vdXNDaGFubmVsR3JvdXAud2l0aENhY2hl
+ZFRocmVhZFBvb2woZXhlY3V0b3JTZXJ2aWNlLCAxKTs8YnI+ICAgIC8vICAgICAgQXN5bmNocm9u
+b3VzU2VydmVyU29ja2V0Q2hhbm5lbCBzZXJ2ZXJTb2NrZXRDaGFubmVsID08YnI+ICAgIC8vICAg
+ICAgICAgICAgICBBc3luY2hyb25vdXNTZXJ2ZXJTb2NrZXRDaGFubmVsLm9wZW4oY2hhbm5lbEdy
+b3VwKS5iaW5kKG5ldzxicj4gICAgLy8gSW5ldFNvY2tldEFkZHJlc3MoODA4MCkpOzwvcD48cD4g
+ICAgLy8g5Y2V57q/56iL54mI5pysPGJyPiAgICBBc3luY2hyb25vdXNTZXJ2ZXJTb2NrZXRDaGFu
+bmVsIHNlcnZlclNvY2tldENoYW5uZWwgPTxicj4gICAgICAgIEFzeW5jaHJvbm91c1NlcnZlclNv
+Y2tldENoYW5uZWwub3BlbigpLmJpbmQobmV3IEluZXRTb2NrZXRBZGRyZXNzKDgwODApKTs8L3A+
+PHA+ICAgIHNlcnZlclNvY2tldENoYW5uZWwuYWNjZXB0KDxicj4gICAgICAgIG51bGwsPGJyPiAg
+ICAgICAgbmV3IENvbXBsZXRpb25IYW5kbGVyJmx0O0FzeW5jaHJvbm91c1NvY2tldENoYW5uZWws
+IE9iamVjdCZndDsoKSB7PGJyPiAgICAgICAgICBAT3ZlcnJpZGU8YnI+ICAgICAgICAgIHB1Ymxp
+YyB2b2lkIGNvbXBsZXRlZChBc3luY2hyb25vdXNTb2NrZXRDaGFubmVsIGNsaWVudCwgT2JqZWN0
+IGF0dGFjaG1lbnQpIHs8YnI+ICAgICAgICAgICAgc2VydmVyU29ja2V0Q2hhbm5lbC5hY2NlcHQo
+bnVsbCwgdGhpcyk7PGJyPiAgICAgICAgICAgIHRyeSB7PGJyPiAgICAgICAgICAgICAgU3lzdGVt
+Lm91dC5wcmludGxuKGNsaWVudC5nZXRSZW1vdGVBZGRyZXNzKCkpOzxicj4gICAgICAgICAgICAg
+IEJ5dGVCdWZmZXIgYnl0ZUJ1ZmZlciA9IEJ5dGVCdWZmZXIuYWxsb2NhdGUoMTAyNCk7PGJyPiAg
+ICAgICAgICAgICAgY2xpZW50LnJlYWQoPGJyPiAgICAgICAgICAgICAgICAgIGJ5dGVCdWZmZXIs
+PGJyPiAgICAgICAgICAgICAgICAgIGJ5dGVCdWZmZXIsPGJyPiAgICAgICAgICAgICAgICAgIG5l
+dyBDb21wbGV0aW9uSGFuZGxlciZsdDtJbnRlZ2VyLCBCeXRlQnVmZmVyJmd0OygpIHs8YnI+ICAg
+ICAgICAgICAgICAgICAgICBAT3ZlcnJpZGU8YnI+ICAgICAgICAgICAgICAgICAgICBwdWJsaWMg
+dm9pZCBjb21wbGV0ZWQoSW50ZWdlciByZXN1bHQsIEJ5dGVCdWZmZXIgYXR0YWNobWVudCkgezxi
+cj4gICAgICAgICAgICAgICAgICAgICAgYXR0YWNobWVudC5mbGlwKCk7PGJyPiAgICAgICAgICAg
+ICAgICAgICAgICBieXRlW10gY29udGVudCA9IG5ldyBieXRlW2F0dGFjaG1lbnQubGltaXQoKV07
+PGJyPiAgICAgICAgICAgICAgICAgICAgICBhdHRhY2htZW50LmdldChjb250ZW50KTs8YnI+ICAg
+ICAgICAgICAgICAgICAgICAgIFN5c3RlbS5vdXQucHJpbnRsbihuZXcgU3RyaW5nKGNvbnRlbnQp
+KTs8YnI+ICAgICAgICAgICAgICAgICAgICAgIHRyeSB7PGJyPiAgICAgICAgICAgICAgICAgICAg
+ICAgIFN5c3RlbS5vdXQucHJpbnRsbigiQ2xpZW50OiAiICsgY2xpZW50LmdldFJlbW90ZUFkZHJl
+c3MoKSk7PGJyPiAgICAgICAgICAgICAgICAgICAgICB9IGNhdGNoIChJT0V4Y2VwdGlvbiBlKSB7
+PGJyPiAgICAgICAgICAgICAgICAgICAgICAgIGUucHJpbnRTdGFja1RyYWNlKCk7PGJyPiAgICAg
+ICAgICAgICAgICAgICAgICB9PGJyPiAgICAgICAgICAgICAgICAgICAgfTwvcD48cD4gICAgICAg
+ICAgICAgICAgICAgIEBPdmVycmlkZTxicj4gICAgICAgICAgICAgICAgICAgIHB1YmxpYyB2b2lk
+IGZhaWxlZChUaHJvd2FibGUgZXhjLCBCeXRlQnVmZmVyIGF0dGFjaG1lbnQpIHs8YnI+ICAgICAg
+ICAgICAgICAgICAgICAgIFN5c3RlbS5vdXQucHJpbnRsbigiZmFpbGVkOiAiICsgZXhjLmdldE1l
+c3NhZ2UoKSk7PGJyPiAgICAgICAgICAgICAgICAgICAgfTxicj4gICAgICAgICAgICAgICAgICB9
+KTs8L3A+PHA+ICAgICAgICAgICAgfSBjYXRjaCAoRXhjZXB0aW9uIGUpIHs8YnI+ICAgICAgICAg
+ICAgICBlLnByaW50U3RhY2tUcmFjZSgpOzxicj4gICAgICAgICAgICB9PGJyPiAgICAgICAgICB9
+PC9wPjxwPiAgICAgICAgICBAT3ZlcnJpZGU8YnI+ICAgICAgICAgIHB1YmxpYyB2b2lkIGZhaWxl
+ZChUaHJvd2FibGUgZXhjLCBPYmplY3QgYXR0YWNobWVudCkge308YnI+ICAgICAgICB9KTs8L3A+
+PHA+ICAgIHdoaWxlICh0cnVlKSB7PGJyPiAgICAgIHRyeSB7PGJyPiAgICAgICAgVGhyZWFkLnNs
+ZWVwKDEwMDApOzxicj4gICAgICB9IGNhdGNoIChJbnRlcnJ1cHRlZEV4Y2VwdGlvbiBlKSB7PGJy
+PiAgICAgICAgZS5wcmludFN0YWNrVHJhY2UoKTs8YnI+ICAgICAgfTxicj4gICAgfTxicj4gIH08
+YnI+fTwvcD48cD5gYGA8L3A+PHA+QUlP5a6i5oi356uv5Luj56CB56S65L6L77yaPC9wPjxwPmBg
+YDxicj5wdWJsaWMgY2xhc3MgQUlPQ2xpZW50IHs8L3A+PHA+ICBwdWJsaWMgc3RhdGljIHZvaWQg
+bWFpbihTdHJpbmdbXSBhcmdzKSB0aHJvd3MgRXhjZXB0aW9uIHs8YnI+ICAgIEFzeW5jaHJvbm91
+c1NvY2tldENoYW5uZWwgc29ja2V0Q2hhbm5lbCA9IEFzeW5jaHJvbm91c1NvY2tldENoYW5uZWwu
+b3BlbigpOzxicj4gICAgc29ja2V0Q2hhbm5lbC5jb25uZWN0KG5ldyBJbmV0U29ja2V0QWRkcmVz
+cygiMTI3LjAuMC4xIiwgODA4MCkpOzxicj4gICAgVGhyZWFkLnNsZWVwKDEwMDApOzxicj4gICAg
+Qnl0ZUJ1ZmZlciBidWZmZXIgPSBCeXRlQnVmZmVyLndyYXAoIkhlbGxvIFNlcnZlciIuZ2V0Qnl0
+ZXMoKSk7PGJyPiAgICBzb2NrZXRDaGFubmVsLndyaXRlKGJ1ZmZlcikuZ2V0KCk7PGJyPiAgfTxi
+cj59PC9wPjxwPjxicj5gYGA8L3A+PHA+PGJyIGRhdGEtbWNlLWJvZ3VzPSIxIj48L3A+PHA+PGlt
+ZyBzcmM9Imh0dHBzOi8vaW1nMjAxOC5jbmJsb2dzLmNvbS9ibG9nLzE3MzU4NDEvMjAxOTA4LzE3
+MzU4NDEtMjAxOTA4MjgyMTE3Mjg1ODUtMTE3MDM4ODE1Ny5wbmciIGFsdD0iIiBkYXRhLW1jZS1z
+cmM9Imh0dHBzOi8vaW1nMjAxOC5jbmJsb2dzLmNvbS9ibG9nLzE3MzU4NDEvMjAxOTA4LzE3MzU4
+NDEtMjAxOTA4MjgyMTE3Mjg1ODUtMTE3MDM4ODE1Ny5wbmciPjwvcD4=">​
+
+
+</div><hr><script charset='utf-8' src='../../js/sming.js'></script></body></html>

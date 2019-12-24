@@ -1,0 +1,122 @@
+<html><head><meta charset='utf-8'><meta name='viewport' content='width=device-width, initial-scale=1'>
+<meta name='applicable-device' content='pc'><meta name='keywords' content='电脑,电脑讲解,电脑技术,编程,电脑故障维修Java自学-日期 Calendar' />
+<script src='../../highlight/highlight.pack.js'></script>
+<link rel='stylesheet' type='text/css' href='../../highlight/styles/monokai.css'/>
+
+<link rel='stylesheet' href='../../fenxiang/dist/css/share.min.css'>
+<script src='../../fenxiang/src/js/social-share.js'></script>
+<script src='../../fenxiang/src/js/qrcode.js'></script>
+
+</head><body><script>hljs.initHighlightingOnLoad();</script><script>
+var system ={};  
+var p = navigator.platform;       
+system.win = p.indexOf('Win') == 0;  
+system.mac = p.indexOf('Mac') == 0;  
+system.x11 = (p == 'X11') || (p.indexOf('Linux') == 0);     
+if(system.win||system.mac||system.xll){
+document.write("<link href='../css/3.css' rel='stylesheet' type='text/css'>");}else{ document.write("<link href='../css/3wap.css' rel='stylesheet' type='text/css'>");}</script><script src='../../js/3.js'></script><div class='div2'><div class='heading_nav'><ul><div><li><a href='../../index.html'>首页</a></li>
+</div><div onclick='hidden1()' >分享</div>
+</ul></div></div>
+<div id='heading_nav2'> 
+<li class='row' >
+<div class='social-share' data-mode='prepend'><a href='javascript:' class='social-share-icon icon-heart'></a></div></li></div><script charset='utf-8' src='../../3/js/hengfu.js'></script><script charset='utf-8' src='../../3/js/hengfu2.js'></script><hr><div class='div1'><div class='biaoti'><center>Java自学-日期 Calendar</center></div><div class='banquan'>原文出处:本文由博客园博主半米高峰提供。<br/>
+原文连接:https://www.cnblogs.com/jeddzd/p/11661285.html</div><br>
+    <h2 id="java的calendar类">Java的Calendar类</h2>
+<p>Calendar类即日历类，常用于进行“翻日历”，比如<strong>下个月的今天是哪天</strong></p>
+<p>示例 1 : <strong>Calendar与Date进行转换</strong></p>
+<p>采用单例模式获取日历对象Calendar.getInstance();</p>
+<pre><code><code>package date;
+  
+import java.util.Calendar;
+import java.util.Date;
+  
+public class TestDate {
+  
+    public static void main(String[] args) {
+        //采用单例模式获取日历对象Calendar.getInstance();
+        Calendar c = Calendar.getInstance();
+          
+        //通过日历对象得到日期对象
+        Date d = c.getTime();
+  
+        Date d2 = new Date(0);
+        c.setTime(d2); //把这个日历，调成日期 : 1970.1.1 08:00:00
+    }
+}</code></code></pre>
+<p>示例 2 : <strong>翻日历</strong></p>
+<p>add方法，在原日期上增加年/月/日<br />
+set方法，直接设置年/月/日<br />
+<img src="./images/Java自学-日期 Calendar0.png" alt="翻日历" /></p>
+<pre><code><code>package date;
+ 
+import java.text.SimpleDateFormat;
+import java.util.Calendar;
+import java.util.Date;
+ 
+public class TestDate {
+ 
+    private static SimpleDateFormat sdf = new SimpleDateFormat(&quot;yyyy-MM-dd HH:mm:ss&quot;);
+ 
+    public static void main(String[] args) {
+        Calendar c = Calendar.getInstance();
+        Date now = c.getTime();
+        // 当前日期
+        System.out.println(&quot;当前日期：\t&quot; + format(c.getTime()));
+ 
+        // 下个月的今天
+        c.setTime(now);
+        c.add(Calendar.MONTH, 1);
+        System.out.println(&quot;下个月的今天:\t&quot; +format(c.getTime()));
+ 
+        // 去年的今天
+        c.setTime(now);
+        c.add(Calendar.YEAR, -1);
+        System.out.println(&quot;去年的今天:\t&quot; +format(c.getTime()));
+ 
+        // 上个月的第三天
+        c.setTime(now);
+        c.add(Calendar.MONTH, -1);
+        c.set(Calendar.DATE, 3);
+        System.out.println(&quot;上个月的第三天:\t&quot; +format(c.getTime()));
+ 
+    }
+ 
+    private static String format(Date time) {
+        return sdf.format(time);
+    }
+}</code></code></pre>
+<p><strong>练习</strong>： <a href="http://how2j.cn/k/date/date-calendar/347.html?p=43278">Calendar</a></p>
+<p>找出下个月的倒数第3天是哪天</p>
+<p><strong>答案</strong>：</p>
+<pre class="java"><code>package date;
+   
+import java.text.SimpleDateFormat;
+import java.util.Calendar;
+import java.util.Date;
+   
+public class TestDate {
+   
+    private static SimpleDateFormat sdf = new SimpleDateFormat(&quot;yyyy-MM-dd HH:mm:ss&quot;);
+   
+    public static void main(String[] args) {
+        Calendar c = Calendar.getInstance();
+          
+        System.out.println(&quot;今天是:&quot; + format( c.getTime()));
+        //先翻到下下个月
+        c.add(Calendar.MONTH,2);
+        //设置到月初
+        c.set(Calendar.DATE,1);
+        //再往回翻3天
+        c.add(Calendar.DATE,-3);
+         Exception e;
+        System.out.println(&quot;下个月倒数第三天是:&quot; + format(c.getTime()));
+          
+    }
+   
+    private static String format(Date time) {
+        return sdf.format(time);
+    }
+}</code></code></pre>
+
+
+</div><hr><script charset='utf-8' src='../../js/sming.js'></script></body></html>

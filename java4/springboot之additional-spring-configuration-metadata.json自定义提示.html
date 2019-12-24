@@ -1,0 +1,218 @@
+<html><head><meta charset='utf-8'><meta name='viewport' content='width=device-width, initial-scale=1'>
+<meta name='applicable-device' content='pc'><meta name='keywords' content='电脑,电脑讲解,电脑技术,编程,电脑故障维修springboot之additional-spring-configuration-metadata.json自定义提示' />
+<script src='../../highlight/highlight.pack.js'></script>
+<link rel='stylesheet' type='text/css' href='../../highlight/styles/monokai.css'/>
+
+<link rel='stylesheet' href='../../fenxiang/dist/css/share.min.css'>
+<script src='../../fenxiang/src/js/social-share.js'></script>
+<script src='../../fenxiang/src/js/qrcode.js'></script>
+
+</head><body><script>hljs.initHighlightingOnLoad();</script><script>
+var system ={};  
+var p = navigator.platform;       
+system.win = p.indexOf('Win') == 0;  
+system.mac = p.indexOf('Mac') == 0;  
+system.x11 = (p == 'X11') || (p.indexOf('Linux') == 0);     
+if(system.win||system.mac||system.xll){
+document.write("<link href='../css/3.css' rel='stylesheet' type='text/css'>");}else{ document.write("<link href='../css/3wap.css' rel='stylesheet' type='text/css'>");}</script><script src='../../js/3.js'></script><div class='div2'><div class='heading_nav'><ul><div><li><a href='../../index.html'>首页</a></li>
+</div><div onclick='hidden1()' >分享</div>
+</ul></div></div>
+<div id='heading_nav2'> 
+<li class='row' >
+<div class='social-share' data-mode='prepend'><a href='javascript:' class='social-share-icon icon-heart'></a></div></li></div><script charset='utf-8' src='../../3/js/hengfu.js'></script><script charset='utf-8' src='../../3/js/hengfu2.js'></script><hr><div class='div1'><div class='biaoti'><center>springboot之additional-spring-configuration-metadata.json自定义提示</center></div><div class='banquan'>原文出处:本文由博客园博主Purgeyao提供。<br/>
+原文连接:https://www.cnblogs.com/Purgeyao/p/11439555.html</div><br>
+    <h1 id="springboot之additional-spring-configuration-metadata.json自定义提示">springboot之additional-spring-configuration-metadata.json自定义提示</h1>
+<h2 id="简介">简介</h2>
+<p><code>additional-spring-configuration-metadata.json</code>、<code>spring-configuration-metadata.json</code>在<code>springboot-starter</code>官方项目或第三方<code>starter</code>项目中随处可见，那它起的作用是什么？让我们一起探讨一下。</p>
+<blockquote>
+<p>官方文章</p>
+</blockquote>
+<p>官方一篇文章很详细讲解了<code>Configuration Metadata</code>的作用。<br />
+有兴趣的小伙伴可以查看下(<a href="https://docs.spring.io/spring-boot/docs/2.1.7.RELEASE/reference/html/configuration-metadata.html#configuration-metadata-format">配置元数据</a>)。</p>
+<blockquote>
+<p>Configuration Metadata</p>
+</blockquote>
+<pre><code><code>Appendix B. Configuration Metadata
+Spring Boot jars include metadata files that provide details of all supported configuration properties. The files are designed to let IDE developers offer contextual help and “code completion” as users are working with application.properties or application.yml files.
+
+The majority of the metadata file is generated automatically at compile time by processing all items annotated with @ConfigurationProperties. However, it is possible to write part of the metadata manually for corner cases or more advanced use cases.</code></code></pre>
+<p>简介说明配置<code>additional-spring-configuration-metadata.json</code>文件后，在开发人员的IDE工具使用个人编写的配置读取很有效的在<code>application.properties</code>或<code>application.yml</code>文件下完成提示。</p>
+<h2 id="使用">使用</h2>
+<h3 id="元数据格式">1. 元数据格式</h3>
+<p>配置元数据文件位于jar下面。 <code>META-INF/spring-configuration-metadata.json</code>它们使用简单的JSON格式，其中的项目分类在“groups”或“properties”下，其他值提示分类在“hints”下，如下例所示：</p>
+<pre class="json"><code>{&quot;groups&quot;: [
+    {
+        &quot;name&quot;: &quot;server&quot;,
+        &quot;type&quot;: &quot;org.springframework.boot.autoconfigure.web.ServerProperties&quot;,
+        &quot;sourceType&quot;: &quot;org.springframework.boot.autoconfigure.web.ServerProperties&quot;
+    }
+    ...
+],&quot;properties&quot;: [
+    {
+        &quot;name&quot;: &quot;server.port&quot;,
+        &quot;type&quot;: &quot;java.lang.Integer&quot;,
+        &quot;sourceType&quot;: &quot;org.springframework.boot.autoconfigure.web.ServerProperties&quot;
+    }
+    ...
+],&quot;hints&quot;: [
+    {
+        &quot;name&quot;: &quot;spring.jpa.hibernate.ddl-auto&quot;,
+        &quot;values&quot;: [
+            {
+                &quot;value&quot;: &quot;none&quot;,
+                &quot;description&quot;: &quot;Disable DDL handling.&quot;
+            },
+            {
+                &quot;value&quot;: &quot;validate&quot;,
+                &quot;description&quot;: &quot;Validate the schema, make no changes to the database.&quot;
+            }
+        ]
+    }
+]}</code></code></pre>
+<h3 id="properties提示编写">2.<code>properties</code>提示编写</h3>
+<blockquote>
+<p>当然了我们需要编写<code>META-INF/additional-spring-configuration-metadata.json</code>进行拓展。</p>
+</blockquote>
+<p>下面简单创建一个<code>starter</code>使用<code>additional-spring-configuration-metadata.json</code>进行提示。</p>
+<p>在<code>resources/META-INF</code>目录下创建<code>additional-spring-configuration-metadata.json</code></p>
+<p><img src="./images/springboot之additional-spring-configuration-metadata.json自定义提示0.png" alt="image.png" /></p>
+<p>内容大致如下:</p>
+<pre class="json"><code>{&quot;properties&quot;: [
+    {
+      &quot;name&quot;: &quot;swagger.basePackage&quot;,
+      &quot;type&quot;: &quot;java.lang.String&quot;,
+      &quot;description&quot;: &quot;文档扫描包路径。&quot;
+    },
+    {
+      &quot;name&quot;: &quot;swagger.title&quot;,
+      &quot;type&quot;: &quot;java.lang.String&quot;,
+      &quot;defaultValue&quot;: &quot;平台系统接口详情&quot;,
+      &quot;description&quot;: &quot;title 如: 用户模块系统接口详情。&quot;
+    },
+    {
+      &quot;name&quot;: &quot;swagger.description&quot;,
+      &quot;type&quot;: &quot;java.lang.String&quot;,
+      &quot;defaultValue&quot;: &quot;在线文档&quot;,
+      &quot;description&quot;: &quot;服务文件介绍。&quot;
+    },
+    {
+      &quot;name&quot;: &quot;swagger.termsOfServiceUrl&quot;,
+      &quot;type&quot;: &quot;java.lang.String&quot;,
+      &quot;defaultValue&quot;: &quot;https://www.test.com/&quot;,
+      &quot;description&quot;: &quot;服务条款网址。&quot;
+    },
+    {
+      &quot;name&quot;: &quot;swagger.version&quot;,
+      &quot;type&quot;: &quot;java.lang.String&quot;,
+      &quot;defaultValue&quot;: &quot;V1.0&quot;,
+      &quot;description&quot;: &quot;版本。&quot;
+    }
+]}
+</code></code></pre>
+<p>大家参考下面<code>properties</code>表格进行配置上的理解。</p>
+<table>
+<thead>
+<tr class="header">
+<th>名称</th>
+<th>类型</th>
+<th>目的</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>name</td>
+<td>String</td>
+<td>属性的全名。名称采用小写的周期分隔形式(例如server.address)。此属性是强制性的。</td>
+</tr>
+<tr class="even">
+<td>type</td>
+<td>String</td>
+<td>属性的数据类型的完整签名（例如java.lang.String），但也是完整的泛型类型（例如java.util.Map&lt;java.util.String,acme.MyEnum&gt;）。您可以使用此属性来指导用户可以输入的值的类型。为了保持一致性，通过使用其包装对应项（例如，boolean变为java.lang.Boolean）来指定基元的类型。请注意，此类可能是一个复杂类型，它从Stringas绑定的值转换而来。如果类型未知，则可以省略。</td>
+</tr>
+<tr class="odd">
+<td>description</td>
+<td>String</td>
+<td>可以向用户显示的组的简短描述。如果没有可用的描述，则可以省略。建议描述为简短段落，第一行提供简明摘要。描述中的最后一行应以句点（.）结尾。</td>
+</tr>
+<tr class="even">
+<td>sourceType</td>
+<td>String</td>
+<td>贡献此属性的源的类名称。例如，如果属性来自带注释的类@ConfigurationProperties，则此属性将包含该类的完全限定名称。如果源类型未知，则可以省略。</td>
+</tr>
+<tr class="odd">
+<td>defaultValue</td>
+<td>Object</td>
+<td>默认值，如果未指定属性，则使用该值。如果属性的类型是数组，则它可以是值数组。如果默认值未知，则可以省略。</td>
+</tr>
+</tbody>
+</table>
+<p><code>deprecation</code>每个<code>properties</code>元素的属性中包含的JSON对象可以包含以下属性：</p>
+<table>
+<thead>
+<tr class="header">
+<th>名称</th>
+<th>类型</th>
+<th>目的</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>level</td>
+<td>String</td>
+<td>弃用级别，可以是warning（默认）或error。当属性具有warning弃用级别时，它仍应绑定在环境中。但是，当它具有error弃用级别时，该属性不再受管理且不受约束。</td>
+</tr>
+<tr class="even">
+<td>reason</td>
+<td>String</td>
+<td>该属性被弃用的原因的简短描述。如果没有可用的原因，可以省略。建议描述为简短段落，第一行提供简明摘要。描述中的最后一行应以句点（.）结尾。</td>
+</tr>
+<tr class="odd">
+<td>replacement</td>
+<td>String</td>
+<td>替换此不推荐使用的属性的属性的全名。如果此属性没有替换，则可以省略。</td>
+</tr>
+</tbody>
+</table>
+<p>对应的<code>@ConfigurationProperties</code>类如下:</p>
+<pre class="java"><code>@Data
+@ConfigurationProperties(SwaggerProperties.PREFIX)
+public class SwaggerProperties {
+
+  public static final String PREFIX = &quot;swagger&quot;;
+
+  /**
+   * 文档扫描包路径
+   */
+  private String basePackage = &quot;&quot;;
+
+  /**
+   * title 如: 用户模块系统接口详情
+   */
+  private String title = &quot;平台系统接口详情&quot;;
+
+  /**
+   * 服务文件介绍
+   */
+  private String description = &quot;在线文档&quot;;
+
+  /**
+   * 服务条款网址
+   */
+  private String termsOfServiceUrl = &quot;https://www.test.com/&quot;;
+
+  /**
+   * 版本
+   */
+  private String version = &quot;V1.0&quot;;
+
+}</code></code></pre>
+<p>现在就可以在<code>application.properties</code>文件里尝试提示。<br />
+<img src="./images/springboot之additional-spring-configuration-metadata.json自定义提示1.png" alt="image.png" /></p>
+<h2 id="总结">总结</h2>
+<p>当然了，这个只是实现了简单的配置提示功能，其他的功能大家可以再次产考(<a href="https://docs.spring.io/spring-boot/docs/2.1.7.RELEASE/reference/html/configuration-metadata.html#configuration-metadata-format">配置元数据</a>)文章进行学习。</p>
+<blockquote>
+<p>示例代码地址: <a href="https://github.com/purgeteam/swagger-spring-boot">swagger-spring-boot</a></p>
+</blockquote>
+
+
+</div><hr><script charset='utf-8' src='../../js/sming.js'></script></body></html>

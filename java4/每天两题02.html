@@ -1,0 +1,102 @@
+<html><head><meta charset='utf-8'><meta name='viewport' content='width=device-width, initial-scale=1'>
+<meta name='applicable-device' content='pc'><meta name='keywords' content='电脑,电脑讲解,电脑技术,编程,电脑故障维修每天两题02' />
+<script src='../../highlight/highlight.pack.js'></script>
+<link rel='stylesheet' type='text/css' href='../../highlight/styles/monokai.css'/>
+
+<link rel='stylesheet' href='../../fenxiang/dist/css/share.min.css'>
+<script src='../../fenxiang/src/js/social-share.js'></script>
+<script src='../../fenxiang/src/js/qrcode.js'></script>
+
+</head><body><script>hljs.initHighlightingOnLoad();</script><script>
+var system ={};  
+var p = navigator.platform;       
+system.win = p.indexOf('Win') == 0;  
+system.mac = p.indexOf('Mac') == 0;  
+system.x11 = (p == 'X11') || (p.indexOf('Linux') == 0);     
+if(system.win||system.mac||system.xll){
+document.write("<link href='../css/3.css' rel='stylesheet' type='text/css'>");}else{ document.write("<link href='../css/3wap.css' rel='stylesheet' type='text/css'>");}</script><script src='../../js/3.js'></script><div class='div2'><div class='heading_nav'><ul><div><li><a href='../../index.html'>首页</a></li>
+</div><div onclick='hidden1()' >分享</div>
+</ul></div></div>
+<div id='heading_nav2'> 
+<li class='row' >
+<div class='social-share' data-mode='prepend'><a href='javascript:' class='social-share-icon icon-heart'></a></div></li></div><script charset='utf-8' src='../../3/js/hengfu.js'></script><script charset='utf-8' src='../../3/js/hengfu2.js'></script><hr><div class='div1'><div class='biaoti'><center>每天两题02</center></div><div class='banquan'>原文出处:本文由博客园博主java小新人提供。<br/>
+原文连接:https://www.cnblogs.com/wyq1995/p/11538138.html</div><br>
+    <p><strong><span style="font-size: 18px;">题目一</span></strong>：</p>
+<p><img src="./images/每天两题020.png" alt="" /></p>
+<p>&nbsp;</p>
+<p>&nbsp;思路：当n=1的时候很明显只有一种跳法；</p>
+<p>　　&nbsp; &nbsp;当n&gt;1的时候，那么总共的跳法应该就是第一次跳一级台阶还剩下n-1个台阶、第一次跳两级台阶还剩下n-2个台阶，这两种情况的总和，而至于这里的n-1和n-2个台阶，同理可以继续拆分，是不是觉得很熟悉，还是斐波那契数列，这里用的还是分治的思想，代码跟上一篇一样，不过还是写一下（省略最外层的类名，其实用递归是最容易的。。。。）：</p>
+<src class="cnblogs_code">
+<pre><code><span style="color: #0000ff;">public</span> <span style="color: #0000ff;">static</span> <span style="color: #0000ff;">int</span> jump(<span style="color: #0000ff;">int</span><span style="color: #000000;"> n){
+        </span><span style="color: #0000ff;">if</span> (n == 1<span style="color: #000000;">) {
+            </span><span style="color: #0000ff;">return</span> 1<span style="color: #000000;">;
+        }
+        </span><span style="color: #0000ff;">if</span> (n==2<span style="color: #000000;">) {
+            </span><span style="color: #0000ff;">return</span> 2<span style="color: #000000;">;
+        }
+        </span><span style="color: #0000ff;">int</span> prepre=1<span style="color: #000000;">;
+        </span><span style="color: #0000ff;">int</span> pre=2<span style="color: #000000;">;
+        </span><span style="color: #0000ff;">int</span> current=0<span style="color: #000000;">;
+        </span><span style="color: #0000ff;">for</span> (<span style="color: #0000ff;">int</span> i = 2; i &lt; n; i++<span style="color: #000000;">) {
+            current </span>= prepre+<span style="color: #000000;">pre;
+            prepre </span>=<span style="color: #000000;"> pre;
+            pre </span>=<span style="color: #000000;"> current;
+        }
+        </span><span style="color: #0000ff;">return</span><span style="color: #000000;"> current;
+        
+    }
+    </span><span style="color: #0000ff;">public</span> <span style="color: #0000ff;">static</span> <span style="color: #0000ff;">void</span><span style="color: #000000;"> main(String[] args) {
+        System.out.println(jump(</span>4<span style="color: #000000;">));//5
+        
+    }</span></code></pre>
+
+<p>&nbsp;</p>
+<p>&nbsp;　　莫名感觉这种问题好有趣啊，哈哈哈</p>
+<p>&nbsp;</p>
+<p><span style="font-size: 18px;"><strong>题目二</strong></span>：这个是题目一的强化版</p>
+<p><img src="./images/每天两题021.png" alt="" /></p>
+<p>&nbsp;</p>
+<p>&nbsp;　　先用递归试试：假设只有一个台阶的跳法为f（1），有两个台阶的跳法为f(2)，三个台阶的跳法为f（3）。。。。</p>
+<p>　　先试试n=5的时候，总共的跳法分为几种情况：第一次跳一个，那么还有4个台阶，这四个台阶的跳法为f(4);&nbsp; &nbsp;如果第一次跳两个，剩下3个台阶，跳法为f(3),依次类推，还有f(2),f(1)，那么f(5)=f(4)+f(3)+f(2)+f(1)，到这里其实问题已经很明了了，那么f（n）==f(n-1)+f(n-2)+...+f(2)+f(1)，再写一个f（n-1）==f(n-2)+f(n-3)+...+f(2)+f(1)，将这两个等式减一下就可以得到f（n）=2f（n-1）</p>
+<p>　　那么代码表示为：</p>
+<src class="cnblogs_code">
+<pre><code><span style="color: #0000ff;">public</span> <span style="color: #0000ff;">static</span> <span style="color: #0000ff;">int</span> jump(<span style="color: #0000ff;">int</span><span style="color: #000000;"> n){
+        </span><span style="color: #0000ff;">if</span>(n==1<span style="color: #000000;">){
+            </span><span style="color: #0000ff;">return</span> 1<span style="color: #000000;">;
+        }
+        </span><span style="color: #0000ff;">return</span> 2*jump(n-1<span style="color: #000000;">);
+    }
+    
+    </span><span style="color: #0000ff;">public</span> <span style="color: #0000ff;">static</span> <span style="color: #0000ff;">void</span><span style="color: #000000;"> main(String[] args) {
+        System.out.println(jump(</span>3<span style="color: #000000;">));//4
+        
+    }</span></code></pre>
+
+<p>&nbsp;</p>
+<p>&nbsp;　　</p>
+<p>　　第二种方式：我们还是假设n=5，那么青蛙不管怎么样第五级台阶时肯定要跳到的，至于前面四个台阶，每一个台阶都不确定，要么跳到要么没有跳到，那么可能性就是2x2x2x2=16种可能，即2^4</p>
+<p>可以很轻易的推出n级台阶总共的可能性为：2^（n-1），这种的话代码也就没什么好说的了</p>
+<p>　　第三种：动态规划，动态规划也就是将计算的中间的状态给保存起来，避免下一次还要进行重复的计算，缺点很明显就是需要一定的内存空间</p>
+<p>　　这种方法简单的说就是：假设有3个台阶，我只需要计算到第1个台阶的所有可能性，到第二个台阶的所有可能性，然后相加就是到第三个台阶的所有可能性；这里很有点不好理解，其实可以这样想，已经确定第一个台阶跳到第三个台阶和第二个台阶跳到第三个台阶这两种分类，那么我们只需要考虑青蛙从地上跳到第一个台阶的所有可能和跳到第二个台阶的所有可能，然后加起来就ok了，这里我们用一个数组存储中间状态：</p>
+<src class="cnblogs_code">
+<pre><code><span style="color: #0000ff;">public</span> <span style="color: #0000ff;">static</span> <span style="color: #0000ff;">int</span> jump(<span style="color: #0000ff;">int</span><span style="color: #000000;"> n){
+        </span><span style="color: #0000ff;">int</span>[] arr = <span style="color: #0000ff;">new</span> <span style="color: #0000ff;">int</span><span style="color: #000000;">[n];
+        </span><span style="color: #008000;">//</span><span style="color: #008000;">将数组arr每个位置都填充1</span>
+        Arrays.fill(arr, 1<span style="color: #000000;">);
+        </span><span style="color: #008000;">//</span><span style="color: #008000;">外层的这个for循环就是分别计算第一个台阶、第二个台阶...第n个台阶的所有跳法</span>
+        <span style="color: #0000ff;">for</span> (<span style="color: #0000ff;">int</span> i = 1; i &lt; n; i++<span style="color: #000000;">)
+            </span><span style="color: #008000;">//</span><span style="color: #008000;">这个for循环的作用：比如计算第三个台阶，那么就需要将第一个台阶所有跳法加上第二个台阶所有跳法</span>
+            <span style="color: #0000ff;">for</span> (<span style="color: #0000ff;">int</span> j = 0; j &lt; i; j++<span style="color: #000000;">)
+                arr[i] </span>+=<span style="color: #000000;"> arr[j];
+        </span><span style="color: #0000ff;">return</span> arr[n - 1<span style="color: #000000;">];
+    }
+    
+    
+    </span><span style="color: #0000ff;">public</span> <span style="color: #0000ff;">static</span> <span style="color: #0000ff;">void</span><span style="color: #000000;"> main(String[] args) {
+        System.out.println(jump(</span>8));<span style="color: #008000;">//</span><span style="color: #008000;">128</span>
+<span style="color: #000000;">        
+    }</span></code></pre>
+
+<p>&nbsp;</p>
+
+</div><hr><script charset='utf-8' src='../../js/sming.js'></script></body></html>

@@ -1,0 +1,291 @@
+<html><head><meta charset='utf-8'><meta name='viewport' content='width=device-width, initial-scale=1'>
+<meta name='applicable-device' content='pc'><meta name='keywords' content='电脑,电脑讲解,电脑技术,编程,电脑故障维修Java 多线程编程——多线程' />
+<script src='../../highlight/highlight.pack.js'></script>
+<link rel='stylesheet' type='text/css' href='../../highlight/styles/monokai.css'/>
+
+<link rel='stylesheet' href='../../fenxiang/dist/css/share.min.css'>
+<script src='../../fenxiang/src/js/social-share.js'></script>
+<script src='../../fenxiang/src/js/qrcode.js'></script>
+
+</head><body><script>hljs.initHighlightingOnLoad();</script><script>
+var system ={};  
+var p = navigator.platform;       
+system.win = p.indexOf('Win') == 0;  
+system.mac = p.indexOf('Mac') == 0;  
+system.x11 = (p == 'X11') || (p.indexOf('Linux') == 0);     
+if(system.win||system.mac||system.xll){
+document.write("<link href='../css/3.css' rel='stylesheet' type='text/css'>");}else{ document.write("<link href='../css/3wap.css' rel='stylesheet' type='text/css'>");}</script><script src='../../js/3.js'></script><div class='div2'><div class='heading_nav'><ul><div><li><a href='../../index.html'>首页</a></li>
+</div><div onclick='hidden1()' >分享</div>
+</ul></div></div>
+<div id='heading_nav2'> 
+<li class='row' >
+<div class='social-share' data-mode='prepend'><a href='javascript:' class='social-share-icon icon-heart'></a></div></li></div><script charset='utf-8' src='../../3/js/hengfu.js'></script><script charset='utf-8' src='../../3/js/hengfu2.js'></script><hr><div class='div1'><div class='biaoti'><center>Java 多线程编程——多线程</center></div><div class='banquan'>原文出处:本文由博客园博主Pluto_H提供。<br/>
+原文连接:https://www.cnblogs.com/CSAH/p/11821416.html</div><br>
+    <p>&nbsp; &nbsp;如果要想在Java之中实现多线程的定义，那么就需要有一个专门的线程主体类进行线程的执行任务的定义，而这个主体类的定义是有要求的，必须实现特定的接口或者继承特定的父类才可以完成。</p>
+<h1>1. 继承Thread类实现多线程</h1>
+<p>&nbsp; &nbsp;Java里面提供有一个有java.lang.Thread的程序类，那么一个类只要继承了此类就表示这个类为线程的主体类，但是并不是说这个类就可以直接实现多线程处理了，因为还需要覆写Thread类中提供的一个run()方法（public void run​()），而这个方法就属于线程的主方法。</p>
+<p><strong>范例：多线程主体类</strong></p>
+<src class="cnblogs_code" onclick="cnblogs_code_show('d985eda2-8d7f-459e-b68c-d90cf1673f3a')"><img id="code_img_closed_d985eda2-8d7f-459e-b68c-d90cf1673f3a" class="code_img_closed" src="./images/Java 多线程编程——多线程0.png" alt="" /><img id="code_img_opened_d985eda2-8d7f-459e-b68c-d90cf1673f3a" class="code_img_opened" style="display: none;" onclick="cnblogs_code_hide('d985eda2-8d7f-459e-b68c-d90cf1673f3a',event)" src="./images/Java 多线程编程——多线程1.png" alt="" />
+<src id="cnblogs_code_open_d985eda2-8d7f-459e-b68c-d90cf1673f3a" class="cnblogs_code_hide">
+<pre><code><span style="color: #008080;"> 1</span>  <span style="color: #0000ff;">class</span> MyThread <span style="color: #0000ff;">extends</span> Thread {    <span style="color: #008000;">//</span><span style="color: #008000;"> 线程的主体类</span>
+<span style="color: #008080;"> 2</span>     <span style="color: #0000ff;">private</span><span style="color: #000000;"> String title ;
+</span><span style="color: #008080;"> 3</span>     <span style="color: #0000ff;">public</span><span style="color: #000000;"> MyThread(String title) {
+</span><span style="color: #008080;"> 4</span>         <span style="color: #0000ff;">this</span>.title =<span style="color: #000000;"> title ;
+</span><span style="color: #008080;"> 5</span> <span style="color: #000000;">    }
+</span><span style="color: #008080;"> 6</span> <span style="color: #000000;">    @Override
+</span><span style="color: #008080;"> 7</span>     <span style="color: #0000ff;">public</span> <span style="color: #0000ff;">void</span> run() {    <span style="color: #008000;">//</span><span style="color: #008000;"> 线程的主体方法</span>
+<span style="color: #008080;"> 8</span>         <span style="color: #0000ff;">for</span> (<span style="color: #0000ff;">int</span> x = 0 ; x &lt; 10 ; x ++<span style="color: #000000;">) {
+</span><span style="color: #008080;"> 9</span>             System.out.println(<span style="color: #0000ff;">this</span>.title + "运行，x = " +<span style="color: #000000;"> x);
+</span><span style="color: #008080;">10</span> <span style="color: #000000;">        }
+</span><span style="color: #008080;">11</span> <span style="color: #000000;">    }
+</span><span style="color: #008080;">12</span> } </code></pre>
+
+<span class="cnblogs_code_collapse">MyThread </span>
+<p>&nbsp; &nbsp;多线程要执行的功能都应该在run()方法中进行定义。需要说明的是：在正常情况下如果要想使用一个类中的方法，那么肯定要产生实例化对象，而后去调用类中提供的方法，但是run()方法是不能够被直接调用的，因为这里面牵扯到一个操作系统的资源调度问题，所以要想启动多线程必须使用start()方法完成（public void start​()）。</p>
+<p><strong>范例：多线程启动</strong></p>
+<src class="cnblogs_code" onclick="cnblogs_code_show('df139db5-06d6-4c9e-8682-2ef714752d84')"><img id="code_img_closed_df139db5-06d6-4c9e-8682-2ef714752d84" class="code_img_closed" src="./images/Java 多线程编程——多线程0.png" alt="" /><img id="code_img_opened_df139db5-06d6-4c9e-8682-2ef714752d84" class="code_img_opened" style="display: none;" onclick="cnblogs_code_hide('df139db5-06d6-4c9e-8682-2ef714752d84',event)" src="./images/Java 多线程编程——多线程1.png" alt="" />
+<src id="cnblogs_code_open_df139db5-06d6-4c9e-8682-2ef714752d84" class="cnblogs_code_hide">
+<pre><code><span style="color: #008080;"> 1</span> <span style="color: #0000ff;">public</span> <span style="color: #0000ff;">class</span><span style="color: #000000;"> ThreadDemo {
+</span><span style="color: #008080;"> 2</span> 
+<span style="color: #008080;"> 3</span>     <span style="color: #0000ff;">public</span> <span style="color: #0000ff;">static</span> <span style="color: #0000ff;">void</span><span style="color: #000000;"> main(String[] args) {
+</span><span style="color: #008080;"> 4</span>         <span style="color: #008000;">//</span><span style="color: #008000;"> TODO Auto-generated method stub</span>
+<span style="color: #008080;"> 5</span>             <span style="color: #0000ff;">new</span> MyThread("线程A"<span style="color: #000000;">).start();
+</span><span style="color: #008080;"> 6</span>             <span style="color: #0000ff;">new</span> MyThread("线程A"<span style="color: #000000;">).start();
+</span><span style="color: #008080;"> 7</span>             <span style="color: #0000ff;">new</span> MyThread("线程A"<span style="color: #000000;">).start();
+</span><span style="color: #008080;"> 8</span> <span style="color: #000000;">    }
+</span><span style="color: #008080;"> 9</span> 
+<span style="color: #008080;">10</span> }</code></pre>
+
+<span class="cnblogs_code_collapse">ThreadDemo </span>
+<p>&nbsp; &nbsp;通过此时的调用可以发现，虽然调用了是start()方法，但是最终执行的是run()方法，并且所有的线程对象都是交替执行的。</p>
+<p>&nbsp; &nbsp;疑问？为什么多线程的启动不直接使用run()方法而必须使用Thread类中的start()方法呢？如果要想清楚这个问题，最好的做法是查看一下start()方法的实现操作，可以直接通过源代码观察。</p>
+<src class="cnblogs_Highlighter">
+<pre class="brush:java;gutter:true;">//jdk1.8.0_201中的源代码
+public synchronized void start() {
+        if (threadStatus != 0)	//判断线程的状态
+            throw new IllegalThreadStateException();	//抛出一个异常
+        group.add(this);
+        boolean started = false;
+        try {
+            start0();	//在start()方法里面调用了start0()方法
+            started = true;
+        } finally {
+            try {
+                if (!started) {
+                    group.threadStartFailed(this);
+                }
+            } catch (Throwable ignore) {
+            }
+        }
+    }
+
+    private native void start0();//只定义了方法名称，但是没有实现
+</code></pre>
+
+<p>　　发现在start()方法里面会抛出一个&ldquo;IllegalThreadStateException&rdquo;异常类对象，但是整个的程序并没有使用throws或者是明确的try&hellip;&hellip;catch处理，因此该异常一定是RuntimeException的子类，每一个线程类的对象只允许启动一次，如果重复启动则就抛出此异常。例如：下面的代码就会抛出异常。</p>
+<table border="1" cellspacing="0" cellpadding="0">
+<tbody>
+<tr>
+<td width="775">
+<src class="table-cell-line">public class ThreadDemo {
+<src class="table-cell-line">　　public static void main(String[] args) {
+<src class="table-cell-line">　　　　MyThread mt = new MyThread("线程A") ;
+<src class="table-cell-line">　　　　mt.start() ;
+<src class="table-cell-line">　　　　mt.start() ; // 重复进行了线程的启动
+<src class="table-cell-line">　　}
+<src class="table-cell-line">}
+</td>
+</tr>
+<tr>
+<td width="775">
+<p><strong>Exception in thread "main"&nbsp; java.lang.IllegalThreadStateException</strong></p>
+</td>
+</tr>
+</tbody>
+</table>
+<p>&nbsp;</p>
+<p>&nbsp; &nbsp;在Java程序执行的过程之中考虑到对于不同层次开发者的需要，所以其支持有本地的操作系统函数调用，而这项技术就被称为JNI（Java Native Inteface）技术，但是Java开发过程之中并不推荐这样使用，利用这项技术可以使用一些操作系统提供底层函数进行一些特殊的处理，而在Thread类里面提供的start0()就表示需要将此方法依赖于不同的操作系统实现。<img style="display: block; margin-left: auto; margin-right: auto;" src="./images/Java 多线程编程——多线程4.png" alt="" />&nbsp; &nbsp;任何情况下，只要定义了多线程，多线程的启动永远只有一种方案：Thread类中的start()方法。</p>
+<h1>2. 基于Runnable接口实现多线程</h1>
+<p>&nbsp; &nbsp;虽然可以通过thread类的继承来实现多线程的定义，但是在Java程序里面对于继承永远都是存在有单继承局限的，所以在Java里面又提供有第二种多线程的主体定义结构形式：实现java.lang.Runnable接口，此接口定义如下：</p>
+<p>&nbsp;</p>
+<table border="1" cellspacing="0" cellpadding="0">
+<tbody>
+<tr>
+<td width="775">
+<p><strong>@FunctionalInterface</strong></p>
+<p>public interface Runnable{ //JDK1.8引入了Lambda表达式之后就变为了函数式接口&nbsp;</p>
+<p>　　public void run​()</p>
+<p>}</p>
+</td>
+</tr>
+</tbody>
+</table>
+<p><strong>范例：通过Runnable实现多线程的主体类</strong>&nbsp;</p>
+<src class="cnblogs_code" onclick="cnblogs_code_show('59ad95a3-69e2-49dd-ba22-8d61f82b4479')"><img id="code_img_closed_59ad95a3-69e2-49dd-ba22-8d61f82b4479" class="code_img_closed" src="./images/Java 多线程编程——多线程0.png" alt="" /><img id="code_img_opened_59ad95a3-69e2-49dd-ba22-8d61f82b4479" class="code_img_opened" style="display: none;" onclick="cnblogs_code_hide('59ad95a3-69e2-49dd-ba22-8d61f82b4479',event)" src="./images/Java 多线程编程——多线程1.png" alt="" />
+<src id="cnblogs_code_open_59ad95a3-69e2-49dd-ba22-8d61f82b4479" class="cnblogs_code_hide">
+<pre><code><span style="color: #008080;"> 1</span> <span style="color: #0000ff;">class</span> MyThread <span style="color: #0000ff;">implements</span> Runnable {    <span style="color: #008000;">//</span><span style="color: #008000;"> 线程的主体类</span>
+<span style="color: #008080;"> 2</span>     <span style="color: #0000ff;">private</span><span style="color: #000000;"> String title ;
+</span><span style="color: #008080;"> 3</span>     <span style="color: #0000ff;">public</span><span style="color: #000000;"> MyThread(String title) {
+</span><span style="color: #008080;"> 4</span>         <span style="color: #0000ff;">this</span>.title =<span style="color: #000000;"> title ;
+</span><span style="color: #008080;"> 5</span> <span style="color: #000000;">    }
+</span><span style="color: #008080;"> 6</span> <span style="color: #000000;">    @Override
+</span><span style="color: #008080;"> 7</span>     <span style="color: #0000ff;">public</span> <span style="color: #0000ff;">void</span> run() {    <span style="color: #008000;">//</span><span style="color: #008000;"> 线程的主体方法</span>
+<span style="color: #008080;"> 8</span>         <span style="color: #0000ff;">for</span> (<span style="color: #0000ff;">int</span> x = 0 ; x &lt; 10 ; x ++<span style="color: #000000;">) {
+</span><span style="color: #008080;"> 9</span>             System.out.println(<span style="color: #0000ff;">this</span>.title + "运行，x = " +<span style="color: #000000;"> x);
+</span><span style="color: #008080;">10</span> <span style="color: #000000;">        }
+</span><span style="color: #008080;">11</span> <span style="color: #000000;">    }
+</span><span style="color: #008080;">12</span> }  </code></pre>
+
+<span class="cnblogs_code_collapse">MyThread </span>
+<p>&nbsp;</p>
+<p>&nbsp; &nbsp;&nbsp;但是此时由于不在继承Thread父类了，那么对于此时的MyThread类中也就不再支持有start()这个继承的方法，可是如果不使用Thread.start()方法是无法进行多线程启动的，那么这个时候就需要去观察一下Thread类提供的构造方法：</p>
+<p>&nbsp; &nbsp; &nbsp; <strong>&middot;构造方法：public Thread​(Runnable target)；</strong></p>
+<p><strong>　&nbsp; &nbsp;&middot;构造方法：public Thread(Runnable target,String name);</strong></p>
+<p><strong>范例：启动多线程</strong></p>
+<src class="cnblogs_code" onclick="cnblogs_code_show('920c037f-15af-41eb-8d54-322992f03c28')"><img id="code_img_closed_920c037f-15af-41eb-8d54-322992f03c28" class="code_img_closed" src="./images/Java 多线程编程——多线程0.png" alt="" /><img id="code_img_opened_920c037f-15af-41eb-8d54-322992f03c28" class="code_img_opened" style="display: none;" onclick="cnblogs_code_hide('920c037f-15af-41eb-8d54-322992f03c28',event)" src="./images/Java 多线程编程——多线程1.png" alt="" />
+<src id="cnblogs_code_open_920c037f-15af-41eb-8d54-322992f03c28" class="cnblogs_code_hide">
+<pre><code><span style="color: #008080;"> 1</span> <span style="color: #0000ff;">public</span> <span style="color: #0000ff;">class</span><span style="color: #000000;"> ThreadDemo {
+</span><span style="color: #008080;"> 2</span>     <span style="color: #0000ff;">public</span> <span style="color: #0000ff;">static</span> <span style="color: #0000ff;">void</span><span style="color: #000000;"> main(String[] args) {
+</span><span style="color: #008080;"> 3</span>         Thread threadA = <span style="color: #0000ff;">new</span> Thread(<span style="color: #0000ff;">new</span> MyThread("线程对象A"<span style="color: #000000;">)) ;
+</span><span style="color: #008080;"> 4</span>         Thread threadB = <span style="color: #0000ff;">new</span> Thread(<span style="color: #0000ff;">new</span> MyThread("线程对象B"<span style="color: #000000;">)) ;
+</span><span style="color: #008080;"> 5</span>         Thread threadC = <span style="color: #0000ff;">new</span> Thread(<span style="color: #0000ff;">new</span> MyThread("线程对象C"<span style="color: #000000;">)) ;
+</span><span style="color: #008080;"> 6</span>         threadA.start(); <span style="color: #008000;">//</span><span style="color: #008000;"> 启动多线程</span>
+<span style="color: #008080;"> 7</span>         threadB.start(); <span style="color: #008000;">//</span><span style="color: #008000;"> 启动多线程</span>
+<span style="color: #008080;"> 8</span>         threadC.start(); <span style="color: #008000;">//</span><span style="color: #008000;"> 启动多线程</span>
+<span style="color: #008080;"> 9</span> <span style="color: #000000;">    }
+</span><span style="color: #008080;">10</span> }</code></pre>
+
+<span class="cnblogs_code_collapse">ThreadDemo </span>
+<p>&nbsp;</p>
+<p>&nbsp; &nbsp;&nbsp;这个时候的多线程实现里面可以发现，由于只是实现了Runnable接口对象，所以此时线程主体类上就不再有单继承局限了，那么这样的设计才是一个标准型的设计。&nbsp;</p>
+<p>&nbsp; &nbsp;&nbsp;在以后的开发之中对于多线程的实现，优先考虑的就是Runnable接口实现，并且永恒都是通过Thread类对象启动多线程。这也是符合java的设计思想。</p>
+<h1><strong>3. Thread与Runnable关系</strong></h1>
+<p>&nbsp; &nbsp;经过一系列的分析之后可以发现，在多线程的实现过程之中已经有了两种做法：Thread类、Runnable接口，如果从代码的结构本身来讲肯定使用Runnable是最方便的，因为其可以避免单继承的局限，同时也可以更好的进行功能的扩充。</p>
+<p>&nbsp; &nbsp;但是从结构上也需要来观察Thread与Runnable的联系，打开Thread类定义：</p>
+<src class="cnblogs_Highlighter">
+<pre class="brush:java;gutter:true;"><strong>public class Threadextends Objectimplements Runnable{}
+</strong></code></pre>
+
+<p>&nbsp; &nbsp;发现现在Thread类也是Runnable接口的子类，那么在之前继承Thread类的时候实际上覆写的还是Runnable接口的run()方法，也是此时来观察一下程序的类结构：</p>
+<src class="cnblogs_code" onclick="cnblogs_code_show('17c2a94a-3615-4637-99f9-57835ec3658f')"><img id="code_img_closed_17c2a94a-3615-4637-99f9-57835ec3658f" class="code_img_closed" src="./images/Java 多线程编程——多线程0.png" alt="" /><img id="code_img_opened_17c2a94a-3615-4637-99f9-57835ec3658f" class="code_img_opened" style="display: none;" onclick="cnblogs_code_hide('17c2a94a-3615-4637-99f9-57835ec3658f',event)" src="./images/Java 多线程编程——多线程1.png" alt="" />
+<src id="cnblogs_code_open_17c2a94a-3615-4637-99f9-57835ec3658f" class="cnblogs_code_hide">
+<pre><code><span style="color: #008080;"> 1</span> <span style="color: #0000ff;">class</span> MyThread <span style="color: #0000ff;">implements</span> Runnable {    <span style="color: #008000;">//</span><span style="color: #008000;"> 线程的主体类</span>
+<span style="color: #008080;"> 2</span>     <span style="color: #0000ff;">private</span><span style="color: #000000;"> String title ;
+</span><span style="color: #008080;"> 3</span>     <span style="color: #0000ff;">public</span><span style="color: #000000;"> MyThread(String title) {
+</span><span style="color: #008080;"> 4</span>         <span style="color: #0000ff;">this</span>.title =<span style="color: #000000;"> title ;
+</span><span style="color: #008080;"> 5</span> <span style="color: #000000;">    }
+</span><span style="color: #008080;"> 6</span> <span style="color: #000000;">    @Override
+</span><span style="color: #008080;"> 7</span>     <span style="color: #0000ff;">public</span> <span style="color: #0000ff;">void</span> run() {    <span style="color: #008000;">//</span><span style="color: #008000;"> 线程的主体方法</span>
+<span style="color: #008080;"> 8</span>         <span style="color: #0000ff;">for</span> (<span style="color: #0000ff;">int</span> x = 0 ; x &lt; 10 ; x ++<span style="color: #000000;">) {
+</span><span style="color: #008080;"> 9</span>             System.out.println(<span style="color: #0000ff;">this</span>.title + "运行，x = " +<span style="color: #000000;"> x);
+</span><span style="color: #008080;">10</span> <span style="color: #000000;">        }
+</span><span style="color: #008080;">11</span> <span style="color: #000000;">    }
+</span><span style="color: #008080;">12</span> <span style="color: #000000;">}  
+</span><span style="color: #008080;">13</span> <span style="color: #0000ff;">public</span> <span style="color: #0000ff;">class</span><span style="color: #000000;"> ThreadDemo {
+</span><span style="color: #008080;">14</span>     <span style="color: #0000ff;">public</span> <span style="color: #0000ff;">static</span> <span style="color: #0000ff;">void</span><span style="color: #000000;"> main(String[] args) {
+</span><span style="color: #008080;">15</span>         Thread threadA = <span style="color: #0000ff;">new</span> Thread(<span style="color: #0000ff;">new</span> MyThread("线程对象A"<span style="color: #000000;">)) ;
+</span><span style="color: #008080;">16</span>         Thread threadB = <span style="color: #0000ff;">new</span> Thread(<span style="color: #0000ff;">new</span> MyThread("线程对象B"<span style="color: #000000;">)) ;
+</span><span style="color: #008080;">17</span>         Thread threadC = <span style="color: #0000ff;">new</span> Thread(<span style="color: #0000ff;">new</span> MyThread("线程对象C"<span style="color: #000000;">)) ;
+</span><span style="color: #008080;">18</span>         threadA.start(); <span style="color: #008000;">//</span><span style="color: #008000;"> 启动多线程</span>
+<span style="color: #008080;">19</span>         threadB.start(); <span style="color: #008000;">//</span><span style="color: #008000;"> 启动多线程</span>
+<span style="color: #008080;">20</span>         threadC.start(); <span style="color: #008000;">//</span><span style="color: #008000;"> 启动多线程</span>
+<span style="color: #008080;">21</span> <span style="color: #000000;">    }
+</span><span style="color: #008080;">22</span> }</code></pre>
+
+<span class="cnblogs_code_collapse">ThreadDemo </span>
+<p>&nbsp;</p>
+<p><img src="./images/Java 多线程编程——多线程11.png" alt="" /></p>
+<p>&nbsp; &nbsp;多线程的设计之中，使用了<strong>代理设计模式</strong>的结构，用户自定义的线程主体只是负责项目核心功能的实现，而所有的辅助实现全部交由Thread类来处理。</p>
+<p>&nbsp; &nbsp;在进行Thread启动多线程的时候调用的是start()方法，而后找到的是run()方法，当通过Thread类的构造方法传递了一个Runnable接口对象的时候，那么该接口对象将被Thread类中的target属性所保存，在start()方法执行的时候回调用Thread类中的run()方法，而这个run()方法去调用Runnable接口子类被覆写过的run()方法。</p>
+<p>&nbsp; &nbsp;多线程开发的本质上是在于多个线程可以进行同一资源的抢占，那么Thread主要描述的是线程，而资源的描述是通过Runnable完成的。</p>
+<p><img src="./images/Java 多线程编程——多线程12.png" alt="" /></p>
+<p>&nbsp;</p>
+<p>&nbsp;</p>
+<p>&nbsp;</p>
+<p><strong>范例：利用卖票程序来实现多个线程的资源并发访问</strong></p>
+<src class="cnblogs_code" onclick="cnblogs_code_show('33c95c3d-992c-40e7-ac4b-990c632bb645')"><img id="code_img_closed_33c95c3d-992c-40e7-ac4b-990c632bb645" class="code_img_closed" src="./images/Java 多线程编程——多线程0.png" alt="" /><img id="code_img_opened_33c95c3d-992c-40e7-ac4b-990c632bb645" class="code_img_opened" style="display: none;" onclick="cnblogs_code_hide('33c95c3d-992c-40e7-ac4b-990c632bb645',event)" src="./images/Java 多线程编程——多线程1.png" alt="" />
+<src id="cnblogs_code_open_33c95c3d-992c-40e7-ac4b-990c632bb645" class="cnblogs_code_hide">
+<pre><code><span style="color: #008080;"> 1</span> <span style="color: #0000ff;">package</span><span style="color: #000000;"> com.pluto.ticket;
+</span><span style="color: #008080;"> 2</span> 
+<span style="color: #008080;"> 3</span> <span style="color: #0000ff;">public</span> <span style="color: #0000ff;">class</span> MyThread <span style="color: #0000ff;">implements</span><span style="color: #000000;"> Runnable {
+</span><span style="color: #008080;"> 4</span> 
+<span style="color: #008080;"> 5</span>     <span style="color: #0000ff;">private</span> <span style="color: #0000ff;">int</span> ticket = 100<span style="color: #000000;">;
+</span><span style="color: #008080;"> 6</span> <span style="color: #000000;">    @Override
+</span><span style="color: #008080;"> 7</span>     <span style="color: #0000ff;">public</span> <span style="color: #0000ff;">void</span><span style="color: #000000;"> run() {
+</span><span style="color: #008080;"> 8</span>         <span style="color: #008000;">//</span><span style="color: #008000;"> TODO Auto-generated method stub</span>
+<span style="color: #008080;"> 9</span>         <span style="color: #0000ff;">for</span>(<span style="color: #0000ff;">int</span> x=0;x&lt;100;x++<span style="color: #000000;">){
+</span><span style="color: #008080;">10</span>             <span style="color: #0000ff;">if</span>(<span style="color: #0000ff;">this</span>.ticket&gt;0<span style="color: #000000;">){
+</span><span style="color: #008080;">11</span>                 System.out.println("卖票,ticket="+<span style="color: #0000ff;">this</span>.ticket--<span style="color: #000000;">);
+</span><span style="color: #008080;">12</span> <span style="color: #000000;">            }
+</span><span style="color: #008080;">13</span> <span style="color: #000000;">        }
+</span><span style="color: #008080;">14</span> <span style="color: #000000;">    }
+</span><span style="color: #008080;">15</span> 
+<span style="color: #008080;">16</span> <span style="color: #000000;">}
+</span><span style="color: #008080;">17</span> <span style="color: #0000ff;">package</span><span style="color: #000000;"> com.pluto.ticket;
+</span><span style="color: #008080;">18</span> <span style="color: #0000ff;">public</span> <span style="color: #0000ff;">class</span><span style="color: #000000;"> ThreadDemo {
+</span><span style="color: #008080;">19</span>     <span style="color: #0000ff;">public</span> <span style="color: #0000ff;">static</span> <span style="color: #0000ff;">void</span><span style="color: #000000;"> main(String[] args) {
+</span><span style="color: #008080;">20</span>         <span style="color: #008000;">//</span><span style="color: #008000;"> TODO Auto-generated method stub</span>
+<span style="color: #008080;">21</span>         MyThread mt = <span style="color: #0000ff;">new</span><span style="color: #000000;"> MyThread();
+</span><span style="color: #008080;">22</span>         <span style="color: #0000ff;">new</span> Thread(mt,"线程1").start();    <span style="color: #008000;">//</span><span style="color: #008000;"> 第一个线程启动</span>
+<span style="color: #008080;">23</span>         <span style="color: #0000ff;">new</span> Thread(mt,"线程2").start();    <span style="color: #008000;">//</span><span style="color: #008000;"> 第二个线程启动</span>
+<span style="color: #008080;">24</span>         <span style="color: #0000ff;">new</span> Thread(mt,"线程3").start();    <span style="color: #008000;">//</span><span style="color: #008000;"> 第三个线程启动</span>
+<span style="color: #008080;">25</span> <span style="color: #000000;">    }
+</span><span style="color: #008080;">26</span> 
+<span style="color: #008080;">27</span> }</code></pre>
+
+<span class="cnblogs_code_collapse">ThreadDemo </span>
+<p>&nbsp;</p>
+<h1><strong>4. Callable实现多线程</strong></h1>
+<p>&nbsp; &nbsp;从最传统的开发来讲如果要进行多线程的实现肯定依靠的就是Runnable，但是Runnable接口有一个缺点：当线程执行完毕之后无法获取一个返回值，所以从JDK1.5之后就提出一个新的线程实现接口：java.util.concurrent.Callable接口，首先来观察这个接口的定义：</p>
+<src class="cnblogs_Highlighter">
+<pre class="brush:java;gutter:true;">@<strong>FunctionalInterface</strong>
+public interface Callable<strong>&lt;V&gt;</strong>{
+	public <strong>V</strong> call​() throws Exception;
+}
+</code></pre>
+
+<p>&nbsp; &nbsp;可以发现Callable定义的时候可以设置一个泛型，此泛型的类型就是返回数据的类型，这样的好处是可以避免向下转型所带来的安全隐患。</p>
+<p>&nbsp; &nbsp;Callable 接口类似于 Runnable，两者都是为那些其实例可能被另一个线程执行的类设计的。</p>
+<p><img src="./images/Java 多线程编程——多线程15.png" alt="" /><img src="./images/Java 多线程编程——多线程16.png" alt="" width="642" height="303" /></p>
+<p><strong>范例：使用Callable实现多线程处理</strong></p>
+<src class="cnblogs_code" onclick="cnblogs_code_show('0afee4dd-1b35-4e99-92db-59441b0b7a14')"><img id="code_img_closed_0afee4dd-1b35-4e99-92db-59441b0b7a14" class="code_img_closed" src="./images/Java 多线程编程——多线程0.png" alt="" /><img id="code_img_opened_0afee4dd-1b35-4e99-92db-59441b0b7a14" class="code_img_opened" style="display: none;" onclick="cnblogs_code_hide('0afee4dd-1b35-4e99-92db-59441b0b7a14',event)" src="./images/Java 多线程编程——多线程1.png" alt="" />
+<src id="cnblogs_code_open_0afee4dd-1b35-4e99-92db-59441b0b7a14" class="cnblogs_code_hide">
+<pre><code><span style="color: #008080;"> 1</span> <span style="color: #0000ff;">import</span><span style="color: #000000;"> java.util.concurrent.Callable;
+</span><span style="color: #008080;"> 2</span> <span style="color: #0000ff;">import</span><span style="color: #000000;"> java.util.concurrent.FutureTask;
+</span><span style="color: #008080;"> 3</span> <span style="color: #0000ff;">class</span> MyThread <span style="color: #0000ff;">implements</span> Callable&lt;String&gt;<span style="color: #000000;"> {
+</span><span style="color: #008080;"> 4</span> <span style="color: #000000;">    @Override
+</span><span style="color: #008080;"> 5</span>     <span style="color: #0000ff;">public</span> String call() <span style="color: #0000ff;">throws</span><span style="color: #000000;"> Exception {
+</span><span style="color: #008080;"> 6</span>         <span style="color: #0000ff;">for</span> (<span style="color: #0000ff;">int</span> x = 0 ; x &lt; 10 ; x ++<span style="color: #000000;">) {
+</span><span style="color: #008080;"> 7</span>             System.out.println("********* 线程执行、x = " +<span style="color: #000000;"> x);
+</span><span style="color: #008080;"> 8</span> <span style="color: #000000;">        }
+</span><span style="color: #008080;"> 9</span>         <span style="color: #0000ff;">return</span> "线程执行完毕。"<span style="color: #000000;">;
+</span><span style="color: #008080;">10</span> <span style="color: #000000;">    }
+</span><span style="color: #008080;">11</span> <span style="color: #000000;">}
+</span><span style="color: #008080;">12</span> <span style="color: #0000ff;">public</span> <span style="color: #0000ff;">class</span><span style="color: #000000;"> CallableDemo{
+</span><span style="color: #008080;">13</span>     <span style="color: #0000ff;">public</span> <span style="color: #0000ff;">static</span> <span style="color: #0000ff;">void</span> main(String[] args) <span style="color: #0000ff;">throws</span><span style="color: #000000;"> Exception {
+</span><span style="color: #008080;">14</span>         FutureTask&lt;String&gt; task = <span style="color: #0000ff;">new</span> FutureTask&lt;&gt;(<span style="color: #0000ff;">new</span><span style="color: #000000;"> MyThread()) ;
+</span><span style="color: #008080;">15</span>         <span style="color: #0000ff;">new</span><span style="color: #000000;"> Thread(task).start(); 
+</span><span style="color: #008080;">16</span>         System.out.println("【线程返回数据】" +<span style="color: #000000;"> task.get());
+</span><span style="color: #008080;">17</span> <span style="color: #000000;">    }
+</span><span style="color: #008080;">18</span> }</code></pre>
+
+<span class="cnblogs_code_collapse">CallableDemo</span>
+<src class="cnblogs_Highlighter">
+<pre class="brush:java;gutter:true;">解释Runnable与Callable的区别？
+   &middot;Runnable是在JDK1.0的时候提出的多线程的实现接口，而Callable是在JDK1.5之后提出的；
+   &middot;java.lang.Runnable接口之中只提供有一个run()方法，并且没有返回值；
+   &middot;java.util.concurrent.Callable接口提供有call()方法，可以有返回值；
+</code></pre>
+
+<h1 style="margin: 0cm; margin-bottom: .0001pt; line-height: normal;"><span style="font-size: 21.0pt; mso-bidi-font-size: 22.0pt; mso-bidi-font-family: 微软雅黑;" lang="EN-US">5.&nbsp;</span><span style="font-size: 21.0pt; mso-bidi-font-size: 22.0pt; mso-bidi-font-family: 微软雅黑;">线程运行状态</span></h1>
+<p class="MsoNormal" style="text-indent: 21.0pt;">对于多线程的开发而言，编写程序的过程之中总是按照：定义线程主体类，而后通过<span lang="EN-US">Thread</span>类进行线程的启动，但是并不意味着你调用了<span lang="EN-US">start()</span>方法，线程就已经开始运行了，因为整体的线程处理有自己的一套运行的状态。</p>
+<p class="MsoNormal"><img src="./images/Java 多线程编程——多线程19.png" alt="" /></p>
+<p>&nbsp;</p>
+<p class="MsoNormal"><span lang="EN-US">1</span>、任何一个线程的徐爱那个都应该使用<span lang="EN-US">Thread</span>类进行封装，所以线程的启动使用的是<span lang="EN-US">start()</span>，但是启动的时候实际上若干个线程都将进入到一种就绪状态，现在并没有执行。</p>
+<p class="MsoNormal"><span lang="EN-US">2</span>、进入到就绪状态之后就需要等待进行资源调度，当某一个线程调度成功之后则进入到运行状态（<span lang="EN-US">run()</span>方法）<span lang="EN-US">,</span>但是所有的线程不可能一直持续执行下去，中间需要产生一些暂停的状态，例如：某个线程执行一段时间之后就需要让出资源，而后这个线程就将进入到阻塞状态，随后重新回归到就绪状态；</p>
+<p>&nbsp;</p>
+<p class="MsoNormal"><span lang="EN-US">3</span>、当<span lang="EN-US">run()</span>方法执行完毕之后，实际上该线程的主要任务也就结束了，那么此时就可以直接进入到停止状态；</p>
+<p><img src="./images/Java 多线程编程——多线程20.png" alt="" /></p>
+
+
+</div><hr><script charset='utf-8' src='../../js/sming.js'></script></body></html>

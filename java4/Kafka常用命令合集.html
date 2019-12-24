@@ -1,0 +1,219 @@
+<html><head><meta charset='utf-8'><meta name='viewport' content='width=device-width, initial-scale=1'>
+<meta name='applicable-device' content='pc'><meta name='keywords' content='电脑,电脑讲解,电脑技术,编程,电脑故障维修Kafka常用命令合集' />
+<script src='../../highlight/highlight.pack.js'></script>
+<link rel='stylesheet' type='text/css' href='../../highlight/styles/monokai.css'/>
+
+<link rel='stylesheet' href='../../fenxiang/dist/css/share.min.css'>
+<script src='../../fenxiang/src/js/social-share.js'></script>
+<script src='../../fenxiang/src/js/qrcode.js'></script>
+
+</head><body><script>hljs.initHighlightingOnLoad();</script><script>
+var system ={};  
+var p = navigator.platform;       
+system.win = p.indexOf('Win') == 0;  
+system.mac = p.indexOf('Mac') == 0;  
+system.x11 = (p == 'X11') || (p.indexOf('Linux') == 0);     
+if(system.win||system.mac||system.xll){
+document.write("<link href='../css/3.css' rel='stylesheet' type='text/css'>");}else{ document.write("<link href='../css/3wap.css' rel='stylesheet' type='text/css'>");}</script><script src='../../js/3.js'></script><div class='div2'><div class='heading_nav'><ul><div><li><a href='../../index.html'>首页</a></li>
+</div><div onclick='hidden1()' >分享</div>
+</ul></div></div>
+<div id='heading_nav2'> 
+<li class='row' >
+<div class='social-share' data-mode='prepend'><a href='javascript:' class='social-share-icon icon-heart'></a></div></li></div><script charset='utf-8' src='../../3/js/hengfu.js'></script><script charset='utf-8' src='../../3/js/hengfu2.js'></script><hr><div class='div1'><div class='biaoti'><center>Kafka常用命令合集</center></div><div class='banquan'>原文出处:本文由博客园博主请叫我头头哥提供。<br/>
+原文连接:https://www.cnblogs.com/toutou/p/kafka_command.html</div><br>
+    <src class="bodyCustomClass">
+<blockquote>
+<p>在上一篇文章<a title="请叫我头头哥" href="https://www.cnblogs.com/toutou/p/linux_install_kafka.html" target="_blank">《Linux安装Kafka》</a>中，已经介绍了如何在Linux安装Kafka，以及Kafka的启动/关闭和创建发话题并产生消息和消费消息。这篇文章就介绍介绍Kafka的那些常用的命令。</p>
+</blockquote>
+
+<p>关于Kafka的启停/创建话题/消息的产生和消费等命令在上一篇文章<a title="请叫我头头哥" href="https://www.cnblogs.com/toutou/p/linux_install_kafka.html" target="_blank">《Linux安装Kafka》</a>中已经指出，这里就不说了。就说说其他常用命令。</p>
+<src><span style="height: 25px; background-color: #ffa600; line-height: 25px; padding-left: 20px; padding-right: 35px; color: white; border-radius: 0 0 25px 0; width: 100%;">♛ 1 查看消费者状态和消费详情</span>
+<p>有时候我们需要关心消费者应用的状态，一般消费者应用会自己通过日志获知当前消费到了哪个topic的哪个partition的哪个offset，但当消费者出问题之后，或者出于监控的原因，我们需要知道消费者的状态和详情，那么需要借助kafka提供的相关命令。</p>
+<p style="font-weight: bold;">命令格式：</p>
+<p><code style="color: #e74c3c;"> bin/kafka-consumer-groups.sh --bootstrap-server BORKER_HOST1:PORT1,BORKER_HSOT2:PORT2 --list </code></p>
+<p><code style="color: #e74c3c;"> bin/kafka-consumer-groups.sh --bootstrap-server BORKER_HOST1:PORT1,BORKER_HSOT2:PORT2 --group GROUP_NAME --describe </code></p>
+<p style="font-weight: bold;">Tips:</p>
+<blockquote>
+<ul style="list-style-type: decimal;">
+<li>BROKER_HOST是kafka server的ip地址，PORT是server的监听端口。多个host port之间用逗号隔开</li>
+<li>第一条命令是获取group列表，一般而言，应用是知道消费者group的，通常在应用的配置里，如果已知，该步骤可以省略</li>
+<li>第二条命令是查看具体的消费者group的详情信息，需要给出group的名称</li>
+</ul>
+</blockquote>
+<p style="font-weight: bold;">示例：</p>
+<p><code style="color: #e74c3c;"> bin/kafka-consumer-groups.sh --bootstrap-server localhost:9092 --list </code></p>
+<p><code style="color: #e74c3c;"> bin/kafka-consumer-groups.sh --bootstrap-server localhost:9092 --group console-consumer-68682 --describe </code></p>
+<p style="font-weight: bold;">效果图：</p>
+<p><img src="./images/Kafka常用命令合集0.png" alt="Kafka常用命令合集" /></p>
+<ul style="list-style-type: decimal;">
+<li><span style="font-weight: bold;">TOPIC：</span>该group里消费的topic名称</li>
+<li><span style="font-weight: bold;">PARTITION：</span>分区编号</li>
+<li><span style="font-weight: bold;">CURRENT-OFFSET：</span>该分区当前消费到的offset</li>
+<li><span style="font-weight: bold;">LOG-END-OFFSET：</span>该分区当前latest offset</li>
+<li><span style="font-weight: bold;">LAG：</span>消费滞后区间，为LOG-END-OFFSET-CURRENT-OFFSET，具体大小需要看应用消费速度和生产者速度，一般过大则可能出现消费跟不上，需要引起应用注意</li>
+<li><span style="font-weight: bold;">CONSUMER-ID：</span>server端给该分区分配的consumer编号</li>
+<li><span style="font-weight: bold;">HOST：</span>消费者所在主机</li>
+<li><span style="font-weight: bold;">CLIENT-ID：</span>消费者id，一般由应用指定</li>
+</ul>
+<src><span style="height: 25px; background-color: #ffa600; line-height: 25px; padding-left: 20px; padding-right: 35px; color: white; border-radius: 0 0 25px 0; width: 100%;">♛ 2 查询topic的offset的范围</span>
+<p>用下面命令可以查询到topic:demo broker:localhost:9092的offset的最小值：</p>
+<p><code style="color: #e74c3c;"> bin/kafka-run-class.sh kafka.tools.GetOffsetShell --broker-list localhost:9092 -topic demo --time -2 </code></p>
+<p>查询offset的最大值：</p>
+<p><code style="color: #e74c3c;"> bin/kafka-run-class.sh kafka.tools.GetOffsetShell --broker-list localhost:9092 -topic demo --time -1 </code></p>
+<p>效果图：</p>
+<p><img src="./images/Kafka常用命令合集1.png" alt="Kafka常用命令合集" /></p>
+<src><span style="height: 25px; background-color: #ffa600; line-height: 25px; padding-left: 20px; padding-right: 35px; color: white; border-radius: 0 0 25px 0; width: 100%;">♛ 3 重置消费者offset</span>
+<p>有些场景可能希望修改消费者消费到的offset位置，以达到重新消费，或者跳过一部分消息的目的，这时候重置offset的工具就非常实用。</p>
+<p style="font-weight: bold;">命令格式：</p>
+<p><code style="color: #e74c3c;"> bin/kafka-consumer-groups.sh --bootstrap-server BORKER_HOST1:PORT1,BORKER_HSOT2:PORT2 --group GROUP_NAME --reset-offsets --execute --to-offset NEW_OFFSET --topic TOPIC_NAME </code></p>
+<p><code style="color: #e74c3c;"> bin/kafka-consumer-groups.sh --bootstrap-server BORKER_HOST1:PORT1,BORKER_HSOT2:PORT2 --group GROUP_NAME --reset-offsets --execute --to-earliest/--to-latest --topic TOPIC_NAME </code></p>
+<p style="font-weight: bold;">Tips:</p>
+<blockquote>
+<ul style="list-style-type: decimal;">
+<li>BROKER_HOST是kafka server的ip地址，PORT是server的监听端口。多个host port之间用逗号隔开</li>
+<li>第一条命令是将指定GROUP_NAME和topic的offset修改到NEW_OFFSET的位置，重启消费者后，消费中将从指定的offset处消费。注意这里只能NEW_OFFSET只能设置一个值，也就是说，所有的分区都将使用这个值，如果分区消息负载不均衡，需要考虑是否适用。</li>
+<li>第二条命令是将指定GROUP_NAME和topic的offset修改到earliest或者latest位置，使得消费者从头或者从尾部消费。</li>
+</ul>
+</blockquote>
+<p style="font-weight: bold;">示例：</p>
+<p><code style="color: #e74c3c;"> bin/kafka-consumer-groups.sh --bootstrap-server localhost:9092 --group console-consumer-68682 --reset-offsets --execute --to-offset 3 --topic demo </code></p>
+<p><code style="color: #e74c3c;"> bin/kafka-consumer-groups.sh --bootstrap-server localhost:9092 --group console-consumer-68682 --reset-offsets --execute --to-latest --topic demo </code></p>
+<p>效果图：</p>
+<p><img src="./images/Kafka常用命令合集2.png" alt="Kafka常用命令合集" /></p>
+<p>可以通过直接更换消费者group id的方式，配合消费者默认的消费策略，可以达到类似的效果，反而更加简单、高效和安全。</p>
+<src><span style="height: 25px; background-color: #ffa600; line-height: 25px; padding-left: 20px; padding-right: 35px; color: white; border-radius: 0 0 25px 0; width: 100%;">♛ 4 查看topic的状态和分区负载详情</span>
+<p>当broker出现宕机，恢复之后，我们可以看下topic的leader是否负载均衡。因为kafka的所有读写消息的请求，都是发送到partition leader上的，因此在生产环境，负载均衡显得尤其重要。</p>
+<p style="font-weight: bold;">命令格式：</p>
+<p><code style="color: #e74c3c;"> bin/kafka-topics.sh --zookeeper ZOOKEEPER_HOST1:PORT1,ZOOKEEPER_HOST2:PORT2 --describe --topic TOPIC_NAME </code></p>
+<p style="font-weight: bold;">Tips:</p>
+<blockquote>
+<ul style="list-style-type: decimal;">
+<li>ZOOKEEPER_HOST是kafka所使用的zookeeper的ip地址，PORT是zookeeper监听的端口。多个host port之间用逗号隔开</li>
+<li>类似的，zookeeper集群不需要全部列上，给出一个可用的zk地址和端口即可</li>
+</ul>
+</blockquote>
+<p style="font-weight: bold;">示例：</p>
+<p><code style="color: #e74c3c;"> bin/kafka-topics.sh --zookeeper localhost:2181 --describe --topic demo </code></p>
+<p>效果图：</p>
+<p><img src="./images/Kafka常用命令合集3.png" alt="Kafka常用命令合集" /></p>
+<p>如果发现以下现象说明kafka异常：</p>
+<ul style="list-style-type: decimal;">
+<li>某个topic的每个分区，同步副本数量和设定的副本数量不一致</li>
+<li>某个topic的每个分区，leader的id数值是-1或者none</li>
+</ul>
+<src><span style="height: 25px; background-color: #ffa600; line-height: 25px; padding-left: 20px; padding-right: 35px; color: white; border-radius: 0 0 25px 0; width: 100%;">♛ 5 消费消息</span>
+<p style="font-weight: bold;">从头开始消费：</p>
+<p><code style="color: #e74c3c;"> bin/kafka-console-consumer.sh --bootstrap-server localhost:9092 --topic demo --from-beginning </code></p>
+<p>效果图：</p>
+<p><img src="./images/Kafka常用命令合集4.png" alt="Kafka常用命令合集" /></p>
+<p style="font-weight: bold;">从尾部开始：</p>
+<p><code style="color: #e74c3c;"> bin/kafka-console-consumer.sh --bootstrap-server localhost:9092 --topic demo --offset latest --partition 0 </code></p>
+<p>效果图：</p>
+<p><img src="./images/Kafka常用命令合集5.png" alt="Kafka常用命令合集" /></p>
+<p style="font-weight: bold;">指定分区：</p>
+<p><code style="color: #e74c3c;"> bin/kafka-console-consumer.sh --bootstrap-server localhost:9092 --topic demo --offset latest --partition 0 </code></p>
+<p style="font-weight: bold;">取指定个数：</p>
+<p><code style="color: #e74c3c;"> bin/kafka-console-consumer.sh --bootstrap-server localhost:9092 --topic demo --offset latest --partition 0 --max-messages 2 </code></p>
+<p>如示例部分，取2个消息，取完自动结束回话。</p>
+<src><span style="height: 25px; background-color: #ffa600; line-height: 25px; padding-left: 20px; padding-right: 35px; color: white; border-radius: 0 0 25px 0; width: 100%;">♛ 自带压测工具 </span>
+<p>测试使用Kafka自带的测试脚本，通过命令对Kafka发起写入MQ消息和Kafka消费MQ消息的请求。模拟不同数量级的MQ消息写入和MQ消息消费场景，根据Kafka的处理结果，评估Kafka是否满足处理亿级以上的消息的能力。</p>
+<p style="font-weight: bold;">命令格式：</p>
+<p><code style="color: #e74c3c;"> bin/kafka-producer-perf-test.sh --topic demo --num-records 100 --record-size 1 --throughput 100 --producer-props bootstrap.servers=localhost:9092 </code></p>
+<p style="font-weight: bold;">示例：</p>
+<src>
+<table border="0" align="left">
+<tbody>
+<tr>
+<td>测试项</td>
+<td>压测消息数（单位:W）&nbsp;</td>
+<td>测试命令</td>
+</tr>
+<tr>
+<td>写入MQ消息</td>
+<td>10&nbsp;</td>
+<td>
+<p><code style="color: #e74c3c;"> bin/kafka-producer-perf-test.sh --topic demo --num-records 100000 --record-size 1000 &nbsp;--throughput 2000 --producer-props bootstrap.servers=localhost:9092 </code></p>
+</td>
+</tr>
+<tr>
+<td>&nbsp;</td>
+<td>100&nbsp;</td>
+<td>
+<p><code style="color: #e74c3c;"> bin/kafka-producer-perf-test.sh --topic demo --num-records 1000000 --record-size 2000 &nbsp;--throughput 5000 --producer-props bootstrap.servers=localhost:9092 </code></p>
+</td>
+</tr>
+<tr>
+<td>&nbsp;</td>
+<td>1000</td>
+<td>
+<p><code style="color: #e74c3c;"> bin/kafka-producer-perf-test.sh --topic demo --num-records 10000000 --record-size 2000 &nbsp;--throughput 5000 --producer-props bootstrap.servers=localhost:9092 </code></p>
+</td>
+</tr>
+<tr>
+<td>消费MQ消息</td>
+<td>10&nbsp;</td>
+<td>
+<p><code style="color: #e74c3c;"> bin/kafka-consumer-perf-test.sh&nbsp;--broker-list localhost:9092 --topic demo --fetch-size 1048576 --messages 100000 --threads 1 </code></p>
+</td>
+</tr>
+<tr>
+<td>&nbsp;</td>
+<td>100&nbsp;</td>
+<td>
+<p><code style="color: #e74c3c;"> bin/kafka-consumer-perf-test.sh&nbsp;--broker-list localhost:9092 --topic demo --fetch-size 1048576 --messages 1000000 --threads 1 </code></p>
+</td>
+</tr>
+<tr>
+<td>&nbsp;</td>
+<td>1000&nbsp;</td>
+<td>
+<p><code style="color: #e74c3c;"> bin/kafka-consumer-perf-test.sh&nbsp;--broker-list localhost:9092 --topic demo --fetch-size 1048576 --messages 10000000 --threads 1 </code></p>
+</td>
+</tr>
+</tbody>
+</table>
+
+<p style="font-weight: bold;">本文中部分内容翻译或借鉴于以下学习资料，特别鸣谢：</p>
+<ul style="list-style-type: decimal;">
+<li><a title="请叫我头头哥" href="https://www.cloudera.com/documentation/kafka/latest/topics/kafka_command_line.html" target="_blank">Using Apache Kafka Command-line Tools</a></li>
+<li><a title="请叫我头头哥" href="https://www.cnblogs.com/hd-zg/p/5831219.html" target="_blank">kafka 的offset的重置</a></li>
+<li><a title="请叫我头头哥" href="https://data-flair.training/blogs/kafka-broker/" target="_blank">Kafka Broker | Command-line Options and Procedure</a></li>
+<li><a title="请叫我头头哥" href="https://www.jianshu.com/p/4f582c968af0" target="_blank">kafka运维常用命令</a></li>
+<li><a title="请叫我头头哥" href="https://www.jianshu.com/p/cf30c1492956" target="_blank">kafka命令</a></li>
+</ul>
+<src id="MySignature" style="display: block;">
+<p id="PSignature" style="padding-top: 10px; padding-right: 10px; padding-bottom: 10px; padding-left: 60px; background: url('http://images.cnblogs.com/cnblogs_com/toutou/682006/o_122329534672560.png') #e5f1f4 no-repeat 1% 50%; font-family: 微软雅黑; font-size: 12px; border: #e0e0e0 1px dashed;"> <br />
+        作　　者：<strong><span style="font-size: 12px; color: red;"><a href="http://www.cnblogs.com/toutou/" target="_blank">请叫我头头哥</a></span></strong>
+        <br />
+        出　　处：<a href="http://www.cnblogs.com/toutou/" target="_blank">http://www.cnblogs.com/toutou/</a>
+        <br />
+        关于作者：专注于基础平台的项目开发。如有问题或建议，请多多赐教！
+        <br />
+        版权声明：本文版权归作者和博客园共有，欢迎转载，但未经作者同意必须保留此段声明，且在文章页面明显位置给出原文链接。
+        <br />
+        特此声明：所有评论和私信都会在第一时间回复。也欢迎园子的大大们指正错误，共同进步。或者<a href="http://msg.cnblogs.com/msg/send/请叫我头头哥">直接私信</a>我
+        <br />
+        声援博主：如果您觉得文章对您有帮助，可以点击文章右下角<strong><span style="color: #ff0000; font-size: 18pt;">【<a id="post-up">推荐</a>】</span></strong>一下。您的鼓励是作者坚持原创和持续写作的最大动力！
+        <br />
+    </p>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<style><!--
+#comment_body_3242240 {
+        display: none;
+    }
+--></style>
+
+</div><hr><script charset='utf-8' src='../../js/sming.js'></script></body></html>

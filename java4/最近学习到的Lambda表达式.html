@@ -1,0 +1,155 @@
+<html><head><meta charset='utf-8'><meta name='viewport' content='width=device-width, initial-scale=1'>
+<meta name='applicable-device' content='pc'><meta name='keywords' content='电脑,电脑讲解,电脑技术,编程,电脑故障维修最近学习到的Lambda表达式' />
+<script src='../../highlight/highlight.pack.js'></script>
+<link rel='stylesheet' type='text/css' href='../../highlight/styles/monokai.css'/>
+
+<link rel='stylesheet' href='../../fenxiang/dist/css/share.min.css'>
+<script src='../../fenxiang/src/js/social-share.js'></script>
+<script src='../../fenxiang/src/js/qrcode.js'></script>
+
+</head><body><script>hljs.initHighlightingOnLoad();</script><script>
+var system ={};  
+var p = navigator.platform;       
+system.win = p.indexOf('Win') == 0;  
+system.mac = p.indexOf('Mac') == 0;  
+system.x11 = (p == 'X11') || (p.indexOf('Linux') == 0);     
+if(system.win||system.mac||system.xll){
+document.write("<link href='../css/3.css' rel='stylesheet' type='text/css'>");}else{ document.write("<link href='../css/3wap.css' rel='stylesheet' type='text/css'>");}</script><script src='../../js/3.js'></script><div class='div2'><div class='heading_nav'><ul><div><li><a href='../../index.html'>首页</a></li>
+</div><div onclick='hidden1()' >分享</div>
+</ul></div></div>
+<div id='heading_nav2'> 
+<li class='row' >
+<div class='social-share' data-mode='prepend'><a href='javascript:' class='social-share-icon icon-heart'></a></div></li></div><script charset='utf-8' src='../../3/js/hengfu.js'></script><script charset='utf-8' src='../../3/js/hengfu2.js'></script><hr><div class='div1'><div class='biaoti'><center>最近学习到的Lambda表达式</center></div><div class='banquan'>原文出处:本文由博客园博主Java3y提供。<br/>
+原文连接:https://www.cnblogs.com/Java3y/p/11570491.html</div><br>
+    <h2 id="前言">前言</h2>
+<blockquote>
+<p>只有光头才能变强。</p>
+</blockquote>
+<blockquote>
+<p>文本已收录至我的GitHub仓库，欢迎Star：<a href="https://github.com/ZhongFuCheng3y/3y" class="uri">https://github.com/ZhongFuCheng3y/3y</a></p>
+</blockquote>
+<p>中秋去了躺上海，在外滩上打了个卡：</p>
+<p><img src="./images/最近学习到的Lambda表达式0.png" alt="外滩" /></p>
+<p>紧接着学了一下Java的函数式编程，给大家整理了一下，一起学习！</p>
+<h2 id="一lambda用法">一、Lambda用法</h2>
+<p>之前写Optional这个类的时候，简单说了一下Lambda是怎么用的，这里再跟大家一起回顾一下，Lambda的语法是这样的：</p>
+<p><img src="./images/最近学习到的Lambda表达式1.png" alt="语法" /></p>
+<p>以Lambda语法创建线程和匿名内部类创建线程的区别（<strong>显然代码少了很多！</strong>）：</p>
+<pre><code><code>public static void main(String[] args) {
+    // 用匿名内部类的方式来创建线程
+    new Thread(new Runnable() {
+        @Override
+        public void run() {
+            System.out.println(&quot;公众号：Java3y---关注我！&quot;);
+        }
+    });
+
+    // 使用Lambda来创建线程
+    new Thread(() -&gt; System.out.println(&quot;公众号：Java3y---关注我！&quot;));
+}</code></code></pre>
+<p><strong>使用Lambda表达式，实际就是创建出该接口的实例对象</strong>。</p>
+<p><img src="./images/最近学习到的Lambda表达式2.png" alt="返回一个Runnable对象实例" /></p>
+<p>图示；Runnable接口来举例：</p>
+<p><img src="./images/最近学习到的Lambda表达式3.png" alt="以Runnable接口为例" /></p>
+<p>使用Labmda表达式<strong>需要函数式编程接口</strong>，比如在Runnable接口上我们可以看到<code>@FunctionalInterface</code>注解（标记着这个接口只有一个抽象方法）</p>
+<p><img src="./images/最近学习到的Lambda表达式4.png" alt="函数式编程接口只有一个抽象方法" /></p>
+<h3 id="函数式编程接口">1.1 函数式编程接口</h3>
+<p>从上面的代码例子可以看出，我们使用Lambda表达式创建线程的时候，<strong>并不关心接口名，方法名，参数名</strong>。我们<strong>只关注他的参数类型，参数个数，返回值</strong>。</p>
+<p>JDK原生就给我们提供了一些函数式编程接口方便我们去使用，下面是一些常用的接口：</p>
+<p><img src="./images/最近学习到的Lambda表达式5.png" alt="常用的函数式编程接口" /></p>
+<p>简单说明一下：</p>
+<ul>
+<li>表格中的一元接口表示只有一个入参，二元接口表示有两个入参</li>
+</ul>
+<p><img src="./images/最近学习到的Lambda表达式6.png" alt="以BiFunction为例" /></p>
+<p><img src="./images/最近学习到的Lambda表达式7.png" alt="常用的函数式接口" /></p>
+<p>Demo：</p>
+<pre><code><code>// Consumer 一个入参，无返回值
+Consumer&lt;String&gt; consumer = s-&gt; System.out.println(s);
+consumer.accept(&quot;Java3y&quot;);
+
+// Supplier 无入参，有返回值
+Supplier&lt;String&gt; supplier = () -&gt; &quot;Java4y&quot;;
+String s = supplier.get();
+System.out.println(s);
+
+//.....</code></code></pre>
+<p>使用Lambda时，要记住的就两点：</p>
+<ol>
+<li>Lambda返回的是接口的实例对象</li>
+<li>有没有参数、参数有多少个、需不需要有返回值、返回值的类型是什么----&gt;<strong>选择自己合适的函数式接口</strong></li>
+</ol>
+<h3 id="方法引用">1.2 方法引用</h3>
+<p>在学Lambda的时候，还可能会发现一种比较奇怪的写法，例如下面的代码：</p>
+<pre><code><code>// 方法引用写法
+Consumer&lt;String&gt; consumer = System.out::println;
+consumer.accept(&quot;Java3y&quot;);</code></code></pre>
+<p>如果按正常Lambda的写法可能是这样的:</p>
+<pre><code><code>// 普通的Lambda写法
+Consumer&lt;String&gt; consumer = s -&gt; System.out.println(s);
+consumer.accept(&quot;Java3y&quot;);</code></code></pre>
+<p>显然使用方法引用比普通的Lambda表达式又简洁了一些。</p>
+<p>如果<strong>函数式接口的实现恰好可以通过调用一个方法来实现</strong>，那么我们可以使用方法引用</p>
+<p><img src="./images/最近学习到的Lambda表达式8.png" alt="函数式接口的实现恰好可以通过调用一个方法来实现" /></p>
+<p>方法引用又分了几种：</p>
+<ul>
+<li>静态方法的方法引用</li>
+<li>非静态方法的方法引用</li>
+<li>构造函数的方法引用</li>
+</ul>
+<p>方法引用Demo:</p>
+<pre><code><code>public class Demo {
+    public static void main(String[] args) {
+        // 静态方法引用--通过类名调用
+        Consumer&lt;String&gt; consumerStatic = Java3y::MyNameStatic;
+        consumerStatic.accept(&quot;3y---static&quot;);
+
+        //实例方法引用--通过实例调用
+        Java3y java3y = new Java3y();
+        Consumer&lt;String&gt; consumer = java3y::myName;
+        consumer.accept(&quot;3y---instance&quot;);
+
+        // 构造方法方法引用--无参数
+        Supplier&lt;Java3y&gt; supplier = Java3y::new;
+        System.out.println(supplier.get());
+    }
+}
+
+class Java3y {
+    // 静态方法
+    public static void MyNameStatic(String name) {
+        System.out.println(name);
+    }
+
+    // 实例方法
+    public void myName(String name) {
+        System.out.println(name);
+    }
+
+    // 无参构造方法
+    public Java3y() {
+    }
+}</code></code></pre>
+<p>结果如下：</p>
+<p><img src="./images/最近学习到的Lambda表达式9.png" alt="结果" /></p>
+<h2 id="最后">最后</h2>
+<p>Lambda虽然代码看起来是简洁，但是如果复杂的话还是比较难看明白的。</p>
+<p>在学习Lambda的时候，首先我们得知道有哪些常用函数式编程接口，这些函数式编程接口的有什么区别（参数个数、返回值类型）</p>
+<p>Lambda表达式返回的是<strong>接口对象实例</strong>，如果<strong>函数式接口的实现恰好可以通过调用一个方法来实现</strong>，那么我们可以使用方法引用来替代Lambda表达式</p>
+<p>最后再完整举个例子：</p>
+<pre><code><code>// Supplier是一个无入参带返回的值的函数式编程接口
+
+// () -&gt; new Java3y()这整句Lambda表达式，返回的是Supplier接口的实例。从Lambda表达式可以看出无参数，带返回值
+Supplier&lt;Java3y&gt; supplier = () -&gt; new Java3y(); 
+
+// 由于这个“() -&gt; new Java3y()”Lambda表达式可以通过调用一个方法就实现了，那么我们可以优化成方法引用
+Supplier&lt;Java3y&gt; supplier2 = Java3y::new;
+</code></code></pre>
+<blockquote>
+<p>乐于输出<strong>干货</strong>的Java技术公众号：<strong>Java3y</strong>。公众号内<strong>有200多篇原创</strong>技术文章、海量视频资源、精美脑图，<strong>关注即可获取！</strong></p>
+</blockquote>
+<p><img src="./images/最近学习到的Lambda表达式10.png" alt="转发到朋友圈是对我最大的支持！" /></p>
+<p>觉得我的文章写得不错，点<strong>赞</strong>！</p>
+
+
+</div><hr><script charset='utf-8' src='../../js/sming.js'></script></body></html>

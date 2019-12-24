@@ -1,0 +1,99 @@
+<html><head><meta charset='utf-8'><meta name='viewport' content='width=device-width, initial-scale=1'>
+<meta name='applicable-device' content='pc'><meta name='keywords' content='电脑,电脑讲解,电脑技术,编程,电脑故障维修再来五道剑指offer题目' />
+<script src='../../highlight/highlight.pack.js'></script>
+<link rel='stylesheet' type='text/css' href='../../highlight/styles/monokai.css'/>
+
+<link rel='stylesheet' href='../../fenxiang/dist/css/share.min.css'>
+<script src='../../fenxiang/src/js/social-share.js'></script>
+<script src='../../fenxiang/src/js/qrcode.js'></script>
+
+</head><body><script>hljs.initHighlightingOnLoad();</script><script>
+var system ={};  
+var p = navigator.platform;       
+system.win = p.indexOf('Win') == 0;  
+system.mac = p.indexOf('Mac') == 0;  
+system.x11 = (p == 'X11') || (p.indexOf('Linux') == 0);     
+if(system.win||system.mac||system.xll){
+document.write("<link href='../css/3.css' rel='stylesheet' type='text/css'>");}else{ document.write("<link href='../css/3wap.css' rel='stylesheet' type='text/css'>");}</script><script src='../../js/3.js'></script><div class='div2'><div class='heading_nav'><ul><div><li><a href='../../index.html'>首页</a></li>
+</div><div onclick='hidden1()' >分享</div>
+</ul></div></div>
+<div id='heading_nav2'> 
+<li class='row' >
+<div class='social-share' data-mode='prepend'><a href='javascript:' class='social-share-icon icon-heart'></a></div></li></div><script charset='utf-8' src='../../3/js/hengfu.js'></script><script charset='utf-8' src='../../3/js/hengfu2.js'></script><hr><div class='div1'><div class='biaoti'><center>再来五道剑指offer题目</center></div><div class='banquan'>原文出处:本文由博客园博主秃桔子提供。<br/>
+原文连接:https://www.cnblogs.com/godoforange/p/11584044.html</div><br>
+    <h1 id="再来五道剑指offer题目">再来五道剑指offer题目</h1>
+<h2 id="旋转数组的最小数字">6、旋转数组的最小数字</h2>
+<blockquote>
+<p>把一个数组最开始的若干个元素搬到数组的末尾，我们称之为数组的旋转。<br />
+输入一个非递减排序的数组的一个旋转，输出旋转数组的最小元素。<br />
+例如数组{3,4,5,1,2}为{1,2,3,4,5}的一个旋转，该数组的最小值为1。<br />
+NOTE：给出的所有元素都大于0，若数组大小为0，请返回0。</p>
+</blockquote>
+<p>解题思路：分治递归，直到出现一个递增的序列后停止。</p>
+<pre><code><code>import java.util.*;
+public class Solution {
+    public int minNumberInRotateArray(int [] array) {
+        if(array.length==0) return 0;
+        if(array[0] &lt; array[array.length-1]||array.length==1) return array[0];
+        if(array.length==2) return array[1];
+        if(array[array.length/2]&gt;array[0]) {
+            return minNumberInRotateArray(Arrays.copyOfRange(array,array.length/2+1,array.length));
+        }else{
+            return minNumberInRotateArray(Arrays.copyOfRange(array,0,array.length/2+1));
+        }
+    }
+}</code></code></pre>
+<h2 id="斐波那契数列">7、斐波那契数列</h2>
+<blockquote>
+<p>大家都知道斐波那契数列，现在要求输入一个整数n，请你输出斐波那契数列的第n项（从0开始，第0项为0）。<br />
+n&lt;=39</p>
+</blockquote>
+<p>解题思路：递归太慢，只能迭代。</p>
+<pre><code><code>public int Fibonacci(int n) {
+        if(n==0) return 0;
+        int res = 1,tmp=1,tmp2=1;
+        for(int i=2;i&lt;n;i++) {
+            res=tmp+tmp2;
+            tmp2=tmp;
+            tmp=res;
+        }
+        return res;
+    }</code></code></pre>
+<h2 id="跳台阶">8、跳台阶</h2>
+<blockquote>
+<p>一只青蛙一次可以跳上1级台阶，也可以跳上2级。求该青蛙跳上一个n级的台阶总共有多少种跳法（先后次序不同算不同的结果）。</p>
+</blockquote>
+<p>解题思路：青蛙每次只有俩种结果。跳一次+1，跳俩阶+2</p>
+<pre><code><code>public int JumpFloor(int target) {
+        if(target==0) return 0;
+        if(target==1)return 1;
+        if(target==2) return 2;
+        return JumpFloor(target-1)+JumpFloor(target-2);
+    }</code></code></pre>
+<h2 id="变态跳台阶">9、变态跳台阶</h2>
+<blockquote>
+<p>一只青蛙一次可以跳上1级台阶，也可以跳上2级……它也可以跳上n级。求该青蛙跳上一个n级的台阶总共有多少种跳法。</p>
+</blockquote>
+<p>解题思路:f(n) = 2^(n-1)</p>
+<pre><code><code>public class Solution {
+    public int JumpFloorII(int target) {
+        return 1&lt;&lt;(target-1);
+    }
+}</code></code></pre>
+<h2 id="矩形覆盖">10、矩形覆盖</h2>
+<blockquote>
+<p>我们可以用2*1的小矩形横着或者竖着去覆盖更大的矩形。请问用n个2*1的小矩形无重叠地覆盖一个2*n的大矩形，总共有多少种方法？</p>
+</blockquote>
+<p>解题思路：递归</p>
+<pre><code><code>public class Solution {
+    public int RectCover(int target) {
+        if(target &lt;=2){
+            return target;
+        }else{
+            return RectCover(target-1) + RectCover(target-2);
+        }
+    }
+}</code></code></pre>
+
+
+</div><hr><script charset='utf-8' src='../../js/sming.js'></script></body></html>

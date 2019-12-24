@@ -1,0 +1,174 @@
+<html><head><meta charset='utf-8'><meta name='viewport' content='width=device-width, initial-scale=1'>
+<meta name='applicable-device' content='pc'><meta name='keywords' content='电脑,电脑讲解,电脑技术,编程,电脑故障维修Java 8 - 行为参数化' />
+<script src='../../highlight/highlight.pack.js'></script>
+<link rel='stylesheet' type='text/css' href='../../highlight/styles/monokai.css'/>
+
+<link rel='stylesheet' href='../../fenxiang/dist/css/share.min.css'>
+<script src='../../fenxiang/src/js/social-share.js'></script>
+<script src='../../fenxiang/src/js/qrcode.js'></script>
+
+</head><body><script>hljs.initHighlightingOnLoad();</script><script>
+var system ={};  
+var p = navigator.platform;       
+system.win = p.indexOf('Win') == 0;  
+system.mac = p.indexOf('Mac') == 0;  
+system.x11 = (p == 'X11') || (p.indexOf('Linux') == 0);     
+if(system.win||system.mac||system.xll){
+document.write("<link href='../css/3.css' rel='stylesheet' type='text/css'>");}else{ document.write("<link href='../css/3wap.css' rel='stylesheet' type='text/css'>");}</script><script src='../../js/3.js'></script><div class='div2'><div class='heading_nav'><ul><div><li><a href='../../index.html'>首页</a></li>
+</div><div onclick='hidden1()' >分享</div>
+</ul></div></div>
+<div id='heading_nav2'> 
+<li class='row' >
+<div class='social-share' data-mode='prepend'><a href='javascript:' class='social-share-icon icon-heart'></a></div></li></div><script charset='utf-8' src='../../3/js/hengfu.js'></script><script charset='utf-8' src='../../3/js/hengfu2.js'></script><hr><div class='div1'><div class='biaoti'><center>Java 8 - 行为参数化</center></div><div class='banquan'>原文出处:本文由博客园博主鱼遇提供。<br/>
+原文连接:https://www.cnblogs.com/min-code/p/11813511.html</div><br>
+    <p>前言：</p>
+<p>以下内容来源于java8实战一书，我将里面学习的内容做一个整理，方便忙碌的小伙伴快速入门实战java8</p>
+<p>正文：</p>
+<p>假设一个果农收获了一园的苹果，他需要你根据他的条件筛选出满意的苹果</p>
+<p>首先我们新建一个Apple类</p>
+<src class="cnblogs_code">
+<pre><code><span style="color: #0000ff;">public</span> <span style="color: #0000ff;">class</span><span style="color: #000000;"> Apple {
+    
+    </span><span style="color: #008000;">/**</span><span style="color: #008000;">
+     * 重量
+     </span><span style="color: #008000;">*/</span>
+    <span style="color: #0000ff;">private</span><span style="color: #000000;"> Integer weight;
+    
+    </span><span style="color: #008000;">/**</span><span style="color: #008000;">
+     * 颜色
+     </span><span style="color: #008000;">*/</span>
+    <span style="color: #0000ff;">private</span><span style="color: #000000;"> String color;
+　　 <br />　　 getter();<br />　　 setter();<br />　　 toString();<br />　　 ...</span><span style="color: #000000;">
+}</span></code></pre>
+
+<p>他说：我需要挑出红苹果</p>
+<src class="cnblogs_code">
+<pre><code><em id="__mceDel"><span style="color: #0000ff;">public</span> <span style="color: #0000ff;">void</span> filterRedApple(List&lt;Apple&gt;<span style="color: #000000;"> appleList){
+        </span><span style="color: #0000ff;">for</span><span style="color: #000000;">(Apple apple : appleList){
+            </span><span style="color: #0000ff;">if</span>("red"<span style="color: #000000;">.equals(apple)){
+                System.out.println(</span>"红苹果"<span style="color: #000000;">);
+            }
+        }
+    }    <br /></span></em></code></pre>
+
+<p>他说：我要挑出绿苹果</p>
+<p>转念一想，把颜色作为参数吧</p>
+<src class="cnblogs_code">
+<pre><code>    <span style="color: #0000ff;">public</span> <span style="color: #0000ff;">void</span> filterGreenApple(List&lt;Apple&gt;<span style="color: #000000;"> appleList , String color) {
+        </span><span style="color: #0000ff;">for</span><span style="color: #000000;"> (Apple apple : appleList) {
+            </span><span style="color: #0000ff;">if</span><span style="color: #000000;"> (color.equals(apple)) {
+                System.out.println(</span>"绿苹果"<span style="color: #000000;">);
+            }
+        }
+    }</span></code></pre>
+
+<p>他说：我需要挑出150g的苹果</p>
+<src class="cnblogs_code">
+<pre><code>    <span style="color: #0000ff;">public</span> <span style="color: #0000ff;">void</span> filterWeightApple(List&lt;Apple&gt;<span style="color: #000000;"> appleList，Integer weight) {
+        </span><span style="color: #0000ff;">for</span><span style="color: #000000;"> (Apple apple : appleList) {
+            </span><span style="color: #0000ff;">if</span> (apple.getWeight() &gt; weight<span style="color: #000000;">) {
+                System.out.println(</span>"重量大于150g的苹果"<span style="color: #000000;">);
+            }
+        }
+    }</span></code></pre>
+
+<p>他说：我要挑出100g以上的红苹果</p>
+<src class="cnblogs_code">
+<pre><code>    <span style="color: #0000ff;">public</span> <span style="color: #0000ff;">void</span> filterAppleByWeightAndColor(List&lt;Apple&gt;<span style="color: #000000;"> appleList,String color,Integer weight){
+        </span><span style="color: #0000ff;">for</span><span style="color: #000000;"> (Apple apple : appleList) {
+            </span><span style="color: #0000ff;">if</span> (apple.getWeight() &gt; weight &amp;&amp;<span style="color: #000000;"> color.equals(apple.getColor())) {
+                System.out.println(</span>"重量大于100g的红苹果"<span style="color: #000000;">);
+            }
+        }
+    }</span></code></pre>
+
+<p>面对无止境的需求变化，我们需要不断的适应</p>
+<p>让我们来看看如何改进</p>
+<p>新建一个苹果筛选接口</p>
+<src class="cnblogs_code">
+<pre><code><span style="color: #0000ff;">public</span> <span style="color: #0000ff;">interface</span><span style="color: #000000;"> ApplePredicate {
+    
+    </span><span style="color: #008000;">/**</span><span style="color: #008000;">
+     * 筛选苹果
+     </span><span style="color: #008000;">*/</span>
+    <span style="color: #0000ff;">boolean</span><span style="color: #000000;"> test(Apple apple);
+    
+}</span></code></pre>
+
+<p>然后我们分别实现筛选方法</p>
+<p>根据颜色筛选</p>
+<src class="cnblogs_code">
+<pre><code><span style="color: #0000ff;">public</span> <span style="color: #0000ff;">class</span> FilterRedApple <span style="color: #0000ff;">implements</span><span style="color: #000000;"> ApplePredicate {
+
+    @Override
+    </span><span style="color: #0000ff;">public</span> <span style="color: #0000ff;">boolean</span><span style="color: #000000;"> test(Apple apple) {
+        </span><span style="color: #0000ff;">return</span> "red".equals(apple.getColor()) ? <span style="color: #0000ff;">true</span> : <span style="color: #0000ff;">false</span><span style="color: #000000;">;
+    }
+
+}<br /></span></code></pre>
+
+<p>根据重量筛选</p>
+<src class="cnblogs_code">
+<pre><code><span style="color: #0000ff;">public</span> <span style="color: #0000ff;">class</span> FilterWeightApple <span style="color: #0000ff;">implements</span><span style="color: #000000;"> ApplePredicate {
+
+    @Override
+    </span><span style="color: #0000ff;">public</span> <span style="color: #0000ff;">boolean</span><span style="color: #000000;"> test(Apple apple) {
+        </span><span style="color: #0000ff;">return</span> apple.getColor() &gt; 100 ? <span style="color: #0000ff;">true</span> : <span style="color: #0000ff;">false</span><span style="color: #000000;">;
+    }
+
+}</span></code></pre>
+
+<p>根据颜色和重量筛选</p>
+<src class="cnblogs_code">
+<pre><code><span style="color: #0000ff;">public</span> <span style="color: #0000ff;">class</span> FilterAppleByColorAndWeight <span style="color: #0000ff;">implements</span><span style="color: #000000;"> ApplePredicate {
+
+    @Override
+    </span><span style="color: #0000ff;">public</span> <span style="color: #0000ff;">boolean</span><span style="color: #000000;"> test(Apple apple) {
+        </span><span style="color: #0000ff;">return</span> "red".equals(apple.getColor()) &amp;&amp; apple.getWeight &gt; 100 ? <span style="color: #0000ff;">true</span> : <span style="color: #0000ff;">false</span><span style="color: #000000;">;
+    }
+
+}</span></code></pre>
+
+<p>比如他想要红苹果</p>
+<p>我们这样来给他实现</p>
+<src class="cnblogs_code">
+<pre><code>    <span style="color: #0000ff;">public</span> <span style="color: #0000ff;">static</span> <span style="color: #0000ff;">void</span> filterApple(List&lt;Apple&gt;<span style="color: #000000;"> appleList , ApplePredicate p) {
+        </span><span style="color: #0000ff;">for</span><span style="color: #000000;"> (Apple apple : appleList) {
+            </span><span style="color: #0000ff;">if</span><span style="color: #000000;"> (p.test(apple)) {
+                System.out.println(</span>"这是你要的苹果" + <span style="color: #000000;">apple.toString());
+            }
+        }
+    }</span></code></pre>
+
+<p>我们调用的时候，传入它的实现类就行了</p>
+<src class="cnblogs_code">
+<pre><code>    <span style="color: #0000ff;">public</span> <span style="color: #0000ff;">static</span> <span style="color: #0000ff;">void</span><span style="color: #000000;"> main(String[] args) {
+        filterApple(appleList, </span><span style="color: #0000ff;">new</span><span style="color: #000000;"> FilterRedApple());
+        filterApple(appleList, </span><span style="color: #0000ff;">new</span><span style="color: #000000;"> FilterWeightApple());
+    }</span></code></pre>
+
+<p>我们来看看现在的方法和原先的方法的区别：</p>
+<p>原先的方法是每提出一个需求我们就新写一个方法来实现它，这样代码会显得非常臃肿冗余，因为他们其实是做的同一件事：筛选想要的苹果，仅仅只是条件不同</p>
+<p>我们改进后的方法是：写一个筛选接口，然后分别实现这个接口，比如你想要红苹果就写个晒选红苹果的实现，想要大的苹果就再写一个新的实现</p>
+<p>这看起来有点像策略模式</p>
+<p>好的。我们已经完成了一件非常酷的事：fliterApple方法的行为取决于我们通过ApplePredicate对象传递的代码，这个就是行为参数化，它可以帮助我们编写灵活的API</p>
+<p>现在，可能有同学会问我，每次新的需求都写一个新的实现类，会不会太麻烦了，我们可以用匿名类来实现啊</p>
+<p>确实，我们可以用匿名类来实现</p>
+<src class="cnblogs_code">
+<pre><code>    <span style="color: #0000ff;">public</span> <span style="color: #0000ff;">static</span> <span style="color: #0000ff;">void</span><span style="color: #000000;"> main(String[] args) {       
+     <br />　　　   filterApple(appleList, </span><span style="color: #0000ff;">new</span><span style="color: #000000;"> ApplePredicate() {
+          <br />　　　　　　  @Override
+            </span><span style="color: #0000ff;">public</span> <span style="color: #0000ff;">boolean</span><span style="color: #000000;"> test(Apple apple) {
+                </span><span style="color: #0000ff;">return</span> "red".equal(apple.getColor) ? <span style="color: #0000ff;">true</span> : <span style="color: #0000ff;">false</span><span style="color: #000000;">;
+            }
+        });    <br />    
+    }</span></code></pre>
+
+<p>虽然匿名类在一定程度上改善了为一个接口写好几个实现类的啰嗦问题，但它还是要创建一个对象明确的实现新的方法来定义一个新的行为</p>
+<p>所以，相较之下我更倾向于使用行为参数化的形式</p>
+<p>概念：</p>
+<p>行为参数化：一个方法接受多个不同的行为作为参数，并在内部使用他们，完成不同行为的能力</p>
+<p>行为参数化可以让代码更好的适应不断变化的需求，减轻未来的工作量</p>
+<p>传递代码：将新行为作为参数传递给方法</p>
+
+</div><hr><script charset='utf-8' src='../../js/sming.js'></script></body></html>

@@ -1,0 +1,523 @@
+<html><head><meta charset='utf-8'><meta name='viewport' content='width=device-width, initial-scale=1'>
+<meta name='applicable-device' content='pc'><meta name='keywords' content='电脑,电脑讲解,电脑技术,编程,电脑故障维修[springboot 开发单体web shop] 8. 商品详情&amp;评价展示' />
+<script src='../../highlight/highlight.pack.js'></script>
+<link rel='stylesheet' type='text/css' href='../../highlight/styles/monokai.css'/>
+
+<link rel='stylesheet' href='../../fenxiang/dist/css/share.min.css'>
+<script src='../../fenxiang/src/js/social-share.js'></script>
+<script src='../../fenxiang/src/js/qrcode.js'></script>
+
+</head><body><script>hljs.initHighlightingOnLoad();</script><script>
+var system ={};  
+var p = navigator.platform;       
+system.win = p.indexOf('Win') == 0;  
+system.mac = p.indexOf('Mac') == 0;  
+system.x11 = (p == 'X11') || (p.indexOf('Linux') == 0);     
+if(system.win||system.mac||system.xll){
+document.write("<link href='../css/3.css' rel='stylesheet' type='text/css'>");}else{ document.write("<link href='../css/3wap.css' rel='stylesheet' type='text/css'>");}</script><script src='../../js/3.js'></script><div class='div2'><div class='heading_nav'><ul><div><li><a href='../../index.html'>首页</a></li>
+</div><div onclick='hidden1()' >分享</div>
+</ul></div></div>
+<div id='heading_nav2'> 
+<li class='row' >
+<div class='social-share' data-mode='prepend'><a href='javascript:' class='social-share-icon icon-heart'></a></div></li></div><script charset='utf-8' src='../../3/js/hengfu.js'></script><script charset='utf-8' src='../../3/js/hengfu2.js'></script><hr><div class='div1'><div class='biaoti'><center>[springboot 开发单体web shop] 8. 商品详情&amp;评价展示</center></div><div class='banquan'>原文出处:本文由博客园博主IsaacZhang提供。<br/>
+原文连接:https://www.cnblogs.com/zhangpan1244/p/11925921.html</div><br>
+    <h1 id="上文回顾">上文回顾</h1>
+<p><a href="https://segmentfault.com/a/1190000021082968">上节</a> 我们实现了根据搜索关键词查询商品列表和根据商品分类查询，并且使用到了<code>mybatis-pagehelper</code>插件，讲解了如何使用插件来帮助我们快速实现分页数据查询。本文我们将继续开发商品详情页面和商品留言功能的开发。</p>
+<h1 id="需求分析">需求分析</h1>
+<p>关于商品详情页，和往常一样，我们先来看一看<code>jd</code>的示例：<br />
+<img src="./images/[springboot 开发单体web shop] 8. 商品详情&amp;评价展示0.png" alt="商品展示详情" /><br />
+<img src="./images/[springboot 开发单体web shop] 8. 商品详情&amp;评价展示1.png" alt="商品介绍" /><br />
+从上面2张图，我们可以看出来，大体上需要展示给用户的信息。比如：商品图片，名称，价格，等等。在第二张图中，我们还可以看到有一个<code>商品评价页签</code>,这些都是我们本节要实现的内容。</p>
+<h1 id="商品详情">商品详情</h1>
+<h2 id="开发梳理">开发梳理</h2>
+<p>我们根据上图（权当是需求文档，<em>很多需求文档写的比这个可能还差劲很多...</em>）分析一下，我们的开发大致都要关注哪些<code>points</code>:</p>
+<ul>
+<li>商品标题</li>
+<li>商品图片集合</li>
+<li>商品价格（原价以及优惠价）</li>
+<li>配送地址（我们的实现不在此，我们后续直接实现在下单逻辑中）</li>
+<li>商品规格</li>
+<li>商品分类</li>
+<li>商品销量</li>
+<li>商品详情</li>
+<li>商品参数（生产场地，日期等等）</li>
+<li>...</li>
+</ul>
+<p>根据我们梳理出来的信息，接下来开始编码就会很简单了，大家可以根据之前课程讲解的，先自行实现一波，请开始你们的表演～</p>
+<h2 id="编码实现">编码实现</h2>
+<h3 id="dto实现">DTO实现</h3>
+<p>因为我们在实际的数据传输过程中，不可能直接把我们的数据库<code>entity</code>之间暴露到前端，而且我们商品相关的数据是存储在不同的数据表中，我们必须要封装一个<code>ResponseDTO</code>来对数据进行传递。</p>
+<ul>
+<li><code>ProductDetailResponseDTO</code>包含了商品主表信息，以及图片列表、商品规格(不同SKU)以及商品具体参数（产地，生产日期等信息）</li>
+</ul>
+<pre><code><code>@Data
+@ToString
+@Builder
+@AllArgsConstructor
+@NoArgsConstructor
+public class ProductDetailResponseDTO {
+    private Products products;
+    private List&lt;ProductsImg&gt; productsImgList;
+    private List&lt;ProductsSpec&gt; productsSpecList;
+    private ProductsParam productsParam;
+}</code></code></pre>
+<h3 id="custom-mapper实现">Custom Mapper实现</h3>
+<p>根据我们之前表的设计，这里使用生成的通用mapper就可以满足我们的需求。</p>
+<h3 id="service实现">Service实现</h3>
+<p>从我们封装的要传递到前端的<code>ProductDetailResponseDTO</code>就可以看出，我们可以根据<code>商品id</code>分别查询出商品的相关信息，在<code>controller</code>进行数据封装就可以了，来实现我们的查询接口。</p>
+<ul>
+<li><p>查询商品主表信息（名称，内容等）</p>
+<p>在<code>com.liferunner.service.IProductService</code>中添加接口方法：</p>
+<pre><code><code>    /**
+     * 根据商品id查询商品
+     *
+     * @param pid 商品id
+     * @return 商品主信息
+     */
+    Products findProductByPid(String pid);</code></code></pre>
+<p>接着，在<code>com.liferunner.service.impl.ProductServiceImpl</code>中添加实现方法：</p>
+<pre><code><code>    @Override
+    @Transactional(propagation = Propagation.SUPPORTS)
+    public Products findProductByPid(String pid) {
+        return this.productsMapper.selectByPrimaryKey(pid);
+    }</code></code></pre>
+<p>直接使用通用mapper根据主键查询就可以了。</p>
+<blockquote>
+<p>同上，我们依次来实现图片、规格、以及商品参数相关的编码工作</p>
+</blockquote></li>
+<li><p>查询商品图片信息列表</p>
+<pre><code><code>    /**
+     * 根据商品id查询商品规格
+     *
+     * @param pid 商品id
+     * @return 规格list
+     */
+    List&lt;ProductsSpec&gt; getProductSpecsByPid(String pid);
+
+----------------------------------------------------------------
+
+    @Override
+    public List&lt;ProductsSpec&gt; getProductSpecsByPid(String pid) {
+        Example example = new Example(ProductsSpec.class);
+        val condition = example.createCriteria();
+        condition.andEqualTo(&quot;productId&quot;, pid);
+        return this.productsSpecMapper.selectByExample(example);
+    }</code></code></pre></li>
+<li><p>查询商品规格列表</p>
+<pre><code><code>    /**
+     * 根据商品id查询商品规格
+     *
+     * @param pid 商品id
+     * @return 规格list
+     */
+    List&lt;ProductsSpec&gt; getProductSpecsByPid(String pid);
+
+------------------------------------------------------------------
+
+    @Override
+    public List&lt;ProductsSpec&gt; getProductSpecsByPid(String pid) {
+        Example example = new Example(ProductsSpec.class);
+        val condition = example.createCriteria();
+        condition.andEqualTo(&quot;productId&quot;, pid);
+        return this.productsSpecMapper.selectByExample(example);
+    }</code></code></pre></li>
+<li><p>查询商品参数信息</p>
+<pre><code><code>    /**
+     * 根据商品id查询商品参数
+     *
+     * @param pid 商品id
+     * @return 参数
+     */
+    ProductsParam findProductParamByPid(String pid);
+
+------------------------------------------------------------------
+
+    @Override
+    public ProductsParam findProductParamByPid(String pid) {
+        Example example = new Example(ProductsParam.class);
+        val condition = example.createCriteria();
+        condition.andEqualTo(&quot;productId&quot;, pid);
+        return this.productsParamMapper.selectOneByExample(example);
+    }</code></code></pre></li>
+</ul>
+<h3 id="controller实现">Controller实现</h3>
+<p>在上面将我们需要的信息查询实现之后，然后我们需要在controller对数据进行包装，之后再返回到前端，供用户来进行查看，在<code>com.liferunner.api.controller.ProductController</code>中添加对外接口<code>/detail/{pid}</code>,实现如下：</p>
+<pre><code><code>    @GetMapping(&quot;/detail/{pid}&quot;)
+    @ApiOperation(value = &quot;根据商品id查询详情&quot;, notes = &quot;根据商品id查询详情&quot;)
+    public JsonResponse findProductDetailByPid(
+        @ApiParam(name = &quot;pid&quot;, value = &quot;商品id&quot;, required = true)
+        @PathVariable String pid) {
+        if (StringUtils.isBlank(pid)) {
+            return JsonResponse.errorMsg(&quot;商品id不能为空！&quot;);
+        }
+        val product = this.productService.findProductByPid(pid);
+        val productImgList = this.productService.getProductImgsByPid(pid);
+        val productSpecList = this.productService.getProductSpecsByPid(pid);
+        val productParam = this.productService.findProductParamByPid(pid);
+        val productDetailResponseDTO = ProductDetailResponseDTO
+            .builder()
+            .products(product)
+            .productsImgList(productImgList)
+            .productsSpecList(productSpecList)
+            .productsParam(productParam)
+            .build();
+        log.info(&quot;============查询到商品详情:{}==============&quot;, productDetailResponseDTO);
+
+        return JsonResponse.ok(productDetailResponseDTO);
+    }</code></code></pre>
+<p>从上述代码中可以看到，我们分别查询了商品、图片、规格以及参数信息，使用<code>ProductDetailResponseDTO.builder().build()</code>封装成返回到前端的对象。</p>
+<h3 id="test-api">Test API</h3>
+<p>按照惯例，写完代码我们需要进行测试。</p>
+<pre><code><code>{
+  &quot;status&quot;: 200,
+  &quot;message&quot;: &quot;OK&quot;,
+  &quot;data&quot;: {
+    &quot;products&quot;: {
+      &quot;id&quot;: &quot;smoke-100021&quot;,
+      &quot;productName&quot;: &quot;(奔跑的人生) - 中华&quot;,
+      &quot;catId&quot;: 37,
+      &quot;rootCatId&quot;: 1,
+      &quot;sellCounts&quot;: 1003,
+      &quot;onOffStatus&quot;: 1,
+      &quot;createdTime&quot;: &quot;2019-09-09T06:45:34.000+0000&quot;,
+      &quot;updatedTime&quot;: &quot;2019-09-09T06:45:38.000+0000&quot;,
+      &quot;content&quot;: &quot;吸烟有害健康“
+    },
+    &quot;productsImgList&quot;: [
+      {
+        &quot;id&quot;: &quot;1&quot;,
+        &quot;productId&quot;: &quot;smoke-100021&quot;,
+        &quot;url&quot;: &quot;http://www.life-runner.com/product/smoke/img1.png&quot;,
+        &quot;sort&quot;: 0,
+        &quot;isMain&quot;: 1,
+        &quot;createdTime&quot;: &quot;2019-07-01T06:46:55.000+0000&quot;,
+        &quot;updatedTime&quot;: &quot;2019-07-01T06:47:02.000+0000&quot;
+      },
+      {
+        &quot;id&quot;: &quot;2&quot;,
+        &quot;productId&quot;: &quot;smoke-100021&quot;,
+        &quot;url&quot;: &quot;http://www.life-runner.com/product/smoke/img2.png&quot;,
+        &quot;sort&quot;: 1,
+        &quot;isMain&quot;: 0,
+        &quot;createdTime&quot;: &quot;2019-07-01T06:46:55.000+0000&quot;,
+        &quot;updatedTime&quot;: &quot;2019-07-01T06:47:02.000+0000&quot;
+      },
+      {
+        &quot;id&quot;: &quot;3&quot;,
+        &quot;productId&quot;: &quot;smoke-100021&quot;,
+        &quot;url&quot;: &quot;http://www.life-runner.com/product/smoke/img3.png&quot;,
+        &quot;sort&quot;: 2,
+        &quot;isMain&quot;: 0,
+        &quot;createdTime&quot;: &quot;2019-07-01T06:46:55.000+0000&quot;,
+        &quot;updatedTime&quot;: &quot;2019-07-01T06:47:02.000+0000&quot;
+      }
+    ],
+    &quot;productsSpecList&quot;: [
+      {
+        &quot;id&quot;: &quot;1&quot;,
+        &quot;productId&quot;: &quot;smoke-100021&quot;,
+        &quot;name&quot;: &quot;中华&quot;,
+        &quot;stock&quot;: 2276,
+        &quot;discounts&quot;: 1.00,
+        &quot;priceDiscount&quot;: 7000,
+        &quot;priceNormal&quot;: 7000,
+        &quot;createdTime&quot;: &quot;2019-07-01T06:54:20.000+0000&quot;,
+        &quot;updatedTime&quot;: &quot;2019-07-01T06:54:28.000+0000&quot;
+      },
+    ],
+    &quot;productsParam&quot;: {
+      &quot;id&quot;: &quot;1&quot;,
+      &quot;productId&quot;: &quot;smoke-100021&quot;,
+      &quot;producPlace&quot;: &quot;中国&quot;,
+      &quot;footPeriod&quot;: &quot;760天&quot;,
+      &quot;brand&quot;: &quot;中华&quot;,
+      &quot;factoryName&quot;: &quot;中华&quot;,
+      &quot;factoryAddress&quot;: &quot;陕西&quot;,
+      &quot;packagingMethod&quot;: &quot;盒装&quot;,
+      &quot;weight&quot;: &quot;100g&quot;,
+      &quot;storageMethod&quot;: &quot;常温&quot;,
+      &quot;eatMethod&quot;: &quot;&quot;,
+      &quot;createdTime&quot;: &quot;2019-05-01T09:38:30.000+0000&quot;,
+      &quot;updatedTime&quot;: &quot;2019-05-01T09:38:34.000+0000&quot;
+    }
+  },
+  &quot;ok&quot;: true
+}</code></code></pre>
+<h1 id="商品评价">商品评价</h1>
+<p>在文章一开始我们就看过<code>jd</code>详情页面，有一个详情页签，我们来看一下：<br />
+<img src="./images/[springboot 开发单体web shop] 8. 商品详情&amp;评价展示2.png" alt="商品评价示例" /><br />
+它这个实现比较复杂，我们只实现相对重要的几个就可以了。</p>
+<h2 id="开发梳理-1">开发梳理</h2>
+<p>针对上图中红色方框圈住的内容，分别有：</p>
+<ul>
+<li>评价总数</li>
+<li>好评度（根据好评总数，中评总数，差评总数计算得出）</li>
+<li>评价等级</li>
+<li>以及用户信息加密展示</li>
+<li>评价内容</li>
+<li>...</li>
+</ul>
+<p>我们来实现上述分析的相对必要的一些内容。</p>
+<h2 id="编码实现-1">编码实现</h2>
+<h3 id="查询评价">查询评价</h3>
+<p>根据我们需要的信息，我们需要从用户表、商品表以及评价表中来联合查询数据，很明显单表通用mapper无法实现，因此我们先来实现自定义查询mapper，当然数据的传输对象是我们需要先来定义的。</p>
+<h4 id="response-dto实现">Response DTO实现</h4>
+<p>创建<code>com.liferunner.dto.ProductCommentDTO</code>.</p>
+<pre><code><code>@Data
+@NoArgsConstructor
+@AllArgsConstructor
+@Builder
+public class ProductCommentDTO {
+    //评价等级
+    private Integer commentLevel;
+    //规格名称
+    private String specName;
+    //评价内容
+    private String content;
+    //评价时间
+    private Date createdTime;
+    //用户头像
+    private String userFace;
+    //用户昵称
+    private String nickname;
+}</code></code></pre>
+<h4 id="custom-mapper实现-1">Custom Mapper实现</h4>
+<p>在<code>com.liferunner.custom.ProductCustomMapper</code>中添加查询接口方法：</p>
+<pre><code><code>    /***
+     * 根据商品id 和 评价等级查询评价信息
+     * &lt;code&gt;
+     *         Map&lt;String, Object&gt; paramMap = new HashMap&lt;&gt;();
+     *         paramMap.put(&quot;productId&quot;, pid);
+     *         paramMap.put(&quot;commentLevel&quot;, level);
+     *&lt;/code&gt;
+     * @param paramMap
+     * @return java.util.List&lt;com.liferunner.dto.ProductCommentDTO&gt;
+     * @throws
+     */
+    List&lt;ProductCommentDTO&gt; getProductCommentList(@Param(&quot;paramMap&quot;) Map&lt;String, Object&gt; paramMap);</code></code></pre>
+<p>在<code>mapper/custom/ProductCustomMapper.xml</code>中实现该接口方法的SQL：</p>
+<pre class="xml"><code>    &lt;select id=&quot;getProductCommentList&quot; resultType=&quot;com.liferunner.dto.ProductCommentDTO&quot; parameterType=&quot;Map&quot;&gt;
+        SELECT
+        pc.comment_level as commentLevel,
+        pc.spec_name as specName,
+        pc.content as content,
+        pc.created_time as createdTime,
+        u.face as userFace,
+        u.nickname as nickname
+        FROM items_comments pc
+        LEFT JOIN users u
+        ON pc.user_id = u.id
+        WHERE pc.item_id = #{paramMap.productId}
+        &lt;if test=&quot;paramMap.commentLevel != null and paramMap.commentLevel != &#39;&#39;&quot;&gt;
+            AND pc.comment_level = #{paramMap.commentLevel}
+        &lt;/if&gt;
+    &lt;/select&gt;</code></code></pre>
+<p>如果没有传递评价级别的话，默认查询全部评价信息。</p>
+<h4 id="service-实现">Service 实现</h4>
+<p>在<code>com.liferunner.service.IProductService</code>中添加查询接口方法：</p>
+<pre><code><code>    /**
+     * 查询商品评价
+     *
+     * @param pid        商品id
+     * @param level      评价级别
+     * @param pageNumber 当前页码
+     * @param pageSize   每页展示多少条数据
+     * @return 通用分页结果视图
+     */
+    CommonPagedResult getProductComments(String pid, Integer level, Integer pageNumber, Integer pageSize);</code></code></pre>
+<p>在<code>com.liferunner.service.impl.ProductServiceImpl</code>实现该方法：</p>
+<pre><code><code>    @Override
+    public CommonPagedResult getProductComments(String pid, Integer level, Integer pageNumber, Integer pageSize) {
+        Map&lt;String, Object&gt; paramMap = new HashMap&lt;&gt;();
+        paramMap.put(&quot;productId&quot;, pid);
+        paramMap.put(&quot;commentLevel&quot;, level);
+        // mybatis-pagehelper
+        PageHelper.startPage(pageNumber, pageSize);
+        val productCommentList = this.productCustomMapper.getProductCommentList(paramMap);
+        for (ProductCommentDTO item : productCommentList) {
+            item.setNickname(SecurityTools.HiddenPartString4SecurityDisplay(item.getNickname()));
+        }
+        // 获取mybatis插件中获取到信息
+        PageInfo&lt;?&gt; pageInfo = new PageInfo&lt;&gt;(productCommentList);
+        // 封装为返回到前端分页组件可识别的视图
+        val commonPagedResult = CommonPagedResult.builder()
+                .pageNumber(pageNumber)
+                .rows(productCommentList)
+                .totalPage(pageInfo.getPages())
+                .records(pageInfo.getTotal())
+                .build();
+        return commonPagedResult;
+    }</code></code></pre>
+<blockquote>
+<p>因为评价过多会使用到分页，这里使用通用分页返回结果，关于分页，可查看<a href="https://segmentfault.com/a/1190000021082968#item-5-5">学习分页传送门</a>。</p>
+</blockquote>
+<h4 id="controller实现-1">Controller实现</h4>
+<p>在<code>com.liferunner.api.controller.ProductController</code>中添加对外查询接口：</p>
+<pre><code><code>    @GetMapping(&quot;/comments&quot;)
+    @ApiOperation(value = &quot;查询商品评价&quot;, notes = &quot;根据商品id查询商品评价&quot;)
+    public JsonResponse getProductComment(
+        @ApiParam(name = &quot;pid&quot;, value = &quot;商品id&quot;, required = true)
+        @RequestParam String pid,
+        @ApiParam(name = &quot;level&quot;, value = &quot;评价级别&quot;, required = false, example = &quot;0&quot;)
+        @RequestParam Integer level,
+        @ApiParam(name = &quot;pageNumber&quot;, value = &quot;当前页码&quot;, required = false, example = &quot;1&quot;)
+        @RequestParam Integer pageNumber,
+        @ApiParam(name = &quot;pageSize&quot;, value = &quot;每页展示记录数&quot;, required = false, example = &quot;10&quot;)
+        @RequestParam Integer pageSize
+    ) {
+        if (StringUtils.isBlank(pid)) {
+            return JsonResponse.errorMsg(&quot;商品id不能为空！&quot;);
+        }
+        if (null == pageNumber || 0 == pageNumber) {
+            pageNumber = DEFAULT_PAGE_NUMBER;
+        }
+        if (null == pageSize || 0 == pageSize) {
+            pageSize = DEFAULT_PAGE_SIZE;
+        }
+        log.info(&quot;============查询商品评价:{}==============&quot;, pid);
+
+        val productComments = this.productService.getProductComments(pid, level, pageNumber, pageSize);
+        return JsonResponse.ok(productComments);
+    }</code></code></pre>
+<p><strong>FBI WARNING</strong>:</p>
+<blockquote>
+<p>@ApiParam(name = &quot;level&quot;, value = &quot;评价级别&quot;, required = false, example = &quot;0&quot;)<br />
+@RequestParam Integer level<br />
+关于ApiParam参数，如果接收参数为非字符串类型，一定要定义example为对应类型的示例值，否则Swagger在访问过程中会报example转换错误，因为example缺省为&quot;&quot;空字符串，会转换失败。例如我们删除掉<code>level</code>这个字段中的example=”0“，如下为错误信息（但是并不影响程序使用。）</p>
+</blockquote>
+<pre class="shell"><code>2019-11-23 15:51:45 WARN  AbstractSerializableParameter:421 - Illegal DefaultValue null for parameter type integer
+java.lang.NumberFormatException: For input string: &quot;&quot;
+    at java.lang.NumberFormatException.forInputString(NumberFormatException.java:65)
+    at java.lang.Long.parseLong(Long.java:601)
+    at java.lang.Long.valueOf(Long.java:803)
+    at io.swagger.models.parameters.AbstractSerializableParameter.getExample(AbstractSerializableParameter.java:412)
+    at sun.reflect.NativeMethodAccessorImpl.invoke0(Native Method)
+    at sun.reflect.NativeMethodAccessorImpl.invoke(NativeMethodAccessorImpl.java:62)
+    at sun.reflect.DelegatingMethodAccessorImpl.invoke(DelegatingMethodAccessorImpl.java:43)
+    at java.lang.reflect.Method.invoke(Method.java:498)
+    at com.fasterxml.jackson.databind.ser.BeanPropertyWriter.serializeAsField(BeanPropertyWriter.java:688)
+    at com.fasterxml.jackson.databind.ser.std.BeanSerializerBase.serializeFields(BeanSerializerBase.java:721)
+    at com.fasterxml.jackson.databind.ser.BeanSerializer.serialize(BeanSerializer.java:166)
+    at com.fasterxml.jackson.databind.ser.impl.IndexedListSerializer.serializeContents(IndexedListSerializer.java:119)</code></code></pre>
+<h4 id="test-api-1">Test API</h4>
+<p><img src="./images/[springboot 开发单体web shop] 8. 商品详情&amp;评价展示3.png" alt="查询评价结果" /></p>
+<h1 id="福利讲解">福利讲解</h1>
+<h2 id="添加propagation.supports和不加的区别">添加Propagation.SUPPORTS和不加的区别</h2>
+<p>有心的小伙伴肯定又注意到了，在Service中处理查询时，我一部分使用了<code>@Transactional(propagation = Propagation.SUPPORTS)</code>,一部分查询又没有添加事务，那么这两种方式有什么不一样呢？接下来，我们来揭开神秘的面纱。</p>
+<ul>
+<li><p>Propagation.SUPPORTS</p>
+<pre><code><code>  /**
+   * Support a current transaction, execute non-transactionally if none exists.
+   * Analogous to EJB transaction attribute of the same name.
+   * &lt;p&gt;Note: For transaction managers with transaction synchronization,
+   * {@code SUPPORTS} is slightly different from no transaction at all,
+   * as it defines a transaction scope that synchronization will apply for.
+   * As a consequence, the same resources (JDBC Connection, Hibernate Session, etc)
+   * will be shared for the entire specified scope. Note that this depends on
+   * the actual synchronization configuration of the transaction manager.
+   * @see org.springframework.transaction.support.AbstractPlatformTransactionManager#setTransactionSynchronization
+   */
+  SUPPORTS(TransactionDefinition.PROPAGATION_SUPPORTS),</code></code></pre>
+<p>主要关注<code>Support a current transaction, execute non-transactionally if none exists.</code>从字面意思来看，就是如果当前环境有事务，我就加入到当前事务；如果没有事务，我就以非事务的方式执行。从这方面来看，貌似我们加不加这一行其实都没啥差别。</p>
+<p>划重点：<strong>NOTE</strong>，对于一个带有事务同步的管理器来说，这里有一丢丢的小区别啦。（所以大家在读注释的时候，一定要看这个Note.往往这里面会有好东西给我们，就相当于我们的大喇叭！）</p>
+<p>这个同步事务管理器定义了一个事务同步的一个范围，如果加了这个注解，那么就等同于我让你来管我啦，你里面的资源我想用就可以用(JDBC Connection, Hibernate Session).</p></li>
+</ul>
+<h2 id="结论1">结论1</h2>
+<blockquote>
+<p>SUPPORTS 标注的方法可以获取和当前事务环境一致的 Connection 或 Session，不使用的话一定是一个新的连接；<br />
+再注意下面又一个<strong>NOTE</strong>，即便上面的配置加入了，但是<code>事务管理器的实际同步配置</code>会影响到真实的执行到底是否会用你。看它的说明：<code>@see org.springframework.transaction.support.AbstractPlatformTransactionManager#setTransactionSynchronization</code>.</p>
+</blockquote>
+<pre><code><code>  /**
+   * Set when this transaction manager should activate the thread-bound
+   * transaction synchronization support. Default is &quot;always&quot;.
+   * &lt;p&gt;Note that transaction synchronization isn&#39;t supported for
+   * multiple concurrent transactions by different transaction managers.
+   * Only one transaction manager is allowed to activate it at any time.
+   * @see #SYNCHRONIZATION_ALWAYS
+   * @see #SYNCHRONIZATION_ON_ACTUAL_TRANSACTION
+   * @see #SYNCHRONIZATION_NEVER
+   * @see TransactionSynchronizationManager
+   * @see TransactionSynchronization
+   */
+  public final void setTransactionSynchronization(int transactionSynchronization) {
+      this.transactionSynchronization = transactionSynchronization;
+  }</code></code></pre>
+<p>描述信息只是说在同一个事务管理器才能起作用，并没有什么实际意义，我们来看一下<code>TransactionSynchronization</code>具体的内容：</p>
+<pre><code><code>package org.springframework.transaction.support;
+
+import java.io.Flushable;
+
+public interface TransactionSynchronization extends Flushable {
+
+  /** Completion status in case of proper commit. */
+  int STATUS_COMMITTED = 0;
+
+  /** Completion status in case of proper rollback. */
+  int STATUS_ROLLED_BACK = 1;
+
+  /** Completion status in case of heuristic mixed completion or system errors. */
+  int STATUS_UNKNOWN = 2;
+
+  /**
+   * Suspend this synchronization.
+   * Supposed to unbind resources from TransactionSynchronizationManager if managing any.
+   * @see TransactionSynchronizationManager#unbindResource
+   */
+  default void suspend() {
+  }
+
+  /**
+   * Resume this synchronization.
+   * Supposed to rebind resources to TransactionSynchronizationManager if managing any.
+   * @see TransactionSynchronizationManager#bindResource
+   */
+  default void resume() {
+  }
+
+  /**
+   * Flush the underlying session to the datastore, if applicable:
+   * for example, a Hibernate/JPA session.
+   * @see org.springframework.transaction.TransactionStatus#flush()
+   */
+  @Override
+  default void flush() {
+  }
+
+  /**
+   * ...
+   */
+  default void beforeCommit(boolean readOnly) {
+  }
+
+  /**
+   * ...
+   */
+  default void beforeCompletion() {
+  }
+
+  /**
+   * ...
+   */
+  default void afterCommit() {
+  }
+
+  /**
+   * ...
+   */
+  default void afterCompletion(int status) {
+  }
+}</code></code></pre>
+<p>事务管理器可以通过<code>org.springframework.transaction.support.AbstractPlatformTransactionManager#setTransactionSynchronization(int)</code>来对当前事务进行行为干预，比如将它设置为1，可以执行事务回调，设置为2，表示出错了，但是如果没有加入<code>PROPAGATION.SUPPORTS</code>注解的话，即便你在当前事务中，你也不能对我进行操作和变更。</p>
+<h2 id="结论2">结论2</h2>
+<blockquote>
+<p>添加<code>PROPAGATION.SUPPORTS</code>之后，当前查询中可以对当前的事务进行设置回调动作，不添加就不行。</p>
+</blockquote>
+<h1 id="源码下载">源码下载</h1>
+<p><a href="https://github.com/Isaac-Zhang/expensive-shop">Github 传送门</a><br />
+<a href="https://gitee.com/IsaacZhang/expensive-shop">Gitee 传送门</a></p>
+<h1 id="下节预告">下节预告</h1>
+<p>下一节我们将继续开发商品详情展示以及商品评价业务，在过程中使用到的任何开发组件，我都会通过专门的一节来进行介绍的，兄弟们末慌！</p>
+<p>gogogo！</p>
+
+
+</div><hr><script charset='utf-8' src='../../js/sming.js'></script></body></html>

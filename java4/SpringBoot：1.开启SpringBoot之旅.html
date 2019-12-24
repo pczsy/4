@@ -1,0 +1,218 @@
+<html><head><meta charset='utf-8'><meta name='viewport' content='width=device-width, initial-scale=1'>
+<meta name='applicable-device' content='pc'><meta name='keywords' content='电脑,电脑讲解,电脑技术,编程,电脑故障维修SpringBoot：1.开启SpringBoot之旅' />
+<script src='../../highlight/highlight.pack.js'></script>
+<link rel='stylesheet' type='text/css' href='../../highlight/styles/monokai.css'/>
+
+<link rel='stylesheet' href='../../fenxiang/dist/css/share.min.css'>
+<script src='../../fenxiang/src/js/social-share.js'></script>
+<script src='../../fenxiang/src/js/qrcode.js'></script>
+
+</head><body><script>hljs.initHighlightingOnLoad();</script><script>
+var system ={};  
+var p = navigator.platform;       
+system.win = p.indexOf('Win') == 0;  
+system.mac = p.indexOf('Mac') == 0;  
+system.x11 = (p == 'X11') || (p.indexOf('Linux') == 0);     
+if(system.win||system.mac||system.xll){
+document.write("<link href='../css/3.css' rel='stylesheet' type='text/css'>");}else{ document.write("<link href='../css/3wap.css' rel='stylesheet' type='text/css'>");}</script><script src='../../js/3.js'></script><div class='div2'><div class='heading_nav'><ul><div><li><a href='../../index.html'>首页</a></li>
+</div><div onclick='hidden1()' >分享</div>
+</ul></div></div>
+<div id='heading_nav2'> 
+<li class='row' >
+<div class='social-share' data-mode='prepend'><a href='javascript:' class='social-share-icon icon-heart'></a></div></li></div><script charset='utf-8' src='../../3/js/hengfu.js'></script><script charset='utf-8' src='../../3/js/hengfu2.js'></script><hr><div class='div1'><div class='biaoti'><center>SpringBoot：1.开启SpringBoot之旅</center></div><div class='banquan'>原文出处:本文由博客园博主余弦的自留地提供。<br/>
+原文连接:https://www.cnblogs.com/cosecholand/p/11668325.html</div><br>
+    <h2 id="什么是-spring-boot">什么是 Spring Boot</h2>
+<p><img src="./images/SpringBoot：1.开启SpringBoot之旅0.png" alt="在这里插入图片描述" /><br />
+Spring Boot是Spring团队设计用来简化Spring应用的搭建和开发过程的框架。该框架对第三方库进行了简单的默认配置，通过Spring Boot构建的应用程序只需很少的Spring配置即可快速的运行起来。</p>
+<h2 id="使用-spring-boot-好处">使用 Spring Boot 好处</h2>
+<p>简单、快速、便捷。</p>
+<p>搭建普通Spring Web项目项目的一般流程：</p>
+<ol>
+<li>配置web.xml，整合Spring和SpringMvc</li>
+<li>整合Spring和Mybatis，配置Spring事务</li>
+<li>配置日志文件</li>
+<li>部署Tomcat调试</li>
+</ol>
+<p>.......</p>
+<p>一系列的配置过程繁杂，很容易遗漏掉，即便是随便搭建一个简单的爬取某个页面的邮箱存入数据库的小项目，都要从头到尾的将配置流程走一遍。</p>
+<p>如果使用Spring Boot，配置则简化了很多，只需要引入响应的几个maven依赖，进行简单的几个配置就可以快速方便的搭建一个Web项目。</p>
+<h2 id="开启spring-boot之旅">开启Spring Boot之旅</h2>
+<h3 id="线上构建">线上构建</h3>
+<ol>
+<li>访问http://start.spring.io</li>
+<li>选择Maven Project、Java、Spring Boot 2.1.9构建，点击Generate生成对应的文件。项目信息简单配置。<br />
+<img src="./images/SpringBoot：1.开启SpringBoot之旅1.png" alt="在这里插入图片描述" /><br />
+<strong>备注：</strong></li>
+</ol>
+<p>Dependencies处可通过添加相应的依赖，在生成项目文件时就会自动添加，比如，如果我们要做Web开发，只要在依赖里添加Web即可。</p>
+<ol>
+<li><p>MyEclipse，Import -&gt; Existing Maven Projects -&gt; Next -&gt; 选择解压后的文件夹 -&gt; Finsh!<br />
+<img src="./images/SpringBoot：1.开启SpringBoot之旅2.png" alt="在这里插入图片描述" /></p>
+<h3 id="通过myeclipse构建项目">通过Myeclipse构建项目</h3></li>
+<li><p>File -&gt; New -&gt; Spring Starter Project新建项目</p></li>
+<li>配置项目相关基本信息<br />
+<img src="./images/SpringBoot：1.开启SpringBoot之旅3.png" alt="在这里插入图片描述" /></li>
+<li>选择依赖，比如Spring Web<br />
+<img src="./images/SpringBoot：1.开启SpringBoot之旅4.png" alt="在这里插入图片描述" /></li>
+<li><p>Finish OK，Spring Boot项目构建完成。</p></li>
+</ol>
+<p><strong>Tips：</strong></p>
+<p>导入或者Myeclipse构建项目有可能会出现pom.xml文件首行出现错误：Unknown pom.xml /demo line 1 Maven Configuration Problem。</p>
+<p><strong>解决方案</strong>：</p>
+<p>在pom文件中的<properties>节点中加入&lt;maven-jar-plugin.version&gt;3.0.0&lt;/maven-jar-plugin.version&gt;然后右键项目进入Maven&gt;Update Project...菜单点击，即可</p>
+<h3 id="项目结构解析">项目结构解析</h3>
+<p><img src="./images/SpringBoot：1.开启SpringBoot之旅5.png" alt="在这里插入图片描述" /><br />
+Spring Boot 的基础结构共三个文件:</p>
+<ul>
+<li><code>src/main/java</code> 程序开发以及主程序入口：Application</li>
+<li><code>src/main/resources</code> 配置文件存放位置：application.properties</li>
+<li><code>src/test/java</code> 测试入口：ApplicationTests</li>
+</ul>
+<ol>
+<li>在Application 右键run启动Spring Boot项目</li>
+</ol>
+<p>生成的<code>Application</code>和<code>ApplicationTests</code>类都可以直接运行来启动当前创建的项目，由于目前该项目未配合任何数据访问或Web模块，程序会在加载完Spring之后结束运行。</p>
+<h2 id="web开发">Web开发</h2>
+<h3 id="默认tomcat启动项目">默认Tomcat启动项目</h3>
+<p>spring-boot-starter-parent指定了当前项目为一个Spring Boot项目，它提供了诸多的默认Maven依赖。</p>
+<p>Spring Boot提供了许多开箱即用的依赖模块，这些模块都是以spring-boot-starter-XX命名的。比如要开启Spring Boot的web功能，只需要在pom.xml中配置spring-boot-starter-web即可：</p>
+<ol>
+<li>pom.xml中添加支持web的模块</li>
+</ol>
+<pre><code><code>&lt;dependency&gt;
+    &lt;groupId&gt;org.springframework.boot&lt;/groupId&gt;
+    &lt;artifactId&gt;spring-boot-starter-web&lt;/artifactId&gt;
+&lt;/dependency&gt;</code></code></pre>
+<p>因为其依赖于spring-boot-starter-parent，所以这里可以不用配置version。</p>
+<p>pom.xml 文件中默认有两个模块：</p>
+<ul>
+<li><code>spring-boot-starter</code> ：核心模块，包括自动配置支持、日志和 YAML，如果引入了 <code>spring-boot-starter-web</code> web 模块可以去掉此配置，因为 <code>spring-boot-starter-web</code> 自动依赖了 <code>spring-boot-starter</code>。</li>
+<li><code>spring-boot-starter-test</code> ：测试模块，包括 JUnit、Hamcrest、Mockito。</li>
+</ul>
+<ol>
+<li>编写Controller层</li>
+</ol>
+<pre class="java"><code>package com.w3cjava.controller;
+
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
+
+@RestController
+public class HelloWorldController {
+    @RequestMapping(&quot;/hello&quot;)
+    public String index() {
+        return &quot;Hello World&quot;;
+    }
+}</code></code></pre>
+<p><code>@RestController</code> 相当于Spring中的@Controller和@ResponseBody组合使用的，直接以 json 格式输出。</p>
+<ol>
+<li><p>启动主程序，打开浏览器访问http://localhost:8080/hello 结果界面如下，你已经可以愉快的开发Web项目了。<br />
+<img src="./images/SpringBoot：1.开启SpringBoot之旅6.png" alt="在这里插入图片描述" /></p>
+<h3 id="配置jetty启动项目">配置Jetty启动项目</h3></li>
+<li><p>在pom.xml文件中找到spring-boot-starter-web，在其依赖中排除tomcat依赖</p></li>
+</ol>
+<pre class="xml"><code>&lt;!-- 支持web的模块依赖 --&gt;
+&lt;dependency&gt;
+    &lt;groupId&gt;org.springframework.boot&lt;/groupId&gt;
+    &lt;artifactId&gt;spring-boot-starter-web&lt;/artifactId&gt;
+    &lt;!-- 排除tomcat依赖 --&gt;
+    &lt;exclusions&gt;
+        &lt;exclusion&gt;
+            &lt;groupId&gt;org.springframework.boot&lt;/groupId&gt;
+            &lt;artifactId&gt;spring-boot-starter-tomcat&lt;/artifactId&gt;
+        &lt;/exclusion&gt;
+    &lt;/exclusions&gt;
+&lt;/dependency&gt;</code></code></pre>
+<ol>
+<li>添加jetty依赖</li>
+</ol>
+<pre class="xml"><code>&lt;!-- jetty依赖 --&gt;
+&lt;dependency&gt;
+    &lt;groupId&gt;org.springframework.boot&lt;/groupId&gt;
+    &lt;artifactId&gt;spring-boot-starter-jetty&lt;/artifactId&gt;
+&lt;/dependency&gt;</code></code></pre>
+<ol>
+<li>启动项目主程序，可见tomcat已经替换为jetty了。<br />
+<img src="./images/SpringBoot：1.开启SpringBoot之旅7.png" alt="在这里插入图片描述" /></li>
+<li>访问 http://localhost:8080/hello 页面结果显示正常。</li>
+</ol>
+<h3 id="单元测试">单元测试</h3>
+<p>模拟对 http://localhost:8080/hello 发送请求测试</p>
+<pre class="java"><code>package com.w3cjava;
+
+import static org.hamcrest.CoreMatchers.equalTo;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
+
+import org.junit.Before;
+import org.junit.Test;
+import org.junit.runner.RunWith;
+import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.http.MediaType;
+import org.springframework.test.context.junit4.SpringRunner;
+import org.springframework.test.web.servlet.MockMvc;
+import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
+import org.springframework.test.web.servlet.setup.MockMvcBuilders;
+
+import com.w3cjava.controller.HelloWorldController;
+
+@RunWith(SpringRunner.class)
+@SpringBootTest
+public class ApplicationTests {
+
+    private MockMvc mvc;
+
+    @Before
+    public void setUp() throws Exception {
+        mvc = MockMvcBuilders.standaloneSetup(new HelloWorldController()).build();
+    }
+
+    @Test
+    public void getHello() throws Exception {
+     mvc.perform(MockMvcRequestBuilders.get(&quot;/hello&quot;).accept(MediaType.APPLICATION_JSON))
+                .andExpect(status().isOk())
+                .andExpect(content().string(equalTo(&quot;Hello World&quot;)));
+    }
+}
+</code></code></pre>
+<h3 id="热部署">热部署</h3>
+<ol>
+<li>添加spring-boot-devtools依赖</li>
+</ol>
+<pre class="xml"><code>&lt;!-- 热部署依赖 --&gt;
+&lt;dependency&gt;
+    &lt;groupId&gt;org.springframework.boot&lt;/groupId&gt;
+    &lt;artifactId&gt;spring-boot-devtools&lt;/artifactId&gt;
+    &lt;optional&gt;true&lt;/optional&gt;
+&lt;/dependency&gt;</code></code></pre>
+<ol>
+<li>启动主程序</li>
+<li>在HelloWorldController中添加新的映射方法</li>
+</ol>
+<pre class="java"><code>@RequestMapping(&quot;/hello1&quot;)
+public String index1() {
+    return &quot;Hello World1&quot;;
+}   </code></code></pre>
+<ol>
+<li><p>直接访问 http://localhost:8080/hello1 正常<br />
+<img src="./images/SpringBoot：1.开启SpringBoot之旅8.png" alt="在这里插入图片描述" /></p>
+<h2 id="spring-boot-maven-plugin插件">spring-boot-maven-plugin插件</h2></li>
+</ol>
+<p>spring-boot-maven-plugin：能够以Maven的方式为应用提供Spring Boot的支持，即为Spring Boot应用提供了执行Maven操作的可能。</p>
+<p>Spring Boot Maven plugin的5个Goals</p>
+<ul>
+<li>spring-boot:repackage，默认goal。在mvn package之后，再次打包可执行的jar/war，同时保留mvn package生成的jar/war为.origin</li>
+<li>spring-boot:run，运行Spring Boot应用</li>
+<li>spring-boot:start，在mvn integration-test阶段，进行Spring Boot应用生命周期的管理</li>
+<li>spring-boot:stop，在mvn integration-test阶段，进行Spring Boot应用生命周期的管理</li>
+<li>spring-boot:build-info，生成Actuator使用的构建信息文件build-info.properties</li>
+</ul>
+<h2 id="小结">小结</h2>
+<p>总体上而言，通过Spring Boot可以快速构建项目，如果需要使用某个特定的功能，只要添加对应的依赖及简单配置项即可。</p>
+<p>源码：<a href="https://github.com/cosecholand/SpringCloudAll/tree/master/01.Spring-Boot-Demo">01.Spring-Boot-Demo</a></p>
+<p>欢迎扫面下列二维码关注“<strong>余弦的自留地</strong>”公众微信号<br />
+<img src="./images/SpringBoot：1.开启SpringBoot之旅9.png" alt="在这里插入图片描述" /><br />
+<center><font color="grey">万物之中，希望至美</font></center></p>
+
+
+</div><hr><script charset='utf-8' src='../../js/sming.js'></script></body></html>

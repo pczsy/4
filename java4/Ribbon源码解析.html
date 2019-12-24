@@ -1,0 +1,226 @@
+<html><head><meta charset='utf-8'><meta name='viewport' content='width=device-width, initial-scale=1'>
+<meta name='applicable-device' content='pc'><meta name='keywords' content='电脑,电脑讲解,电脑技术,编程,电脑故障维修Ribbon源码解析' />
+<script src='../../highlight/highlight.pack.js'></script>
+<link rel='stylesheet' type='text/css' href='../../highlight/styles/monokai.css'/>
+
+<link rel='stylesheet' href='../../fenxiang/dist/css/share.min.css'>
+<script src='../../fenxiang/src/js/social-share.js'></script>
+<script src='../../fenxiang/src/js/qrcode.js'></script>
+
+</head><body><script>hljs.initHighlightingOnLoad();</script><script>
+var system ={};  
+var p = navigator.platform;       
+system.win = p.indexOf('Win') == 0;  
+system.mac = p.indexOf('Mac') == 0;  
+system.x11 = (p == 'X11') || (p.indexOf('Linux') == 0);     
+if(system.win||system.mac||system.xll){
+document.write("<link href='../css/3.css' rel='stylesheet' type='text/css'>");}else{ document.write("<link href='../css/3wap.css' rel='stylesheet' type='text/css'>");}</script><script src='../../js/3.js'></script><div class='div2'><div class='heading_nav'><ul><div><li><a href='../../index.html'>首页</a></li>
+</div><div onclick='hidden1()' >分享</div>
+</ul></div></div>
+<div id='heading_nav2'> 
+<li class='row' >
+<div class='social-share' data-mode='prepend'><a href='javascript:' class='social-share-icon icon-heart'></a></div></li></div><script charset='utf-8' src='../../3/js/hengfu.js'></script><script charset='utf-8' src='../../3/js/hengfu2.js'></script><hr><div class='div1'><div class='biaoti'><center>Ribbon源码解析</center></div><div class='banquan'>原文出处:本文由博客园博主石玉军提供。<br/>
+原文连接:https://www.cnblogs.com/zhixiang-org-cn/p/11775181.html</div><br>
+    <p>在上篇文章<a href="https://mp.weixin.qq.com/s/ganchvrJRwzE8ph20psXqA">Ribbon架构剖析</a>中，我们已经介绍了Ribbon的架构组成以及很多重要的对象，相信你已经对Ribbon已经有一个清晰的认识了。本篇文章则研究一下Ribbon的原理</p>
+<p>首先我们知道，在普通项目中Ribbon的使用是这样的</p>
+<pre><code><code>@SpringBootApplication
+@RibbonClient(name = &quot;provider-demo&quot;, configuration = cn.org.config.LoadBalanced.class)
+public class CloudDemoConsumerApplication {
+    @Bean
+    @LoadBalanced
+    public RestTemplate restTemplate(){
+        return new RestTemplate();
+    }
+    public static void main(String[] args) {
+        SpringApplication.run(CloudDemoConsumerApplication.class, args);
+    }
+}</code></code></pre>
+<p>这里面最引人瞩目的就是注解<code>@RibbonClient</code>了，看一下这个注解都是做了什么吧</p>
+<h5 id="ribbonclient"><code>@RibbonClient</code></h5>
+<p>观察<code>@RibbonClient</code>的源码可知，这个注解使用<code>@Import</code>注解引入了配置类<code>RibbonClientConfigurationRegistrar</code>，看一下这个类的<code>registerBeanDefinitions</code>方法</p>
+<pre><code><code>public void registerBeanDefinitions(AnnotationMetadata metadata,
+            BeanDefinitionRegistry registry) {
+        Map&lt;String, Object&gt; attrs = metadata.getAnnotationAttributes(
+                RibbonClients.class.getName(), true);
+        if (attrs != null &amp;&amp; attrs.containsKey(&quot;value&quot;)) {
+            AnnotationAttributes[] clients = (AnnotationAttributes[]) attrs.get(&quot;value&quot;);
+            for (AnnotationAttributes client : clients) {
+                registerClientConfiguration(registry, getClientName(client),
+                        client.get(&quot;configuration&quot;));
+            }
+        }
+        if (attrs != null &amp;&amp; attrs.containsKey(&quot;defaultConfiguration&quot;)) {
+            String name;
+            if (metadata.hasEnclosingClass()) {
+                name = &quot;default.&quot; + metadata.getEnclosingClassName();
+            } else {
+                name = &quot;default.&quot; + metadata.getClassName();
+            }
+            registerClientConfiguration(registry, name,
+                    attrs.get(&quot;defaultConfiguration&quot;));
+        }
+        Map&lt;String, Object&gt; client = metadata.getAnnotationAttributes(
+                RibbonClient.class.getName(), true);
+        String name = getClientName(client);
+        if (name != null) {
+            registerClientConfiguration(registry, name, client.get(&quot;configuration&quot;));
+        }
+    }</code></code></pre>
+<ol>
+<li>首先会判断是否存在注解<code>@RibbonClients</code>，注意，这里可是多了一个s的</li>
+<li>然后判断<code>@RibbonClients</code>注解上是否存在属性<code>value</code>和<code>defaultConfiguration</code>，如果存在的话分别注册他们</li>
+<li>接着最后才是处理<code>@RibbonClient</code>注解</li>
+<li>这里我们就可以猜测<code>RibbonClientConfigurationRegistrar</code>这个类应该是可以同时处理这两个注解的，观察一下<code>@RibbonClients</code>注解的源码发现它确实是引入的也是这个类</li>
+<li>这两个注解的区别应该也可以猜测出来，单数和双数</li>
+<li>观察最后注册的代码，可以看到最后注册bean的类型都是<code>RibbonClientSpecification</code>，这里留意一下</li>
+</ol>
+<pre><code><code>    private void registerClientConfiguration(BeanDefinitionRegistry registry,
+            Object name, Object configuration) {
+        BeanDefinitionBuilder builder = BeanDefinitionBuilder
+                .genericBeanDefinition(RibbonClientSpecification.class);
+        builder.addConstructorArgValue(name);
+        builder.addConstructorArgValue(configuration);
+        registry.registerBeanDefinition(name + &quot;.RibbonClientSpecification&quot;,
+                builder.getBeanDefinition());
+    }</code></code></pre>
+<h5 id="自动装配">自动装配</h5>
+<p>上方看完这些代码之后，我们了解了<code>@RibbonClients</code>和<code>@RibbonClient</code>两个注解，可以对整体的流程还是有些疑惑。那么接下来就看看自动装配都是做了什么吧</p>
+<p>查看Ribbon包下的<code>spring.factories</code>文件，发现引入了一个配置类<code>RibbonAutoConfiguration</code>，那么从这个类开始看起吧</p>
+<h6 id="先决条件">先决条件</h6>
+<ol>
+<li><code>@ConditionalOnClass</code>，当前环境必须存在这几个类： <code>IClient</code>, <code>RestTemplate</code>, <code>AsyncRestTemplate</code>, <code>Ribbon</code></li>
+<li><code>@RibbonClients</code>，这个注解刚才已经讲过了，暂且不提</li>
+<li><code>@AutoConfigureAfter</code>，负载均衡肯定是要基于注册中心来做的，所以自动装配是在Eureka初始化完毕之后初始化的</li>
+<li><code>@AutoConfigureBefore</code>，这里的两个类先不说，保持神秘</li>
+<li><code>@EnableConfigurationProperties</code>，两个配置类，其中：
+<ol>
+<li><code>RibbonEagerLoadProperties</code>类中是关于Ribbon的饥饿加载模式的属性</li>
+<li><code>ServerIntrospectorProperties</code>类中是关于安全端口的属性</li>
+</ol></li>
+</ol>
+<h6 id="装配bean">装配bean</h6>
+<p>这个配置类加载的类挺多的，但是比较重要的有这几个：</p>
+<ol>
+<li><code>SpringClientFactory</code>，我们知道每一个微服务在都会调用多个微服务，而调用各个微服务的配置可能是不一样的，所以就需要这个创建客户端负载均衡器的工厂类，它可以为每一个ribbon客户端生成不同的Spring上下文，而观察这个类的<code>configurations</code>属性也验证了这一点</li>
+</ol>
+<pre><code><code>@Autowired(required = false)
+    private List&lt;RibbonClientSpecification&gt; configurations = new ArrayList&lt;&gt;();
+    @Bean
+    public SpringClientFactory springClientFactory() {
+        SpringClientFactory factory = new SpringClientFactory();
+        factory.setConfigurations(this.configurations);
+        return factory;
+    }</code></code></pre>
+<ol>
+<li><code>RibbonLoadBalancerClient</code>,持有<code>SpringClientFactory</code>对象，当然，它还有其他的功能，这里暂且不提</li>
+</ol>
+<h5 id="负载均衡">负载均衡</h5>
+<p>上方虽然看了Ribbon的自动装配功能，但是好像离真相还有一些距离，这是因为虽然Ribbon准备好了，但是负载均衡还没看呢。SpringCloud把负载均衡相关的自动配置放在了spring-cloud-commons包下<br />
+负载均衡的配置类是<code>LoadBalancerAutoConfiguration</code></p>
+<p>这个类里注册的几个bean就比较核心了</p>
+<h6 id="loadbalancerinterceptor"><code>LoadBalancerInterceptor</code></h6>
+<p>客户端请求拦截器</p>
+<h6 id="resttemplatecustomizer"><code>RestTemplateCustomizer</code></h6>
+<p>用于给所有的<code>RestTemplate</code>增加拦截器</p>
+<pre><code><code>@Bean
+        @ConditionalOnMissingBean
+        public RestTemplateCustomizer restTemplateCustomizer(
+                final LoadBalancerInterceptor loadBalancerInterceptor) {
+            return restTemplate -&gt; {
+                List&lt;ClientHttpRequestInterceptor&gt; list = new ArrayList&lt;&gt;(
+                        restTemplate.getInterceptors());
+                list.add(loadBalancerInterceptor);
+                restTemplate.setInterceptors(list);
+            };
+        }</code></code></pre>
+<h5 id="负载均衡核心实现">负载均衡核心实现</h5>
+<p>现在我们就可以猜测，整个核心应该就是在这个拦截器上了，看一看拦截器的核心方法：</p>
+<pre><code><code>    public ClientHttpResponse intercept(final HttpRequest request, final byte[] body,
+            final ClientHttpRequestExecution execution) throws IOException {
+        final URI originalUri = request.getURI();
+        String serviceName = originalUri.getHost();
+        Assert.state(serviceName != null, &quot;Request URI does not contain a valid hostname: &quot; + originalUri);
+        return this.loadBalancer.execute(serviceName, requestFactory.createRequest(request, body, execution));
+    }</code></code></pre>
+<p>其中<code>requestFactory.createRequest(request, body, execution)</code>方法是为了把请求参数封装为request<br />
+重点关注<code>execute</code>方法</p>
+<pre><code><code>    public &lt;T&gt; T execute(String serviceId, LoadBalancerRequest&lt;T&gt; request) throws IOException {
+        ILoadBalancer loadBalancer = getLoadBalancer(serviceId);
+        Server server = getServer(loadBalancer);
+        if (server == null) {
+            throw new IllegalStateException(&quot;No instances available for &quot; + serviceId);
+        }
+        RibbonServer ribbonServer = new RibbonServer(serviceId, server, isSecure(server,
+                serviceId), serverIntrospector(serviceId).getMetadata(server));
+
+        return execute(serviceId, ribbonServer, request);
+    }</code></code></pre>
+<h6 id="创建负载均衡器">创建负载均衡器</h6>
+<p>我们知道，每个Ribbon客户端的负载均衡器都是唯一的，第一行<code>getLoadBalancer</code>就会去创建这个负载均衡器</p>
+<pre><code><code>   protected ILoadBalancer getLoadBalancer(String serviceId) {
+        return this.clientFactory.getLoadBalancer(serviceId);
+    }
+   public ILoadBalancer getLoadBalancer(String name) {
+        return getInstance(name, ILoadBalancer.class);
+    }
+    public &lt;C&gt; C getInstance(String name, Class&lt;C&gt; type) {
+        C instance = super.getInstance(name, type);
+        if (instance != null) {
+            return instance;
+        }
+        IClientConfig config = getInstance(name, IClientConfig.class);
+        return instantiateWithConfig(getContext(name), type, config);
+    }</code></code></pre>
+<p>最后的逻辑是如果存在缓存则从缓存中获取，如果不存在创建</p>
+<pre><code><code>static &lt;C&gt; C instantiateWithConfig(AnnotationConfigApplicationContext context,
+                                        Class&lt;C&gt; clazz, IClientConfig config) {
+        C result = null;
+        
+        try {
+            Constructor&lt;C&gt; constructor = clazz.getConstructor(IClientConfig.class);
+            result = constructor.newInstance(config);
+        } catch (Throwable e) {
+            // Ignored
+        }
+        
+        if (result == null) {
+            result = BeanUtils.instantiate(clazz);
+            
+            if (result instanceof IClientConfigAware) {
+                ((IClientConfigAware) result).initWithNiwsConfig(config);
+            }
+            
+            if (context != null) {
+                context.getAutowireCapableBeanFactory().autowireBean(result);
+            }
+        }
+        
+        return result;
+    }</code></code></pre>
+<p>创建的大题流程则就是通过文章开始提到的两个注解注册的几个<code>RibbonClientSpecification</code>类型的配置来创建</p>
+<h6 id="获取服务">获取服务</h6>
+<p><code>getServer</code>方法的实现应该可以猜出来，使用具体的负载均衡器结合相应的负载均衡算法再加上服务列表过滤、服务健康检测等操作最后会获取的一个可用服务</p>
+<h6 id="调用服务">调用服务</h6>
+<p>这里在调用之前把服务封装成了<code>RibbonServer</code></p>
+<pre><code><code>        private final String serviceId;
+        private final Server server;
+        private final boolean secure;
+        private Map&lt;String, String&gt; metadata;</code></code></pre>
+<p>除了这几个属性外，<code>RibbonServer</code>还有一个方法</p>
+<pre><code><code>public URI getUri() {
+            return DefaultServiceInstance.getUri(this);
+        }</code></code></pre>
+<p>这个方法就把服务从实例id转化为一个可调用的url了</p>
+<pre><code><code>    public static URI getUri(ServiceInstance instance) {
+        String scheme = (instance.isSecure()) ? &quot;https&quot; : &quot;http&quot;;
+        String uri = String.format(&quot;%s://%s:%s&quot;, scheme, instance.getHost(),
+                instance.getPort());
+        return URI.create(uri);
+    }</code></code></pre>
+<p>然后就是发送http请求</p>
+<blockquote>
+<p><a href="https://shiyujun.cn">原文地址</a></p>
+</blockquote>
+
+
+</div><hr><script charset='utf-8' src='../../js/sming.js'></script></body></html>

@@ -1,0 +1,1213 @@
+<html><head><meta charset='utf-8'><meta name='viewport' content='width=device-width, initial-scale=1'>
+<meta name='applicable-device' content='pc'><meta name='keywords' content='电脑,电脑讲解,电脑技术,编程,电脑故障维修Redis应用' />
+<script src='../../highlight/highlight.pack.js'></script>
+<link rel='stylesheet' type='text/css' href='../../highlight/styles/monokai.css'/>
+
+<link rel='stylesheet' href='../../fenxiang/dist/css/share.min.css'>
+<script src='../../fenxiang/src/js/social-share.js'></script>
+<script src='../../fenxiang/src/js/qrcode.js'></script>
+
+</head><body><script>hljs.initHighlightingOnLoad();</script><script>
+var system ={};  
+var p = navigator.platform;       
+system.win = p.indexOf('Win') == 0;  
+system.mac = p.indexOf('Mac') == 0;  
+system.x11 = (p == 'X11') || (p.indexOf('Linux') == 0);     
+if(system.win||system.mac||system.xll){
+document.write("<link href='../css/3.css' rel='stylesheet' type='text/css'>");}else{ document.write("<link href='../css/3wap.css' rel='stylesheet' type='text/css'>");}</script><script src='../../js/3.js'></script><div class='div2'><div class='heading_nav'><ul><div><li><a href='../../index.html'>首页</a></li>
+</div><div onclick='hidden1()' >分享</div>
+</ul></div></div>
+<div id='heading_nav2'> 
+<li class='row' >
+<div class='social-share' data-mode='prepend'><a href='javascript:' class='social-share-icon icon-heart'></a></div></li></div><script charset='utf-8' src='../../3/js/hengfu.js'></script><script charset='utf-8' src='../../3/js/hengfu2.js'></script><hr><div class='div1'><div class='biaoti'><center>Redis应用</center></div><div class='banquan'>原文出处:本文由博客园博主超人小冰提供。<br/>
+原文连接:https://www.cnblogs.com/xiaobingblog/p/11417579.html</div><br>
+    <h2>1.　定义</h2>
+<p>　　redis是一个key-value<a href="https://baike.baidu.com/item/%E5%AD%98%E5%82%A8%E7%B3%BB%E7%BB%9F" target="_blank">存储系统</a>。和Memcached类似，它支持存储的value类型相对更多，包括string(字符串)、list(<a href="https://baike.baidu.com/item/%E9%93%BE%E8%A1%A8" target="_blank">链表</a>)、set(集合)、zset(sorted set --有序集合)和hash（哈希类型）。这些<a href="https://baike.baidu.com/item/%E6%95%B0%E6%8D%AE%E7%B1%BB%E5%9E%8B" target="_blank">数据类型</a>都支持push/pop、add/remove及取交集并集和差集及更丰富的操作，而且这些操作都是原子性的。在此基础上，redis支持各种不同方式的排序。与memcached一样，为了保证效率，数据都是缓存在内存中。区别的是redis会周期性的把更新的数据写入磁盘或者把修改操作写入追加的记录文件，并且在此基础上实现了master-slave(主从)同步。</p>
+<h2>2.　Redis在用户登录时的应用</h2>
+<p>　　正式接触Redis是做用户登录控制。有个场景，每个用户登录时后台生成唯一Token，保存至Redis中，并将此Token返回给前台。此后，前台每次发送请求时在URL的Header中携带此Token，后台验证此Token是否在Redis中存在，存在即验证通过。大致需求完成后，有一些小细节需要处理。例如，要求用户2小时不操作页面便自动退出；后台日志要记录每位用户登录登出时间；业务方面要求标签信息存储在缓存中，便于标签的交集，并集查询；此时，Redis就派上用场了。</p>
+<h3>2.1　Redis保存用户登录Token</h3>
+<h4>2.1.1&nbsp;JSON Web Token（JWT）是目前最流行的跨域身份验证解决方案</h4>
+<p>　　使用JSON Web Token（JWT）根据随机sessionID，用户名ID，用户名Name生成唯一Token。关于JWT详细介绍，请自行百度---；此次大致理解为用一串随机数,ID,Name生成一个密码，此密码就是token，密码可以解码获取原先的sessionID，ID，Name；下面贴一个我自己常用的JWT工具类和简单Redis工具类。</p>
+<src class="cnblogs_code" onclick="cnblogs_code_show('565d1337-2ea0-48f3-aba6-11a476e0a39f')"><img id="code_img_closed_565d1337-2ea0-48f3-aba6-11a476e0a39f" class="code_img_closed" src="./images/Redis应用0.png" alt="" /><img id="code_img_opened_565d1337-2ea0-48f3-aba6-11a476e0a39f" class="code_img_opened" style="display: none;" onclick="cnblogs_code_hide('565d1337-2ea0-48f3-aba6-11a476e0a39f',event)" src="./images/Redis应用1.png" alt="" />
+<src id="cnblogs_code_open_565d1337-2ea0-48f3-aba6-11a476e0a39f" class="cnblogs_code_hide">
+<pre><code><span style="color: #008080;">  1</span> <span style="color: #0000ff;">package</span><span style="color: #000000;"> com.boot.util;
+</span><span style="color: #008080;">  2</span> 
+<span style="color: #008080;">  3</span> <span style="color: #0000ff;">import</span><span style="color: #000000;"> com.auth0.jwt.JWT;
+</span><span style="color: #008080;">  4</span> <span style="color: #0000ff;">import</span><span style="color: #000000;"> com.auth0.jwt.algorithms.Algorithm;
+</span><span style="color: #008080;">  5</span> <span style="color: #0000ff;">import</span><span style="color: #000000;"> com.auth0.jwt.exceptions.JWTCreationException;
+</span><span style="color: #008080;">  6</span> <span style="color: #0000ff;">import</span><span style="color: #000000;"> com.auth0.jwt.exceptions.JWTDecodeException;
+</span><span style="color: #008080;">  7</span> <span style="color: #0000ff;">import</span><span style="color: #000000;"> com.auth0.jwt.interfaces.DecodedJWT;
+</span><span style="color: #008080;">  8</span> <span style="color: #0000ff;">import</span><span style="color: #000000;"> org.apache.log4j.Logger;
+</span><span style="color: #008080;">  9</span> 
+<span style="color: #008080;"> 10</span> <span style="color: #0000ff;">import</span><span style="color: #000000;"> java.io.UnsupportedEncodingException;
+</span><span style="color: #008080;"> 11</span> <span style="color: #0000ff;">import</span><span style="color: #000000;"> java.util.Date;
+</span><span style="color: #008080;"> 12</span> 
+<span style="color: #008080;"> 13</span> <span style="color: #0000ff;">public</span> <span style="color: #0000ff;">class</span><span style="color: #000000;"> JwtParseUtil {
+</span><span style="color: #008080;"> 14</span> <span style="color: #0000ff;">private</span>  <span style="color: #0000ff;">static</span> Logger LOGGER = Logger.getLogger(JwtParseUtil.<span style="color: #0000ff;">class</span><span style="color: #000000;">);
+</span><span style="color: #008080;"> 15</span> 
+<span style="color: #008080;"> 16</span>     <span style="color: #0000ff;">public</span> <span style="color: #0000ff;">static</span> <span style="color: #0000ff;">final</span> String createJWT(String userName,<span style="color: #0000ff;">long</span> sessionID,<span style="color: #0000ff;">int</span><span style="color: #000000;"> userId){
+</span><span style="color: #008080;"> 17</span>         String token = <span style="color: #0000ff;">null</span><span style="color: #000000;">;
+</span><span style="color: #008080;"> 18</span>         <span style="color: #0000ff;">try</span><span style="color: #000000;">{
+</span><span style="color: #008080;"> 19</span>             <span style="color: #008000;">//</span><span style="color: #008000;">参数非空判断</span>
+<span style="color: #008080;"> 20</span>             Algorithm alg =<span style="color: #000000;"> Algorithm.HMAC256(userName); 
+</span><span style="color: #008080;"> 21</span>             token =<span style="color: #000000;"> JWT.create()
+</span><span style="color: #008080;"> 22</span> <span style="color: #000000;">                    .withJWTId(String.valueOf(sessionID))
+</span><span style="color: #008080;"> 23</span> <span style="color: #000000;">                    .withSubject(userName)
+</span><span style="color: #008080;"> 24</span>                     .withClaim("userId"<span style="color: #000000;">, userId)
+</span><span style="color: #008080;"> 25</span>                     .withIssuedAt(<span style="color: #0000ff;">new</span><span style="color: #000000;"> Date())
+</span><span style="color: #008080;"> 26</span> <span style="color: #000000;">                    .sign(alg);
+</span><span style="color: #008080;"> 27</span>         }<span style="color: #0000ff;">catch</span><span style="color: #000000;">(UnsupportedEncodingException unsuptEncode){
+</span><span style="color: #008080;"> 28</span>             LOGGER.info("不支持UTF-8编码"<span style="color: #000000;">);
+</span><span style="color: #008080;"> 29</span>               <span style="color: #008000;">//</span><span style="color: #008000;">UTF-8 encoding not supported</span>
+<span style="color: #008080;"> 30</span>         }<span style="color: #0000ff;">catch</span><span style="color: #000000;">(JWTCreationException jwtCreateExp){
+</span><span style="color: #008080;"> 31</span>             LOGGER.info("签名配置无效,或者是无法转换请求"<span style="color: #000000;">);
+</span><span style="color: #008080;"> 32</span>             <span style="color: #008000;">//</span><span style="color: #008000;">Invalid Signing configuration / Couldn't convert Claims.</span>
+<span style="color: #008080;"> 33</span> <span style="color: #000000;">        }
+</span><span style="color: #008080;"> 34</span>         <span style="color: #0000ff;">return</span><span style="color: #000000;"> token;
+</span><span style="color: #008080;"> 35</span>         
+<span style="color: #008080;"> 36</span> <span style="color: #000000;">    }
+</span><span style="color: #008080;"> 37</span>     <span style="color: #008000;">/**</span>
+<span style="color: #008080;"> 38</span> <span style="color: #008000;">     * token解析
+</span><span style="color: #008080;"> 39</span> <span style="color: #008000;">     * </span><span style="color: #008000;">*/</span>
+<span style="color: #008080;"> 40</span>     <span style="color: #0000ff;">private</span> <span style="color: #0000ff;">static</span><span style="color: #000000;">  DecodedJWT parseJWT(String token){
+</span><span style="color: #008080;"> 41</span>         <span style="color: #0000ff;">try</span><span style="color: #000000;">{
+</span><span style="color: #008080;"> 42</span>             DecodedJWT jwt=<span style="color: #000000;"> JWT.decode(token);
+</span><span style="color: #008080;"> 43</span>             <span style="color: #0000ff;">return</span><span style="color: #000000;"> jwt;
+</span><span style="color: #008080;"> 44</span>         }<span style="color: #0000ff;">catch</span><span style="color: #000000;">(JWTDecodeException   exp){
+</span><span style="color: #008080;"> 45</span>             <span style="color: #008000;">//</span><span style="color: #008000;">Invalid token</span>
+<span style="color: #008080;"> 46</span>             <span style="color: #0000ff;">return</span> <span style="color: #0000ff;">null</span><span style="color: #000000;">;
+</span><span style="color: #008080;"> 47</span> <span style="color: #000000;">        }
+</span><span style="color: #008080;"> 48</span> <span style="color: #000000;">    }
+</span><span style="color: #008080;"> 49</span>     
+<span style="color: #008080;"> 50</span>     <span style="color: #008000;">/**</span>
+<span style="color: #008080;"> 51</span> <span style="color: #008000;">     * 根据token获取用户名
+</span><span style="color: #008080;"> 52</span> <span style="color: #008000;">     * </span><span style="color: #008000;">*/</span>
+<span style="color: #008080;"> 53</span>     <span style="color: #0000ff;">public</span> <span style="color: #0000ff;">static</span><span style="color: #000000;"> String getUserNameByJWT(String token){
+</span><span style="color: #008080;"> 54</span>         <span style="color: #0000ff;">if</span> (token==<span style="color: #0000ff;">null</span><span style="color: #000000;">) {
+</span><span style="color: #008080;"> 55</span>              <span style="color: #0000ff;">throw</span> <span style="color: #0000ff;">new</span> MessageException(MessageException.USER_INFO_OUTTIME,<span style="color: #0000ff;">null</span><span style="color: #000000;">);
+</span><span style="color: #008080;"> 56</span> <span style="color: #000000;">        }
+</span><span style="color: #008080;"> 57</span>         DecodedJWT jwt =<span style="color: #000000;"> parseJWT(token);
+</span><span style="color: #008080;"> 58</span>         <span style="color: #0000ff;">if</span>(  jwt != <span style="color: #0000ff;">null</span><span style="color: #000000;"> ){
+</span><span style="color: #008080;"> 59</span>             <span style="color: #0000ff;">return</span><span style="color: #000000;"> jwt.getSubject();
+</span><span style="color: #008080;"> 60</span>         }<span style="color: #0000ff;">else</span><span style="color: #000000;">{
+</span><span style="color: #008080;"> 61</span>             <span style="color: #0000ff;">return</span> <span style="color: #0000ff;">null</span><span style="color: #000000;">;
+</span><span style="color: #008080;"> 62</span> <span style="color: #000000;">        }
+</span><span style="color: #008080;"> 63</span> <span style="color: #000000;">    } 
+</span><span style="color: #008080;"> 64</span>     
+<span style="color: #008080;"> 65</span>     <span style="color: #008000;">/**</span>
+<span style="color: #008080;"> 66</span> <span style="color: #008000;">     * 根据token获取sessionId
+</span><span style="color: #008080;"> 67</span>      <span style="color: #008000;">*/</span>
+<span style="color: #008080;"> 68</span>     <span style="color: #0000ff;">public</span> <span style="color: #0000ff;">static</span> <span style="color: #0000ff;">long</span><span style="color: #000000;"> getSessionIdByJWT(String token){
+</span><span style="color: #008080;"> 69</span>         <span style="color: #0000ff;">if</span>(token == <span style="color: #0000ff;">null</span><span style="color: #000000;">){
+</span><span style="color: #008080;"> 70</span>             <span style="color: #0000ff;">return</span> 0<span style="color: #000000;">;
+</span><span style="color: #008080;"> 71</span> <span style="color: #000000;">        }
+</span><span style="color: #008080;"> 72</span>         DecodedJWT jwt =<span style="color: #000000;"> parseJWT(token);
+</span><span style="color: #008080;"> 73</span>         <span style="color: #0000ff;">if</span>(  jwt != <span style="color: #0000ff;">null</span><span style="color: #000000;"> ){
+</span><span style="color: #008080;"> 74</span>             <span style="color: #0000ff;">return</span><span style="color: #000000;"> Long.valueOf(jwt.getId());
+</span><span style="color: #008080;"> 75</span>         }<span style="color: #0000ff;">else</span><span style="color: #000000;">{
+</span><span style="color: #008080;"> 76</span>             <span style="color: #0000ff;">return</span> 0<span style="color: #000000;">;
+</span><span style="color: #008080;"> 77</span> <span style="color: #000000;">        }
+</span><span style="color: #008080;"> 78</span>         
+<span style="color: #008080;"> 79</span> <span style="color: #000000;">    }
+</span><span style="color: #008080;"> 80</span> 
+<span style="color: #008080;"> 81</span>     <span style="color: #0000ff;">public</span> <span style="color: #0000ff;">static</span> <span style="color: #0000ff;">int</span><span style="color: #000000;"> getUserIdByJWT(String token){
+</span><span style="color: #008080;"> 82</span>         <span style="color: #0000ff;">if</span> (token==<span style="color: #0000ff;">null</span><span style="color: #000000;">) {
+</span><span style="color: #008080;"> 83</span>              <span style="color: #0000ff;">throw</span> <span style="color: #0000ff;">new</span> MessageException(MessageException.USER_INFO_OUTTIME,<span style="color: #0000ff;">null</span><span style="color: #000000;">);
+</span><span style="color: #008080;"> 84</span> <span style="color: #000000;">        }
+</span><span style="color: #008080;"> 85</span>         DecodedJWT jwt =<span style="color: #000000;"> parseJWT(token);
+</span><span style="color: #008080;"> 86</span>         <span style="color: #0000ff;">if</span>(  jwt != <span style="color: #0000ff;">null</span><span style="color: #000000;"> ){
+</span><span style="color: #008080;"> 87</span>             <span style="color: #0000ff;">return</span> jwt.getClaim("userId"<span style="color: #000000;">).asInt();
+</span><span style="color: #008080;"> 88</span>         }<span style="color: #0000ff;">else</span><span style="color: #000000;">{
+</span><span style="color: #008080;"> 89</span>             <span style="color: #0000ff;">return</span> 0<span style="color: #000000;">;
+</span><span style="color: #008080;"> 90</span> <span style="color: #000000;">        }
+</span><span style="color: #008080;"> 91</span> <span style="color: #000000;">    }
+</span><span style="color: #008080;"> 92</span> 
+<span style="color: #008080;"> 93</span>     <span style="color: #008000;">/**</span>
+<span style="color: #008080;"> 94</span> <span style="color: #008000;">     * 生成唯一的sessionID
+</span><span style="color: #008080;"> 95</span> <span style="color: #008000;">     * </span><span style="color: #808080;">@return</span>
+<span style="color: #008080;"> 96</span>      <span style="color: #008000;">*/</span>
+<span style="color: #008080;"> 97</span>     <span style="color: #0000ff;">public</span> <span style="color: #0000ff;">static</span> <span style="color: #0000ff;">long</span><span style="color: #000000;"> createSessionId(){
+</span><span style="color: #008080;"> 98</span>         
+<span style="color: #008080;"> 99</span>         <span style="color: #0000ff;">long</span> now = System.currentTimeMillis();<span style="color: #008000;">//</span><span style="color: #008000;">一个13位的时间戳</span>
+<span style="color: #008080;">100</span>         
+<span style="color: #008080;">101</span>         <span style="color: #0000ff;">int</span> r=(<span style="color: #0000ff;">int</span>)((Math.random()*9+1)*10000<span style="color: #000000;">);
+</span><span style="color: #008080;">102</span>     
+<span style="color: #008080;">103</span>         String paymentID =String.valueOf(now)+String.valueOf(r);<span style="color: #008000;">//</span><span style="color: #008000;"> sessionID</span>
+<span style="color: #008080;">104</span>         <span style="color: #0000ff;">return</span><span style="color: #000000;"> Long.valueOf(paymentID);
+</span><span style="color: #008080;">105</span>         
+<span style="color: #008080;">106</span> <span style="color: #000000;">    }
+</span><span style="color: #008080;">107</span>     
+<span style="color: #008080;">108</span> }</code></pre>
+
+<span class="cnblogs_code_collapse">Jwt生成Token工具类</span>
+<src class="cnblogs_code" onclick="cnblogs_code_show('39a8cfb4-1bfe-4723-a5a8-32db5ac5dabc')"><img id="code_img_closed_39a8cfb4-1bfe-4723-a5a8-32db5ac5dabc" class="code_img_closed" src="./images/Redis应用0.png" alt="" /><img id="code_img_opened_39a8cfb4-1bfe-4723-a5a8-32db5ac5dabc" class="code_img_opened" style="display: none;" onclick="cnblogs_code_hide('39a8cfb4-1bfe-4723-a5a8-32db5ac5dabc',event)" src="./images/Redis应用1.png" alt="" />
+<src id="cnblogs_code_open_39a8cfb4-1bfe-4723-a5a8-32db5ac5dabc" class="cnblogs_code_hide">
+<pre><code><span style="color: #0000ff;">import</span><span style="color: #000000;"> org.springframework.beans.factory.annotation.Autowired;
+</span><span style="color: #0000ff;">import</span><span style="color: #000000;"> org.springframework.data.redis.connection.DataType;
+</span><span style="color: #0000ff;">import</span> org.springframework.data.redis.core.*<span style="color: #000000;">;
+</span><span style="color: #0000ff;">import</span><span style="color: #000000;"> org.springframework.data.redis.serializer.StringRedisSerializer;
+</span><span style="color: #0000ff;">import</span><span style="color: #000000;"> org.springframework.stereotype.Component;
+
+</span><span style="color: #0000ff;">import</span><span style="color: #000000;"> java.io.Serializable;
+</span><span style="color: #0000ff;">import</span><span style="color: #000000;"> java.util.Collection;
+</span><span style="color: #0000ff;">import</span><span style="color: #000000;"> java.util.List;
+</span><span style="color: #0000ff;">import</span><span style="color: #000000;"> java.util.Map;
+</span><span style="color: #0000ff;">import</span><span style="color: #000000;"> java.util.Set;
+</span><span style="color: #0000ff;">import</span><span style="color: #000000;"> java.util.concurrent.TimeUnit;
+
+@Component
+</span><span style="color: #0000ff;">public</span> <span style="color: #0000ff;">class</span><span style="color: #000000;"> RedisUtil {
+
+    @Autowired
+    </span><span style="color: #0000ff;">private</span><span style="color: #000000;"> RedisTemplate redisTemplate;
+
+    </span><span style="color: #008000;">/**</span><span style="color: #008000;">
+     * 批量删除对应的value
+     *
+     * </span><span style="color: #808080;">@param</span><span style="color: #008000;"> keys
+     </span><span style="color: #008000;">*/</span>
+    <span style="color: #0000ff;">public</span> <span style="color: #0000ff;">void</span> remove(<span style="color: #0000ff;">final</span><span style="color: #000000;"> String... keys) {
+        </span><span style="color: #0000ff;">for</span><span style="color: #000000;"> (String key : keys) {
+            remove(key);
+        }
+    }
+
+    </span><span style="color: #008000;">/**</span><span style="color: #008000;">
+     * 批量删除key
+     *
+     * </span><span style="color: #808080;">@param</span><span style="color: #008000;"> pattern
+     </span><span style="color: #008000;">*/</span>
+    <span style="color: #0000ff;">public</span> <span style="color: #0000ff;">void</span> removePattern(<span style="color: #0000ff;">final</span><span style="color: #000000;"> String pattern) {
+        Set</span>&lt;Serializable&gt; keys =<span style="color: #000000;"> redisTemplate.keys(pattern);
+        </span><span style="color: #0000ff;">if</span> (keys.size() &gt; 0<span style="color: #000000;">)
+            redisTemplate.delete(keys);
+    }
+
+    </span><span style="color: #008000;">/**</span><span style="color: #008000;">
+     * 删除对应的value
+     *
+     * </span><span style="color: #808080;">@param</span><span style="color: #008000;"> key
+     </span><span style="color: #008000;">*/</span>
+    <span style="color: #0000ff;">public</span> <span style="color: #0000ff;">void</span> remove(<span style="color: #0000ff;">final</span><span style="color: #000000;"> String key) {
+        </span><span style="color: #0000ff;">if</span><span style="color: #000000;"> (exists(key)) {
+            redisTemplate.delete(key);
+        }
+    }
+
+    </span><span style="color: #008000;">/**</span><span style="color: #008000;">
+     * 判断缓存中是否有对应的value
+     *
+     * </span><span style="color: #808080;">@param</span><span style="color: #008000;"> key
+     * </span><span style="color: #808080;">@return</span>
+     <span style="color: #008000;">*/</span>
+    <span style="color: #0000ff;">public</span> <span style="color: #0000ff;">boolean</span> exists(<span style="color: #0000ff;">final</span><span style="color: #000000;"> String key) {
+        </span><span style="color: #0000ff;">return</span><span style="color: #000000;"> redisTemplate.hasKey(key);
+    }
+
+    </span><span style="color: #008000;">/**</span><span style="color: #008000;">
+     * 读取缓存
+     *
+     * </span><span style="color: #808080;">@param</span><span style="color: #008000;"> key
+     * </span><span style="color: #808080;">@return</span>
+     <span style="color: #008000;">*/</span>
+    <span style="color: #0000ff;">public</span> String get(<span style="color: #0000ff;">final</span><span style="color: #000000;"> String key) {
+        Object result </span>= <span style="color: #0000ff;">null</span><span style="color: #000000;">;
+        redisTemplate.setValueSerializer(</span><span style="color: #0000ff;">new</span><span style="color: #000000;"> StringRedisSerializer());
+        ValueOperations</span>&lt;Serializable, Object&gt; operations =<span style="color: #000000;"> redisTemplate.opsForValue();
+        result </span>=<span style="color: #000000;"> operations.get(key);
+        </span><span style="color: #0000ff;">if</span> (result == <span style="color: #0000ff;">null</span><span style="color: #000000;">) {
+            </span><span style="color: #0000ff;">return</span> <span style="color: #0000ff;">null</span><span style="color: #000000;">;
+        }
+        </span><span style="color: #0000ff;">return</span><span style="color: #000000;"> result.toString();
+    }
+
+    </span><span style="color: #008000;">/**</span><span style="color: #008000;">
+     * 写入缓存
+     *
+     * </span><span style="color: #808080;">@param</span><span style="color: #008000;"> key
+     * </span><span style="color: #808080;">@param</span><span style="color: #008000;"> value
+     * </span><span style="color: #808080;">@return</span>
+     <span style="color: #008000;">*/</span>
+    <span style="color: #0000ff;">public</span> <span style="color: #0000ff;">boolean</span> set(<span style="color: #0000ff;">final</span><span style="color: #000000;"> String key, Object value) {
+        </span><span style="color: #0000ff;">boolean</span> result = <span style="color: #0000ff;">false</span><span style="color: #000000;">;
+        </span><span style="color: #0000ff;">try</span><span style="color: #000000;"> {
+            ValueOperations</span>&lt;Serializable, Object&gt; operations =<span style="color: #000000;"> redisTemplate.opsForValue();
+            operations.set(key, value);
+            result </span>= <span style="color: #0000ff;">true</span><span style="color: #000000;">;
+        } </span><span style="color: #0000ff;">catch</span><span style="color: #000000;"> (Exception e) {
+            e.printStackTrace();
+        }
+        </span><span style="color: #0000ff;">return</span><span style="color: #000000;"> result;
+    }
+
+    </span><span style="color: #008000;">/**</span><span style="color: #008000;">
+     * 写入缓存
+     *
+     * </span><span style="color: #808080;">@param</span><span style="color: #008000;"> key
+     * </span><span style="color: #808080;">@param</span><span style="color: #008000;"> value
+     * </span><span style="color: #808080;">@return</span>
+     <span style="color: #008000;">*/</span>
+    <span style="color: #0000ff;">public</span> <span style="color: #0000ff;">boolean</span> set(<span style="color: #0000ff;">final</span><span style="color: #000000;"> String key, Object value, Long expireTime) {
+        </span><span style="color: #0000ff;">boolean</span> result = <span style="color: #0000ff;">false</span><span style="color: #000000;">;
+        </span><span style="color: #0000ff;">try</span><span style="color: #000000;"> {
+            ValueOperations</span>&lt;Serializable, Object&gt; operations =<span style="color: #000000;"> redisTemplate.opsForValue();
+            operations.set(key, value);
+            redisTemplate.expire(key, expireTime, TimeUnit.SECONDS);
+            result </span>= <span style="color: #0000ff;">true</span><span style="color: #000000;">;
+        } </span><span style="color: #0000ff;">catch</span><span style="color: #000000;"> (Exception e) {
+            e.printStackTrace();
+        }
+        </span><span style="color: #0000ff;">return</span><span style="color: #000000;"> result;
+    }
+
+    </span><span style="color: #0000ff;">public</span> <span style="color: #0000ff;">boolean</span> hmset(String key, Map&lt;String, String&gt;<span style="color: #000000;"> value) {
+        </span><span style="color: #0000ff;">boolean</span> result = <span style="color: #0000ff;">false</span><span style="color: #000000;">;
+        </span><span style="color: #0000ff;">try</span><span style="color: #000000;"> {
+            redisTemplate.opsForHash().putAll(key, value);
+            result </span>= <span style="color: #0000ff;">true</span><span style="color: #000000;">;
+        } </span><span style="color: #0000ff;">catch</span><span style="color: #000000;"> (Exception e) {
+            e.printStackTrace();
+        }
+        </span><span style="color: #0000ff;">return</span><span style="color: #000000;"> result;
+    }
+
+    </span><span style="color: #0000ff;">public</span> Map&lt;String, String&gt;<span style="color: #000000;"> hmget(String key) {
+        Map</span>&lt;String, String&gt; result = <span style="color: #0000ff;">null</span><span style="color: #000000;">;
+        </span><span style="color: #0000ff;">try</span><span style="color: #000000;"> {
+            result </span>=<span style="color: #000000;"> redisTemplate.opsForHash().entries(key);
+        } </span><span style="color: #0000ff;">catch</span><span style="color: #000000;"> (Exception e) {
+            e.printStackTrace();
+        }
+        </span><span style="color: #0000ff;">return</span><span style="color: #000000;"> result;
+    }
+
+    </span><span style="color: #008000;">/**</span><span style="color: #008000;">
+     * @Author  xiabing5
+     * @Create  2019/8/26 19:33
+     * @Desc    查找匹配的key
+     *</span><span style="color: #008000;">*/</span>
+    <span style="color: #0000ff;">public</span> Set&lt;String&gt;<span style="color: #000000;"> keys(String pattern) {
+        </span><span style="color: #0000ff;">return</span><span style="color: #000000;"> redisTemplate.keys(pattern);
+    }
+
+    </span><span style="color: #008000;">/**</span><span style="color: #008000;">
+     * @Author  xiabing5
+     * @Create  2019/8/26 19:33
+     * @Desc    移除key过期时间，key将持久保持
+     *</span><span style="color: #008000;">*/</span>
+    <span style="color: #0000ff;">public</span><span style="color: #000000;"> Boolean persist(String key) {
+        </span><span style="color: #0000ff;">return</span><span style="color: #000000;"> redisTemplate.persist(key);
+    }
+
+    </span><span style="color: #008000;">/**</span><span style="color: #008000;">
+     * @Author  xiabing5
+     * @Create  2019/8/26 19:33
+     * @Desc    返回key的剩余过期时间
+     *</span><span style="color: #008000;">*/</span>
+    <span style="color: #0000ff;">public</span><span style="color: #000000;"> Long getExpire(String key, TimeUnit unit) {
+        </span><span style="color: #0000ff;">return</span><span style="color: #000000;"> redisTemplate.getExpire(key, unit);
+    }
+
+    </span><span style="color: #008000;">/**</span><span style="color: #008000;">
+     * @Author  xiabing5
+     * @Create  2019/8/26 19:33
+     * @Desc    返回key的剩余过期时间
+     *</span><span style="color: #008000;">*/</span>
+    <span style="color: #0000ff;">public</span><span style="color: #000000;"> Long getExpire(String key) {
+        </span><span style="color: #0000ff;">return</span><span style="color: #000000;"> redisTemplate.getExpire(key);
+    }
+
+    </span><span style="color: #008000;">/**</span><span style="color: #008000;">
+     * @Author  xiabing5
+     * @Create  2019/8/26 19:33
+     * @Desc    从当前数据库随机返回一个key
+     *</span><span style="color: #008000;">*/</span>
+    <span style="color: #0000ff;">public</span><span style="color: #000000;"> String randomKey() {
+        </span><span style="color: #0000ff;">return</span><span style="color: #000000;"> (String) redisTemplate.randomKey();
+    }
+
+    </span><span style="color: #008000;">/**</span><span style="color: #008000;">
+     * 修改 key 的名称
+     *
+     * </span><span style="color: #808080;">@param</span><span style="color: #008000;"> oldKey
+     * </span><span style="color: #808080;">@param</span><span style="color: #008000;"> newKey
+     </span><span style="color: #008000;">*/</span>
+    <span style="color: #0000ff;">public</span> <span style="color: #0000ff;">void</span><span style="color: #000000;"> rename(String oldKey, String newKey) {
+        redisTemplate.rename(oldKey, newKey);
+    }
+
+    </span><span style="color: #008000;">/**</span><span style="color: #008000;">
+     * 仅当 newkey 不存在时，将 oldKey 改名为 newkey
+     *
+     * </span><span style="color: #808080;">@param</span><span style="color: #008000;"> oldKey
+     * </span><span style="color: #808080;">@param</span><span style="color: #008000;"> newKey
+     * </span><span style="color: #808080;">@return</span>
+     <span style="color: #008000;">*/</span>
+    <span style="color: #0000ff;">public</span><span style="color: #000000;"> Boolean renameIfAbsent(String oldKey, String newKey) {
+        </span><span style="color: #0000ff;">return</span><span style="color: #000000;"> redisTemplate.renameIfAbsent(oldKey, newKey);
+    }
+
+    </span><span style="color: #008000;">/**</span><span style="color: #008000;">
+     * 返回 key 所储存的值的类型
+     *
+     * </span><span style="color: #808080;">@param</span><span style="color: #008000;"> key
+     * </span><span style="color: #808080;">@return</span>
+     <span style="color: #008000;">*/</span>
+    <span style="color: #0000ff;">public</span><span style="color: #000000;"> DataType type(String key) {
+        </span><span style="color: #0000ff;">return</span><span style="color: #000000;"> redisTemplate.type(key);
+    }
+
+    </span><span style="color: #008000;">/**</span><span style="color: #008000;">
+     * 批量获取
+     *
+     * </span><span style="color: #808080;">@param</span><span style="color: #008000;"> keys
+     * </span><span style="color: #808080;">@return</span>
+     <span style="color: #008000;">*/</span>
+    <span style="color: #0000ff;">public</span> List&lt;String&gt; multiGet(Collection&lt;String&gt;<span style="color: #000000;"> keys) {
+        </span><span style="color: #0000ff;">return</span><span style="color: #000000;"> redisTemplate.opsForValue().multiGet(keys);
+    }
+
+    </span><span style="color: #008000;">/**</span><span style="color: #008000;"> --------------------set相关操作-------------------------- </span><span style="color: #008000;">*/</span>
+
+    <span style="color: #008000;">/**</span><span style="color: #008000;">
+     * set添加元素
+     *
+     * </span><span style="color: #808080;">@param</span><span style="color: #008000;"> key
+     * </span><span style="color: #808080;">@param</span><span style="color: #008000;"> values
+     * </span><span style="color: #808080;">@return</span>
+     <span style="color: #008000;">*/</span>
+    <span style="color: #0000ff;">public</span><span style="color: #000000;"> Long sAdd(String key, String... values) {
+        </span><span style="color: #0000ff;">return</span><span style="color: #000000;"> redisTemplate.opsForSet().add(key, values);
+    }
+
+    </span><span style="color: #008000;">/**</span><span style="color: #008000;">
+     * set移除元素
+     *
+     * </span><span style="color: #808080;">@param</span><span style="color: #008000;"> key
+     * </span><span style="color: #808080;">@param</span><span style="color: #008000;"> values
+     * </span><span style="color: #808080;">@return</span>
+     <span style="color: #008000;">*/</span>
+    <span style="color: #0000ff;">public</span><span style="color: #000000;"> Long sRemove(String key, Object... values) {
+        </span><span style="color: #0000ff;">return</span><span style="color: #000000;"> redisTemplate.opsForSet().remove(key, values);
+    }
+
+    </span><span style="color: #008000;">/**</span><span style="color: #008000;">
+     * 移除并返回集合的一个随机元素
+     *
+     * </span><span style="color: #808080;">@param</span><span style="color: #008000;"> key
+     * </span><span style="color: #808080;">@return</span>
+     <span style="color: #008000;">*/</span>
+    <span style="color: #0000ff;">public</span><span style="color: #000000;"> String sPop(String key) {
+        </span><span style="color: #0000ff;">return</span><span style="color: #000000;"> (String)redisTemplate.opsForSet().pop(key);
+    }
+
+    </span><span style="color: #008000;">/**</span><span style="color: #008000;">
+     * 将元素value从一个集合移到另一个集合
+     *
+     * </span><span style="color: #808080;">@param</span><span style="color: #008000;"> key
+     * </span><span style="color: #808080;">@param</span><span style="color: #008000;"> value
+     * </span><span style="color: #808080;">@param</span><span style="color: #008000;"> destKey
+     * </span><span style="color: #808080;">@return</span>
+     <span style="color: #008000;">*/</span>
+    <span style="color: #0000ff;">public</span><span style="color: #000000;"> Boolean sMove(String key, String value, String destKey) {
+        </span><span style="color: #0000ff;">return</span><span style="color: #000000;"> redisTemplate.opsForSet().move(key, value, destKey);
+    }
+
+    </span><span style="color: #008000;">/**</span><span style="color: #008000;">
+     * 获取集合的大小
+     *
+     * </span><span style="color: #808080;">@param</span><span style="color: #008000;"> key
+     * </span><span style="color: #808080;">@return</span>
+     <span style="color: #008000;">*/</span>
+    <span style="color: #0000ff;">public</span><span style="color: #000000;"> Long sSize(String key) {
+        </span><span style="color: #0000ff;">return</span><span style="color: #000000;"> redisTemplate.opsForSet().size(key);
+    }
+
+    </span><span style="color: #008000;">/**</span><span style="color: #008000;">
+     * 判断集合是否包含value
+     *
+     * </span><span style="color: #808080;">@param</span><span style="color: #008000;"> key
+     * </span><span style="color: #808080;">@param</span><span style="color: #008000;"> value
+     * </span><span style="color: #808080;">@return</span>
+     <span style="color: #008000;">*/</span>
+    <span style="color: #0000ff;">public</span><span style="color: #000000;"> Boolean sIsMember(String key, Object value) {
+        </span><span style="color: #0000ff;">return</span><span style="color: #000000;"> redisTemplate.opsForSet().isMember(key, value);
+    }
+
+    </span><span style="color: #008000;">/**</span><span style="color: #008000;">
+     * 获取两个集合的交集
+     *
+     * </span><span style="color: #808080;">@param</span><span style="color: #008000;"> key
+     * </span><span style="color: #808080;">@param</span><span style="color: #008000;"> otherKey
+     * </span><span style="color: #808080;">@return</span>
+     <span style="color: #008000;">*/</span>
+    <span style="color: #0000ff;">public</span> Set&lt;String&gt;<span style="color: #000000;"> sIntersect(String key, String otherKey) {
+        </span><span style="color: #0000ff;">return</span><span style="color: #000000;"> redisTemplate.opsForSet().intersect(key, otherKey);
+    }
+
+    </span><span style="color: #008000;">/**</span><span style="color: #008000;">
+     * 获取key集合与多个集合的交集
+     *
+     * </span><span style="color: #808080;">@param</span><span style="color: #008000;"> key
+     * </span><span style="color: #808080;">@param</span><span style="color: #008000;"> otherKeys
+     * </span><span style="color: #808080;">@return</span>
+     <span style="color: #008000;">*/</span>
+    <span style="color: #0000ff;">public</span> Set&lt;String&gt; sIntersect(String key, Collection&lt;String&gt;<span style="color: #000000;"> otherKeys) {
+        </span><span style="color: #0000ff;">return</span><span style="color: #000000;"> redisTemplate.opsForSet().intersect(key, otherKeys);
+    }
+
+    </span><span style="color: #008000;">/**</span><span style="color: #008000;">
+     * key集合与otherKey集合的交集存储到destKey集合中
+     *
+     * </span><span style="color: #808080;">@param</span><span style="color: #008000;"> key
+     * </span><span style="color: #808080;">@param</span><span style="color: #008000;"> otherKey
+     * </span><span style="color: #808080;">@param</span><span style="color: #008000;"> destKey
+     * </span><span style="color: #808080;">@return</span>
+     <span style="color: #008000;">*/</span>
+    <span style="color: #0000ff;">public</span><span style="color: #000000;"> Long sIntersectAndStore(String key, String otherKey, String destKey) {
+        </span><span style="color: #0000ff;">return</span><span style="color: #000000;"> redisTemplate.opsForSet().intersectAndStore(key, otherKey,
+                destKey);
+    }
+
+    </span><span style="color: #008000;">/**</span><span style="color: #008000;">
+     * key集合与多个集合的交集存储到destKey集合中
+     *
+     * </span><span style="color: #808080;">@param</span><span style="color: #008000;"> key
+     * </span><span style="color: #808080;">@param</span><span style="color: #008000;"> otherKeys
+     * </span><span style="color: #808080;">@param</span><span style="color: #008000;"> destKey
+     * </span><span style="color: #808080;">@return</span>
+     <span style="color: #008000;">*/</span>
+    <span style="color: #0000ff;">public</span> Long sIntersectAndStore(String key, Collection&lt;String&gt;<span style="color: #000000;"> otherKeys,
+                                   String destKey) {
+        </span><span style="color: #0000ff;">return</span><span style="color: #000000;"> redisTemplate.opsForSet().intersectAndStore(key, otherKeys,
+                destKey);
+    }
+
+    </span><span style="color: #008000;">/**</span><span style="color: #008000;">
+     * 获取两个集合的并集
+     *
+     * </span><span style="color: #808080;">@param</span><span style="color: #008000;"> key
+     * </span><span style="color: #808080;">@param</span><span style="color: #008000;"> otherKeys
+     * </span><span style="color: #808080;">@return</span>
+     <span style="color: #008000;">*/</span>
+    <span style="color: #0000ff;">public</span> Set&lt;String&gt;<span style="color: #000000;"> sUnion(String key, String otherKeys) {
+        </span><span style="color: #0000ff;">return</span><span style="color: #000000;"> redisTemplate.opsForSet().union(key, otherKeys);
+    }
+
+    </span><span style="color: #008000;">/**</span><span style="color: #008000;">
+     * 获取key集合与多个集合的并集
+     *
+     * </span><span style="color: #808080;">@param</span><span style="color: #008000;"> key
+     * </span><span style="color: #808080;">@param</span><span style="color: #008000;"> otherKeys
+     * </span><span style="color: #808080;">@return</span>
+     <span style="color: #008000;">*/</span>
+    <span style="color: #0000ff;">public</span> Set&lt;String&gt; sUnion(String key, Collection&lt;String&gt;<span style="color: #000000;"> otherKeys) {
+        </span><span style="color: #0000ff;">return</span><span style="color: #000000;"> redisTemplate.opsForSet().union(key, otherKeys);
+    }
+
+    </span><span style="color: #008000;">/**</span><span style="color: #008000;">
+     * key集合与otherKey集合的并集存储到destKey中
+     *
+     * </span><span style="color: #808080;">@param</span><span style="color: #008000;"> key
+     * </span><span style="color: #808080;">@param</span><span style="color: #008000;"> otherKey
+     * </span><span style="color: #808080;">@param</span><span style="color: #008000;"> destKey
+     * </span><span style="color: #808080;">@return</span>
+     <span style="color: #008000;">*/</span>
+    <span style="color: #0000ff;">public</span><span style="color: #000000;"> Long sUnionAndStore(String key, String otherKey, String destKey) {
+        </span><span style="color: #0000ff;">return</span><span style="color: #000000;"> redisTemplate.opsForSet().unionAndStore(key, otherKey, destKey);
+    }
+
+    </span><span style="color: #008000;">/**</span><span style="color: #008000;">
+     * key集合与多个集合的并集存储到destKey中
+     *
+     * </span><span style="color: #808080;">@param</span><span style="color: #008000;"> key
+     * </span><span style="color: #808080;">@param</span><span style="color: #008000;"> otherKeys
+     * </span><span style="color: #808080;">@param</span><span style="color: #008000;"> destKey
+     * </span><span style="color: #808080;">@return</span>
+     <span style="color: #008000;">*/</span>
+    <span style="color: #0000ff;">public</span> Long sUnionAndStore(String key, Collection&lt;String&gt;<span style="color: #000000;"> otherKeys,
+                               String destKey) {
+        </span><span style="color: #0000ff;">return</span><span style="color: #000000;"> redisTemplate.opsForSet().unionAndStore(key, otherKeys, destKey);
+    }
+
+    </span><span style="color: #008000;">/**</span><span style="color: #008000;">
+     * 获取两个集合的差集
+     *
+     * </span><span style="color: #808080;">@param</span><span style="color: #008000;"> key
+     * </span><span style="color: #808080;">@param</span><span style="color: #008000;"> otherKey
+     * </span><span style="color: #808080;">@return</span>
+     <span style="color: #008000;">*/</span>
+    <span style="color: #0000ff;">public</span> Set&lt;String&gt;<span style="color: #000000;"> sDifference(String key, String otherKey) {
+        </span><span style="color: #0000ff;">return</span><span style="color: #000000;"> redisTemplate.opsForSet().difference(key, otherKey);
+    }
+
+    </span><span style="color: #008000;">/**</span><span style="color: #008000;">
+     * 获取key集合与多个集合的差集
+     *
+     * </span><span style="color: #808080;">@param</span><span style="color: #008000;"> key
+     * </span><span style="color: #808080;">@param</span><span style="color: #008000;"> otherKeys
+     * </span><span style="color: #808080;">@return</span>
+     <span style="color: #008000;">*/</span>
+    <span style="color: #0000ff;">public</span> Set&lt;String&gt; sDifference(String key, Collection&lt;String&gt;<span style="color: #000000;"> otherKeys) {
+        </span><span style="color: #0000ff;">return</span><span style="color: #000000;"> redisTemplate.opsForSet().difference(key, otherKeys);
+    }
+
+    </span><span style="color: #008000;">/**</span><span style="color: #008000;">
+     * key集合与otherKey集合的差集存储到destKey中
+     *
+     * </span><span style="color: #808080;">@param</span><span style="color: #008000;"> key
+     * </span><span style="color: #808080;">@param</span><span style="color: #008000;"> otherKey
+     * </span><span style="color: #808080;">@param</span><span style="color: #008000;"> destKey
+     * </span><span style="color: #808080;">@return</span>
+     <span style="color: #008000;">*/</span>
+    <span style="color: #0000ff;">public</span><span style="color: #000000;"> Long sDifference(String key, String otherKey, String destKey) {
+        </span><span style="color: #0000ff;">return</span><span style="color: #000000;"> redisTemplate.opsForSet().differenceAndStore(key, otherKey,
+                destKey);
+    }
+
+    </span><span style="color: #008000;">/**</span><span style="color: #008000;">
+     * key集合与多个集合的差集存储到destKey中
+     *
+     * </span><span style="color: #808080;">@param</span><span style="color: #008000;"> key
+     * </span><span style="color: #808080;">@param</span><span style="color: #008000;"> otherKeys
+     * </span><span style="color: #808080;">@param</span><span style="color: #008000;"> destKey
+     * </span><span style="color: #808080;">@return</span>
+     <span style="color: #008000;">*/</span>
+    <span style="color: #0000ff;">public</span> Long sDifference(String key, Collection&lt;String&gt;<span style="color: #000000;"> otherKeys,
+                            String destKey) {
+        </span><span style="color: #0000ff;">return</span><span style="color: #000000;"> redisTemplate.opsForSet().differenceAndStore(key, otherKeys,
+                destKey);
+    }
+
+    </span><span style="color: #008000;">/**</span><span style="color: #008000;">
+     * 获取集合所有元素
+     *
+     * </span><span style="color: #808080;">@param</span><span style="color: #008000;"> key
+     * </span><span style="color: #808080;">@param</span><span style="color: #008000;">
+     * </span><span style="color: #808080;">@param</span><span style="color: #008000;">
+     * </span><span style="color: #808080;">@return</span>
+     <span style="color: #008000;">*/</span>
+    <span style="color: #0000ff;">public</span> Set&lt;String&gt;<span style="color: #000000;"> setMembers(String key) {
+        </span><span style="color: #0000ff;">return</span><span style="color: #000000;"> redisTemplate.opsForSet().members(key);
+    }
+
+    </span><span style="color: #008000;">/**</span><span style="color: #008000;">
+     * 随机获取集合中的一个元素
+     *
+     * </span><span style="color: #808080;">@param</span><span style="color: #008000;"> key
+     * </span><span style="color: #808080;">@return</span>
+     <span style="color: #008000;">*/</span>
+    <span style="color: #0000ff;">public</span><span style="color: #000000;"> String sRandomMember(String key) {
+        </span><span style="color: #0000ff;">return</span><span style="color: #000000;"> (String) redisTemplate.opsForSet().randomMember(key);
+    }
+
+    </span><span style="color: #008000;">/**</span><span style="color: #008000;">
+     * 随机获取集合中count个元素
+     *
+     * </span><span style="color: #808080;">@param</span><span style="color: #008000;"> key
+     * </span><span style="color: #808080;">@param</span><span style="color: #008000;"> count
+     * </span><span style="color: #808080;">@return</span>
+     <span style="color: #008000;">*/</span>
+    <span style="color: #0000ff;">public</span> List&lt;String&gt; sRandomMembers(String key, <span style="color: #0000ff;">long</span><span style="color: #000000;"> count) {
+        </span><span style="color: #0000ff;">return</span><span style="color: #000000;"> redisTemplate.opsForSet().randomMembers(key, count);
+    }
+
+    </span><span style="color: #008000;">/**</span><span style="color: #008000;">
+     * 随机获取集合中count个元素并且去除重复的
+     *
+     * </span><span style="color: #808080;">@param</span><span style="color: #008000;"> key
+     * </span><span style="color: #808080;">@param</span><span style="color: #008000;"> count
+     * </span><span style="color: #808080;">@return</span>
+     <span style="color: #008000;">*/</span>
+    <span style="color: #0000ff;">public</span> Set&lt;String&gt; sDistinctRandomMembers(String key, <span style="color: #0000ff;">long</span><span style="color: #000000;"> count) {
+        </span><span style="color: #0000ff;">return</span><span style="color: #000000;"> redisTemplate.opsForSet().distinctRandomMembers(key, count);
+    }
+
+    </span><span style="color: #008000;">/**</span><span style="color: #008000;">
+     *
+     * </span><span style="color: #808080;">@param</span><span style="color: #008000;"> key
+     * </span><span style="color: #808080;">@param</span><span style="color: #008000;"> options
+     * </span><span style="color: #808080;">@return</span>
+     <span style="color: #008000;">*/</span>
+    <span style="color: #0000ff;">public</span> Cursor&lt;String&gt;<span style="color: #000000;"> sScan(String key, ScanOptions options) {
+        </span><span style="color: #0000ff;">return</span><span style="color: #000000;"> redisTemplate.opsForSet().scan(key, options);
+    }
+
+    </span><span style="color: #008000;">/**</span><span style="color: #008000;">------------------zSet相关操作--------------------------------</span><span style="color: #008000;">*/</span>
+
+    <span style="color: #008000;">/**</span><span style="color: #008000;">
+     * 添加元素,有序集合是按照元素的score值由小到大排列
+     *
+     * </span><span style="color: #808080;">@param</span><span style="color: #008000;"> key
+     * </span><span style="color: #808080;">@param</span><span style="color: #008000;"> value
+     * </span><span style="color: #808080;">@param</span><span style="color: #008000;"> score
+     * </span><span style="color: #808080;">@return</span>
+     <span style="color: #008000;">*/</span>
+    <span style="color: #0000ff;">public</span> Boolean zAdd(String key, String value, <span style="color: #0000ff;">double</span><span style="color: #000000;"> score) {
+        </span><span style="color: #0000ff;">return</span><span style="color: #000000;"> redisTemplate.opsForZSet().add(key, value, score);
+    }
+
+    </span><span style="color: #008000;">/**</span><span style="color: #008000;">
+     *
+     * </span><span style="color: #808080;">@param</span><span style="color: #008000;"> key
+     * </span><span style="color: #808080;">@param</span><span style="color: #008000;"> values
+     * </span><span style="color: #808080;">@return</span>
+     <span style="color: #008000;">*/</span>
+    <span style="color: #0000ff;">public</span> Long zAdd(String key, Set&lt;ZSetOperations.TypedTuple&lt;String&gt;&gt;<span style="color: #000000;"> values) {
+        </span><span style="color: #0000ff;">return</span><span style="color: #000000;"> redisTemplate.opsForZSet().add(key, values);
+    }
+
+    </span><span style="color: #008000;">/**</span><span style="color: #008000;">
+     *
+     * </span><span style="color: #808080;">@param</span><span style="color: #008000;"> key
+     * </span><span style="color: #808080;">@param</span><span style="color: #008000;"> values
+     * </span><span style="color: #808080;">@return</span>
+     <span style="color: #008000;">*/</span>
+    <span style="color: #0000ff;">public</span><span style="color: #000000;"> Long zRemove(String key, Object... values) {
+        </span><span style="color: #0000ff;">return</span><span style="color: #000000;"> redisTemplate.opsForZSet().remove(key, values);
+    }
+
+    </span><span style="color: #008000;">/**</span><span style="color: #008000;">
+     * 增加元素的score值，并返回增加后的值
+     *
+     * </span><span style="color: #808080;">@param</span><span style="color: #008000;"> key
+     * </span><span style="color: #808080;">@param</span><span style="color: #008000;"> value
+     * </span><span style="color: #808080;">@param</span><span style="color: #008000;"> delta
+     * </span><span style="color: #808080;">@return</span>
+     <span style="color: #008000;">*/</span>
+    <span style="color: #0000ff;">public</span> Double zIncrementScore(String key, String value, <span style="color: #0000ff;">double</span><span style="color: #000000;"> delta) {
+        </span><span style="color: #0000ff;">return</span><span style="color: #000000;"> redisTemplate.opsForZSet().incrementScore(key, value, delta);
+    }
+
+    </span><span style="color: #008000;">/**</span><span style="color: #008000;">
+     * 返回元素在集合的排名,有序集合是按照元素的score值由小到大排列
+     *
+     * </span><span style="color: #808080;">@param</span><span style="color: #008000;"> key
+     * </span><span style="color: #808080;">@param</span><span style="color: #008000;"> value
+     * </span><span style="color: #808080;">@return</span><span style="color: #008000;"> 0表示第一位
+     </span><span style="color: #008000;">*/</span>
+    <span style="color: #0000ff;">public</span><span style="color: #000000;"> Long zRank(String key, Object value) {
+        </span><span style="color: #0000ff;">return</span><span style="color: #000000;"> redisTemplate.opsForZSet().rank(key, value);
+    }
+
+    </span><span style="color: #008000;">/**</span><span style="color: #008000;">
+     * 返回元素在集合的排名,按元素的score值由大到小排列
+     *
+     * </span><span style="color: #808080;">@param</span><span style="color: #008000;"> key
+     * </span><span style="color: #808080;">@param</span><span style="color: #008000;"> value
+     * </span><span style="color: #808080;">@return</span>
+     <span style="color: #008000;">*/</span>
+    <span style="color: #0000ff;">public</span><span style="color: #000000;"> Long zReverseRank(String key, Object value) {
+        </span><span style="color: #0000ff;">return</span><span style="color: #000000;"> redisTemplate.opsForZSet().reverseRank(key, value);
+    }
+
+    </span><span style="color: #008000;">/**</span><span style="color: #008000;">
+     * 获取集合的元素, 从小到大排序
+     *
+     * </span><span style="color: #808080;">@param</span><span style="color: #008000;"> key
+     * </span><span style="color: #808080;">@param</span><span style="color: #008000;"> start
+     *            开始位置
+     * </span><span style="color: #808080;">@param</span><span style="color: #008000;"> end
+     *            结束位置, -1查询所有
+     * </span><span style="color: #808080;">@return</span>
+     <span style="color: #008000;">*/</span>
+    <span style="color: #0000ff;">public</span> Set&lt;String&gt; zRange(String key, <span style="color: #0000ff;">long</span> start, <span style="color: #0000ff;">long</span><span style="color: #000000;"> end) {
+        </span><span style="color: #0000ff;">return</span><span style="color: #000000;"> redisTemplate.opsForZSet().range(key, start, end);
+    }
+
+    </span><span style="color: #008000;">/**</span><span style="color: #008000;">
+     * 获取集合元素, 并且把score值也获取
+     *
+     * </span><span style="color: #808080;">@param</span><span style="color: #008000;"> key
+     * </span><span style="color: #808080;">@param</span><span style="color: #008000;"> start
+     * </span><span style="color: #808080;">@param</span><span style="color: #008000;"> end
+     * </span><span style="color: #808080;">@return</span>
+     <span style="color: #008000;">*/</span>
+    <span style="color: #0000ff;">public</span> Set&lt;ZSetOperations.TypedTuple&lt;String&gt;&gt; zRangeWithScores(String key, <span style="color: #0000ff;">long</span><span style="color: #000000;"> start,
+                                                                   </span><span style="color: #0000ff;">long</span><span style="color: #000000;"> end) {
+        </span><span style="color: #0000ff;">return</span><span style="color: #000000;"> redisTemplate.opsForZSet().rangeWithScores(key, start, end);
+    }
+
+    </span><span style="color: #008000;">/**</span><span style="color: #008000;">
+     * 根据Score值查询集合元素
+     *
+     * </span><span style="color: #808080;">@param</span><span style="color: #008000;"> key
+     * </span><span style="color: #808080;">@param</span><span style="color: #008000;"> min
+     *            最小值
+     * </span><span style="color: #808080;">@param</span><span style="color: #008000;"> max
+     *            最大值
+     * </span><span style="color: #808080;">@return</span>
+     <span style="color: #008000;">*/</span>
+    <span style="color: #0000ff;">public</span> Set&lt;String&gt; zRangeByScore(String key, <span style="color: #0000ff;">double</span> min, <span style="color: #0000ff;">double</span><span style="color: #000000;"> max) {
+        </span><span style="color: #0000ff;">return</span><span style="color: #000000;"> redisTemplate.opsForZSet().rangeByScore(key, min, max);
+    }
+
+    </span><span style="color: #008000;">/**</span><span style="color: #008000;">
+     * 根据Score值查询集合元素, 从小到大排序
+     *
+     * </span><span style="color: #808080;">@param</span><span style="color: #008000;"> key
+     * </span><span style="color: #808080;">@param</span><span style="color: #008000;"> min
+     *            最小值
+     * </span><span style="color: #808080;">@param</span><span style="color: #008000;"> max
+     *            最大值
+     * </span><span style="color: #808080;">@return</span>
+     <span style="color: #008000;">*/</span>
+    <span style="color: #0000ff;">public</span> Set&lt;ZSetOperations.TypedTuple&lt;String&gt;&gt;<span style="color: #000000;"> zRangeByScoreWithScores(String key,
+                                                                          </span><span style="color: #0000ff;">double</span> min, <span style="color: #0000ff;">double</span><span style="color: #000000;"> max) {
+        </span><span style="color: #0000ff;">return</span><span style="color: #000000;"> redisTemplate.opsForZSet().rangeByScoreWithScores(key, min, max);
+    }
+
+    </span><span style="color: #008000;">/**</span><span style="color: #008000;">
+     *
+     * </span><span style="color: #808080;">@param</span><span style="color: #008000;"> key
+     * </span><span style="color: #808080;">@param</span><span style="color: #008000;"> min
+     * </span><span style="color: #808080;">@param</span><span style="color: #008000;"> max
+     * </span><span style="color: #808080;">@param</span><span style="color: #008000;"> start
+     * </span><span style="color: #808080;">@param</span><span style="color: #008000;"> end
+     * </span><span style="color: #808080;">@return</span>
+     <span style="color: #008000;">*/</span>
+    <span style="color: #0000ff;">public</span> Set&lt;ZSetOperations.TypedTuple&lt;String&gt;&gt;<span style="color: #000000;"> zRangeByScoreWithScores(String key,
+                                                                          </span><span style="color: #0000ff;">double</span> min, <span style="color: #0000ff;">double</span> max, <span style="color: #0000ff;">long</span> start, <span style="color: #0000ff;">long</span><span style="color: #000000;"> end) {
+        </span><span style="color: #0000ff;">return</span><span style="color: #000000;"> redisTemplate.opsForZSet().rangeByScoreWithScores(key, min, max,
+                start, end);
+    }
+
+    </span><span style="color: #008000;">/**</span><span style="color: #008000;">
+     * 获取集合的元素, 从大到小排序
+     *
+     * </span><span style="color: #808080;">@param</span><span style="color: #008000;"> key
+     * </span><span style="color: #808080;">@param</span><span style="color: #008000;"> start
+     * </span><span style="color: #808080;">@param</span><span style="color: #008000;"> end
+     * </span><span style="color: #808080;">@return</span>
+     <span style="color: #008000;">*/</span>
+    <span style="color: #0000ff;">public</span> Set&lt;String&gt; zReverseRange(String key, <span style="color: #0000ff;">long</span> start, <span style="color: #0000ff;">long</span><span style="color: #000000;"> end) {
+        </span><span style="color: #0000ff;">return</span><span style="color: #000000;"> redisTemplate.opsForZSet().reverseRange(key, start, end);
+    }
+
+    </span><span style="color: #008000;">/**</span><span style="color: #008000;">
+     * 获取集合的元素, 从大到小排序, 并返回score值
+     *
+     * </span><span style="color: #808080;">@param</span><span style="color: #008000;"> key
+     * </span><span style="color: #808080;">@param</span><span style="color: #008000;"> start
+     * </span><span style="color: #808080;">@param</span><span style="color: #008000;"> end
+     * </span><span style="color: #808080;">@return</span>
+     <span style="color: #008000;">*/</span>
+    <span style="color: #0000ff;">public</span> Set&lt;ZSetOperations.TypedTuple&lt;String&gt;&gt;<span style="color: #000000;"> zReverseRangeWithScores(String key,
+                                                                          </span><span style="color: #0000ff;">long</span> start, <span style="color: #0000ff;">long</span><span style="color: #000000;"> end) {
+        </span><span style="color: #0000ff;">return</span><span style="color: #000000;"> redisTemplate.opsForZSet().reverseRangeWithScores(key, start,
+                end);
+    }
+
+    </span><span style="color: #008000;">/**</span><span style="color: #008000;">
+     * 根据Score值查询集合元素, 从大到小排序
+     *
+     * </span><span style="color: #808080;">@param</span><span style="color: #008000;"> key
+     * </span><span style="color: #808080;">@param</span><span style="color: #008000;"> min
+     * </span><span style="color: #808080;">@param</span><span style="color: #008000;"> max
+     * </span><span style="color: #808080;">@return</span>
+     <span style="color: #008000;">*/</span>
+    <span style="color: #0000ff;">public</span> Set&lt;String&gt; zReverseRangeByScore(String key, <span style="color: #0000ff;">double</span><span style="color: #000000;"> min,
+                                            </span><span style="color: #0000ff;">double</span><span style="color: #000000;"> max) {
+        </span><span style="color: #0000ff;">return</span><span style="color: #000000;"> redisTemplate.opsForZSet().reverseRangeByScore(key, min, max);
+    }
+
+    </span><span style="color: #008000;">/**</span><span style="color: #008000;">
+     * 根据Score值查询集合元素, 从大到小排序
+     *
+     * </span><span style="color: #808080;">@param</span><span style="color: #008000;"> key
+     * </span><span style="color: #808080;">@param</span><span style="color: #008000;"> min
+     * </span><span style="color: #808080;">@param</span><span style="color: #008000;"> max
+     * </span><span style="color: #808080;">@return</span>
+     <span style="color: #008000;">*/</span>
+    <span style="color: #0000ff;">public</span> Set&lt;ZSetOperations.TypedTuple&lt;String&gt;&gt;<span style="color: #000000;"> zReverseRangeByScoreWithScores(
+            String key, </span><span style="color: #0000ff;">double</span> min, <span style="color: #0000ff;">double</span><span style="color: #000000;"> max) {
+        </span><span style="color: #0000ff;">return</span><span style="color: #000000;"> redisTemplate.opsForZSet().reverseRangeByScoreWithScores(key,
+                min, max);
+    }
+
+    </span><span style="color: #008000;">/**</span><span style="color: #008000;">
+     *
+     * </span><span style="color: #808080;">@param</span><span style="color: #008000;"> key
+     * </span><span style="color: #808080;">@param</span><span style="color: #008000;"> min
+     * </span><span style="color: #808080;">@param</span><span style="color: #008000;"> max
+     * </span><span style="color: #808080;">@param</span><span style="color: #008000;"> start
+     * </span><span style="color: #808080;">@param</span><span style="color: #008000;"> end
+     * </span><span style="color: #808080;">@return</span>
+     <span style="color: #008000;">*/</span>
+    <span style="color: #0000ff;">public</span> Set&lt;String&gt; zReverseRangeByScore(String key, <span style="color: #0000ff;">double</span><span style="color: #000000;"> min,
+                                            </span><span style="color: #0000ff;">double</span> max, <span style="color: #0000ff;">long</span> start, <span style="color: #0000ff;">long</span><span style="color: #000000;"> end) {
+        </span><span style="color: #0000ff;">return</span><span style="color: #000000;"> redisTemplate.opsForZSet().reverseRangeByScore(key, min, max,
+                start, end);
+    }
+
+    </span><span style="color: #008000;">/**</span><span style="color: #008000;">
+     * 根据score值获取集合元素数量
+     *
+     * </span><span style="color: #808080;">@param</span><span style="color: #008000;"> key
+     * </span><span style="color: #808080;">@param</span><span style="color: #008000;"> min
+     * </span><span style="color: #808080;">@param</span><span style="color: #008000;"> max
+     * </span><span style="color: #808080;">@return</span>
+     <span style="color: #008000;">*/</span>
+    <span style="color: #0000ff;">public</span> Long zCount(String key, <span style="color: #0000ff;">double</span> min, <span style="color: #0000ff;">double</span><span style="color: #000000;"> max) {
+        </span><span style="color: #0000ff;">return</span><span style="color: #000000;"> redisTemplate.opsForZSet().count(key, min, max);
+    }
+
+    </span><span style="color: #008000;">/**</span><span style="color: #008000;">
+     * 获取集合大小
+     *
+     * </span><span style="color: #808080;">@param</span><span style="color: #008000;"> key
+     * </span><span style="color: #808080;">@return</span>
+     <span style="color: #008000;">*/</span>
+    <span style="color: #0000ff;">public</span><span style="color: #000000;"> Long zSize(String key) {
+        </span><span style="color: #0000ff;">return</span><span style="color: #000000;"> redisTemplate.opsForZSet().size(key);
+    }
+
+    </span><span style="color: #008000;">/**</span><span style="color: #008000;">
+     * 获取集合大小
+     *
+     * </span><span style="color: #808080;">@param</span><span style="color: #008000;"> key
+     * </span><span style="color: #808080;">@return</span>
+     <span style="color: #008000;">*/</span>
+    <span style="color: #0000ff;">public</span><span style="color: #000000;"> Long zZCard(String key) {
+        </span><span style="color: #0000ff;">return</span><span style="color: #000000;"> redisTemplate.opsForZSet().zCard(key);
+    }
+
+    </span><span style="color: #008000;">/**</span><span style="color: #008000;">
+     * 获取集合中value元素的score值
+     *
+     * </span><span style="color: #808080;">@param</span><span style="color: #008000;"> key
+     * </span><span style="color: #808080;">@param</span><span style="color: #008000;"> value
+     * </span><span style="color: #808080;">@return</span>
+     <span style="color: #008000;">*/</span>
+    <span style="color: #0000ff;">public</span><span style="color: #000000;"> Double zScore(String key, Object value) {
+        </span><span style="color: #0000ff;">return</span><span style="color: #000000;"> redisTemplate.opsForZSet().score(key, value);
+    }
+
+    </span><span style="color: #008000;">/**</span><span style="color: #008000;">
+     * 移除指定索引位置的成员
+     *
+     * </span><span style="color: #808080;">@param</span><span style="color: #008000;"> key
+     * </span><span style="color: #808080;">@param</span><span style="color: #008000;"> start
+     * </span><span style="color: #808080;">@param</span><span style="color: #008000;"> end
+     * </span><span style="color: #808080;">@return</span>
+     <span style="color: #008000;">*/</span>
+    <span style="color: #0000ff;">public</span> Long zRemoveRange(String key, <span style="color: #0000ff;">long</span> start, <span style="color: #0000ff;">long</span><span style="color: #000000;"> end) {
+        </span><span style="color: #0000ff;">return</span><span style="color: #000000;"> redisTemplate.opsForZSet().removeRange(key, start, end);
+    }
+
+    </span><span style="color: #008000;">/**</span><span style="color: #008000;">
+     * 根据指定的score值的范围来移除成员
+     *
+     * </span><span style="color: #808080;">@param</span><span style="color: #008000;"> key
+     * </span><span style="color: #808080;">@param</span><span style="color: #008000;"> min
+     * </span><span style="color: #808080;">@param</span><span style="color: #008000;"> max
+     * </span><span style="color: #808080;">@return</span>
+     <span style="color: #008000;">*/</span>
+    <span style="color: #0000ff;">public</span> Long zRemoveRangeByScore(String key, <span style="color: #0000ff;">double</span> min, <span style="color: #0000ff;">double</span><span style="color: #000000;"> max) {
+        </span><span style="color: #0000ff;">return</span><span style="color: #000000;"> redisTemplate.opsForZSet().removeRangeByScore(key, min, max);
+    }
+
+    </span><span style="color: #008000;">/**</span><span style="color: #008000;">
+     * 获取key和otherKey的并集并存储在destKey中
+     *
+     * </span><span style="color: #808080;">@param</span><span style="color: #008000;"> key
+     * </span><span style="color: #808080;">@param</span><span style="color: #008000;"> otherKey
+     * </span><span style="color: #808080;">@param</span><span style="color: #008000;"> destKey
+     * </span><span style="color: #808080;">@return</span>
+     <span style="color: #008000;">*/</span>
+    <span style="color: #0000ff;">public</span><span style="color: #000000;"> Long zUnionAndStore(String key, String otherKey, String destKey) {
+        </span><span style="color: #0000ff;">return</span><span style="color: #000000;"> redisTemplate.opsForZSet().unionAndStore(key, otherKey, destKey);
+    }
+
+    </span><span style="color: #008000;">/**</span><span style="color: #008000;">
+     *
+     * </span><span style="color: #808080;">@param</span><span style="color: #008000;"> key
+     * </span><span style="color: #808080;">@param</span><span style="color: #008000;"> otherKeys
+     * </span><span style="color: #808080;">@param</span><span style="color: #008000;"> destKey
+     * </span><span style="color: #808080;">@return</span>
+     <span style="color: #008000;">*/</span>
+    <span style="color: #0000ff;">public</span> Long zUnionAndStore(String key, Collection&lt;String&gt;<span style="color: #000000;"> otherKeys,
+                               String destKey) {
+        </span><span style="color: #0000ff;">return</span><span style="color: #000000;"> redisTemplate.opsForZSet()
+                .unionAndStore(key, otherKeys, destKey);
+    }
+
+    </span><span style="color: #008000;">/**</span><span style="color: #008000;">
+     * 交集
+     *
+     * </span><span style="color: #808080;">@param</span><span style="color: #008000;"> key
+     * </span><span style="color: #808080;">@param</span><span style="color: #008000;"> otherKey
+     * </span><span style="color: #808080;">@param</span><span style="color: #008000;"> destKey
+     * </span><span style="color: #808080;">@return</span>
+     <span style="color: #008000;">*/</span>
+    <span style="color: #0000ff;">public</span><span style="color: #000000;"> Long zIntersectAndStore(String key, String otherKey,
+                                   String destKey) {
+        </span><span style="color: #0000ff;">return</span><span style="color: #000000;"> redisTemplate.opsForZSet().intersectAndStore(key, otherKey,
+                destKey);
+    }
+
+    </span><span style="color: #008000;">/**</span><span style="color: #008000;">
+     * 交集
+     *
+     * </span><span style="color: #808080;">@param</span><span style="color: #008000;"> key
+     * </span><span style="color: #808080;">@param</span><span style="color: #008000;"> otherKeys
+     * </span><span style="color: #808080;">@param</span><span style="color: #008000;"> destKey
+     * </span><span style="color: #808080;">@return</span>
+     <span style="color: #008000;">*/</span>
+    <span style="color: #0000ff;">public</span> Long zIntersectAndStore(String key, Collection&lt;String&gt;<span style="color: #000000;"> otherKeys,
+                                   String destKey) {
+        </span><span style="color: #0000ff;">return</span><span style="color: #000000;"> redisTemplate.opsForZSet().intersectAndStore(key, otherKeys,
+                destKey);
+    }
+
+    </span><span style="color: #008000;">/**</span><span style="color: #008000;">
+     *
+     * </span><span style="color: #808080;">@param</span><span style="color: #008000;"> key
+     * </span><span style="color: #808080;">@param</span><span style="color: #008000;"> options
+     * </span><span style="color: #808080;">@return</span>
+     <span style="color: #008000;">*/</span>
+    <span style="color: #0000ff;">public</span> Cursor&lt;ZSetOperations.TypedTuple&lt;String&gt;&gt;<span style="color: #000000;"> zScan(String key, ScanOptions options) {
+        </span><span style="color: #0000ff;">return</span><span style="color: #000000;"> redisTemplate.opsForZSet().scan(key, options);
+    }
+
+}</span></code></pre>
+
+<span class="cnblogs_code_collapse">RedisUtil工具类</span>
+<h4>2.1.2 SpringBoot请求拦截控制　</h4>
+<p>　　用户登录时，验证用户名密码通过后。使用JWT生成唯一Token。保存至Redis中（key-&gt;生成的sessionID，value-&gt;生成的Token），设置Redis过期时间为2小时。以后每次用户发送请求时，都会拦截此Token。若Redis中不存在此Token，返回用户登录过期错误。若存在Token，会更新此Token过期时间为2小时。这样，解决了第一个问题，要求用户2小时不操作页面便自动退出。下面贴一个用户登录及请求拦截代码。</p>
+<src class="cnblogs_code" onclick="cnblogs_code_show('17839236-23bb-4a58-bb47-c527eff59b89')"><img id="code_img_closed_17839236-23bb-4a58-bb47-c527eff59b89" class="code_img_closed" src="./images/Redis应用0.png" alt="" /><img id="code_img_opened_17839236-23bb-4a58-bb47-c527eff59b89" class="code_img_opened" style="display: none;" onclick="cnblogs_code_hide('17839236-23bb-4a58-bb47-c527eff59b89',event)" src="./images/Redis应用1.png" alt="" />
+<src id="cnblogs_code_open_17839236-23bb-4a58-bb47-c527eff59b89" class="cnblogs_code_hide">
+<pre><code><span style="color: #008080;"> 1</span> <span style="color: #0000ff;">public</span><span style="color: #000000;"> String userLogin(UserInfo userInfo) {
+</span><span style="color: #008080;"> 2</span> 
+<span style="color: #008080;"> 3</span>         String oaName =<span style="color: #000000;"> userInfo.getOaName();
+</span><span style="color: #008080;"> 4</span>         String pswd =<span style="color: #000000;"> userInfo.getPswd();
+</span><span style="color: #008080;"> 5</span>         <span style="color: #008000;">//</span><span style="color: #008000;">判断用户名密码不为空</span>
+<span style="color: #008080;"> 6</span>         <span style="color: #0000ff;">if</span>(oaName == <span style="color: #0000ff;">null</span> || "".equals(oaName) || pswd == <span style="color: #0000ff;">null</span> || ""<span style="color: #000000;">.equals(pswd)){
+</span><span style="color: #008080;"> 7</span>             <span style="color: #0000ff;">throw</span> <span style="color: #0000ff;">new</span><span style="color: #000000;"> MessageException(MessageException.NO_EMPTY,MessageException.NO_EMPTY_MESSAGE);
+</span><span style="color: #008080;"> 8</span> <span style="color: #000000;">        }
+</span><span style="color: #008080;"> 9</span>         <span style="color: #008000;">//</span><span style="color: #008000;">数据库验证</span>
+<span style="color: #008080;">10</span>         List&lt;UserInfo&gt; userInfos =<span style="color: #000000;"> userInfoMapper.getUserByLogin(oaName,pswd);
+</span><span style="color: #008080;">11</span>         <span style="color: #0000ff;">if</span>(userInfos.size() == 0<span style="color: #000000;">) {
+</span><span style="color: #008080;">12</span>             <span style="color: #008000;">//</span><span style="color: #008000;"> 抛出自定义异常</span>
+<span style="color: #008080;">13</span>             <span style="color: #0000ff;">throw</span> <span style="color: #0000ff;">new</span><span style="color: #000000;"> MessageException(MessageException.LOGGING_ERROR,MessageException.LOGGING_ERROR_MESSAGE);
+</span><span style="color: #008080;">14</span> <span style="color: #000000;">        }
+</span><span style="color: #008080;">15</span>         <span style="color: #008000;">//</span><span style="color: #008000;">生成session,token</span>
+<span style="color: #008080;">16</span>         Long sessionID =<span style="color: #000000;"> JwtParseUtil.createSessionId();
+</span><span style="color: #008080;">17</span>         System.out.println("####登录用户session："+sessionID+"####"<span style="color: #000000;">);
+</span><span style="color: #008080;">18</span>         String token = JwtParseUtil.createJWT(userInfos.get(0).getOaName(),sessionID,userInfos.get(0<span style="color: #000000;">).getUserId());
+</span><span style="color: #008080;">19</span> 
+<span style="color: #008080;">20</span>         <span style="color: #008000;">//</span><span style="color: #008000;"> 获取登录IP（自己写的登录日志记录功能，可忽略）</span>
+<span style="color: #008080;">21</span>         String ipAddress =<span style="color: #000000;"> IpUtil.getIpAddress(getHttpServletRequest());
+</span><span style="color: #008080;">22</span> 
+<span style="color: #008080;">23</span>         <span style="color: #008000;">//</span><span style="color: #008000;"> 插入登录日志中</span>
+<span style="color: #008080;">24</span>         UserLoginStatistics userLoginStatistics = <span style="color: #0000ff;">new</span> UserLoginStatistics(sessionID,userInfos.get(0).getUserId(),<span style="color: #0000ff;">new</span> Date().getTime(),ipAddress,<span style="color: #0000ff;">null</span><span style="color: #000000;">);
+</span><span style="color: #008080;">25</span> <span style="color: #000000;">        userLoginStatisticsMapper.insert(userLoginStatistics);
+</span><span style="color: #008080;">26</span> 
+<span style="color: #008080;">27</span>         <span style="color: #008000;">//</span><span style="color: #008000;"> 用户Token存放在Redis中，Constant.TOKEN_EXPIRE_TIME为7200L，即2小时</span>
+<span style="color: #008080;">28</span> 
+<span style="color: #008080;">29</span>         redisUtil.set(sessionID+"_UTOKEN"<span style="color: #000000;">,token, Constant.TOKEN_EXPIRE_TIME);
+</span><span style="color: #008080;">30</span> 
+<span style="color: #008080;">31</span>         
+<span style="color: #008080;">32</span>         <span style="color: #0000ff;">return</span><span style="color: #000000;"> token;
+</span><span style="color: #008080;">33</span>     }</code></pre>
+
+<span class="cnblogs_code_collapse">登录代码</span>
+<src class="cnblogs_code" onclick="cnblogs_code_show('45621bf5-09c4-4503-a7cc-2d8b1b26c630')"><img id="code_img_closed_45621bf5-09c4-4503-a7cc-2d8b1b26c630" class="code_img_closed" src="./images/Redis应用0.png" alt="" /><img id="code_img_opened_45621bf5-09c4-4503-a7cc-2d8b1b26c630" class="code_img_opened" style="display: none;" onclick="cnblogs_code_hide('45621bf5-09c4-4503-a7cc-2d8b1b26c630',event)" src="./images/Redis应用1.png" alt="" />
+<src id="cnblogs_code_open_45621bf5-09c4-4503-a7cc-2d8b1b26c630" class="cnblogs_code_hide">
+<pre><code><span style="color: #008080;"> 1</span> <span style="color: #0000ff;">package</span><span style="color: #000000;"> com.boot.beanConfig;
+</span><span style="color: #008080;"> 2</span> 
+<span style="color: #008080;"> 3</span> <span style="color: #0000ff;">import</span><span style="color: #000000;"> com.boot.util.IpUtil;
+</span><span style="color: #008080;"> 4</span> <span style="color: #0000ff;">import</span><span style="color: #000000;"> com.boot.util.JwtParseUtil;
+</span><span style="color: #008080;"> 5</span> <span style="color: #0000ff;">import</span><span style="color: #000000;"> com.boot.util.MessageException;
+</span><span style="color: #008080;"> 6</span> <span style="color: #0000ff;">import</span><span style="color: #000000;"> com.boot.util.RedisUtil;
+</span><span style="color: #008080;"> 7</span> <span style="color: #0000ff;">import</span><span style="color: #000000;"> org.springframework.beans.factory.BeanFactory;
+</span><span style="color: #008080;"> 8</span> <span style="color: #0000ff;">import</span><span style="color: #000000;"> org.springframework.beans.factory.annotation.Autowired;
+</span><span style="color: #008080;"> 9</span> <span style="color: #0000ff;">import</span><span style="color: #000000;"> org.springframework.context.annotation.Configuration;
+</span><span style="color: #008080;">10</span> <span style="color: #0000ff;">import</span><span style="color: #000000;"> org.springframework.web.context.support.WebApplicationContextUtils;
+</span><span style="color: #008080;">11</span> <span style="color: #0000ff;">import</span><span style="color: #000000;"> org.springframework.web.servlet.HandlerInterceptor;
+</span><span style="color: #008080;">12</span> <span style="color: #0000ff;">import</span><span style="color: #000000;"> org.springframework.web.servlet.ModelAndView;
+</span><span style="color: #008080;">13</span> <span style="color: #0000ff;">import</span><span style="color: #000000;"> org.springframework.web.servlet.config.annotation.InterceptorRegistry;
+</span><span style="color: #008080;">14</span> <span style="color: #0000ff;">import</span><span style="color: #000000;"> org.springframework.web.servlet.config.annotation.WebMvcConfigurerAdapter;
+</span><span style="color: #008080;">15</span> 
+<span style="color: #008080;">16</span> <span style="color: #0000ff;">import</span><span style="color: #000000;"> javax.annotation.Resource;
+</span><span style="color: #008080;">17</span> <span style="color: #0000ff;">import</span><span style="color: #000000;"> javax.servlet.http.HttpServletRequest;
+</span><span style="color: #008080;">18</span> <span style="color: #0000ff;">import</span><span style="color: #000000;"> javax.servlet.http.HttpServletResponse;
+</span><span style="color: #008080;">19</span> 
+<span style="color: #008080;">20</span> <span style="color: #0000ff;">import</span> <span style="color: #0000ff;">static</span><span style="color: #000000;"> com.boot.util.MessageException.SYSTEM_UPDATE;
+</span><span style="color: #008080;">21</span> <span style="color: #0000ff;">import</span> <span style="color: #0000ff;">static</span><span style="color: #000000;"> com.boot.util.MessageException.SYSTEM_UPDATE_MESSAGE;
+</span><span style="color: #008080;">22</span> 
+<span style="color: #008080;">23</span> <span style="color: #008000;">/**</span>
+<span style="color: #008080;">24</span> <span style="color: #008000;"> * @Author  xiabing5
+</span><span style="color: #008080;">25</span> <span style="color: #008000;"> * @Create  2019/7/11 19:04
+</span><span style="color: #008080;">26</span> <span style="color: #008000;"> * @Desc 访问拦截器配置
+</span><span style="color: #008080;">27</span> <span style="color: #008000;"> *</span><span style="color: #008000;">*/</span>
+<span style="color: #008080;">28</span> <span style="color: #000000;">@Configuration
+</span><span style="color: #008080;">29</span> <span style="color: #0000ff;">public</span> <span style="color: #0000ff;">class</span> WebInterceptorConfig <span style="color: #0000ff;">extends</span><span style="color: #000000;"> WebMvcConfigurerAdapter {
+</span><span style="color: #008080;">30</span> <span style="color: #000000;">    @Resource
+</span><span style="color: #008080;">31</span>     <span style="color: #0000ff;">private</span><span style="color: #000000;"> RedisUtil redisUtil;
+</span><span style="color: #008080;">32</span> 
+<span style="color: #008080;">33</span> <span style="color: #000000;">    @Override
+</span><span style="color: #008080;">34</span>     <span style="color: #0000ff;">public</span> <span style="color: #0000ff;">void</span><span style="color: #000000;"> addInterceptors(InterceptorRegistry registry) {
+</span><span style="color: #008080;">35</span> 
+<span style="color: #008080;">36</span>         <span style="color: #008000;">//</span><span style="color: #008000;">注册自定义拦截器，添加拦截路径和排除拦截路径</span>
+<span style="color: #008080;">37</span>         registry.addInterceptor(<span style="color: #0000ff;">new</span> RequestInterceptorConfig()).addPathPatterns("/RestService/**").excludePathPatterns("/RestService/userRestService/userLogin","/RestService/userRestService/forgetPassword","/RestService/userRestService/updateOwnPswd"<span style="color: #000000;">);
+</span><span style="color: #008080;">38</span> <span style="color: #000000;">    }
+</span><span style="color: #008080;">39</span> 
+<span style="color: #008080;">40</span>     <span style="color: #008000;">/**</span>
+<span style="color: #008080;">41</span> <span style="color: #008000;">     * @Author  xiabing5
+</span><span style="color: #008080;">42</span> <span style="color: #008000;">     * @Create  2019/7/11 19:33
+</span><span style="color: #008080;">43</span> <span style="color: #008000;">     * @Desc token验证
+</span><span style="color: #008080;">44</span> <span style="color: #008000;">     *</span><span style="color: #008000;">*/</span>
+<span style="color: #008080;">45</span>     <span style="color: #0000ff;">public</span> <span style="color: #0000ff;">class</span> RequestInterceptorConfig <span style="color: #0000ff;">implements</span><span style="color: #000000;"> HandlerInterceptor {
+</span><span style="color: #008080;">46</span> 
+<span style="color: #008080;">47</span> <span style="color: #000000;">        @Override
+</span><span style="color: #008080;">48</span>         <span style="color: #0000ff;">public</span> <span style="color: #0000ff;">boolean</span> preHandle(HttpServletRequest httpServletRequest, HttpServletResponse httpServletResponse, Object o) <span style="color: #0000ff;">throws</span><span style="color: #000000;"> Exception {
+</span><span style="color: #008080;">49</span>             <span style="color: #008000;">//</span><span style="color: #008000;"> 防止复杂请求先发的options请求被拦截</span>
+<span style="color: #008080;">50</span>             <span style="color: #0000ff;">if</span>("OPTIONS"<span style="color: #000000;">.equals(httpServletRequest.getMethod())) {
+</span><span style="color: #008080;">51</span>                 <span style="color: #0000ff;">return</span> <span style="color: #0000ff;">true</span><span style="color: #000000;">;
+</span><span style="color: #008080;">52</span> <span style="color: #000000;">            }
+</span><span style="color: #008080;">53</span> 
+<span style="color: #008080;">54</span>             System.out.println("#######进入权限验证#######"<span style="color: #000000;">);
+</span><span style="color: #008080;">55</span>             String token = httpServletRequest.getHeader("token"<span style="color: #000000;">);
+</span><span style="color: #008080;">56</span> 
+<span style="color: #008080;">57</span>             Long sessionID =<span style="color: #000000;"> JwtParseUtil.getSessionIdByJWT(token);
+</span><span style="color: #008080;">58</span>             <span style="color: #0000ff;">if</span>( !redisUtil.exists(sessionID+"_UTOKEN"<span style="color: #000000;">)){
+</span><span style="color: #008080;">59</span>                 <span style="color: #0000ff;">throw</span> <span style="color: #0000ff;">new</span><span style="color: #000000;"> MessageException(MessageException.USER_INFO_OUTTIME,MessageException.USER_INFO_OUTTIME_MESSAGE);
+</span><span style="color: #008080;">60</span> <span style="color: #000000;">            }
+</span><span style="color: #008080;">61</span> 
+<span style="color: #008080;">62</span>             <span style="color: #0000ff;">if</span>(token == <span style="color: #0000ff;">null</span> || ""<span style="color: #000000;">.equals(token)) {
+</span><span style="color: #008080;">63</span>                 System.out.println("#######被拦截#######"<span style="color: #000000;">);
+</span><span style="color: #008080;">64</span>                 <span style="color: #0000ff;">throw</span> <span style="color: #0000ff;">new</span><span style="color: #000000;"> MessageException(MessageException.NO_LOGIN,MessageException.NO_LOGIN_MESSAGE);
+</span><span style="color: #008080;">65</span> <span style="color: #000000;">            }
+</span><span style="color: #008080;">66</span>             <span style="color: #0000ff;">return</span> <span style="color: #0000ff;">true</span><span style="color: #000000;">;
+</span><span style="color: #008080;">67</span> <span style="color: #000000;">        }
+</span><span style="color: #008080;">68</span> 
+<span style="color: #008080;">69</span> <span style="color: #000000;">        @Override
+</span><span style="color: #008080;">70</span>         <span style="color: #0000ff;">public</span> <span style="color: #0000ff;">void</span> postHandle(HttpServletRequest httpServletRequest, HttpServletResponse httpServletResponse, Object o, ModelAndView modelAndView) <span style="color: #0000ff;">throws</span><span style="color: #000000;"> Exception {
+</span><span style="color: #008080;">71</span> 
+<span style="color: #008080;">72</span> <span style="color: #000000;">        }
+</span><span style="color: #008080;">73</span> 
+<span style="color: #008080;">74</span> <span style="color: #000000;">        @Override
+</span><span style="color: #008080;">75</span>         <span style="color: #0000ff;">public</span> <span style="color: #0000ff;">void</span> afterCompletion(HttpServletRequest httpServletRequest, HttpServletResponse httpServletResponse, Object o, Exception e) <span style="color: #0000ff;">throws</span><span style="color: #000000;"> Exception {
+</span><span style="color: #008080;">76</span> 
+<span style="color: #008080;">77</span> <span style="color: #000000;">        }
+</span><span style="color: #008080;">78</span> <span style="color: #000000;">    }
+</span><span style="color: #008080;">79</span> 
+<span style="color: #008080;">80</span> }</code></pre>
+
+<span class="cnblogs_code_collapse">SpringBoot请求拦截</span>
+<h3>2.2　Redis中key过期监听</h3>
+<p>　　后台日志系统要记录用户登录退出操作。对于正常退出用户可以在退出时写日志到数据库，非正常退出用户就无法记录日志。使用Redis的key过期监听功能，后台订阅Redis的过期消息通知，Token过期时，后台就会监听此token，通过JWT解析出用户ID和sessionID，写入日志。这样就解决了第二个问题，后台日志要记录每位用户登录登出时间。下面贴一个Redis的Key过期监听配置。</p>
+<src class="cnblogs_code" onclick="cnblogs_code_show('7464dfaf-0e89-4952-9a3b-1aaf7006d696')"><img id="code_img_closed_7464dfaf-0e89-4952-9a3b-1aaf7006d696" class="code_img_closed" src="./images/Redis应用0.png" alt="" /><img id="code_img_opened_7464dfaf-0e89-4952-9a3b-1aaf7006d696" class="code_img_opened" style="display: none;" onclick="cnblogs_code_hide('7464dfaf-0e89-4952-9a3b-1aaf7006d696',event)" src="./images/Redis应用1.png" alt="" />
+<src id="cnblogs_code_open_7464dfaf-0e89-4952-9a3b-1aaf7006d696" class="cnblogs_code_hide">
+<pre><code><span style="color: #0000ff;">package</span><span style="color: #000000;"> com.boot.listen;
+
+</span><span style="color: #0000ff;">import</span><span style="color: #000000;"> com.boot.mapper.UserLoginStatisticsMapper;
+</span><span style="color: #0000ff;">import</span><span style="color: #000000;"> com.boot.pojo.UserLoginStatistics;
+</span><span style="color: #0000ff;">import</span><span style="color: #000000;"> org.springframework.beans.factory.annotation.Autowired;
+</span><span style="color: #0000ff;">import</span><span style="color: #000000;"> org.springframework.data.redis.connection.Message;
+</span><span style="color: #0000ff;">import</span><span style="color: #000000;"> org.springframework.data.redis.listener.KeyExpirationEventMessageListener;
+</span><span style="color: #0000ff;">import</span><span style="color: #000000;"> org.springframework.data.redis.listener.RedisMessageListenerContainer;
+</span><span style="color: #0000ff;">import</span><span style="color: #000000;"> org.springframework.stereotype.Component;
+
+</span><span style="color: #0000ff;">import</span><span style="color: #000000;"> java.util.Date;
+
+</span><span style="color: #008000;">/**</span><span style="color: #008000;">
+ * @Author  xiabing5
+ * @Create  2019/8/6 14:53
+ * @Desc    过期监听操作
+ *</span><span style="color: #008000;">*/</span><span style="color: #000000;">
+@Component
+</span><span style="color: #0000ff;">public</span> <span style="color: #0000ff;">class</span> RedisKeyExpirationListener <span style="color: #0000ff;">extends</span><span style="color: #000000;"> KeyExpirationEventMessageListener {
+
+    @Autowired
+    </span><span style="color: #0000ff;">private</span><span style="color: #000000;"> UserLoginStatisticsMapper userLoginStatisticsMapper;
+
+    </span><span style="color: #0000ff;">public</span><span style="color: #000000;"> RedisKeyExpirationListener(RedisMessageListenerContainer listenerContainer) {
+        </span><span style="color: #0000ff;">super</span><span style="color: #000000;">(listenerContainer);
+    }
+
+    @Override
+    </span><span style="color: #0000ff;">public</span> <span style="color: #0000ff;">void</span> onMessage(Message message, <span style="color: #0000ff;">byte</span><span style="color: #000000;">[] pattern) {
+        </span><span style="color: #008000;">//</span><span style="color: #008000;"> 用户做自己的业务处理即可,message.toString()可以获取失效的key</span>
+        String expiredKey =<span style="color: #000000;"> message.toString();
+        </span><span style="color: #008000;">//</span><span style="color: #008000;"> 捕获超时退出的token</span>
+        <span style="color: #0000ff;">if</span>(expiredKey.contains("_UTOKEN"<span style="color: #000000;">)) {
+            String session </span>= expiredKey.substring(expiredKey.indexOf("1"),expiredKey.indexOf("_"<span style="color: #000000;">));
+            </span><span style="color: #0000ff;">if</span>(session != <span style="color: #0000ff;">null</span><span style="color: #000000;">) {
+                </span><span style="color: #0000ff;">try</span><span style="color: #000000;">{
+                    Long sessionId </span>=<span style="color: #000000;"> Long.valueOf(session);
+                    UserLoginStatistics userLoginStatistics </span>= <span style="color: #0000ff;">new</span> UserLoginStatistics(sessionId,<span style="color: #0000ff;">null</span>,<span style="color: #0000ff;">null</span>,<span style="color: #0000ff;">null</span>,<span style="color: #0000ff;">new</span><span style="color: #000000;"> Date().getTime());
+                    userLoginStatisticsMapper.update(userLoginStatistics);
+                }</span><span style="color: #0000ff;">catch</span><span style="color: #000000;"> (Exception e) {
+                    e.printStackTrace();
+                }
+            }
+            System.out.println(</span>"#########清除你#########"+<span style="color: #000000;">session);
+        }
+    }
+}</span></code></pre>
+
+<span class="cnblogs_code_collapse">Redis过期监听</span>
+<src class="cnblogs_code" onclick="cnblogs_code_show('929c8c80-a36e-46c8-8bef-ac394253e79e')"><img id="code_img_closed_929c8c80-a36e-46c8-8bef-ac394253e79e" class="code_img_closed" src="./images/Redis应用0.png" alt="" /><img id="code_img_opened_929c8c80-a36e-46c8-8bef-ac394253e79e" class="code_img_opened" style="display: none;" onclick="cnblogs_code_hide('929c8c80-a36e-46c8-8bef-ac394253e79e',event)" src="./images/Redis应用1.png" alt="" />
+<src id="cnblogs_code_open_929c8c80-a36e-46c8-8bef-ac394253e79e" class="cnblogs_code_hide">
+<pre><code><span style="color: #008080;"> 1</span> <span style="color: #0000ff;">package</span><span style="color: #000000;"> com.boot.beanConfig;
+</span><span style="color: #008080;"> 2</span> 
+<span style="color: #008080;"> 3</span> <span style="color: #0000ff;">import</span><span style="color: #000000;"> org.springframework.context.annotation.Bean;
+</span><span style="color: #008080;"> 4</span> <span style="color: #0000ff;">import</span><span style="color: #000000;"> org.springframework.context.annotation.Configuration;
+</span><span style="color: #008080;"> 5</span> <span style="color: #0000ff;">import</span><span style="color: #000000;"> org.springframework.data.redis.connection.RedisConnectionFactory;
+</span><span style="color: #008080;"> 6</span> <span style="color: #0000ff;">import</span><span style="color: #000000;"> org.springframework.data.redis.listener.PatternTopic;
+</span><span style="color: #008080;"> 7</span> <span style="color: #0000ff;">import</span><span style="color: #000000;"> org.springframework.data.redis.listener.RedisMessageListenerContainer;
+</span><span style="color: #008080;"> 8</span> 
+<span style="color: #008080;"> 9</span> <span style="color: #008000;">/**</span>
+<span style="color: #008080;">10</span> <span style="color: #008000;"> * @Author  xiabing5
+</span><span style="color: #008080;">11</span> <span style="color: #008000;"> * @Create  2019/8/6 14:46
+</span><span style="color: #008080;">12</span> <span style="color: #008000;"> * @Desc    监听redis中Key过期事件
+</span><span style="color: #008080;">13</span> <span style="color: #008000;"> *</span><span style="color: #008000;">*/</span>
+<span style="color: #008080;">14</span> <span style="color: #000000;">@Configuration
+</span><span style="color: #008080;">15</span> <span style="color: #0000ff;">public</span> <span style="color: #0000ff;">class</span><span style="color: #000000;"> RedisListenerConfig {
+</span><span style="color: #008080;">16</span> <span style="color: #000000;">    @Bean
+</span><span style="color: #008080;">17</span> <span style="color: #000000;">    RedisMessageListenerContainer container(RedisConnectionFactory connectionFactory) {
+</span><span style="color: #008080;">18</span> 
+<span style="color: #008080;">19</span>         RedisMessageListenerContainer container = <span style="color: #0000ff;">new</span><span style="color: #000000;"> RedisMessageListenerContainer();
+</span><span style="color: #008080;">20</span> <span style="color: #000000;">        container.setConnectionFactory(connectionFactory);
+</span><span style="color: #008080;">21</span>         <span style="color: #008000;">//</span><span style="color: #008000;">container.addMessageListener(new RedisKeyExpirationListener(container), new PatternTopic("__keyevent@0__:expired"));</span>
+<span style="color: #008080;">22</span>         <span style="color: #0000ff;">return</span><span style="color: #000000;"> container;
+</span><span style="color: #008080;">23</span> <span style="color: #000000;">    }
+</span><span style="color: #008080;">24</span> }</code></pre>
+
+<span class="cnblogs_code_collapse">Redis过期监听</span>
+<h3>2.3　 项目初始化时将数据库指定数据返回Redis中</h3>
+<p>　　此次操作基本设计业务操作，此处便不做详细介绍。下面贴一个SpringBoot初始化执行业务的接口。</p>
+<src class="cnblogs_code" onclick="cnblogs_code_show('7245af96-ef7e-41ed-987d-27f14b6a030c')"><img id="code_img_closed_7245af96-ef7e-41ed-987d-27f14b6a030c" class="code_img_closed" src="./images/Redis应用0.png" alt="" /><img id="code_img_opened_7245af96-ef7e-41ed-987d-27f14b6a030c" class="code_img_opened" style="display: none;" onclick="cnblogs_code_hide('7245af96-ef7e-41ed-987d-27f14b6a030c',event)" src="./images/Redis应用1.png" alt="" />
+<src id="cnblogs_code_open_7245af96-ef7e-41ed-987d-27f14b6a030c" class="cnblogs_code_hide">
+<pre><code><span style="color: #008080;"> 1</span> <span style="color: #0000ff;">package</span><span style="color: #000000;"> com.boot.beanConfig;
+</span><span style="color: #008080;"> 2</span> 
+<span style="color: #008080;"> 3</span> <span style="color: #0000ff;">import</span><span style="color: #000000;"> org.springframework.boot.CommandLineRunner;
+</span><span style="color: #008080;"> 4</span> <span style="color: #0000ff;">import</span><span style="color: #000000;"> org.springframework.stereotype.Component;
+</span><span style="color: #008080;"> 5</span> 
+<span style="color: #008080;"> 6</span> <span style="color: #008000;">/**</span>
+<span style="color: #008080;"> 7</span> <span style="color: #008000;"> * @Author  xiabing5
+</span><span style="color: #008080;"> 8</span> <span style="color: #008000;"> * @Create  2019/8/27 10:04
+</span><span style="color: #008080;"> 9</span> <span style="color: #008000;"> * @Desc    容器启动时执行方法
+</span><span style="color: #008080;">10</span> <span style="color: #008000;"> *</span><span style="color: #008000;">*/</span>
+<span style="color: #008080;">11</span> <span style="color: #000000;">@Component
+</span><span style="color: #008080;">12</span> <span style="color: #0000ff;">public</span> <span style="color: #0000ff;">class</span> InitRunner <span style="color: #0000ff;">implements</span><span style="color: #000000;"> CommandLineRunner{
+</span><span style="color: #008080;">13</span> 
+<span style="color: #008080;">14</span> <span style="color: #000000;">    @Override
+</span><span style="color: #008080;">15</span>     <span style="color: #0000ff;">public</span> <span style="color: #0000ff;">void</span> run(String... strings) <span style="color: #0000ff;">throws</span><span style="color: #000000;"> Exception {
+</span><span style="color: #008080;">16</span>         System.out.println("###执行方法###"<span style="color: #000000;">);
+</span><span style="color: #008080;">17</span> <span style="color: #000000;">    }
+</span><span style="color: #008080;">18</span> 
+<span style="color: #008080;">19</span>     <span style="color: #008000;">//</span><span style="color: #008000;"> 存放lable的key-value键值对</span>
+<span style="color: #008080;">20</span>     <span style="color: #0000ff;">private</span> <span style="color: #0000ff;">static</span> <span style="color: #0000ff;">void</span><span style="color: #000000;"> putInfoToRedis() {
+</span><span style="color: #008080;">21</span> 
+<span style="color: #008080;">22</span> <span style="color: #000000;">    }
+</span><span style="color: #008080;">23</span> }</code></pre>
+
+<span class="cnblogs_code_collapse">SpringBoot初始化</span>
+<h2>3.　总结</h2>
+<p>　　关于Redis集群在liunx环境中配置及Java配置Redis，大家请自行百度--- 由于此次是自己第一次写Blog，有很多写的不好的地方，愿见谅。本文章全是手打，项目来自自己的小Demo。期待自己下次写会有进步-----</p>
+<p>&nbsp;</p>
+
+</div><hr><script charset='utf-8' src='../../js/sming.js'></script></body></html>

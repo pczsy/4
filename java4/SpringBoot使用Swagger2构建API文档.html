@@ -1,0 +1,90 @@
+<html><head><meta charset='utf-8'><meta name='viewport' content='width=device-width, initial-scale=1'>
+<meta name='applicable-device' content='pc'><meta name='keywords' content='电脑,电脑讲解,电脑技术,编程,电脑故障维修SpringBoot使用Swagger2构建API文档' />
+<script src='../../highlight/highlight.pack.js'></script>
+<link rel='stylesheet' type='text/css' href='../../highlight/styles/monokai.css'/>
+
+<link rel='stylesheet' href='../../fenxiang/dist/css/share.min.css'>
+<script src='../../fenxiang/src/js/social-share.js'></script>
+<script src='../../fenxiang/src/js/qrcode.js'></script>
+
+</head><body><script>hljs.initHighlightingOnLoad();</script><script>
+var system ={};  
+var p = navigator.platform;       
+system.win = p.indexOf('Win') == 0;  
+system.mac = p.indexOf('Mac') == 0;  
+system.x11 = (p == 'X11') || (p.indexOf('Linux') == 0);     
+if(system.win||system.mac||system.xll){
+document.write("<link href='../css/3.css' rel='stylesheet' type='text/css'>");}else{ document.write("<link href='../css/3wap.css' rel='stylesheet' type='text/css'>");}</script><script src='../../js/3.js'></script><div class='div2'><div class='heading_nav'><ul><div><li><a href='../../index.html'>首页</a></li>
+</div><div onclick='hidden1()' >分享</div>
+</ul></div></div>
+<div id='heading_nav2'> 
+<li class='row' >
+<div class='social-share' data-mode='prepend'><a href='javascript:' class='social-share-icon icon-heart'></a></div></li></div><script charset='utf-8' src='../../3/js/hengfu.js'></script><script charset='utf-8' src='../../3/js/hengfu2.js'></script><hr><div class='div1'><div class='biaoti'><center>SpringBoot使用Swagger2构建API文档</center></div><div class='banquan'>原文出处:本文由博客园博主源java提供。<br/>
+原文连接:https://www.cnblogs.com/xueziyeya/p/11801508.html</div><br>
+    <h2>1、Swagger2<span style="font-family: 黑体;">介绍</span></h2>
+<p>　　Swagger2<span style="font-family: 宋体;">这套自动化文档工具来生成文档，它可以轻松的整合到</span><span style="font-family: Calibri;">Spring Boot</span><span style="font-family: 宋体;">中，并与</span><span style="font-family: Calibri;">Spring MVC</span><span style="font-family: 宋体;">程序配合组织出强大</span><span style="font-family: Calibri;">RESTful API</span><span style="font-family: 宋体;">文档。</span></p>
+<h2>2、SpringBoot<span style="font-family: 黑体;">开启</span>Swagger2<span style="font-family: 黑体;">支持</span></h2>
+<p><span style="font-family: 黑体;">　　1、导入依赖</span></p>
+<p>&nbsp;</p>
+<src class="cnblogs_code">
+<pre><code>&lt;dependency&gt;
+            &lt;groupId&gt;io.springfox&lt;/groupId&gt;
+            &lt;artifactId&gt;springfox-swagger2&lt;/artifactId&gt;
+            &lt;version&gt;2.9.2&lt;/version&gt;
+        &lt;/dependency&gt;
+
+        &lt;dependency&gt;
+            &lt;groupId&gt;io.springfox&lt;/groupId&gt;
+            &lt;artifactId&gt;springfox-swagger-ui&lt;/artifactId&gt;
+            &lt;version&gt;2.9.2&lt;/version&gt;
+        &lt;/dependency&gt;</code></pre>
+
+<p>&nbsp;</p>
+<p>　　2、设置配置类</p>
+<src class="cnblogs_code">
+<pre><code><span style="color: #0000ff;">package</span><span style="color: #000000;"> com.offcn.demo.config;
+
+</span><span style="color: #0000ff;">import</span><span style="color: #000000;"> org.springframework.context.annotation.Bean;
+</span><span style="color: #0000ff;">import</span><span style="color: #000000;"> org.springframework.context.annotation.Configuration;
+</span><span style="color: #0000ff;">import</span><span style="color: #000000;"> springfox.documentation.builders.ApiInfoBuilder;
+</span><span style="color: #0000ff;">import</span><span style="color: #000000;"> springfox.documentation.builders.PathSelectors;
+</span><span style="color: #0000ff;">import</span><span style="color: #000000;"> springfox.documentation.builders.RequestHandlerSelectors;
+</span><span style="color: #0000ff;">import</span><span style="color: #000000;"> springfox.documentation.service.ApiInfo;
+</span><span style="color: #0000ff;">import</span><span style="color: #000000;"> springfox.documentation.spi.DocumentationType;
+</span><span style="color: #0000ff;">import</span><span style="color: #000000;"> springfox.documentation.spring.web.plugins.Docket;
+</span><span style="color: #0000ff;">import</span><span style="color: #000000;"> springfox.documentation.swagger2.annotations.EnableSwagger2;
+
+@Configuration
+@EnableSwagger2
+</span><span style="color: #0000ff;">public</span> <span style="color: #0000ff;">class</span><span style="color: #000000;"> SwaggerConfig {
+
+    </span><span style="color: #0000ff;">public</span><span style="color: #000000;"> ApiInfo apiInfo(){
+        </span><span style="color: #0000ff;">return</span> <span style="color: #0000ff;">new</span> ApiInfoBuilder().title("Spring Boot中使用Swagger2构建RESTful APIs").description("u就业"<span style="color: #000000;">)
+                .termsOfServiceUrl(</span>"http://www.ujiuye.com/").contact("Sunny").version("0.0.1"<span style="color: #000000;">).build();
+    }
+
+    @Bean
+    </span><span style="color: #0000ff;">public</span><span style="color: #000000;"> Docket docket(){
+        </span><span style="color: #0000ff;">return</span>  <span style="color: #0000ff;">new</span> Docket(DocumentationType.SWAGGER_2).apiInfo(apiInfo()).select().apis(RequestHandlerSelectors.basePackage("com.offcn.demo.Controller"<span style="color: #000000;">))
+                .paths(PathSelectors.any()).build();
+    }
+}</span></code></pre>
+
+<p>　　3、在controller层中的代码添加文档注释</p>
+<p><span style="font-family: 宋体;">通过</span>@ApiOperation<span style="font-family: 宋体;">注解来给</span>API<span style="font-family: 宋体;">增加说明</span>&nbsp;通过@ApiImplicitParams@ApiImplicitParam注解来给参数增加说明</p>
+<src class="cnblogs_code">
+<pre><code>@GetMapping("/getMap"<span style="color: #000000;">)
+@ApiOperation(value </span>= "获得数据",notes = "获得数据"<span style="color: #000000;">)
+@ApiImplicitParam(name </span>= "id" ,value = "用户id",required = <span style="color: #0000ff;">true</span>,dataType = "Integer"<span style="color: #000000;">)//required是否是必填属性
+</span><span style="color: #0000ff;">public</span><span style="color: #000000;"> Map getMap(Integer id){
+     Map</span>&lt;String,String&gt; map=<span style="color: #0000ff;">new</span> HashMap&lt;&gt;<span style="color: #000000;">();
+     map.put(</span>"name","xzy"<span style="color: #000000;">);
+   　</span><span style="color: #0000ff;">return</span><span style="color: #000000;"> map;<br />}<br /></span></code></pre>
+<pre><code>@RequestMapping("/test/{id}")<br />@ApiOperation(value = "输出汽车的id和name",notes = "输出汽车的id和name")<br />@ApiImplicitParams({<br />        @ApiImplicitParam(name = "id",value = "汽车id",dataType = "Integer",required = true),<br />        @ApiImplicitParam(name = "name",value = "汽车牌子",dataType = "String",required = true)<br />})<br />public Car getCar(@PathVariable("id") Integer id, @RequestParam("name") String name){<br />    Car c = new Car(id, name, 100000, new Date());<br />    return c;<br />}</code></pre>
+
+<p>　　　4、查看生成的文档</p>
+<p>　　http://localhost:8080/swagger-ui.html</p>
+<p>&nbsp;</p>
+<p>&nbsp;</p>
+
+</div><hr><script charset='utf-8' src='../../js/sming.js'></script></body></html>

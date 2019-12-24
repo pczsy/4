@@ -1,0 +1,169 @@
+<html><head><meta charset='utf-8'><meta name='viewport' content='width=device-width, initial-scale=1'>
+<meta name='applicable-device' content='pc'><meta name='keywords' content='电脑,电脑讲解,电脑技术,编程,电脑故障维修Spring Boot 二十个注解' />
+<script src='../../highlight/highlight.pack.js'></script>
+<link rel='stylesheet' type='text/css' href='../../highlight/styles/monokai.css'/>
+
+<link rel='stylesheet' href='../../fenxiang/dist/css/share.min.css'>
+<script src='../../fenxiang/src/js/social-share.js'></script>
+<script src='../../fenxiang/src/js/qrcode.js'></script>
+
+</head><body><script>hljs.initHighlightingOnLoad();</script><script>
+var system ={};  
+var p = navigator.platform;       
+system.win = p.indexOf('Win') == 0;  
+system.mac = p.indexOf('Mac') == 0;  
+system.x11 = (p == 'X11') || (p.indexOf('Linux') == 0);     
+if(system.win||system.mac||system.xll){
+document.write("<link href='../css/3.css' rel='stylesheet' type='text/css'>");}else{ document.write("<link href='../css/3wap.css' rel='stylesheet' type='text/css'>");}</script><script src='../../js/3.js'></script><div class='div2'><div class='heading_nav'><ul><div><li><a href='../../index.html'>首页</a></li>
+</div><div onclick='hidden1()' >分享</div>
+</ul></div></div>
+<div id='heading_nav2'> 
+<li class='row' >
+<div class='social-share' data-mode='prepend'><a href='javascript:' class='social-share-icon icon-heart'></a></div></li></div><script charset='utf-8' src='../../3/js/hengfu.js'></script><script charset='utf-8' src='../../3/js/hengfu2.js'></script><hr><div class='div1'><div class='biaoti'><center>Spring Boot 二十个注解</center></div><div class='banquan'>原文出处:本文由博客园博主涛姐涛哥提供。<br/>
+原文连接:https://www.cnblogs.com/taojietaoge/p/11656409.html</div><br>
+    <p style="text-align: center;"><span style="color: #ff00ff;"><strong><em><span style="font-size: 18pt;">Spring Boot 二十个注解</span></em></strong></span></p>
+<p><span style="font-size: 15px;">&nbsp;</span></p>
+<p><span style="color: #008000;"><strong><em><span style="font-size: 14pt;">占据无力拥有的东西是一种悲哀。</span></em></strong></span></p>
+<p><span style="color: #008000;"><strong><em><span style="font-size: 14pt;">　　Cold on the outside passionate on the inside.</span></em></strong></span></p>
+<p><span style="font-size: 15px;">&nbsp;</span></p>
+<p><span style="font-size: 15px;"><span style="color: #3366ff; font-size: 18px;"><em><strong>背景</strong></em></span>：Spring Boot 注解的强大毋庸置疑，使用其注解可以大量减少XML 等复杂的配置文件，令Java 代码更纯，开发更简单高效，记下一些常用的Spring Boot Annotations，不包括那些在Spring Boot 使用的JPA 和MyBatis 注解。</span></p>
+<p><span style="color: #0000ff; font-size: 18px;"><strong><em>一、@SpringBootApplication</em></strong></span></p>
+<p><span style="font-size: 15px;">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; @SpringBootApplication 注解用于声明自动配置，即让Spring Boot 自动为程序进行必要的配置；@SpringBootApplication 注解配置等同于@Configuration、@EnableAutoConfiguration 和@ComponentScan 三个注解的配置。</span></p>
+<src class="cnblogs_code">
+<pre><code><span style="font-size: 15px;"><span style="color: #008080;"> 1</span> <span style="color: #0000ff;">import</span><span style="color: #000000;"> org.springframework.boot.SpringApplication;
+</span><span style="color: #008080;"> 2</span> <span style="color: #0000ff;">import</span><span style="color: #000000;"> org.springframework.boot.autoconfigure.EnableAutoConfiguration;
+</span><span style="color: #008080;"> 3</span> <span style="color: #0000ff;">import</span><span style="color: #000000;"> org.springframework.boot.autoconfigure.SpringBootApplication;
+</span><span style="color: #008080;"> 4</span> <span style="color: #0000ff;">import</span><span style="color: #000000;"> org.springframework.context.annotation.ComponentScan;
+</span><span style="color: #008080;"> 5</span> <span style="color: #0000ff;">import</span><span style="color: #000000;"> org.springframework.context.annotation.Configuration;
+</span><span style="color: #008080;"> 6</span> 
+<span style="color: #008080;"> 7</span> <span style="color: #000000;">@SpringBootApplication
+</span><span style="color: #008080;"> 8</span> <span style="color: #008000;">/*</span><span style="color: #008000;">@Configuration  三者只和等同于 @SpringBootApplication 注解进行自动配置
+</span><span style="color: #008080;"> 9</span> <span style="color: #008000;">@EnableAutoConfiguration
+</span><span style="color: #008080;">10</span> <span style="color: #008000;">@ComponentScan</span><span style="color: #008000;">*/</span>
+<span style="color: #008080;">11</span> <span style="color: #0000ff;">public</span> <span style="color: #0000ff;">class</span><span style="color: #000000;"> JzxyApplication {
+</span><span style="color: #008080;">12</span> 
+<span style="color: #008080;">13</span>     <span style="color: #0000ff;">public</span> <span style="color: #0000ff;">static</span> <span style="color: #0000ff;">void</span><span style="color: #000000;"> main(String[] args) {
+</span><span style="color: #008080;">14</span>         SpringApplication.run(JzxyApplication.<span style="color: #0000ff;">class</span><span style="color: #000000;">, args);
+</span><span style="color: #008080;">15</span>         
+<span style="color: #008080;">16</span> <span style="color: #000000;">    }
+</span><span style="color: #008080;">17</span> 
+<span style="color: #008080;">18</span> }</span></code></pre>
+
+<p><span style="color: #0000ff; font-size: 18px;"><strong><em>二、@Contronller</em></strong></span></p>
+<p><span style="font-size: 15px;">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; @Contronller 注解用于定义该类属于控制器类，因为在Sping Boot 项目中是由控制器负责将用户请求的URL 转发到对应的服务接口（Service 服务层），So使用其是必不可少。</span></p>
+<src class="cnblogs_code">
+<pre><code><span style="font-size: 15px;"><span style="color: #008080;"> 1</span> <span style="color: #008000;">/**</span>
+<span style="color: #008080;"> 2</span> <span style="color: #008000;"> * 定义控制器类 @Controller 
+</span><span style="color: #008080;"> 3</span>  <span style="color: #008000;">*/</span>
+<span style="color: #008080;"> 4</span> <span style="color: #000000;">@Controller
+</span><span style="color: #008080;"> 5</span> @RequestMapping("/demon/linux"<span style="color: #000000;">)
+</span><span style="color: #008080;"> 6</span> <span style="color: #0000ff;">public</span> <span style="color: #0000ff;">class</span><span style="color: #000000;"> LinuxUsersController {
+</span><span style="color: #008080;"> 7</span> 
+<span style="color: #008080;"> 8</span>     @RequestMapping("/add/host"<span style="color: #000000;">)
+</span><span style="color: #008080;"> 9</span>     <span style="color: #0000ff;">public</span> Map getLinuxConn(@RequestBody List&lt;LinuxConnEntity&gt;<span style="color: #000000;"> list) {
+</span><span style="color: #008080;">10</span>         Map resultMap = <span style="color: #0000ff;">null</span><span style="color: #000000;">;
+</span><span style="color: #008080;">11</span>         <span style="color: #0000ff;">return</span> list == <span style="color: #0000ff;">null</span>
+<span style="color: #008080;">12</span>                 ?<span style="color: #000000;"> setResult(resultMap, Constant.ZERO, Constant.REQUEST_NULL_MSG)
+</span><span style="color: #008080;">13</span> <span style="color: #000000;">                : linuxUsersServiceImpl.createLinuxConn(list);
+</span><span style="color: #008080;">14</span> 
+<span style="color: #008080;">15</span>     }</span></code></pre>
+
+<p><span style="font-size: 18px;"><em><strong><span style="color: #0000ff;">三、@ResponseBody</span></strong></em></span></p>
+<p><span style="font-size: 15px;">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; @ResponseBody 注解表示该方法的返回结果直接写入HTTP 的Response Body 中，该注解一般在异步获取数据时使用，用于构建RESTful 的API；另外，在使用@RequestMapping 注解后返回值通常会解析为路径跳转，而在加上了@ResponseBody 注解后，返回结果则不会被解析为路径而是直接写入HTTP Response Body 中。</span></p>
+<src class="cnblogs_code">
+<pre><code><span style="font-size: 15px;"><span style="color: #008080;">1</span> <span style="color: #008000;">/**</span>
+<span style="color: #008080;">2</span> <span style="color: #008000;">     * 异步获取json 数据，加上@responsebody 注解后，会直接返回json 数据
+</span><span style="color: #008080;">3</span>      <span style="color: #008000;">*/</span>
+<span style="color: #008080;">4</span> <span style="color: #000000;">    @ResponseBody
+</span><span style="color: #008080;">5</span>     @RequestMapping("/responsebody"<span style="color: #000000;">)
+</span><span style="color: #008080;">6</span>     <span style="color: #0000ff;">public</span><span style="color: #000000;"> LinuxUserEntity testOne(LinuxUserEntity linuxUserEntity) {
+</span><span style="color: #008080;">7</span>         <span style="color: #0000ff;">return</span><span style="color: #000000;"> linuxUsersServiceImpl.test();
+</span><span style="color: #008080;">8</span>         <span style="color: #008080;">9</span>     }</span></code></pre>
+
+<p><span style="color: #0000ff; font-size: 18px;"><em><strong>四、@RestController</strong></em></span></p>
+<p><span style="font-size: 15px;">@RestController 注解用于标注控制层组件，其是@ResponseBody 和@Contronller 两个注解的集合。</span></p>
+<src class="cnblogs_code">
+<pre><code><span style="font-size: 15px;"><span style="color: #008080;"> 1</span> <span style="color: #008000;">/**</span>
+<span style="color: #008080;"> 2</span> <span style="color: #008000;"> * @RestController 等价于@Controller 和 @ResponseBody 两个注解的集合
+</span><span style="color: #008080;"> 3</span>  <span style="color: #008000;">*/</span>
+<span style="color: #008080;"> 4</span> <span style="color: #000000;">@RestController
+</span><span style="color: #008080;"> 5</span> @RequestMapping("/responsebody/linux"<span style="color: #000000;">)
+</span><span style="color: #008080;"> 6</span> <span style="color: #0000ff;">public</span> <span style="color: #0000ff;">class</span><span style="color: #000000;"> LinuxUsersController {
+</span><span style="color: #008080;"> 7</span> 
+<span style="color: #008080;"> 8</span>     @RequestMapping("/responsebody"<span style="color: #000000;">)
+</span><span style="color: #008080;"> 9</span>     <span style="color: #0000ff;">public</span><span style="color: #000000;"> LinuxUserEntity testOne(LinuxUserEntity linuxUserEntity) {
+</span><span style="color: #008080;">10</span>         <span style="color: #0000ff;">return</span><span style="color: #000000;"> linuxUsersServiceImpl.test();
+</span><span style="color: #008080;">11</span>         <span style="color: #008080;">12</span>     }</span></code></pre>
+
+<p><span style="font-size: 18px;"><em><strong><span style="color: #0000ff;">五、@RequestMapping</span></strong></em></span></p>
+<p><span style="font-size: 15px;">@RequestMapping 是提供路由信息的注解，其是负责URL 到Controller 中的具体函数的映射；此外，该注解后的括号内经常会使用如下六个属性：</span></p>
+<p><span style="font-size: 15px;">1. param：指定请求request 中必须包含某些参数，否则不处理该方法；</span></p>
+<p><span style="font-size: 15px;">2. header：指定请求request 中必须包含某些指定的header 值，否则不处理该方法；</span></p>
+<p><span style="font-size: 15px;">3. value：指定请求的实际地址；</span></p>
+<p><span style="font-size: 15px;">4. method：指定请求的方法method 类型，通常设计为RESTful 风格的GET、POST、PUT 和DELETE；</span></p>
+<p><span style="font-size: 15px;">5. consumes：指定处理请求提交内容的具体类型（即Content-Type），如applicatin/json 和text/html 等类型格式；</span></p>
+<p><span style="font-size: 15px;">6: produces：指定返回的内容类型，设置该属性后仅当request 请求头中的Accept 类型中包含该制定类型时才会返回，需谨慎。</span></p>
+<src class="cnblogs_code">
+<pre><code><span style="font-size: 15px;"><span style="color: #008080;">1</span> <span style="color: #008000;">/**</span>
+<span style="color: #008080;">2</span> <span style="color: #008000;">     * @RequestMapping 提供路由信息的注解
+</span><span style="color: #008080;">3</span>      <span style="color: #008000;">*/</span>
+<span style="color: #008080;">4</span>     @RequestMapping("/responsebody"<span style="color: #000000;">)
+</span><span style="color: #008080;">5</span>     <span style="color: #0000ff;">public</span><span style="color: #000000;"> LinuxUserEntity testOne(LinuxUserEntity linuxUserEntity) {
+</span><span style="color: #008080;">6</span>         <span style="color: #0000ff;">return</span><span style="color: #000000;"> linuxUsersServiceImpl.test();
+</span><span style="color: #008080;">7</span>     }</span></code></pre>
+
+<p><span style="font-size: 18px;"><em><strong><span style="color: #0000ff;">六、@EnableAutoConfiguration</span></strong></em></span></p>
+<p><span style="font-size: 15px;">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; @EnableAutoConfiguration 是Spring Boot 自动配置注解，其会根据项目中添加的依赖自动配置Spring 应用；比如Spring Boot 自动配置内嵌tomcat 的端口为8080；还有自动载入应用程序所需的所有Bean，这依赖于Spring Boot 在类路径中的查找结果，就比如你在classpath 下存在HSQLDB，并且没有手动配置任何数据库连接Bean，那么@EnableAutoConfiguration 注解就会自动配置一个内存模型（in-memory）数据库。</span></p>
+<p><span style="font-size: 18px;"><em><strong><span style="color: #0000ff;">七、@ComponentScan</span></strong></em></span></p>
+<p><span style="font-size: 15px;">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; @ComponentScan 注解表示该类会自动发现扫描组件，若扫描到包含@Component、@Controller 和@Service 等注解的类，则会将其注册为Bean，并且可以自动收集所有的Spring 组件，包括有@Configuration 注解标注的类；开发中经常使用@ComponentScan 注解搜索Beans，并结合@Autowired 注解将Beans 注入，若没有进行配置，则Spring Boot 只会扫描SpringBootApplication 启动类所在包下及其子包下的使用了@Service、@Repository 等注解的类。</span></p>
+<p><span style="color: #0000ff; font-size: 18px;"><em><strong>八、@Configuration</strong></em></span></p>
+<p><span style="font-size: 15px;">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; @Configuration 注解作用类似于传统的xml 配置文件；例如，有第三方库需要用到xml 文件，则可以通过添加@Configuration 注解表示该类作为项目的配置主类，然后使用@ImportResource 注解加载xml 配置文件内容。</span></p>
+<p><span style="color: #0000ff; font-size: 18px;"><em><strong>九、@Import</strong></em></span></p>
+<p><span style="font-size: 15px;">@Import 注解作用是导入其它配置类。</span></p>
+<p><span style="font-size: 18px;"><em><strong><span style="color: #0000ff;">十、@ImportResource</span></strong></em></span></p>
+<p><span style="font-size: 15px;">@ImportResource 注解作用是加载xml 配置文件。</span></p>
+<p><span style="font-size: 18px;"><em><strong><span style="color: #0000ff;">十一、@Autowired</span></strong></em></span></p>
+<p><span style="font-size: 15px;">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; @Autowired 注解的作用是自动导入依赖的Bean；即把配置好的Bean 拿来用，完成属性、方法的组装，它可以对类成员变量、方法及构造函数进行标注，完成自动装配的工作；并且当加上标签（required=false）时，就算找不到bean 也不报错，允许注入为空。</span></p>
+<p><span style="font-size: 18px;"><em><strong><span style="color: #0000ff;">十二、@Service</span></strong></em></span></p>
+<p><span style="font-size: 15px;">@Service 注解的作用是标志某类为Service 层，是Service 服务层组件注解。</span></p>
+<p><span style="font-size: 18px;"><em><strong><span style="color: #0000ff;">十三、@Repository</span></strong></em></span></p>
+<p><span style="font-size: 15px;">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; @Repository 注解作用是标志某类为数据层，其可用于确保DAO 层或者Repositories 能正常转译；当@Repository 注解修饰DAO 或者repositories 类时会被ComponentScan 发现并配置。</span></p>
+<p><span style="font-size: 18px;"><em><strong><span style="color: #0000ff;">十四、@Bean</span></strong></em></span></p>
+<p><span style="font-size: 15px;">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; @Bean 注解相当于XML 配置文件中使用的&lt;bean&gt;标签，初始化的时候创建对象，并交由IOC 容器管理；需要注意的是@Bean 注解是放在方法的上面，而不是类，意思是产生一个bean，并交给spring 管理。</span></p>
+<p><span style="color: #0000ff; font-size: 18px;"><strong><em>十五、@Value</em></strong></span></p>
+<p><span style="font-size: 15px;">@Value 注解作用是注入Spring Boot 配置文件application.properties，即获取application.properties 配置文件中属性的值。</span></p>
+<src class="cnblogs_code">
+<pre><code><span style="font-size: 15px;"><span style="color: #008080;">1</span> @Value(value = "#{VEHIVLE_TOPIC}"<span style="color: #000000;">)
+</span><span style="color: #008080;">2</span>     <span style="color: #0000ff;">private</span> String VEHIVLE_TOPIC;</span></code></pre>
+
+<p><span style="color: #0000ff;"><em><strong><span style="font-size: 18px;">十六、@inject</span></strong></em></span></p>
+<p><span style="font-size: 15px;">@inject 注解作用与@Autowired 相同，不同的是其没有require 属性，强制要求注入不能为空。</span></p>
+<p><em><strong><span style="font-size: 18px; color: #0000ff;">十七、@Component</span></strong></em></p>
+<p><span style="font-size: 15px;">@Component 注解泛指组件，即当组件不方便归类时，可以使用该注解进行标注归类。</span></p>
+<p><span style="color: #0000ff;"><em><strong><span style="font-size: 18px;">十八、@Qualifier</span></strong></em></span></p>
+<p><span style="font-size: 15px;">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; @Qualifier 注解用于当有多个同一类型的Bean 时，通过@Qualifier(&ldquo;name&rdquo;) 根据名字来指定注入的Bean；其需要配合@Autowired 使用，根据名字进行注入，进行更细粒度的控制如何选择要注入的Bean。</span></p>
+<p><span style="color: #0000ff;"><strong><em><span style="font-size: 18px;">十九、@Resouce</span></em></strong></span></p>
+<p><span style="font-size: 15px;">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; @Resouce 注解的作用与@Autowired 相似，都是自动注入依赖的Bean；不同的是@Resource(name=&rdquo;name&rdquo;,type=&rdquo;type&rdquo;) 多了括号内的属性，当没有括号内内容的话，默认byName。</span></p>
+<p><span style="color: #0000ff;"><strong><em><span style="font-size: 18px;">二十、@PathVariable</span></em></strong></span></p>
+<p><span style="font-size: 15px;">@PathVariable 注解的作用是获取路径变量。</span></p>
+<src class="cnblogs_code">
+<pre><code><span style="font-size: 15px;"><span style="color: #008080;"> 1</span> <span style="color: #008000;">/**</span>
+<span style="color: #008080;"> 2</span> <span style="color: #008000;">     * @RequestMapping 获取路径变量
+</span><span style="color: #008080;"> 3</span>      <span style="color: #008000;">*/</span>
+<span style="color: #008080;"> 4</span>     @RequestMapping("/ioc/get/{address}"<span style="color: #000000;">)
+</span><span style="color: #008080;"> 5</span>     <span style="color: #0000ff;">public</span><span style="color: #000000;"> String testOne(@PathVariable String address ) {
+</span><span style="color: #008080;"> 6</span>         <span style="color: #008000;">/**</span>
+<span style="color: #008080;"> 7</span> <span style="color: #008000;">         * 获取得到路径中address 的值
+</span><span style="color: #008080;"> 8</span>          <span style="color: #008000;">*/</span>
+<span style="color: #008080;"> 9</span>         <span style="color: #0000ff;">return</span><span style="color: #000000;"> address;
+</span><span style="color: #008080;">10</span>     }</span></code></pre>
+
+<p>&nbsp;</p>
+<p>&nbsp;</p>
+<p>&nbsp;</p>
+<p><span style="color: #008000;"><strong><em><span style="font-size: 14pt;">占据无力拥有的东西是一种悲哀。</span></em></strong></span></p>
+<p><span style="color: #008000;"><strong><em><span style="font-size: 14pt;">　　Cold on the outside passionate on the insede.</span></em></strong></span></p>
+<p>&nbsp;</p>
+<p><span style="font-size: 15px;">&nbsp;</span></p>
+
+</div><hr><script charset='utf-8' src='../../js/sming.js'></script></body></html>

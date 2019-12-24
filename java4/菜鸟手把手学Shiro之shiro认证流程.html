@@ -1,0 +1,180 @@
+<html><head><meta charset='utf-8'><meta name='viewport' content='width=device-width, initial-scale=1'>
+<meta name='applicable-device' content='pc'><meta name='keywords' content='电脑,电脑讲解,电脑技术,编程,电脑故障维修菜鸟手把手学Shiro之shiro认证流程' />
+<script src='../../highlight/highlight.pack.js'></script>
+<link rel='stylesheet' type='text/css' href='../../highlight/styles/monokai.css'/>
+
+<link rel='stylesheet' href='../../fenxiang/dist/css/share.min.css'>
+<script src='../../fenxiang/src/js/social-share.js'></script>
+<script src='../../fenxiang/src/js/qrcode.js'></script>
+
+</head><body><script>hljs.initHighlightingOnLoad();</script><script>
+var system ={};  
+var p = navigator.platform;       
+system.win = p.indexOf('Win') == 0;  
+system.mac = p.indexOf('Mac') == 0;  
+system.x11 = (p == 'X11') || (p.indexOf('Linux') == 0);     
+if(system.win||system.mac||system.xll){
+document.write("<link href='../css/3.css' rel='stylesheet' type='text/css'>");}else{ document.write("<link href='../css/3wap.css' rel='stylesheet' type='text/css'>");}</script><script src='../../js/3.js'></script><div class='div2'><div class='heading_nav'><ul><div><li><a href='../../index.html'>首页</a></li>
+</div><div onclick='hidden1()' >分享</div>
+</ul></div></div>
+<div id='heading_nav2'> 
+<li class='row' >
+<div class='social-share' data-mode='prepend'><a href='javascript:' class='social-share-icon icon-heart'></a></div></li></div><script charset='utf-8' src='../../3/js/hengfu.js'></script><script charset='utf-8' src='../../3/js/hengfu2.js'></script><hr><div class='div1'><div class='biaoti'><center>菜鸟手把手学Shiro之shiro认证流程</center></div><div class='banquan'>原文出处:本文由博客园博主肖恩雷提供。<br/>
+原文连接:https://www.cnblogs.com/seanRay/p/11838875.html</div><br>
+    <p>一.使用的spring boot +mybatis-plus+shiro+maven来搭建项目框架</p>
+<src class="cnblogs_code">
+<pre><code><span style="color: #008080;"> 1</span> &lt;!--shiro--&gt;
+<span style="color: #008080;"> 2</span>         &lt;dependency&gt;
+<span style="color: #008080;"> 3</span>             &lt;groupId&gt;org.apache.shiro&lt;/groupId&gt;
+<span style="color: #008080;"> 4</span>             &lt;artifactId&gt;shiro-core&lt;/artifactId&gt;
+<span style="color: #008080;"> 5</span>             &lt;version&gt;1.4.0&lt;/version&gt;
+<span style="color: #008080;"> 6</span>         &lt;/dependency&gt;
+<span style="color: #008080;"> 7</span>         &lt;dependency&gt;
+<span style="color: #008080;"> 8</span>             &lt;groupId&gt;org.apache.shiro&lt;/groupId&gt;
+<span style="color: #008080;"> 9</span>             &lt;artifactId&gt;shiro-spring&lt;/artifactId&gt;
+<span style="color: #008080;">10</span>             &lt;version&gt;1.4.0&lt;/version&gt;
+<span style="color: #008080;">11</span>         &lt;/dependency&gt;</code></pre>
+
+<p>2.写一个登录页面（登录页面代码就自己随便写一个form表单提交到controller就行）</p>
+<p><img src="./images/菜鸟手把手学Shiro之shiro认证流程0.png" alt="" width="487" height="344" /></p>
+<p>3.在controller中创建userLogin方法，创建UsernamePasswordToken，获取subject,通过subject.login来进行登录认证。</p>
+<src class="cnblogs_code">
+<pre><code><span style="color: #008080;"> 1</span> <span style="color: #000000;">@Slf4j
+</span><span style="color: #008080;"> 2</span> <span style="color: #000000;">@RestController
+</span><span style="color: #008080;"> 3</span> @RequestMapping("/sys-user"<span style="color: #000000;">)
+</span><span style="color: #008080;"> 4</span> <span style="color: #0000ff;">public</span> <span style="color: #0000ff;">class</span><span style="color: #000000;"> SysUserController {
+</span><span style="color: #008080;"> 5</span> 
+<span style="color: #008080;"> 6</span>     <span style="color: #008000;">/**</span>
+<span style="color: #008080;"> 7</span> <span style="color: #008000;">     * 用户登录
+</span><span style="color: #008080;"> 8</span> <span style="color: #008000;">     * </span><span style="color: #808080;">@param</span><span style="color: #008000;"> userName
+</span><span style="color: #008080;"> 9</span> <span style="color: #008000;">     * </span><span style="color: #808080;">@param</span><span style="color: #008000;"> password
+</span><span style="color: #008080;">10</span>      <span style="color: #008000;">*/</span>
+<span style="color: #008080;">11</span>     @PostMapping(value = "/login"<span style="color: #000000;">)
+</span><span style="color: #008080;">12</span>     <span style="color: #0000ff;">public</span><span style="color: #000000;"> ServerResponse userLogin(@RequestParam String userName, @RequestParam String password)
+</span><span style="color: #008080;">13</span> <span style="color: #000000;">    {
+</span><span style="color: #008080;">14</span>         <span style="color: #008000;">//</span><span style="color: #008000;">1.获取token</span>
+<span style="color: #008080;">15</span>         UsernamePasswordToken token = <span style="color: #0000ff;">new</span><span style="color: #000000;"> UsernamePasswordToken(userName,password);
+</span><span style="color: #008080;">16</span>         <span style="color: #008000;">//</span><span style="color: #008000;">2.获取subject</span>
+<span style="color: #008080;">17</span>         Subject subject =<span style="color: #000000;"> SecurityUtils.getSubject();
+</span><span style="color: #008080;">18</span>         <span style="color: #008000;">//</span><span style="color: #008000;">3.进行登录</span>
+<span style="color: #008080;">19</span>         <span style="color: #0000ff;">try</span><span style="color: #000000;"> {
+</span><span style="color: #008080;">20</span> <span style="color: #000000;">            subject.login(token);
+</span><span style="color: #008080;">21</span>             log.info("subject:"+<span style="color: #000000;">subject.getPrincipal().toString());
+</span><span style="color: #008080;">22</span>             <span style="color: #0000ff;">return</span> ServerResponse.createBySuccessMessage("登录成功!"<span style="color: #000000;">);
+</span><span style="color: #008080;">23</span>         }<span style="color: #0000ff;">catch</span><span style="color: #000000;"> (Exception e)
+</span><span style="color: #008080;">24</span> <span style="color: #000000;">        {
+</span><span style="color: #008080;">25</span>             log.error("登录失败，用户名[{}]"<span style="color: #000000;">, userName, e);
+</span><span style="color: #008080;">26</span> <span style="color: #000000;">            token.clear();
+</span><span style="color: #008080;">27</span>             <span style="color: #0000ff;">return</span><span style="color: #000000;"> ServerResponse.createByErrorMessage(e.getMessage());
+</span><span style="color: #008080;">28</span> <span style="color: #000000;">        }
+</span><span style="color: #008080;">29</span>     }</code></pre>
+
+<p>以上就是一个基本的登录流程，下面就继续分析subject.login()方法，到底怎么实现登录认证的，在后续中逐步分析如何使用自定义的Realm和CredentialsMatcher密码比较器.</p>
+<p>首先，我们从外部来看 Shiro 吧，即从应用程序角度的来观察如何使用 Shiro 完成工作。如下图：(引用自《跟我学shiro教程》)</p>
+<p><img src="./images/菜鸟手把手学Shiro之shiro认证流程1.png" alt="" width="495" height="253" /></p>
+<p>4.通过代码跟踪可以发现，subject.login()方法又调用了securityManager.login()方法，因此我们还需要一个注册一个securityManager的bean交给spring去管理</p>
+<p><img src="./images/菜鸟手把手学Shiro之shiro认证流程2.png" alt="" width="856" height="277" /></p>
+<p>5.创建一个config的package,便于管理，项目结构如下</p>
+<p><img src="./images/菜鸟手把手学Shiro之shiro认证流程3.png" alt="" width="447" height="573" /></p>
+<p>6.创建一个ShiroConfig的类，用来配置shiro相关的bean,首先使用@Configuration注解表明这是一个配置类，并注册一个securityManager的bean,发现传入参数是一个MyRealm的类，这个类就是我们需要自己去定义的Realm类</p>
+<p><img src="./images/菜鸟手把手学Shiro之shiro认证流程4.png" alt="" width="709" height="321" /></p>
+<src class="cnblogs_code">
+<pre><code><span style="color: #008080;"> 1</span>  <span style="color: #008000;">//</span><span style="color: #008000;">配置核心安全事务管理器</span>
+<span style="color: #008080;"> 2</span>     <span style="color: #008000;">/**</span>
+<span style="color: #008080;"> 3</span> <span style="color: #008000;">     * securityManager
+</span><span style="color: #008080;"> 4</span> <span style="color: #008000;">     * </span><span style="color: #808080;">@param</span><span style="color: #008000;"> authRealm ，@Qualifier表明了哪个实现类才是我们所需要的
+</span><span style="color: #008080;"> 5</span> <span style="color: #008000;">     * </span><span style="color: #808080;">@return</span>
+<span style="color: #008080;"> 6</span>      <span style="color: #008000;">*/</span>
+<span style="color: #008080;"> 7</span>     @Bean(name="securityManager"<span style="color: #000000;">)
+</span><span style="color: #008080;"> 8</span>     <span style="color: #0000ff;">public</span> SecurityManager securityManager(@Qualifier("myRealm"<span style="color: #000000;">) MyRealm authRealm) {
+</span><span style="color: #008080;"> 9</span> 
+<span style="color: #008080;">10</span>         DefaultSecurityManager securityManager = <span style="color: #0000ff;">new</span><span style="color: #000000;"> DefaultWebSecurityManager();
+</span><span style="color: #008080;">11</span> 
+<span style="color: #008080;">12</span>         <span style="color: #008000;">//</span><span style="color: #008000;">设置Realm</span>
+<span style="color: #008080;">13</span> <span style="color: #000000;">        securityManager.setRealm(authRealm);
+</span><span style="color: #008080;">14</span> <span style="color: #000000;">        securityManager.setRememberMeManager(rememberMeManager());
+</span><span style="color: #008080;">15</span>         <span style="color: #0000ff;">return</span><span style="color: #000000;"> securityManager;
+</span><span style="color: #008080;">16</span> <span style="color: #000000;">    }
+</span><span style="color: #008080;">17</span>     <span style="color: #008000;">//</span><span style="color: #008000;">配置自定义的权限登录器</span>
+<span style="color: #008080;">18</span> <span style="color: #000000;">    @Bean
+</span><span style="color: #008080;">19</span>     <span style="color: #0000ff;">public</span><span style="color: #000000;"> MyRealm myRealm()
+</span><span style="color: #008080;">20</span> <span style="color: #000000;">    {
+</span><span style="color: #008080;">21</span>         MyRealm myRealm = <span style="color: #0000ff;">new</span><span style="color: #000000;"> MyRealm();
+</span><span style="color: #008080;">22</span>         myRealm.setCredentialsMatcher(<span style="color: #0000ff;">new</span><span style="color: #000000;"> CredentialsMatcher());
+</span><span style="color: #008080;">23</span>         <span style="color: #0000ff;">return</span><span style="color: #000000;"> myRealm;
+</span><span style="color: #008080;">24</span>     }</code></pre>
+
+<p>&nbsp;7.创建类Realm类并继承AuthorizingRealm类，然后通过token中的Principal(即用户名)去查询数据库中User,然后再把查询到的用户信息（包括密码）返回AuthorizationInfo</p>
+<p><img src="./images/菜鸟手把手学Shiro之shiro认证流程5.png" alt="" width="830" height="285" /></p>
+<p><img src="./images/菜鸟手把手学Shiro之shiro认证流程6.png" alt="" width="826" height="337" /></p>
+<p>&nbsp;自定义MyRealm类继承thorizingRealm类，并且重写doGetAuthenticationInfo方法</p>
+<p><img src="./images/菜鸟手把手学Shiro之shiro认证流程7.png" alt="" width="991" height="436" /></p>
+<src class="cnblogs_code">
+<pre><code><span style="color: #008080;"> 1</span> <span style="color: #0000ff;">public</span> <span style="color: #0000ff;">class</span>    MyRealm <span style="color: #0000ff;">extends</span><span style="color: #000000;"> AuthorizingRealm{
+</span><span style="color: #008080;"> 2</span> 
+<span style="color: #008080;"> 3</span> <span style="color: #000000;">    @Autowired
+</span><span style="color: #008080;"> 4</span>     <span style="color: #0000ff;">private</span><span style="color: #000000;"> SysUserServiceImpl sysUserService;
+</span><span style="color: #008080;"> 5</span>     <span style="color: #008000;">//</span><span style="color: #008000;">授权</span>
+<span style="color: #008080;"> 6</span> <span style="color: #000000;">    @Override
+</span><span style="color: #008080;"> 7</span>     <span style="color: #0000ff;">protected</span><span style="color: #000000;"> AuthorizationInfo doGetAuthorizationInfo(PrincipalCollection principals) {
+</span><span style="color: #008080;"> 8</span>         <span style="color: #0000ff;">return</span> <span style="color: #0000ff;">null</span><span style="color: #000000;">;
+</span><span style="color: #008080;"> 9</span> <span style="color: #000000;">    }
+</span><span style="color: #008080;">10</span> 
+<span style="color: #008080;">11</span>     <span style="color: #008000;">//</span><span style="color: #008000;">认证</span>
+<span style="color: #008080;">12</span> <span style="color: #000000;">    @Override
+</span><span style="color: #008080;">13</span>     <span style="color: #0000ff;">protected</span> AuthenticationInfo doGetAuthenticationInfo(AuthenticationToken token) <span style="color: #0000ff;">throws</span><span style="color: #000000;"> AuthenticationException {
+</span><span style="color: #008080;">14</span>         <span style="color: #008000;">/**</span><span style="color: #008000;">获取用户输入的用户信息</span><span style="color: #008000;">*/</span>
+<span style="color: #008080;">15</span>         String userName =<span style="color: #000000;"> (String)token.getPrincipal();
+</span><span style="color: #008080;">16</span>         QueryWrapper&lt;SysUser&gt; queryWrapper = <span style="color: #0000ff;">new</span> QueryWrapper&lt;SysUser&gt;<span style="color: #000000;">();
+</span><span style="color: #008080;">17</span> 
+<span style="color: #008080;">18</span> 
+<span style="color: #008080;">19</span>         queryWrapper.eq("username"<span style="color: #000000;">,userName);
+</span><span style="color: #008080;">20</span> 
+<span style="color: #008080;">21</span>         SysUser user =<span style="color: #000000;"> sysUserService.getOne(queryWrapper);
+</span><span style="color: #008080;">22</span> 
+<span style="color: #008080;">23</span>         <span style="color: #0000ff;">if</span>(user == <span style="color: #0000ff;">null</span><span style="color: #000000;">)
+</span><span style="color: #008080;">24</span> <span style="color: #000000;">        {
+</span><span style="color: #008080;">25</span>             <span style="color: #0000ff;">throw</span> <span style="color: #0000ff;">new</span> UnknownAccountException("该用户不存在"<span style="color: #000000;">);
+</span><span style="color: #008080;">26</span> <span style="color: #000000;">        }
+</span><span style="color: #008080;">27</span>         <span style="color: #0000ff;">if</span>(user.getStatus() != <span style="color: #0000ff;">null</span> &amp;&amp;<span style="color: #000000;"> Const.UserStatusEnum.DISABLE.getCode().equals(user.getStatus()))
+</span><span style="color: #008080;">28</span> <span style="color: #000000;">        {
+</span><span style="color: #008080;">29</span>             <span style="color: #0000ff;">throw</span>  <span style="color: #0000ff;">new</span> LockedAccountException("该账号被锁定，请联系管理员！"<span style="color: #000000;">);
+</span><span style="color: #008080;">30</span> <span style="color: #000000;">        }
+</span><span style="color: #008080;">31</span>         <span style="color: #008000;">//</span><span style="color: #008000;">把user信息放在session中</span>
+<span style="color: #008080;">32</span> <span style="color: #000000;">        SecurityUtils.getSubject().getSession().setAttribute(Const.CURRENT_USER,user);
+</span><span style="color: #008080;">33</span>         <span style="color: #0000ff;">return</span> <span style="color: #0000ff;">new</span><span style="color: #000000;"> SimpleAuthenticationInfo(user,user.getPassword(), ByteSource.Util.bytes(userName),getName());
+</span><span style="color: #008080;">34</span> <span style="color: #000000;">    }
+</span><span style="color: #008080;">35</span> }</code></pre>
+
+<p>如果身份认证失败就会捕获AuthenticationException，常见的如下：</p>
+<p>DisabledAccountException（禁用的帐号）</p>
+<p>LockedAccountException（锁定的帐号）</p>
+<p>UnknownAccountException（错误的帐号）</p>
+<p>ExcessiveAttemptsException（登录失败次数过<em id="__mceDel">多）</em></p>
+<p>IncorrectCredentialsException （错误的凭证）</p>
+<p>ExpiredCredentialsException（过期的凭证）等</p>
+<p>如果身份认证通过后就要进行密码认证</p>
+<p><img src="./images/菜鸟手把手学Shiro之shiro认证流程8.png" alt="" width="908" height="427" /></p>
+<p>&nbsp;</p>
+<p>&nbsp;<img src="./images/菜鸟手把手学Shiro之shiro认证流程9.png" alt="" width="911" height="260" /></p>
+<p>自定义一个CredentialsMatcher类继承SimpleCredentialsMatcher类,并且重写doCredentiaIsMatch方法<em id="__mceDel" style="font-family: 'Courier New'; font-size: 12px;"><br /></em></p>
+<p>&nbsp;<img src="./images/菜鸟手把手学Shiro之shiro认证流程10.png" alt="" width="905" height="522" /></p>
+<p>以上就是shiro的基本登录认证流程，如有不当之处还望大家多多指教。</p>
+<p>&nbsp;</p>
+<p>&nbsp;</p>
+<p>&nbsp;</p>
+<p>&nbsp;</p>
+<p>&nbsp;</p>
+<p>&nbsp;</p>
+<p>&nbsp;</p>
+<p>&nbsp;</p>
+<p>&nbsp;</p>
+<p>&nbsp;</p>
+<p>&nbsp;</p>
+<p>&nbsp;</p>
+<p>&nbsp;</p>
+<p>&nbsp;</p>
+<pre><code><br /><br /></code></pre>
+<p>&nbsp;</p>
+
+</div><hr><script charset='utf-8' src='../../js/sming.js'></script></body></html>

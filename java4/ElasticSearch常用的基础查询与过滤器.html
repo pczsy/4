@@ -1,0 +1,46 @@
+<html><head><meta charset='utf-8'><meta name='viewport' content='width=device-width, initial-scale=1'>
+<meta name='applicable-device' content='pc'><meta name='keywords' content='电脑,电脑讲解,电脑技术,编程,电脑故障维修ElasticSearch常用的基础查询与过滤器' />
+<script src='../../highlight/highlight.pack.js'></script>
+<link rel='stylesheet' type='text/css' href='../../highlight/styles/monokai.css'/>
+
+<link rel='stylesheet' href='../../fenxiang/dist/css/share.min.css'>
+<script src='../../fenxiang/src/js/social-share.js'></script>
+<script src='../../fenxiang/src/js/qrcode.js'></script>
+
+</head><body><script>hljs.initHighlightingOnLoad();</script><script>
+var system ={};  
+var p = navigator.platform;       
+system.win = p.indexOf('Win') == 0;  
+system.mac = p.indexOf('Mac') == 0;  
+system.x11 = (p == 'X11') || (p.indexOf('Linux') == 0);     
+if(system.win||system.mac||system.xll){
+document.write("<link href='../css/3.css' rel='stylesheet' type='text/css'>");}else{ document.write("<link href='../css/3wap.css' rel='stylesheet' type='text/css'>");}</script><script src='../../js/3.js'></script><div class='div2'><div class='heading_nav'><ul><div><li><a href='../../index.html'>首页</a></li>
+</div><div onclick='hidden1()' >分享</div>
+</ul></div></div>
+<div id='heading_nav2'> 
+<li class='row' >
+<div class='social-share' data-mode='prepend'><a href='javascript:' class='social-share-icon icon-heart'></a></div></li></div><script charset='utf-8' src='../../3/js/hengfu.js'></script><script charset='utf-8' src='../../3/js/hengfu2.js'></script><hr><div class='div1'><div class='biaoti'><center>ElasticSearch常用的基础查询与过滤器</center></div><div class='banquan'>原文出处:本文由博客园博主马冬梅提供。<br/>
+原文连接:https://www.cnblogs.com/35youth/p/11417641.html</div><br>
+    <p><strong>match_all（获取所有索引文档）</strong></p>
+<p><strong>quert_string（获取包含指定关键字文档）</strong><br />
+默认查询_all字段，_all字段是由所有字段组合而成的，可以通过description:关键字，获取通过请求的时候来设置default_field。可使用AND和OR这种布尔操作符来组合词条搜索，也可以使用减号(-)来排除文档。</p>
+<p>缺点：由于query_string可以通过组合条件来获取所有索引的文档，建议替换成term，terms，match或者multi_match查询</p>
+<p><strong>term查询和term过滤器</strong><br />
+term可以指定搜索的文档字段和关键词（被搜索的关键词是没有经过分析的，所以返回的文档是精准匹配关键词的）term过滤器也可以是返回的结果包含指定关键词，但是无需计算得分，所以可以使用match_all，返回的所有文档_score都是1.0分。</p>
+<p><strong>terms查询</strong><br />
+与term查询相似，允许查询多个关键词，通过minimum_should_match设置最低匹配几个关键词。</p>
+<p><strong>match查询</strong><br />
+查询指定字段的关键词，也可以查询_all字段，match查询有多中方式，最常见的是布尔查询和词组。</p>
+<p><strong>1、布尔查询</strong><br />
+默认情况下，match查询使用布尔行为和OR操作符。例如，如果搜索文本“Elasticsearch Denver”，Elasticsearch 会搜索“Elasticsearch OR Denver”，同时匹配“Elasticsearch Amsterdam’和“Denver Clojure Group”聚合分组。为了搜索同时包含“Elasticsearch” 和“Denver” 关键词的结果，将match字段的name修改为一个映射，并将operator字段设置为and,达到改变操作符的目的。</p>
+<p><strong>2、词组</strong><br />
+在文档中搜索指定的词组时，phrase查询是非常有用的，每个单词的位置之间可以留有余地。这种余地称作slop,用于表示词组中多个分词之间的距离。假设你试图记起某个聚合分组的名字，只记得“Enterprise” 和“London” 两个词，但是不记得名字其余的部分了。你可以搜.索词组“enterprise london”,将slop设置为1或者2,而不是默认的0,如此-一来，没有必要知道分组的精确标题，就可以寻找包含该词组的结果。</p>
+<p><img src="./images/ElasticSearch常用的基础查询与过滤器0.png" /><br />
+phrase_prefix查询匹配最后一个关键词。在下面的例子中，phrase_ prefix查询使用的是“elasticsearch den”。Elasticsearch 使用“den”文本进行前缀匹配，查找所有name字段，发现那些以“den” 开始的取值(如“Denver”)。 由于产生的结果可能是个很大的集合，需要限制扩展的数量。<br />
+<img src="./images/ElasticSearch常用的基础查询与过滤器1.png" /><br />
+<img src="./images/ElasticSearch常用的基础查询与过滤器2.png" /><br />
+<strong>使用multi_ match来匹配多个字段</strong><br />
+尽管很容易联想到，multi_ match查询和搜索单字段中多个匹配的词条查询，它们的行为表现会非常相像，但是两者的行为还是有细微的区别。多字段匹配允许你搜索多个字段中的值。在聚合的案例中，这一点非常有用，可以同时在分组的名称和描述中搜索某个字符串。</p>
+
+
+</div><hr><script charset='utf-8' src='../../js/sming.js'></script></body></html>

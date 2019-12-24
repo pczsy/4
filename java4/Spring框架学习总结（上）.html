@@ -1,0 +1,511 @@
+<html><head><meta charset='utf-8'><meta name='viewport' content='width=device-width, initial-scale=1'>
+<meta name='applicable-device' content='pc'><meta name='keywords' content='电脑,电脑讲解,电脑技术,编程,电脑故障维修Spring框架学习总结（上）' />
+<script src='../../highlight/highlight.pack.js'></script>
+<link rel='stylesheet' type='text/css' href='../../highlight/styles/monokai.css'/>
+
+<link rel='stylesheet' href='../../fenxiang/dist/css/share.min.css'>
+<script src='../../fenxiang/src/js/social-share.js'></script>
+<script src='../../fenxiang/src/js/qrcode.js'></script>
+
+</head><body><script>hljs.initHighlightingOnLoad();</script><script>
+var system ={};  
+var p = navigator.platform;       
+system.win = p.indexOf('Win') == 0;  
+system.mac = p.indexOf('Mac') == 0;  
+system.x11 = (p == 'X11') || (p.indexOf('Linux') == 0);     
+if(system.win||system.mac||system.xll){
+document.write("<link href='../css/3.css' rel='stylesheet' type='text/css'>");}else{ document.write("<link href='../css/3wap.css' rel='stylesheet' type='text/css'>");}</script><script src='../../js/3.js'></script><div class='div2'><div class='heading_nav'><ul><div><li><a href='../../index.html'>首页</a></li>
+</div><div onclick='hidden1()' >分享</div>
+</ul></div></div>
+<div id='heading_nav2'> 
+<li class='row' >
+<div class='social-share' data-mode='prepend'><a href='javascript:' class='social-share-icon icon-heart'></a></div></li></div><script charset='utf-8' src='../../3/js/hengfu.js'></script><script charset='utf-8' src='../../3/js/hengfu2.js'></script><hr><div class='div1'><div class='biaoti'><center>Spring框架学习总结（上）</center></div><div class='banquan'>原文出处:本文由博客园博主宜春提供。<br/>
+原文连接:https://www.cnblogs.com/yichunguo/p/11915244.html</div><br>
+    <src class="toc">
+    <p class="toc-title">目录</p>
+    <src class="toc-list">
+        <ul>
+        <li><a href="#spring的概述">1、Spring的概述</a></li>
+        <li><a href="#spring的入门ioc">2、Spring的入门（IOC）</a></li>
+        <li><a href="#spring的工厂类">3、Spring的工厂类</a></li>
+        <li><a href="#spring的配置">4、Spring的配置</a></li>
+        <li><a href="#spring的属性注入">5、Spring的属性注入</a></li>
+        <li><a href="#spring的分模块开发的配置">6、Spring的分模块开发的配置</a></li>
+        </ul>
+    
+
+<p>@</p>
+<h2 id="spring的概述">1、Spring的概述</h2>
+<p>在学习SSM框架中，我建议初学者最好先学Spring框架，其次mybatis接着springMVC，先学mybatis当然也是可以的，今天我们就以绝对优雅的姿态闯进Spring世界，系好安全带，准备好了吗，出发了哦！！！咳咳....平时开发接触最多的估计就是IOC容器，它可以装载bean（所谓的bean也就是我们java中的类，当然也包括servicedao里面），有了这个机制，我们就不用在每次使用这个类的时候为它初始化，很少看到键字new。另外spring的aop，事务管理等等都是我们经常用到的，可见Spring的尤为重要的作用Spring的核心是控制反转（IoC）和面向切面（AOP）</p>
+<h4 id="什么是spring">1.1什么是Spring</h4>
+<p><img src="./images/Spring框架学习总结（上）0.png" alt="在这里插入图片描述" /></p>
+<p>肯定有熊dei会问SE/EE开发的一站式框架所谓的一站式是什么意思，（哼，人类，我早就猜到你会问了）<br />
+所谓一站式框架指的是有EE开发的每一层解决方案。</p>
+<blockquote>
+<p>WEB层 ：SpringMVC</p>
+</blockquote>
+<blockquote>
+<p>Service层 ：Spring的Bean管理，Spring声明式事务</p>
+</blockquote>
+<blockquote>
+<p>DAO层 ：Spring的Jdbc模板，Spring的ORM模块</p>
+</blockquote>
+<h4 id="为什么学习spring">1.2为什么学习Spring</h4>
+<p>俗话说，人狠话不多（兄嘚看图）<br />
+<img src="./images/Spring框架学习总结（上）1.png" alt="在这里插入图片描述" /></p>
+<h4 id="spring的版本">1.3Spring的版本</h4>
+<p>Spring3.x、Spring4.x和Spring5.x</p>
+<h4 id="spring的体系结构">1.4Spring的体系结构</h4>
+<p>正所谓，人狠话不多（兄嘚看图）<br />
+<img src="./images/Spring框架学习总结（上）2.png" alt="在这里插入图片描述" /></p>
+<h2 id="spring的入门ioc">2、Spring的入门（IOC）</h2>
+<h4 id="什么ioc">2.1什么IOC</h4>
+<p>一说起IOC我就想起了<font color=red>武哥对IOC的理解的几个例子</font>，可谓通俗易懂，<font color=red>非常适合刚入门Spring的兄嘚</font>！有兴趣的可以去了解了解武哥，武哥博客：https://blog.csdn.net/eson_15</p>
+<p>IOC（Inverse of Control）：<font color=red>控制反转</font>，也可以称为<font color=red>依赖倒置。</font><br />
+控制反转：将对象的创建权反转给（交给）Spring。</p>
+<p>所谓<font color=red>依赖</font>，从程序的角度看，就是比如A要调用B的方法，那么A就依赖于B，反正A要用到B，则A依</p>
+<p>赖于B。所谓倒置，你必须理解如果不倒置，会怎么着，因为A必须要有B，才可以调用B，如果不倒</p>
+<p>置，意思就是A主动获取B的实例：B b = new B()，这就是最简单的获取B实例的方法（当然还有各种</p>
+<p>设计模式可以帮助你去获得B的实例，比如工厂、Locator等等），然后你就可以调用b对象了。所</p>
+<p>以，不倒置，意味着A要主动获取B，才能使用B；到了这里，就应该明白了倒置的意思了。倒置就是</p>
+<p>A要调用B的话，A并不需要主动获取B，而是由其它人自动将B送上门来。</p>
+<h4 id="通俗理解ioc">2.2通俗理解IOC</h4>
+<p>形象的举例就是：<br />
+通常情况下，假如你有一天在家里口渴了，要喝水，那么你可以到你小区的小卖部去，告诉他们，你需要一瓶水，然后小卖部给你一瓶水！这本来没有太大问题，关键是如果小卖部很远，那么你必须知道：从你家如何到小卖部；小卖部里是否有你需要的水；你还要考虑是否开着车去；等等等等，也许有太多的问题要考虑了。也就是说，为了一瓶水，你还可能需要依赖于车等等这些交通工具或别的工具，问题是不是变得复杂了？那么如何解决这个问题呢？<br />
+解决这个问题的方法很简单：小卖部提供送货上门服务，凡是小卖部的会员，你只要告知小卖部你需要什么，小卖部将主动把货物给你送上门来！这样一来，你只需要做两件事情，你就可以活得更加轻松自在：<br />
+第一：向小卖部注册为会员。<br />
+第二：告诉小卖部你需要什么。</p>
+<p>这和Spring的做法很类似！Spring就是小卖部，你就是A对象，水就是B对象<br />
+第一：在Spring中声明一个类：A<br />
+第二：告诉Spring，A需要B</p>
+<p>假设A是UserAction类，而B是UserService类</p>
+<pre><code><code>&lt;bean id=&quot;userService&quot; class=&quot;org.leadfar.service.UserService&quot;/&gt;
+&lt;bean id=&quot;documentService&quot; class=&quot;org.leadfar.service.DocumentService&quot;/&gt;
+&lt;bean id=&quot;orgService&quot; class=&quot;org.leadfar.service.OrgService&quot;/&gt;
+ 
+&lt;bean id=&quot;userAction&quot; class=&quot;org.leadfar.web.UserAction&quot;&gt;
+     &lt;property name=&quot;userService&quot; ref=&quot;userService&quot;/&gt;
+&lt;/bean&gt;</code></code></pre>
+<p>在Spring这个商店（工厂）中，有很多对象/服务：userService,documentService,orgService，也有很多会员：userAction等等，声明userAction需要userService即可，Spring将通过你给它提供的通道主动把userService送上门来，因此UserAction的代码示例类似如下所示：</p>
+<pre><code><code>package org.leadfar.web;
+public class UserAction{
+     private UserService userService;
+     public String login(){
+          userService.valifyUser(xxx);
+     }
+     public void setUserService(UserService userService){
+          this.userService = userService;
+     }
+}
+</code></code></pre>
+<p>在这段代码里面，你无需自己创建UserService对象（Spring作为背后无形的手，把UserService对象通过你定义的setUserService()方法把它主动送给了你，这就叫依赖注入！），当然咯，我们也可以使用注解来注入。Spring依赖注入的实现技术是：<font color=red>动态代理</font></p>
+<h4 id="下载spring的开发包以及解压说明">2.3下载Spring的开发包以及解压说明</h4>
+<p>官网下载：http://spring.io/<br />
+什么？不会下载？what？？？<br />
+好吧，已打包好了QAQ：https://pan.baidu.com/s/18wyE-5SRWcCu12iPOX56pg<br />
+什么？没有网盘？what？？？<br />
+有事请烧香谢谢...</p>
+<p>解压之后，文件说明：<br />
+docs ：Spring的开发规范和API<br />
+libs ：Spring的开发的jar和源码<br />
+schema ：Spring的配置文件的约束</p>
+<h4 id="创建web项目引入jar包">2.4创建web项目，引入jar包</h4>
+<p><img src="./images/Spring框架学习总结（上）3.png" alt="在这里插入图片描述" /></p>
+<h4 id="创建普通接口和实现类">2.5创建普通接口和实现类</h4>
+<p>创建普通接口，定义一个eat方法</p>
+<pre><code><code>package com.gx.sping;
+
+public interface IUserDao {
+
+    public void eat();
+}
+</code></code></pre>
+<p>创建普通实现类</p>
+<pre><code><code>package com.gx.sping;
+
+public class UserDaoimpl implements IUserDao {
+  @Override
+    public void eat() {
+        // TODO Auto-generated method stub
+        System.out.println(用户eat了&quot;);
+    }
+}
+</code></code></pre>
+<h4 id="spring的ioc底层实现原理">2.6Spring的IOC底层实现原理</h4>
+<p>创建普通接口和类出现的问题：<br />
+如果底层的实现切换了，需要修改源代码，能不能不修改程序源代码对程序进行扩展？<br />
+重点来了，要想不改变源码，Spring的IOC就能实现！如下图：<font color=red><strong>Spring的IOC底层实现</strong></font><br />
+<img src="./images/Spring框架学习总结（上）4.png" alt="在这里插入图片描述" /></p>
+<h4 id="将实现类交给spring管理">2.7将实现类交给Spring管理</h4>
+<p>1、在<font color=red><strong>classpath</strong>下（也就是<strong>src</strong>）创建一个<strong>XML</strong>文件</font></p>
+<p>2、文件名最好统一叫<font color=red><strong>applicationContext.xml</strong></font></p>
+<p>3、其xml文件的内容头为<font color=red><strong>schema约束</strong></font></p>
+<p>4、约束文件位置在spring的解压路径下lspring-framework-4.2.4.RELEASE\docs\spring-framework-reference\html\xsd-configuration.htm</p>
+<p>5、不要求xml文件的内容头能够背出来，但要了解的是你要知道它是怎么来的</p>
+<p>6、xml文件的内容头添加后，将实现类交给Spring管理<br />
+<img src="./images/Spring框架学习总结（上）5.png" alt="在这里插入图片描述" /><br />
+<img src="./images/Spring框架学习总结（上）6.png" alt="在这里插入图片描述" /><br />
+applicationContext.xml配置文件如下</p>
+<pre><code><code>&lt;?xml version=&quot;1.0&quot; encoding=&quot;UTF-8&quot;?&gt;
+&lt;beans 
+    xmlns=&quot;http://www.springframework.org/schema/beans&quot;
+    xmlns:xsi=&quot;http://www.w3.org/2001/XMLSchema-instance&quot;
+    xsi:schemaLocation=&quot;
+        http://www.springframework.org/schema/beans 
+        http://www.springframework.org/schema/beans/spring-beans.xsd&quot;&gt;
+
+ &lt;!-- 实现类UserDaoimpl交给Spring管理 --&gt;
+     &lt;bean id=&quot;IuserDao&quot; class=&quot;com.gx.Ioc.UserDaoimpl&quot; &gt;&lt;/bean&gt;
+&lt;/beans&gt;</code></code></pre>
+<p><img src="./images/Spring框架学习总结（上）7.png" alt="在这里插入图片描述" /></p>
+<h4 id="编写测试类">2.8编写测试类</h4>
+<pre><code><code>package com.gx.Ioc;
+
+import org.junit.Test;
+import org.springframework.context.ApplicationContext;
+import org.springframework.context.support.ClassPathXmlApplicationContext;
+
+public class SpingDemo1 {
+    @Test
+    public void demo11() {
+        // 面向接口传统方式
+        UserDaoimpl userdao = new UserDaoimpl();
+        userdao.eat();
+    }
+       //Spring的bean管理方式
+    @Test
+    public void demo22() {
+        ApplicationContext applicationContext = new ClassPathXmlApplicationContext(&quot;applicationContext.xml&quot;);
+        IUserDao userdao = (IUserDao) applicationContext.getBean(&quot;IuserDao&quot;);
+        userdao.eat();
+
+    }
+
+}</code></code></pre>
+<p>兄嘚，如果测试不成功最好看看二者是否对应！！！<br />
+<img src="./images/Spring框架学习总结（上）8.png" alt="在这里插入图片描述" /><br />
+兄dei,到这里，Spring的入门（IOC）算是入门了，是不是觉得很有成就感啊?</p>
+<p>拉倒吧! 我都不好意思说了.（兄dei,我错了，是我飘了，呀呀呀，兄dei别打脸鸭QAQ）</p>
+<p>但是我依旧是阻止不了你骄傲的心.</p>
+<p>那就顶我,让我感受感受你的骄傲!哈哈哈QAQ</p>
+<h4 id="ioc和di">2.9 IOC和DI</h4>
+<p>IOC不是什么技术，而是一种设计思想，IOC能指导我们如何设计出松耦合、更优良的程序。传统应用程序都是由我们在类内部主动创建依赖对象，从而导致类与类之间高耦合，难于测试；有了IoC容器后，把创建和查找依赖对象的控制权交给了Spring容器，由容器进行注入组合对象，所以对象与对象之间是松散耦合，这样利于功能复用，更重要的是使得程序的整个体系结构变得非常灵活。<br />
+IOC：控制反转，将对象的创建权反转给了Spring。<br />
+DI：依赖注入，前提必须有IOC的环境，Spring管理这个类的时候将类的依赖的属性注入（设置）进来。比如说下面讲到的<font color=red>Spring的属性注入其实就是典型的DI</font></p>
+<p>所谓继承:is a</p>
+<pre><code><code>Class A{
+
+}
+Class B extends A{
+
+}</code></code></pre>
+<p>所谓依赖：</p>
+<pre><code><code>Class A{
+
+}
+Class B{
+    public void xxx(A a){
+
+}
+}
+</code></code></pre>
+<p>所谓聚合:has a</p>
+<h2 id="spring的工厂类">3、Spring的工厂类</h2>
+<h4 id="spring工厂类的结构">3.1Spring工厂类的结构</h4>
+<p><img src="./images/Spring框架学习总结（上）9.png" alt="在这里插入图片描述" /></p>
+<h4 id="老版本的工厂类beanfactory">3.2老版本的工厂类：BeanFactory</h4>
+<p>BeanFactory：调用getBean的时候，才会生成类的实例。</p>
+<h4 id="新版本的工厂类applicationcontext">3.3新版本的工厂类：ApplicationContext</h4>
+<p><font color=red> ApplicationContext：加载配置文件的时候，就会将Spring管理的类都实例化</font>。<br />
+ApplicationContext有两个实现类<br />
+<font color=red> 1、ClassPathXmlApplicationContext ：加载类路径下的配置文件</font><br />
+2、FileSystemXmlApplicationContext ：加载文件系统下的配置文件</p>
+<h2 id="spring的配置">4、Spring的配置</h2>
+<h4 id="xml的提示配置schema的配置">4.1XML的提示配置（Schema的配置）</h4>
+<p>在XML文件中要使用各种标签来给spring进行配置，博主我这佩奇脑袋怎么可能记住spring中所有的标签呢，不怕不怕，博主我会配置XML的提示配置QAQ，会了这一招就算兄dei你是乔治脑袋也不用担心（再说了我看兄dei各各英俊潇洒，玉树临风，聪明绝顶...咳咳，暴露了暴露了）<br />
+<img src="./images/Spring框架学习总结（上）10.png" alt="在这里插入图片描述" /><br />
+<img src="./images/Spring框架学习总结（上）11.png" alt="在这里插入图片描述" /><br />
+<img src="./images/Spring框架学习总结（上）12.png" alt="在这里插入图片描述" /><br />
+<img src="./images/Spring框架学习总结（上）13.png" alt="在这里插入图片描述" /></p>
+<h4 id="bean的相关的配置-bean-标签的id和name的配置">4.2Bean的相关的配置（&lt; bean &gt;标签的id和name的配置）</h4>
+<p>id :使用了约束中的唯一约束。里面不能出现特殊字符的。上面提及到了要与getbean参数值对应</p>
+<p>name :没有使用约束中的唯一约束（理论上可以出现重复的，但是实际开发不能出现的）。里面可以出现特殊字符。</p>
+<h4 id="bean的生命周期的配置了解">4.3Bean的生命周期的配置（了解）</h4>
+<p>init-method :Bean被初始化的时候执行的方法<br />
+destroy-method :Bean被销毁的时候执行的方法（Bean是单例创建，工厂关闭）<br />
+<img src="./images/Spring框架学习总结（上）14.png" alt="在这里插入图片描述" /></p>
+<h4 id="bean的作用范围的配置重点">4.4Bean的作用范围的配置（重点）</h4>
+<p><font color=red><strong>scope属性</strong></font> ：<strong>Bean的作用范围</strong></p>
+<p><font color=red><strong>scope属性值</strong>如下</font>（主要用的是前二者）<br />
+<font color=red><strong>singleton</strong></font> ：<strong>scope属性的默认值</strong>，Spring会采用<strong>单例</strong>模式创建这个对象。<br />
+<strong>prototype</strong> ：<strong>多例</strong>模式。（Struts2和Spring整合一定会用到）</font><br />
+request ：应用在web项目中，Spring创建这个类以后，将这个类存入到request范围中。<br />
+session ：应用在web项目中，Spring创建这个类以后，将这个类存入到session范围中。<br />
+globalsession ：应用在web项目中，必须在porlet环境下使用。但是如果没有这种环境，相对于session。<br />
+<img src="./images/Spring框架学习总结（上）15.png" alt="在这里插入图片描述" /><br />
+<img src="./images/Spring框架学习总结（上）16.png" alt="在这里插入图片描述" /><br />
+<img src="./images/Spring框架学习总结（上）17.png" alt="在这里插入图片描述" /></p>
+<h2 id="spring的属性注入">5、Spring的属性注入</h2>
+<p>首先，创建几个普通类</p>
+<pre><code><code>com.gx.spring.demo.Car
+public class Car {
+    private String name;
+    private Double price;
+    
+    public Car(String name, Double price) {
+        super();
+        this.name = name;
+        this.price = price;
+    }
+    @Override
+    public String toString() {
+        return &quot;Car [name=&quot; + name + &quot;, price=&quot; + price + &quot;]&quot;;
+    }
+}</code></code></pre>
+<pre><code><code>com.gx.spring.demo.Car2
+/**
+ * 用作set方法的属性注入类
+ */
+public class Car2 {
+    private String name;
+    private Double price;
+    public void setName(String name) {
+        this.name = name;
+    }
+    public void setPrice(Double price) {
+        this.price = price;
+    }
+    @Override
+    public String toString() {
+        return &quot;Car2 [name=&quot; + name + &quot;, price=&quot; + price + &quot;]&quot;;
+    }
+    
+}
+</code></code></pre>
+<pre><code><code>com.gx.spring.demo.Person 
+/**
+ * 用作set方法的对象属性注入类
+ */
+public class Person {
+    private String name;
+    private Car2 car2;
+    public void setName(String name) {
+        this.name = name;
+    }
+    public void setCar2(Car2 car2) {
+        this.car2 = car2;
+    }
+    @Override
+    public String toString() {
+        return &quot;Employee [name=&quot; + name + &quot;, car2=&quot; + car2 + &quot;]&quot;;
+    }
+}
+</code></code></pre>
+<h4 id="构造方法的方式的属性注入">5.1构造方法的方式的属性注入</h4>
+<p>构造方法的属性注入<br />
+<font color=red>constructor-arg </font> 标签用于配置构造方法的属性注入<br />
+name ：参数的名称<br />
+value：设置普通数据<br />
+<font color=red> ref：引用数据，一般是另一个bean id值</font></p>
+<p>当然了，构造方法的方式的属性注入也支持对象属性的注入，标签中对应属性也是ref<br />
+如果只有一个有参数的构造方法并且参数类型与注入的bean类型匹配，那就会注入到该构造方法中</p>
+<p>applicationContext.xml中配置：</p>
+<pre><code><code>&lt;!-- 构造方法的方式 --&gt;
+    &lt;bean id=&quot;car&quot; class=&quot;com.gx.spring.demo.Car&quot;&gt;
+        &lt;constructor-arg name=&quot;name&quot; value=&quot;玛莎拉蒂&quot;/&gt;
+        &lt;constructor-arg name=&quot;price&quot; value=&quot;800000&quot;/&gt;
+    &lt;/bean&gt;</code></code></pre>
+<p>测试方法：</p>
+<pre><code><code>    /**
+     * 构造方法方式的普通属性注入方法
+     */
+    public void demo1(){
+        ApplicationContext applicationContext = new ClassPathXmlApplicationContext(&quot;applicationContext.xml&quot;);
+        Car car = (Car) applicationContext.getBean(&quot;car&quot;);
+        System.out.println(car);
+    }</code></code></pre>
+<h4 id="set方法的方式的属性注入开发常用">5.2Set方法的方式的属性注入【开发常用】</h4>
+<p>Set方法的普通属性注入<br />
+<font color=red><strong>property</strong></font> 标签用于配置Set方法的属性注入<br />
+name ：参数的名称<br />
+value：设置普通数据<br />
+<font color=red> <strong>ref</strong>：引用数据，一般是另一个bean id值</font></p>
+<p>applicationContext.xml中配置：</p>
+<pre><code><code>&lt;!-- set方法的方式 --&gt;
+&lt;bean id=&quot;car2&quot; class=&quot;com.gx.spring.demo.Car2&quot;&gt;
+        &lt;property name=&quot;name&quot; value=&quot;法拉利黄金跑车&quot;/&gt;
+        &lt;property name=&quot;price&quot; value=&quot;10000000&quot;/&gt;
+&lt;/bean&gt; </code></code></pre>
+<p>测试方法：</p>
+<pre><code><code>@Test
+    /**
+     * set方法方式的属性注入
+     */
+    public void demo2(){
+        ApplicationContext applicationContext = new ClassPathXmlApplicationContext(&quot;applicationContext.xml&quot;);
+        Car2 car2 = (Car2) applicationContext.getBean(&quot;car2&quot;);
+        System.out.println(car2);
+    }</code></code></pre>
+<p>Set方法设置对象类型的属性<br />
+applicationContext.xml中配置：</p>
+<pre><code><code>&lt;!-- set方法注入对象类型的属性 --&gt;
+&lt;bean id=&quot;Person&quot; class=&quot;com.gx.spring.demo.Person&quot;&gt;
+            &lt;!-- value:设置普通类型的值，ref:设置其他的类的id或name--&gt;
+        &lt;property name=&quot;name&quot; value=&quot;涛哥&quot;/&gt;
+        &lt;property name=&quot;car2&quot; ref=&quot;car2&quot;/&gt;
+    &lt;/bean&gt; </code></code></pre>
+<p>测试方法：</p>
+<pre><code><code>@Test
+    /**
+     * set方法注入对象类型
+     */
+    public void demo3(){
+        ApplicationContext applicationContext = new ClassPathXmlApplicationContext(&quot;applicationContext.xml&quot;);
+        Person person= (Person) applicationContext.getBean(&quot;Person&quot;);
+        System.out.println(person);
+    }</code></code></pre>
+<h4 id="注解的方式属性注入开发常用">5.3注解的方式属性注入【开发常用】</h4>
+<p><font color=red>@Component </font> （作用在类上通用：组件）<br />
+@Component（“userService”）相当于&lt; bean id=”userService” class=”...”&gt;</p>
+<p>衍生:<br />
+<font color=red> <strong>@Controller</strong></font> Web层<br />
+<strong>@Service</strong> 业务层<br />
+<strong>@Repository</strong> 持久层<br />
+这三个注解是为了让标注类本身的用途清晰</p>
+<p>属性注入的注解 （ <font color=red>可以没有set方法</font>）<br />
+<font color=red>普通类型</font>属性：<font color=red>@Value</font></p>
+<p><font color=red> 对象类型</font>属性：<font color=red><strong>@Resource</strong></font> （<strong>对应bean中的id</strong>）= <strong>@Autowired（类型）</strong>+ @Qualifier(名称)<br />
+<img src="./images/Spring框架学习总结（上）18.png" alt="在这里插入图片描述" /></p>
+<h6 id="注解的理解">5.3.1注解的理解</h6>
+<p>额，初学框架，注解二字可能对于大部分熊dei来说，太过于陌生，注解其实就是在一个类、方法、属性上，使用@注解名称，就比如是我们最熟悉的接实现口中的方法默认会有一个 @Override （熊dei，这样理解能接受？）<br />
+<img src="./images/Spring框架学习总结（上）19.png" alt="在这里插入图片描述" /></p>
+<h6 id="注解的jar包导入">5.3.2注解的jar包导入</h6>
+<p><font color=red><strong>Spring3.x</font>注解的jar包</strong><br />
+在Spring3.x的版本中，使用注解开发，只需要 <font color=red><strong>spring核心基础四包外 + log4j包 + 1个依赖包</strong></font> 即可<br />
+<img src="./images/Spring框架学习总结（上）3.png" alt="在这里插入图片描述" /><br />
+<font color=red><strong>Spring4.x</font>注解的jar包</strong><br />
+然而在Spring4.x版本之后则需在 <font color=red>再添加一个要引入 <strong>spring-aop 的 jar 包</strong></font>，因为，spring4.x版本中一些注解的依赖方法封装在spring-aop 的 jar 包中<br />
+<img src="./images/Spring框架学习总结（上）21.png" alt="在这里插入图片描述" /></p>
+<h6 id="引入注解的context约束">5.3.3引入注解的context约束</h6>
+<p>所谓约束就是就是就是约束啦（搽汗），其中bean约束是最基本的约束！（下图也可以看出）<br />
+<img src="./images/Spring框架学习总结（上）22.png" alt="在这里插入图片描述" /><br />
+引入约束:(引入 context 的约束):</p>
+<pre><code><code>&lt;beans xmlns=&quot;http://www.springframework.org/schema/beans&quot;
+xmlns:xsi=&quot;http://www.w3.org/2001/XMLSchema-instance&quot;
+xmlns:context=&quot;http://www.springframework.org/schema/context&quot;
+xsi:schemaLocation=&quot;
+http://www.springframework.org/schema/beans 
+http://www.springframework.org/schema/beans/spring-beans.xsd
+http://www.springframework.org/schema/context 
+http://www.springframework.org/schema/context/spring-context.xsd&quot;&gt;
+&lt;/beans&gt;</code></code></pre>
+<h6 id="编写相关的类">5.3.4编写相关的类</h6>
+<pre><code><code>public interface UserDao {
+public void sayHello();
+}
+public class UserDaoImpl implements UserDao {
+@Override
+public void sayHello() {
+System.out.println(&quot;Hello Spring...&quot;);
+} }</code></code></pre>
+<h6 id="配置注解扫描">5.3.5配置注解扫描</h6>
+<p>Spring的注解开发：组件扫描（<font color=red>不使用类上注解的时候可以不用组件扫描</font>）<br />
+使用注解方式，需要开启组件扫描&lt; <strong>context:component-scan base-package</strong>=直接包名或者包名.类名/&gt;，当然开发中一般都是<strong>base-package=包名</strong>，毕竟这样可以扫描整个包，方便开发<br />
+Spring 的注解开发:组件扫描(类上注解: 可以直接使用属性注入的注解)</p>
+<pre><code><code>&lt;!-- Spring 的注解开发:组件扫描(类上注解: 可以直接使用属性注入的注解) --&gt;
+&lt;context:component-scan base-package=&quot;com.gx.spring.demo1&quot;/&gt;</code></code></pre>
+<h6 id="在相关的类上添加注解">5.3.6 在相关的类上添加注解</h6>
+<p>1、使用类上注解方式@Component（value=“userDao”），相当于&lt; bean id=&quot;userDao class=&quot;com.gx.类名&quot;&gt;&lt; /bean&gt;<br />
+当然value属性名可以省去直接@Component（&quot;userDao&quot;），当然@Component（“value值任意写建议取的要有意义”）<br />
+2、注解方式可以没有set方法<br />
+<img src="./images/Spring框架学习总结（上）23.png" alt="在这里插入图片描述" /></p>
+<pre><code><code>@Component(value=&quot;userDao&quot;)  //相当于配置了&lt;bean id=&quot;userDao&quot; class=&quot;com.gx.UserDaoImpl &quot;&gt;&lt;/bean&gt;
+public class UserDaoImpl implements UserDao {
+@Override
+public void sayHello() {
+System.out.println(&quot;Hello Spring Annotation...&quot;);
+} }</code></code></pre>
+<h6 id="编写测试类-1">5.3.7 编写测试类</h6>
+<pre><code><code>@Test
+public void demo3() {
+ApplicationContext applicationContext = new ClassPathXmlApplicationContext(&quot;applicationContext.xml&quot;);
+UserDao userDao = (UserDao) applicationContext.getBean(&quot;userDao&quot;);
+userDao.sayHello();
+}</code></code></pre>
+<h4 id="p名称空间的属性注入spring2.5以后">5.4P名称空间的属性注入（Spring2.5以后）</h4>
+<p>通过引入p名称空间完成属性的注入：<br />
+写法：<br />
+普通属性 p:属性名=”值”<br />
+对象属性 p:属性名-ref=”值”</p>
+<p>P名称空间的约束引入<br />
+<img src="./images/Spring框架学习总结（上）24.png" alt="在这里插入图片描述" /><br />
+使用p名称空间<br />
+<img src="./images/Spring框架学习总结（上）25.png" alt="在这里插入图片描述" /></p>
+<h4 id="spel的属性注入spring3.0以后">5.5 SpEL的属性注入（Spring3.0以后）</h4>
+<p>SpEL：Spring Expression Language，Spring的表达式语言。<br />
+语法： #{SpEL}<br />
+<img src="./images/Spring框架学习总结（上）26.png" alt="在这里插入图片描述" /></p>
+<h4 id="集合类型属性注入了解">5.6集合类型属性注入(了解)</h4>
+<p>集合类型属性配置：<br />
+<strong>集合的注入都是在&lt; property&gt;标签中添加子标签</strong><br />
+数组：&lt; array &gt;<br />
+List：&lt; list &gt;<br />
+Set：&lt; set &gt;<br />
+Map：&lt; map &gt; ，map存放k/v 键值对，使用<entry>描述<br />
+Properties：&lt; props&gt; &lt; prop key=&quot;&quot;&gt;&lt; /prop&gt;<br />
+普通数据：&lt; value &gt;<br />
+引用数据：&lt; ref &gt;</p>
+<pre><code><code>    &lt;!-- Spring的集合属性的注入============================ --&gt;
+    &lt;!-- 注入数组类型 --&gt;
+    &lt;bean id=&quot;collectionBean&quot; class=&quot;com.gx.spring.demo.CollectionBean&quot;&gt;
+        &lt;!-- 数组类型 --&gt;
+        &lt;property name=&quot;arrs&quot;&gt;
+            &lt;list&gt;
+                &lt;value&gt;天才&lt;/value&gt;
+                &lt;value&gt;王二&lt;/value&gt;
+                &lt;value&gt;冠希&lt;/value&gt;
+            &lt;/list&gt;
+        &lt;/property&gt;
+        
+        &lt;!-- 注入list集合 --&gt;
+        &lt;property name=&quot;list&quot;&gt;
+            &lt;list&gt;
+                &lt;value&gt;李兵&lt;/value&gt;
+                &lt;value&gt;赵如何&lt;/value&gt;
+                &lt;value&gt;邓凤&lt;/value&gt;
+            &lt;/list&gt;
+        &lt;/property&gt;
+        
+        &lt;!-- 注入set集合 --&gt;
+        &lt;property name=&quot;set&quot;&gt;
+            &lt;set&gt;
+                &lt;value&gt;aaa&lt;/value&gt;
+                &lt;value&gt;bbb&lt;/value&gt;
+                &lt;value&gt;ccc&lt;/value&gt;
+            &lt;/set&gt;
+        &lt;/property&gt;
+        
+        &lt;!-- 注入Map集合 --&gt;
+        &lt;property name=&quot;map&quot;&gt;
+            &lt;map&gt;
+                &lt;entry key=&quot;aaa&quot; value=&quot;111&quot;/&gt;
+                &lt;entry key=&quot;bbb&quot; value=&quot;222&quot;/&gt;
+                &lt;entry key=&quot;ccc&quot; value=&quot;333&quot;/&gt;
+            &lt;/map&gt;
+        &lt;/property&gt;
+    &lt;/bean&gt;</code></code></pre>
+<h2 id="spring的分模块开发的配置">6、Spring的分模块开发的配置</h2>
+<p>分模块配置：<br />
+在加载配置文件的时候，加载多个，没错，这就是传说中的骚操作，堪称开挂级别的操作（当然，这是可以的不是开挂）<br />
+<img src="./images/Spring框架学习总结（上）27.png" alt="在这里插入图片描述" /><br />
+在一个配置文件中引入多个配置文件，简直优秀！！！<br />
+<img src="./images/Spring框架学习总结（上）28.png" alt="在这里插入图片描述" /><br />
+到这里，恭喜恭喜，各位熊dei以优雅的仪式感闯进Spring世界，对Spring的IOC以及DI有了一定了解了，是不是也很期待Spring的Aop呐,毕竟Spring的核心是控制反转（IOC）和面向切面（AOP）。</p>
+<p><a href="https://blog.csdn.net/qq_44543508/article/details/99240061#5SpringAOP_487">【Spring框架学习二】Spring的AOP通俗理解以及AOP的入门开发</a>（哎哎，别打..别打..别打脸....）</p>
+<blockquote>
+<p>如果本文对你有一点点帮助，就请点个赞呗，手留余香，谢谢！</p>
+</blockquote>
+<p>最后，欢迎各位关注我的公众号，一起探讨技术，向往技术，追求技术...</p>
+<p><img src="./images/Spring框架学习总结（上）29.png" alt="在这里插入图片描述" /></p>
+
+</div><hr><script charset='utf-8' src='../../js/sming.js'></script></body></html>

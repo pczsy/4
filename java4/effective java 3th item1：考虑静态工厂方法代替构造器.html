@@ -1,0 +1,129 @@
+<html><head><meta charset='utf-8'><meta name='viewport' content='width=device-width, initial-scale=1'>
+<meta name='applicable-device' content='pc'><meta name='keywords' content='电脑,电脑讲解,电脑技术,编程,电脑故障维修effective java 3th item1：考虑静态工厂方法代替构造器' />
+<script src='../../highlight/highlight.pack.js'></script>
+<link rel='stylesheet' type='text/css' href='../../highlight/styles/monokai.css'/>
+
+<link rel='stylesheet' href='../../fenxiang/dist/css/share.min.css'>
+<script src='../../fenxiang/src/js/social-share.js'></script>
+<script src='../../fenxiang/src/js/qrcode.js'></script>
+
+</head><body><script>hljs.initHighlightingOnLoad();</script><script>
+var system ={};  
+var p = navigator.platform;       
+system.win = p.indexOf('Win') == 0;  
+system.mac = p.indexOf('Mac') == 0;  
+system.x11 = (p == 'X11') || (p.indexOf('Linux') == 0);     
+if(system.win||system.mac||system.xll){
+document.write("<link href='../css/3.css' rel='stylesheet' type='text/css'>");}else{ document.write("<link href='../css/3wap.css' rel='stylesheet' type='text/css'>");}</script><script src='../../js/3.js'></script><div class='div2'><div class='heading_nav'><ul><div><li><a href='../../index.html'>首页</a></li>
+</div><div onclick='hidden1()' >分享</div>
+</ul></div></div>
+<div id='heading_nav2'> 
+<li class='row' >
+<div class='social-share' data-mode='prepend'><a href='javascript:' class='social-share-icon icon-heart'></a></div></li></div><script charset='utf-8' src='../../3/js/hengfu.js'></script><script charset='utf-8' src='../../3/js/hengfu2.js'></script><hr><div class='div1'><div class='biaoti'><center>effective java 3th item1：考虑静态工厂方法代替构造器</center></div><div class='banquan'>原文出处:本文由博客园博主Yiaz提供。<br/>
+原文连接:https://www.cnblogs.com/young-youth/p/11452445.html</div><br>
+    <p>传统的方式获取一个类的实例，是通过提供一个 <code>public</code> 构造器。这里有技巧，每一个程序员应该记住。一个类可以对外提供一个 <code>public</code> 的 <strong>静态工厂方法</strong> ，该方法只是一个朴素的静态方法，不需要有太多复杂的逻辑，只需要返回该类的实例。</p>
+<p><br></p>
+<p>这里通过 <code>Boolean</code> （是原始类型 <code>boolean</code> 的包装类）举一个简单的例子：</p>
+<pre><code><code>    public static Boolean valueOf(boolean b) {
+        return b ? Boolean.TRUE : Boolean.FALSE;
+    }</code></code></pre>
+<p>这个方法，将一个 <code>boolean</code> 原始类型的值转换为 <code>Boolean</code> 对象引用。</p>
+<p><br></p>
+<p>值得注意的是，本条目中说的一个 <strong>静态工厂方法</strong> 不同于 <strong>设计模式</strong> 的工厂模式<a href="#fn1" class="footnote-ref" id="fnref1"><sup>1</sup></a>，同样的，本条目中描述的静态工厂方法在设计模式找不到对应的模式。</p>
+<p><br></p>
+<p>一个类可以对外提供静态工厂方法，来取代 <code>public</code> 的构造器，或者与 <code>public</code> 构造器并存，对外提供两种方式获取实例。<strong>用静态工厂方法取代 <code>public</code> 构造器，既有优势也有缺点。</strong></p>
+<p>优势体现在下面几点：</p>
+<ol>
+<li><p><font color='orage'><strong>静态工厂方法与构造器比起来，它可以随意命名，而非固定的与类的名字保持一致。</strong></font></p>
+<p>如果一个构造器的参数本身，不能对将要返回的对象具有准确的描述。此时使用一个具有准确描述名字的静态工厂方法是一个不错的选择。它可以通过名字对将要返回的对象，进行准确的描述。使得使用的人可以见名知意。</p>
+<p>举个例子，<code>BigInteger(int, int, Random)</code> 构造器，返回的值可能是素数，因此，这里其实可以有更好的表达，通过使用一个静态工厂方法 <code>BigInteger.probablePrime(int, int, Random)</code> 该方法于 <code>1.4</code> 被加入。</p>
+<p>一个类只能有一个指定方法签名<a href="#fn2" class="footnote-ref" id="fnref2"><sup>2</sup></a>的构造器。通常我们都知道如何绕过这限制，通过交换参数列表的顺序，得到不同的方法签名。但是这是一个很糟糕的主意。这给使用 <code>api</code> 的开发人员造成负担，他们将很难记住哪一个方法签名对应哪一个对象的返回，最后往往都是错误的调用。阅读代码的人同样也蒙圈，如果没有相应的文档告诉他们，不同的方法签名对应的构造器返回的对象是什么。</p>
+<p>静态工厂方法不受上述限制，不需要去通过交换参数顺序来彼此区分，因为它们可以拥有自己的名字。因此，当一个类的多个构造器，方法签名差不多，仅仅参数顺序不一样的时候，考虑使用静态工厂方法，仔细的为静态工厂方法取名字，以区分它们之间的不同。</p></li>
+<li><p><font color='orage'><strong>静态工厂方法与构造器比起来，不必每次调用都创建新的对象</strong></font></p>
+<p>这允许不可变的类使用预创建的实例<a href="#fn3" class="footnote-ref" id="fnref3"><sup>3</sup></a>，或者在创建实例的时候，将实例缓存起来<a href="#fn4" class="footnote-ref" id="fnref4"><sup>4</sup></a>，重复的使用该实例，避免创建不重要的重复对象。<code>Boolean.valueOf(boolean)</code> 方法使用该技巧，它永远都不会创建对象，返回的都是预创建好的对象。这个技巧有点类似于设计模式中的享元模式<a href="#fn5" class="footnote-ref" id="fnref5"><sup>5</sup></a> 。它能大幅度的提高性能，特别是在特定场景下：一些对象创建的时候，需要花费很大性能，并且这些对象经常被使用。</p>
+<p>该特性允许类在任何时候，对其产生多少实例具有精确的控制。用这种技巧的类，被称为实例受控的类。这里有几个使用实例受控类的理由。实例受控允许一个类保证它是一个单例或者不可实例化的类。同样的，实例受控，也可以保证不可变类不会存在两个相等的实例。</p></li>
+<li><p><font color='orage'><strong>静态工厂方法与构造器比起来，可以返回该类的任意子类型的对象</strong></font></p>
+<p>具有足够的灵活性，在获取对象的时候。可以返回协变类型，在方法中使用该类的子类构造器创建对象，然后返回，同时对外不需要暴露这些子类对象，适合于面向接口编程。在 <code>1.8</code> 之前，接口中不能有静态方法，针对情况的惯例做法是，针对名为 <code>Type</code> 类型的接口，它的静态方法被放在一个不可实例化的类 <code>Types</code> 中<a href="#fn6" class="footnote-ref" id="fnref6"><sup>6</sup></a>，典型的例子是 <code>java.util.Collections</code> 类，它通过静态工厂方法，可以构建返回各式各样的集合：同步集合、不可修改的集合等等，但是返回的时候都是返回接口类型，具体实现类型不对外公开。</p>
+<pre><code><code>// Collections 中非公开类，同步map
+   private static class SynchronizedMap&lt;K,V&gt;
+        implements Map&lt;K,V&gt;, Serializable {
+        private static final long serialVersionUID = 1978198479659022715L;
+
+        private final Map&lt;K,V&gt; m;     // Backing Map
+        final Object      mutex;        // Object on which to synchronize
+
+        SynchronizedMap(Map&lt;K,V&gt; m) {
+            this.m = Objects.requireNonNull(m);
+            mutex = this;
+        }
+
+        SynchronizedMap(Map&lt;K,V&gt; m, Object mutex) {
+            this.m = m;
+            this.mutex = mutex;
+        }
+
+    // Collections 的静态工厂方法，返回接口接口map，但是内部是返回同步Map类型。
+   public static &lt;K,V&gt; Map&lt;K,V&gt; synchronizedMap(Map&lt;K,V&gt; m) {
+        return new SynchronizedMap&lt;&gt;(m);
+    }</code></code></pre>
+<p>起到简化 <code>api</code> 的作用，这种简化不仅仅是 <code>api</code> 体积上的减少，减少对外暴露的类的数量，也给程序员直观上的简洁，他们只需要记住接口类型即可，无需记住具体的实现类型。这样也督促程序员面向接口编程，这是一种好的习惯。</p>
+<p><code>1.8</code> 以后，接口可以写静态方法。因此，不再需要按照以前的习惯，为接口，写一个对应的类，直接在接口中写静态工厂方法。但是关于返回的实现类型，依然应该继续隐藏，使用非公开类实现。</p></li>
+<li><p><font color='orage'><strong>静态工厂方法与构造器比起来，可以随着传入参数的不同，返回不同的对象。</strong></font></p>
+<p>可以返回任何子类型，和第三条一样，但是可以继续添加控制，根据传入参数的不同，返回不同的对象。</p>
+<p>一个例子，<code>EnumSet</code> ，是一个不可实例的类，只有一个静态工厂方法，没有构造器。但是在 <code>openJDK</code> 的实现中，具体的返回类型，是根据实际枚举的个数决定的，如果小于等于 <code>64</code>，则返回 <code>RegularEnumSet</code> 类型，否则返回 <code>JumboEnumSet</code> 类型。这两个类型对于使用者来说，都是不可见的。如果 <code>RegularEnumSet</code> 类型，在将来不再为小的枚举类型提供优势，即便在未来的发行版删除 <code>RegularEnumSet</code> 也不会有什么影响。同样的，未来也可以继续添加第三个、第四个版本，对使用者也是无感的。使用者不需要关心具体返回的是什么对象，他们只知道，返回的对象都是 <code>EnumSet</code> 类型。</p>
+<pre><code><code>public static &lt;E extends Enum&lt;E&gt;&gt; EnumSet&lt;E&gt; noneOf(Class&lt;E&gt; elementType) {
+        Enum&lt;?&gt;[] universe = getUniverse(elementType);
+        if (universe == null)
+            throw new ClassCastException(elementType + &quot; not an enum&quot;);
+
+        // 如果小于等于 64 ，则返回 RegularEnumSet
+        if (universe.length &lt;= 64)
+            return new RegularEnumSet&lt;&gt;(elementType, universe);
+        else
+            return new JumboEnumSet&lt;&gt;(elementType, universe);
+    }
+
+    // RegularEnumSet 类是 EnumSet的子类
+    class RegularEnumSet&lt;E extends Enum&lt;E&gt;&gt; extends EnumSet&lt;E&gt; {
+
+        ...
+    }
+
+</code></code></pre></li>
+<li><p><font color='orage'><strong>静态工厂方法与构造器比起来，在编写静态工厂方法的时候，具体的类型可以不存在。</strong></font></p>
+<p>这句话还是面向接口的优势，意思就是，我们在编写方法的时候，可以没有任何实现类，在使用的使用，先注册实现类，然后再返回实现类，这使得扩展变得很容易。我们只是在维护一个框架，一个接口，具体的实现，我们不给出，谁都可以实现，然后注册使用。这也是 <strong>服务者框架</strong> 的含义。<code>JDBC</code> 就是这么一个思想的服务者框架。<a href="https://blog.csdn.net/youngyouth/article/details/80112680">关于服务者框架看这里</a></p></li>
+</ol>
+<p>缺点：</p>
+<ol>
+<li><p><font color='orange'><strong>静态工厂方法与构造器比起来，没有 <code>public</code> 或者 <code>protected</code> 修饰的构造器，无法实现继承</strong></font></p>
+<p>例如，上面提到的 <code>Collections</code> ，就无法被继承，我们就不能继承其中的任何一个便利的实现。这或许，也是一种对使用组合而非继承的鼓励。</p></li>
+<li><p><font color='orange'><strong>静态工厂方法与构造器比起来，它们不容易被程序员所知晓</strong></font></p>
+<p>在文档中，它们不像构造器那么显眼，在上面单独的列出来，基于这个原因，要想知道如何实例化一个类，使用静态工厂方法比使用构造器相比，前者是比较困难的，因为文档中，静态工厂方法和其他静态方法没啥区别，没有做特殊处理。<code>java</code> 文档工具或许在未来会注意到这个问题，对静态工厂方法多给予一些关注。</p>
+<p>同时，我们可以在文档中对静态工厂方法的名字做一些特殊处理，遵守常见的命名规范，来减少这个问题，比如像下面提到的几个规范：</p>
+<ol>
+<li><code>from</code> ，<strong>类型转换方法</strong>，根据一个单一传入的参数，返回一个对应的类型，比如：<code>Date d = Date.from(instant);</code> 。</li>
+<li><code>of</code>， <strong>聚合方法</strong>，接受多个参数，返回一个合并它们的实例。比如：<code>Set&lt;Rank&gt; faceCards = EnumSet.of(JACK, QUEEN, KING);</code></li>
+<li><code>valueOf</code>，<strong>比 from 和 of 更加详细</strong> 。比如：<code>BigInteger prime = BigInteger.valueOf(Integer.MAX_VALUE);</code></li>
+<li><code>instance or getInstance</code> ，<strong>获取实例方法</strong>，根据传入的参数，返回实例，但是不保证返回的实例完全一样，根据传入的参数不同而不同。比如：<code>StackWalker luke = StackWalker.getInstance(options);</code> 。</li>
+<li><code>create or newInstance</code> ，<strong>获取新的实例</strong>，每次都返回新创建的实例。比如：<code>Object newArray = Array.newInstance(classObject, arrayLen);</code>。</li>
+<li><code>getType</code> ，和 <code>getInstance</code> 类似，用于返回的类型，不是静态工厂方法所在的类，而是其他类型。比如：<code>FileStore fs = Files.getFileStore(path);</code> 。</li>
+<li><code>newType</code> 和 <code>newInstance</code> 类型，同样用于返回的类型，不是静态工厂方法所在的类，而是其他类型。比如：<code>BufferedReader br = Files.newBufferedReader(path);</code> 。</li>
+<li><code>type</code> ，<code>getType and newType</code> 的简化版。比如：<code>List&lt;Complaint&gt; litany = Collections.list(legacyLitany);</code> 。</li>
+</ol></li>
+</ol>
+<p>总结下，静态工厂方法和 <code>public</code> 构造器都有自己的优点，了解它们各自的优点是有帮助的。大部分情况下，静态工厂方法更占优势，所以，我们应该避免第一反应就使用构造器，而是先考虑下静态工厂方法。</p>
+<hr />
+<section class="footnotes">
+<hr />
+<ol>
+<li id="fn1"><p>这里的静态工厂方法，和设计模式中的静态工厂模式，很相似，但是设计模式中的静态工厂模式，它是对外隐藏对象的实现细节，通过一个工厂，根据不同的输入，产生不同的输出。本条目中的工厂，只会产生特定的输出，即自己的实例。二者还是不同的。<a href="#fnref1" class="footnote-back">↩</a></p></li>
+<li id="fn2"><p>方法签名，指的是方法名字，以及方法参数列表，包括方法参数的顺序。<a href="#fnref2" class="footnote-back">↩</a></p></li>
+<li id="fn3"><p>类似于单例模式的饿汉式<a href="#fnref3" class="footnote-back">↩</a></p></li>
+<li id="fn4"><p>类似于单例模式的懒汉式<a href="#fnref4" class="footnote-back">↩</a></p></li>
+<li id="fn5"><p>享元模式，23种设计模式中的一种， 它针对每一种内部状态仅提供一个对象，设置不同的外部状态，产生多种不同的形态，但是其内部状态对象只有一个，达到对象复用的目的。<a href="#fnref5" class="footnote-back">↩</a></p></li>
+<li id="fn6"><p>这里的 <code>Tyle</code> 类型，不是泛型的 <code>Type</code> ，只是一种代指，跟 <code>xxx</code> 一个意思，表示 <code>1.7</code> 以前，对于面向接口编程的时候，想要返回协变类型，常规的做法，是写一个不可实现类 ，类的名字，就是接口的名字，多加一个 <code>s</code>。<a href="#fnref6" class="footnote-back">↩</a></p></li>
+</ol>
+</section>
+
+
+</div><hr><script charset='utf-8' src='../../js/sming.js'></script></body></html>

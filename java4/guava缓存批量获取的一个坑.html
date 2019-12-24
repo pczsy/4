@@ -1,0 +1,85 @@
+<html><head><meta charset='utf-8'><meta name='viewport' content='width=device-width, initial-scale=1'>
+<meta name='applicable-device' content='pc'><meta name='keywords' content='电脑,电脑讲解,电脑技术,编程,电脑故障维修guava缓存批量获取的一个坑' />
+<script src='../../highlight/highlight.pack.js'></script>
+<link rel='stylesheet' type='text/css' href='../../highlight/styles/monokai.css'/>
+
+<link rel='stylesheet' href='../../fenxiang/dist/css/share.min.css'>
+<script src='../../fenxiang/src/js/social-share.js'></script>
+<script src='../../fenxiang/src/js/qrcode.js'></script>
+
+</head><body><script>hljs.initHighlightingOnLoad();</script><script>
+var system ={};  
+var p = navigator.platform;       
+system.win = p.indexOf('Win') == 0;  
+system.mac = p.indexOf('Mac') == 0;  
+system.x11 = (p == 'X11') || (p.indexOf('Linux') == 0);     
+if(system.win||system.mac||system.xll){
+document.write("<link href='../css/3.css' rel='stylesheet' type='text/css'>");}else{ document.write("<link href='../css/3wap.css' rel='stylesheet' type='text/css'>");}</script><script src='../../js/3.js'></script><div class='div2'><div class='heading_nav'><ul><div><li><a href='../../index.html'>首页</a></li>
+</div><div onclick='hidden1()' >分享</div>
+</ul></div></div>
+<div id='heading_nav2'> 
+<li class='row' >
+<div class='social-share' data-mode='prepend'><a href='javascript:' class='social-share-icon icon-heart'></a></div></li></div><script charset='utf-8' src='../../3/js/hengfu.js'></script><script charset='utf-8' src='../../3/js/hengfu2.js'></script><hr><div class='div1'><div class='biaoti'><center>guava缓存批量获取的一个坑</center></div><div class='banquan'>原文出处:本文由博客园博主stoneFang提供。<br/>
+原文连接:https://www.cnblogs.com/stoneFang/p/11674388.html</div><br>
+    <h1 id="摘要">摘要</h1>
+<p>Guava Cache是Google开源的Java工具集库Guava里的一款缓存工具，一直觉得使用起来比较简单，没想到这次居然还踩了一个坑</p>
+<h1 id="背景">背景</h1>
+<p>功能需求抽象出来很简单，就是将数据库的查询<code>sthMapper.findById(Long id)</code>的结果缓存起来。但同时还有批量请求，为了提高效率，肯定要批量查询数据库，<code>sthMapper.findByIds(Collection&lt;Long&gt; ids)</code></p>
+<p>对于的guava cache 处理类</p>
+<pre><code><code>  // 定义guava缓存
+  public SthCache() {
+        sthCache = CacheBuilder.newBuilder()
+                .maximumSize(SIZE)
+                .refreshAfterWrite(3, TimeUnit.SECONDS)
+                .build(new CacheLoader&lt;Long, List&lt;Long&gt;&gt;() {
+                    @Override
+                    public List&lt;Long&gt; load(final Long id) {
+                        return doLoad(Arrays.asList(id)).get(id);
+                    }
+
+                    @Override
+                    public Map&lt;Long, List&lt;Long&gt;&gt; loadAll(
+                            final Iterable&lt;? extends Long&gt; ids)
+                            throws Exception {
+                        return doLoad(Lists.newArrayList(ids));
+                    }
+                });
+    }
+// 实际从数据库中加载数据
+private Map&lt;Long, List&lt;Long&gt;&gt; doLoad(final List&lt;Long&gt; ids) {
+    return sthMapper.findByIds(ids);
+} 
+// 批量获取数据
+ public Map&lt;Long, List&lt;Long&gt;&gt; getSthById(final List&lt;Long&gt; ids) {
+        return sthCache.getAll(ids);
+    
+    }</code></code></pre>
+<p>没毛病，getAll(Iterable&lt;? extendsK&gt;)方法用来执行批量查询。默认情况下，对每个不在缓存中的键，getAll方法会单独调用CacheLoader.load来加载缓存项。如果批量的加载比多个单独加载更高效，你可以重载CacheLoader.loadAll来利用这一点。getAll(Iterable)的性能也会相应提升。这边定义了loadAll效率高了。</p>
+<h1 id="问题">问题</h1>
+<p>在debug的时候发现确实走的loadAll,批量查询数据库。但是上线后，线上监控数据却发现这个接口耗时很长，通过分析，发现有很多sthMappper.findByIds()的单个查询。也就是说，并没有调用<code>loadAll</code>，走到批量查询数据库中。</p>
+<h1 id="分析解决">分析解决</h1>
+<ol>
+<li>首先看了下guava的代码实现</li>
+</ol>
+<pre><code><code>ImmutableMap&lt;K, V&gt; getAll(Iterable&lt;? extends K&gt; keys) throws ExecutionException {
+   int hits = 0;
+   int misses = 0;
+   // 省略一大坨
+   try {
+     if (!keysToLoad.isEmpty()) {
+       try {
+       // 调用loadAll
+         Map&lt;K, V&gt; newEntries = loadAll(keysToLoad, defaultLoader);</code></code></pre>
+<p>批量查询时，对于没有命中的，确实调用的loadAll来加载数据的。</p>
+<p>那问题就不是这边了。在<code>load()</code>方法打了个断点，原因就找到了。</p>
+<p><img src="./images/guava缓存批量获取的一个坑0.png" /></p>
+<p>原来是refesh的时候，加载的。<code>refreshAfterWrite</code> 刷新缓存数据时调用的还是load方法。</p>
+<p>搜索了下，https://github.com/google/guava/issues/1975 github上这个issue还在。汗！！！</p>
+<p>最后我这边解决是用<code>Spring Cache</code>统一了缓存管理。</p>
+<h1 id="总结">总结</h1>
+<p>对于开源库的使用不可只知其然，不知其所以然。</p>
+<p><strong>关注公众号【方丈的寺院】，第一时间收到文章的更新，与方丈一起开始技术修行之路</strong><br />
+<img src="./images/guava缓存批量获取的一个坑1.png" alt="在这里插入图片描述" /></p>
+
+
+</div><hr><script charset='utf-8' src='../../js/sming.js'></script></body></html>

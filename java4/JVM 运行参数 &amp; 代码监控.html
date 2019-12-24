@@ -1,0 +1,342 @@
+<html><head><meta charset='utf-8'><meta name='viewport' content='width=device-width, initial-scale=1'>
+<meta name='applicable-device' content='pc'><meta name='keywords' content='电脑,电脑讲解,电脑技术,编程,电脑故障维修JVM 运行参数 &amp; 代码监控' />
+<script src='../../highlight/highlight.pack.js'></script>
+<link rel='stylesheet' type='text/css' href='../../highlight/styles/monokai.css'/>
+
+<link rel='stylesheet' href='../../fenxiang/dist/css/share.min.css'>
+<script src='../../fenxiang/src/js/social-share.js'></script>
+<script src='../../fenxiang/src/js/qrcode.js'></script>
+
+</head><body><script>hljs.initHighlightingOnLoad();</script><script>
+var system ={};  
+var p = navigator.platform;       
+system.win = p.indexOf('Win') == 0;  
+system.mac = p.indexOf('Mac') == 0;  
+system.x11 = (p == 'X11') || (p.indexOf('Linux') == 0);     
+if(system.win||system.mac||system.xll){
+document.write("<link href='../css/3.css' rel='stylesheet' type='text/css'>");}else{ document.write("<link href='../css/3wap.css' rel='stylesheet' type='text/css'>");}</script><script src='../../js/3.js'></script><div class='div2'><div class='heading_nav'><ul><div><li><a href='../../index.html'>首页</a></li>
+</div><div onclick='hidden1()' >分享</div>
+</ul></div></div>
+<div id='heading_nav2'> 
+<li class='row' >
+<div class='social-share' data-mode='prepend'><a href='javascript:' class='social-share-icon icon-heart'></a></div></li></div><script charset='utf-8' src='../../3/js/hengfu.js'></script><script charset='utf-8' src='../../3/js/hengfu2.js'></script><hr><div class='div1'><div class='biaoti'><center>JVM 运行参数 &amp; 代码监控</center></div><div class='banquan'>原文出处:本文由博客园博主浮梦提供。<br/>
+原文连接:https://www.cnblogs.com/AganRun/p/11886440.html</div><br>
+    <h1 id="java代码监控">1、Java代码监控</h1>
+<p>JDK提供java.lang.management包， 其实就是基于JMX技术规范，提供一套完整的MBean，动态获取JVM的运行时数据，达到监控JVM性能的目的。</p>
+<pre><code><code>package com.agan.jvm;
+
+import java.lang.management.*;
+import java.util.Arrays;
+import java.util.List;
+
+
+public class JVMDemo {
+
+    public static void main(String[] args) {
+
+        System.out.println(&quot;----------Memory--------&quot;);
+        MemoryMXBean memoryMXBean = ManagementFactory.getMemoryMXBean();
+        MemoryUsage usage = memoryMXBean.getHeapMemoryUsage();
+        System.out.println(&quot;初始化Heap：&quot; + usage.getInit()/1024/1024 + &quot;mb&quot;);
+        System.out.println(&quot;最大Heap：&quot; + usage.getMax()/1024/1024 + &quot;mb&quot;);
+        System.out.println(&quot;已使用Heap：&quot; + usage.getUsed()/1024/1024 + &quot;mb&quot;);
+        System.out.println(&quot;Heap Memory Usage：&quot; + memoryMXBean.getHeapMemoryUsage());
+        System.out.println(&quot;Non-Heap Memory Usage: &quot; + memoryMXBean.getNonHeapMemoryUsage());
+        /*
+         * 结果为：
+         * 初始化Heap：254mb
+         * 最大Heap：3604mb
+         * 已使用Heap：5mb
+         * Heap Memory Usage：init = 266338304(260096K) used = 5326968(5202K) committed = 255328256(249344K) max = 3779067904(3690496K)
+         * Non-Heap Memory Usage: init = 2555904(2496K) used = 4886200(4771K) committed = 8060928(7872K) max = -1(-1K)
+         */
+
+        System.out.println(&quot;-----------Runtime----------&quot;);
+        RuntimeMXBean runtimeMXBean = ManagementFactory.getRuntimeMXBean();
+        System.out.println(&quot;JVM name: &quot; + runtimeMXBean.getVmName());
+        System.out.println(&quot;Lib path: &quot; + runtimeMXBean.getLibraryPath());
+        System.out.println(&quot;Class path: &quot; + runtimeMXBean.getClassPath());
+        System.out.println(&quot;VM Version: &quot; + runtimeMXBean.getVmVersion());
+        /*
+         * JVM name: Java HotSpot(TM) 64-Bit Server VM
+         * Lib path: C:\Program Files\Java\jdk1.8.0_202\bin;C:\WINDOWS\Sun\Java\bin;C:\WINDOWS\system32;C:\WINDOWS;C:\Windows\system32;C:\Windows;C:\Windows\System32\Wbem;C:\Windows\System32\WindowsPowerShell\v1.0\;C:\Windows\System32\OpenSSH\;C:\Program Files\NVIDIA Corporation\NVIDIA NvDLISR;C:\WINDOWS\system32;C:\WINDOWS;C:\WINDOWS\System32\Wbem;C:\WINDOWS\System32\WindowsPowerShell\v1.0\;C:\WINDOWS\System32\OpenSSH\;C:\Program Files\Java\jdk1.8.0_202\bin;C:\Users\agan\Desktop\heiheihie;C:\Program Files\Git\cmd;C:\Users\agan\AppData\Local\Microsoft\WindowsApps;;.
+         * Class path: C:\Program Files\Java\jdk1.8.0_202\jre\lib\charsets.jar;C:\Program Files\Java\jdk1.8.0_202\jre\lib\deploy.jar;C:\Program Files\Java\jdk1.8.0_202\jre\lib\ext\access-bridge-64.jar;C:\Program Files\Java\jdk1.8.0_202\jre\lib\ext\cldrdata.jar;C:\Program Files\Java\jdk1.8.0_202\jre\lib\ext\dnsns.jar;C:\Program Files\Java\jdk1.8.0_202\jre\lib\ext\jaccess.jar;C:\Program Files\Java\jdk1.8.0_202\jre\lib\ext\jfxrt.jar;C:\Program Files\Java\jdk1.8.0_202\jre\lib\ext\localedata.jar;C:\Program Files\Java\jdk1.8.0_202\jre\lib\ext\nashorn.jar;C:\Program Files\Java\jdk1.8.0_202\jre\lib\ext\sunec.jar;C:\Program Files\Java\jdk1.8.0_202\jre\lib\ext\sunjce_provider.jar;C:\Program Files\Java\jdk1.8.0_202\jre\lib\ext\sunmscapi.jar;C:\Program Files\Java\jdk1.8.0_202\jre\lib\ext\sunpkcs11.jar;C:\Program Files\Java\jdk1.8.0_202\jre\lib\ext\zipfs.jar;C:\Program Files\Java\jdk1.8.0_202\jre\lib\javaws.jar;C:\Program Files\Java\jdk1.8.0_202\jre\lib\jce.jar;C:\Program Files\Java\jdk1.8.0_202\jre\lib\jfr.jar;C:\Program Files\Java\jdk1.8.0_202\jre\lib\jfxswt.jar;C:\Program Files\Java\jdk1.8.0_202\jre\lib\jsse.jar;C:\Program Files\Java\jdk1.8.0_202\jre\lib\management-agent.jar;C:\Program Files\Java\jdk1.8.0_202\jre\lib\plugin.jar;C:\Program Files\Java\jdk1.8.0_202\jre\lib\resources.jar;C:\Program Files\Java\jdk1.8.0_202\jre\lib\rt.jar;D:\Work\Code\Learn\Java\target\classes;D:\Work\JAVA\MavenRepo\junit\junit\4.12\junit-4.12.jar;D:\Work\JAVA\MavenRepo\org\hamcrest\hamcrest-core\1.3\hamcrest-core-1.3.jar;D:\Work\JAVA\MavenRepo\org\projectlombok\lombok\1.16.20\lombok-1.16.20.jar;D:\Work\JAVA\MavenRepo\org\slf4j\slf4j-api\1.7.28\slf4j-api-1.7.28.jar;D:\Work\JAVA\MavenRepo\ch\qos\logback\logback-classic\1.2.3\logback-classic-1.2.3.jar;D:\Work\JAVA\MavenRepo\ch\qos\logback\logback-core\1.2.3\logback-core-1.2.3.jar;D:\Work\Program\IntelliJ IDEA 2018.3.6\lib\idea_rt.jar;C:\Users\agan\.IntelliJIdea2018.3\system\captureAgent\debugger-agent.jar
+         * VM Version: 25.202-b08
+         */
+
+        System.out.println(&quot;-----------OperatingSystem----------&quot;);
+        OperatingSystemMXBean osMBean = ManagementFactory.getOperatingSystemMXBean();
+        //获取操作系统相关信息
+        System.out.println(&quot;SystemName: &quot; + osMBean.getName());
+        System.out.println(&quot;SystemVersion: &quot; + osMBean.getVersion());
+        System.out.println(&quot;System可用处理器数 &quot; + osMBean.getAvailableProcessors());
+        /*
+         * SystemName: Windows 10
+         * SystemVersion: 10.0
+         * System可用处理器数 8(本人电脑四核八线程，逻辑数)
+         */
+
+        System.out.println(&quot;-----------Thread----------&quot;);
+        //获取各个线程的各种状态，CPU 占用情况，以及整个系统中的线程状况
+        ThreadMXBean threadMBean = ManagementFactory.getThreadMXBean();
+        System.out.println(&quot;线程总数 &quot; + threadMBean.getThreadCount());
+        System.out.println(&quot;峰值线程数 &quot; + threadMBean.getPeakThreadCount());
+        System.out.println(&quot;当前线程CPU时间 &quot; + threadMBean.getCurrentThreadCpuTime());
+        System.out.println(&quot;守护线程数 &quot; + threadMBean.getDaemonThreadCount());
+        System.out.println(&quot;当前线程已执行的CPU时间 &quot;+ threadMBean.getCurrentThreadUserTime());
+        /*
+         * 线程总数          5
+         * 峰值线程数         5
+         * 当前线程CPU时间     218750000
+         * 守护线程数         4
+         * 当前线程已执行的CPU时间     125000000
+         */
+
+        System.out.println(&quot;-----------MemoryPool----------&quot;);
+        List&lt;MemoryPoolMXBean&gt; mpMBeanList= ManagementFactory.getMemoryPoolMXBeans();
+        mpMBeanList.forEach(mpBean -&gt;{
+            System.out.println(&quot;使用状况 &quot; + mpBean.getUsage());
+            System.out.println(&quot;内存管理器名称 &quot;+ Arrays.toString(mpBean.getMemoryManagerNames()));
+        });
+        /*
+         * 使用状况 init = 2555904(2496K) used = 1550080(1513K) committed = 2555904(2496K) max = 251658240(245760K)
+         * 内存管理器名称 [CodeCacheManager]
+         * 使用状况 init = 0(0K) used = 4910120(4795K) committed = 5373952(5248K) max = -1(-1K)
+         * 内存管理器名称 [Metaspace Manager]
+         * 使用状况 init = 0(0K) used = 551696(538K) committed = 655360(640K) max = 1073741824(1048576K)
+         * 内存管理器名称 [Metaspace Manager]
+         * 使用状况 init = 66584576(65024K) used = 9367904(9148K) committed = 66584576(65024K) max = 1394606080(1361920K)
+         * 内存管理器名称 [PS MarkSweep, PS Scavenge]
+         * 使用状况 init = 11010048(10752K) used = 0(0K) committed = 11010048(10752K) max = 11010048(10752K)
+         * 内存管理器名称 [PS MarkSweep, PS Scavenge]
+         * 使用状况 init = 177733632(173568K) used = 0(0K) committed = 177733632(173568K) max = 2834300928(2767872K)
+         * 内存管理器名称 [PS MarkSweep]
+         */
+
+        System.out.println(&quot;-----------GarbageCollector----------&quot;);
+        List&lt;GarbageCollectorMXBean&gt; gcMBeanList = ManagementFactory.getGarbageCollectorMXBeans();
+        gcMBeanList.forEach(gcBean -&gt; {
+            System.out.println(&quot;名称 &quot; + gcBean.getName());
+            System.out.println(&quot;内存池名称() &quot;+ Arrays.toString(gcBean.getMemoryPoolNames()));
+        });
+        /*
+         * 名称 PS Scavenge
+         * 内存池名称() [PS Eden Space, PS Survivor Space]
+         * 名称 PS MarkSweep
+         * 内存池名称() [PS Eden Space, PS Survivor Space, PS Old Gen]
+         */
+
+        System.out.println(&quot;-----------other----------&quot;);
+        int total = (int)Runtime.getRuntime().totalMemory()/1024/1024;
+        System.out.println(&quot;内存总量 ：&quot; + total + &quot;mb&quot;);
+        int free = (int)Runtime.getRuntime().freeMemory()/1024/1024;
+        System.out.println(&quot;空闲内存量 ： &quot; + free + &quot;mb&quot;);
+        int max = (int) (Runtime.getRuntime().maxMemory() /1024 / 1024);
+        System.out.println(&quot;最大内存量Xmx ： &quot;  + max + &quot;mb&quot;);
+        /*
+         * 内存总量 ：243mb
+         * 空闲内存量 ： 234mb
+         * 最大内存量Xmx ： 3604mb
+         */
+    }
+}</code></code></pre>
+<blockquote>
+<p>代码地址 <a href="https://github.com/AganRun/Learn/tree/master/Java/src/main/java/com/agan/jvm" class="uri">https://github.com/AganRun/Learn/tree/master/Java/src/main/java/com/agan/jvm</a></p>
+</blockquote>
+<h1 id="jvm运行参数">2、JVM运行参数</h1>
+<h2 id="基本jvm内存参数">2.1 基本JVM内存参数</h2>
+<table>
+<thead>
+<tr class="header">
+<th>参数</th>
+<th>解释</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>-Xmx</td>
+<td>JVM堆可用<strong>内存最大值</strong>；<br>默认值为物理内存的1/4，最佳设值应该视物理内存大小及计算机内其他内存开销而定；</td>
+</tr>
+<tr class="even">
+<td>-Xms</td>
+<td>JVM堆可用<strong>内存初始值</strong>；<br/>Server端JVM最好将-Xms和-Xmx设为相同值（可以避免每次垃圾回收后JVM重新分配内存）；<br/>开发测试机、Clinet端JVM 可以保留默认值，以节省内存</td>
+</tr>
+<tr class="odd">
+<td>-Xmn</td>
+<td>JVM堆<strong>新生代区</strong>大小；<br> JVM堆内存大小 = 新生代大小 + 老年代大小 + 永久代大小（仅sun的JVM拥有永久代），sun推荐Xmn设置为Xmx的3/8</td>
+</tr>
+<tr class="even">
+<td>-Xms</td>
+<td>每个线程的Stack堆栈大小；<br>JDK5.0以后每个线程堆栈大小为1M，以前每个线程堆栈大小为256K；<br>在相同物理内存下，减小该值能生成更多的线程。但是操作系统对一个进程内的线程数还是有限制的，不能无限生成，一般在3000~5000左右；</td>
+</tr>
+</tbody>
+</table>
+<p>典型配置</p>
+<blockquote>
+<p>-Xmx3550m<br />
+-Xms3550m<br />
+-Xmn2g<br />
+-Xss128k</p>
+</blockquote>
+<h2 id="常见jvm行为参数">2.2 常见JVM行为参数</h2>
+<p>Java启动参数共分为3类；</p>
+<blockquote>
+<p>标准参数（-），所有的JVM实现都必须实现这些参数的功能，而且向后兼容；<br />
+非标准参数（-X），默认jvm实现这些参数的功能，但是并不保证所有jvm实现都满足，且不保证向后兼容；<br />
+非Stable参数（-XX），此类参数各个jvm实现会有所不同，将来可能会随时取消，需要慎重使用；</p>
+</blockquote>
+<table>
+<thead>
+<tr class="header">
+<th>参数</th>
+<th>解释</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>-XX:-DisableExplicitGC</td>
+<td>禁止调用System.gc()；但JVM的gc仍然有效</td>
+</tr>
+<tr class="even">
+<td>-XX:+MaxFDLimit</td>
+<td>最大化文件描述符的数量限制</td>
+</tr>
+<tr class="odd">
+<td>-XX:+ScavengeBeforeFullGC</td>
+<td>新生代GC优先于Full GC执行</td>
+</tr>
+<tr class="even">
+<td>-XX:+UseGCOverheadLimit</td>
+<td>在抛出OOM之前限制jvm耗费在GC上的时间比例</td>
+</tr>
+<tr class="odd">
+<td>-XX:-UseConcMarkSweepGC</td>
+<td>对老年代采用并发标记交换算法进行GC</td>
+</tr>
+<tr class="even">
+<td>-XX:-UseParallelGC</td>
+<td>启用并行GC</td>
+</tr>
+<tr class="odd">
+<td>-XX:-UseParallelOldGC</td>
+<td>对Full GC启用并行，当-XX:-UseParallelGC启用时该项自动启用</td>
+</tr>
+<tr class="even">
+<td>-XX:-UseSerialGC</td>
+<td>启用串行GC</td>
+</tr>
+<tr class="odd">
+<td>-XX:+UseThreadPriorities</td>
+<td>启用本地线程优先级</td>
+</tr>
+<tr class="even">
+<td>-XX:LargePageSizeInBytes=4m</td>
+<td>设置用于Java堆的大页面尺寸</td>
+</tr>
+<tr class="odd">
+<td>-XX:MaxHeapFreeRatio=70</td>
+<td>GC后java堆中空闲量占的最大比例</td>
+</tr>
+<tr class="even">
+<td>-XX:MaxNewSize=size</td>
+<td>新生成对象能占用内存的最大值</td>
+</tr>
+<tr class="odd">
+<td>-XX:MaxPermSize=64m</td>
+<td>老年代对象能占用内存的最大值</td>
+</tr>
+<tr class="even">
+<td>-XX:MinHeapFreeRatio=40</td>
+<td>GC后java堆中空闲量占的最小比例</td>
+</tr>
+<tr class="odd">
+<td>-XX:NewRatio=2</td>
+<td>新生代内存容量与老年代内存容量的比例</td>
+</tr>
+<tr class="even">
+<td>-XX:NewSize=2.125m</td>
+<td>新生代对象生成时占用内存的默认值</td>
+</tr>
+<tr class="odd">
+<td>-XX:ReservedCodeCacheSize=32m</td>
+<td>保留代码占用的内存容量</td>
+</tr>
+<tr class="even">
+<td>-XX:ThreadStackSize=512</td>
+<td>设置线程栈大小，若为0则使用系统默认值</td>
+</tr>
+<tr class="odd">
+<td>-XX:+UseLargePages</td>
+<td>使用大页面内存</td>
+</tr>
+</tbody>
+</table>
+<h2 id="jvm设置允许参数">3.JVM设置允许参数</h2>
+<h2 id="命令行使用">3.1 命令行使用</h2>
+<blockquote>
+<p>D:&gt;javac JVMDemo.java<br />
+D:&gt;java -Xmx128m -Xms64m -Xmn32m -Xss16m JVMDemo<br />
+Xmx:117mb</p>
+</blockquote>
+<pre><code><code>int max = (int) (Runtime.getRuntime().maxMemory() /1024 / 1024);
+System.out.println(&quot;Xmx:&quot;  + max + &quot;mb&quot;);</code></code></pre>
+<h2 id="eclipse">3.2 Eclipse</h2>
+<h4 id="方法1">方法1：</h4>
+<p>打开【eclipse&gt;&gt;窗口&gt;&gt;首选项&gt;&gt;Java&gt;&gt;已安装的JRE】（对在当前开发环境中运行的java程序皆生效）<br />
+编辑当前使用的JRE，在缺省VM参数中输入：-Xmx128m -Xms64m -Xmn32m -Xss16m</p>
+<h4 id="方法2">方法2：</h4>
+<p>打开【eclipse&gt;&gt;运行&gt;&gt;运行&gt;&gt;Java应用程序】（只对所设置的java类生效）<br />
+选定需设置内存分配的类－自变量，在VM自变量中输入：-Xmx128m -Xms64m -Xmn32m -Xss16m</p>
+<p><strong><em>如果在同一开发环境中同时进行了1和2设置，则1设置生效，2设置无效</em></strong></p>
+<h2 id="idea">3.3 IDEA</h2>
+<p>IDEA的安装目录，有两个vmopions文件，针对不同的JDK配置</p>
+<blockquote>
+<p>-Xms512m<br />
+-Xmx1024m<br />
+-XX:MaxPermSize=512m<br />
+-XX:ReservedCodeCacheSize=225m<br />
+-XX:+UseConcMarkSweepGC<br />
+-XX:SoftRefLRUPolicyMSPerMB=50<br />
+-ea<br />
+-Dsun.io.useCanonCaches=false<br />
+-Djava.net.preferIPv4Stack=true</p>
+</blockquote>
+<p>IDEA运行Java程序前也可以配置<br />
+在右上方选中运行程序的地方下拉，点击<code>Edit Configurations...</code><br />
+右侧<code>Configuration中</code>有<code>VM options:</code>填入参数即可</p>
+<h2 id="tomcat">3.4 Tomcat</h2>
+<h4 id="方法1-1">方法1</h4>
+<p>设置环境变量：</p>
+<blockquote>
+<p>变量名：CATALINA_OPTS<br />
+变量值：-Xmx128m -Xms64m -Xmn32m -Xss16m</p>
+</blockquote>
+<h4 id="方法b">方法B：</h4>
+<p>打开【Tomcat根目录&gt;&gt;bin文件&gt;&gt;catalina.bat/sh</p>
+<ul>
+<li>windwos</li>
+</ul>
+<ol>
+<li>在.bat文件前面加入 <code>set &quot;JAVA_OPTS=-Xms512M -Xmx1024M&quot;</code></li>
+<li>startup.bat启动tomcat</li>
+<li>命令行窗口中输入命令 <code>jvisualvm</code> 打开JVM自带工具</li>
+<li>查看Tomcat参数</li>
+</ol>
+<ul>
+<li>Linux</li>
+</ul>
+<ol>
+<li>在.sh文件前面加入 <code>JAVA_OPTS=&quot;-Xms512M -Xmx1024M&quot;</code></li>
+<li>./startup.sh</li>
+<li>jps -v</li>
+<li>查看参数配置</li>
+</ol>
+<blockquote>
+<p>参考<br />
+<a href="https://blog.csdn.net/Al_assad/article/details/75152169" class="uri">https://blog.csdn.net/Al_assad/article/details/75152169</a><br />
+<a href="https://blog.csdn.net/liudezhicsdn/article/details/51058504" class="uri">https://blog.csdn.net/liudezhicsdn/article/details/51058504</a><br />
+<a href="https://blog.csdn.net/yaorongke/article/details/81153731" class="uri">https://blog.csdn.net/yaorongke/article/details/81153731</a></p>
+</blockquote>
+
+
+</div><hr><script charset='utf-8' src='../../js/sming.js'></script></body></html>

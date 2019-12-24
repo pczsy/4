@@ -1,0 +1,116 @@
+<html><head><meta charset='utf-8'><meta name='viewport' content='width=device-width, initial-scale=1'>
+<meta name='applicable-device' content='pc'><meta name='keywords' content='电脑,电脑讲解,电脑技术,编程,电脑故障维修最近学到的ABTest知识' />
+<script src='../../highlight/highlight.pack.js'></script>
+<link rel='stylesheet' type='text/css' href='../../highlight/styles/monokai.css'/>
+
+<link rel='stylesheet' href='../../fenxiang/dist/css/share.min.css'>
+<script src='../../fenxiang/src/js/social-share.js'></script>
+<script src='../../fenxiang/src/js/qrcode.js'></script>
+
+</head><body><script>hljs.initHighlightingOnLoad();</script><script>
+var system ={};  
+var p = navigator.platform;       
+system.win = p.indexOf('Win') == 0;  
+system.mac = p.indexOf('Mac') == 0;  
+system.x11 = (p == 'X11') || (p.indexOf('Linux') == 0);     
+if(system.win||system.mac||system.xll){
+document.write("<link href='../css/3.css' rel='stylesheet' type='text/css'>");}else{ document.write("<link href='../css/3wap.css' rel='stylesheet' type='text/css'>");}</script><script src='../../js/3.js'></script><div class='div2'><div class='heading_nav'><ul><div><li><a href='../../index.html'>首页</a></li>
+</div><div onclick='hidden1()' >分享</div>
+</ul></div></div>
+<div id='heading_nav2'> 
+<li class='row' >
+<div class='social-share' data-mode='prepend'><a href='javascript:' class='social-share-icon icon-heart'></a></div></li></div><script charset='utf-8' src='../../3/js/hengfu.js'></script><script charset='utf-8' src='../../3/js/hengfu2.js'></script><hr><div class='div1'><div class='biaoti'><center>最近学到的ABTest知识</center></div><div class='banquan'>原文出处:本文由博客园博主Java3y提供。<br/>
+原文连接:https://www.cnblogs.com/Java3y/p/11763048.html</div><br>
+    <h2 id="前言">前言</h2>
+<blockquote>
+<p>只有光头才能变强。</p>
+</blockquote>
+<blockquote>
+<p>文本已收录至我的GitHub仓库，欢迎Star：<a href="https://github.com/ZhongFuCheng3y/3y" class="uri">https://github.com/ZhongFuCheng3y/3y</a></p>
+</blockquote>
+<p>如果之前看过我文章的同学就知道我在工作中搞的是推送系统，之前写过一篇 <a href="https://mp.weixin.qq.com/s?__biz=MzI4Njg5MDA5NA==&amp;mid=2247485591&amp;idx=1&amp;sn=0c7da1e2adf80a635f7822a7defc18c5&amp;chksm=ebd74996dca0c080e28cf92e789b6ae660ae8fa986fda7e8d18682bb90d9ec0037a2ade29595&amp;token=1948873548&amp;lang=zh_CN#rd">带你了解什么是Push消息推送</a>，里面也提到了我们或许可以做<strong>ABTest</strong>，最终提高推送消息的点击率。</p>
+<p>那什么是ABTest呢？这篇文章带你们<strong>入门</strong>一下。</p>
+<h2 id="一abtest的介绍">一、ABTest的介绍</h2>
+<p>比如我写了一篇关于ABTest的文章，我希望这篇文章的阅读量能上2500，但是我没想好标题叫什么比较合适。一条推文的标题非常能影响到阅读量，于是我想了几个的标题：</p>
+<ul>
+<li>最近我学到的AbTest知识</li>
+<li>AbTest入门</li>
+</ul>
+<p>而我不知道哪个标题效果会更好一些，于是我做了这么一个尝试：</p>
+<ol>
+<li>《最近我学到的AbTest知识》这个标题推送给10%的用户</li>
+<li>《AbTest入门》这个标题推送给10%的用户</li>
+<li>过一段时间后，我看一下效果，哪个标题的阅读量更高，我就将效果高的标题推送给剩余80%的用户</li>
+</ol>
+<p><img src="./images/最近学到的ABTest知识0.png" alt="ABTest过程" /></p>
+<p>要注意的是：在推送的文章的时候，<strong>除了标题不同，其他因素都需要相同</strong>（不能被别的因素给干扰），这样看数据的时候才有说服力。</p>
+<h3 id="为什么要做abtest">1.1为什么要做ABTest？</h3>
+<p>做ABTest的原因其实很简单，我们在做业务的时候会有各种各样的想法，比如说：</p>
+<ul>
+<li>“我觉得在文案上加入emoji表情，这个推送的消息的点击率肯定高”</li>
+<li>“我觉得这个按钮/图片换成别的颜色，转化率肯定会提高”</li>
+<li>“我觉得首页就应该设计成这样，还有图墙应该是这样这样..“</li>
+<li>.....</li>
+</ul>
+<p>但是，并<strong>不是所有的想法都是正确</strong>的，很可能因为你的想法把首页的样式改掉，用户不喜欢，就影响到了<code>GMV</code>等等等....</p>
+<p>一个好的产品都是迭代出来的，而我们很可能不清楚这次的迭代<strong>最终</strong>是好是坏（至少我们是觉得迭代对用户是好的，是有帮助的，对公司的转化也是好的），<strong>但是</strong>我们的用户未必就买账。</p>
+<p>于是，为了<strong>降低试错成本</strong>，我们就做ABTest。一个功能做出来，我们只放<strong>小流量</strong>看下效果，如果效果比原来的功能差，那很可能我们这个想法没有达到预期。如果小流量效果比预期要好，再逐步加大流量，直至全量。</p>
+<h2 id="二怎么做abtest">二、怎么做ABTest？</h2>
+<p>从上面的案例，其实我们大概知道，ABTest最主要做的就是一个<strong>分流</strong>的事</p>
+<ul>
+<li>将10%流量分给用户群体A</li>
+<li>将10%流量分给用户群体A</li>
+</ul>
+<p><img src="./images/最近学到的ABTest知识1.png" alt="分流" /></p>
+<p>我们需要保证的是：<strong>一个用户再次请求进来，用户看到的结果是一样的</strong></p>
+<p>比如说，我访问了Java3y，他的简介是：“一个坚持原创的Java技术公众号“。而一个小时后，我再访问了他一次，他的简介是：“一个干货满满的技术号“。而一个小时过后，我又访问了他一次，他的简介是：“一个坚持原创的Java技术公众号“。</p>
+<p><img src="./images/最近学到的ABTest知识2.png" alt="简介" /></p>
+<p>这是不合理的，理应上用户在一段时间内，看到的内容是相同的，不然就给用户带来一种错乱感。</p>
+<p>OK，于是一般可以这样做：</p>
+<ul>
+<li>对用户ID(设备ID/CookieId/userId/openId)取hash值，每次Hash的结果都是相同的。</li>
+<li>直接取用户ID的某一位</li>
+</ul>
+<p>现在看起来，ABTest好像就是一个<strong>分流</strong>的东西，只是取了个高大尚的名字叫做ABTest。</p>
+<h3 id="abtest更多的内容">2.1 ABTest更多的内容</h3>
+<p>假如我做了一个UI层面上的ABTest，占用全站的流量80%，现在我还想做搜索结果的ABTest怎么办？只能用剩下的20%了？那我的流量不够用啊（我可能要做各种实验的呢）。UI层面上的ABTest和搜索结果的ABTest能不能同时进行啊？</p>
+<p>答案是可以的。因为UI层面和搜索结果(算法优化)的<strong>业务关联性是很低</strong>的。如果要做“<strong>同一份流量</strong>同时做UI层面上和搜索结果的ABTest”，那要保证“<strong>在UI层面做的ABTest不能影响到搜索结果的ABTest</strong>”</p>
+<ul>
+<li>业界应用最多的，是<strong>可重叠分层分桶</strong>方法</li>
+<li>层与层之间的流量互不干扰，这就是很多文章所讲的<strong>正交</strong>(<strong>流量在每一层都会被重新打散</strong>)</li>
+</ul>
+<p><img src="./images/最近学到的ABTest知识3.png" alt="来源：https://www.infoq.cn/article/BuP18dsaPyAg-hflDxPf" /></p>
+<p>我们就可以这样干：通过 Hash(userId, LayerId) % 1000 类似的办法来实现</p>
+<ul>
+<li><strong>每一层的实验不管有多少个，对其他层的影响都是均匀的</strong></li>
+</ul>
+<blockquote>
+<p>我的理解：</p>
+<p>为了实现UI/算法/广告 这些业务上没什么关联的，<strong>能够使用同一份流量</strong>做ABTest测试，所以分了层。流量经过每一层都需要将流量重新打散(正交)----每层实验后，不会影响到下一层的实验</p>
+<p>如果业务关联强的应该放在同一层，<strong>同一层多个实验是互斥的</strong>（比如 一个按钮颜色改为绿色作为一个实验，一个按钮的样式改成大拇指作为一个实验。这两个实验的流量是要互斥的（不然你咋知道用户是因为你的按钮颜色还是样式而点击）</p>
+</blockquote>
+<p><img src="./images/最近学到的ABTest知识4.png" alt="示意图" /></p>
+<h2 id="最后">最后</h2>
+<p>一个完整的ABTest系统，不单单只做分流，还会给用户(我们程序员)提供一个方便可配置的后台系统，做完实验提供数据报表展示等等等~</p>
+<blockquote>
+<p>微信公众号不支持外链，在后台回复“<strong>AB</strong>”得到更多的ABTest资料</p>
+</blockquote>
+<p>参考资料：</p>
+<ul>
+<li><a href="https://oldj.net/blog/tag/a-b%E6%B5%8B%E8%AF%95/">https://oldj.net/blog/tag/a-b</a></li>
+<li><a href="https://www.infoq.cn/article/BuP18dsaPyAg-hflDxPf" class="uri">https://www.infoq.cn/article/BuP18dsaPyAg-hflDxPf</a></li>
+<li><a href="https://www.jianshu.com/p/de8d9f0b14f4" class="uri">https://www.jianshu.com/p/de8d9f0b14f4</a></li>
+<li><a href="https://liyaoli.com/2018-04-29/about-ab-test-and-gated-launch.html" class="uri">https://liyaoli.com/2018-04-29/about-ab-test-and-gated-launch.html</a></li>
+<li><a href="https://zhuanlan.zhihu.com/p/25319221" class="uri">https://zhuanlan.zhihu.com/p/25319221</a></li>
+<li><a href="https://zhuanlan.zhihu.com/p/52424409" class="uri">https://zhuanlan.zhihu.com/p/52424409</a></li>
+<li><a href="https://qiankunli.github.io/2018/06/27/abtest.html" class="uri">https://qiankunli.github.io/2018/06/27/abtest.html</a></li>
+</ul>
+<blockquote>
+<p>乐于输出<strong>干货</strong>的Java技术公众号：<strong>Java3y</strong>。公众号内<strong>有200多篇原创</strong>技术文章、海量视频资源、精美脑图，<strong>关注即可获取！</strong></p>
+</blockquote>
+<p><img src="./images/最近学到的ABTest知识5.png" alt="转发到朋友圈是对我最大的支持！" /></p>
+<p>觉得我的文章写得不错，点<strong>赞</strong>！</p>
+<p><strong>近期推荐：</strong><a href="https://mp.weixin.qq.com/s/MQqasjPs4Y-OCjQLuFj4ew">最低价购买云服务器+搭建教程</a></p>
+
+
+</div><hr><script charset='utf-8' src='../../js/sming.js'></script></body></html>

@@ -1,0 +1,68 @@
+<html><head><meta charset='utf-8'><meta name='viewport' content='width=device-width, initial-scale=1'>
+<meta name='applicable-device' content='pc'><meta name='keywords' content='电脑,电脑讲解,电脑技术,编程,电脑故障维修单例模式' />
+<script src='../../highlight/highlight.pack.js'></script>
+<link rel='stylesheet' type='text/css' href='../../highlight/styles/monokai.css'/>
+
+<link rel='stylesheet' href='../../fenxiang/dist/css/share.min.css'>
+<script src='../../fenxiang/src/js/social-share.js'></script>
+<script src='../../fenxiang/src/js/qrcode.js'></script>
+
+</head><body><script>hljs.initHighlightingOnLoad();</script><script>
+var system ={};  
+var p = navigator.platform;       
+system.win = p.indexOf('Win') == 0;  
+system.mac = p.indexOf('Mac') == 0;  
+system.x11 = (p == 'X11') || (p.indexOf('Linux') == 0);     
+if(system.win||system.mac||system.xll){
+document.write("<link href='../css/3.css' rel='stylesheet' type='text/css'>");}else{ document.write("<link href='../css/3wap.css' rel='stylesheet' type='text/css'>");}</script><script src='../../js/3.js'></script><div class='div2'><div class='heading_nav'><ul><div><li><a href='../../index.html'>首页</a></li>
+</div><div onclick='hidden1()' >分享</div>
+</ul></div></div>
+<div id='heading_nav2'> 
+<li class='row' >
+<div class='social-share' data-mode='prepend'><a href='javascript:' class='social-share-icon icon-heart'></a></div></li></div><script charset='utf-8' src='../../3/js/hengfu.js'></script><script charset='utf-8' src='../../3/js/hengfu2.js'></script><hr><div class='div1'><div class='biaoti'><center>单例模式</center></div><div class='banquan'>原文出处:本文由博客园博主Chauncey-Leonard提供。<br/>
+原文连接:https://www.cnblogs.com/chaunc3y/p/11491087.html</div><br>
+    <h3 id="单例模式">单例模式</h3>
+<h4 id="作用">作用</h4>
+<p>保证在应用程序中最多只能有一个实例</p>
+<h4 id="优点">优点</h4>
+<ul>
+<li>提升运行效率</li>
+<li>实现数据共享，案例：application对象</li>
+</ul>
+<h4 id="延迟加载懒汉式">延迟加载（懒汉式）</h4>
+<pre><code><code>public class Singleton{
+    // 私有化属性，防止通过类名直接调用
+    private static Singleton singleton;
+    
+    // 私有化构造方法，防止其他类实例化这个对象
+    private Singleton(){}
+    
+    // 对外提供的访问入口
+    public static Singleton getInstance(){
+        // 如果实例化过，直接返回
+        if(singleton == null){
+            // 多线程情况下，可能会出现if同时成立的情况
+            // 解决方案：添加锁，但是由于添加了锁，会导致执行效率变低
+            synchronized(Singleton.class){
+                // 双重验证
+                if(singleton == null){
+                    sington = new Singleton();
+                }
+            }
+        }
+        return singleton;
+    }
+}</code></code></pre>
+<h4 id="立即加载饿汉式">立即加载（饿汉式）</h4>
+<p>解决了懒汉式中多线程访问可能出现同一个对象和效率低的问题</p>
+<pre><code><code>public class Singleton{
+    // 在类进行加载时进行实例化
+    private static Singleton singleton = new Singleton();
+    private Singleton(){}
+    public static Singleton getInstance(){
+        return singleton;
+    }
+}</code></code></pre>
+
+
+</div><hr><script charset='utf-8' src='../../js/sming.js'></script></body></html>

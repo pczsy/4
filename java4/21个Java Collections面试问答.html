@@ -1,0 +1,157 @@
+<html><head><meta charset='utf-8'><meta name='viewport' content='width=device-width, initial-scale=1'>
+<meta name='applicable-device' content='pc'><meta name='keywords' content='电脑,电脑讲解,电脑技术,编程,电脑故障维修21个Java Collections面试问答' />
+<script src='../../highlight/highlight.pack.js'></script>
+<link rel='stylesheet' type='text/css' href='../../highlight/styles/monokai.css'/>
+
+<link rel='stylesheet' href='../../fenxiang/dist/css/share.min.css'>
+<script src='../../fenxiang/src/js/social-share.js'></script>
+<script src='../../fenxiang/src/js/qrcode.js'></script>
+
+</head><body><script>hljs.initHighlightingOnLoad();</script><script>
+var system ={};  
+var p = navigator.platform;       
+system.win = p.indexOf('Win') == 0;  
+system.mac = p.indexOf('Mac') == 0;  
+system.x11 = (p == 'X11') || (p.indexOf('Linux') == 0);     
+if(system.win||system.mac||system.xll){
+document.write("<link href='../css/3.css' rel='stylesheet' type='text/css'>");}else{ document.write("<link href='../css/3wap.css' rel='stylesheet' type='text/css'>");}</script><script src='../../js/3.js'></script><div class='div2'><div class='heading_nav'><ul><div><li><a href='../../index.html'>首页</a></li>
+</div><div onclick='hidden1()' >分享</div>
+</ul></div></div>
+<div id='heading_nav2'> 
+<li class='row' >
+<div class='social-share' data-mode='prepend'><a href='javascript:' class='social-share-icon icon-heart'></a></div></li></div><script charset='utf-8' src='../../3/js/hengfu.js'></script><script charset='utf-8' src='../../3/js/hengfu2.js'></script><hr><div class='div1'><div class='biaoti'><center>21个Java Collections面试问答</center></div><div class='banquan'>原文出处:本文由博客园博主Java知己提供。<br/>
+原文连接:https://www.cnblogs.com/java-friend/p/11752053.html</div><br>
+    <p>Java Collections框架是Java编程语言的核心API之一。</p>
+<p>这是Java面试问题的重要主题之一。在这里，我列出了一些重要的Java集合面试问题和解答，以帮助您进行面试。这直接来自我14年以上的Java编程经验。</p>
+<h3 id="java-8中与collections相关的功能是什么">1、Java 8中与Collections相关的功能是什么？</h3>
+<p>Java 8对 Collection API 进行了重大更改。一些更改是：</p>
+<ol>
+<li>Java Stream API 用于集合类，以支持顺序处理和并行处理</li>
+<li>Iterable 接口中的默认方法forEach()，可用于迭代集合。与 lambda 表达式一起使用时，它非常有用，因为其参数 Consumer 是函数接口。</li>
+<li>Collections API 改进，如在<code>Iterator</code>接口中的<code>forEachRemaining(Consumer action)</code>，Map<code>replaceAll()</code>，<code>compute()</code>，<code>merge()</code>方法。</li>
+</ol>
+<h3 id="什么是-java-collections-framework列出-collections-框架的一些好处">2、什么是 Java Collections Framework？列出 Collections 框架的一些好处？</h3>
+<p>每个编程语言都使用集合，和最初的Java版本包含几个集合类：<strong>Vector</strong>，<strong>Stack</strong>，<strong>Hashtable</strong>和<strong>Array</strong>。但是从较高的范围和用法来看，Java 1.2提出了Collections Framework，该框架将所有collections接口，实现和算法分组。</p>
+<p>Java的集合通过使用泛型和并发集合类进行线程安全操作已经走了很长一段路。它还包括在Java的并发包中的阻塞接口及其实现。</p>
+<p>Collections 框架的一些好处是；</p>
+<ul>
+<li>通过使用核心集合类而不是实现我们自己的集合类来减少开发工作。</li>
+<li>通过使用通过良好测试的集合框架类，可以提高代码质量。</li>
+<li>通过使用JDK附带的集合类，减少了代码维护工作。</li>
+<li>可重用性和互操作性</li>
+</ul>
+<h3 id="集合框架中泛型的好处是什么">3、集合框架中泛型的好处是什么？</h3>
+<p>Java 1.5带有泛型，所有集合接口和实现都大量使用它。泛型允许我们提供集合可以包含的Object的类型，因此，如果您尝试添加其他类型的任何元素，则引发编译时错误。</p>
+<p>这样可以避免在运行时发生ClassCastException，因为您将在编译时收到错误。由于我们不需要使用强制转换和_实例化_运算符，因此泛型也使代码更干净。</p>
+<h3 id="java-collections-framework的基本接口是什么">4、Java Collections Framework的基本接口是什么？</h3>
+<p>Collection 表示集合层次结构的根。Collection表示一组元素的对象。Java平台不提供此接口的任何直接实现。</p>
+<p>Set是一个不能包含重复元素的集合。此接口对数学集合的抽象进行建模，并表示集合，例如纸牌集合。</p>
+<p>List是一个有序的集合，可以包含重复的元素。您可以从其索引访问任何元素。该列表更像是具有动态长度的数组。</p>
+<p>一个Map是键映射到值的对象。映射不能包含重复的键：每个键最多可以映射到一个值。</p>
+<p>其他一些接口<code>Queue</code>，<code>Dequeue</code>，<code>Iterator</code>，<code>SortedSet</code>，<code>SortedMap</code>和<code>ListIterator</code>。</p>
+<h3 id="为什么collection不实现cloneable和serializable接口">5、为什么Collection不实现Cloneable和Serializable接口？</h3>
+<p>Collection接口指定为一组元素对象。元素的维护方式取决于Collection的具体实现。例如，某些Collection实现(例如List)允许重复元素，而其他实现(例如Set)则不允许重复元素。</p>
+<p>许多Collection实现都有Cloneable方法。但是，将其包含在Collection的所有实现中没有意义。这是因为Collection是抽象表示。重要的是。<br />
+在处理实际实现时，克隆或序列化的语义及其含义都会发挥作用。因此具体的实现应决定如何克隆或序列化它，甚至可以对其进行克隆或序列化。<br />
+因此，在所有实现中强制进行克隆和序列化的灵活性较差，限制也更大。具体实现应决定是否可以克隆或序列化。</p>
+<h3 id="为什么map接口没有实现collection接口">6、为什么Map接口没有实现Collection接口？</h3>
+<p>尽管Map接口及其实现是Collections Framework的一部分，但Map不是集合，集合也不是Map。因此，Map扩展Collection是没有意义的，反之亦然。</p>
+<p>如果Map扩展了Collection接口，那么元素在哪里？该映射包含key-value对，并且提供了一些方法来检索键或值的列表作为Collection，但它不适合“元素组”范式。</p>
+<h3 id="什么是迭代器">7、什么是迭代器？</h3>
+<p>迭代器接口提供了对任何Collection进行迭代的方法。我们可以使用_iterator()_方法从Collection中获取迭代器实例。在Java Collections Framework中，迭代器代替了枚举。迭代器允许调用者在迭代过程中从基础集合中删除元素。Java Collection迭代器提供了遍历集合元素的通用方法，并实现了<strong>Iterator Design Pattern</strong>。</p>
+<h3 id="enumeration和iterator接口之间有什么区别">8、Enumeration和Iterator接口之间有什么区别？</h3>
+<p>枚举的速度是Iterator的两倍，并且使用的内存更少。枚举是非常基本的，适合基本需求。但是，与Enumeration相比，Iterator安全得多，因为它始终拒绝其他线程修改被其迭代的集合对象。</p>
+<p>在Java Collections Framework中，迭代器代替了枚举。迭代器允许调用者从基础集合中删除Enumeration无法实现的元素。迭代器方法名称已得到改进，以使其功能更清晰。</p>
+<h3 id="为什么没有像iterator.add这样的方法将元素添加到集合中">9、为什么没有像Iterator.add()这样的方法将元素添加到集合中？</h3>
+<p>考虑到Iterator的约定不保证迭代顺序，原因尚不清楚。但是请注意，ListIterator确实提供了add操作，因为它确实保证了迭代的顺序。</p>
+<h3 id="为什么iterator没有不移动光标就直接获取下一个元素的方法">10、为什么Iterator没有不移动光标就直接获取下一个元素的方法？</h3>
+<p>可以在当前Iterator接口的顶部实现它，但是由于很少使用它，因此将它包含在每个人都必须实现的接口中没有意义。</p>
+<h3 id="iterator和listiterator有什么区别">11、Iterator和ListIterator有什么区别？</h3>
+<ul>
+<li>我们可以使用Iterator遍历Set和List集合，而ListIterator只能与Lists一起使用。</li>
+<li>Iterator只能向前移动，而ListIterator可以用于两个方向。</li>
+<li>ListIterator继承自Iterator接口，并具有其他功能，例如添加元素，替换元素，获取上一个和下一个元素的索引位置。</li>
+</ul>
+<h3 id="有哪些不同的方法可以遍历列表">12、有哪些不同的方法可以遍历列表？</h3>
+<p>我们可以通过两种不同的方式遍历列表-使用迭代器和使用for-each循环。</p>
+<pre><code><code>List &lt;String&gt; strList = new ArrayList&lt;&gt;();
+
+for(String obj：strList){
+    System.out.println(obj);
+}
+
+Iterator&lt;String&gt; it= strList.iterator();
+while(it.hasNext()){
+    String obj = it.next();
+    System.out.println(obj);
+}</code></code></pre>
+<p>使用迭代器更加线程安全，因为它可以确保如果基础列表元素被修改，它将抛出异常<code>ConcurrentModificationException</code>。</p>
+<h3 id="您对iterator-fail-fast属性有什么了解">13、您对Iterator fail-fast属性有什么了解？</h3>
+<p>每当我们尝试获取下一个元素时，迭代器fail-fast属性都会检查基础集合的结构是否有任何修改。如果找到任何修改，则抛出<code>ConcurrentModificationException</code>。除了并行并发类(例如ConcurrentHashMap和CopyOnWriteArrayList)之外，Collection类中Iterator的所有实现在设计上都是fail-fast的。</p>
+<h3 id="fail-fast和fail-safe之间有何区别">14、fail-fast和fail-safe之间有何区别？</h3>
+<p>Iterato fail-safe属性可与基础集合的克隆一起使用，因此不受集合中任何修改的影响。按照设计，<code>java.util</code>包中的所有集合类都是fail-fast的，而其中的集合类<code>java.util.concurrent</code>是fail-safe的。<br />
+fail-fast迭代器会抛出ConcurrentModificationException，而fail-safe迭代器绝不会抛出ConcurrentModificationException。</p>
+<h3 id="如何在迭代集合时避免concurrentmodificationexception">15、如何在迭代集合时避免ConcurrentModificationException？</h3>
+<p>我们可以使用并发集合类来避免<code>ConcurrentModificationException</code>在集合上进行迭代，例如使用CopyOnWriteArrayList而不是ArrayList。</p>
+<h3 id="为什么没有iterator接口的具体实现">16、为什么没有Iterator接口的具体实现？</h3>
+<p>Iterator接口声明了用于迭代集合的方法，但是其实现是Collection实现类的责任。每个返回迭代器以进行遍历的集合类都有其自己的Iterator实现嵌套类。</p>
+<p>这使集合类可以选择迭代器是fail-fast还是fail-safe的。例如，ArrayList迭代器是fail-fast的，而CopyOnWriteArrayList迭代器是fail-safe的。</p>
+<h3 id="什么是unsupportedoperationexception">17、什么是UnsupportedOperationException？</h3>
+<p><code>UnsupportedOperationException</code>是用于指示不支持该操作的异常。它广泛用于在JDK类，在集合框架<code>java.util.Collections.UnmodifiableCollection</code>抛出该异常所有<code>add</code>和<code>remove</code>操作。</p>
+<h3 id="hashmap如何在java中工作">18、HashMap如何在Java中工作？</h3>
+<p>HashMap在<code>Map.Entry</code>静态嵌套类实现中存储键值对。HashMap使用哈希算法，并在<code>put</code>和<code>get</code>方法中使用hashCode()和equals()方法。</p>
+<p>当我们<code>put</code>通过传递键值对来调用方法时，HashMap使用带有哈希值的Key hashCode()来查找存储键值对的索引。该条目存储在LinkedList中，因此，如果已经存在一个条目，则使用equals()方法检查传递的键是否已存在，如果是，它将覆盖该值，否则它将创建一个新条目并存储此键值条目。</p>
+<p>当我们<code>get</code>通过传递Key来调用method时，它再次使用hashCode()在数组中找到索引，然后使用equals()方法找到正确的Entry并返回其值。下图将清楚地解释这些细节。</p>
+<p><img src="./images/21个Java Collections面试问答0.png" /></p>
+<p>有关HashMap的其他重要信息是容量，负载因子，阈值大小调整。HashMap的初始默认容量为<strong>16</strong>，负载系数为0.75。阈值是容量乘以负载因子，并且如果Map大小大于阈值，则每当我们尝试添加条目时，HashMap都会将Map的内容重新映射为容量更大的新数组。容量始终是2的乘方，因此，如果您知道需要存储大量的键值对，例如在缓存数据库中的数据时，最好使用正确的容量和负载因子来初始化HashMap。 。</p>
+<h3 id="hashcode和equals方法的重要性是什么">19、hashCode()和equals()方法的重要性是什么？</h3>
+<p>HashMap使用Key对象的hashCode()和equals()方法来确定放置键值对的索引。当我们尝试从HashMap中获取价值时，也会使用这些方法。如果这些方法的实现不正确，则两个不同的Key可能会产生相同的hashCode()和equals()输出，在这种情况下，HashMap不会考虑将它们存储在不同的位置，而是将其覆盖并覆盖它们。</p>
+<p>同样，所有不存储重复数据的集合类都使用hashCode()和equals()查找重复项，因此正确实现它们非常重要。equals()和hashCode()的实现应遵循以下规则。</p>
+<ul>
+<li>如果<code>o1.equals(o2)</code>，那么<code>o1.hashCode() == o2.hashCode()</code>应该永远如此<code>true</code>。</li>
+<li>如果<code>o1.hashCode() == o2.hashCode</code>是真的，这并不意味着<code>o1.equals(o2)</code>会<code>true</code>。</li>
+</ul>
+<h3 id="我们可以使用任何类作为map键吗">20、我们可以使用任何类作为Map键吗？</h3>
+<p>我们可以将任何类用作Map Key，但是在使用它们之前应考虑以下几点。</p>
+<ul>
+<li>如果该类重写equals()方法，则它也应该重写hashCode()方法。</li>
+<li>对于所有实例，该类应遵循与equals()和hashCode()关联的规则。这些规则请参考前面的问题。</li>
+<li>如果equals()中未使用类字段，则不应在hashCode()方法中使用它。</li>
+<li><p>用户定义的键类的最佳实践是使其不可变，以便可以将hashCode()值缓存起来以提高性能。不可变的类还确保hashCode()和equals()将来不会更改，这将解决任何可变性问题。<br />
+例如，假设我有一个<code>MyKey</code>用于HashMap键的类。</p>
+<pre><code><code>//传递的mykey name参数用于equals()和hashcode()
+MyKey key = new MyKey(&quot;Pankaj&quot;); //假定hashCode=1234
+myHashMap.put(key, &quot;Value&quot;);
+
+// 下面的代码将更改equals()和hashcode()的key
+// 但是它的位置不会改变
+key.setName(&quot;Amit&quot;); //假定新的hashCode=7890
+
+//下面将返回null，因为HashMap将尝试查找键
+//与存储在同一索引中，但由于密钥发生了变化，
+//不匹配，返回空。
+myHashMap.get(new MyKey(&quot;Pankaj&quot;)); </code></code></pre>
+<p>这就是为什么String和Integer大多用作HashMap键的原因。</p></li>
+</ul>
+<h3 id="map接口提供哪些不同的collection视图">21、Map接口提供哪些不同的Collection视图？</h3>
+<p>Map接口提供了三个集合视图：</p>
+<ol>
+<li><strong>Set <K> keySet()</strong>：返回此映射中包含的键的Set视图。该集合由Map支持，因此对Map的更改会反映在集合中，反之亦然。如果在对集合进行迭代时修改了映射(通过迭代器的remove操作除外)，则迭代的结果不确定。该集合支持元素删除，该元素通过迭代器remove，Set.remove，removeAll，retainAll和clear操作从映射中删除相应的映射。它不支持add或addAll操作。</li>
+<li><strong>Collection <V> values()</strong>：返回此映射中包含的值的Collection视图。集合由Map支持，因此对Map的更改会反映在集合中，反之亦然。如果在对集合进行迭代时修改了映射(通过迭代器的remove操作除外)，则迭代结果不确定。集合支持元素删除，该元素通过迭代器remove，Collection.remove，removeAll，retainAll和clear操作从映射中删除相应的映射。它不支持add或addAll操作。</li>
+<li><strong>Set &lt;Map.Entry &lt;K，V &gt;&gt; entrySet()</strong>：返回此映射中包含的映射的Set视图。该集合由Map支持，因此对Map的更改会反映在集合中，反之亦然。如果在对集合进行迭代时修改了映射(通过迭代器的remove操作或迭代器返回的映射条目上的setValue操作除外)，则迭代的结果不确定。该集合支持元素删除，该元素通过迭代器remove，Set.remove，removeAll，retainAll和clear操作从映射中删除相应的映射。它不支持add或addAll操作。</li>
+</ol>
+<hr />
+<blockquote>
+<p>“不积跬步，无以至千里”，希望未来的你能：有梦为马 随处可栖！加油，少年！</p>
+</blockquote>
+<p>关注公众号:<strong>「Java 知己」</strong>，每天更新Java知识哦，期待你的到来！</p>
+<ul>
+<li>发送「<strong>Group</strong>」，与 10 万程序员一起进步。</li>
+<li>发送「<strong>面试</strong>」，领取BATJ面试资料、面试视频攻略。</li>
+<li>发送「<strong>玩转算法</strong>」，领取《玩转算法》系列视频教程。</li>
+<li>千万不要发送「<strong>1024</strong>」...</li>
+</ul>
+<p><img src="./images/21个Java Collections面试问答1.png" alt="每日福利" /></p>
+
+
+</div><hr><script charset='utf-8' src='../../js/sming.js'></script></body></html>

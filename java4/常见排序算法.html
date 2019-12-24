@@ -1,0 +1,62 @@
+<html><head><meta charset='utf-8'><meta name='viewport' content='width=device-width, initial-scale=1'>
+<meta name='applicable-device' content='pc'><meta name='keywords' content='电脑,电脑讲解,电脑技术,编程,电脑故障维修常见排序算法' />
+<script src='../../highlight/highlight.pack.js'></script>
+<link rel='stylesheet' type='text/css' href='../../highlight/styles/monokai.css'/>
+
+<link rel='stylesheet' href='../../fenxiang/dist/css/share.min.css'>
+<script src='../../fenxiang/src/js/social-share.js'></script>
+<script src='../../fenxiang/src/js/qrcode.js'></script>
+
+</head><body><script>hljs.initHighlightingOnLoad();</script><script>
+var system ={};  
+var p = navigator.platform;       
+system.win = p.indexOf('Win') == 0;  
+system.mac = p.indexOf('Mac') == 0;  
+system.x11 = (p == 'X11') || (p.indexOf('Linux') == 0);     
+if(system.win||system.mac||system.xll){
+document.write("<link href='../css/3.css' rel='stylesheet' type='text/css'>");}else{ document.write("<link href='../css/3wap.css' rel='stylesheet' type='text/css'>");}</script><script src='../../js/3.js'></script><div class='div2'><div class='heading_nav'><ul><div><li><a href='../../index.html'>首页</a></li>
+</div><div onclick='hidden1()' >分享</div>
+</ul></div></div>
+<div id='heading_nav2'> 
+<li class='row' >
+<div class='social-share' data-mode='prepend'><a href='javascript:' class='social-share-icon icon-heart'></a></div></li></div><script charset='utf-8' src='../../3/js/hengfu.js'></script><script charset='utf-8' src='../../3/js/hengfu2.js'></script><hr><div class='div1'><div class='biaoti'><center>常见排序算法</center></div><div class='banquan'>原文出处:本文由博客园博主clare_sun提供。<br/>
+原文连接:https://www.cnblogs.com/sun2019/p/11536971.html</div><br>
+    <p>简单整理常用算法，记录在此。</p>
+<p>&nbsp;</p>
+<p>package com.demo.sort;</p>
+<p>import java.util.Arrays;</p>
+<p>public class Sort {<br />	public static void main(String[] args) {<br />		<br />		int size = 10;<br />		int[] arr = new int[size];<br />		for (int j = 0; j &lt; size; j++) {<br />			for (int i = 0; i &lt; size; i++) {<br />				arr[i] = (int) (100*size*Math.random() +1);<br />			}<br />			//测试冒泡<br />			// System.out.println(Arrays.toString(bubble(arr)));<br />			//测试选择<br />			// System.out.println(Arrays.toString(select(arr)));<br />			//测试快速<br />			// System.out.println(Arrays.toString(fast(arr,0,5)));<br />			//测试插入排序<br />			// System.out.println(Arrays.toString(insert(arr)));<br />			//测试希尔排序<br />			// System.out.println(Arrays.toString(shell(arr)));<br />			//测试桶排序<br />			// System.out.println(Arrays.toString(bucket(arr)));<br />			//测试基数排序<br />//			 System.out.println(Arrays.toString(radix(arr)));<br />			//测试归并排序<br />//			 mergeSort(arr);<br />//			 System.out.println(Arrays.toString(arr));<br />			//测试堆排序<br />//			System.out.println(Arrays.toString(heap(arr)));<br />		}<br />		</p>
+<p>	}</p>
+<p>	/**<br />	 * heap sort 堆排序原理（升序）：<br />	 * 将序列抽象为二叉树，构建最大堆；<br />	 * 依次将最大元素与待排序列的最后位置交换；<br />	 * 遍历刷新直至最后一个元素；<br />	 * 算法思想：完全二叉树<br />	 * 时间复杂度：O[NlogN]<br />	 * 空间复杂度：O[1]<br />	 * 稳定性：不稳定<br />	 */<br />	private static int[] heap(int[] arr) {</p>
+<p>		for (int i = 0; i &lt; arr.length; i++) {<br />			maxHeap(arr, arr.length - i);<br />			// 交换<br />			int temp = arr[0];<br />			arr[0] = arr[(arr.length - 1) - i];<br />			arr[(arr.length - 1) - i] = temp;<br />		}<br />		return arr;<br />	}</p>
+<p>	private static void maxHeap(int[] arr, int size) {<br />		for (int i = size - 1; i &gt;= 0; i--) {<br />			buildheap(arr, i, size);<br />		}<br />	}</p>
+<p>	private static void buildheap(int[] arr, int rootNode, int size) {<br />		if (rootNode &lt; size) {</p>
+<p>			int leftNode = 2 * rootNode + 1;<br />			int rightNode = 2 * rootNode + 2;<br />			int max = rootNode;</p>
+<p>			if (leftNode &lt; size) {<br />				if (arr[leftNode] &gt; arr[max]) {<br />					max = leftNode;<br />				}<br />			}</p>
+<p>			if (rightNode &lt; size) {<br />				if (arr[rightNode] &gt; arr[max]) {<br />					max = rightNode;<br />				}<br />			}</p>
+<p>			if (max != rootNode) {<br />				int tmp = arr[max];<br />				arr[max] = arr[rootNode];<br />				arr[rootNode] = tmp;</p>
+<p>				buildheap(arr, max, size);<br />			}</p>
+<p>		}<br />	}</p>
+<p>	/**merge sort 归并排序原理（升序）：<br />	 * 把序列看做对两个有序队列的排序，递归对两个序列排序直至队列只包含两个元素，然后将两个有序队列合并；<br />	 * 算法思想：递归加分治<br />	 * 时间复杂度：O[NlogN]<br />	 * 空间复杂度：O[N]<br />	 * 稳定性：稳定<br />	 */<br />	public static void mergeSort(int[] array) {</p>
+<p>		int length = array.length;<br />		int middle = length / 2;</p>
+<p>		if (length &gt; 1) {<br />			int[] left = Arrays.copyOfRange(array, 0, middle);// 拷贝数组array的左半部分<br />			int[] right = Arrays.copyOfRange(array, middle, length);// 拷贝数组array的右半部分<br />			mergeSort(left);// 递归array的左半部分<br />			mergeSort(right);// 递归array的右半部分<br />			merge(array, left, right);// 数组左半部分、右半部分合并到Array<br />		}<br />	}</p>
+<p>	// 合并数<br />	private static void merge(int[] result, int[] left, int[] right) {</p>
+<p>		int i = 0, l = 0, r = 0;</p>
+<p>		while (l &lt; left.length &amp;&amp; r &lt; right.length) {<br />			if (left[l] &lt; right[r]) {<br />				result[i] = left[l];<br />				i++;<br />				l++;<br />			} else {<br />				result[i] = right[r];<br />				i++;<br />				r++;<br />			}<br />		}</p>
+<p>		while (r &lt; right.length) {// 如果右边剩下合并右边的<br />			result[i] = right[r];<br />			r++;<br />			i++;<br />		}</p>
+<p>		while (l &lt; left.length) {<br />			result[i] = left[l];<br />			l++;<br />			i++;<br />		}<br />	}</p>
+<p>	/**<br />	 * radix sort 基数排序原理（升序）：<br />	 * 桶排序的改进版窗，桶的大小固定为10；<br />	 * 首先对数组元素的个位数值大小按桶排序进行排序；接着按元素的十位数值大小按桶排序进行排序；依次按桶排序将最高位排序完成；<br />	 * 时间复杂度：O[d(r+N)]<br />	 * 空间复杂度：O[rd+N]<br />	 * 稳定性：稳定<br />	 */<br />	private static int[] radix(int[] arr) {<br />		if (null == arr || arr.length == 0) {<br />			return null;<br />		}<br />		int[] tmp1 = new int[10];<br />		int[][] tmp2 = new int[10][arr.length];<br />		int max = arr[0];<br />		for (int i = 1; i &lt; arr.length; i++) {<br />			if (max &lt; arr[i]) {<br />				max = arr[i];<br />			}<br />		}<br />		int num = 1;<br />		while ((max /= 10) &gt; 0) {<br />			num += 1;<br />		}<br />		for (int i = 0; i &lt; num; i++) {<br />			for (int j = 0; j &lt; arr.length; j++) {<br />				int index = arr[j] / ((int) Math.pow(10, i)) % 10;<br />				tmp2[index][tmp1[index]] = arr[j];<br />				tmp1[index] += 1;<br />			}<br />			int k = 0;<br />			for (int j = 0; j &lt; tmp1.length; j++) {<br />				// while(tmp1[j] != 0){<br />				for (int h = 0; h &lt; tmp1[j]; h++) {<br />					arr[k] = tmp2[j][h];<br />					// tmp2[j][h] = 0;<br />					// tmp1[j]--;<br />					k++;<br />				}<br />				tmp1[j] = 0;<br />				// }<br />			}<br />		}</p>
+<p>		return arr;<br />	}</p>
+<p>	/**<br />	 * bucket sort 桶排序原理（升序）：<br />	 * 找出序列最大值，创建最大值加一的新数组；<br />	 * 遍历数组，元素值对应新数组下标的位置加一；<br />	 * 遍历新数组，将元素值非0的下标值载入原数组；<br />	 * 时间复杂度：O[N]<br />	 * 空间复杂度：O[N]<br />	 * 稳定性：不稳定<br />	 */<br />	private static int[] bucket(int[] arr) {<br />		int max = arr[0];<br />		for (int i = 1; i &lt; arr.length; i++) {<br />			if (max &lt; arr[i]) {<br />				max = arr[i];<br />			}<br />		}<br />		int[] tmp = new int[max + 1];<br />		for (int j = 0; j &lt; arr.length; j++) {<br />			tmp[arr[j]] += 1;<br />		}</p>
+<p>		int k = 0;<br />		for (int i = 0; i &lt; tmp.length; i++) {<br />			while (tmp[i] != 0) {<br />				arr[k] = i;<br />				k++;<br />				tmp[i]--;<br />			}<br />		}<br />		return arr;<br />	}</p>
+<p>	/**<br />	 * shell sort 希尔排序原理（升序）：<br />	 * 插入排序改进版；<br />	 * 把元素分组，每组插入排序 ；<br />	 * 改变分组增量，直至增量为1；<br />	 * 时间复杂度：O[N^2]<br />	 * 空间复杂度：O[1]<br />	 * 稳定性：不稳定<br />	 */<br />	private static int[] shell(int[] arr) {<br />		int len = arr.length;<br />		for (int i = len / 2; i &gt; 0; i = i / 2) {// 增量<br />			for (int j = 0; j &lt; i; j++) {// 分组数<br />				for (int k = 1; k &lt; len / i; k++) {// 每组的元素数<br />					int m = k - 1;<br />					for (; m &gt;= 0; m--)<br />						// 逆序，前面部分为有序<br />						if (arr[j + i * k] &gt;= arr[j + i * m])<br />							break;</p>
+<p>					if (m != k - 1) {<br />						int n = k;<br />						int tmp = arr[j + i * n];<br />						for (; n &gt; m + 1; n--) {<br />							arr[j + i * n] = arr[j + i * (n - 1)];<br />						}</p>
+<p>						arr[j + i * n] = tmp;<br />					}<br />				}<br />			}<br />		}<br />		return arr;<br />	}</p>
+<p>	/*<br />	 * insert sort 插入排序原理（升序）：<br />	 * 改原理是将待排序元素插入一个有序队列，将左边部分当做一个有序队列；<br />	 * 时间复杂度：O[N^2]<br />	 * 空间复杂度：O[1]<br />	 * 稳定性：稳定<br />	 */<br />	private static int[] insert(int[] arr) {</p>
+<p>		for (int i = 1; i &lt; arr.length; ++i) {<br />			/*<br />			 * 分为1,2两部分处理，可以囊括j = beg - 1时的情况 即需要将arr[i]插入到首元素前的位置，若使用一个for<br />			 * 包括这两部分，则会在发生这种情况时退出<br />			 */<br />			/* 1 */<br />			int j = i - 1;<br />			for (; j &gt;= 0; --j)<br />				if (arr[j] &lt;= arr[i])<br />					break;<br />			/* 2 */<br />			if (j != i - 1) {<br />				int temp = arr[i];<br />				for (int k = i; k &gt; j + 1; --k) {<br />					arr[k] = arr[k - 1];<br />				}<br />				arr[j + 1] = temp;<br />			}<br />		}<br />		return arr;<br />	}</p>
+<p>	/*<br />	 * fast sort 快速排序原理（升序）：<br />	 * 选一基准元素，小于其大小的元素放在左边，大于它的元素放在右边；<br />	 * 取基准元素的前后两部分做同样处理，直至基准元素的两边各有一个元素为止；<br />	 * 时间复杂度：O[NlogN]<br />	 * 空间复杂度：O[NlogN]<br />	 * 稳定性：不稳定<br />	 */<br />	private static int[] fast(int[] arr, int begin, int end) {<br />		if (begin &gt;= end) {<br />			return arr;<br />		}<br />		int lindex = begin;<br />		int rindex = end;<br />		int mid = arr[lindex];<br />		while (lindex &lt; rindex) {<br />			while (lindex &lt; rindex) {<br />				if (arr[rindex] &lt; mid) {<br />					arr[lindex++] = arr[rindex];<br />					break;<br />				}<br />				--rindex;<br />			}</p>
+<p>			while (lindex &lt; rindex) {<br />				if (arr[lindex] &gt;= mid) {<br />					arr[rindex--] = arr[lindex];<br />					break;<br />				}<br />				++lindex;<br />			}<br />		}<br />		arr[lindex] = mid;<br />		fast(arr, begin, lindex);<br />		fast(arr, rindex + 1, end);<br />		return arr;<br />	}</p>
+<p>	/*<br />	 * select sort 选择排序原理（升序）：<br />	 * 找出元素最小值放在第一位，接着次小值放在第二位，依次将数组升序排列<br />	 * 时间复杂度：O[N^2]<br />	 * 空间复杂度：O[1]<br />	 * 稳定性：不稳定<br />	 */<br />	private static int[] select(int[] arr) {<br />		for (int i = 0; i &lt; arr.length - 1; i++) {<br />			for (int j = i + 1; j &lt; arr.length; j++) {<br />				if (arr[j] &lt; arr[i]) {<br />					int tmp = arr[i];<br />					arr[i] = arr[j];<br />					arr[j] = tmp;<br />				}<br />			}<br />		}<br />		return arr;<br />	}</p>
+<p>	/*<br />	 * bubble sort 冒泡排序原理（升序）：<br />	 * 依次比较相邻两个元素，若后位元素较大则交换至，直至最后一位元素为最大值；<br />	 * 接着进行下一轮比较，直至倒数第二位元素为次大值；<br />	 * 进行比较至所有元素为升序排列<br />	 * 时间复杂度：O[N^2]<br />	 * 空间复杂度：O[1]<br />	 * 稳定性：不稳定<br />	 */<br />	private static int[] bubble(int[] arr) {<br />		for (int i = 0; i &lt; arr.length; i++) {<br />			for (int j = 0; j &lt; arr.length - 1 - i; j++) {<br />				if (arr[j] &gt; arr[j + 1]) {<br />					int tmp = arr[j];<br />					arr[j] = arr[j + 1];<br />					arr[j + 1] = tmp;<br />				}<br />			}<br />		}<br />		return arr;<br />	}<br />}</p>
+
+</div><hr><script charset='utf-8' src='../../js/sming.js'></script></body></html>

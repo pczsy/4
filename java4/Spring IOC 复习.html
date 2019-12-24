@@ -1,0 +1,201 @@
+<html><head><meta charset='utf-8'><meta name='viewport' content='width=device-width, initial-scale=1'>
+<meta name='applicable-device' content='pc'><meta name='keywords' content='电脑,电脑讲解,电脑技术,编程,电脑故障维修Spring IOC 复习' />
+<script src='../../highlight/highlight.pack.js'></script>
+<link rel='stylesheet' type='text/css' href='../../highlight/styles/monokai.css'/>
+
+<link rel='stylesheet' href='../../fenxiang/dist/css/share.min.css'>
+<script src='../../fenxiang/src/js/social-share.js'></script>
+<script src='../../fenxiang/src/js/qrcode.js'></script>
+
+</head><body><script>hljs.initHighlightingOnLoad();</script><script>
+var system ={};  
+var p = navigator.platform;       
+system.win = p.indexOf('Win') == 0;  
+system.mac = p.indexOf('Mac') == 0;  
+system.x11 = (p == 'X11') || (p.indexOf('Linux') == 0);     
+if(system.win||system.mac||system.xll){
+document.write("<link href='../css/3.css' rel='stylesheet' type='text/css'>");}else{ document.write("<link href='../css/3wap.css' rel='stylesheet' type='text/css'>");}</script><script src='../../js/3.js'></script><div class='div2'><div class='heading_nav'><ul><div><li><a href='../../index.html'>首页</a></li>
+</div><div onclick='hidden1()' >分享</div>
+</ul></div></div>
+<div id='heading_nav2'> 
+<li class='row' >
+<div class='social-share' data-mode='prepend'><a href='javascript:' class='social-share-icon icon-heart'></a></div></li></div><script charset='utf-8' src='../../3/js/hengfu.js'></script><script charset='utf-8' src='../../3/js/hengfu2.js'></script><hr><div class='div1'><div class='biaoti'><center>Spring IOC 复习</center></div><div class='banquan'>原文出处:本文由博客园博主百花小松提供。<br/>
+原文连接:https://www.cnblogs.com/whteway/p/12019734.html</div><br>
+    <h4 id="inversion-of-control">Inversion of Control</h4>
+<p>将创建对象的权利交给框架，包括DI(Dependency Injection，依赖注入)和DL(Dependency Lookup，依赖查找)，能削减计算机程序的耦合，即解除代码中的依赖关系</p>
+<h4 id="应用">应用</h4>
+<h4 id="xml">xml</h4>
+<ol>
+<li><p>建立maven工程</p></li>
+<li><p>导入jar包，pom.xml中加入spring-context依赖</p>
+<pre><code><code>&lt;dependency&gt;
+    &lt;groupId&gt;org.springframework&lt;/groupId&gt;
+    &lt;artifactId&gt;spring-context&lt;/artifactId&gt;
+    &lt;version&gt;5.0.2.RELEASE&lt;/version&gt;
+&lt;/dependency&gt;</code></code></pre></li>
+<li><p>创建配置文件，在resources目录下新建bean.xml文件，并导入约束</p>
+<pre><code><code>&lt;?xml version=&quot;1.0&quot; encoding=&quot;UTF-8&quot;?&gt;
+&lt;beans xmlns:xsi=&quot;http://www.w3.org/2001/XMLSchema-instance&quot;
+       xmlns=&quot;http://www.springframework.org/schema/beans&quot;
+       xsi:schemaLocation=&quot;http://www.springframework.org/schema/beans
+        http://www.springframework.org/schema/beans/spring-beans.xsd&quot;&gt;
+&lt;/beans&gt;</code></code></pre></li>
+<li><p>配置bean，在bean.xml中的beans标签中加入bean标签配置bean</p>
+<ol>
+<li>使用默认构造函数，如果类中无默认构造函数则无法创建</li>
+</ol>
+<pre><code><code>&lt;bean id=&quot;bean的唯一标识(名字)&quot; class=&quot;全限定类名&quot;&gt;&lt;/bean&gt;</code></code></pre>
+<ol>
+<li>使用某个类(工厂)的某个方法创建对象</li>
+</ol>
+<pre><code><code>&lt;bean id=&quot;beanId&quot; factory-bean=&quot;工厂类的全限定类名&quot; factory-method=&quot;方法名&quot;&gt;&lt;/bean&gt; </code></code></pre>
+<ol>
+<li>使用某个类(静态工厂)的某个<strong>静态</strong>方法创建对象</li>
+</ol>
+<pre><code><code>&lt;bean id=&quot;beanId&quot; class=&quot;全限定类名&quot; factory-method=&quot;方法名&quot;&gt;&lt;/bean&gt;</code></code></pre>
+<p>bean标签还有两个属性init-method和destroy-method指定构造方法和销毁方法</p></li>
+<li><p>依赖注入</p>
+<p>在bean中需要的数据或其他类的对象都由spring提供，只需配置，<strong>但不适合注入常变的数据</strong></p>
+<p>能注入的数据有三类：基本类型和String，其他bean，复杂类型/集合类型</p>
+<p>注入方式有三种，在bean标签内用一个标签代表一个参数：</p>
+<p>​ <strong>构造函数注入</strong></p>
+<pre><code><code>&lt;constructor-arg type(不常)=&quot;类型的全限定名&quot; index(不常)=&quot;参数序号,从0开始&quot; name(常用)=&quot;参数名&quot; value=&quot;基本类型值&quot; ref=&quot;引用其他bean&quot;&gt;&lt;/constructor-arg&gt;</code></code></pre>
+<p>​ 优：获取bean对象时注入数据是必须的，否则无法创建成功</p>
+<p>​ 弊：改变了bean的实例化方式，在创建对象时如果用不到这些数据也必须提供</p>
+<p>​ <strong>set方法注入</strong>(常用)</p>
+<pre><code><code>&lt;property name=&quot;set方法对应名&quot; value=&quot;基本类型值&quot; ref=&quot;其他bean&quot;&gt;&lt;/property&gt;</code></code></pre>
+<p>​ 优：创建对象时没有明确的限制，可以直接使用默认构造函数</p>
+<p>​ 弊：set方法可能不执行，如果某个成员必须有值，此方法不能保证</p>
+<p>​ <strong>复杂类型的注入</strong>需要在参数标签中再加标签array,list,set,map,props</p>
+<pre><code><code>&lt;property name=&quot;listPropName&quot;&gt;
+    &lt;array&gt;
+        &lt;value&gt;...&lt;/value&gt;
+        ...
+    &lt;/array&gt;
+&lt;/property&gt;
+&lt;property name=&quot;mapPropName&quot;&gt;
+    &lt;map&gt;
+        &lt;entry key=&quot;keyName&quot; value=&quot;值&quot;&gt;&lt;/entry&gt;
+        &lt;entry key=&quot;keyName&quot;&gt;
+            &lt;value&gt;值&lt;/value&gt;
+        &lt;/entry&gt;
+    &lt;/map&gt;
+&lt;/property&gt;</code></code></pre>
+<p>​ List结构的用list,array,set都一样，Map结构的用map,props都一样</p></li>
+<li><p>获取bean，在java代码中</p>
+<pre class="java"><code>//获取核心容器对象，也可以用BeanFactory代替ApplicationContext
+ApplicationContext ac = new ClassPathXmlApplicationContext(&quot;bean.xml&quot;);
+//根据id获取Bean对象
+ClassOfBean bean = (ClassOfBean)ac.getBean(&quot;beanId&quot;);</code></code></pre>
+<ul>
+<li>ApplicationContext的三个常用实现类</li>
+</ul>
+<p>​ ClassPathXmlApplicationContext: 可以加载类路径下的配置文件</p>
+<p>​ FileSystemXmlApplicationContext: 可以加载磁盘任意路径(有访问权限)下的配置文件</p>
+<p>​ AnnotationConfigApplicationContext: 用于读取注解创建容器</p>
+<ul>
+<li>ApplicationContext和BeanFactory的区别</li>
+</ul>
+<p>​ 前者在构建容器时采用<strong>立即加载</strong>的方式，一读取完配置文件就马上创建bean</p>
+<p>​ 后者在构建窗口时采用<strong>延迟加载</strong>的方式，当获取bean时才真正创建对象</p></li>
+</ol>
+<h4 id="注解">注解</h4>
+<p><strong>用xml文件</strong> bean.xml文件中的约束的标签为</p>
+<pre><code><code>&lt;?xml version=&quot;1.0&quot; encoding=&quot;UTF-8&quot;?&gt;
+&lt;beans xmlns=&quot;http://www.springframework.org/schema/beans&quot;
+    xmlns:xsi=&quot;http://www.w3.org/2001/XMLSchema-instance&quot;
+    xmlns:context=&quot;http://www.springframework.org/schema/context&quot; xsi:schemaLocation=&quot;
+        http://www.springframework.org/schema/beans 
+http://www.springframework.org/schema/beans/spring-beans.xsd
+        http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context.xsd&quot;&gt;
+    &lt;!-- 告知spring在创建容器时要扫描的包 --&gt;
+    &lt;context:component-scan base-package=&quot;包路径&quot;&gt;&lt;/context:component-scan&gt;
+&lt;/beans&gt;</code></code></pre>
+<p><strong>不用xml文件</strong></p>
+<p>创建一个配置类，类上加</p>
+<p>​ <strong>@Configuration</strong>指定当前类是一个配置类，获取容器时作为参数传入的配置类可以不加</p>
+<p>​ <strong>@ComponentScan(basePackages=&quot;包路径&quot;)</strong>指定要扫描的包，basePackages可以换成value</p>
+<p>​ 获取容器时用new AnnotationConfigApplicationContext(配置类.class)</p>
+<p>​ <strong>@Import</strong> 导入其他配置类，被导入的类不用再加@Configuration</p>
+<p>​ <strong>@PropertySource(&quot;classpath:路径/文件名&quot;)</strong> 用指定properties文件的位置，属性value</p>
+<p>​ <strong>@PropertySources</strong> 有多个properties文件的时候用</p>
+<p>​ 导入配置文件后可以用@Value(${...})读取</p>
+<h5 id="与bean有关的注解">与bean有关的注解</h5>
+<ul>
+<li><p><strong>@Bean</strong> 用于将当前方法的返回值作为bean存入ioc容器中，属性name指定beanId默认值为当前方法的名称，如果方法有参数，spring框架会去容器中查找 有没有可用的bean对象，查找方式同Autowired</p></li>
+<li><p>用于创建对象的，相当于bean标签</p>
+<p><strong>@Component</strong> 作用：把当前对象存入spring容器中；属性：value:指定bean的id,默认是当前类名且首字母小写；<strong>@Controller</strong> <strong>@Service</strong> <strong>@Repository</strong>与@Component完全一样,体现三层架构</p></li>
+<li><p>用于注入数据的，相当于property标签</p>
+<p><strong>@Autowired</strong> 作用：自动按照类型注入,如果容器中有唯一一个类匹配该数据的类型则注入,若没有匹配类型则报错,如果有多个则通过变量名寻找beanId对应的那个bean注入；位置：类上,方法上,变量上</p>
+<p><strong>@Qualifier</strong> 作用：在按照类型注入的基础上再按照名称注入,在给类成员注入时不能单独使用必须和@Autowired一起,但在给方法参数注入时可以；属性：value用于指定beanId</p>
+<p>以上三种只能注入bean，不基本类型和String，复杂类型必须用xml配置</p>
+<p><strong>@Value</strong> 作用：用于注入基本类型和String；属性：value用于指定数据的值,可以使用SpEL(spring的EL表达式：${表达式})</p>
+<p><strong>@Resource</strong> 作用：直接按照bean的id注入,可以独立使用；属性：name指定beanId</p></li>
+<li><p>用于改变作用范围的，相当于bean标签的scope属性</p>
+<p><strong>@Scope</strong> 作用：指定bean的作用范围；属性：value一般取singleton(默认)或prototype</p></li>
+<li><p>和生命周期相关的，相当于bean标签的init-method和destroy-method属性(不常用)</p>
+<p><strong>@PostConstruct</strong></p>
+<p><strong>@PreDestroy</strong></p>
+<hr /></li>
+</ul>
+<h4 id="与junit整合">与Junit整合</h4>
+<ol>
+<li><p>添加spring-test和junit依赖，spring5.x要求junit 4.12及以上</p>
+<pre><code><code>&lt;dependency&gt;
+    &lt;groupId&gt;org.springframework&lt;/groupId&gt;
+    &lt;artifactId&gt;spring-test&lt;/artifactId&gt;
+    &lt;version&gt;5.0.2.RELEASE&lt;/version&gt;
+&lt;/dependency&gt;
+&lt;dependency&gt;
+    &lt;groupId&gt;junit&lt;/groupId&gt;
+    &lt;artifactId&gt;junit&lt;/artifactId&gt;
+    &lt;version&gt;4.12&lt;/version&gt;
+    &lt;scope&gt;test&lt;/scope&gt;
+&lt;/dependency&gt;</code></code></pre></li>
+<li><p>使用Junit提供的一个注解<strong>@RunWith</strong>把原有的main方法替换成spring提供的</p>
+<p>@RunWith(SpringJUnit4ClassRunner.class)</p></li>
+<li><p>告知spring的运行器，是基于xml还是注解，并说明位置</p>
+<p><strong>@ContextConfiguration</strong></p>
+<p>​ locations: 指定xml文件位置</p>
+<p>​ classes: 指定注解类所在位置</p></li>
+</ol>
+<h4 id="常见问题">常见问题</h4>
+<ul>
+<li><p><strong>bean的作用范围</strong></p>
+<p>​ bean标签和@Component注解的scope属性：用于指定bean的作用范围</p>
+<p>​ 取值：singleton 单例的(常用)</p>
+<p>​ prototype 多例的(常用)</p>
+<p>​ request 作用于web应用的请求范围</p>
+<p>​ session 作用于web应用的会话范围</p>
+<p>​ global-session 集群环境的会话范围(全局会话范围)，若不是集群环境，则为session</p></li>
+<li><p><strong>bean的生命周期</strong></p>
+<p>​ singleton: 容器创建时对象创建(ApplicationContext)，容器销毁时对象销毁</p>
+<p>​ prototype: 使用对象时创建对象，当对象长时间不用且长时间没有别的对象引用时，由java的垃圾回收器回收</p>
+<hr /></li>
+</ul>
+<h4 id="原理">原理</h4>
+<ul>
+<li><p>ioc只需要导入spring-context依赖</p></li>
+<li><p>阅读源码：github下载源码，导入idea，运行调试加注释</p></li>
+<li><p>spring项目启动后，会扫描所有类，找到符合bean标准(加注释或xml配置)的类，通过一个描述类(BeanDefinition)存放bean的信息，isSingleton属性默认为true，再将描述类存入一个map(BeanDefinationMap)中</p></li>
+<li><p>扫描之后bean的获取：通过BeanDefinationMap里的key(bean名)找到value(BeanDefination)的class属性进行反射，找到bean对应的类。与class名没有关系，可以通过自己实现BeanFactory接口，从beanFactory中获取描述类BeanDefinition，setBeanClass(another.class)将bean和class的对应关系更改</p></li>
+<li><p>扫描前BeanDefinationMap中已有7个bean，包括AppConfig</p></li>
+<li><p>main() --&gt; AnnotationConfigApplicationContext(AppConfig.class) --&gt; refresh() --&gt; invokeBeanFactoryPostProcessors(beanFactory)(扫描并存入bean)</p></li>
+<li><p>后置处理器BeanPostProcessors的子类会被自动扫描并对bean进行多层代理，默认有九次(进入依赖注入等操作)，实现此接口可以对bean的创建过程进行干预</p></li>
+<li><p>Spring上下文或环境：为了实现IOC或AOP所需要的各种Spring组件的集合，如BeanDefination，BeanPostProcessor(后置处理器)，DefaultListableBeanFactory，BeanDefinitionMap，单例池等等</p></li>
+<li><p>扫描只是将bean对应的类的信息存入map中，并不会实例化类，即lazy(懒加载)</p></li>
+<li><p>factoryBean是一个特殊的bean，beanFactory是bean工厂</p></li>
+<li><p>单例bean第一次被实例化后就会存入名为singleObjects的map(单例池)中，再次getBean()时就不会new，(保证单例)</p></li>
+<li><p>Spring容器：不止单例池，还包括其他IOC组件</p></li>
+<li><p>循环依赖：</p>
+<blockquote>
+<p>单例bean的循环依赖</p>
+<p>isSingletonCurrentlyInCreation判断这个bean是否在创建过程中</p>
+<p>单例池只存放完整的bean</p>
+<p>get(A) --&gt; new A --&gt; auto B --&gt; get(B) --&gt; new B --&gt; auto A --&gt; get(A)</p>
+<p>获取A，新建A，发现A需要注入B且单例池中没有B且B不在创建过程中，获取B，发现B需要注入A且单例池中没有A且A正在创建过程中，获取A并注入B，将B注入A，将A放入单例池</p>
+</blockquote></li>
+</ul>
+
+
+</div><hr><script charset='utf-8' src='../../js/sming.js'></script></body></html>

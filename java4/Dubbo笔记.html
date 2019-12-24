@@ -1,0 +1,433 @@
+<html><head><meta charset='utf-8'><meta name='viewport' content='width=device-width, initial-scale=1'>
+<meta name='applicable-device' content='pc'><meta name='keywords' content='电脑,电脑讲解,电脑技术,编程,电脑故障维修Dubbo笔记' />
+<script src='../../highlight/highlight.pack.js'></script>
+<link rel='stylesheet' type='text/css' href='../../highlight/styles/monokai.css'/>
+
+<link rel='stylesheet' href='../../fenxiang/dist/css/share.min.css'>
+<script src='../../fenxiang/src/js/social-share.js'></script>
+<script src='../../fenxiang/src/js/qrcode.js'></script>
+
+</head><body><script>hljs.initHighlightingOnLoad();</script><script>
+var system ={};  
+var p = navigator.platform;       
+system.win = p.indexOf('Win') == 0;  
+system.mac = p.indexOf('Mac') == 0;  
+system.x11 = (p == 'X11') || (p.indexOf('Linux') == 0);     
+if(system.win||system.mac||system.xll){
+document.write("<link href='../css/3.css' rel='stylesheet' type='text/css'>");}else{ document.write("<link href='../css/3wap.css' rel='stylesheet' type='text/css'>");}</script><script src='../../js/3.js'></script><div class='div2'><div class='heading_nav'><ul><div><li><a href='../../index.html'>首页</a></li>
+</div><div onclick='hidden1()' >分享</div>
+</ul></div></div>
+<div id='heading_nav2'> 
+<li class='row' >
+<div class='social-share' data-mode='prepend'><a href='javascript:' class='social-share-icon icon-heart'></a></div></li></div><script charset='utf-8' src='../../3/js/hengfu.js'></script><script charset='utf-8' src='../../3/js/hengfu2.js'></script><hr><div class='div1'><div class='biaoti'><center>Dubbo笔记</center></div><div class='banquan'>原文出处:本文由博客园博主夏了夏天丶提供。<br/>
+原文连接:https://www.cnblogs.com/yuming2018/p/11757167.html</div><br>
+    <h1><span style="font-family: 'Microsoft YaHei';">SOA架构(Service&nbsp;Oriented&nbsp;Ambiguity)面向服务架构</span></h1>
+<ol>
+<li><span style="font-size: 18px; font-family: 'Microsoft YaHei';">有一个或多个与数据库交互并 向外提供服务的的单元,在注册中心注册向外提供的服务</span></li>
+<li><span style="font-size: 18px; font-family: 'Microsoft YaHei';">其他单元不与数据库进行交互,从注册中心获取提供的服务单元的一系列信息,并直接调用提供服务的单元.</span></li>
+<li><span style="font-size: 18px; font-family: 'Microsoft YaHei';">这样的设计避免了根据业务区分模块,每个业务模块都与数据库进行交互,有一些相同的操作会在不同的模块<strong>冗余</strong>地存在</span></li>
+</ol>
+<h3><span style="font-family: 'Microsoft YaHei';">常用的服务:</span></h3>
+<p><span style="font-size: 18px; font-family: 'Microsoft YaHei';">Dubbo.WebService,Dubbox,Web项目</span></p>
+<h1>RPC(Remote&nbsp;Procedure&nbsp;Call&nbsp;Protocol)远程过程调用协议</h1>
+<p><span style="font-family: 'Microsoft YaHei'; font-size: 18px;">客户端通过互联网调用远程服务器,不知道远程服务器具体实现,只知道远程服务器提供了什么功能.</span></p>
+<p><span style="font-family: 'Microsoft YaHei'; font-size: 18px;">本次主要学习Dubbo这种rpc框架</span></p>
+<h1><span style="font-family: Calibri;">Dubbo简介</span></h1>
+<p>&nbsp;</p>
+<p><span style="font-family: 'Microsoft YaHei'; font-size: 18px;">一个分布式、高性能、透明化的RPC服务框架</span></p>
+<p>&nbsp;</p>
+<p><span style="font-family: 'Microsoft YaHei'; font-size: 18px;">提供服务自动注册、自动发现等高效服务治理方案.</span></p>
+<p>&nbsp;</p>
+<h2>Dubbo<span style="font-family: 宋体;">架构图</span></h2>
+<p>&nbsp;</p>
+<ol>
+<li><span style="font-size: 18px; font-family: 'Microsoft YaHei';">Provider&nbsp;:提供者,服务发布方.</span></li>
+<li><span style="font-size: 18px; font-family: 'Microsoft YaHei';">Consumer:消费者,&nbsp;调用服务方</span></li>
+<li><span style="font-size: 18px; font-family: 'Microsoft YaHei';">Container:Dubbo容器.依赖于Spring容器.</span></li>
+<li><span style="font-size: 18px; font-family: 'Microsoft YaHei';">Registry:&nbsp;注册中心.当Container启动时把所有可以提供的服务列表上Registry中进行注册.作用:告诉Consumer提供了什么服务和服务方在哪里.</span></li>
+<li><span style="font-size: 18px; font-family: 'Microsoft YaHei';">Monitor:监听器</span></li>
+<li><span style="font-size: 18px; font-family: 'Microsoft YaHei';">虚线都是异步访问,实线都是同步访问</span></li>
+<li><span style="font-size: 18px; font-family: 'Microsoft YaHei';">蓝色虚线:在启动时完成的功能</span></li>
+<li><span style="font-size: 18px; font-family: 'Microsoft YaHei';">绿色虚线(实线)都是程序运行过程中执行的功能</span></li>
+<li><span style="font-family: 'Microsoft YaHei'; font-size: 18px;">所有的角色都是可以在单独的服务器上.所以必须遵守特定的协议.</span></li>
+</ol>
+<p>&nbsp;</p>
+<p><img style="font-family: 宋体;" src="./images/Dubbo笔记0.png" alt="" /></p>
+<p>&nbsp;</p>
+<p>&nbsp;</p>
+<p>&nbsp;</p>
+<p>&nbsp;</p>
+<h2>运行原理<span style="font-family: Calibri;">:</span></h2>
+<ol>
+<li><span style="font-size: 14pt; font-family: 'Microsoft YaHei';">启动容器,相当于在启动Dubbo的Provider</span></li>
+<li><span style="font-size: 14pt; font-family: 'Microsoft YaHei';">启动后会去注册中心进行注册.注册所有可以提供的服务列表</span></li>
+<li><span style="font-size: 14pt; font-family: 'Microsoft YaHei';">在Consumer启动后会去Registry中获取服务列表和Provider的地址.进行订阅.</span></li>
+<li><span style="font-size: 14pt; font-family: 'Microsoft YaHei';">当Provider有修改后,注册中心会把消息推送给Consummer&nbsp; &nbsp; &nbsp;使用了观察者设计模式(又叫发布/订阅设计模式)</span></li>
+<li><span style="font-size: 14pt; font-family: 'Microsoft YaHei';">根据获取到的Provider地址,真实调用Provider中功能.&nbsp; &nbsp;在Consumer方使用了代理设计模式.创建一个Provider方类的一个代理对象.通过代理对象获取Provider中真实功能,起到保护Provider真实功能的作用.</span></li>
+<li><span style="font-size: 14pt; font-family: 'Microsoft YaHei';">Consumer和Provider每隔1分钟向Monitor发送统计信息,统计信息包含,访问次数,频率等.</span></li>
+</ol>
+<h2>Dubbo<span style="font-family: 宋体;">支持的注册中心:</span></h2>
+<p>&nbsp;</p>
+<p><span style="font-family: 'Microsoft YaHei'; font-size: 18px;">Zookeeper</span></p>
+<p>&nbsp;</p>
+<p><span style="font-family: 'Microsoft YaHei'; font-size: 18px;">优点:支持网络集群</span></p>
+<p>&nbsp;</p>
+<p><span style="font-family: 'Microsoft YaHei'; font-size: 18px;">&nbsp;缺点:稳定性受限于Zookeeper</span></p>
+<p>&nbsp;</p>
+<p><span style="font-family: 'Microsoft YaHei'; font-size: 18px;">Redis&nbsp;</span></p>
+<p>&nbsp;</p>
+<p><span style="font-family: 'Microsoft YaHei'; font-size: 18px;">优点:性能高.</span></p>
+<p>&nbsp;</p>
+<p><span style="font-family: 'Microsoft YaHei'; font-size: 18px;">&nbsp;缺点:对服务器环境要求较高.</span></p>
+<p>&nbsp;</p>
+<p><span style="font-family: 'Microsoft YaHei'; font-size: 18px;">Multicast</span></p>
+<p>&nbsp;</p>
+<p><span style="font-family: 'Microsoft YaHei'; font-size: 18px;">优点:面中心化,不需要额外安装软件.</span></p>
+<p>&nbsp;</p>
+<p><span style="font-family: 'Microsoft YaHei'; font-size: 18px;">&nbsp;缺点:建议同机房(局域网)内使用</span></p>
+<p>&nbsp;</p>
+<p><span style="font-family: 'Microsoft YaHei'; font-size: 18px;">Simple</span></p>
+<p>&nbsp;</p>
+<p><span style="font-family: 'Microsoft YaHei'; font-size: 18px;">适用于测试环境.不支持集群.</span></p>
+<h2>Dubbo<span style="font-family: 宋体;">支持的协议:</span></h2>
+<p>&nbsp;</p>
+<p><span style="font-family: 'Microsoft YaHei'; font-size: 18px;">Dubbo</span></p>
+<p>&nbsp;</p>
+<p><span style="font-family: 'Microsoft YaHei'; font-size: 18px;">Dubbo官方推荐的协议.</span></p>
+<p>&nbsp;</p>
+<p><span style="font-family: 'Microsoft YaHei'; font-size: 18px;">本质:使用NIO和线程池进行处理.</span></p>
+<p>&nbsp;</p>
+<p><span style="font-family: 'Microsoft YaHei'; font-size: 18px;">缺点:大文件传输时可能出现文件传输失败问题.</span></p>
+<p>&nbsp;</p>
+<p><span style="font-family: 'Microsoft YaHei'; font-size: 18px;">RMI</span></p>
+<p>&nbsp;</p>
+<p><span style="font-family: 'Microsoft YaHei'; font-size: 18px;">JDK提供的协议,远程方法调用协议.</span></p>
+<p>&nbsp;</p>
+<p><span style="font-family: 'Microsoft YaHei'; font-size: 18px;">缺点:偶尔连接失败.</span></p>
+<p>&nbsp;</p>
+<p><span style="font-family: 'Microsoft YaHei'; font-size: 18px;">优点:JDK原生,不需要进行额外配置(导入jar)</span></p>
+<p>&nbsp;</p>
+<p><span style="font-family: 'Microsoft YaHei'; font-size: 18px;">Hession</span></p>
+<p>&nbsp;</p>
+<p><span style="font-family: 'Microsoft YaHei'; font-size: 18px;">优点:基于http协议,http请求支持.</span></p>
+<p>&nbsp;</p>
+<p><span style="font-family: 'Microsoft YaHei'; font-size: 18px;">缺点:需要额外导入jar,并在短连接时性能低</span></p>
+<p>&nbsp;</p>
+<h2>Dubbo<span style="font-family: 宋体;">中</span><span style="font-family: 'Times New Roman';">Provider</span><span style="font-family: 宋体;">搭建:</span></h2>
+<h3><span style="font-family: 宋体;"><span style="font-size: 18px;">Provider分别创建service接口项目与serviceimpl项目,目的是不希望Consumer知道具体的实现<br /></span></span><span style="font-family: 宋体;"><span style="font-size: 18px;"><span style="font-family: 宋体;">如果实现类与接口在同一个项目,Consumer调用接口就需要依赖这个项目,那么就会知道具体的实现</span></span></span></h3>
+<p><span style="font-family: 宋体;"><span style="font-size: 18px;"><img src="./images/Dubbo笔记1.png" alt="" /></span></span></p>
+<p>&nbsp;</p>
+<h2>Demo项目的github地址为<a href="https://github.com/yu57870473/ymDemo-Dubbo" target="_blank">这里</a></h2>
+<p><span style="font-family: 'Microsoft YaHei'; font-size: 18px;">&nbsp;Demo的项目结构如上图所示,maven聚合工程,ym-parent为父项目;ym-service为Provider的service接口;ym-entity为实体类项目,集中存放实体类;ym-dubbo为Provider的service接口实现;ym-managerment为业务web项目,调用dubbo提供的接口,是Consumer.</span></p>
+<p><span style="font-family: 'Microsoft YaHei'; font-size: 18px;">dubbo-admin为dubbo官方提供的dubbo管理工具,能够查看在注册中心注册的提供者与消费者.</span></p>
+<p><span style="font-family: 'Microsoft YaHei'; font-size: 18px;">他们的依赖关系为:</span></p>
+<p><span style="font-family: 'Microsoft YaHei'; font-size: 18px;">ym-service依赖ym-entity:编写dubbo向外提供服务的接口,需要依赖实体类,并<span style="color: #ff0000;"><strong>且实体类必须要实现Serializable</strong></span>,因为rpc调用过程中要进行序列化与反序列化&nbsp; &nbsp; &nbsp; </span></p>
+<p><span style="font-family: 'Microsoft YaHei'; font-size: 18px;">ym-dubbo依赖ym-service(间接依赖ym-entity) :ym-dubbo是对ym-service的实现,即<span style="color: #ff0000;"><strong>与数据库的交互操作</strong></span>都在这个项目中进行</span></p>
+<p><span style="font-family: 'Microsoft YaHei'; font-size: 18px;">ym-management依赖ym-service(间接依赖ym-entity):此处依赖是为了Consumer能够调用提供的指定接口,而依赖.</span></p>
+<h2><span style="font-family: 'Microsoft YaHei';">ym-service:</span></h2>
+<p><span style="font-family: 'Microsoft YaHei'; font-size: 18px;">ym-service的pom中只需要依赖ym-entity即可,目录结构如下</span></p>
+<p><span style="font-family: 'Microsoft YaHei';"><img src="./images/Dubbo笔记2.png" alt="" /></span></p>
+<p>&nbsp;</p>
+<p>&nbsp;</p>
+<h2>&nbsp;ym-dubbo:</h2>
+<p><span style="font-family: 'Microsoft YaHei'; font-size: 18px;">ym-dubbo需要依赖ym-service;dubbo;zkclient;curator;druid;mybatis;mybatis-spring;mysql-connector-java;spring各包,目录结构如下</span></p>
+<p><img src="./images/Dubbo笔记3.png" alt="" /></p>
+<p>&nbsp;</p>
+<p>&nbsp;</p>
+<p><span style="font-family: 'Microsoft YaHei'; font-size: 18px;">spring-core.xml中编写声明式事务,数据库连接,权限等相关配置</span></p>
+<p><span style="font-family: 'Microsoft YaHei'; font-size: 18px;">db.properties中为配置中心中数据库连接相关信息</span></p>
+<p><span style="font-family: 'Microsoft YaHei'; font-size: 18px;">log4j.properties日志相关配置</span></p>
+<p><span style="font-family: 'Microsoft YaHei'; font-size: 18px;">spring-dubbo.xml在META-INF/spring文件夹下,是因为项目启动函数com.alibaba.dubbo.container.Main.main(args);要求的dubbo配置位置,该函数能保证ym-dubbo持续运行向外提供服务.</span></p>
+<p><span style="font-family: 'Microsoft YaHei'; font-size: 18px;">main包下面的test为启动类,启动main方法就可以启动provider</span></p>
+<p><span style="font-family: 'Microsoft YaHei'; font-size: 18px;">mapper文件夹为数据库交互操作存放的位置</span></p>
+<p><span style="font-family: 'Microsoft YaHei'; font-size: 18px;">spring-dubbo.xml文件的配置:</span></p>
+<src class="cnblogs_code">
+<pre><code><span style="color: #0000ff;">&lt;?</span><span style="color: #ff00ff;">xml version="1.0" encoding="UTF-8"</span><span style="color: #0000ff;">?&gt;</span>
+<span style="color: #0000ff;">&lt;</span><span style="color: #800000;">beans </span><span style="color: #ff0000;">xmlns</span><span style="color: #0000ff;">="http://www.springframework.org/schema/beans"</span><span style="color: #ff0000;">
+       xmlns:xsi</span><span style="color: #0000ff;">="http://www.w3.org/2001/XMLSchema-instance"</span><span style="color: #ff0000;">
+       xmlns:dubbo</span><span style="color: #0000ff;">="http://code.alibabatech.com/schema/dubbo"</span><span style="color: #ff0000;">
+       xsi:schemaLocation</span><span style="color: #0000ff;">="http://www.springframework.org/schema/beans 
+    http://www.springframework.org/schema/beans/spring-beans.xsd
+        http://code.alibabatech.com/schema/dubbo
+        http://code.alibabatech.com/schema/dubbo/dubbo.xsd"</span><span style="color: #0000ff;">&gt;</span>
+    <span style="color: #008000;">&lt;!--</span><span style="color: #008000;">设置该服务提供者名称,便于服务治理</span><span style="color: #008000;">--&gt;</span>
+    <span style="color: #0000ff;">&lt;</span><span style="color: #800000;">dubbo:application </span><span style="color: #ff0000;">name</span><span style="color: #0000ff;">="ymDubbo-service"</span><span style="color: #0000ff;">/&gt;</span>
+    <span style="color: #008000;">&lt;!--</span><span style="color: #008000;">配置注册中心地址,可以是单节点也可以是集群,集群节点用逗号隔开</span><span style="color: #008000;">--&gt;</span>
+    <span style="color: #0000ff;">&lt;</span><span style="color: #800000;">dubbo:registry </span><span style="color: #ff0000;">address</span><span style="color: #0000ff;">="192.168.238.129:2181,192.168.238.131:2181,192.168.238.132:2181"</span><span style="color: #ff0000;"> protocol</span><span style="color: #0000ff;">="zookeeper"</span><span style="color: #0000ff;">/&gt;</span>
+    <span style="color: #008000;">&lt;!--</span><span style="color: #008000;">Consumer与Provider之间通信采用的通信协议dubbo协议与Provider通信的端口</span><span style="color: #008000;">--&gt;</span>
+    <span style="color: #0000ff;">&lt;</span><span style="color: #800000;">dubbo:protocol </span><span style="color: #ff0000;">name</span><span style="color: #0000ff;">="dubbo"</span><span style="color: #ff0000;"> port</span><span style="color: #0000ff;">="28888"</span><span style="color: #0000ff;">/&gt;</span>
+    <span style="color: #008000;">&lt;!--</span><span style="color: #008000;">根据com.alibaba.dubbo.config.annotation.Service注解扫描接口实现类</span><span style="color: #008000;">--&gt;</span>
+    <span style="color: #0000ff;">&lt;</span><span style="color: #800000;">dubbo:annotation </span><span style="color: #ff0000;">package</span><span style="color: #0000ff;">="com.ym.dubbo.service.impl"</span><span style="color: #0000ff;">/&gt;</span>
+    <span style="color: #008000;">&lt;!--</span><span style="color: #008000;">引入spring的核心配置与此配置文件一同被com.alibaba.dubbo.container.Main.main(args);加载</span><span style="color: #008000;">--&gt;</span>
+    <span style="color: #0000ff;">&lt;</span><span style="color: #800000;">import </span><span style="color: #ff0000;">resource</span><span style="color: #0000ff;">="../../spring-core.xml"</span><span style="color: #0000ff;">/&gt;</span>
+<span style="color: #0000ff;">&lt;/</span><span style="color: #800000;">beans</span><span style="color: #0000ff;">&gt;</span></code></pre>
+
+<p><span style="font-family: 'Microsoft YaHei'; font-size: 18px;">spring-core.xml文件的配置:</span></p>
+<src class="cnblogs_code">
+<pre><code><span style="color: #0000ff;">&lt;?</span><span style="color: #ff00ff;">xml version="1.0" encoding="UTF-8" </span><span style="color: #0000ff;">?&gt;</span>
+<span style="color: #0000ff;">&lt;</span><span style="color: #800000;">beans </span><span style="color: #ff0000;">xmlns</span><span style="color: #0000ff;">="http://www.springframework.org/schema/beans"</span><span style="color: #ff0000;">
+       xmlns:xsi</span><span style="color: #0000ff;">="http://www.w3.org/2001/XMLSchema-instance"</span><span style="color: #ff0000;">
+       xmlns:context</span><span style="color: #0000ff;">="http://www.springframework.org/schema/context"</span><span style="color: #ff0000;">
+       xmlns:aop</span><span style="color: #0000ff;">="http://www.springframework.org/schema/aop"</span><span style="color: #ff0000;">
+       xmlns:tx</span><span style="color: #0000ff;">="http://www.springframework.org/schema/tx"</span><span style="color: #ff0000;">
+       xsi:schemaLocation</span><span style="color: #0000ff;">="
+        http://www.springframework.org/schema/beans
+        http://www.springframework.org/schema/beans/spring-beans.xsd
+        http://www.springframework.org/schema/context
+        http://www.springframework.org/schema/context/spring-context.xsd
+        http://www.springframework.org/schema/tx
+        http://www.springframework.org/schema/tx/spring-tx.xsd
+        http://www.springframework.org/schema/aop
+        http://www.springframework.org/schema/aop/spring-aop.xsd"</span><span style="color: #0000ff;">&gt;</span>
+    <span style="color: #008000;">&lt;!--</span><span style="color: #008000;">扫描service注解</span><span style="color: #008000;">--&gt;</span>
+    <span style="color: #0000ff;">&lt;</span><span style="color: #800000;">context:component-scan </span><span style="color: #ff0000;">base-package</span><span style="color: #0000ff;">="com.ym.dubbo.service.impl"</span><span style="color: #0000ff;">/&gt;</span>
+    <span style="color: #008000;">&lt;!--</span><span style="color: #008000;">引入配置文件</span><span style="color: #008000;">--&gt;</span>
+    <span style="color: #0000ff;">&lt;</span><span style="color: #800000;">context:property-placeholder </span><span style="color: #ff0000;">location</span><span style="color: #0000ff;">="classpath:db.properties"</span> <span style="color: #0000ff;">/&gt;</span>
+    <span style="color: #008000;">&lt;!--</span><span style="color: #008000;">配置数据源</span><span style="color: #008000;">--&gt;</span>
+    <span style="color: #0000ff;">&lt;</span><span style="color: #800000;">bean </span><span style="color: #ff0000;">id</span><span style="color: #0000ff;">="dataSource"</span><span style="color: #ff0000;"> class</span><span style="color: #0000ff;">="com.alibaba.druid.pool.DruidDataSource"</span><span style="color: #ff0000;"> init-method</span><span style="color: #0000ff;">="init"</span><span style="color: #ff0000;"> destroy-method</span><span style="color: #0000ff;">="close"</span><span style="color: #0000ff;">&gt;</span>
+        <span style="color: #008000;">&lt;!--</span><span style="color: #008000;"> 基本属性 url,user,pass </span><span style="color: #008000;">--&gt;</span>
+        <span style="color: #0000ff;">&lt;</span><span style="color: #800000;">property </span><span style="color: #ff0000;">name</span><span style="color: #0000ff;">="driverClassName"</span><span style="color: #ff0000;"> value</span><span style="color: #0000ff;">="${jdbc.driver}"</span><span style="color: #0000ff;">/&gt;</span>
+        <span style="color: #0000ff;">&lt;</span><span style="color: #800000;">property </span><span style="color: #ff0000;">name</span><span style="color: #0000ff;">="url"</span><span style="color: #ff0000;"> value</span><span style="color: #0000ff;">="${jdbc.url}"</span><span style="color: #0000ff;">/&gt;</span>
+        <span style="color: #0000ff;">&lt;</span><span style="color: #800000;">property </span><span style="color: #ff0000;">name</span><span style="color: #0000ff;">="username"</span><span style="color: #ff0000;"> value</span><span style="color: #0000ff;">="${jdbc.username}"</span><span style="color: #0000ff;">/&gt;</span>
+        <span style="color: #0000ff;">&lt;</span><span style="color: #800000;">property </span><span style="color: #ff0000;">name</span><span style="color: #0000ff;">="password"</span><span style="color: #ff0000;"> value</span><span style="color: #0000ff;">="${jdbc.password}"</span><span style="color: #0000ff;">/&gt;</span>
+        <span style="color: #008000;">&lt;!--</span><span style="color: #008000;"> 配置初始化大小,最小增长,最大活动连接 </span><span style="color: #008000;">--&gt;</span>
+        <span style="color: #0000ff;">&lt;</span><span style="color: #800000;">property </span><span style="color: #ff0000;">name</span><span style="color: #0000ff;">="initialSize"</span><span style="color: #ff0000;"> value</span><span style="color: #0000ff;">="${jdbc.initialSize}"</span><span style="color: #0000ff;">/&gt;</span>
+        <span style="color: #0000ff;">&lt;</span><span style="color: #800000;">property </span><span style="color: #ff0000;">name</span><span style="color: #0000ff;">="minIdle"</span><span style="color: #ff0000;"> value</span><span style="color: #0000ff;">="${jdbc.minIdle}"</span><span style="color: #0000ff;">/&gt;</span>
+        <span style="color: #0000ff;">&lt;</span><span style="color: #800000;">property </span><span style="color: #ff0000;">name</span><span style="color: #0000ff;">="maxActive"</span><span style="color: #ff0000;"> value</span><span style="color: #0000ff;">="${jdbc.maxActive}"</span><span style="color: #0000ff;">/&gt;</span>
+        <span style="color: #008000;">&lt;!--</span><span style="color: #008000;"> 获取连接超时时间,单位毫秒 </span><span style="color: #008000;">--&gt;</span>
+        <span style="color: #0000ff;">&lt;</span><span style="color: #800000;">property </span><span style="color: #ff0000;">name</span><span style="color: #0000ff;">="maxWait"</span><span style="color: #ff0000;"> value</span><span style="color: #0000ff;">="${jdbc.maxWait}"</span><span style="color: #0000ff;">/&gt;</span>
+
+        <span style="color: #008000;">&lt;!--</span><span style="color: #008000;"> 设置间隔多久进行一次检查关闭空闲链接,单位毫秒 </span><span style="color: #008000;">--&gt;</span>
+        <span style="color: #0000ff;">&lt;</span><span style="color: #800000;">property </span><span style="color: #ff0000;">name</span><span style="color: #0000ff;">="timeBetweenEvictionRunsMillis"</span><span style="color: #ff0000;"> value</span><span style="color: #0000ff;">="${jdbc.timeBetweenEvictionRunsMillis}"</span><span style="color: #0000ff;">/&gt;</span>
+
+        <span style="color: #008000;">&lt;!--</span><span style="color: #008000;"> 设置每个连接在池中的最小生存时间,单位毫秒 </span><span style="color: #008000;">--&gt;</span>
+        <span style="color: #0000ff;">&lt;</span><span style="color: #800000;">property </span><span style="color: #ff0000;">name</span><span style="color: #0000ff;">="minEvictableIdleTimeMillis"</span><span style="color: #ff0000;"> value</span><span style="color: #0000ff;">="${jdbc.minEvictableIdleTimeMillis}"</span><span style="color: #0000ff;">/&gt;</span>
+
+        <span style="color: #0000ff;">&lt;</span><span style="color: #800000;">property </span><span style="color: #ff0000;">name</span><span style="color: #0000ff;">="validationQuery"</span><span style="color: #ff0000;"> value</span><span style="color: #0000ff;">="SELECT 'x'"</span> <span style="color: #0000ff;">/&gt;</span>
+        <span style="color: #0000ff;">&lt;</span><span style="color: #800000;">property </span><span style="color: #ff0000;">name</span><span style="color: #0000ff;">="testWhileIdle"</span><span style="color: #ff0000;"> value</span><span style="color: #0000ff;">="true"</span> <span style="color: #0000ff;">/&gt;</span>
+        <span style="color: #0000ff;">&lt;</span><span style="color: #800000;">property </span><span style="color: #ff0000;">name</span><span style="color: #0000ff;">="testOnBorrow"</span><span style="color: #ff0000;"> value</span><span style="color: #0000ff;">="false"</span> <span style="color: #0000ff;">/&gt;</span>
+        <span style="color: #0000ff;">&lt;</span><span style="color: #800000;">property </span><span style="color: #ff0000;">name</span><span style="color: #0000ff;">="testOnReturn"</span><span style="color: #ff0000;"> value</span><span style="color: #0000ff;">="false"</span> <span style="color: #0000ff;">/&gt;</span>
+    <span style="color: #0000ff;">&lt;/</span><span style="color: #800000;">bean</span><span style="color: #0000ff;">&gt;</span>
+    <span style="color: #008000;">&lt;!--</span><span style="color: #008000;">SqlSessionFactory</span><span style="color: #008000;">--&gt;</span>
+    <span style="color: #0000ff;">&lt;</span><span style="color: #800000;">bean </span><span style="color: #ff0000;">id</span><span style="color: #0000ff;">="factory"</span><span style="color: #ff0000;"> class</span><span style="color: #0000ff;">="org.mybatis.spring.SqlSessionFactoryBean"</span><span style="color: #0000ff;">&gt;</span>
+        <span style="color: #0000ff;">&lt;</span><span style="color: #800000;">property </span><span style="color: #ff0000;">name</span><span style="color: #0000ff;">="dataSource"</span><span style="color: #ff0000;">  ref</span><span style="color: #0000ff;">="dataSource"</span><span style="color: #0000ff;">/&gt;</span>
+    <span style="color: #0000ff;">&lt;/</span><span style="color: #800000;">bean</span><span style="color: #0000ff;">&gt;</span>
+    <span style="color: #008000;">&lt;!--</span><span style="color: #008000;">扫描Mapper</span><span style="color: #008000;">--&gt;</span>
+    <span style="color: #0000ff;">&lt;</span><span style="color: #800000;">bean </span><span style="color: #ff0000;">class</span><span style="color: #0000ff;">="org.mybatis.spring.mapper.MapperScannerConfigurer"</span><span style="color: #0000ff;">&gt;</span>
+        <span style="color: #0000ff;">&lt;</span><span style="color: #800000;">property </span><span style="color: #ff0000;">name</span><span style="color: #0000ff;">="sqlSessionFactoryBeanName"</span><span style="color: #ff0000;"> value</span><span style="color: #0000ff;">="factory"</span><span style="color: #0000ff;">/&gt;</span>
+        <span style="color: #0000ff;">&lt;</span><span style="color: #800000;">property </span><span style="color: #ff0000;">name</span><span style="color: #0000ff;">="basePackage"</span><span style="color: #ff0000;"> value</span><span style="color: #0000ff;">="com.ym.mapper"</span><span style="color: #0000ff;">/&gt;</span>
+    <span style="color: #0000ff;">&lt;/</span><span style="color: #800000;">bean</span><span style="color: #0000ff;">&gt;</span>
+    <span style="color: #008000;">&lt;!--</span><span style="color: #008000;">事务管理通知类</span><span style="color: #008000;">--&gt;</span>
+    <span style="color: #0000ff;">&lt;</span><span style="color: #800000;">bean </span><span style="color: #ff0000;">id</span><span style="color: #0000ff;">="transaction"</span><span style="color: #ff0000;"> class</span><span style="color: #0000ff;">="org.springframework.jdbc.datasource.DataSourceTransactionManager"</span><span style="color: #0000ff;">&gt;</span>
+        <span style="color: #0000ff;">&lt;</span><span style="color: #800000;">property </span><span style="color: #ff0000;">name</span><span style="color: #0000ff;">="dataSource"</span><span style="color: #ff0000;"> ref</span><span style="color: #0000ff;">="dataSource"</span><span style="color: #0000ff;">/&gt;</span>
+    <span style="color: #0000ff;">&lt;/</span><span style="color: #800000;">bean</span><span style="color: #0000ff;">&gt;</span>
+    <span style="color: #008000;">&lt;!--</span><span style="color: #008000;">事务管理器类</span><span style="color: #008000;">--&gt;</span>
+    <span style="color: #0000ff;">&lt;</span><span style="color: #800000;">tx:advice </span><span style="color: #ff0000;">id</span><span style="color: #0000ff;">="MyAdvice"</span><span style="color: #ff0000;"> transaction-manager</span><span style="color: #0000ff;">="transaction"</span><span style="color: #0000ff;">&gt;</span>
+        <span style="color: #0000ff;">&lt;</span><span style="color: #800000;">tx:attributes</span><span style="color: #0000ff;">&gt;</span>
+            <span style="color: #0000ff;">&lt;</span><span style="color: #800000;">tx:method </span><span style="color: #ff0000;">name</span><span style="color: #0000ff;">="del*"</span><span style="color: #ff0000;"> isolation</span><span style="color: #0000ff;">="REPEATABLE_READ"</span><span style="color: #0000ff;">/&gt;</span>
+            <span style="color: #0000ff;">&lt;</span><span style="color: #800000;">tx:method </span><span style="color: #ff0000;">name</span><span style="color: #0000ff;">="ins*"</span><span style="color: #ff0000;"> isolation</span><span style="color: #0000ff;">="REPEATABLE_READ"</span><span style="color: #0000ff;">/&gt;</span>
+            <span style="color: #0000ff;">&lt;</span><span style="color: #800000;">tx:method </span><span style="color: #ff0000;">name</span><span style="color: #0000ff;">="up*"</span><span style="color: #ff0000;"> isolation</span><span style="color: #0000ff;">="REPEATABLE_READ"</span><span style="color: #0000ff;">/&gt;</span>
+            <span style="color: #0000ff;">&lt;</span><span style="color: #800000;">tx:method </span><span style="color: #ff0000;">name</span><span style="color: #0000ff;">="*"</span><span style="color: #ff0000;"> read-only</span><span style="color: #0000ff;">="true"</span><span style="color: #0000ff;">/&gt;</span>
+        <span style="color: #0000ff;">&lt;/</span><span style="color: #800000;">tx:attributes</span><span style="color: #0000ff;">&gt;</span>
+    <span style="color: #0000ff;">&lt;/</span><span style="color: #800000;">tx:advice</span><span style="color: #0000ff;">&gt;</span>
+    <span style="color: #008000;">&lt;!--</span><span style="color: #008000;">事务管理切点</span><span style="color: #008000;">--&gt;</span>
+    <span style="color: #0000ff;">&lt;</span><span style="color: #800000;">aop:config</span><span style="color: #0000ff;">&gt;</span>
+        <span style="color: #0000ff;">&lt;</span><span style="color: #800000;">aop:pointcut </span><span style="color: #ff0000;">id</span><span style="color: #0000ff;">="MyPoint"</span><span style="color: #ff0000;"> expression</span><span style="color: #0000ff;">="execution(* com.ym.*.*(..))"</span><span style="color: #0000ff;">/&gt;</span>
+        <span style="color: #0000ff;">&lt;</span><span style="color: #800000;">aop:advisor </span><span style="color: #ff0000;">advice-ref</span><span style="color: #0000ff;">="MyAdvice"</span><span style="color: #ff0000;"> pointcut-ref</span><span style="color: #0000ff;">="MyPoint"</span><span style="color: #0000ff;">/&gt;</span>
+    <span style="color: #0000ff;">&lt;/</span><span style="color: #800000;">aop:config</span><span style="color: #0000ff;">&gt;</span>
+<span style="color: #0000ff;">&lt;/</span><span style="color: #800000;">beans</span><span style="color: #0000ff;">&gt;</span></code></pre>
+
+<p><span style="font-family: 'Microsoft YaHei'; font-size: 18px;"><strong><span style="color: #ff0000;">此处需要注意的是,两个配置文件中均有对于service实现类的扫描,也都有Service注解,注解的顺序有所讲究,以其中的一个实现类为例,如下所示</span></strong></span></p>
+<p><span style="font-family: 'Microsoft YaHei'; font-size: 18px;"><strong><span style="color: #ff0000;">dubbo的Service注解必须要在spring的Service注解之上,这样dubbo才能正常扫描到该实现类,并且spring也能正常扫描该类,若顺序反过来,则dubbo扫描不到,spring依然可以扫描到</span></strong></span></p>
+<p><span style="font-family: 'Microsoft YaHei'; font-size: 18px;"><strong><span style="color: #ff0000;">当涉及到增删改操作,需要对实现类添加事务的注解Transactional的时候,又会出现另一个问题,解决方法比较复杂,建议看看<em><a href="https://blog.csdn.net/weixin_34250709/article/details/92479803" target="_blank"><span style="color: #ff0000;">这个</span></a></em></span></strong></span></p>
+<src class="cnblogs_code">
+<pre><code><span style="color: #0000ff;">package</span><span style="color: #000000;"> com.ym.dubbo.service.impl;
+
+</span><span style="color: #0000ff;">import</span><span style="color: #000000;"> com.alibaba.dubbo.config.annotation.Service;
+</span><span style="color: #0000ff;">import</span><span style="color: #000000;"> com.ym.mapper.MenuMapper;
+</span><span style="color: #0000ff;">import</span><span style="color: #000000;"> com.ym.dubbo.service.MenuDubboService;
+</span><span style="color: #0000ff;">import</span><span style="color: #000000;"> com.ym.entity.Menu;
+
+</span><span style="color: #0000ff;">import</span><span style="color: #000000;"> javax.annotation.Resource;
+</span><span style="color: #0000ff;">import</span><span style="color: #000000;"> java.util.List;
+@Service
+@org.springframework.stereotype.Service
+</span><span style="color: #0000ff;">public</span> <span style="color: #0000ff;">class</span> MenuDubboServiceImpl <span style="color: #0000ff;">implements</span><span style="color: #000000;"> MenuDubboService {
+    @Resource
+    </span><span style="color: #0000ff;">private</span><span style="color: #000000;"> MenuMapper menuMapper;
+    @Override
+    </span><span style="color: #0000ff;">public</span> List&lt;Menu&gt;<span style="color: #000000;"> selAll() {
+        List</span>&lt;Menu&gt; menus =<span style="color: #000000;"> menuMapper.selAll();
+        </span><span style="color: #0000ff;">for</span><span style="color: #000000;"> (Menu menu: menus) {
+            </span><span style="color: #0000ff;">if</span>(menu.getPid()!=<span style="color: #0000ff;">null</span><span style="color: #000000;">) {
+                menu.setParent(menuMapper.selById(menu.getPid()));
+            }
+                menu.setChildren(menuMapper.selByPid(menu.getId()));
+        }
+        </span><span style="color: #0000ff;">return</span><span style="color: #000000;"> menus;
+    }
+}</span></code></pre>
+
+<p><span style="font-family: 'Microsoft YaHei'; font-size: 18px;">至此Provider搭建完成.</span></p>
+<h1>&nbsp;Consumer搭建过程即ym-management的搭建</h1>
+<p><span style="font-family: 'Microsoft YaHei'; font-size: 18px;">pom中除了ssm的引用外还需要引用ym-service;dubbo;zkclient;curator</span></p>
+<p><img src="./images/Dubbo笔记4.png" alt="" /></p>
+<p>&nbsp;</p>
+<p><span style="font-family: 'Microsoft YaHei'; font-size: 18px;">spring-core.xml配置扫描service</span></p>
+<src class="cnblogs_code">
+<pre><code><span style="color: #0000ff;">&lt;?</span><span style="color: #ff00ff;">xml version="1.0" encoding="UTF-8" </span><span style="color: #0000ff;">?&gt;</span>
+<span style="color: #0000ff;">&lt;</span><span style="color: #800000;">beans </span><span style="color: #ff0000;">xmlns</span><span style="color: #0000ff;">="http://www.springframework.org/schema/beans"</span><span style="color: #ff0000;">
+       xmlns:xsi</span><span style="color: #0000ff;">="http://www.w3.org/2001/XMLSchema-instance"</span><span style="color: #ff0000;">
+       xmlns:context</span><span style="color: #0000ff;">="http://www.springframework.org/schema/context"</span><span style="color: #ff0000;">
+       xsi:schemaLocation</span><span style="color: #0000ff;">="
+        http://www.springframework.org/schema/beans
+        http://www.springframework.org/schema/beans/spring-beans.xsd
+        http://www.springframework.org/schema/context
+        http://www.springframework.org/schema/context/spring-context.xsd"</span><span style="color: #0000ff;">&gt;</span>
+    <span style="color: #008000;">&lt;!--</span><span style="color: #008000;">扫描service注解</span><span style="color: #008000;">--&gt;</span>
+    <span style="color: #0000ff;">&lt;</span><span style="color: #800000;">context:component-scan </span><span style="color: #ff0000;">base-package</span><span style="color: #0000ff;">="com.ym.service.impl"</span><span style="color: #0000ff;">/&gt;</span>
+
+<span style="color: #0000ff;">&lt;/</span><span style="color: #800000;">beans</span><span style="color: #0000ff;">&gt;</span></code></pre>
+
+<p><span style="font-family: 'Microsoft YaHei'; font-size: 18px;">spring-dubbo.xml</span></p>
+<src class="cnblogs_code">
+<pre><code><span style="color: #0000ff;">&lt;?</span><span style="color: #ff00ff;">xml version="1.0" encoding="UTF-8"</span><span style="color: #0000ff;">?&gt;</span>
+<span style="color: #0000ff;">&lt;</span><span style="color: #800000;">beans </span><span style="color: #ff0000;">xmlns</span><span style="color: #0000ff;">="http://www.springframework.org/schema/beans"</span><span style="color: #ff0000;">
+       xmlns:xsi</span><span style="color: #0000ff;">="http://www.w3.org/2001/XMLSchema-instance"</span><span style="color: #ff0000;">
+       xmlns:dubbo</span><span style="color: #0000ff;">="http://code.alibabatech.com/schema/dubbo"</span><span style="color: #ff0000;">
+       xsi:schemaLocation</span><span style="color: #0000ff;">="http://www.springframework.org/schema/beans
+    http://www.springframework.org/schema/beans/spring-beans.xsd
+        http://code.alibabatech.com/schema/dubbo
+        http://code.alibabatech.com/schema/dubbo/dubbo.xsd"</span><span style="color: #0000ff;">&gt;</span>
+    <span style="color: #008000;">&lt;!--</span><span style="color: #008000;">Consumer的名字</span><span style="color: #008000;">--&gt;</span>
+    <span style="color: #0000ff;">&lt;</span><span style="color: #800000;">dubbo:application </span><span style="color: #ff0000;">name</span><span style="color: #0000ff;">="ymDubbo-cunsumer"</span><span style="color: #0000ff;">/&gt;</span>
+    <span style="color: #008000;">&lt;!--</span><span style="color: #008000;">注册中心连接地址</span><span style="color: #008000;">--&gt;</span>
+    <span style="color: #0000ff;">&lt;</span><span style="color: #800000;">dubbo:registry </span><span style="color: #ff0000;">address</span><span style="color: #0000ff;">="192.168.238.129:2181,192.168.238.131:2181,192.168.238.132:2181"</span><span style="color: #ff0000;"> protocol</span><span style="color: #0000ff;">="zookeeper"</span><span style="color: #0000ff;">/&gt;</span>
+
+    <span style="color: #008000;">&lt;!--</span><span style="color: #008000;"> 配置service实现类中@Reference注解扫描,Consumer端与Spring的@Service注解不冲突 </span><span style="color: #008000;">--&gt;</span>
+    <span style="color: #0000ff;">&lt;</span><span style="color: #800000;">dubbo:annotation </span><span style="color: #ff0000;">package</span><span style="color: #0000ff;">="com.ym.service.impl"</span><span style="color: #0000ff;">/&gt;</span>
+
+
+<span style="color: #0000ff;">&lt;/</span><span style="color: #800000;">beans</span><span style="color: #0000ff;">&gt;</span></code></pre>
+
+<p><span style="font-family: 'Microsoft YaHei'; font-size: 18px;">spring-mvc.xml</span></p>
+<src class="cnblogs_code">
+<pre><code><span style="color: #0000ff;">&lt;?</span><span style="color: #ff00ff;">xml version="1.0" encoding="UTF-8"</span><span style="color: #0000ff;">?&gt;</span>
+<span style="color: #0000ff;">&lt;</span><span style="color: #800000;">beans </span><span style="color: #ff0000;">xmlns</span><span style="color: #0000ff;">="http://www.springframework.org/schema/beans"</span><span style="color: #ff0000;">
+       xmlns:xsi</span><span style="color: #0000ff;">="http://www.w3.org/2001/XMLSchema-instance"</span><span style="color: #ff0000;">
+       xmlns:mvc</span><span style="color: #0000ff;">="http://www.springframework.org/schema/mvc"</span><span style="color: #ff0000;">
+       xmlns:context</span><span style="color: #0000ff;">="http://www.springframework.org/schema/context"</span><span style="color: #ff0000;">
+       xsi:schemaLocation</span><span style="color: #0000ff;">="http://www.springframework.org/schema/beans
+        http://www.springframework.org/schema/beans/spring-beans.xsd
+        http://www.springframework.org/schema/context
+        http://www.springframework.org/schema/context/spring-context.xsd
+        http://www.springframework.org/schema/mvc
+        http://www.springframework.org/schema/mvc/spring-mvc.xsd"</span><span style="color: #0000ff;">&gt;</span>
+
+
+    <span style="color: #008000;">&lt;!--</span><span style="color: #008000;"> 默认的注解映射的支持，自动注册DefaultAnnotationHandlerMapping和AnnotationMethodHandlerAdapter </span><span style="color: #008000;">--&gt;</span>
+    <span style="color: #0000ff;">&lt;</span><span style="color: #800000;">mvc:annotation-driven</span><span style="color: #0000ff;">/&gt;</span>
+    <span style="color: #008000;">&lt;!--</span><span style="color: #008000;"> 自动扫描注解的controller包名 </span><span style="color: #008000;">--&gt;</span>
+    <span style="color: #0000ff;">&lt;</span><span style="color: #800000;">context:component-scan </span><span style="color: #ff0000;">base-package</span><span style="color: #0000ff;">="com.ym.controller"</span><span style="color: #0000ff;">/&gt;</span>
+
+
+    <span style="color: #008000;">&lt;!--</span><span style="color: #008000;"> 视图解释类 </span><span style="color: #008000;">--&gt;</span>
+    <span style="color: #0000ff;">&lt;</span><span style="color: #800000;">bean </span><span style="color: #ff0000;">class</span><span style="color: #0000ff;">="org.springframework.web.servlet.view.InternalResourceViewResolver"</span><span style="color: #0000ff;">&gt;</span>
+        <span style="color: #0000ff;">&lt;</span><span style="color: #800000;">property </span><span style="color: #ff0000;">name</span><span style="color: #0000ff;">="prefix"</span><span style="color: #ff0000;"> value</span><span style="color: #0000ff;">="/WEB-INF/jsp/"</span><span style="color: #0000ff;">/&gt;</span>
+        <span style="color: #0000ff;">&lt;</span><span style="color: #800000;">property </span><span style="color: #ff0000;">name</span><span style="color: #0000ff;">="suffix"</span><span style="color: #ff0000;"> value</span><span style="color: #0000ff;">=".jsp"</span><span style="color: #0000ff;">/&gt;</span>
+    <span style="color: #0000ff;">&lt;/</span><span style="color: #800000;">bean</span><span style="color: #0000ff;">&gt;</span>
+    <span style="color: #0000ff;">&lt;</span><span style="color: #800000;">mvc:resources </span><span style="color: #ff0000;">mapping</span><span style="color: #0000ff;">="/image/**"</span><span style="color: #ff0000;"> location</span><span style="color: #0000ff;">="/image/"</span><span style="color: #0000ff;">/&gt;</span>
+    <span style="color: #0000ff;">&lt;</span><span style="color: #800000;">mvc:resources </span><span style="color: #ff0000;">mapping</span><span style="color: #0000ff;">="/css/**"</span><span style="color: #ff0000;"> location</span><span style="color: #0000ff;">="/css/"</span><span style="color: #0000ff;">/&gt;</span>
+    <span style="color: #0000ff;">&lt;</span><span style="color: #800000;">mvc:resources </span><span style="color: #ff0000;">mapping</span><span style="color: #0000ff;">="/js/**"</span><span style="color: #ff0000;"> location</span><span style="color: #0000ff;">="/js/"</span><span style="color: #0000ff;">/&gt;</span>
+    <span style="color: #0000ff;">&lt;</span><span style="color: #800000;">mvc:resources </span><span style="color: #ff0000;">mapping</span><span style="color: #0000ff;">="/files/**"</span><span style="color: #ff0000;"> location</span><span style="color: #0000ff;">="/files/"</span><span style="color: #0000ff;">/&gt;</span>
+
+    <span style="color: #008000;">&lt;!--</span><span style="color: #008000;">MultipartResolver解析器,文件上传自动转换为MultipartFile对象</span><span style="color: #008000;">--&gt;</span>
+    <span style="color: #0000ff;">&lt;</span><span style="color: #800000;">bean </span><span style="color: #ff0000;">id</span><span style="color: #0000ff;">="multipartResolver"</span><span style="color: #ff0000;"> class</span><span style="color: #0000ff;">="org.springframework.web.multipart.commons.CommonsMultipartResolver"</span><span style="color: #0000ff;">&gt;</span>
+        <span style="color: #0000ff;">&lt;</span><span style="color: #800000;">property </span><span style="color: #ff0000;">name</span><span style="color: #0000ff;">="maxUploadSize"</span><span style="color: #ff0000;"> value</span><span style="color: #0000ff;">="50000000"</span><span style="color: #0000ff;">/&gt;</span>
+    <span style="color: #0000ff;">&lt;/</span><span style="color: #800000;">bean</span><span style="color: #0000ff;">&gt;</span>
+    <span style="color: #008000;">&lt;!--</span><span style="color: #008000;">异常解析器</span><span style="color: #008000;">--&gt;</span>
+    <span style="color: #008000;">&lt;!--</span><span style="color: #008000;">&lt;bean id="exceptionResolver" class="org.springframework.web.servlet.handler.SimpleMappingExceptionResolver"&gt;
+    &lt;property name="exceptionMappings"&gt;
+        &lt;props&gt;
+            &lt;prop key="Exception"&gt;error&lt;/prop&gt;
+        &lt;/props&gt;
+    &lt;/property&gt;
+    &lt;/bean&gt;</span><span style="color: #008000;">--&gt;</span>
+<span style="color: #0000ff;">&lt;/</span><span style="color: #800000;">beans</span><span style="color: #0000ff;">&gt;</span></code></pre>
+
+<p><span style="font-family: 'Microsoft YaHei'; font-size: 18px;">web.xml:注意<span style="color: #008000;">ContextLoaderListener要同时加载两个文件</span>classpath:spring-*.xml</span></p>
+<src class="cnblogs_code">
+<pre><code><span style="color: #0000ff;">&lt;!</span><span style="color: #ff00ff;">DOCTYPE web-app PUBLIC
+        "-//Sun Microsystems, Inc.//DTD Web Application 2.3//EN"
+        "http://java.sun.com/dtd/web-app_2_3.dtd" </span><span style="color: #0000ff;">&gt;</span>
+
+<span style="color: #0000ff;">&lt;</span><span style="color: #800000;">web-app </span><span style="color: #ff0000;">xmlns:xsi</span><span style="color: #0000ff;">="http://www.w3.org/2001/XMLSchema-instance"</span><span style="color: #ff0000;">
+         xmlns</span><span style="color: #0000ff;">="http://java.sun.com/xml/ns/javaee"</span><span style="color: #ff0000;">
+         xsi:schemaLocation</span><span style="color: #0000ff;">="http://java.sun.com/xml/ns/javaee http://java.sun.com/xml/ns/javaee/web-app_3_0.xsd"</span><span style="color: #ff0000;"> id</span><span style="color: #0000ff;">="WebApp_ID"</span><span style="color: #ff0000;"> version</span><span style="color: #0000ff;">="3.0"</span><span style="color: #0000ff;">&gt;</span>
+  <span style="color: #008000;">&lt;!--</span><span style="color: #008000;">由tomcat在启动的时候加载spring的ApplicationContext配置文件</span><span style="color: #008000;">--&gt;</span>
+  <span style="color: #0000ff;">&lt;</span><span style="color: #800000;">listener</span><span style="color: #0000ff;">&gt;</span>
+    <span style="color: #0000ff;">&lt;</span><span style="color: #800000;">listener-class</span><span style="color: #0000ff;">&gt;</span>org.springframework.web.context.ContextLoaderListener<span style="color: #0000ff;">&lt;/</span><span style="color: #800000;">listener-class</span><span style="color: #0000ff;">&gt;</span>
+  <span style="color: #0000ff;">&lt;/</span><span style="color: #800000;">listener</span><span style="color: #0000ff;">&gt;</span>
+  <span style="color: #008000;">&lt;!--</span><span style="color: #008000;">ContextLoaderListener需要的上下文参数,也就是配置文件所在路径</span><span style="color: #008000;">--&gt;</span>
+  <span style="color: #0000ff;">&lt;</span><span style="color: #800000;">context-param</span><span style="color: #0000ff;">&gt;</span>
+    <span style="color: #0000ff;">&lt;</span><span style="color: #800000;">param-name</span><span style="color: #0000ff;">&gt;</span>contextConfigLocation<span style="color: #0000ff;">&lt;/</span><span style="color: #800000;">param-name</span><span style="color: #0000ff;">&gt;</span>
+    <span style="color: #0000ff;">&lt;</span><span style="color: #800000;">param-value</span><span style="color: #0000ff;">&gt;</span>classpath:spring-*.xml<span style="color: #0000ff;">&lt;/</span><span style="color: #800000;">param-value</span><span style="color: #0000ff;">&gt;</span>
+  <span style="color: #0000ff;">&lt;/</span><span style="color: #800000;">context-param</span><span style="color: #0000ff;">&gt;</span>
+
+
+  <span style="color: #008000;">&lt;!--</span><span style="color: #008000;">由tomcat实例化springMVC拦截器   load-on-startup为1时启动即实例化  否则请求时候才进行实例化</span><span style="color: #008000;">--&gt;</span>
+  <span style="color: #0000ff;">&lt;</span><span style="color: #800000;">servlet</span><span style="color: #0000ff;">&gt;</span>
+    <span style="color: #0000ff;">&lt;</span><span style="color: #800000;">servlet-name</span><span style="color: #0000ff;">&gt;</span>SpringMVC<span style="color: #0000ff;">&lt;/</span><span style="color: #800000;">servlet-name</span><span style="color: #0000ff;">&gt;</span>
+    <span style="color: #0000ff;">&lt;</span><span style="color: #800000;">servlet-class</span><span style="color: #0000ff;">&gt;</span>org.springframework.web.servlet.DispatcherServlet<span style="color: #0000ff;">&lt;/</span><span style="color: #800000;">servlet-class</span><span style="color: #0000ff;">&gt;</span>
+    <span style="color: #0000ff;">&lt;</span><span style="color: #800000;">init-param</span><span style="color: #0000ff;">&gt;</span>
+      <span style="color: #0000ff;">&lt;</span><span style="color: #800000;">param-name</span><span style="color: #0000ff;">&gt;</span>contextConfigLocation<span style="color: #0000ff;">&lt;/</span><span style="color: #800000;">param-name</span><span style="color: #0000ff;">&gt;</span>
+      <span style="color: #0000ff;">&lt;</span><span style="color: #800000;">param-value</span><span style="color: #0000ff;">&gt;</span>classpath:spring-mvc.xml<span style="color: #0000ff;">&lt;/</span><span style="color: #800000;">param-value</span><span style="color: #0000ff;">&gt;</span>
+    <span style="color: #0000ff;">&lt;/</span><span style="color: #800000;">init-param</span><span style="color: #0000ff;">&gt;</span>
+    <span style="color: #0000ff;">&lt;</span><span style="color: #800000;">load-on-startup</span><span style="color: #0000ff;">&gt;</span>1<span style="color: #0000ff;">&lt;/</span><span style="color: #800000;">load-on-startup</span><span style="color: #0000ff;">&gt;</span>
+  <span style="color: #0000ff;">&lt;/</span><span style="color: #800000;">servlet</span><span style="color: #0000ff;">&gt;</span>
+  <span style="color: #0000ff;">&lt;</span><span style="color: #800000;">servlet-mapping</span><span style="color: #0000ff;">&gt;</span>
+    <span style="color: #0000ff;">&lt;</span><span style="color: #800000;">servlet-name</span><span style="color: #0000ff;">&gt;</span>SpringMVC<span style="color: #0000ff;">&lt;/</span><span style="color: #800000;">servlet-name</span><span style="color: #0000ff;">&gt;</span>
+    <span style="color: #008000;">&lt;!--</span><span style="color: #008000;">为/而不是/*</span><span style="color: #008000;">--&gt;</span>
+    <span style="color: #0000ff;">&lt;</span><span style="color: #800000;">url-pattern</span><span style="color: #0000ff;">&gt;</span>/<span style="color: #0000ff;">&lt;/</span><span style="color: #800000;">url-pattern</span><span style="color: #0000ff;">&gt;</span>
+  <span style="color: #0000ff;">&lt;/</span><span style="color: #800000;">servlet-mapping</span><span style="color: #0000ff;">&gt;</span>
+  <span style="color: #008000;">&lt;!--</span><span style="color: #008000;">字符编码过滤器</span><span style="color: #008000;">--&gt;</span>
+  <span style="color: #0000ff;">&lt;</span><span style="color: #800000;">filter</span><span style="color: #0000ff;">&gt;</span>
+    <span style="color: #0000ff;">&lt;</span><span style="color: #800000;">filter-name</span><span style="color: #0000ff;">&gt;</span>encoding<span style="color: #0000ff;">&lt;/</span><span style="color: #800000;">filter-name</span><span style="color: #0000ff;">&gt;</span>
+    <span style="color: #0000ff;">&lt;</span><span style="color: #800000;">filter-class</span><span style="color: #0000ff;">&gt;</span>org.springframework.web.filter.CharacterEncodingFilter<span style="color: #0000ff;">&lt;/</span><span style="color: #800000;">filter-class</span><span style="color: #0000ff;">&gt;</span>
+    <span style="color: #0000ff;">&lt;</span><span style="color: #800000;">init-param</span><span style="color: #0000ff;">&gt;</span>
+      <span style="color: #0000ff;">&lt;</span><span style="color: #800000;">param-name</span><span style="color: #0000ff;">&gt;</span>encoding<span style="color: #0000ff;">&lt;/</span><span style="color: #800000;">param-name</span><span style="color: #0000ff;">&gt;</span>
+      <span style="color: #0000ff;">&lt;</span><span style="color: #800000;">param-value</span><span style="color: #0000ff;">&gt;</span>utf-8<span style="color: #0000ff;">&lt;/</span><span style="color: #800000;">param-value</span><span style="color: #0000ff;">&gt;</span>
+    <span style="color: #0000ff;">&lt;/</span><span style="color: #800000;">init-param</span><span style="color: #0000ff;">&gt;</span>
+  <span style="color: #0000ff;">&lt;/</span><span style="color: #800000;">filter</span><span style="color: #0000ff;">&gt;</span>
+  <span style="color: #0000ff;">&lt;</span><span style="color: #800000;">filter-mapping</span><span style="color: #0000ff;">&gt;</span>
+    <span style="color: #0000ff;">&lt;</span><span style="color: #800000;">filter-name</span><span style="color: #0000ff;">&gt;</span>encoding<span style="color: #0000ff;">&lt;/</span><span style="color: #800000;">filter-name</span><span style="color: #0000ff;">&gt;</span>
+    <span style="color: #0000ff;">&lt;</span><span style="color: #800000;">url-pattern</span><span style="color: #0000ff;">&gt;</span>/*<span style="color: #0000ff;">&lt;/</span><span style="color: #800000;">url-pattern</span><span style="color: #0000ff;">&gt;</span>
+  <span style="color: #0000ff;">&lt;/</span><span style="color: #800000;">filter-mapping</span><span style="color: #0000ff;">&gt;</span>
+  <span style="color: #008000;">&lt;!--</span><span style="color: #008000;">shiro过滤器</span><span style="color: #008000;">--&gt;</span>
+  <span style="color: #008000;">&lt;!--</span><span style="color: #008000;">&lt;filter&gt;
+    &lt;filter-name&gt;shiroFilter&lt;/filter-name&gt;
+    &lt;filter-class&gt;org.springframework.web.filter.DelegatingFilterProxy&lt;/filter-class&gt;
+    &lt;init-param&gt;
+      &amp;lt;!&amp;ndash;表示bean的生命周期由servlet管理&amp;ndash;&amp;gt;
+      &lt;param-name&gt;targetFilterLifecycle&lt;/param-name&gt;
+      &lt;param-value&gt;true&lt;/param-value&gt;
+    &lt;/init-param&gt;
+    &amp;lt;!&amp;ndash;表示在spring容器中bean的id  如果不配置  默认和filter的name一致&amp;ndash;&amp;gt;
+    &lt;init-param&gt;
+      &lt;param-name&gt;targetBeanName&lt;/param-name&gt;
+      &lt;param-value&gt;shiroFilter&lt;/param-value&gt;
+    &lt;/init-param&gt;
+  &lt;/filter&gt;
+  &lt;filter-mapping&gt;
+    &lt;filter-name&gt;shiroFilter&lt;/filter-name&gt;
+    &lt;url-pattern&gt;/*&lt;/url-pattern&gt;
+  &lt;/filter-mapping&gt;</span><span style="color: #008000;">--&gt;</span>
+<span style="color: #0000ff;">&lt;/</span><span style="color: #800000;">web-app</span><span style="color: #0000ff;">&gt;</span></code></pre>
+
+<h1>启动顺序:</h1>
+<p><span style="font-family: 'Microsoft YaHei'; font-size: 18px;">先统一使用maven进行install,然后启动ym-dubbo方法,之后启动ym-management,若不启动ym-dubbo,直接先启动ym-management,则会启动失败</span></p>
+<p><span style="font-family: 'Microsoft YaHei'; font-size: 18px;">若两个项目都启动成功后,将ym-dubbo停止,那么ym-management项目再次调用Provider的时候会报错,此时再次启动ym-dubbo,ym-management调用Provider恢复正常.</span></p>
+<p><img id="uploading_image_37800" src="./images/Dubbo笔记5.png" alt="" /></p>
+<p>&nbsp;</p>
+
+</div><hr><script charset='utf-8' src='../../js/sming.js'></script></body></html>

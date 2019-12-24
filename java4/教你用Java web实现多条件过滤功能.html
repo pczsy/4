@@ -1,0 +1,352 @@
+<html><head><meta charset='utf-8'><meta name='viewport' content='width=device-width, initial-scale=1'>
+<meta name='applicable-device' content='pc'><meta name='keywords' content='电脑,电脑讲解,电脑技术,编程,电脑故障维修教你用Java web实现多条件过滤功能' />
+<script src='../../highlight/highlight.pack.js'></script>
+<link rel='stylesheet' type='text/css' href='../../highlight/styles/monokai.css'/>
+
+<link rel='stylesheet' href='../../fenxiang/dist/css/share.min.css'>
+<script src='../../fenxiang/src/js/social-share.js'></script>
+<script src='../../fenxiang/src/js/qrcode.js'></script>
+
+</head><body><script>hljs.initHighlightingOnLoad();</script><script>
+var system ={};  
+var p = navigator.platform;       
+system.win = p.indexOf('Win') == 0;  
+system.mac = p.indexOf('Mac') == 0;  
+system.x11 = (p == 'X11') || (p.indexOf('Linux') == 0);     
+if(system.win||system.mac||system.xll){
+document.write("<link href='../css/3.css' rel='stylesheet' type='text/css'>");}else{ document.write("<link href='../css/3wap.css' rel='stylesheet' type='text/css'>");}</script><script src='../../js/3.js'></script><div class='div2'><div class='heading_nav'><ul><div><li><a href='../../index.html'>首页</a></li>
+</div><div onclick='hidden1()' >分享</div>
+</ul></div></div>
+<div id='heading_nav2'> 
+<li class='row' >
+<div class='social-share' data-mode='prepend'><a href='javascript:' class='social-share-icon icon-heart'></a></div></li></div><script charset='utf-8' src='../../3/js/hengfu.js'></script><script charset='utf-8' src='../../3/js/hengfu2.js'></script><hr><div class='div1'><div class='biaoti'><center>教你用Java web实现多条件过滤功能</center></div><div class='banquan'>原文出处:本文由博客园博主如婳提供。<br/>
+原文连接:https://www.cnblogs.com/chenmo2580/p/11960669.html</div><br>
+    <p style="text-align: left;" align="center">生活中，当你闲暇之余浏览资讯的时候，当你搜索资料但繁杂信息夹杂时候，你就会想，如何更为准确的定位需求信息。今天就为你带来：</p>
+<h4 style="text-align: left;"><strong><span style="font-family: 等线;">分页查询</span></strong></h4>
+<p class="p" style="text-align: left;"><span style="font-family: 等线;">需求分析</span>:<span style="font-family: 等线;">在列表页面中</span><span style="font-family: 'Times New Roman';">,</span><span style="font-family: 等线;">显示指定条数的数据</span><span style="font-family: 'Times New Roman';">,</span><span style="font-family: 等线;">通过翻页按钮完成首页</span><span style="font-family: 'Times New Roman';">/</span><span style="font-family: 等线;">上一页</span><span style="font-family: 'Times New Roman';">/</span><span style="font-family: 等线;">下一页</span><span style="font-family: 'Times New Roman';">/</span><span style="font-family: 等线;">尾页的查询</span></p>
+<h4><strong><span style="font-family: 等线;">数据分析</span>:</strong></h4>
+<p class="p"><span style="font-family: 等线;">通过观察</span>,<span style="font-family: 等线;">页面上需要显示下面的几个数据</span><span style="font-family: 'Times New Roman';">:</span><br /><span style="font-family: 等线;">当前页</span>:currentPage<br /><span style="font-family: 等线;">页面大小</span>:pageSize<br /><span style="font-family: 等线;">总页数</span>:totalPage<br /><span style="font-family: 等线;">首页</span>:1<br /><span style="font-family: 等线;">上一页</span>:prevPage<br /><span style="font-family: 等线;">下一页</span>:nextPage<br /><span style="font-family: 等线;">尾页</span>:endPage<br /><span style="font-family: 等线;">总条数</span>:totalCount<br /><span style="font-family: 等线;">结果集</span>:result</p>
+<p>&nbsp;<img src="./images/教你用Java web实现多条件过滤功能0.png" alt="" /></p>
+<p>&nbsp;</p>
+<p>&nbsp;</p>
+<p>&nbsp;</p>
+<p class="p"><span style="font-family: 等线;">那么</span>,<span style="font-family: 等线;">我们应该如何方便快速的将这多个数据共享到页面上呢</span><span style="font-family: 'Times New Roman';">?</span><span style="font-family: 等线;">答案是</span><span style="font-family: 'Times New Roman';">:</span><span style="font-family: 等线;">封装</span></p>
+<p class="p"><span style="font-family: 等线;">我们应该将这几个参数封装到一个对象中</span>,<span style="font-family: 等线;">然后共享这个对象即可</span><span style="font-family: 'Times New Roman';">,</span><span style="font-family: 等线;">所以</span><span style="font-family: 'Times New Roman';">,</span><span style="font-family: 等线;">我们有了下面这个类</span></p>
+<p class="pre">@Getterpublic&nbsp;class PageResult {</p>
+<p class="pre">&nbsp;&nbsp;&nbsp;&nbsp;public&nbsp;static&nbsp;final&nbsp;&nbsp;PageResult EMPTY_RESULT = new&nbsp;PageResult(Collections.EMPTY_LIST, 0, 1, 3);</p>
+<p class="pre">&nbsp;&nbsp;&nbsp;&nbsp;//1:<span style="font-family: 等线;">两传</span></p>
+<p class="pre">&nbsp;&nbsp;&nbsp;&nbsp;private&nbsp;int&nbsp;currentPage;</p>
+<p class="pre">&nbsp;&nbsp;&nbsp;&nbsp;private&nbsp;int&nbsp;pageSize;</p>
+<p class="pre">&nbsp;&nbsp;&nbsp;&nbsp;</p>
+<p class="pre">&nbsp;&nbsp;&nbsp;&nbsp;//2:<span style="font-family: 等线;">两查</span></p>
+<p class="pre">&nbsp;&nbsp;&nbsp;&nbsp;private&nbsp;List&lt;?&gt; result;</p>
+<p class="pre">&nbsp;&nbsp;&nbsp;&nbsp;private&nbsp;int&nbsp;totalCount;</p>
+<p class="pre">&nbsp;&nbsp;&nbsp;&nbsp;</p>
+<p class="pre">&nbsp;&nbsp;&nbsp;&nbsp;//3:<span style="font-family: 等线;">三计算</span></p>
+<p class="pre">&nbsp;&nbsp;&nbsp;&nbsp;private&nbsp;int&nbsp;prevPage;</p>
+<p class="pre">&nbsp;&nbsp;&nbsp;&nbsp;private&nbsp;int&nbsp;nextPage;</p>
+<p class="pre">&nbsp;&nbsp;&nbsp;&nbsp;private&nbsp;int&nbsp;endPage;</p>
+<p class="pre">&nbsp;&nbsp;&nbsp;&nbsp;</p>
+<p class="pre">&nbsp;&nbsp;&nbsp;&nbsp;public PageResult(List&lt;?&gt; result, int totalCount, int currentPage, int pageSize){</p>
+<p class="pre">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</p>
+<p class="pre">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;this.result = result;</p>
+<p class="pre">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;this.totalCount = totalCount;</p>
+<p class="pre">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;this.pageSize = pageSize;</p>
+<p class="pre">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;this.currentPage = currentPage;</p>
+<p class="pre">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;//<span style="font-family: 等线;">计算</span></p>
+<p class="pre">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;this.endPage = totalCount % pageSize == 0&nbsp;?</p>
+<p class="pre">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;totalCount / pageSize : totalCount / pageSize &nbsp;+ 1; </p>
+<p class="pre">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;this.prevPage = currentPage - 1&nbsp;&gt; 0&nbsp;? currentPage - 1&nbsp;: 1;</p>
+<p class="pre">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;this.nextPage = currentPage + 1&nbsp;&gt; endPage ? endPage :currentPage + 1;</p>
+<p class="pre">&nbsp;&nbsp;&nbsp;&nbsp;}</p>
+<p class="pre">}</p>
+<p class="p"><span style="font-family: 等线;">在这个类中</span>,<span style="font-family: 等线;">我们提供了一个构造器来快速封装数据</span><br /><span style="font-family: 等线;">其中</span>,endPage/prevPage/nextPage<span style="font-family: 等线;">是通过上面的几个参数计算得来的</span></p>
+<p class="p"><span style="font-family: 等线;">在这些数据中</span>,<span style="font-family: 等线;">存在两个需要从数据库中查询得到的数据</span><span style="font-family: 'Times New Roman';">:</span><span style="font-family: 等线;">总条数</span><span style="font-family: 'Times New Roman';">/</span><span style="font-family: 等线;">结果集</span><br /><span style="font-family: 等线;">这两个数据我们需要下面两条</span>SQL<span style="font-family: 等线;">进行查询</span></p>
+<p class="pre"><span style="font-family: 等线;">查询部门表中数据的总条数</span></p>
+<p class="pre">SELECT count(id) FROM department</p>
+<p class="pre"><span style="font-family: 等线;">使用</span>LIMIT<span style="font-family: 等线;">关键字查询指定页面的数据</span></p>
+<p class="pre">SELECT &nbsp;id, name, sn FROM department LIMIT #{start}, #{pageSize}</p>
+<p class="pre">#{start}: &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span style="font-family: 等线;">使用</span><span style="font-family: 'Courier New';">(currentPage-1)*pageSize</span><span style="font-family: 等线;">表达式计算出来的开始索引</span><span style="font-family: 'Courier New';">#{pageSize}: </span><span style="font-family: 等线;">每次查询的最大条数</span></p>
+<p class="p"><span style="font-family: 等线;">要执行这两条</span>SQL,<span style="font-family: 等线;">需要用户传递两个参数</span><span style="font-family: 'Times New Roman';">:currentPage</span><span style="font-family: 等线;">和</span><span style="font-family: 'Times New Roman';">pageSize</span><br /><span style="font-family: 等线;">为了参数方便传递</span>,<span style="font-family: 等线;">我们将这两个参数封装到一个类中</span><span style="font-family: 'Times New Roman';">:QueryObject</span></p>
+<p class="pre">@Setter@Getterpublic&nbsp;class QueryObject {</p>
+<p class="pre">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;// <span style="font-family: 等线;">默认查询第一页的数据</span></p>
+<p class="pre">&nbsp;&nbsp;&nbsp;&nbsp;private&nbsp;int&nbsp;currentPage = 1;</p>
+<p class="pre">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;// <span style="font-family: 等线;">页面中默认显示</span><span style="font-family: 'Courier New';">10</span><span style="font-family: 等线;">条数据</span></p>
+<p class="pre">&nbsp;&nbsp;&nbsp;&nbsp;private&nbsp;int&nbsp;pageSize = 5;</p>
+<p class="pre">&nbsp;&nbsp;&nbsp;&nbsp;public int getStart(){</p>
+<p class="pre">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;return&nbsp;(currentPage - 1)*pageSize;</p>
+<p class="pre">&nbsp;&nbsp;&nbsp;&nbsp;}</p>
+<p class="pre">}</p>
+<p class="p"><span style="font-family: 等线;">可以看出</span>,<span style="font-family: 等线;">查询结果集中的</span><span style="font-family: 'Times New Roman';">#{start}</span><span style="font-family: 等线;">表达式</span><span style="font-family: 'Times New Roman';">,</span><span style="font-family: 等线;">是访问查询对象中的</span><span style="font-family: 'Times New Roman';">getStart()</span><span style="font-family: 等线;">方法来获取到计算得到的开始索引</span></p>
+<p class="p"><span style="font-family: 等线;">到此</span>,<span style="font-family: 等线;">我们都已经封装好了分页查询中最核心的两个类</span><span style="font-family: 'Times New Roman';">:</span><br />QueryObject:<span style="font-family: 等线;">封装用户传递过来的</span><span style="font-family: 'Times New Roman';">currentPage/pageSize</span><br />PageResult:<span style="font-family: 等线;">封装页面上显示需要的</span><span style="font-family: 'Times New Roman';">result/totalCount/currentPage/pageSize/totalPage/prevPage/pageSize</span></p>
+<p class="p"><span style="font-family: 等线;">有了这两个类</span>,<span style="font-family: 等线;">我们就可以在</span><span style="font-family: 'Times New Roman';">service</span><span style="font-family: 等线;">中定义下面的方法</span><span style="font-family: 'Times New Roman';">,</span><span style="font-family: 等线;">来处理分页查询的业务了</span><span style="font-family: 'Times New Roman';">:</span></p>
+<p class="pre">&nbsp;</p>
+<p class="pre">&nbsp;&nbsp;&nbsp;&nbsp;public PageResult query(QueryObject qo) {</p>
+<p class="pre">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;//<span style="font-family: 等线;">查询表中数据的总条数</span></p>
+<p class="pre">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;int&nbsp;totalCount = dao.queryForCount(qo);</p>
+<p class="pre">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;//<span style="font-family: 等线;">当查询到的总条数为</span><span style="font-family: 'Courier New';">0</span><span style="font-family: 等线;">时</span><span style="font-family: 'Courier New';">,</span><span style="font-family: 等线;">说明没有数据</span><span style="font-family: 'Courier New';">,</span><span style="font-family: 等线;">此时就不应该再之后下面的查询</span></p>
+<p class="pre">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;//<span style="font-family: 等线;">直接返回相应的默认值即可</span></p>
+<p class="pre">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;if&nbsp;(totalCount == 0) {</p>
+<p class="pre">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;return&nbsp;PageResult.EMPTY_RESULT;</p>
+<p class="pre">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;}</p>
+<p class="pre">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;List&lt;Department&gt; data = dao.queryForList(qo);</p>
+<p class="pre">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;PageResult result = new&nbsp;PageResult(data, totalCount, qo.getCurrentPage(), qo.getPageSize());</p>
+<p class="pre">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;return&nbsp;result;</p>
+<p class="pre">&nbsp;&nbsp;&nbsp;&nbsp;}</p>
+<p class="p"><span style="font-family: 等线;">该方法接收用户传递的数据</span>(QueryObject),<span style="font-family: 等线;">返回用户需要的数据</span><span style="font-family: 'Times New Roman';">(PageResult)</span><br /><span style="font-family: 等线;">通过调用</span>dao<span style="font-family: 等线;">中的两个方法执行两条</span><span style="font-family: 'Times New Roman';">SQL</span><span style="font-family: 等线;">查询数据</span><span style="font-family: 'Times New Roman';">(</span><span style="font-family: 等线;">总条数和结果集</span><span style="font-family: 'Times New Roman';">)</span></p>
+<p class="pre">&lt;!--<span style="font-family: 等线;">查询总条数</span><span style="font-family: 'Courier New';">--&gt;&lt;select id="queryForCount" resultType="java.lang.Integer"&gt;</span></p>
+<p class="pre">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;SELECT count(id)</p>
+<p class="pre">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;FROM department</p>
+<p class="pre">&nbsp;&nbsp;&nbsp;&nbsp;&lt;/select&gt;&lt;!--<span style="font-family: 等线;">查询结果集</span><span style="font-family: 'Courier New';">--&gt;</span></p>
+<p class="pre">&nbsp;&nbsp;&nbsp;&nbsp;&lt;select id="queryForList" resultType="Department"&gt;</p>
+<p class="pre">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;SELECT</p>
+<p class="pre">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;id,</p>
+<p class="pre">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;name,</p>
+<p class="pre">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;sn</p>
+<p class="pre">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;FROM department</p>
+<p class="pre">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;LIMIT #{start}, #{pageSize}</p>
+<p class="pre">&nbsp;&nbsp;&nbsp;&nbsp;&lt;/select&gt;</p>
+<p class="p"><span style="font-family: 等线;">然后将数据封装到</span>PageResult<span style="font-family: 等线;">对象中返回给表现层</span></p>
+<p class="p"><span style="font-family: 等线;">表现层获取到</span>service<span style="font-family: 等线;">中封装的</span><span style="font-family: 'Times New Roman';">PageResult</span><span style="font-family: 等线;">对象后</span><span style="font-family: 'Times New Roman';">,</span><span style="font-family: 等线;">共享到</span><span style="font-family: 'Times New Roman';">request</span><span style="font-family: 等线;">作用域中</span><br /><span style="font-family: 等线;">然后请求转发到</span>list.jsp<span style="font-family: 等线;">页面</span></p>
+<p class="pre">protected void list(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {</p>
+<p class="pre">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;//<span style="font-family: 等线;">接收用户传递的</span><span style="font-family: 'Courier New';">currentPage</span><span style="font-family: 等线;">和</span><span style="font-family: 'Courier New';">pageSize</span></p>
+<p class="pre">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;String currentPage = req.getParameter("currentPage");</p>
+<p class="pre">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;String pageSize = req.getParameter("pageSize");</p>
+<p class="pre">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;//<span style="font-family: 等线;">将数据封装到</span><span style="font-family: 'Courier New';">QueryObject</span><span style="font-family: 等线;">中</span><span style="font-family: 'Courier New';">,</span><span style="font-family: 等线;">传递给</span><span style="font-family: 'Courier New';">service</span><span style="font-family: 等线;">进行处理</span></p>
+<p class="pre">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;QueryObject qo = new&nbsp;QueryObject();</p>
+<p class="pre">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;if(!StringUtils.isNullOrEmpty(currentPage)){</p>
+<p class="pre">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;qo.setCurrentPage(Integer.valueOf(currentPage));</p>
+<p class="pre">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;}</p>
+<p class="pre">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;if(!StringUtils.isNullOrEmpty(pageSize)){</p>
+<p class="pre">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;qo.setPageSize(Integer.valueOf(pageSize));</p>
+<p class="pre">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;}</p>
+<p class="pre">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;PageResult result = service.query(qo);</p>
+<p class="pre">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;//<span style="font-family: 等线;">共享获取到的</span><span style="font-family: 'Courier New';">PageResult</span><span style="font-family: 等线;">对象</span></p>
+<p class="pre">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;req.setAttribute("result", result);</p>
+<p class="pre">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;req.setAttribute("qo", qo);</p>
+<p class="pre">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;//<span style="font-family: 等线;">请求转发回到</span><span style="font-family: 'Courier New';">list.jsp</span><span style="font-family: 等线;">页面</span></p>
+<p class="pre">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;req.getRequestDispatcher("/WEB-INF/views/department/list.jsp").forward(req, resp);</p>
+<p class="pre">&nbsp;&nbsp;&nbsp;&nbsp;}</p>
+<p class="p"><span style="font-family: 等线;">在</span>list.jsp<span style="font-family: 等线;">页面上</span><span style="font-family: 'Times New Roman';">,</span><span style="font-family: 等线;">使用</span><span style="font-family: 'Times New Roman';">EL+JSTL</span><span style="font-family: 等线;">获取数据并显示在对应的位置</span><br /><span style="font-family: 等线;">部门列表</span></p>
+<p class="pre">&lt;c:forEach items="${result.data}" var="entity" varStatus="vs"&gt;</p>
+<p class="pre">&nbsp;&nbsp;&lt;tr&gt;</p>
+<p class="pre">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&lt;td&gt;${vs.count}&lt;/td&gt;</p>
+<p class="pre">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&lt;td&gt;${entity.name}&lt;/td&gt;</p>
+<p class="pre">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&lt;td&gt;${entity.sn}&lt;/td&gt;</p>
+<p class="pre">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&lt;td&gt;</p>
+<p class="pre">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&lt;a class="btn btn-info btn-xs" href="/department?cmd=input&amp;id=${entity.id}"&gt;</p>
+<p class="pre">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&lt;span class="glyphicon glyphicon-pencil"&gt;&lt;/span&gt;<span style="font-family: 等线;">编辑</span></p>
+<p class="pre">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&lt;/a&gt;</p>
+<p class="pre">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&lt;a href="/department?cmd=delete&amp;id=${entity.id}" class="btn btn-danger btn-xs"&gt;</p>
+<p class="pre">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&lt;span class="glyphicon glyphicon-trash"&gt;&lt;/span&gt;<span style="font-family: 等线;">删除</span></p>
+<p class="pre">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&lt;/a&gt;</p>
+<p class="pre">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&lt;/td&gt;</p>
+<p class="pre">&nbsp;&nbsp;&lt;/tr&gt;&lt;/c:forEach&gt;</p>
+<p class="p"><span style="font-family: 等线;">分页条</span></p>
+<p class="pre">&lt;div style="text-align: center;"&gt;</p>
+<p class="pre">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&lt;a href="javascript:;" onclick="goPage(1)"&gt;<span style="font-family: 等线;">首页</span>&lt;/a&gt;</p>
+<p class="pre">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&lt;a href="javascript:;" onclick="goPage(${result.prevPage})"&gt;<span style="font-family: 等线;">上一页</span>&lt;/a&gt;</p>
+<p class="pre">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&lt;a href="javascript:;" onclick="goPage(${result.nextPage})"&gt;<span style="font-family: 等线;">下一页</span>&lt;/a&gt;</p>
+<p class="pre">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&lt;a href="javascript:;" onclick="goPage(${result.endPage})"&gt;<span style="font-family: 等线;">尾页</span>&lt;/a&gt;</p>
+<p class="pre">&nbsp;</p>
+<p class="pre">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span style="font-family: 等线;">当前页</span>: ${result.currentPage} / ${result.endPage}</p>
+<p class="pre">&nbsp;</p>
+<p class="pre">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span style="font-family: 等线;">跳转到第</span>: &lt;input id="currentPage" name="currentPage" style="width: 80px; text-align: center;"</p>
+<p class="pre">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;type="number" min="1" max="${result.endPage}" value="${result.currentPage}"/&gt;&nbsp;<span style="font-family: 等线;">页</span></p>
+<p class="pre">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&lt;input type="submit" value="GO"/&gt;</p>
+<p class="pre">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span style="font-family: 等线;">每页显示</span>:</p>
+<p class="pre">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&lt;select name="pageSize" onchange="goPage(1);"&gt;</p>
+<p class="pre">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&lt;option ${qo.pageSize==5?"selected='selected'":""}&gt;5&lt;/option&gt;</p>
+<p class="pre">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&lt;option ${qo.pageSize==10?"selected='selected'":""}&gt;10&lt;/option&gt;</p>
+<p class="pre">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&lt;option ${qo.pageSize==15?"selected='selected'":""}&gt;15&lt;/option&gt;</p>
+<p class="pre">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&lt;option ${qo.pageSize==20?"selected='selected'":""}&gt;20&lt;/option&gt;</p>
+<p class="pre">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&lt;/select&gt;</p>
+<p class="pre">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span style="font-family: 等线;">条</span>&lt;/div&gt;</p>
+<p class="p"><span style="font-family: 等线;">效果如下</span></p>
+<p>&nbsp;<img src="./images/教你用Java web实现多条件过滤功能1.png" alt="" /></p>
+<p class="p"><span style="font-family: 等线;">说明</span>:<br /><span style="font-family: 等线;">在点击翻页的时候</span>,<span style="font-family: 等线;">通过执行相应的</span><span style="font-family: 'Times New Roman';">JS</span><span style="font-family: 等线;">代码提交表单来发起请求</span><br /><span style="font-family: 等线;">将需要查询的当前页的值设值给表单中的</span>id<span style="font-family: 等线;">为</span><span style="font-family: 'Times New Roman';">currentPage</span><span style="font-family: 等线;">的输入框</span><span style="font-family: 'Times New Roman';">,</span><span style="font-family: 等线;">然后提交表单</span><br /><span style="font-family: 等线;">目的主要是和后面的高级查询进行合并使用</span></p>
+<p class="p"><span style="font-family: 等线;">做到这里</span>,<span style="font-family: 等线;">我们部门的分页功能就完成了</span><br /><span style="font-family: 等线;">因为部门的字段比较少</span>,<span style="font-family: 等线;">所以</span><span style="font-family: 'Times New Roman';">,</span><span style="font-family: 等线;">在这个模块中</span><span style="font-family: 'Times New Roman';">,</span><span style="font-family: 等线;">没有设计高级查询的功能</span><span style="font-family: 'Times New Roman';">,</span><span style="font-family: 等线;">这个功能我们在员工模块中再去实现</span><br /><span style="font-family: 等线;">接下来</span>,<span style="font-family: 等线;">我们来看看员工模块相应功能的实现</span></p>
+<p>&nbsp;</p>
+<p class="p"><span style="font-family: 等线;">在完成部门的</span>CRUD<span style="font-family: 等线;">和分页查询后发现</span><span style="font-family: 'Times New Roman';">,</span><span style="font-family: 等线;">其他模块的这些功能基本相似</span><br /><span style="font-family: 等线;">不同之处主要在于字段不同而已</span>,<span style="font-family: 等线;">所以</span><span style="font-family: 'Times New Roman';">,</span><span style="font-family: 等线;">在这里</span><span style="font-family: 'Times New Roman';">,</span><span style="font-family: 等线;">我们主要对这些不同点进行说明</span><span style="font-family: 'Times New Roman';">,</span><span style="font-family: 等线;">其他的按照前面的实现即可</span></p>
+<p class="p"><span style="font-family: 等线;">首先</span>,<span style="font-family: 等线;">来看看员工的表结构</span></p>
+<p>&nbsp;<img src="./images/教你用Java web实现多条件过滤功能2.png" alt="" /></p>
+<p class="p"><span style="font-family: 等线;">在该表中</span>,<span style="font-family: 等线;">前六个字段都是基本的字段</span><span style="font-family: 'Times New Roman';">,</span><span style="font-family: 等线;">第七个</span><span style="font-family: 'Times New Roman';">(dept_id),</span><span style="font-family: 等线;">这个字段是关联部门的外键列</span><br /><span style="font-family: 等线;">所以</span>,<span style="font-family: 等线;">待会儿我们在完成</span><span style="font-family: 'Times New Roman';">CRUD</span><span style="font-family: 等线;">的过程中</span><span style="font-family: 'Times New Roman';">,</span><span style="font-family: 等线;">需要注意维护该字段的值</span></p>
+<p class="p"><span style="font-family: 等线;">清楚表结构之后</span>,<span style="font-family: 等线;">我们来对员工的</span><span style="font-family: 'Times New Roman';">CRUD</span><span style="font-family: 等线;">做一个简单的分析</span></p>
+<h4><strong><span style="font-family: 等线;">查询功能</span>:</strong></h4>
+<p>&nbsp;<img src="./images/教你用Java web实现多条件过滤功能3.png" alt="" /></p>
+<p class="p"><span style="font-family: 等线;">可以看到</span>,<span style="font-family: 等线;">处理部门这一列显示的数据比较特殊之外</span><span style="font-family: 'Times New Roman';">,</span><span style="font-family: 等线;">其他的都是基本的数据展示而已</span><br /><span style="font-family: 等线;">什么是特殊</span>?<span style="font-family: 等线;">什么是不特殊</span><span style="font-family: 'Times New Roman';">?</span><br /><span style="font-family: 等线;">员工除了部门的信息外</span>,<span style="font-family: 等线;">其他的数据都是直接来自于数据库</span><span style="font-family: 'Times New Roman';">,</span><span style="font-family: 等线;">而部门在表中只存储了对应的编号</span><span style="font-family: 'Times New Roman';">,</span><span style="font-family: 等线;">但是页面上需要显示部门的名称</span><span style="font-family: 'Times New Roman';">,</span><span style="font-family: 等线;">那么这个问题我们是怎么解决的呢</span><span style="font-family: 'Times New Roman';">?</span></p>
+<p class="p"><span style="font-family: 等线;">好</span>,<span style="font-family: 等线;">首先解释一下</span><span style="font-family: 'Times New Roman';">,</span><span style="font-family: 等线;">这个问题的解决方案在目前我们的</span><span style="font-family: 'Times New Roman';">web</span><span style="font-family: 等线;">阶段还没有涉及过</span><span style="font-family: 'Times New Roman';">,</span><span style="font-family: 等线;">所以</span><span style="font-family: 'Times New Roman';">,</span><span style="font-family: 等线;">我在这只能点到为止</span></p>
+<p class="p"><span style="font-family: 等线;">我们的解决方案是</span>:<span style="font-family: 等线;">在执行该数据的查询的时候</span><span style="font-family: 'Times New Roman';">,</span><span style="font-family: 等线;">使用多表查询</span><span style="font-family: 'Times New Roman';">,</span><span style="font-family: 等线;">将员工及其所在部门的信息查询出来</span><span style="font-family: 'Times New Roman';">,SQL</span><span style="font-family: 等线;">如下</span><span style="font-family: 'Times New Roman';">:</span></p>
+<p class="pre">SELECT</p>
+<p class="pre">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;e.id,</p>
+<p class="pre">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;e.name,</p>
+<p class="pre">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;e.password,</p>
+<p class="pre">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;e.email,</p>
+<p class="pre">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;e.age,</p>
+<p class="pre">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;e.admin,</p>
+<p class="pre">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;e.dept_id,</p>
+<p class="pre">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;d.id &nbsp;&nbsp;d_id,</p>
+<p class="pre">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;d.name d_name,</p>
+<p class="pre">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;d.sn &nbsp;&nbsp;d_sn</p>
+<p class="pre">FROM employee e LEFT JOIN department d on e.dept_id = d.idlimit&nbsp;#{start}, #{pageSize}</p>
+<p class="p"><span style="font-family: 等线;">这条</span>SQL<span style="font-family: 等线;">能够查询到如下的结果</span></p>
+<p>&nbsp;<img src="./images/教你用Java web实现多条件过滤功能4.png" alt="" /></p>
+<p>&nbsp;</p>
+<p>&nbsp;</p>
+<p class="p"><span style="font-family: 等线;">然后在</span>resultMap<span style="font-family: 等线;">中如下的配置</span><span style="font-family: 'Times New Roman';">,</span><span style="font-family: 等线;">完成数据的封装</span><span style="font-family: 'Times New Roman';">,</span><span style="font-family: 等线;">员工相关的数据封装到</span><span style="font-family: 'Times New Roman';">Employee</span><span style="font-family: 等线;">对象中</span><span style="font-family: 'Times New Roman';">,</span><span style="font-family: 等线;">部门相关的数据封装到</span><span style="font-family: 'Times New Roman';">Department</span><span style="font-family: 等线;">对象中</span></p>
+<p class="pre">&lt;resultMap id="BaseResultMap" type="Employee"&gt;</p>
+<p class="pre">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&lt;id column="id" jdbcType="BIGINT" property="id"/&gt;</p>
+<p class="pre">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&lt;result column="name" jdbcType="VARCHAR" property="name"/&gt;</p>
+<p class="pre">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&lt;result column="password" jdbcType="VARCHAR" property="password"/&gt;</p>
+<p class="pre">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&lt;result column="email" jdbcType="VARCHAR" property="email"/&gt;</p>
+<p class="pre">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&lt;result column="age" jdbcType="INTEGER" property="age"/&gt;</p>
+<p class="pre">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&lt;result column="admin" jdbcType="BIT" property="admin"/&gt;</p>
+<p class="pre">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&lt;!-- <span style="font-family: 等线;">一对多关系 </span><span style="font-family: 'Courier New';">--&gt;</span></p>
+<p class="pre">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&lt;association property="dept" javaType="Department"&gt;</p>
+<p class="pre">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&lt;id column="d_id" property="id"/&gt;</p>
+<p class="pre">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&lt;result column="d_name" property="name"/&gt;</p>
+<p class="pre">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&lt;result column="d_sn" property="sn"/&gt;</p>
+<p class="pre">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&lt;/association&gt;</p>
+<p class="pre">&nbsp;&nbsp;&nbsp;&nbsp;&lt;/resultMap&gt;</p>
+<p class="p"><span style="font-family: 等线;">最后</span>,<span style="font-family: 等线;">在</span><span style="font-family: 'Times New Roman';">select</span><span style="font-family: 等线;">元素中使用</span><span style="font-family: 'Times New Roman';">resultMap</span><span style="font-family: 等线;">来完成映射</span></p>
+<p class="pre">&lt;select id="queryForList"&nbsp;resultMap="BaseResultMap"&gt;</p>
+<p class="p"><span style="font-family: 等线;">完成这些操作之后</span>,<span style="font-family: 等线;">我们获取到的每个员工及其所在的部门信息就封装好了</span><span style="font-family: 'Times New Roman';">,</span><span style="font-family: 等线;">那么</span><span style="font-family: 'Times New Roman';">,</span><span style="font-family: 等线;">在</span><span style="font-family: 'Times New Roman';">JSP</span><span style="font-family: 等线;">页面中使用</span><span style="font-family: 'Times New Roman';">EL</span><span style="font-family: 等线;">表达式</span><span style="font-family: 'Times New Roman';">,</span><span style="font-family: 等线;">就能够获取到当前员工所在部门的相关信息了</span></p>
+<p class="pre">&lt;td&gt;${entity.dept.name}&lt;/td&gt;</p>
+<p class="p"><span style="font-family: 等线;">查询功能分析到此结束</span>,<span style="font-family: 等线;">其他功能和部门的一致</span></p>
+<h4><strong><span style="font-family: 等线;">新增功能</span>:</strong></h4>
+<p class="p"><span style="font-family: 等线;">需求分析</span>:<br /><span style="font-family: 等线;">保存用户的相关信息</span>,<span style="font-family: 等线;">包括用户所在部门的信息</span><br /><span style="font-family: 等线;">通过对员工表的观察发现</span>,<span style="font-family: 等线;">表中关联了部门的主键信息</span><span style="font-family: 'Times New Roman';">,</span><span style="font-family: 等线;">来说明当前员工所在的部门</span><br /><span style="font-family: 等线;">所以</span>,<span style="font-family: 等线;">在保存员工的时候</span><span style="font-family: 'Times New Roman';">,</span><span style="font-family: 等线;">需要为员工设置所在的部门</span><span style="font-family: 'Times New Roman';">.</span><span style="font-family: 等线;">页面设计如下</span></p>
+<p>&nbsp;</p>
+<p>&nbsp;<img src="./images/教你用Java web实现多条件过滤功能5.png" alt="" /></p>
+<p>&nbsp;</p>
+<p>&nbsp;</p>
+<p>&nbsp;</p>
+<p>&nbsp;</p>
+<p class="p"><span style="font-family: 等线;">为员工设置所在的部门</span>,<span style="font-family: 等线;">用户只需要进行选择即可</span><span style="font-family: 'Times New Roman';">,</span><span style="font-family: 等线;">然后将选中部门的</span><span style="font-family: 'Times New Roman';">id</span><span style="font-family: 等线;">传递到服务端</span><br /><span style="font-family: 等线;">那么问题来了</span>,<span style="font-family: 等线;">如何将部门</span><span style="font-family: 'Times New Roman';">id</span><span style="font-family: 等线;">通过下拉框传递到服务端呢</span><span style="font-family: 'Times New Roman';">?</span><span style="font-family: 等线;">请看下面的分析</span></p>
+<p class="pre">protected void input(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {</p>
+<p class="pre">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;List&lt;Department&gt; departments = departmentService.list();</p>
+<p class="pre">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;req.setAttribute("departments", departments);</p>
+<p class="pre">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;String id = req.getParameter("id");</p>
+<p class="pre">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;if&nbsp;(!StringUtils.isNullOrEmpty(id)) {</p>
+<p class="pre">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Employee employee = service.get(Long.valueOf(id));</p>
+<p class="pre">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;req.setAttribute("employee", employee);</p>
+<p class="pre">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;}</p>
+<p class="pre">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;req.getRequestDispatcher("/WEB-INF/views/employee/input.jsp").forward(req, resp);</p>
+<p class="pre">&nbsp;&nbsp;&nbsp;&nbsp;}</p>
+<p class="pre">&lt;select class="form-control"&nbsp;id="dept"&nbsp;name="deptId"&gt;</p>
+<p class="pre">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&lt;c:forEach var="d" items="${departments}"&gt;</p>
+<p class="pre">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&lt;option value="${d.id}" &gt;${d.name}&lt;/option&gt;</p>
+<p class="pre">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&lt;/c:forEach&gt;</p>
+<p class="pre">&nbsp;&lt;/select&gt;</p>
+<p class="p"><span style="font-family: 等线;">首先</span>,<span style="font-family: 等线;">在跳转到该页面之间</span><span style="font-family: 'Times New Roman';">,</span><span style="font-family: 等线;">我们先将所有的部门信息查询到</span><br /><span style="font-family: 等线;">然后在页面上循环遍历</span>,<span style="font-family: 等线;">生成对应的</span><span style="font-family: 'Times New Roman';">option</span><span style="font-family: 等线;">元素</span><span style="font-family: 'Times New Roman';">,</span><span style="font-family: 等线;">将部门的</span><span style="font-family: 'Times New Roman';">id</span><span style="font-family: 等线;">作为</span><span style="font-family: 'Times New Roman';">option</span><span style="font-family: 等线;">的</span><span style="font-family: 'Times New Roman';">value(</span><span style="font-family: 等线;">提交的数据</span><span style="font-family: 'Times New Roman';">),</span><span style="font-family: 等线;">将部门的</span><span style="font-family: 'Times New Roman';">name</span><span style="font-family: 等线;">作为</span><span style="font-family: 'Times New Roman';">option</span><span style="font-family: 等线;">的文本内容</span><span style="font-family: 'Times New Roman';">(</span><span style="font-family: 等线;">显示的数据</span><span style="font-family: 'Times New Roman';">)</span><br /><span style="font-family: 等线;">最后</span>,<span style="font-family: 等线;">在用户选择对应选项后</span><span style="font-family: 'Times New Roman';">,</span><span style="font-family: 等线;">提交表单</span><span style="font-family: 'Times New Roman';">,</span><span style="font-family: 等线;">会将对应</span><span style="font-family: 'Times New Roman';">option</span><span style="font-family: 等线;">元素的</span><span style="font-family: 'Times New Roman';">value</span><span style="font-family: 等线;">提交到后台</span><span style="font-family: 'Times New Roman';">,</span><span style="font-family: 等线;">完整数据如下</span><span style="font-family: 'Times New Roman';">:</span></p>
+<p>&nbsp;</p>
+<p>&nbsp;<img src="./images/教你用Java web实现多条件过滤功能6.png" alt="" /></p>
+<p>&nbsp;</p>
+<p>&nbsp;</p>
+<p>&nbsp;</p>
+<p class="p"><span style="font-family: 等线;">通过上图</span>,<span style="font-family: 等线;">可以清晰的看到</span><span style="font-family: 'Times New Roman';">,</span><span style="font-family: 等线;">我们已经将完整的数据提交到后台</span><br /><span style="font-family: 等线;">后台获取到这些数据之后</span>,<span style="font-family: 等线;">就能够将其保存到数据库中</span><br /><span style="font-family: 等线;">那么</span>,<span style="font-family: 等线;">我们的保存功能就算完成了</span></p>
+<h4><strong><span style="font-family: 等线;">更新功能</span>:</strong></h4>
+<p class="p"><span style="font-family: 等线;">更新和保存只有一个地方不同</span>,<span style="font-family: 等线;">就是需要数据回显</span><br /><span style="font-family: 等线;">而数据回显中</span>,<span style="font-family: 等线;">我们只对部门</span><span style="font-family: 'Times New Roman';">(</span><span style="font-family: 等线;">下拉框</span><span style="font-family: 'Times New Roman';">)</span><span style="font-family: 等线;">和超级管理员</span><span style="font-family: 'Times New Roman';">(</span><span style="font-family: 等线;">复选框</span><span style="font-family: 'Times New Roman';">)</span><span style="font-family: 等线;">做一个说明</span><span style="font-family: 'Times New Roman';">,</span><span style="font-family: 等线;">其他的因为都是普通的</span><span style="font-family: 'Times New Roman';">input</span><span style="font-family: 等线;">元素</span><span style="font-family: 'Times New Roman';">,</span><span style="font-family: 等线;">使用</span><span style="font-family: 'Times New Roman';">value</span><span style="font-family: 等线;">属性显示数据即可</span><br /><span style="font-family: 等线;">而下拉框和复选框需要单独进行处理</span>,<span style="font-family: 等线;">如下</span><span style="font-family: 'Times New Roman';">:</span></p>
+<p class="pre">&lt;select class="form-control"&nbsp;id="dept"&nbsp;name="deptId"&gt;</p>
+<p class="pre">&nbsp;&nbsp;&nbsp;&nbsp;&lt;c:forEach var="d" items="${departments}"&gt;</p>
+<p class="pre">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&lt;option value="${d.id}" ${employee.dept.id==d.id?"selected":""}&gt;${d.name}&lt;/option&gt;</p>
+<p class="pre">&nbsp;&nbsp;&nbsp;&nbsp;&lt;/c:forEach&gt;&lt;/select&gt;</p>
+<p class="pre">&nbsp;</p>
+<p class="pre">&lt;input type="checkbox"&nbsp;id="admin"&nbsp;name="admin"&nbsp;${employee.admin?'checked':''}&gt;</p>
+<p class="p"><span style="font-family: 等线;">这里</span>,<span style="font-family: 等线;">我们选择使用</span><span style="font-family: 'Times New Roman';">EL</span><span style="font-family: 等线;">表达式的三元运算符进行判断</span><span style="font-family: 'Times New Roman';">,</span><span style="font-family: 等线;">为下拉框添加</span><span style="font-family: 'Times New Roman';">selected</span><span style="font-family: 等线;">属性</span><span style="font-family: 'Times New Roman';">,</span><span style="font-family: 等线;">为复选框添加</span><span style="font-family: 'Times New Roman';">checked</span><span style="font-family: 等线;">属性</span></p>
+<p class="p"><span style="font-family: 等线;">编辑的时候</span>,<span style="font-family: 等线;">数据能回显</span><span style="font-family: 'Times New Roman';">,</span><span style="font-family: 等线;">接下来的操作和新增一致</span></p>
+<h4><strong><span style="font-family: 等线;">删除功能</span></strong></h4>
+<p class="p"><span style="font-family: 等线;">和部门的删除一致</span>,<span style="font-family: 等线;">这里就不再赘述</span></p>
+<p class="p"><span style="font-family: 等线;">到此</span>,<span style="font-family: 等线;">员工的</span><span style="font-family: 'Times New Roman';">CRUD</span><span style="font-family: 等线;">结束</span></p>
+<h4><strong><span style="font-family: 等线;">高级查询</span></strong></h4>
+<p class="p"><span style="font-family: 等线;">功能需求</span>:<br /><span style="font-family: 等线;">输入关键字和部门信息进去过滤查询</span>,<span style="font-family: 等线;">关键字是根据姓名和邮箱两个字段查询</span></p>
+<p class="p"><span style="font-family: 等线;">页面设计</span></p>
+<p>&nbsp;<img src="./images/教你用Java web实现多条件过滤功能7.png" alt="" /></p>
+<p>&nbsp;</p>
+<p>&nbsp;</p>
+<p>&nbsp;</p>
+<p>高级查询效果图</p>
+<p class="p"><span style="font-family: 等线;">当用户输入关键字</span>"<span style="font-family: 等线;">赵</span><span style="font-family: 'Times New Roman';">"</span><span style="font-family: 等线;">和部门</span><span style="font-family: 'Times New Roman';">"</span><span style="font-family: 等线;">总经办</span><span style="font-family: 'Times New Roman';">"</span><span style="font-family: 等线;">后</span><span style="font-family: 'Times New Roman';">,</span><span style="font-family: 等线;">在列表中显示的查询结果则为所有总经办姓赵的员工</span></p>
+<p class="p"><span style="font-family: 等线;">那么此时应该执行下面的</span>SQL<span style="font-family: 等线;">来查询相应的数据</span></p>
+<p class="pre">SELECT </p>
+<p class="pre">&nbsp;&nbsp;e.id, e.name, e.password, e.email, e.age, e.admin, e.dept_id, d.id d_id, d.name d_name, d.sn d_sn </p>
+<p class="pre">from </p>
+<p class="pre">&nbsp;&nbsp;employee e </p>
+<p class="pre">LEFT JOIN </p>
+<p class="pre">&nbsp;&nbsp;department d </p>
+<p class="pre">ON </p>
+<p class="pre">&nbsp;&nbsp;e.dept_id = d.id </p>
+<p class="pre">WHERE </p>
+<p class="pre">&nbsp;&nbsp;(e.name LIKE concat('%',? ,'%') OR&nbsp;e.email LIKE concat('%',? ,'%')) AND&nbsp;e.dept_id = ? LIMIT ?, ? </p>
+<p class="p"><span style="font-family: 等线;">在该</span>SQL<span style="font-family: 等线;">中</span><span style="font-family: 'Times New Roman';">,WHERE</span><span style="font-family: 等线;">后面的条件是根据用户传递的高级查询相关的参数拼接而来</span></p>
+<p class="p"><span style="font-family: 等线;">这里</span>,<span style="font-family: 等线;">我们需要解决两个问题</span><span style="font-family: 'Times New Roman';">:</span><br />1.<span style="font-family: 等线;">这里的多个高级查询的参数如何传递</span><span style="font-family: 'Times New Roman';">?</span><br /><span style="font-family: 等线;">对于这个问题</span>,<span style="font-family: 等线;">我们应该能够比较快的想到解决方案</span><span style="font-family: 'Times New Roman';">---</span><span style="font-family: 等线;">数据封装</span><span style="font-family: 'Times New Roman';">,</span><span style="font-family: 等线;">如下</span><span style="font-family: 'Times New Roman';">:</span></p>
+<p class="pre">@Setter@Getterpublic&nbsp;class EmployeeQueryObject extends QueryObject {</p>
+<p class="pre">&nbsp;&nbsp;&nbsp;&nbsp;private&nbsp;String keyword; &nbsp;//<span style="font-family: 等线;">按照员工名称与邮箱模糊查询</span></p>
+<p class="pre">&nbsp;&nbsp;&nbsp;&nbsp;private&nbsp;Long deptId = -1L; &nbsp;//<span style="font-family: 等线;">按照部门</span><span style="font-family: 'Courier New';">id</span><span style="font-family: 等线;">查询</span></p>
+<p class="pre">&nbsp;&nbsp;&nbsp;&nbsp;</p>
+<p class="pre">&nbsp;&nbsp;&nbsp;&nbsp;//<span style="font-family: 等线;">当</span><span style="font-family: 'Courier New';">keyword</span><span style="font-family: 等线;">为</span><span style="font-family: 'Courier New';">null</span><span style="font-family: 等线;">或者空字符串的时候</span><span style="font-family: 'Courier New';">,</span><span style="font-family: 等线;">都视为</span><span style="font-family: 'Courier New';">null</span><span style="font-family: 等线;">处理</span></p>
+<p class="pre">&nbsp;&nbsp;&nbsp;&nbsp;public String getKeyword(){</p>
+<p class="pre">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;return&nbsp;StringUtils.isEmpty(keyword) ? null&nbsp;: keyword;</p>
+<p class="pre">&nbsp;&nbsp;&nbsp;&nbsp;}</p>
+<p class="pre">}</p>
+<p class="p">2.<span style="font-family: 等线;">参数拿到后</span><span style="font-family: 'Times New Roman';">,</span><span style="font-family: 等线;">如何拼接到对应的</span><span style="font-family: 'Times New Roman';">SQL</span><span style="font-family: 等线;">中</span><span style="font-family: 'Times New Roman';">?</span><br /><span style="font-family: 等线;">使用</span>mybatis<span style="font-family: 等线;">中的动态</span><span style="font-family: 'Times New Roman';">SQL</span><span style="font-family: 等线;">中提供的标签</span><span style="font-family: 'Times New Roman';">,</span><span style="font-family: 等线;">在</span><span style="font-family: 'Times New Roman';">mapper</span><span style="font-family: 等线;">映射文件中进行</span><span style="font-family: 'Times New Roman';">SQL</span><span style="font-family: 等线;">的拼接</span></p>
+<p class="pre">&lt;sql id="base_where"&gt;</p>
+<p class="pre">&nbsp;&nbsp;&nbsp;&nbsp;&lt;where&gt;</p>
+<p class="pre">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&lt;if&nbsp;test="keyword != null"&gt;</p>
+<p class="pre">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;AND( e.name LIKE concat('%',#{keyword} ,'%') OR e.email LIKE concat('%',#{keyword} ,'%'))</p>
+<p class="pre">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&lt;/if&gt;</p>
+<p class="pre">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&lt;if&nbsp;test="deptId &gt; 0"&gt;</p>
+<p class="pre">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;AND e.dept_id = #{deptId}</p>
+<p class="pre">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&lt;/if&gt;</p>
+<p class="pre">&nbsp;&nbsp;&nbsp;&nbsp;&lt;/where&gt;</p>
+<p class="pre">&lt;/sql&gt;</p>
+<p class="p"><span style="font-family: 等线;">以上两个问题解决后</span>,<span style="font-family: 等线;">我们就可以根据用户传递过来的参数</span><span style="font-family: 'Times New Roman';">,</span><span style="font-family: 等线;">执行对应的过滤查询的</span><span style="font-family: 'Times New Roman';">SQL</span><br /><span style="font-family: 等线;">最后</span>,<span style="font-family: 等线;">和分页查询的逻辑一样</span><span style="font-family: 'Times New Roman';">,</span><span style="font-family: 等线;">将数据封装到</span><span style="font-family: 'Times New Roman';">PageResult</span><span style="font-family: 等线;">中</span><span style="font-family: 'Times New Roman';">,</span><span style="font-family: 等线;">和分页相关的数据一同返回到页面</span><br /><span style="font-family: 等线;">效果如</span>[<span style="font-family: 等线;">高级查询效果图</span><span style="font-family: 'Times New Roman';">]</span><span style="font-family: 等线;">所示</span></p>
+<p class="p"><span style="font-family: 等线;">好了</span>,<span style="font-family: 等线;">基本功能是完成了</span><span style="font-family: 'Times New Roman';">,</span><span style="font-family: 等线;">我们再来看看下面的问题</span><span style="font-family: 'Times New Roman';">:</span><br /><span style="font-family: 等线;">首先</span>,<span style="font-family: 等线;">在表单中输入下面的参数</span><span style="font-family: 'Times New Roman';">,</span><span style="font-family: 等线;">然后查询</span></p>
+<p>&nbsp;<img src="./images/教你用Java web实现多条件过滤功能8.png" alt="" /></p>
+<p>&nbsp;</p>
+<p>&nbsp;</p>
+<p class="p"><span style="font-family: 等线;">然后点击下一页进行翻页</span></p>
+<p>&nbsp;</p>
+<p>&nbsp;<img src="./images/教你用Java web实现多条件过滤功能9.png" alt="" /></p>
+<p><span style="font-family: 宋体;">可以看到</span>,在点击翻页之后,我们不是在上面的基础上查询下一页的数据,而是查询到了所有的数据,WHY?<br /><span style="font-family: 宋体;">其实很简单</span>,来看看我们的请求参数,一切就清楚了<br /><span style="font-family: 宋体;">在我们点击翻页的时候</span>,传递的参数只有currentPage,并没有将之前的高级查询的参数一起传递到后台,所以执行了下面的SQL查询到上面的结果 </p>
+<p class="pre">SELECT </p>
+<p class="pre">&nbsp;&nbsp;e.id, e.name, e.password, e.email, e.age, e.admin, e.dept_id, d.id d_id, d.name d_name, d.sn d_sn </p>
+<p class="pre">from </p>
+<p class="pre">&nbsp;&nbsp;employee e </p>
+<p class="pre">LEFT JOIN </p>
+<p class="pre">&nbsp;&nbsp;department d </p>
+<p class="pre">on </p>
+<p class="pre">&nbsp;&nbsp;e.dept_id = d.id limit&nbsp;?, ? </p>
+<p class="p"><span style="font-family: 等线;">所以</span>,<span style="font-family: 等线;">要想在之前高级查询的基础上</span><span style="font-family: 'Times New Roman';">,</span><span style="font-family: 等线;">继续进行分页查询</span><span style="font-family: 'Times New Roman';">,</span><span style="font-family: 等线;">那么我们只有一个办法</span><span style="font-family: 'Times New Roman';">,</span><span style="font-family: 等线;">就是在翻页的时候将高级查询和分页的参数一起提交到后台</span><span style="font-family: 'Times New Roman';">,</span><span style="font-family: 等线;">拼接执行相应的</span><span style="font-family: 'Times New Roman';">SQL</span><span style="font-family: 等线;">才行</span></p>
+<p class="p"><span style="font-family: 等线;">解决方案</span>:<br /><span style="font-family: 等线;">使用</span>JS<span style="font-family: 等线;">来完成数据的提交</span><span style="font-family: 'Times New Roman';">(JS</span><span style="font-family: 等线;">在目前阶段还未进行系统学习</span><span style="font-family: 'Times New Roman';">,</span><span style="font-family: 等线;">所以</span><span style="font-family: 'Times New Roman';">,</span><span style="font-family: 等线;">这里大家重点应该是放在我们要做的事情上</span><span style="font-family: 'Times New Roman';">,</span><span style="font-family: 等线;">而不是怎么做</span><span style="font-family: 'Times New Roman';">)</span></p>
+<p class="pre">&lt;script type="text/javascript"&gt;</p>
+<p class="pre">&nbsp;&nbsp;&nbsp;&nbsp;function&nbsp;goPage(currentPage) {</p>
+<p class="pre">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;//<span style="font-family: 等线;">为表单中的</span><span style="font-family: 'Courier New';">currentPage</span><span style="font-family: 等线;">输入框设值</span></p>
+<p class="pre">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;document.getElementById("currentPage").value = currentPage</p>
+<p class="pre">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;//<span style="font-family: 等线;">提交表单</span></p>
+<p class="pre">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;document.forms[0].submit();</p>
+<p class="pre">&nbsp;&nbsp;&nbsp;&nbsp;}</p>
+<p class="pre">&lt;/script&gt;</p>
+<p class="pre">&nbsp;</p>
+<p class="pre">&nbsp;</p>
+<p class="pre"><span style="font-family: 等线;">翻页条</span></p>
+<p class="pre">&lt;a href="javascript:;"&nbsp;onclick="goPage(1)"&gt;<span style="font-family: 等线;">首页</span><span style="font-family: 'Courier New';">&lt;/a&gt;</span></p>
+<p class="pre">&lt;a href="javascript:;"&nbsp;onclick="goPage(${result.prevPage})"&gt;<span style="font-family: 等线;">上一页</span><span style="font-family: 'Courier New';">&lt;/a</span></p>
+<p class="pre">&lt;a href="javascript:;"&nbsp;onclick="goPage(${result.nextPage})"&gt;<span style="font-family: 等线;">下一页</span><span style="font-family: 'Courier New';">&lt;/a</span></p>
+<p class="pre">&lt;a href="javascript:;"&nbsp;onclick="goPage(${result.endPage})"&gt;<span style="font-family: 等线;">尾页</span><span style="font-family: 'Courier New';">&lt;/a&gt;</span></p>
+<p class="p"><span style="font-family: 等线;">在点击翻页按钮时</span>,<span style="font-family: 等线;">调用定义好的</span><span style="font-family: 'Times New Roman';">goPage</span><span style="font-family: 等线;">函数</span><span style="font-family: 'Times New Roman';">,</span><span style="font-family: 等线;">完成其中的两件事即可</span><br /><span style="font-family: 等线;">此时</span>,<span style="font-family: 等线;">我们可以看到问题已然解决</span></p>
+<p class="p"><span style="font-family: 等线;">最后</span>,<span style="font-family: 等线;">页面跳转和页面大小的设置功能</span><span style="font-family: 'Times New Roman';">,</span><span style="font-family: 等线;">我们不做要求</span><span style="font-family: 'Times New Roman';">,</span><span style="font-family: 等线;">如果要实现也很简单</span><span style="font-family: 'Times New Roman';">,</span><span style="font-family: 等线;">我这里就直接把相关代码贴出来</span></p>
+<p class="pre"><span style="font-family: 等线;">跳转到第</span>: &lt;input id="currentPage" name="currentPage" style="width: 80px; text-align: center;"</p>
+<p class="pre">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;type="number" min="1" max="${result.endPage}" value="${result.currentPage}"/&gt;&nbsp;<span style="font-family: 等线;">页</span>&lt;input type="submit" value="GO"/&gt;</p>
+<p class="pre"><span style="font-family: 等线;">每页显示</span>:&lt;select name="pageSize" onchange="goPage(1);"&gt;</p>
+<p class="pre">&nbsp;&nbsp;&nbsp;&nbsp;&lt;option ${qo.pageSize==5?"selected='selected'":""}&gt;5&lt;/option&gt;</p>
+<p class="pre">&nbsp;&nbsp;&nbsp;&nbsp;&lt;option ${qo.pageSize==10?"selected='selected'":""}&gt;10&lt;/option&gt;</p>
+<p class="pre">&nbsp;&nbsp;&nbsp;&nbsp;&lt;option ${qo.pageSize==15?"selected='selected'":""}&gt;15&lt;/option&gt;</p>
+<p class="pre">&nbsp;&nbsp;&nbsp;&nbsp;&lt;option ${qo.pageSize==20?"selected='selected'":""}&gt;20&lt;/option&gt;&lt;/select&gt;</p>
+<p class="pre"><span style="font-family: 等线;">条</span></p>
+<p class="p"><span style="font-family: 等线;">好了</span>,<span style="font-family: 等线;">高级查询的功能实现到此结束</span><span style="font-family: 'Times New Roman';">,</span><span style="font-family: 等线;">我们来做一个小结</span><br /><span style="font-family: 等线;">高级查询和分页的功能</span>,<span style="font-family: 等线;">我们应该重点分析两个点</span><br />1.<span style="font-family: 等线;">用户需要看到什么数据</span><span style="font-family: 'Times New Roman';">?</span><br />2.<span style="font-family: 等线;">这些数据应该执行什么样的</span><span style="font-family: 'Times New Roman';">SQL</span><span style="font-family: 等线;">才能查询到</span><span style="font-family: 'Times New Roman';">?</span><br /><span style="font-family: 等线;">如果将这两个问题分析清楚了</span>,<span style="font-family: 等线;">那么大家就能够知道这个过程中所封装的几个类的作用了</span><br />QueryObject:<span style="font-family: 等线;">封装查询对象中通用的属性</span><br />EmployeeQueryObject:<span style="font-family: 等线;">封装高级查询相关的条件参数</span><br />PageResult:<span style="font-family: 等线;">封装用户需要使用到的数据</span></p>
+<p class="p"><span style="font-family: 等线;">所以实现步骤大致如下</span>:<br />1.<span style="font-family: 等线;">获取到用户传递的高级查询和分页的参数</span><span style="font-family: 'Times New Roman';">,</span><span style="font-family: 等线;">封装到对象的查询对象中</span><br />2.<span style="font-family: 等线;">从查询对象中取出数据</span><span style="font-family: 'Times New Roman';">,</span><span style="font-family: 等线;">然后拼接</span><span style="font-family: 'Times New Roman';">SQL</span><br />3.<span style="font-family: 等线;">将查询之后得到的结果</span><span style="font-family: 'Times New Roman';">,</span><span style="font-family: 等线;">封装到</span><span style="font-family: 'Times New Roman';">PageResult</span><span style="font-family: 等线;">对象中</span><br />4.<span style="font-family: 等线;">页面获取到</span><span style="font-family: 'Times New Roman';">PageResult</span><span style="font-family: 等线;">中的数据进行显示</span></p>
+<p><br /><span style="font-family: 宋体;">读</span><span style="font-family: 'MS Mincho';">到</span><span style="font-family: 宋体;">这</span><span style="font-family: 'MS Mincho';">里，你肯定</span><span style="font-family: 宋体;">对</span><span style="font-family: 'MS Mincho';">多条件</span><span style="font-family: 宋体;">过滤</span><span style="font-family: 'MS Mincho';">功能有所了解呢？或者</span><span style="font-family: 宋体;">说</span><span style="font-family: 宋体;">知道该如何去实现这个功能了？如果有不明白的地方也可以通过留言或者私信。</span></p>
+<p>&nbsp;</p>
+<p><span style="font-family: 等线;">&nbsp;</span></p>
+
+</div><hr><script charset='utf-8' src='../../js/sming.js'></script></body></html>

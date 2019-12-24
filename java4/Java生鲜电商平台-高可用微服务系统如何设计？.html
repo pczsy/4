@@ -1,0 +1,291 @@
+<html><head><meta charset='utf-8'><meta name='viewport' content='width=device-width, initial-scale=1'>
+<meta name='applicable-device' content='pc'><meta name='keywords' content='电脑,电脑讲解,电脑技术,编程,电脑故障维修Java生鲜电商平台-高可用微服务系统如何设计？' />
+<script src='../../highlight/highlight.pack.js'></script>
+<link rel='stylesheet' type='text/css' href='../../highlight/styles/monokai.css'/>
+
+<link rel='stylesheet' href='../../fenxiang/dist/css/share.min.css'>
+<script src='../../fenxiang/src/js/social-share.js'></script>
+<script src='../../fenxiang/src/js/qrcode.js'></script>
+
+</head><body><script>hljs.initHighlightingOnLoad();</script><script>
+var system ={};  
+var p = navigator.platform;       
+system.win = p.indexOf('Win') == 0;  
+system.mac = p.indexOf('Mac') == 0;  
+system.x11 = (p == 'X11') || (p.indexOf('Linux') == 0);     
+if(system.win||system.mac||system.xll){
+document.write("<link href='../css/3.css' rel='stylesheet' type='text/css'>");}else{ document.write("<link href='../css/3wap.css' rel='stylesheet' type='text/css'>");}</script><script src='../../js/3.js'></script><div class='div2'><div class='heading_nav'><ul><div><li><a href='../../index.html'>首页</a></li>
+</div><div onclick='hidden1()' >分享</div>
+</ul></div></div>
+<div id='heading_nav2'> 
+<li class='row' >
+<div class='social-share' data-mode='prepend'><a href='javascript:' class='social-share-icon icon-heart'></a></div></li></div><script charset='utf-8' src='../../3/js/hengfu.js'></script><script charset='utf-8' src='../../3/js/hengfu2.js'></script><hr><div class='div1'><div class='biaoti'><center>Java生鲜电商平台-高可用微服务系统如何设计？</center></div><div class='banquan'>原文出处:本文由博客园博主巨人大哥提供。<br/>
+原文连接:https://www.cnblogs.com/jurendage/p/11878692.html</div><br>
+    <p><strong>Java生鲜电商平台-高可用微服务系统如何设计？</strong></p>
+<p>&nbsp;</p>
+<src>
+<src>
+<p><strong>说明：Java生鲜电商平台高可用架构往往有以下的要求：</strong></p>
+<p><strong>高可用。</strong>这类的系统往往需要保持一定的 SLA，7*24 时不间断运行不代表完全不挂，而是有一定的百分比的。</p>
+<p>例如我们常说的可用性需达到 4 个 9（99.99%），全年停机总计不能超过 1 小时，约为 53 分钟，也即服务停用时间小于 53 分钟，就说明高可用设计合格。</p>
+<p><strong>用户分布在全国。</strong>大规模微服务系统所支撑的用户一般在全国各地，因而每个地区的人，都希望能够就近访问，所以一般不会一套系统服务全国，而是每个地区都要有相应的业务单元，使得用户可以就近访问。</p>
+<p><strong>并发量大，存在波峰波谷。</strong>微服务之所以规模比较大，其实是承载的压力比较大，而且需要根据请求的波峰波谷进行弹性伸缩。</p>
+<p><strong>有故障性能诊断和快速恢复的机制。</strong>大规模微服务场景下，运维人员很难进行命令式手动运维来控制应用的生命周期，应该采用声明式的运维方法。</p>
+<p>另外一旦有了性能瓶颈或者故障点，应该有自动发现定位的机制，迅速找到瓶颈点和故障点，及时修复，才能保障 SLA。</p>
+<p>战略设计</p>
+<p>为了满足以上的要求，这个系统绝不是运维组努力一把，或者开发组努力一把，就能解决的，是一个端到端的，各个部门共同完成的一个目标，所以我们常称为战略设计。</p>
+<p><strong>研发</strong></p>
+<p>一个能支撑高并发，高可用的系统，一定是需要从研发环节就开始下功夫的。</p>
+<p><strong>首先，每一个微服务都有实现良好的无状态化处理，幂等服务接口设计</strong></p>
+<p>状态分为分发，处理，存储几个过程，如果对于一个用户的所有的信息都保存在一个进程中，则从分发阶段，就必须将这个用户分发到这个进程，否则无法对这个用户进行处理。</p>
+<p>然而当一个进程压力很大的时候，根本无法扩容，新启动的进程根本无法处理那些保存在原来进程的用户的数据，不能分担压力。</p>
+<p>所以要将整个架构分成两个部分，无状态部分和有状态部分，而业务逻辑的部分往往作为无状态的部分，而将状态保存在有状态的中间件中，如缓存，数据库，对象存储，大数据平台，消息队列等。</p>
+<p>这样无状态的部分可以很容易的横向扩展，在用户分发的时候，可以很容易分发到新的进程进行处理，而状态保存到后端。</p>
+<p>而后端的中间件是有状态的，这些中间件设计之初，就考虑了扩容的时候，状态的迁移，复制，同步等机制，不用业务层关心。</p>
+<p>对于数据的存储，主要包含几类数据：</p>
+<p><strong>会话数据等，主要保存在内存中。</strong>对于保存在内存里的数据，例如 Session，可以放在外部统一的缓存中。</p>
+<p><strong>结构化数据，主要是业务逻辑相关。</strong>对于业务相关的数据，则应该保存在统一的数据库中。</p>
+<p><strong>文件图片数据，比较大，往往通过 CDN 下发。</strong>对于文件，照片之类的数据，应该存放在统一的对象存储里面。</p>
+<p><strong>非结构化数据，例如文本，评论等。</strong>对于非结构化数据，可以存在统一的搜索引擎里面，例如 ElasticSearch。</p>
+<p>但是还有一个遗留的问题，就是已经分发，正在处理，但是尚未存储的数据，肯定会在内存中有一些，在进程重启的时候，数据还是会丢一些的，那这部分数据怎么办呢？</p>
+<p>这部分就需要通过重试进行解决，当本次调用过程中失败之后，前序的进程会进行重试，例如 Dubbo 就有重试机制。</p>
+<p>既然重试，就需要接口是幂等的，也即同一次交易，调用两次转账 1 元，不能最终转走 2 元。</p>
+<p>接口分为查询，插入，更新，删除等操作：</p>
+<p>对于查询接口来讲，本身就是幂等的，不用做特殊的判断。</p>
+<p>对于插入接口来讲，如果每一个数据都有唯一的主键，也能保证插入的唯一性，一旦不唯一，则会报错。</p>
+<p>对于更新操作来讲，则比较复杂，分两种情况。一种情况是同一个接口，前后调用多次的幂等性。另一种情况是同一个接口，并发环境下调用多次的正确性。</p>
+<p>&nbsp;</p>
+<p>为了保持幂等性，往往要有一个幂等表，通过传入幂等参数匹配幂等表中 ID 的方式，保证每个操作只被执行一次，而且在实行最终一致性的时候，可以通过不断重试，保证最终接口调用的成功。</p>
+<p>对于并发条件下，谁先调用，谁后调用，需要通过分布式锁如 Redis，ZooKeeper 等来实现同一个时刻只有一个请求被执行，如何保证多次执行结果仍然一致呢？则往往需要通过状态机，每个状态只流转一次。</p>
+<p>还有就是乐观锁，也即分布式的 CAS 操作，将状态的判断、更新整合在一条语句中，可以保证状态流转的原子性。乐观锁并不保证更新一定成功，需要有对应的机制来应对更新失败。</p>
+<p><strong>其次，根据服务重要度实现熔断降级、限流保护策略</strong></p>
+<p>服务拆分多了，在应用层面就会遇到以下问题：</p>
+<p><strong>服务雪崩：</strong>即一个服务挂了，整个调用链路上的所有的服务都会受到影响。</p>
+<p><strong>大量请求堆积、故障恢复慢：</strong>即一个服务慢，卡住了，整个调用链路出现大量超时，要长时间等待慢的服务恢复到正常状态。</p>
+<p>为了解决这些问题，我们在应用层面实施了以下方案：</p>
+<p><strong>通过熔断机制，</strong>当一个服务挂了，被影响的服务能够及时熔断，使用 Fallback 数据保证流程在非关键服务不可用的情况下，仍然可以进行。</p>
+<p><strong>通过线程池和消息队列机制实现异步化，</strong>允许服务快速失败，当一个服务因为过慢而阻塞，被影响服务可以在超时后快速失败，不会影响整个调用链路。</p>
+<p>当发现整个系统的确负载过高的时候，可以选择降级某些功能或某些调用，保证最重要的交易流程的通过，以及最重要的资源全部用于保证最核心的流程。</p>
+<p><strong>还有一种手段就是限流，</strong>当既设置了熔断策略，又设置了降级策略，通过全链路的压力测试，应该能够知道整个系统的支撑能力。</p>
+<p>因而就需要制定限流策略，保证系统在测试过的支撑能力范围内进行服务，超出支撑能力范围的，可拒绝服务。</p>
+<p>当你下单的时候，系统弹出对话框说 &ldquo;系统忙，请重试&rdquo;，并不代表系统挂了，而是说明系统是正常工作的，只不过限流策略起到了作用。</p>
+<p><strong>其三，每个服务都要设计有效探活接口，以便健康检查感知到服务状态</strong></p>
+<p>当我们部署一个服务的时候，对于运维部门来讲，可以监控机器的状态或者容器的状态是否处于启动状态，也可以监控到进程是否启动，端口是否监听等。</p>
+<p>但是对于已经启动的进程，是否能够正常服务，运维部门无法感知，需要开发每个服务的时候，设计一个有效探活接口，让运维的监控系统可以通过调用这个接口，来判断进程能够正常提供服务。</p>
+<p>这个接口不要直接返回，而是应该在进程内部探查提供服务的线程是否出去正常状态，再返回相应的状态编码。</p>
+<p>只有这样，开发出来的服务和运维才能合作起来，保持服务处于某个副本数，否则如果一部分服务虽然启动，但是处于假死状态，会使得其他正常服务，无法承受压力。</p>
+<p><strong>其四，通过制定良好的代码检查规范和静态扫描工具，最大化限制因为代码问题造成的系统不可用</strong></p>
+<p>要保持线上代码的高可用性，代码质量是关键，大部分线上问题，无论是性能问题，还是稳定性问题，都是代码造成的，而非基础设施造成的。</p>
+<p>而且基础设施的可用率为 99.95%，但是服务层要求的可用率高于这个值，所以必须从业务层高可用来弥补。</p>
+<p>除了下面的高可用架构部分，对于每一个服务来讲，制定良好的代码检查规范和静态扫描工具，通过大量的测试用例，最大化限制因为代码问题造成的系统不可用，是必须的，是高可用的基础。</p>
+<p><strong>高可用架构设计</strong></p>
+<p>在系统的每一个部分，都要避免单点。系统冗余往往分管控面和数据面，而且分多个层次，往往每一个层次都需要进行高可用的设计。</p>
+<src class="image-package">
+<src class="image-container">
+<src class="image-container-fill">&nbsp;
+<src class="image-view" data-width="1080" data-height="483"><img src="//upload-images.jianshu.io/upload_images/9481801-579421204635c7bb?imageMogr2/auto-orient/strip|imageView2/2/w/1080/format/webp" alt="" data-original-src="//upload-images.jianshu.io/upload_images/9481801-579421204635c7bb" data-original-width="1080" data-original-height="483" data-original-format="image/jpeg" data-original-filesize="63730" data-image-index="0" />
+
+<src class="image-caption">&nbsp;
+
+<p>在机房层面，为了高可用应该部署在多个区域，或者多个云，每个区域分多个可用区进行部署。</p>
+<p>对于云来讲，云的管控要多机房高可用部署，使得任何一个机房故障，都会使得管控依然可以使用。</p>
+<p>这就需要管控的组件分布于至少两个机房，管控的数据库和消息队列跨机房进行数据同步。</p>
+<p>对于云的数据面来讲，入口的网关要和机房网络配合做跨机房的高可用，使得入口公网 IP 和负载均衡器，在一个机房故障的情况下，可以切换至另一个机房。</p>
+<src class="image-package">
+<src class="image-container">
+<src class="image-container-fill">&nbsp;
+<src class="image-view" data-width="990" data-height="1205"><img src="//upload-images.jianshu.io/upload_images/9481801-27b0add5e5a516a1?imageMogr2/auto-orient/strip|imageView2/2/w/990/format/webp" alt="" data-original-src="//upload-images.jianshu.io/upload_images/9481801-27b0add5e5a516a1" data-original-width="990" data-original-height="1205" data-original-format="image/png" data-original-filesize="123073" data-image-index="1" />
+
+<src class="image-caption">&nbsp;
+
+<p>在云之上要部署 Kubernetes 平台，管控层面 Kubernetes 要实现高可用部署，etcd 要跨机房高可用部署，Kubernetes 的管控组件也要跨机房部署。</p>
+<p>当然还有一种情况是机房之间距离比较远，需要在每一个机房各部署一套 Kubernetes。</p>
+<p>这种情况下，Kubernetes 的管控依然要实现高可用，只不过跨机房的高可用就需要应用层来实现了。</p>
+<p>在应用层，微服务的治理平台，例如注册发现，ZooKeeper 或者 Euraka，APM，配置中心等都需要实现跨机房的高可用。另外就是服务要跨机房部署，实现城市级机房故障迁移能力。</p>
+<p><strong>运维</strong></p>
+<p>运维一个大规模微服务系统也有不一样的挑战。</p>
+<p><strong>首先，</strong>建议使用的是 Kubernetes 编排的声明式的运维方式，而非 Ansible 之类命令式的运维方式。</p>
+<p><strong>另外，</strong>对于系统的发布，要进行灰度、蓝绿发布，降低系统上线发布风险。要有这样的理念，任何一个新上线的系统，都是不可靠的。</p>
+<src class="image-package">
+<src class="image-container">
+<src class="image-container-fill">&nbsp;
+<src class="image-view" data-width="777" data-height="438"><img src="//upload-images.jianshu.io/upload_images/9481801-2bcf72099ff3ce0a?imageMogr2/auto-orient/strip|imageView2/2/w/777/format/webp" alt="" data-original-src="//upload-images.jianshu.io/upload_images/9481801-2bcf72099ff3ce0a" data-original-width="777" data-original-height="438" data-original-format="image/png" data-original-filesize="30135" data-image-index="2" />
+
+<src class="image-caption">&nbsp;
+
+<p>所以可以通过流量分发的模式，逐渐切换到新的服务，从而保障系统的稳定。</p>
+<p><strong>其三，</strong>完善监控及应对机制，对系统各节点、应用、组件全面地监控，能够第一时间快速发现并解决问题。</p>
+<src class="image-package">
+<src class="image-container">
+<src class="image-container-fill">&nbsp;
+<src class="image-view" data-width="860" data-height="473"><img src="//upload-images.jianshu.io/upload_images/9481801-18fb1470612c9532?imageMogr2/auto-orient/strip|imageView2/2/w/860/format/webp" alt="" data-original-src="//upload-images.jianshu.io/upload_images/9481801-18fb1470612c9532" data-original-width="860" data-original-height="473" data-original-format="image/png" data-original-filesize="81320" data-image-index="3" />
+
+<src class="image-caption">&nbsp;
+
+<p>监控绝非只有基础设施的 CPU，网络，磁盘的监控，应用的，业务的，调用链的监控都应该有。</p>
+<p>而且对于紧急事件，应该有应急预案，应急预案是在高可用已经考虑过之后，仍然出现异常情况下，应该采取的预案，例如三个 etcd 全挂了的情况。</p>
+<p><strong>其四，</strong>持续关注线上系统网络使用、服务器性能、硬件存储、中间件、数据库灯指标，重点关注临界状态，也即当前还健康，但是马上可能出问题的状态。</p>
+<p>例如网关 PPS 达到临界值，下一步就要开始丢包了，数据库快满了，消息出现大量堆积等等。</p>
+<p><strong>DBA</strong></p>
+<p>对于一个在线业务系统来讲，数据库是重中之重，很多的性能瓶颈定位到最后，都可能是数据库的问题。所以 DBA 团队要对数据库的使用，进行把关。</p>
+<p>造成数据库性能问题，一方面是 SQL 语句的问题，一方面是容量的问题。</p>
+<p>例如查询没有被索引覆盖，或者在区分度不大的字段上建立的索引，是否持锁时间过长，是否存在锁冲突等等，都会导致数据库慢的问题。</p>
+<p>因而所有上线的 SQL 语句，都需要 DBA 提前审核，并且要对于数据库的性能做持续的监控，例如慢 SQL 语句等。</p>
+<p>另外对于数据库中的数据量也要持续的监控，到一定的量就需要改分布式数据库 DDB，进行分库分表，到一定的阶段需要对分布式数据库进行扩容。</p>
+<p><strong>故障演练和性能压测</strong></p>
+<p>再好的规划也比不上演练，再好的性能评估也比不上在线的性能压测。</p>
+<p>性能问题往往是通过线上性能压测发现的。线上压力测试需要有一个性能测试的平台，做多种形式的压力测试。</p>
+<p>例如容量测试，通过梯度的加压，看到什么时候实在不行。摸高测试，测试在最大的限度之上还能承受多大的量，有一定的余量会保险一些，心里相对比较有底。</p>
+<p>再就是稳定性测试，测试峰值的稳定性，看这个峰值能够撑一分钟，两分钟还是三十分钟。还有秒杀场景测试，限流降级演练测试等。</p>
+<p>只有经过性能压测，才能发现线上系统的瓶颈点，通过不断的修复和扩容瓶颈点，最终才能知道服务之间应该以各种副本数的比例部署，才能承载期望的 QPS。</p>
+<p>对于可能遇到的故障，可以进行故障演练，故意模拟一些故障，来看系统如何反应，是否会因为自修复，多副本，容错等机制，使得这些故障对于客户端来讲没有影响。</p>
+<p>战术设计</p>
+<p>下面，我们就从架构的每个层次，进行战术设计。我们先来看一下高可用部署架构选型以及他们的优劣：</p>
+<src class="image-package">
+<src class="image-container">
+<src class="image-container-fill">&nbsp;
+<src class="image-view" data-width="847" data-height="115"><img src="//upload-images.jianshu.io/upload_images/9481801-ff5a4d7370865a0a?imageMogr2/auto-orient/strip|imageView2/2/w/847/format/webp" alt="" data-original-src="//upload-images.jianshu.io/upload_images/9481801-ff5a4d7370865a0a" data-original-width="847" data-original-height="115" data-original-format="image/png" data-original-filesize="10071" data-image-index="4" />
+
+<src class="image-caption">&nbsp;
+
+<p>高可用性要求和系统的负载度和成本是强相关的。越简单的架构，部署成本越低的架构，高可用性越小，例如上面的单体应用。</p>
+<p>而微服务化，单元化，异地多活，必然导致架构复杂难以维护，机房成本比较高，所以要使用多少成本实现什么程度的高可用，是一个权衡。</p>
+<p>高可用的实现需要多个层次一起考虑：</p>
+<src class="image-package">
+<src class="image-container">
+<src class="image-container-fill">&nbsp;
+<src class="image-view" data-width="1080" data-height="608"><img src="//upload-images.jianshu.io/upload_images/9481801-38e867f0bf785eb7?imageMogr2/auto-orient/strip|imageView2/2/w/1080/format/webp" alt="" data-original-src="//upload-images.jianshu.io/upload_images/9481801-38e867f0bf785eb7" data-original-width="1080" data-original-height="608" data-original-format="image/png" data-original-filesize="97509" data-image-index="5" />
+
+<src class="image-caption">&nbsp;
+
+<p><strong>首先是应用层，</strong>可以通过异地多活单元保证城市级高可用，这样使得一个城市因为灾难宕机的时候，另外一个城市可以提供服务。</p>
+<p>另外每个多活单元采用双机房保证机房级高可用，也即同城双机房，使得一个城市中一个机房宕机，另一个机房可以提供服务。</p>
+<p>再者每个机房中采用多副本保证实例级高可用，使得一个副本宕机的时候，其他的副本可以提供服务。</p>
+<p><strong>其次是数据库层，</strong>在数据中心之间，通过主从复制或 MGR 实现数据异步复制，在每个集群单元中采用 DDB 分库分表，分库分表中的每个实例都是有数据库同步复制。</p>
+<p><strong>其三是缓存层，</strong>在数据中心之间，缓存采用多集群单元化复制，在每个集群单元中采用多副本主从复制。</p>
+<p><strong>其四微服务治理平台层，</strong>平台组件异地多活单元保证了城市级高可用，平台组件每个多活单元采用双机房保证机房级高可用，平台组件每个机房中采用多副本保证实例级高可用。</p>
+<p>当有了以上高可用方案之后，则以下的故障等级以及影响时间如下表格：</p>
+<src class="image-package">
+<src class="image-container">
+<src class="image-container-fill">&nbsp;
+<src class="image-view" data-width="846" data-height="305"><img src="//upload-images.jianshu.io/upload_images/9481801-c0dd17d9ff5846a6?imageMogr2/auto-orient/strip|imageView2/2/w/846/format/webp" alt="" data-original-src="//upload-images.jianshu.io/upload_images/9481801-c0dd17d9ff5846a6" data-original-width="846" data-original-height="305" data-original-format="image/png" data-original-filesize="22994" data-image-index="6" />
+
+<src class="image-caption">&nbsp;
+
+<p>接下来，我们每个层次详细论述。</p>
+<p><strong>应用层</strong></p>
+<p>下图以最复杂的场景，假设有三个城市，每个城市都有两个完全对等的数据中心。三个城市的数据中心也是完全对等的。</p>
+<p>我们将整个业务数据按照某个维度分成 A，B，C 三部分。这样任何一部分全部宕机，其他部分照样可以提供服务。</p>
+<p>对于有的业务，如果省级别的服务中断完全不能忍受，市级别的服务中断要求恢复时间相当短，而区县级别的服务中断恢复时间可以相对延长。</p>
+<p>在这种场景下，可以根据地区来区分维度，使得一个区县和另外一个区县的数据属于不同的单元。</p>
+<p>为了节约成本，模型可能会更加简化。中心节点和单元化节点不是对称的。中心节点可以实现同城双活，而异地单元化的部分只部署一个机房即可。这样是能满足大部分高可用性需求的。</p>
+<p>这种架构要求实现中间件层和数据库层单元化，这个我们后面会仔细讲。</p>
+<src class="image-package">
+<src class="image-container">
+<src class="image-container-fill">&nbsp;
+<src class="image-view" data-width="1080" data-height="608"><img src="//upload-images.jianshu.io/upload_images/9481801-8295f7a5e288f0c7?imageMogr2/auto-orient/strip|imageView2/2/w/1080/format/webp" alt="" data-original-src="//upload-images.jianshu.io/upload_images/9481801-8295f7a5e288f0c7" data-original-width="1080" data-original-height="608" data-original-format="image/jpeg" data-original-filesize="76177" data-image-index="7" />
+
+<src class="image-caption">&nbsp;
+
+<p><strong>接入层</strong></p>
+<p>单元化要求 App 层或者在机房入口区域的接入层，实现中心单元和其他单元节点的流量分发。</p>
+<p>对于初始请求没有任何路由标记的，可以随机分发给任何一个单元，也可以根据地区或者运营商在 GSLB 中分发给某个就近的单元。</p>
+<p>应用层接收到请求以后，根据自己所在的单元生成路由信息，将路由信息返回给接入层或者 App。</p>
+<p>接下来 App 或者接入层的请求，都会带着路由信息，选择相应的单元进行发送，从而实现了请求的处理集中在本单元。</p>
+<src class="image-package">
+<src class="image-container">
+<src class="image-container-fill">&nbsp;
+<src class="image-view" data-width="1080" data-height="608"><img src="//upload-images.jianshu.io/upload_images/9481801-0522e3770e8b5321?imageMogr2/auto-orient/strip|imageView2/2/w/1080/format/webp" alt="" data-original-src="//upload-images.jianshu.io/upload_images/9481801-0522e3770e8b5321" data-original-width="1080" data-original-height="608" data-original-format="image/jpeg" data-original-filesize="56572" data-image-index="8" />
+
+<src class="image-caption">&nbsp;
+
+<p><strong>中间件层</strong></p>
+<p>在中间件层，我们以 ZooKeeper 为例，分为以下两个场景：</p>
+<p><strong>场景一：ZooKeeper 单元化主从多活</strong></p>
+<p>在这种场景下，主机房和单元化机房距离相隔较近，时延很小，可以当做一个机房来对待。可以采用 ZooKeeper 高可用保障通过多 ZooKeeper 实例部署来达成。</p>
+<p>如图所示，主机房 ZooKeeper 有 Leader 和 Follower，单元化机房的 ZooKeeper 仅为 Observer。</p>
+<src class="image-package">
+<src class="image-container">
+<src class="image-container-fill">&nbsp;
+<src class="image-view" data-width="1080" data-height="608"><img src="//upload-images.jianshu.io/upload_images/9481801-c837d9973fcadad4?imageMogr2/auto-orient/strip|imageView2/2/w/1080/format/webp" alt="" data-original-src="//upload-images.jianshu.io/upload_images/9481801-c837d9973fcadad4" data-original-width="1080" data-original-height="608" data-original-format="image/png" data-original-filesize="24321" data-image-index="9" />
+
+<src class="image-caption">&nbsp;
+
+<p><strong>场景二：ZooKeeper 单元化多集群复制</strong></p>
+<p>两个机房相距较远，每个机房部署一套 ZooKeeper 集群，集群之间进行数据同步。</p>
+<p>各机房应用连接机房内的 ZooKeeper 集群，注册的信息通过数据同步，能够被其他机房应用获取到。</p>
+<p>单一机房 ZooKeeper 集群不可用，其余机房不受影响。当前不考虑做不同机房之间的集群切换。</p>
+<src class="image-package">
+<src class="image-container">
+<src class="image-container-fill">&nbsp;
+<src class="image-view" data-width="1080" data-height="608"><img src="//upload-images.jianshu.io/upload_images/9481801-475e13edd9eb8395?imageMogr2/auto-orient/strip|imageView2/2/w/1080/format/webp" alt="" data-original-src="//upload-images.jianshu.io/upload_images/9481801-475e13edd9eb8395" data-original-width="1080" data-original-height="608" data-original-format="image/png" data-original-filesize="80361" data-image-index="10" />
+
+<src class="image-caption">&nbsp;
+
+<p><strong>数据库层</strong></p>
+<p>在数据库层，首先要解决的问题是，分布式数据库 DDB 集群多机房同步复制。</p>
+<p>在单元内采用同城主从复制模式，跨单元采用 DTS/NDC 实现应用层数据双向同步能力。</p>
+<src class="image-package">
+<src class="image-container">
+<src class="image-container-fill">&nbsp;
+<src class="image-view" data-width="1080" data-height="608"><img src="//upload-images.jianshu.io/upload_images/9481801-e473a924ce19c6ef?imageMogr2/auto-orient/strip|imageView2/2/w/1080/format/webp" alt="" data-original-src="//upload-images.jianshu.io/upload_images/9481801-e473a924ce19c6ef" data-original-width="1080" data-original-height="608" data-original-format="image/jpeg" data-original-filesize="67665" data-image-index="11" />
+
+<src class="image-caption">&nbsp;
+
+<p>对于数据的 ID 分配，应该采取全局唯一 ID 分配，有两种实现方式，如果主机房和单元化机房距离较近，可采用 ID 分配依然采用中心式, 所有机房的单元全部向同一中心服务申请 ID 的方式。</p>
+<p>如果主机房和单元化机房相隔较远，可采用每个单元各自分配, 通过特定规则保证每个机房得到的最终 ID 不冲突的方式。</p>
+<src class="image-package">
+<src class="image-container">
+<src class="image-container-fill">&nbsp;
+<src class="image-view" data-width="1080" data-height="608"><img src="//upload-images.jianshu.io/upload_images/9481801-0b4c76814eb3f260?imageMogr2/auto-orient/strip|imageView2/2/w/1080/format/webp" alt="" data-original-src="//upload-images.jianshu.io/upload_images/9481801-0b4c76814eb3f260" data-original-width="1080" data-original-height="608" data-original-format="image/jpeg" data-original-filesize="50510" data-image-index="12" />
+
+<src class="image-caption">&nbsp;
+
+<p><strong>缓存层</strong></p>
+<p>在缓存层，有两种方式：</p>
+<p><strong>方式一是集群热备，</strong>新增 Redis 集群作为热备份集群。</p>
+<src class="image-package">
+<src class="image-container">
+<src class="image-container-fill">&nbsp;
+<src class="image-view" data-width="1080" data-height="608"><img src="//upload-images.jianshu.io/upload_images/9481801-5c8c47faf8e1fadd?imageMogr2/auto-orient/strip|imageView2/2/w/1080/format/webp" alt="" data-original-src="//upload-images.jianshu.io/upload_images/9481801-5c8c47faf8e1fadd" data-original-width="1080" data-original-height="608" data-original-format="image/png" data-original-filesize="26406" data-image-index="13" />
+
+<src class="image-caption">&nbsp;
+
+<p>主集群与备份集群之间在服务端进行数据同步，通过 Redis Replication 协议进行同步处理。</p>
+<p>离线监听主集群状态，探测到故障则进行主备之间切换，信息通过配置中心下达客户端，类哨兵方式进行监听探活。</p>
+<p>在这种场景下，集群之间数据在服务端进行同步，正常情况下，集群之间数据会一致。但会存在一定的复制时延。</p>
+<p>在故障切换时，可能存在极短时间内的数据丢失。如果将缓存仅仅当缓存使用，不要做内存数据库使用，则没有问题。</p>
+<p><strong>第二种方式，集群多活。</strong>新增集群作为多活集群，正常情况下客户端根据 Key 哈希策略选择分发到不同集群。</p>
+<src class="image-package">
+<src class="image-container">
+<src class="image-container-fill">&nbsp;
+<src class="image-view" data-width="1080" data-height="608"><img src="//upload-images.jianshu.io/upload_images/9481801-ca750b1be2384bfd?imageMogr2/auto-orient/strip|imageView2/2/w/1080/format/webp" alt="" data-original-src="//upload-images.jianshu.io/upload_images/9481801-ca750b1be2384bfd" data-original-width="1080" data-original-height="608" data-original-format="image/png" data-original-filesize="40138" data-image-index="14" />
+
+<src class="image-caption">&nbsp;
+
+<p>客户端通过 Proxy 连接集群中每一个节点，Proxy 的用处是区分客户端写入与集群复制写入。</p>
+<p>集群之间在服务端进行数据双向复制，数据变更通过 Redis Replication 协议获取。</p>
+<p>离线监听主集群状态，探测到故障则进行切换，信息通过配置中心下达客户端，类哨兵方式进行监听探活。</p>
+<p>此方案应用于单纯的集群间高可用时，同一个 Key 在同一段时间内只会路由到同一个集群，数据一致性可以保证。</p>
+<p>在故障切换情况下，可能存在极端时间内的数据丢失。</p>
+<p><strong>微服务治理平台</strong></p>
+<p>作为大规模微服务的微服务治理平台，一方面自己要实现单元化，另外一方面要实现流量在不同单元之间的染色与穿梭。</p>
+<p>从 API 网关，NSF 服务治理和管理中心，APM 性能管理，GXTS 分布式事务管理，容器平台的管控都需要进行跨机房单元化部署。</p>
+<src class="image-package">
+<src class="image-container">
+<src class="image-container-fill">&nbsp;
+<src class="image-view" data-width="1080" data-height="608"><img src="//upload-images.jianshu.io/upload_images/9481801-2b7eaa0152911ab0?imageMogr2/auto-orient/strip|imageView2/2/w/1080/format/webp" alt="" data-original-src="//upload-images.jianshu.io/upload_images/9481801-2b7eaa0152911ab0" data-original-width="1080" data-original-height="608" data-original-format="image/jpeg" data-original-filesize="77398" data-image-index="15" />
+
+<src class="image-caption">&nbsp;
+
+<p>当请求到达一个单元之后，API 网关上就带有此单元的路由信息，NSF 服务治理与管理平台在服务之间相互调用的时候，同样会插入此单元的路由信息。</p>
+<p>当一个单元某实例全挂的时候，可以穿梭到另一个单元进行调用，并在下一跳调用回本单元，这种方式称为流量染色。</p>
+
+
+<src>&nbsp;
+<src>
+<p>联系QQ：137071249</p>
+<p>QQ群：793305035</p>
+
+
+</div><hr><script charset='utf-8' src='../../js/sming.js'></script></body></html>

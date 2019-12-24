@@ -1,0 +1,97 @@
+<html><head><meta charset='utf-8'><meta name='viewport' content='width=device-width, initial-scale=1'>
+<meta name='applicable-device' content='pc'><meta name='keywords' content='电脑,电脑讲解,电脑技术,编程,电脑故障维修Docker下使用disconf：极速体验' />
+<script src='../../highlight/highlight.pack.js'></script>
+<link rel='stylesheet' type='text/css' href='../../highlight/styles/monokai.css'/>
+
+<link rel='stylesheet' href='../../fenxiang/dist/css/share.min.css'>
+<script src='../../fenxiang/src/js/social-share.js'></script>
+<script src='../../fenxiang/src/js/qrcode.js'></script>
+
+</head><body><script>hljs.initHighlightingOnLoad();</script><script>
+var system ={};  
+var p = navigator.platform;       
+system.win = p.indexOf('Win') == 0;  
+system.mac = p.indexOf('Mac') == 0;  
+system.x11 = (p == 'X11') || (p.indexOf('Linux') == 0);     
+if(system.win||system.mac||system.xll){
+document.write("<link href='../css/3.css' rel='stylesheet' type='text/css'>");}else{ document.write("<link href='../css/3wap.css' rel='stylesheet' type='text/css'>");}</script><script src='../../js/3.js'></script><div class='div2'><div class='heading_nav'><ul><div><li><a href='../../index.html'>首页</a></li>
+</div><div onclick='hidden1()' >分享</div>
+</ul></div></div>
+<div id='heading_nav2'> 
+<li class='row' >
+<div class='social-share' data-mode='prepend'><a href='javascript:' class='social-share-icon icon-heart'></a></div></li></div><script charset='utf-8' src='../../3/js/hengfu.js'></script><script charset='utf-8' src='../../3/js/hengfu2.js'></script><hr><div class='div1'><div class='biaoti'><center>Docker下使用disconf：极速体验</center></div><div class='banquan'>原文出处:本文由博客园博主zq2599提供。<br/>
+原文连接:https://www.cnblogs.com/bolingcavalry/p/11510295.html</div><br>
+    <h3 id="docker下的disconf实战全文链接">Docker下的disconf实战全文链接</h3>
+<ol>
+<li><a href="https://blog.csdn.net/boling_cavalry/article/details/71082610">《Docker搭建disconf环境，三部曲之一：极速搭建disconf》</a>；</li>
+<li><a href="https://blog.csdn.net/boling_cavalry/article/details/71107498">《Docker搭建disconf环境，三部曲之二：本地快速构建disconf镜像》</a>；</li>
+<li><a href="https://blog.csdn.net/boling_cavalry/article/details/71120725">《Docker搭建disconf环境，三部曲之三：细说搭建过程》</a>；</li>
+<li><a href="https://blog.csdn.net/boling_cavalry/article/details/71404395">《Docker下使用disconf：极速体验》</a>；</li>
+<li><a href="https://blog.csdn.net/boling_cavalry/article/details/71424124">《Docker下使用disconf：细说demo开发》</a>；</li>
+</ol>
+<h3 id="极速体验">极速体验</h3>
+<p>前面的文章中我们实战了<a href="http://blog.csdn.net/boling_cavalry/article/details/71120725">docker下搭建disconf环境</a>，现在我们学习如何使用disconf提供的动态配置服务，本章我们不深入研究，而是以最快的速度体验一个java做的demo，此demo的功能是每隔5秒输出一组来自disconf的配置信息，内容是一个ip地址和一个端口，如果在disconf上改变了这个配置信息的内容，这个demo会立即收到配置改变的通知，并且再次输出的时候已经是最新的配置了；</p>
+<p>下面开始极速体验吧：</p>
+<p>新建一个docker-compose.yml文件，内容如下：</p>
+<pre><code><code>version: &#39;2&#39;
+services:
+  disconf_redis_1: 
+    image: daocloud.io/library/redis
+    restart: always
+  disconf_redis_2: 
+    image: daocloud.io/library/redis
+    restart: always
+  disconf_zookeeper: 
+    image: zookeeper:3.3.6
+    restart: always
+  disconf_mysql: 
+    image: bolingcavalry/disconf_mysql:0.0.1
+    environment:
+      MYSQL_ROOT_PASSWORD: 123456
+    restart: always
+  disconf_tomcat: 
+    image: bolingcavalry/disconf_tomcat:0.0.1
+    links: 
+      - disconf_redis_1:redishost001 
+      - disconf_redis_2:redishost002
+      - disconf_zookeeper:zkhost
+      - disconf_mysql:mysqlhost
+    restart: always
+  disconf_nginx: 
+    image: bolingcavalry/disconf_nginx:0.0.1
+    links: 
+      - disconf_tomcat:tomcathost 
+    ports: 
+      - &quot;80:80&quot; 
+    restart: always
+  disconf_java: 
+    image: bolingcavalry/disconf_standalone_demo:0.0.1
+    links: 
+      - disconf_nginx:nginxhost
+      - disconf_zookeeper:zkhost
+    restart: always  </code></code></pre>
+<p>打开控制台，在上述文件目录下执行：</p>
+<pre class="shell"><code>docker-compose up -d</code></code></pre>
+<p>由于要去hub.docker.com上下载六个镜像，可能会一段等待下载的时间，下载结束后会自动创建七个容器，如下图：</p>
+<p><img src="./images/Docker下使用disconf：极速体验0.png" alt="这里写图片描述" /></p>
+<p>上图红框中的就是我们今天体验demo的容器名称(注意：不同电脑上容器的前缀后缀的数字可能不一样)，执行以下命令进入到demo容器中：</p>
+<pre class="shell"><code>docker exec -it 05_disconf_java_1 /bin/bash</code></code></pre>
+<p>进入容器后，进入<font color="blue">/usr/local/work</font>目录下,执行<font color="blue">./start.sh</font>命令启动demo，控制台输出如下图：</p>
+<p><img src="./images/Docker下使用disconf：极速体验1.png" alt="这里写图片描述" /></p>
+<p>如上图红框所示，每隔五秒钟就会有输出一个配置信息，包括IP和端口，这些数据从何而来呢？</p>
+<p>我们在浏览器上输入<font color="blue">localhost</font>可以打开disconf管理页面，用户名密码都是admin，登录成功后按照下图所示操作，就能看到这个demo里用到的配置信息：</p>
+<p><img src="./images/Docker下使用disconf：极速体验2.png" alt="这里写图片描述" /></p>
+<p>接下来我们体验一下配置变化后，demo上被实时通知变化的效果，点击下图红框中的位置：</p>
+<p><img src="./images/Docker下使用disconf：极速体验3.png" alt="这里写图片描述" /></p>
+<p>如下图，修改方式选择“输入文本“：</p>
+<p><img src="./images/Docker下使用disconf：极速体验4.png" alt="这里写图片描述" /></p>
+<p>把配置文件的值改成另一个，如下图红框所示，改完再点击底部的“上传“按钮：</p>
+<p><img src="./images/Docker下使用disconf：极速体验5.png" alt="这里写图片描述" /></p>
+<p>回到demo容器的控制台，如下图，可以看到点击上传按钮的同时，控制台输出了收到通知的信息(红框中的内容)，并且输出的ip已经变成最新的了(篮框中的内容)：</p>
+<p><img src="./images/Docker下使用disconf：极速体验6.png" alt="这里写图片描述" /></p>
+<p>以上就是简单体验disconf效果的简易demo，可以发现disconf的配置信息能让服务使用方实时感知和获取到，对开发和运营来说都是个很有用的工具，本章只是初步体验，下一章我们会通过代码对disconf的使用做进一步了解。</p>
+<h3 id="欢迎关注我的公众号">欢迎关注我的公众号</h3>
+<p><img src="./images/Docker下使用disconf：极速体验7.png" alt="在这里插入图片描述" /></p>
+
+
+</div><hr><script charset='utf-8' src='../../js/sming.js'></script></body></html>

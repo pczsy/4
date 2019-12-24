@@ -1,0 +1,111 @@
+<html><head><meta charset='utf-8'><meta name='viewport' content='width=device-width, initial-scale=1'>
+<meta name='applicable-device' content='pc'><meta name='keywords' content='电脑,电脑讲解,电脑技术,编程,电脑故障维修Java实现抢红包功能' />
+<script src='../../highlight/highlight.pack.js'></script>
+<link rel='stylesheet' type='text/css' href='../../highlight/styles/monokai.css'/>
+
+<link rel='stylesheet' href='../../fenxiang/dist/css/share.min.css'>
+<script src='../../fenxiang/src/js/social-share.js'></script>
+<script src='../../fenxiang/src/js/qrcode.js'></script>
+
+</head><body><script>hljs.initHighlightingOnLoad();</script><script>
+var system ={};  
+var p = navigator.platform;       
+system.win = p.indexOf('Win') == 0;  
+system.mac = p.indexOf('Mac') == 0;  
+system.x11 = (p == 'X11') || (p.indexOf('Linux') == 0);     
+if(system.win||system.mac||system.xll){
+document.write("<link href='../css/3.css' rel='stylesheet' type='text/css'>");}else{ document.write("<link href='../css/3wap.css' rel='stylesheet' type='text/css'>");}</script><script src='../../js/3.js'></script><div class='div2'><div class='heading_nav'><ul><div><li><a href='../../index.html'>首页</a></li>
+</div><div onclick='hidden1()' >分享</div>
+</ul></div></div>
+<div id='heading_nav2'> 
+<li class='row' >
+<div class='social-share' data-mode='prepend'><a href='javascript:' class='social-share-icon icon-heart'></a></div></li></div><script charset='utf-8' src='../../3/js/hengfu.js'></script><script charset='utf-8' src='../../3/js/hengfu2.js'></script><hr><div class='div1'><div class='biaoti'><center>Java实现抢红包功能</center></div><div class='banquan'>原文出处:本文由博客园博主探歌提供。<br/>
+原文连接:https://www.cnblogs.com/lgg20/p/12010628.html</div><br>
+    <p>采用多线程模拟多人同时抢红包。服务端将玩家发出的红包保存在一个队列里，然后用Job定时将红包信息推送给玩家。每一批玩家的抢红包请求，其实操作的都是从队列中弹出的第一个红包元素，但当前的红包数量为空的时候，自动弹出下一个红包（如果有的话）。</p>
+<p><strong>关键思想：</strong></p>
+<p>1.抢红包涉及多人并发操作，需要做好同步保证多线程运行结果正确。</p>
+<p>2.由于同时在线人数大，从性能方面考虑，玩家的发红包请求不必及时响应，而由服务端定时执行发红包队列。</p>
+<p><strong>下面是主要的代码和实现逻辑说明</strong></p>
+<p>1.创建一个类，表示红包这个实体概念。直接采用原子变量保证增减同步。Java的原子变量是一种精度更细的同步机制，在高度竞争的情况下，锁的性能将超过原子变量的性能，但在更真实的竞争情况，原子变量享有更好的性能。</p>
+<src class="jb51code">
+<pre><code>public class SpringGift {
+ private String role;
+ private AtomicInteger gift;
+ public String getRole() {
+ return role;
+ }
+ public void setRole(String role) {
+ this.role = role;
+ }
+ public AtomicInteger getGift() {
+ return gift;
+ }
+ public void setGift(AtomicInteger gift) {
+ this.gift = gift;
+ }
+ 
+ public int getRemainCount(){
+ return this.gift.get();
+ }
+}</code></pre>
+
+<p>2.采用多线程模拟多人同时抢红包。服务端将玩家发出的红包保存在一个队列里，然后用Job定时将红包信息推送给玩家。每一批玩家的抢红包请求，其实操作的都是从队列中弹出的第一个红包元素，但当前的红包数量为空的时候，自动弹出下一个红包（如果有的话）。</p>
+<src class="jb51code">
+<pre><code>public class Test {
+ public static ConcurrentLinkedQueue&lt;SpringGift&gt; queue;
+ public static SpringGift currGift;
+ public static AtomicInteger count = new AtomicInteger();
+ static class myThread implements Runnable{
+ public void run(){
+  handleEvent();
+ }
+ }
+ public static void main(String[] args) throws Exception {
+ queue = new ConcurrentLinkedQueue&lt;SpringGift&gt;();
+ for(int i =0;i&lt;3;i++){
+  SpringGift gift = new SpringGift();
+  gift.setRole("role"+i);
+  gift.setGift(new AtomicInteger(50));
+  queue.add(gift);
+ }
+ myThread mythread = new myThread();
+ for(int i=0;i&lt;1000;i++){
+  new Thread(mythread).start();
+ }
+ 
+ System.err.println("总共收到"+count.get());
+ }
+ private static SpringGift getGift(){
+ //防止多条线程同时弹出队首
+ synchronized (queue) {//若没有加锁，打印的count总数不对！！！！
+  if(currGift == null || currGift.getRemainCount() &lt;=0){
+  currGift = queue.poll();
+  }
+ }
+ return currGift;
+ }
+ public static void handleEvent(){
+ try{
+  SpringGift obj = getGift();
+  
+  if(obj == null || obj.getRemainCount() &lt;= 0){
+  System.err.println("没有了");
+  return ;
+  }
+  if(obj !=null &amp;&amp; obj.getGift().getAndDecrement() &gt;0 ){
+  System.err.println("抢到一个红包");
+  count.getAndIncrement();
+  }
+    Thread.sleep(500);//模拟处理其他操作
+ }catch(Exception e){
+  e.printStackTrace();
+ }
+ }
+}</code></pre>
+
+<p>运行结果部分截图如下</p>
+<p><img src="./images/Java实现抢红包功能0.png" alt="" /></p>
+<p>需要注意的是，getGift()这个方法，由于是自动弹出队首元素，必须做好同步机制，否则，当多个请求同时操作某一个红包的最后一次剩余时，会造成总的红包数量不正确。</p>
+<p>（将加锁的代码注释后，会发现打印的总数量有可能不正确了！）</p>
+
+</div><hr><script charset='utf-8' src='../../js/sming.js'></script></body></html>

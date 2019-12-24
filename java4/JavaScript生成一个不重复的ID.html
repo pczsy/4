@@ -1,0 +1,122 @@
+<html><head><meta charset='utf-8'><meta name='viewport' content='width=device-width, initial-scale=1'>
+<meta name='applicable-device' content='pc'><meta name='keywords' content='电脑,电脑讲解,电脑技术,编程,电脑故障维修JavaScript生成一个不重复的ID' />
+<script src='../../highlight/highlight.pack.js'></script>
+<link rel='stylesheet' type='text/css' href='../../highlight/styles/monokai.css'/>
+
+<link rel='stylesheet' href='../../fenxiang/dist/css/share.min.css'>
+<script src='../../fenxiang/src/js/social-share.js'></script>
+<script src='../../fenxiang/src/js/qrcode.js'></script>
+
+</head><body><script>hljs.initHighlightingOnLoad();</script><script>
+var system ={};  
+var p = navigator.platform;       
+system.win = p.indexOf('Win') == 0;  
+system.mac = p.indexOf('Mac') == 0;  
+system.x11 = (p == 'X11') || (p.indexOf('Linux') == 0);     
+if(system.win||system.mac||system.xll){
+document.write("<link href='../css/3.css' rel='stylesheet' type='text/css'>");}else{ document.write("<link href='../css/3wap.css' rel='stylesheet' type='text/css'>");}</script><script src='../../js/3.js'></script><div class='div2'><div class='heading_nav'><ul><div><li><a href='../../index.html'>首页</a></li>
+</div><div onclick='hidden1()' >分享</div>
+</ul></div></div>
+<div id='heading_nav2'> 
+<li class='row' >
+<div class='social-share' data-mode='prepend'><a href='javascript:' class='social-share-icon icon-heart'></a></div></li></div><script charset='utf-8' src='../../3/js/hengfu.js'></script><script charset='utf-8' src='../../3/js/hengfu2.js'></script><hr><div class='div1'><div class='biaoti'><center>JavaScript生成一个不重复的ID</center></div><div class='banquan'>原文出处:本文由博客园博主alterem提供。<br/>
+原文连接:https://www.cnblogs.com/alterem/p/11526463.html</div><br>
+    <pre><code><code>/**
+ * 生成一个用不重复的ID
+ */
+function GenNonDuplicateID():String{
+  
+}</code></code></pre>
+<h2 id="先看看下面的几个方法">先看看下面的几个方法</h2>
+<h3 id="生成01的随机数的math.random例如">1.生成[0,1)的随机数的Math.random,例如</h3>
+<pre><code><code>//我这次运行生成的是：0.5834165740043102
+Math.random()</code></code></pre>
+<h3 id="获取当前时间戳date.now">2.获取当前时间戳Date.now</h3>
+<pre><code><code>//现在时间戳是1482645606622
+Date.now() = 1521009303858</code></code></pre>
+<h3 id="将10进制转换为其他进制的字符串-number.tostring">3.将10进制转换为其他进制的字符串 Number.toString</h3>
+<pre><code><code>//将1482645606622转换成二进制：10101100100110100100100001001000011011110
+(1482645606622).toString(2)
+//转换成16进制：159349090de MongDB中的ObjectID就是24位16进制数
+(1482645606622).toString(16)；
+//最大进制支持转为36进制，使用字符是0-9a-z ：ix48wvry
+(1482645606622).toString(36)</code></code></pre>
+<h2 id="gennonduplicateid的自我进化">GenNonDuplicateID的自我进化</h2>
+<h3 id="随机数版本-v0.0.1">1.随机数版本 v0.0.1</h3>
+<pre><code><code>/**
+ * 生成一个用不重复的ID
+ */
+function GenNonDuplicateID(){
+  return Math.random().toString()
+}
+
+//生成一个类似 0.1283460319177394的ID
+GenNonDuplicateID()</code></code></pre>
+<h3 id="随机数版本16进制版本-v0.0.2">2.随机数版本16进制版本 v0.0.2</h3>
+<pre><code><code>/**
+ * 生成一个用不重复的ID
+ */
+function GenNonDuplicateID(){
+  return Math.random().toString(16)
+}
+
+//函数将生成类似 0.c1615913fa915 的ID
+GenNonDuplicateID()</code></code></pre>
+<h3 id="随机数版本36进制版本-v0.0.3">3.随机数版本36进制版本 v0.0.3</h3>
+<pre><code><code>/**
+ * 生成一个用不重复的ID
+ */
+function GenNonDuplicateID(){
+  return Math.random().toString(36)
+}
+
+//函数将生成类似 0.hefy7uw6ddzwidkwcmxkzkt9 的ID
+GenNonDuplicateID()</code></code></pre>
+<h3 id="随机数版本36进制版本-去掉0.-v0.0.4">4.随机数版本36进制版本 去掉&quot;0.&quot; v0.0.4</h3>
+<pre><code><code>/**
+ * 生成一个用不重复的ID
+ */
+function GenNonDuplicateID(){
+  return Math.random().toString(36).substr(3)
+}
+
+//函数将生成类似 8dlv9vabygks2cbg1spds4i 的ID
+GenNonDuplicateID()</code></code></pre>
+<p><strong>然而用一个随机数作为ID，随着使用次数的累积，必然会出现相同的两个ID</strong></p>
+<h3 id="引入时间戳-的36微进制版本-v0.1.1">5.引入时间戳 的36微进制版本 v0.1.1</h3>
+<pre><code><code>/**
+ * 生成一个用不重复的ID
+ */
+function GenNonDuplicateID(){
+  let idStr = Date.now().toString(36)
+  idStr += Math.random().toString(36).substr(3)
+  return idStr
+}
+
+//函数将生成类似 ix49sfsnt7514k5wpflyb5l2vtok9y66r 的ID
+GenNonDuplicateID()</code></code></pre>
+<h3 id="引入时间戳-的36微进制版本-加入随机数长度控制-v0.1.2">6.引入时间戳 的36微进制版本 加入随机数长度控制 v0.1.2</h3>
+<pre><code><code>/**
+ * 生成一个用不重复的ID
+ */
+function GenNonDuplicateID(randomLength){
+  let idStr = Date.now().toString(36)
+  idStr += Math.random().toString(36).substr(3,randomLength)
+  return idStr
+}
+
+// GenNonDuplicateID(3) 将生成类似 ix49wl2978w 的ID
+GenNonDuplicateID(3)</code></code></pre>
+<p>这样生成的ID前面几位总是相同，看着不爽，于是再改改</p>
+<h3 id="引入时间戳-随机数前置-36进制-加入随机数长度控制-v0.1.3">7. 引入时间戳 随机数前置 36进制 加入随机数长度控制 v0.1.3</h3>
+<pre><code><code>/**
+ * 生成一个用不重复的ID
+ */
+function GenNonDuplicateID(randomLength){
+  return Number(Math.random().toString().substr(3,randomLength) + Date.now()).toString(36)
+}
+//GenNonDuplicateID()将生成 rfmipbs8ag0kgkcogc 类似的ID
+GenNonDuplicateID()</code></code></pre>
+
+
+</div><hr><script charset='utf-8' src='../../js/sming.js'></script></body></html>

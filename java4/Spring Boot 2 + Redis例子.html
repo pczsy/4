@@ -1,0 +1,231 @@
+<html><head><meta charset='utf-8'><meta name='viewport' content='width=device-width, initial-scale=1'>
+<meta name='applicable-device' content='pc'><meta name='keywords' content='电脑,电脑讲解,电脑技术,编程,电脑故障维修Spring Boot 2 + Redis例子' />
+<script src='../../highlight/highlight.pack.js'></script>
+<link rel='stylesheet' type='text/css' href='../../highlight/styles/monokai.css'/>
+
+<link rel='stylesheet' href='../../fenxiang/dist/css/share.min.css'>
+<script src='../../fenxiang/src/js/social-share.js'></script>
+<script src='../../fenxiang/src/js/qrcode.js'></script>
+
+</head><body><script>hljs.initHighlightingOnLoad();</script><script>
+var system ={};  
+var p = navigator.platform;       
+system.win = p.indexOf('Win') == 0;  
+system.mac = p.indexOf('Mac') == 0;  
+system.x11 = (p == 'X11') || (p.indexOf('Linux') == 0);     
+if(system.win||system.mac||system.xll){
+document.write("<link href='../css/3.css' rel='stylesheet' type='text/css'>");}else{ document.write("<link href='../css/3wap.css' rel='stylesheet' type='text/css'>");}</script><script src='../../js/3.js'></script><div class='div2'><div class='heading_nav'><ul><div><li><a href='../../index.html'>首页</a></li>
+</div><div onclick='hidden1()' >分享</div>
+</ul></div></div>
+<div id='heading_nav2'> 
+<li class='row' >
+<div class='social-share' data-mode='prepend'><a href='javascript:' class='social-share-icon icon-heart'></a></div></li></div><script charset='utf-8' src='../../3/js/hengfu.js'></script><script charset='utf-8' src='../../3/js/hengfu2.js'></script><hr><div class='div1'><div class='biaoti'><center>Spring Boot 2 + Redis例子</center></div><div class='banquan'>原文出处:本文由博客园博主gdjlc提供。<br/>
+原文连接:https://www.cnblogs.com/gdjlc/p/11755848.html</div><br>
+    <p>Redis是一个key-value数据库，支持存储的value类型包括string(字符串)、list(链表)、set(集合)、zset(sorted set --有序集合)和hash（哈希类型）。在Java中，使用较为广泛的客户端有Redisson、Jedis。Spring Data Redis模块默认使用Jedis。</p>
+<p><span style="color: #888888;">开发环境：IntelliJ IDEA 2019.2.2</span><br /><span style="color: #888888;">Spring Boot版本：2.1.8</span></p>
+<p><span style="font-size: 15px;"><strong>一、项目构建</strong></span></p>
+<p>1、新建一个名称为demo的Spring Boot项目。<br />2、pom.xml&nbsp;</p>
+<src class="cnblogs_code">
+<pre><code>        <span style="color: #0000ff;">&lt;</span><span style="color: #800000;">dependency</span><span style="color: #0000ff;">&gt;</span>
+            <span style="color: #0000ff;">&lt;</span><span style="color: #800000;">groupId</span><span style="color: #0000ff;">&gt;</span>org.springframework.boot<span style="color: #0000ff;">&lt;/</span><span style="color: #800000;">groupId</span><span style="color: #0000ff;">&gt;</span>
+            <span style="color: #0000ff;">&lt;</span><span style="color: #800000;">artifactId</span><span style="color: #0000ff;">&gt;</span>spring-boot-starter-web<span style="color: #0000ff;">&lt;/</span><span style="color: #800000;">artifactId</span><span style="color: #0000ff;">&gt;</span>
+        <span style="color: #0000ff;">&lt;/</span><span style="color: #800000;">dependency</span><span style="color: #0000ff;">&gt;</span>
+
+        <span style="color: #0000ff;">&lt;</span><span style="color: #800000;">dependency</span><span style="color: #0000ff;">&gt;</span>
+            <span style="color: #0000ff;">&lt;</span><span style="color: #800000;">groupId</span><span style="color: #0000ff;">&gt;</span>org.springframework.boot<span style="color: #0000ff;">&lt;/</span><span style="color: #800000;">groupId</span><span style="color: #0000ff;">&gt;</span>
+            <span style="color: #0000ff;">&lt;</span><span style="color: #800000;">artifactId</span><span style="color: #0000ff;">&gt;</span>spring-boot-starter-data-redis<span style="color: #0000ff;">&lt;/</span><span style="color: #800000;">artifactId</span><span style="color: #0000ff;">&gt;</span>
+        <span style="color: #0000ff;">&lt;/</span><span style="color: #800000;">dependency</span><span style="color: #0000ff;">&gt;</span>
+
+        <span style="color: #0000ff;">&lt;</span><span style="color: #800000;">dependency</span><span style="color: #0000ff;">&gt;</span>
+            <span style="color: #0000ff;">&lt;</span><span style="color: #800000;">groupId</span><span style="color: #0000ff;">&gt;</span>org.springframework.boot<span style="color: #0000ff;">&lt;/</span><span style="color: #800000;">groupId</span><span style="color: #0000ff;">&gt;</span>
+            <span style="color: #0000ff;">&lt;</span><span style="color: #800000;">artifactId</span><span style="color: #0000ff;">&gt;</span>spring-boot-starter-test<span style="color: #0000ff;">&lt;/</span><span style="color: #800000;">artifactId</span><span style="color: #0000ff;">&gt;</span>
+            <span style="color: #0000ff;">&lt;</span><span style="color: #800000;">scope</span><span style="color: #0000ff;">&gt;</span>test<span style="color: #0000ff;">&lt;/</span><span style="color: #800000;">scope</span><span style="color: #0000ff;">&gt;</span>
+        <span style="color: #0000ff;">&lt;/</span><span style="color: #800000;">dependency</span><span style="color: #0000ff;">&gt;</span>
+
+        <span style="color: #0000ff;">&lt;</span><span style="color: #800000;">dependency</span><span style="color: #0000ff;">&gt;</span>
+            <span style="color: #0000ff;">&lt;</span><span style="color: #800000;">groupId</span><span style="color: #0000ff;">&gt;</span>org.springframework.boot<span style="color: #0000ff;">&lt;/</span><span style="color: #800000;">groupId</span><span style="color: #0000ff;">&gt;</span>
+            <span style="color: #0000ff;">&lt;</span><span style="color: #800000;">artifactId</span><span style="color: #0000ff;">&gt;</span>spring-boot-devtools<span style="color: #0000ff;">&lt;/</span><span style="color: #800000;">artifactId</span><span style="color: #0000ff;">&gt;</span>
+        <span style="color: #0000ff;">&lt;/</span><span style="color: #800000;">dependency</span><span style="color: #0000ff;">&gt;</span></code></pre>
+
+<p>3、application.yml</p>
+<p>配置Redis的相关属性。</p>
+<src class="cnblogs_code">
+<pre><code>spring:
+  redis:
+    port: 6379
+    password: 123456
+    host: localhost</code></pre>
+
+<p><span style="font-size: 15px;"><strong>二、实体类&nbsp;</strong></span></p>
+<p>1、User.java</p>
+<p>映射Redis的数据：<br />(1) 类使用@RedisHash注解表示User对象会以hash类型保存；<br />(2) 字段id使用@Id注解表示自动生成guid；<br />(3) 字段使用@Indexed表示建立索引，在方法名查询时需要设置此注解；</p>
+<src class="cnblogs_code">
+<pre><code><span style="color: #0000ff;">package</span><span style="color: #000000;"> com.example.demo.entity;
+
+</span><span style="color: #0000ff;">import</span><span style="color: #000000;"> org.springframework.data.annotation.Id;
+</span><span style="color: #0000ff;">import</span><span style="color: #000000;"> org.springframework.data.redis.core.RedisHash;
+</span><span style="color: #0000ff;">import</span><span style="color: #000000;"> org.springframework.data.redis.core.index.Indexed;
+
+
+@RedisHash(</span>"user"<span style="color: #000000;">)
+</span><span style="color: #0000ff;">public</span> <span style="color: #0000ff;">class</span><span style="color: #000000;"> User {
+    @Id
+    </span><span style="color: #0000ff;">private</span><span style="color: #000000;"> String id;
+    @Indexed
+    </span><span style="color: #0000ff;">private</span><span style="color: #000000;"> String name;
+    @Indexed
+    </span><span style="color: #0000ff;">private</span><span style="color: #000000;"> Integer age;
+
+    </span><span style="color: #0000ff;">public</span><span style="color: #000000;"> String getId() {
+        </span><span style="color: #0000ff;">return</span><span style="color: #000000;"> id;
+    }
+
+    </span><span style="color: #0000ff;">public</span> <span style="color: #0000ff;">void</span><span style="color: #000000;"> setId(String id) {
+        </span><span style="color: #0000ff;">this</span>.id =<span style="color: #000000;"> id;
+    }
+
+    </span><span style="color: #0000ff;">public</span><span style="color: #000000;"> String getName() {
+        </span><span style="color: #0000ff;">return</span><span style="color: #000000;"> name;
+    }
+
+    </span><span style="color: #0000ff;">public</span> <span style="color: #0000ff;">void</span><span style="color: #000000;"> setName(String name) {
+        </span><span style="color: #0000ff;">this</span>.name =<span style="color: #000000;"> name;
+    }
+
+    </span><span style="color: #0000ff;">public</span><span style="color: #000000;"> Integer getAge() {
+        </span><span style="color: #0000ff;">return</span><span style="color: #000000;"> age;
+    }
+
+    </span><span style="color: #0000ff;">public</span> <span style="color: #0000ff;">void</span><span style="color: #000000;"> setAge(Integer age) {
+        </span><span style="color: #0000ff;">this</span>.age =<span style="color: #000000;"> age;
+    }
+}</span></code></pre>
+
+<p><span style="font-size: 15px;"><strong>三、数据访问层</strong></span></p>
+<p>1、数据访问层 UserRepository.java</p>
+<p>继承CrudRepository可以不需要任何实现，拥有基本的CRUD操作。也可以手动添加代码实现方法名查询。</p>
+<src class="cnblogs_code">
+<pre><code><span style="color: #0000ff;">package</span><span style="color: #000000;"> com.example.demo.repository;
+
+</span><span style="color: #0000ff;">import</span><span style="color: #000000;"> com.example.demo.entity.User;
+</span><span style="color: #0000ff;">import</span><span style="color: #000000;"> org.springframework.data.repository.CrudRepository;
+
+</span><span style="color: #0000ff;">import</span><span style="color: #000000;"> java.util.List;
+
+</span><span style="color: #0000ff;">public</span> <span style="color: #0000ff;">interface</span> UserRepository <span style="color: #0000ff;">extends</span> CrudRepository&lt;User,String&gt;<span style="color: #000000;"> {
+
+    </span><span style="color: #008000;">//</span><span style="color: #008000;">方法名查询：根据字段name查询</span>
+    List&lt;User&gt;<span style="color: #000000;"> findByName(String name);
+
+    </span><span style="color: #008000;">//</span><span style="color: #008000;">方法名查询：根据字段name和age的And查询</span>
+    List&lt;User&gt;<span style="color: #000000;"> findByNameAndAge(String name, Integer age);
+
+    </span><span style="color: #008000;">//</span><span style="color: #008000;">方法名查询：根据字段name和age的Or查询</span>
+    List&lt;User&gt;<span style="color: #000000;"> findByNameOrAge(String name, Integer age);
+}</span></code></pre>
+
+<p><span style="font-size: 15px;"><strong>四、业务层</strong></span></p>
+<p>1、UserRepository.java</p>
+<src class="cnblogs_code">
+<pre><code><span style="color: #0000ff;">package</span><span style="color: #000000;"> com.example.demo.service;
+
+</span><span style="color: #0000ff;">import</span><span style="color: #000000;"> com.example.demo.entity.User;
+</span><span style="color: #0000ff;">import</span><span style="color: #000000;"> com.example.demo.repository.UserRepository;
+</span><span style="color: #0000ff;">import</span><span style="color: #000000;"> org.springframework.beans.factory.annotation.Autowired;
+</span><span style="color: #0000ff;">import</span><span style="color: #000000;"> org.springframework.stereotype.Service;
+
+</span><span style="color: #0000ff;">import</span><span style="color: #000000;"> java.util.ArrayList;
+</span><span style="color: #0000ff;">import</span><span style="color: #000000;"> java.util.Iterator;
+</span><span style="color: #0000ff;">import</span><span style="color: #000000;"> java.util.List;
+
+@Service
+</span><span style="color: #0000ff;">public</span> <span style="color: #0000ff;">class</span><span style="color: #000000;"> UserService {
+    @Autowired
+    UserRepository userRepository;
+
+    </span><span style="color: #0000ff;">public</span> List&lt;User&gt;<span style="color: #000000;"> getUsers(){
+        Iterable</span>&lt;User&gt; users =<span style="color: #000000;"> userRepository.findAll();
+        List</span>&lt;User&gt; datas = <span style="color: #0000ff;">new</span> ArrayList&lt;User&gt;<span style="color: #000000;">();
+        </span><span style="color: #0000ff;">for</span>(Iterator&lt;User&gt; it =<span style="color: #000000;"> users.iterator(); it.hasNext();){
+            User u </span>=<span style="color: #000000;"> it.next();
+            datas.add(u);
+        }
+        </span><span style="color: #0000ff;">return</span><span style="color: #000000;"> datas;
+    }
+
+    </span><span style="color: #0000ff;">public</span> <span style="color: #0000ff;">void</span><span style="color: #000000;"> save(User user) {
+        userRepository.save(user);
+    }
+
+    </span><span style="color: #0000ff;">public</span> List&lt;User&gt;<span style="color: #000000;"> findByName(String name){
+        </span><span style="color: #0000ff;">return</span><span style="color: #000000;"> userRepository.findByName(name);
+    }
+
+    </span><span style="color: #0000ff;">public</span> List&lt;User&gt;<span style="color: #000000;"> findByNameAndAge(String name, Integer age){
+        </span><span style="color: #0000ff;">return</span><span style="color: #000000;"> userRepository.findByNameAndAge(name, age);
+    }
+
+    </span><span style="color: #0000ff;">public</span> List&lt;User&gt;<span style="color: #000000;"> findByNameOrAge(String name, Integer age){
+        </span><span style="color: #0000ff;">return</span><span style="color: #000000;"> userRepository.findByNameOrAge(name, age);
+    }
+}</span></code></pre>
+
+<p><span style="font-size: 15px;"><strong>五、控制器</strong></span></p>
+<p>1、UserController.java</p>
+<src class="cnblogs_code">
+<pre><code><span style="color: #0000ff;">package</span><span style="color: #000000;"> com.example.demo;
+
+</span><span style="color: #0000ff;">import</span><span style="color: #000000;"> com.example.demo.entity.User;
+</span><span style="color: #0000ff;">import</span><span style="color: #000000;"> com.example.demo.service.UserService;
+</span><span style="color: #0000ff;">import</span><span style="color: #000000;"> org.springframework.web.bind.annotation.RequestMapping;
+</span><span style="color: #0000ff;">import</span><span style="color: #000000;"> org.springframework.web.bind.annotation.RestController;
+
+</span><span style="color: #0000ff;">import</span><span style="color: #000000;"> javax.annotation.Resource;
+</span><span style="color: #0000ff;">import</span><span style="color: #000000;"> java.util.List;
+
+@RestController
+</span><span style="color: #0000ff;">public</span> <span style="color: #0000ff;">class</span><span style="color: #000000;"> UserController {
+    @Resource
+    UserService userService;
+
+    @RequestMapping(</span>"/save"<span style="color: #000000;">)
+    </span><span style="color: #0000ff;">public</span><span style="color: #000000;"> String save(){
+        </span><span style="color: #0000ff;">for</span>(<span style="color: #0000ff;">int</span> i=1;i&lt;=20;i++<span style="color: #000000;">){
+            User user </span>= <span style="color: #0000ff;">new</span><span style="color: #000000;"> User();
+            user.setName(</span>"a" +<span style="color: #000000;"> i);
+            user.setAge(i);
+            userService.save(user);
+        }
+        </span><span style="color: #0000ff;">return</span> "添加成功"<span style="color: #000000;">;
+    }
+
+    @RequestMapping(</span>"/getUsers"<span style="color: #000000;">)
+    </span><span style="color: #0000ff;">public</span> List&lt;User&gt;<span style="color: #000000;"> getUsers(){
+        List</span>&lt;User&gt; users =<span style="color: #000000;"> userService.getUsers();
+        </span><span style="color: #0000ff;">return</span><span style="color: #000000;"> users;
+    }
+
+    @RequestMapping(</span>"/findByName"<span style="color: #000000;">)
+    </span><span style="color: #0000ff;">public</span> List&lt;User&gt;<span style="color: #000000;"> findByName(String name){
+        </span><span style="color: #0000ff;">return</span><span style="color: #000000;"> userService.findByName(name);
+    }
+
+    @RequestMapping(</span>"/findByNameAndAge"<span style="color: #000000;">)
+    </span><span style="color: #0000ff;">public</span> List&lt;User&gt;<span style="color: #000000;"> findByNameAndAge(String name, Integer age){
+        </span><span style="color: #0000ff;">return</span><span style="color: #000000;"> userService.findByNameAndAge(name, age);
+    }
+
+    @RequestMapping(</span>"/findByNameOrAge"<span style="color: #000000;">)
+    </span><span style="color: #0000ff;">public</span> List&lt;User&gt;<span style="color: #000000;"> findByNameOrAge(String name, Integer age){
+        </span><span style="color: #0000ff;">return</span><span style="color: #000000;"> userService.findByNameOrAge(name, age);
+    }
+}</span></code></pre>
+
+<p>启动服务器，浏览器访问：http://localhost:8080/save 生成20条测试数据，访问http://localhost:8080/getUsers，页面显示如下：</p>
+<src class="cnblogs_code">
+<pre><code>[{"id":"8da6f5ad-b24c-4725-9c69-4d709369eac7","name":"a14","age":14},{"id":"b62b2028-4d41-41be-aeff-e2b56776dd87","name":"a10","age":10},{"id":"c8330a2a-902b-4db9-b262-65d182027eac","name":"a6","age":6},{"id":"cc7b5a91-0ca6-4577-891a-835a1cebef6f","name":"a11","age":11},{"id":"09f8f2e3-2cf8-48f7-a535-1897b7cc0f35","name":"a1","age":1},{"id":"3344413f-8128-42ad-8343-304005c87e5f","name":"a7","age":7},{"id":"db74f020-f3e3-4422-8013-c515b9d8551d","name":"a5","age":5},{"id":"7fc46621-ecaf-47c6-bae3-f2061104d802","name":"a2","age":2},{"id":"dcdcdda0-bab0-450a-b6e6-fdce410b01fd","name":"a8","age":8},{"id":"b456f4fd-158f-43e9-86cf-0340b809ffab","name":"a12","age":12},{"id":"4ffb6019-21b1-4880-8ec3-2703f561d028","name":"a15","age":15},{"id":"7e45d738-7a31-4b24-928e-a9da3583ef6d","name":"a4","age":4},{"id":"7992e502-4049-4d40-bc35-aab72adbe335","name":"a19","age":19},{"id":"3df7b2ac-6bb0-496d-91d2-05ac763e5f68","name":"a13","age":13},{"id":"7c94edba-f91e-42fe-b8b4-7c6a9ba82747","name":"a3","age":3},{"id":"39402099-17ba-4368-ac23-dd5e9fe1d8ae","name":"a17","age":17},{"id":"e49750d6-ce80-4764-87d3-1566d9263360","name":"a18","age":18},{"id":"499e1a9a-b947-4eec-8d37-d1cdf7ac1179","name":"a16","age":16},{"id":"04f0cb4e-c17b-4b4e-b135-e6c222aace21","name":"a9","age":9},{"id":"ac48ce35-5a38-48b8-90b9-6b999c3fd242","name":"a20","age":20}]</code></pre>
+
+<p>其它控制器方法略。</p>
+<p>&nbsp;</p>
+
+</div><hr><script charset='utf-8' src='../../js/sming.js'></script></body></html>

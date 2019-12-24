@@ -1,0 +1,185 @@
+<html><head><meta charset='utf-8'><meta name='viewport' content='width=device-width, initial-scale=1'>
+<meta name='applicable-device' content='pc'><meta name='keywords' content='电脑,电脑讲解,电脑技术,编程,电脑故障维修通过总线机制实现自动刷新客户端配置(Consul,Spring Cloud Config,Spring Cloud Bus)' />
+<script src='../../highlight/highlight.pack.js'></script>
+<link rel='stylesheet' type='text/css' href='../../highlight/styles/monokai.css'/>
+
+<link rel='stylesheet' href='../../fenxiang/dist/css/share.min.css'>
+<script src='../../fenxiang/src/js/social-share.js'></script>
+<script src='../../fenxiang/src/js/qrcode.js'></script>
+
+</head><body><script>hljs.initHighlightingOnLoad();</script><script>
+var system ={};  
+var p = navigator.platform;       
+system.win = p.indexOf('Win') == 0;  
+system.mac = p.indexOf('Mac') == 0;  
+system.x11 = (p == 'X11') || (p.indexOf('Linux') == 0);     
+if(system.win||system.mac||system.xll){
+document.write("<link href='../css/3.css' rel='stylesheet' type='text/css'>");}else{ document.write("<link href='../css/3wap.css' rel='stylesheet' type='text/css'>");}</script><script src='../../js/3.js'></script><div class='div2'><div class='heading_nav'><ul><div><li><a href='../../index.html'>首页</a></li>
+</div><div onclick='hidden1()' >分享</div>
+</ul></div></div>
+<div id='heading_nav2'> 
+<li class='row' >
+<div class='social-share' data-mode='prepend'><a href='javascript:' class='social-share-icon icon-heart'></a></div></li></div><script charset='utf-8' src='../../3/js/hengfu.js'></script><script charset='utf-8' src='../../3/js/hengfu2.js'></script><hr><div class='div1'><div class='biaoti'><center>通过总线机制实现自动刷新客户端配置(Consul,Spring Cloud Config,Spring Cloud Bus)</center></div><div class='banquan'>原文出处:本文由博客园博主维晟提供。<br/>
+原文连接:https://www.cnblogs.com/bluersw/p/11610722.html</div><br>
+    <h1 id="通过总线机制实现自动刷新客户端配置">通过总线机制实现自动刷新客户端配置</h1>
+<h2 id="方案示意图">方案示意图</h2>
+<p><img src="./images/通过总线机制实现自动刷新客户端配置(Consul,Spring Cloud Config,Spring Cloud Bus)0.png" alt="Alt text" /></p>
+<p>利用Git服务的webhook通知功能，在每次更新配置之后，Git服务器会用POST方式调用配置中心的/actuator/bus-refresh接口，配置中心的总线服务会将此事件广播给加入总线的所有客户端，客户端收到事件后会从新读取配置中心的内容。</p>
+<h2 id="增加pom依赖">增加POM依赖</h2>
+<p>配置中心的服务端（spring-cloud-config-server）和客户端（spring-cloud-config-client）都加入Spring Cloud Bus引用包：</p>
+<pre><code><code>&lt;dependency&gt;
+    &lt;groupId&gt;org.springframework.cloud&lt;/groupId&gt;
+    &lt;artifactId&gt;spring-cloud-starter-bus-amqp&lt;/artifactId&gt;
+&lt;/dependency&gt;</code></code></pre>
+<h2 id="启动rabbitmq">启动Rabbitmq</h2>
+<pre class="shell"><code>docker pull rabbitmq:3-management
+
+docker run -d --hostname my-rabbit --name rabbit -p 5672:5672 -p 15672:15672 rabbitmq:3-management
+</code></code></pre>
+<p>可以访问127.0.0.1:15672/登录rabbitmq管理监控后台，用户名密码都是guest/guest。</p>
+<h2 id="修改配置信息">修改配置信息</h2>
+<p>配置中心的服务端（spring-cloud-config-server）和客户端（spring-cloud-config-client）都需要修改配置文件的内容：<br />
+spring-cloud-config-server项目的application.properties增加：</p>
+<pre class="text"><code># 开启消息跟踪
+spring.cloud.bus.trace.enabled=true
+spring.rabbitmq.host=127.0.0.1
+spring.rabbitmq.port=5672
+spring.rabbitmq.username=guest
+spring.rabbitmq.password=guest
+
+#显示的暴露接入点
+management.endpoints.web.exposure.include=*</code></code></pre>
+<p>spring-cloud-config-client项目的application.properties增加：</p>
+<pre class="text"><code># 开启消息跟踪
+spring.cloud.bus.trace.enabled=true
+spring.rabbitmq.host=127.0.0.1
+spring.rabbitmq.port=5672
+spring.rabbitmq.username=guest
+spring.rabbitmq.password=guest
+
+#显示的暴露接入点
+management.endpoints.web.exposure.include=*</code></code></pre>
+<p>spring-cloud-config-client项目的bootstrap.properties增加(否则会报错：A component required a bean named 'configServerRetryInterceptor' that could)：</p>
+<pre class="text"><code>spring.cloud.config.fail-fast=true</code></code></pre>
+<h2 id="配置git的webhook">配置Git的Webhook</h2>
+<p><img src="./images/通过总线机制实现自动刷新客户端配置(Consul,Spring Cloud Config,Spring Cloud Bus)1.png" alt="Alt text" /><br />
+<img src="./images/通过总线机制实现自动刷新客户端配置(Consul,Spring Cloud Config,Spring Cloud Bus)2.png" alt="Alt text" /><br />
+<img src="./images/通过总线机制实现自动刷新客户端配置(Consul,Spring Cloud Config,Spring Cloud Bus)3.png" alt="Alt text" /></p>
+<p>192.168.0.21:9004/actuator/bus-refresh是我一个配置中心的地址，如果有多个配置中心可以写多个webhook，在页面上测试中如果返回204就说明成功了。</p>
+<h2 id="将webhook的post请求中的body清空">将Webhook的POST请求中的body清空</h2>
+<p>Git在进行webhood post请求的同时默认会在body加上这么一串载荷(payload),Spring Boot 无法并行化,所以在配置中心服务端（spring-cloud-config-server）新建下面两个类：<br />
+此代码参考了：<a href="https://my.oschina.net/u/3266761/blog/2245498">spring_cloud config 配置中心及利用Github实现自动化热加载配置</a></p>
+<pre class="java"><code>import javax.servlet.ReadListener;
+import javax.servlet.ServletInputStream;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletRequestWrapper;
+import java.io.ByteArrayInputStream;
+import java.io.IOException;
+
+//清空请求中的Body
+public class EmptyRequestWrapper extends HttpServletRequestWrapper{
+
+    public EmptyRequestWrapper(HttpServletRequest request) {
+        super(request);
+    }
+
+    @Override
+    public ServletInputStream getInputStream() throws IOException {
+        byte[] bytes = new byte[0];
+        ByteArrayInputStream byteArrayInputStream = new ByteArrayInputStream(bytes);
+
+        return new ServletInputStream() {
+            @Override
+            public boolean isFinished() {
+                return byteArrayInputStream.read() == -1 ? true:false;
+            }
+
+            @Override
+            public boolean isReady() {
+                return false;
+            }
+
+            @Override
+            public void setReadListener(ReadListener readListener) {
+
+            }
+
+            @Override
+            public int read() throws IOException {
+                return byteArrayInputStream.read();
+            }
+        };
+    }
+}</code></code></pre>
+<pre class="java"><code>import org.springframework.core.annotation.Order;
+
+import javax.servlet.*;
+import javax.servlet.annotation.WebFilter;
+import javax.servlet.http.HttpServletRequest;
+import java.io.IOException;
+
+@WebFilter(filterName = &quot;bodyFilter&quot;, urlPatterns = &quot;/*&quot;)
+@Order(1)
+//Git在进行webhood post请求的同时默认会在body加上这么一串载荷(payload),Spring Boot 无法并行化。
+public class BusRefreshFilter implements Filter {
+
+    @Override
+    public void init(FilterConfig filterConfig) throws ServletException {
+
+    }
+
+    @Override
+    public void doFilter(ServletRequest servletRequest, ServletResponse servletResponse, FilterChain filterChain) throws IOException, ServletException {
+        HttpServletRequest httpServletRequest = (HttpServletRequest)servletRequest;
+
+        String url = new String(httpServletRequest.getRequestURI());
+
+        //只过滤/actuator/bus-refresh请求
+        if (!url.endsWith(&quot;/bus-refresh&quot;)) {
+            filterChain.doFilter(servletRequest, servletResponse);
+            return;
+        }
+
+        //使用HttpServletRequest包装原始请求达到修改post请求中body内容的目的
+        EmptyRequestWrapper requestWrapper = new EmptyRequestWrapper(httpServletRequest);
+
+        filterChain.doFilter(requestWrapper, servletResponse);
+    }
+
+    @Override
+    public void destroy() {
+
+    }
+}</code></code></pre>
+<p>最后在启动类上添加@ServletComponentScan注解</p>
+<pre class="java"><code>@SpringBootApplication
+//启动配置中心
+@EnableConfigServer
+//启动服务发现
+@EnableDiscoveryClient
+@ServletComponentScan
+public class SpringCloudConfigServerApplication {
+
+    public static void main(String[] args) {
+        SpringApplication.run(SpringCloudConfigServerApplication.class, args);
+    }
+
+}</code></code></pre>
+<h2 id="测试自动刷新自动">测试自动刷新自动</h2>
+<p>访问客户端程序127.0.0.1:9006/ConfigTest，得到当前结果Test-8，访问配置中心也是Test-8：<br />
+<img src="./images/通过总线机制实现自动刷新客户端配置(Consul,Spring Cloud Config,Spring Cloud Bus)4.png" alt="Alt text" /><br />
+<img src="./images/通过总线机制实现自动刷新客户端配置(Consul,Spring Cloud Config,Spring Cloud Bus)5.png" alt="Alt text" /><br />
+我们更新Git参考将配置内容改为Test-9：<br />
+<img src="./images/通过总线机制实现自动刷新客户端配置(Consul,Spring Cloud Config,Spring Cloud Bus)6.png" alt="Alt text" /><br />
+<img src="./images/通过总线机制实现自动刷新客户端配置(Consul,Spring Cloud Config,Spring Cloud Bus)7.png" alt="Alt text" /><br />
+查看配置中心127.0.0.1:9004/ConfigDepot/Test，内容已经改为Test-9,再刷新客户端程序127.0.0.1:9006/ConfigTest，这时配置内容已经成功改成了Test-9，总线事件通知客户端刷新配置成功。<br />
+<img src="./images/通过总线机制实现自动刷新客户端配置(Consul,Spring Cloud Config,Spring Cloud Bus)8.png" alt="Alt text" /><br />
+<img src="./images/通过总线机制实现自动刷新客户端配置(Consul,Spring Cloud Config,Spring Cloud Bus)9.png" alt="Alt text" /><br />
+从配置中心服务端和客户端的日志也可看出刷新配置信息的过程：<br />
+<img src="./images/通过总线机制实现自动刷新客户端配置(Consul,Spring Cloud Config,Spring Cloud Bus)10.png" alt="Alt text" /><br />
+<img src="./images/通过总线机制实现自动刷新客户端配置(Consul,Spring Cloud Config,Spring Cloud Bus)11.png" alt="Alt text" /></p>
+<h2 id="源码">源码</h2>
+<p><a href="https://github.com/sunweisheng/spring-cloud-example">Github仓库:https://github.com/sunweisheng/spring-cloud-example</a></p>
+
+
+</div><hr><script charset='utf-8' src='../../js/sming.js'></script></body></html>

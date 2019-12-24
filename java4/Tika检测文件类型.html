@@ -1,0 +1,77 @@
+<html><head><meta charset='utf-8'><meta name='viewport' content='width=device-width, initial-scale=1'>
+<meta name='applicable-device' content='pc'><meta name='keywords' content='电脑,电脑讲解,电脑技术,编程,电脑故障维修Tika检测文件类型' />
+<script src='../../highlight/highlight.pack.js'></script>
+<link rel='stylesheet' type='text/css' href='../../highlight/styles/monokai.css'/>
+
+<link rel='stylesheet' href='../../fenxiang/dist/css/share.min.css'>
+<script src='../../fenxiang/src/js/social-share.js'></script>
+<script src='../../fenxiang/src/js/qrcode.js'></script>
+
+</head><body><script>hljs.initHighlightingOnLoad();</script><script>
+var system ={};  
+var p = navigator.platform;       
+system.win = p.indexOf('Win') == 0;  
+system.mac = p.indexOf('Mac') == 0;  
+system.x11 = (p == 'X11') || (p.indexOf('Linux') == 0);     
+if(system.win||system.mac||system.xll){
+document.write("<link href='../css/3.css' rel='stylesheet' type='text/css'>");}else{ document.write("<link href='../css/3wap.css' rel='stylesheet' type='text/css'>");}</script><script src='../../js/3.js'></script><div class='div2'><div class='heading_nav'><ul><div><li><a href='../../index.html'>首页</a></li>
+</div><div onclick='hidden1()' >分享</div>
+</ul></div></div>
+<div id='heading_nav2'> 
+<li class='row' >
+<div class='social-share' data-mode='prepend'><a href='javascript:' class='social-share-icon icon-heart'></a></div></li></div><script charset='utf-8' src='../../3/js/hengfu.js'></script><script charset='utf-8' src='../../3/js/hengfu2.js'></script><hr><div class='div1'><div class='biaoti'><center>Tika检测文件类型</center></div><div class='banquan'>原文出处:本文由博客园博主随遇而安~~~提供。<br/>
+原文连接:https://www.cnblogs.com/hww-2429/p/11592753.html</div><br>
+    <h3>Tika类型检测</h3>
+<p>Tika支持MIME所提供的所有互联网媒体文件类型。每当一个文件通过Tika检测到该文件，其文件类型。检测的介质类型，Tika内部通过以下机制。</p>
+<h3>MIME标准</h3>
+<p>多用途Internet邮件扩展(MIME)标准，用于识别文件类型的最佳标准。这些标准的知识有助于在内部相互作用的浏览器。</p>
+<p>当浏览器遇到一个媒体文件，它选择可用它来显示其内容的兼容软件。在情况下，它不具有任何合适的应用程序，以运行一个特定媒体文件，它建议用户获得合适的插件软件。</p>
+<h3>使用Facade类类型检测</h3>
+<p>facade类的detect() 方法被用于检测文档类型。这个方法接受一个文件作为输入。</p>
+<p>下面显示的是文件类型检测与Tika外观类的示例程序。</p>
+<ul>
+<li>传入参数为File对象时</li>
+</ul>
+<src class="cnblogs_code">
+<pre><code><span style="color: #000000;">　　@Test
+    </span><span style="color: #0000ff;">public</span> <span style="color: #0000ff;">void</span><span style="color: #000000;"> getImageToJPEG() {
+        </span><span style="color: #0000ff;">try</span><span style="color: #000000;"> {
+            File file </span>= <span style="color: #0000ff;">new</span> File(<span style="color: #800000;">"</span><span style="color: #800000;">C:\\Users\\hww\\Downloads\\0855fde2df59fa4fe9427e78d773dde5.jpeg</span><span style="color: #800000;">"</span><span style="color: #000000;">);
+            Tika tika </span>= <span style="color: #0000ff;">new</span><span style="color: #000000;"> Tika();
+            String fileType </span>=<span style="color: #000000;"> tika.detect(file);
+            System.</span><span style="color: #0000ff;">out</span>.println(fileType);<span style="color: #008000;">//</span><span style="color: #008000;">image/jpeg</span>
+        } <span style="color: #0000ff;">catch</span><span style="color: #000000;"> (IOException e) {
+            e.printStackTrace();
+        }
+    }</span></code></pre>
+
+<p>输出结果</p>
+<src class="cnblogs_code">
+<pre><code>image/jpeg</code></pre>
+
+<ul>
+<li>传入参数为文件路径时</li>
+</ul>
+<src class="cnblogs_code">
+<pre><code><span style="color: #000000;">   @Test
+    </span><span style="color: #0000ff;">public</span> <span style="color: #0000ff;">void</span><span style="color: #000000;"> getImageToJPG() {
+        </span><span style="color: #0000ff;">try</span><span style="color: #000000;"> {
+            Tika tika </span>= <span style="color: #0000ff;">new</span><span style="color: #000000;"> Tika();
+            String fileType </span>= tika.detect(<span style="color: #800000;">"</span><span style="color: #800000;">C:\\Users\\hww\\Downloads\\95a59c718b2575fdbccf66924c14fcd5.jpg</span><span style="color: #800000;">"</span><span style="color: #000000;">);
+            System.</span><span style="color: #0000ff;">out</span>.println(fileType);<span style="color: #008000;">//</span><span style="color: #008000;">image/jpeg</span>
+        } <span style="color: #0000ff;">catch</span><span style="color: #000000;"> (Exception e) {
+            e.printStackTrace();
+        }
+    }</span></code></pre>
+
+<p>输入结果：</p>
+<src class="cnblogs_code">
+<pre><code>image/jpeg</code></pre>
+
+<ul>
+<li>detect()方法参数有以下几种：</li>
+</ul>
+<p>&nbsp;<img src="./images/Tika检测文件类型0.png" alt="" /></p>
+<p>&nbsp;</p>
+
+</div><hr><script charset='utf-8' src='../../js/sming.js'></script></body></html>

@@ -1,0 +1,422 @@
+<html><head><meta charset='utf-8'><meta name='viewport' content='width=device-width, initial-scale=1'>
+<meta name='applicable-device' content='pc'><meta name='keywords' content='电脑,电脑讲解,电脑技术,编程,电脑故障维修Struts2  在Action中操作数据' />
+<script src='../../highlight/highlight.pack.js'></script>
+<link rel='stylesheet' type='text/css' href='../../highlight/styles/monokai.css'/>
+
+<link rel='stylesheet' href='../../fenxiang/dist/css/share.min.css'>
+<script src='../../fenxiang/src/js/social-share.js'></script>
+<script src='../../fenxiang/src/js/qrcode.js'></script>
+
+</head><body><script>hljs.initHighlightingOnLoad();</script><script>
+var system ={};  
+var p = navigator.platform;       
+system.win = p.indexOf('Win') == 0;  
+system.mac = p.indexOf('Mac') == 0;  
+system.x11 = (p == 'X11') || (p.indexOf('Linux') == 0);     
+if(system.win||system.mac||system.xll){
+document.write("<link href='../css/3.css' rel='stylesheet' type='text/css'>");}else{ document.write("<link href='../css/3wap.css' rel='stylesheet' type='text/css'>");}</script><script src='../../js/3.js'></script><div class='div2'><div class='heading_nav'><ul><div><li><a href='../../index.html'>首页</a></li>
+</div><div onclick='hidden1()' >分享</div>
+</ul></div></div>
+<div id='heading_nav2'> 
+<li class='row' >
+<div class='social-share' data-mode='prepend'><a href='javascript:' class='social-share-icon icon-heart'></a></div></li></div><script charset='utf-8' src='../../3/js/hengfu.js'></script><script charset='utf-8' src='../../3/js/hengfu2.js'></script><hr><div class='div1'><div class='biaoti'><center>Struts2  在Action中操作数据</center></div><div class='banquan'>原文出处:本文由博客园博主chenhongyong提供。<br/>
+原文连接:https://www.cnblogs.com/chy18883701161/p/11461506.html</div><br>
+    <p>&nbsp;</p>
+<h3>Servlet存储数据的方式</h3>
+<p>在Servlet中，使用ServletContext对象来存储整个WebApp的数据，ServletContext中直接存储整个WebApp的公共数据，可使用set|get|removeAttribute()来操作数据。</p>
+<p>此外ServletContext中还有3类众多的小对象：</p>
+<ul>
+<li>ServletConfig&nbsp; &nbsp; &nbsp;一个ServletConfig存储一个Servlet的初始化配置参数</li>
+<li>request&nbsp; &nbsp;一个request存储一个用户的请求参数</li>
+<li>session&nbsp; &nbsp;一个session存储一个用户的会话信息</li>
+</ul>
+<p>这3类对象也用于存储数据，也有对应的set|get|removeAttribute()方法。</p>
+<p>一共是4类对象，这4类对象均使用Map来存储数据，这个Map叫做域。</p>
+<p>&nbsp;</p>
+<p>&nbsp;</p>
+<hr />
+<p>&nbsp;</p>
+<p>&nbsp;</p>
+<p>&nbsp;</p>
+<h3>Action操作数据的方式</h3>
+<p>Action是用来代替Servlet的，Servlet用ServletContext来存储数据，Action用ActionContext来存储数据。</p>
+<src class="cnblogs_code">
+<pre><code> ActionContext context =<span style="color: #000000;"> ActionContext.getContext();
+
+        </span><span style="color: #008000;">//</span><span style="color: #008000;">设置、修改、获取参数</span>
+        context.put("age",18<span style="color: #000000;">);
+        </span><span style="color: #0000ff;">int</span> age =(<span style="color: #0000ff;">int</span>) context.get("age");   <span style="color: #008000;">//</span><span style="color: #008000;">返回值是Object，需要强转<br /></span></code></pre>
+
+<p>&nbsp;</p>
+<p>&nbsp;</p>
+<p>ActionContext本身可以存储数据，ActionContext中也有其他的域对象。</p>
+<src class="cnblogs_code">
+<pre><code> ActionContext context =<span> ActionContext.getContext();
+        
+        Map&lt;String, Object&gt; application = context.getApplication();  //获取ServletContext的Map对象，即application域
+        Map&lt;String, Object&gt; session = context.getSession();  //获取session对象的Map对象，即session域
+        HttpParameters parameters = context.getParameters();   //获取所有的请求参数，此对象相当于EL内置的param、paramValues对象</span></code></pre>
+
+<p>Map对象、HttpParameters对象均有put()、get()、remove()方法，可通过这些方法来操作数据。</p>
+<p>&nbsp;</p>
+<p>&nbsp;</p>
+<p>&nbsp;</p>
+<hr />
+<p>&nbsp;</p>
+<p>&nbsp;</p>
+<p>&nbsp;</p>
+<p>&nbsp;</p>
+<h3>获取原生的Servlet对象，通过原生的Servlet对象来操作数据</h3>
+<p>Struts2提供了三种方式，来获取原生的Servlet对象。</p>
+<h4>1、ActionContext本身可以存储数据，也可以获取ServletContext、request、response三个原生的Servlet对象：</h4>
+<src class="cnblogs_code">
+<pre><code> ActionContext context =<span style="color: #000000;"> ActionContext.getContext();
+
+        </span><span style="color: #008000;">//</span><span style="color: #008000;">获取原生的Servlet对象。因为get()返回值是Object，所以均需强转</span>
+        ServletContext servletContext = (ServletContext) context.get("com.opensymphony.xwork2.dispatcher.ServletContext"<span style="color: #000000;">);
+        HttpServletRequest request </span>= (HttpServletRequest) context.get("com.opensymphony.xwork2.dispatcher.HttpServletRequest"<span style="color: #000000;">);
+        HttpServletResponse response </span>= (HttpServletResponse) context.get("com.opensymphony.xwork2.dispatcher.HttpServletResponse");</code></pre>
+
+<p>&nbsp;</p>
+<p>&nbsp;</p>
+<h4>2、key太复杂，记不住，所以Struts2提供了工具类ServletActionContext：</h4>
+<src class="cnblogs_code">
+<pre><code><span style="color: #008000;">//</span><span style="color: #008000;">均为ServletActionContext类的静态方法</span>
+        ServletContext servletContext =<span style="color: #000000;"> ServletActionContext.getServletContext();
+        HttpServletRequest request </span>=<span style="color: #000000;"> ServletActionContext.getRequest();
+        HttpServletResponse response </span>= ServletActionContext.getResponse();<br /><br />　　　　 HttpSession session = ServletActionContext.getRequest().getSession();</code></pre>
+
+<p>&nbsp;</p>
+<p>&nbsp;</p>
+<h4>3、通过实现接口来获取</h4>
+<src class="cnblogs_code">
+<pre><code><span style="color: #0000ff;">public</span> <span style="color: #0000ff;">class</span> LoginAction <span style="color: #0000ff;">extends</span> ActionSupport <span style="color: #0000ff;">implements</span><span style="color: #000000;"><span style="color: #ff0000;"> ServletContextAware</span> {
+
+    @Override
+    </span><span style="color: #0000ff;">public</span> String execute() <span style="color: #0000ff;">throws</span><span style="color: #000000;"> Exception {
+        </span><span style="color: #0000ff;">return</span> <span style="color: #0000ff;">super</span><span style="color: #000000;">.execute();
+    }
+
+    <span style="color: #ff0000;">@Override
+    </span></span><span style="color: #ff0000;">public void</span><span style="color: #000000;"><span style="color: #ff0000;"> setServletContext(ServletContext servletContext) {
+
+    }</span>
+}</span></code></pre>
+
+<p>实现ServletContextAware接口，只需实现一个方法。Tomcat会获取并传入一个ServletContext对象，我们要做的就是写一个ServletContext类型的成员变量，把传入的值赋给它，这样这个Action中就可以直接使用ServletContext对象了（成员变量）。</p>
+<src class="cnblogs_code">
+<pre><code><span style="color: #0000ff;">public</span> <span style="color: #0000ff;">class</span> LoginAction <span style="color: #0000ff;">extends</span> ActionSupport <span style="color: #0000ff;">implements</span><span style="color: #000000;"> ServletContextAware {
+    </span><span style="color: #ff0000;">private</span><span style="color: #000000;"><span style="color: #ff0000;"> ServletContext servletContext;</span>
+
+    @Override
+    </span><span style="color: #0000ff;">public</span> String execute() <span style="color: #0000ff;">throws</span><span style="color: #000000;"> Exception {
+        </span><span style="color: #0000ff;">return</span> <span style="color: #0000ff;">super</span><span style="color: #000000;">.execute();
+    }
+
+    @Override
+    </span><span style="color: #0000ff;">public</span> <span style="color: #0000ff;">void</span><span style="color: #000000;"> setServletContext(<span style="color: #ff0000;">ServletContext servletContext</span>) {
+        </span><span style="color: #ff0000;">this.servletContext=</span><span style="color: #000000;"><span style="color: #ff0000;">servletContext;</span>
+    }
+}</span></code></pre>
+
+<p>&nbsp;</p>
+<p>要使用ServletContext对象，就实现ServletContextAware接口；</p>
+<p>要使用HttpServletRequest对象，就实现ServletRequestAware接口；</p>
+<p>要使用HttpServletResponset对象，就实现ServletResponseAware接口；</p>
+<p>可同时实现这些接口。</p>
+<p>&nbsp;</p>
+<h4>其实第2、3种方式底层都是：调用第一种方式获取原生的Servlet对象，返回。</h4>
+<p>&nbsp;</p>
+<p>&nbsp;</p>
+<p>&nbsp;</p>
+<hr />
+<p>&nbsp;</p>
+<h3>&nbsp;</h3>
+<p>&nbsp;</p>
+<h3>ActionContext对象的生命周期</h3>
+<ul>
+<li>
+<p>&nbsp;Servlet是线程不安全的。在WebApp运行期间，一个Servlet只有一个实例，所有请求（用户）共享这个实例的成员变量，容易引发问题，通常的做法是把可能会被多个用户修改的变量写在方法体中（局部变量）。基于Servlet的Struts1也是不安全的。</p>
+</li>
+<li>
+<p>Struts2是线程安全的。在WebApp运行期间，Struts2会为每一个请求创建一个新的Action实例，处理完这个请求，对应的Action实例就销毁。</p>
+</li>
+<li>
+<p>ActionContext对象随Action对象的创建而创建，随Action对象的销毁而销毁。即ActionContext与Servlet中原生的request对象的生命周期一致，所以存储数据可以用ActionContext代替Servlet的request。可以用ActionContext来传递数据，但请求参数并不会放在ActionContext的数据区域，不能&nbsp; ActionContext.getContext().get("xxx")这样来获取请求参数。</p>
+</li>
+</ul>
+<p>&nbsp;</p>
+<p>&nbsp;</p>
+<p>&nbsp;</p>
+<hr />
+<p>&nbsp;</p>
+<p>&nbsp;</p>
+<p>&nbsp;</p>
+<p>&nbsp;</p>
+<h2>Action中获取请求参数的方式</h2>
+<h4>&nbsp;1、获取原生的request对象，通过request对象来获取请求参数</h4>
+<src class="cnblogs_code">
+<pre><code>HttpServletRequest request =<span style="color: #000000;"> ServletActionContext.getRequest();
+String name </span>= request.getParameter("name");</code></pre>
+
+<p>&nbsp;</p>
+<p>请求参数封装在request对象的parameters对象中，不是直接封装在request对象中，request中直接封装的是setAttribute()的数据。</p>
+<p>把request作为一个大Map，里面还有一个小Map，小Map用于封装请求参数。&nbsp;<span class="cnblogs_code"> Map&lt;String, String[]&gt; parameterMap = request.getParameterMap(); </span>&nbsp;。</p>
+<p>&nbsp;</p>
+<p>&nbsp;<span class="cnblogs_code">Object obj=request对象.getAttribute("user");</span>&nbsp;获取的是setAttribute()存入的数据。</p>
+<p>&nbsp;<span class="cnblogs_code">String user = request对象.getParameter("user");</span>&nbsp;获取的才是请求参数（从小Map中查找数据）。</p>
+<p>&nbsp;</p>
+<p>&nbsp;</p>
+<h4>2、通过ActionContext获取HttpParameters对象，再通过HttpParameters对象来获取请求参数</h4>
+<src class="cnblogs_code">
+<pre><code>ActionContext context =<span style="color: #000000;"> ActionContext.getContext();
+        HttpParameters parameters </span>=<span style="color: #000000;"> context.getParameters();
+        Parameter name </span>= parameters.get("name");</code></pre>
+
+<p>获取的参数是Parameter类型。HttpParameters相当于一个Map。</p>
+<p>&nbsp;</p>
+<p>&nbsp;</p>
+<p>&nbsp;</p>
+<h3>3、属性驱动</h3>
+<src class="cnblogs_code">
+<pre><code><span style="color: #0000ff;">public</span> <span style="color: #0000ff;">class</span> LoginAction <span style="color: #0000ff;">extends</span><span style="color: #000000;"> ActionSupport {
+    </span><span style="color: #0000ff;">private</span><span style="color: #000000;"> String name;
+    </span><span style="color: #0000ff;">private</span> Integer age;  <span style="color: #008000;">//</span><span style="color: #008000;">尽管有自动拆箱、装箱，还是尽量用包装类型</span>
+
+    <span style="color: #0000ff;">public</span><span style="color: #000000;"> String getName() {
+        </span><span style="color: #0000ff;">return</span><span style="color: #000000;"> name;
+    }
+
+    </span><span style="color: #0000ff;">public</span> <span style="color: #0000ff;">void</span><span style="color: #000000;"> setName(String name) {
+        </span><span style="color: #0000ff;">this</span>.name =<span style="color: #000000;"> name;
+    }
+
+    </span><span style="color: #0000ff;">public</span><span style="color: #000000;"> Integer getAge() {
+        </span><span style="color: #0000ff;">return</span><span style="color: #000000;"> age;
+    }
+
+    </span><span style="color: #0000ff;">public</span> <span style="color: #0000ff;">void</span><span style="color: #000000;"> setAge(Integer age) {
+        </span><span style="color: #0000ff;">this</span>.age =<span style="color: #000000;"> age;
+    }
+
+    @Override
+    </span><span style="color: #0000ff;">public</span> String execute() <span style="color: #0000ff;">throws</span><span style="color: #000000;"> Exception {
+        </span><span style="color: #0000ff;">return</span> <span style="color: #0000ff;">null</span><span style="color: #000000;">;
+    }
+
+}</span></code></pre>
+
+<p>将要使用的请求参数写成Action的成员变量，并提供setter、getter方法，以及为Action提供空参的构造器。</p>
+<p>请求参数都是String类型，会先将请求参数转换为对应的成员变量的类型，再调用setter方法赋给对应的成员变量。</p>
+<p>只适用于8种基础类型、Date类型，Date类型对字符串格式有要求，比如2019-09-01。</p>
+<p>要求请求参数的name（表单字段的name）与成员变量的变量名相同。</p>
+<src class="cnblogs_code">
+<pre><code>    name：&lt;input type="text" name="name"&gt;&lt;br /&gt;<span style="color: #000000;">
+    age：</span>&lt;input type="text" name="age"&gt;&lt;br /&gt;</code></pre>
+
+<p>属性驱动的缺点：要使用的请求参数很多时，Action中会有大量的成员变量、getter、setter方法，很繁杂。</p>
+<p>&nbsp;</p>
+<p>&nbsp;</p>
+<p>静态参数注入：</p>
+<src class="cnblogs_code">
+<pre><code>&lt;action name="LoginAction" <span style="color: #0000ff;">class</span>="action.LoginAction"&gt;
+            &lt;param name="user"&gt;张三&lt;/param&gt;
+            &lt;param name="age"&gt;18&lt;/param&gt;
+
+            &lt;result name="success"&gt;index.jsp&lt;/result&gt;
+            &lt;result name="fail&gt;login.jsp&lt;/result&gt;
+&lt;/action&gt;</code></pre>
+
+<p>在&lt;param&gt;中指定Action成员变量的值，不常用。</p>
+<p>&nbsp;</p>
+<p>&nbsp;</p>
+<p>&nbsp;</p>
+<h3>4、对象驱动</h3>
+<p>将要使用的请求参数封装到一个JavaBean（实体类）中，作为Action的成员变量，Action要提供对应的getter、setter方法以及空参构造器：</p>
+<src class="cnblogs_code">
+<pre><code><span style="color: #0000ff;">public</span> <span style="color: #0000ff;">class</span> LoginAction <span style="color: #0000ff;">extends</span><span style="color: #000000;"> ActionSupport {
+    </span><span style="color: #0000ff;">private</span><span style="color: #000000;"> User user;
+
+    </span><span style="color: #0000ff;">public</span><span style="color: #000000;"> User getUser() {
+        </span><span style="color: #0000ff;">return</span><span style="color: #000000;"> user;
+    }
+
+    </span><span style="color: #0000ff;">public</span> <span style="color: #0000ff;">void</span><span style="color: #000000;"> setUser(User user) {
+        </span><span style="color: #0000ff;">this</span>.user =<span style="color: #000000;"> user;
+    }
+
+    @Override
+    </span><span style="color: #0000ff;">public</span> String execute() <span style="color: #0000ff;">throws</span><span style="color: #000000;"> Exception {
+        System.out.println(user.getName());
+        </span><span style="color: #0000ff;">return</span> <span style="color: #0000ff;">null</span><span style="color: #000000;">;
+    }
+
+}</span></code></pre>
+
+<p>&nbsp;</p>
+<p>&nbsp;</p>
+<p>需要提供JavaBean（实体类），这个实体类要具有getter、setter方法、空参构造器：</p>
+<src class="cnblogs_code">
+<pre><code><span style="color: #0000ff;">public</span> <span style="color: #0000ff;">class</span><span style="color: #000000;"> User {
+    </span><span style="color: #0000ff;">private</span><span style="color: #000000;"> String name;
+    </span><span style="color: #0000ff;">private</span><span style="color: #000000;"> String age;
+
+    </span><span style="color: #0000ff;">public</span><span style="color: #000000;"> String getName() {
+        </span><span style="color: #0000ff;">return</span><span style="color: #000000;"> name;
+    }
+
+    </span><span style="color: #0000ff;">public</span> <span style="color: #0000ff;">void</span><span style="color: #000000;"> setName(String name) {
+        </span><span style="color: #0000ff;">this</span>.name =<span style="color: #000000;"> name;
+    }
+
+    </span><span style="color: #0000ff;">public</span><span style="color: #000000;"> String getAge() {
+        </span><span style="color: #0000ff;">return</span><span style="color: #000000;"> age;
+    }
+
+    </span><span style="color: #0000ff;">public</span> <span style="color: #0000ff;">void</span><span style="color: #000000;"> setAge(String age) {
+        </span><span style="color: #0000ff;">this</span>.age =<span style="color: #000000;"> age;
+    }
+}</span></code></pre>
+
+<p>&nbsp;</p>
+<p>&nbsp;</p>
+<p>表单字段的name属性要加上对象名：</p>
+<src class="cnblogs_code">
+<pre><code> name：&lt;input type="text" name="<span style="color: #ff0000;">user.name</span>"&gt;&lt;br /&gt;<span style="color: #000000;">
+ age：</span>&lt;input type="text" name="<span style="color: #ff0000;">user.age</span>"&gt;&lt;br /&gt;</code></pre>
+
+<p>name属性的写法与之前不同，可能不习惯。</p>
+<p>&nbsp;</p>
+<p>&nbsp;</p>
+<p>&nbsp;</p>
+<p>&nbsp;</p>
+<h3>5、模型驱动</h3>
+<src class="cnblogs_code">
+<pre><code><span style="color: #0000ff;">public</span> <span style="color: #0000ff;">class</span> LoginAction <span style="color: #0000ff;">extends</span> ActionSupport <span style="color: #ff0000;">implements ModelDriven&lt;User&gt;</span><span style="color: #000000;"> {
+    </span><span style="color: #ff0000;">//需要显式创建（new出来），否则为null。
+    private User user=new</span><span style="color: #000000;"><span style="color: #ff0000;"> User();
+</span>
+    @Override
+    </span>public User getModel() {
+        //返回接受请求参数的对象
+        <span style="color: #ff0000;">return</span><span style="color: #000000;"><span style="color: #ff0000;"> user;</span>
+    }
+
+    @Override
+    </span><span style="color: #0000ff;">public</span> String execute() <span style="color: #0000ff;">throws</span><span style="color: #000000;"> Exception {
+        </span><span style="color: #0000ff;">return</span> <span style="color: #0000ff;">null</span><span style="color: #000000;">;
+    }
+
+}</span></code></pre>
+
+<p>需要实现ModelDriver&lt;T&gt;接口，只需实现getModel()方法，返回接受请求参数的对象。</p>
+<p>需要显式创建接受请求参数的对象，否则这个对象为null，使用这个对象时会引发空指针异常。但不用给这个对象提供setter、getter方法。</p>
+<p>&nbsp;</p>
+<p>依然需要提供JavaBean（实体类）。</p>
+<p>&nbsp;</p>
+<p>表单字段的name属性使用原来的写法：</p>
+<src class="cnblogs_code">
+<pre><code>    name：&lt;input type="text" name="name"&gt;&lt;br /&gt;<span style="color: #000000;">
+    age：</span>&lt;input type="text" name="age"&gt;&lt;br /&gt;</code></pre>
+
+<p>&nbsp;</p>
+<p>模型驱动的缺点：只能有一个Model，只能将请求参数封装到一个实体类中。对象驱动则可以有多个对象，可以将参数封装到多个对象中。</p>
+<p>&nbsp;</p>
+<p>&nbsp;</p>
+<p>&nbsp;</p>
+<p>&nbsp;</p>
+<h3>6、使用集合封装请求参数</h3>
+<p>原生的Servlet是将请求参数封装到request中，HttpParameters是将请求参数封装到HttpParameters中，属性驱动是将请求参数封装到Action的多个成员变量中，对象驱动、模型驱动都是将请求参数封装到JavaBean中。</p>
+<p>此外还可以使用集合（List或Map）来封装请求参数。</p>
+<p>&nbsp;</p>
+<ul>
+<li>
+<h4>使用List封装请求参数</h4>
+</li>
+</ul>
+<src class="cnblogs_code">
+<pre><code><span style="color: #0000ff;">public</span> <span style="color: #0000ff;">class</span> LoginAction <span style="color: #0000ff;">extends</span><span style="color: #000000;"> ActionSupport{
+    </span><span style="color: #ff0000;">private List&lt;String&gt; list;
+
+    public List&lt;String&gt; getList() {
+        return list;
+    }
+
+    public void setList(List&lt;String&gt; list) {
+        this.list =</span><span style="color: #000000;"><span style="color: #ff0000;"> list;
+    }</span>
+
+    @Override
+    </span><span style="color: #0000ff;">public</span> String execute() <span style="color: #0000ff;">throws</span><span style="color: #000000;"> Exception {
+        </span><span style="color: #0000ff;">return</span> <span style="color: #0000ff;">null</span><span style="color: #000000;">;
+    }
+
+}</span></code></pre>
+
+<p>需要提供getter、setter方法。</p>
+<p>&nbsp;</p>
+<p>表单字段的name属性指定List对象：</p>
+<src class="cnblogs_code">
+<pre><code>    name：&lt;input type="text" name="list"&gt;&lt;br /&gt;<span style="color: #000000;">
+    age：</span>&lt;input type="text" name="list"&gt;&lt;br /&gt;</code></pre>
+
+<p>会把请求字段存储到一个List中，第一个字段存储为List的第一个元素，第二个字段存储为第二个元素......以此类推。</p>
+<p>&nbsp;</p>
+<p>可以指定存储位置：</p>
+<src class="cnblogs_code">
+<pre><code>    name：&lt;input type="text" name="list"&gt;&lt;br /&gt;<span style="color: #000000;">
+    age：</span>&lt;input type="text" name="<span style="color: #ff0000;">list[3]</span>"&gt;&lt;br /&gt;<span style="color: #000000;">
+    tel：</span>&lt;input type="tel" name="list"&gt;&lt;br /&gt;
+    </code></pre>
+
+<p>[name字段的值，tel字段的值，null，age字段的值]</p>
+<p>指定了下标的，存储在指定的位置上；没有指定下标的，从前往后，存储在闲置的位置（null）上。</p>
+<p>&nbsp;</p>
+<p>&nbsp;</p>
+<ul>
+<li>
+<h4>使用Map封装请求参数</h4>
+</li>
+</ul>
+<src class="cnblogs_code">
+<pre><code><span style="color: #0000ff;">public</span> <span style="color: #0000ff;">class</span> LoginAction <span style="color: #0000ff;">extends</span><span style="color: #000000;"> ActionSupport{
+    </span><span style="color: #ff0000;">private Map&lt;String,String&gt; map;
+
+    public Map&lt;String, String&gt; getMap() {
+        return map;
+    }
+
+    public void setMap(Map&lt;String, String&gt; map) {
+        this.map =</span><span style="color: #000000;"><span style="color: #ff0000;"> map;
+    }</span>
+
+    @Override
+    </span><span style="color: #0000ff;">public</span> String execute() <span style="color: #0000ff;">throws</span><span style="color: #000000;"> Exception {
+        </span><span style="color: #0000ff;">return</span> <span style="color: #0000ff;">null</span><span style="color: #000000;">;
+    }
+
+}</span></code></pre>
+
+<p>需要提供getter、setter方法。</p>
+<p>&nbsp;</p>
+<p>表单字段：</p>
+<src class="cnblogs_code">
+<pre><code>    name：&lt;input type="text" name="<span style="color: #ff0000;">map['name']</span>"&gt;&lt;br /&gt;<span style="color: #000000;">
+    age：</span>&lt;input type="text" name="<span style="color: #ff0000;">map['age']</span>"&gt;&lt;br /&gt;</code></pre>
+
+<p>Map是以键值对来存储字段的，所以还需指定key。Map对象['key']。</p>
+<p>&nbsp;</p>
+<p>&nbsp;&nbsp;</p>
+<p>&nbsp;</p>
+<p>&nbsp;</p>
+<hr />
+<p>&nbsp;</p>
+<p>&nbsp;</p>
+<p>&nbsp;</p>
+<p>原生的Servlet对象是给Servlet用的，在Action中使用原生的Servlet对象，会使Action耦合Serlvet。</p>
+<p>使用Struts2就尽量使用Action的方式操作数据，除非使用原生的Servlet对象会更加方便，比如操作Cookie。</p>
+<p>&nbsp;</p>
+<p>Action中的域（Map）与Servlet的域对应，在JSP中同样可以使用EL表达式取出域中的值。</p>
+<p>&nbsp;</p>
+
+</div><hr><script charset='utf-8' src='../../js/sming.js'></script></body></html>

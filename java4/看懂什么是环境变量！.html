@@ -1,0 +1,102 @@
+<html><head><meta charset='utf-8'><meta name='viewport' content='width=device-width, initial-scale=1'>
+<meta name='applicable-device' content='pc'><meta name='keywords' content='电脑,电脑讲解,电脑技术,编程,电脑故障维修看懂什么是环境变量！' />
+<script src='../../highlight/highlight.pack.js'></script>
+<link rel='stylesheet' type='text/css' href='../../highlight/styles/monokai.css'/>
+
+<link rel='stylesheet' href='../../fenxiang/dist/css/share.min.css'>
+<script src='../../fenxiang/src/js/social-share.js'></script>
+<script src='../../fenxiang/src/js/qrcode.js'></script>
+
+</head><body><script>hljs.initHighlightingOnLoad();</script><script>
+var system ={};  
+var p = navigator.platform;       
+system.win = p.indexOf('Win') == 0;  
+system.mac = p.indexOf('Mac') == 0;  
+system.x11 = (p == 'X11') || (p.indexOf('Linux') == 0);     
+if(system.win||system.mac||system.xll){
+document.write("<link href='../css/3.css' rel='stylesheet' type='text/css'>");}else{ document.write("<link href='../css/3wap.css' rel='stylesheet' type='text/css'>");}</script><script src='../../js/3.js'></script><div class='div2'><div class='heading_nav'><ul><div><li><a href='../../index.html'>首页</a></li>
+</div><div onclick='hidden1()' >分享</div>
+</ul></div></div>
+<div id='heading_nav2'> 
+<li class='row' >
+<div class='social-share' data-mode='prepend'><a href='javascript:' class='social-share-icon icon-heart'></a></div></li></div><script charset='utf-8' src='../../3/js/hengfu.js'></script><script charset='utf-8' src='../../3/js/hengfu2.js'></script><hr><div class='div1'><div class='biaoti'><center>看懂什么是环境变量！</center></div><div class='banquan'>原文出处:本文由博客园博主Java架构Monster提供。<br/>
+原文连接:https://www.cnblogs.com/sevencutekk/p/11498912.html</div><br>
+    <p><img src="./images/看懂什么是环境变量！0.png" alt="" /></p>
+<p>&nbsp;</p>
+<p>&nbsp;</p>
+<p>&nbsp;</p>
+<h1>前言</h1>
+<p>相信大家初学java时，肯定会涉及到&ldquo;配置环境变量&rdquo;，而在网上搜索大多是教我们如何如配置，真正说明为什么要去配置环境变量的不多。</p>
+<p>不管在windows里还是liunx里都少不了环境变量的配置，一键Copy是解决不了问题的，还可能会出现各种各样的问题，如果我们搞清楚原理，就会方便许多。</p>
+<p>今天我们就以java环境变量来了解，什么是环境变量以及为什么要配置。</p>
+<p>什么是环境变量</p>
+<p>&nbsp;</p>
+<p><strong>环境变量（Environment Variable ）</strong></p>
+<p>环境变量是在操作系统中一个具有特定名字的对象，它包含了一个或者多个应用程序所将使用到的信息。</p>
+<p>变量</p>
+<blockquote>
+<p><strong>可以随意给其赋值的一个存储单元</strong></p>
+</blockquote>
+<p>环境</p>
+<p>例如jvm这些都属于小软件，它们处于操作系统这个大软件中。</p>
+<p>环境变量的作用</p>
+<p>变量在任何程序中的作用都是&ldquo;被赋值/被取值&rdquo;！这个全局变量操作系统可以使用，其内的小软件也可以使用！</p>
+<p><strong>环境变量有哪些</strong></p>
+<ol>
+<li>在Windows中，是由可视化的窗口模式展现出来的</li>
+</ol>
+<p><img src="./images/看懂什么是环境变量！1.png" alt="" /></p>
+<p>&nbsp;</p>
+<p>&nbsp;</p>
+<p>2. 在Linux中</p>
+<p>设置：</p>
+<p>在 /etc/profile文件中设置，export的意思就是将局部变量设置为环境变量。现有的变量是被这样一行代码设置的：</p>
+<src class="cnblogs_code">
+<pre><code>export PATH USER LOGNAME MAIL HOSTNAME HISTSIZE HISTCONTROL</code></pre>
+
+<p>这几个环境变量已经有一些默认值了，不过我们可以追加内容，比如修改PATH：</p>
+<src class="cnblogs_code">
+<pre><code><span style="color: #000000;"># : 的意思是并列
+PATH </span>= /abc/def:$PATH</code></pre>
+
+<p><strong>查看：</strong></p>
+<p>查看全部，使用env命令即可。</p>
+<p>查看单个，可以使用echo：如echo $JAVA_HOME。</p>
+<p>在JAVA中</p>
+<p>我们知道什么是环境变量以后，在java中会具体怎么用到呢？</p>
+<p>常见的Java相关环境变量及其作用</p>
+<p>PATH</p>
+<p>PATH是操作系统用的，用来指定操作系统需要使用到的可执行程序的位置。对于Java来说，通常需要把JDK的bin目录添加进入PATH中，这样你就可以在任意目录下使用bin下面的可执行程序，如javac.exe、java.exe等。</p>
+<p><strong>这个变量一定要保证将JRE/JDK的bin纳入其中。</strong></p>
+<src class="cnblogs_code">
+<pre><code><span style="color: #000000;">JDK,JRE，JVM三者之间的关系，以及JDK，JRE包含的主要结构有哪些
+JDK </span>= JRE +<span style="color: #000000;"> Java的开发工具（javac.exe,java.exe,javadoc.exe）
+JRD </span>= JVM + Java核心类库</code></pre>
+
+<p>JAVA_HOME</p>
+<p>JAVA_HOME是一个约定，通常它指的是JDK的目录。如果需要JDK的话，大部分程序会默认去环境变量中取JAVA_HOME这个变量。</p>
+<p><strong>很重要，一些java开发的工具例如IDEA就需要。</strong></p>
+<p>CLASSPATH</p>
+<p>在于告诉Java执行环境，在哪些目录下可以找到我们所要执行的Java程序所需要的类或者包。不过在JDK1.5之后的版本完全可以不用设置classpath环境变量就能正常运行程序。</p>
+<h2>小结</h2>
+<ol>
+<li>需要在操作系统下设置的变量：</li>
+<li>PATH中包含JRE/JDK的bin目录。 JAVA_HOME</li>
+<li>一条命令语句包含命令本身（操作）和操作对象：Command + object，编译和运行Java程序必须经过两个步骤：</li>
+</ol>
+<ul>
+<li>将源文件编译成字节码 （javac）</li>
+<li>执行平台无关的字节码程序（java）</li>
+</ul>
+<p>那么错误可能会有两种情况，一是没有找到命令，二是没有找到命令所要操作的文件。</p>
+<p>本文虽然简短，也就是带大家了解环境变量是什么，作用是什么。</p>
+<p>感谢你的阅读！</p>
+<p>最后又到了分享干货的时候了</p>
+<src class="pgc-img"><img src="./images/看懂什么是环境变量！2.png" alt="看懂什么是环境变量" />
+<p class="pgc-img-caption">请关注我，私信我即可领取！</p>
+<p class="pgc-img-caption"><span style="line-height: 1.5;">最后，感谢你的阅读！我是小架</span></p>
+
+<p>我们下篇再见！</p>
+<p>&nbsp;</p>
+
+</div><hr><script charset='utf-8' src='../../js/sming.js'></script></body></html>

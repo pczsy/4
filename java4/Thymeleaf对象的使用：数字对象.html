@@ -1,0 +1,210 @@
+<html><head><meta charset='utf-8'><meta name='viewport' content='width=device-width, initial-scale=1'>
+<meta name='applicable-device' content='pc'><meta name='keywords' content='电脑,电脑讲解,电脑技术,编程,电脑故障维修Thymeleaf对象的使用：数字对象' />
+<script src='../../highlight/highlight.pack.js'></script>
+<link rel='stylesheet' type='text/css' href='../../highlight/styles/monokai.css'/>
+
+<link rel='stylesheet' href='../../fenxiang/dist/css/share.min.css'>
+<script src='../../fenxiang/src/js/social-share.js'></script>
+<script src='../../fenxiang/src/js/qrcode.js'></script>
+
+</head><body><script>hljs.initHighlightingOnLoad();</script><script>
+var system ={};  
+var p = navigator.platform;       
+system.win = p.indexOf('Win') == 0;  
+system.mac = p.indexOf('Mac') == 0;  
+system.x11 = (p == 'X11') || (p.indexOf('Linux') == 0);     
+if(system.win||system.mac||system.xll){
+document.write("<link href='../css/3.css' rel='stylesheet' type='text/css'>");}else{ document.write("<link href='../css/3wap.css' rel='stylesheet' type='text/css'>");}</script><script src='../../js/3.js'></script><div class='div2'><div class='heading_nav'><ul><div><li><a href='../../index.html'>首页</a></li>
+</div><div onclick='hidden1()' >分享</div>
+</ul></div></div>
+<div id='heading_nav2'> 
+<li class='row' >
+<div class='social-share' data-mode='prepend'><a href='javascript:' class='social-share-icon icon-heart'></a></div></li></div><script charset='utf-8' src='../../3/js/hengfu.js'></script><script charset='utf-8' src='../../3/js/hengfu2.js'></script><hr><div class='div1'><div class='biaoti'><center>Thymeleaf对象的使用：数字对象</center></div><div class='banquan'>原文出处:本文由博客园博主gdjlc提供。<br/>
+原文连接:https://www.cnblogs.com/gdjlc/p/11664418.html</div><br>
+    <p>Thymeleaf主要使用 org.thymeleaf.expression.Numbers 类处理数字，在模板中使用 #numbers 对象来处理数字。</p>
+<p><span style="color: #888888;">开发环境：IntelliJ IDEA 2019.2.2</span><br /><span style="color: #888888;">Spring Boot版本：2.1.8</span></p>
+<p>新建一个名称为demo的Spring Boot项目。<br />pom.xml加入Thymeleaf依赖：</p>
+<src class="cnblogs_code">
+<pre><code>        <span style="color: #0000ff;">&lt;</span><span style="color: #800000;">dependency</span><span style="color: #0000ff;">&gt;</span>
+            <span style="color: #0000ff;">&lt;</span><span style="color: #800000;">groupId</span><span style="color: #0000ff;">&gt;</span>org.springframework.boot<span style="color: #0000ff;">&lt;/</span><span style="color: #800000;">groupId</span><span style="color: #0000ff;">&gt;</span>
+            <span style="color: #0000ff;">&lt;</span><span style="color: #800000;">artifactId</span><span style="color: #0000ff;">&gt;</span>spring-boot-starter-thymeleaf<span style="color: #0000ff;">&lt;/</span><span style="color: #800000;">artifactId</span><span style="color: #0000ff;">&gt;</span>
+        <span style="color: #0000ff;">&lt;/</span><span style="color: #800000;">dependency</span><span style="color: #0000ff;">&gt;</span></code></pre>
+
+<p><strong>一、整数格式化</strong></p>
+<p>有4个方法：<br />(1)formatInteger(number,digits) <br />第一个参数为单个数字，如果有小数字点则四舍五入，第二个参数设置最少的整数位数，不足会补0（下同）<br />(2)arrayFormatInteger(numbers,digits) <br />传入数组，返回处理后的数组<br />(3)listFormatInteger(numbers,digits) <br />传入List，返回处理后的List<br />(4)setFormatInteger(numbers,digits) <br />传入Set，返回处理后的Set<br />这4个方法存在重载方法传入第三个参数，用于标识千位分隔符<br />POINT : 使用&ldquo;.&rdquo;<br />COMMA : 使用&ldquo;,&rdquo;<br />WHITESPACE : 使用&ldquo; &rdquo;(空格）<br />NONE : 不使用分隔符<br />DEFAULT : 根据Locale对象来决定</p>
+<p>1、src/main/resources/templates/integer.html</p>
+<src class="cnblogs_code">
+<pre><code><span style="color: #000000;">formatInteger(number,digits)
+</span><span style="color: #0000ff;">&lt;</span><span style="color: #800000;">div </span><span style="color: #ff0000;">th:text</span><span style="color: #0000ff;">="${#numbers.formatInteger(10,0)}"</span><span style="color: #0000ff;">&gt;&lt;/</span><span style="color: #800000;">div</span><span style="color: #0000ff;">&gt;</span>
+<span style="color: #0000ff;">&lt;</span><span style="color: #800000;">div </span><span style="color: #ff0000;">th:text</span><span style="color: #0000ff;">="${#numbers.formatInteger(10.6,2)}"</span><span style="color: #0000ff;">&gt;&lt;/</span><span style="color: #800000;">div</span><span style="color: #0000ff;">&gt;</span>
+<span style="color: #0000ff;">&lt;</span><span style="color: #800000;">div </span><span style="color: #ff0000;">th:text</span><span style="color: #0000ff;">="${#numbers.formatInteger(10.6,5)}"</span><span style="color: #0000ff;">&gt;&lt;/</span><span style="color: #800000;">div</span><span style="color: #0000ff;">&gt;</span>
+<span style="color: #0000ff;">&lt;</span><span style="color: #800000;">div </span><span style="color: #ff0000;">th:text</span><span style="color: #0000ff;">="${#numbers.formatInteger(10.50,0)}"</span><span style="color: #0000ff;">&gt;&lt;/</span><span style="color: #800000;">div</span><span style="color: #0000ff;">&gt;</span>
+<span style="color: #0000ff;">&lt;</span><span style="color: #800000;">div </span><span style="color: #ff0000;">th:text</span><span style="color: #0000ff;">="${#numbers.formatInteger(10.51,2)}"</span><span style="color: #0000ff;">&gt;&lt;/</span><span style="color: #800000;">div</span><span style="color: #0000ff;">&gt;</span>
+<span style="color: #0000ff;">&lt;</span><span style="color: #800000;">div </span><span style="color: #ff0000;">th:text</span><span style="color: #0000ff;">="${#numbers.formatInteger(10000000,0,'COMMA')}"</span><span style="color: #0000ff;">&gt;&lt;/</span><span style="color: #800000;">div</span><span style="color: #0000ff;">&gt;</span>
+<span style="color: #0000ff;">&lt;</span><span style="color: #800000;">div </span><span style="color: #ff0000;">th:text</span><span style="color: #0000ff;">="${#numbers.formatInteger(10000000,0,'POINT')}"</span><span style="color: #0000ff;">&gt;&lt;/</span><span style="color: #800000;">div</span><span style="color: #0000ff;">&gt;</span><span style="color: #000000;">
+
+arrayFormatInteger(numbers,digits)
+</span><span style="color: #0000ff;">&lt;</span><span style="color: #800000;">div </span><span style="color: #ff0000;">th:each</span><span style="color: #0000ff;">="num : ${#numbers.arrayFormatInteger(arr,0)}"</span><span style="color: #0000ff;">&gt;</span>
+    <span style="color: #0000ff;">&lt;</span><span style="color: #800000;">div </span><span style="color: #ff0000;">th:text</span><span style="color: #0000ff;">="${num}"</span><span style="color: #0000ff;">&gt;&lt;/</span><span style="color: #800000;">div</span><span style="color: #0000ff;">&gt;</span>
+<span style="color: #0000ff;">&lt;/</span><span style="color: #800000;">div</span><span style="color: #0000ff;">&gt;</span><span style="color: #000000;">
+listFormatInteger(numbers,digits)
+</span><span style="color: #0000ff;">&lt;</span><span style="color: #800000;">div </span><span style="color: #ff0000;">th:each</span><span style="color: #0000ff;">="num : ${#numbers.listFormatInteger(list,2)}"</span><span style="color: #0000ff;">&gt;</span>
+    <span style="color: #0000ff;">&lt;</span><span style="color: #800000;">div </span><span style="color: #ff0000;">th:text</span><span style="color: #0000ff;">="${num}"</span><span style="color: #0000ff;">&gt;&lt;/</span><span style="color: #800000;">div</span><span style="color: #0000ff;">&gt;</span>
+<span style="color: #0000ff;">&lt;/</span><span style="color: #800000;">div</span><span style="color: #0000ff;">&gt;</span><span style="color: #000000;">
+setFormatInteger(numbers,digits)
+</span><span style="color: #0000ff;">&lt;</span><span style="color: #800000;">div </span><span style="color: #ff0000;">th:each</span><span style="color: #0000ff;">="num : ${#numbers.setFormatInteger(set,4)}"</span><span style="color: #0000ff;">&gt;</span>
+    <span style="color: #0000ff;">&lt;</span><span style="color: #800000;">div </span><span style="color: #ff0000;">th:text</span><span style="color: #0000ff;">="${num}"</span><span style="color: #0000ff;">&gt;&lt;/</span><span style="color: #800000;">div</span><span style="color: #0000ff;">&gt;</span>
+<span style="color: #0000ff;">&lt;/</span><span style="color: #800000;">div</span><span style="color: #0000ff;">&gt;</span></code></pre>
+
+<p>2、src/main/java/com/example/demo/IntegerController.java</p>
+<src class="cnblogs_code">
+<pre><code><span style="color: #0000ff;">package</span><span style="color: #000000;"> com.example.demo;
+
+</span><span style="color: #0000ff;">import</span><span style="color: #000000;"> org.springframework.stereotype.Controller;
+</span><span style="color: #0000ff;">import</span><span style="color: #000000;"> org.springframework.ui.Model;
+</span><span style="color: #0000ff;">import</span><span style="color: #000000;"> org.springframework.web.bind.annotation.RequestMapping;
+
+</span><span style="color: #0000ff;">import</span><span style="color: #000000;"> java.util.Arrays;
+</span><span style="color: #0000ff;">import</span><span style="color: #000000;"> java.util.HashSet;
+</span><span style="color: #0000ff;">import</span><span style="color: #000000;"> java.util.List;
+</span><span style="color: #0000ff;">import</span><span style="color: #000000;"> java.util.Set;
+
+@Controller
+</span><span style="color: #0000ff;">public</span> <span style="color: #0000ff;">class</span><span style="color: #000000;"> IntegerController {
+    @RequestMapping(</span>"/integer"<span style="color: #000000;">)
+    </span><span style="color: #0000ff;">public</span><span style="color: #000000;"> String integer(Model model){
+        Double[] arr </span>= <span style="color: #0000ff;">new</span> Double[]{10D, 10.9<span style="color: #000000;">};
+        List list </span>=<span style="color: #000000;"> Arrays.asList(arr);
+        Set set </span>= <span style="color: #0000ff;">new</span><span style="color: #000000;"> HashSet(list);
+        model.addAttribute(</span>"arr"<span style="color: #000000;">, arr);
+        model.addAttribute(</span>"list"<span style="color: #000000;">, list);
+        model.addAttribute(</span>"set"<span style="color: #000000;">, set);
+        </span><span style="color: #0000ff;">return</span> "integer"<span style="color: #000000;">;
+    }
+}</span></code></pre>
+
+<p>浏览器访问：http://localhost:8080/integer<br />页面输出：</p>
+<src class="cnblogs_code">
+<pre><code>formatInteger(number,digits)
+10
+11
+00011
+10
+11
+10,000,000
+10.000.000
+arrayFormatInteger(numbers,digits)
+10
+11
+listFormatInteger(numbers,digits)
+10
+11
+setFormatInteger(numbers,digits)
+0010
+0011</code></pre>
+
+<p><span style="font-size: 15px;"><strong>二、小数格式化</strong></span></p>
+<p>同样有4个方法：<br />(1)formatDecimal(number,intDig,decDig) <br />第一个参数为单个数字，第二个参数设置最少的整数位数（不足会补0），第三个参数设置保留小数位数<br />(2)arrayFormatDecimal(numArray,intDig,decDig) <br />传入数组，返回处理后的数组<br />(3)listFormatDecimal(numList,intDig,decDig) <br />传入List，返回处理后的List<br />(4)setFormatDecimal(numSet,intDig,decDig) <br />传入Set，返回处理后的Set<br />这4个方法都存在两个重载方法，以formatDecimal为例：<br />(a)formatDecimal(number,intDig,decDig,decPoint)<br />decPoint表示用什么符号作为小数点，取值为POINT、COMMA、WHITESPACE、NONE和DEFAULT。<br />(b)formatDecimal(number,intDig,separator,decDig,decPoint)<br />separator表示用什么符号作为千位分隔符，同样取值为POINT、COMMA、WHITESPACE、NONE和DEFAULT。</p>
+<p>1、src/main/resources/templates/decimal.html</p>
+<src class="cnblogs_code">
+<pre><code><span style="color: #0000ff;">&lt;</span><span style="color: #800000;">div </span><span style="color: #ff0000;">th:text</span><span style="color: #0000ff;">="${#numbers.formatDecimal(10, 0, 0)}"</span><span style="color: #0000ff;">&gt;&lt;/</span><span style="color: #800000;">div</span><span style="color: #0000ff;">&gt;</span>
+<span style="color: #0000ff;">&lt;</span><span style="color: #800000;">div </span><span style="color: #ff0000;">th:text</span><span style="color: #0000ff;">="${#numbers.formatDecimal(10.6, 0, 2)}"</span><span style="color: #0000ff;">&gt;&lt;/</span><span style="color: #800000;">div</span><span style="color: #0000ff;">&gt;</span>
+<span style="color: #0000ff;">&lt;</span><span style="color: #800000;">div </span><span style="color: #ff0000;">th:text</span><span style="color: #0000ff;">="${#numbers.formatDecimal(10.6, 5, 2)}"</span><span style="color: #0000ff;">&gt;&lt;/</span><span style="color: #800000;">div</span><span style="color: #0000ff;">&gt;</span>
+<span style="color: #0000ff;">&lt;</span><span style="color: #800000;">div </span><span style="color: #ff0000;">th:text</span><span style="color: #0000ff;">="${#numbers.formatDecimal(10000000, 0, 2, 'COMMA')}"</span><span style="color: #0000ff;">&gt;&lt;/</span><span style="color: #800000;">div</span><span style="color: #0000ff;">&gt;</span>
+<span style="color: #0000ff;">&lt;</span><span style="color: #800000;">div </span><span style="color: #ff0000;">th:text</span><span style="color: #0000ff;">="${#numbers.formatDecimal(10000000, 2, 2, 'POINT')}"</span><span style="color: #0000ff;">&gt;&lt;/</span><span style="color: #800000;">div</span><span style="color: #0000ff;">&gt;</span>
+<span style="color: #0000ff;">&lt;</span><span style="color: #800000;">div </span><span style="color: #ff0000;">th:text</span><span style="color: #0000ff;">="${#numbers.formatDecimal(10000000, 2, 'POINT', 2, 'POINT')}"</span><span style="color: #0000ff;">&gt;&lt;/</span><span style="color: #800000;">div</span><span style="color: #0000ff;">&gt;</span></code></pre>
+
+<p>2、src/main/java/com/example/demo/DecimalController.java</p>
+<src class="cnblogs_code">
+<pre><code><span style="color: #0000ff;">package</span><span style="color: #000000;"> com.example.demo;
+
+</span><span style="color: #0000ff;">import</span><span style="color: #000000;"> org.springframework.stereotype.Controller;
+</span><span style="color: #0000ff;">import</span><span style="color: #000000;"> org.springframework.web.bind.annotation.RequestMapping;
+
+@Controller
+</span><span style="color: #0000ff;">public</span> <span style="color: #0000ff;">class</span><span style="color: #000000;"> DecimalController {
+    @RequestMapping(</span>"/decimal"<span style="color: #000000;">)
+    </span><span style="color: #0000ff;">public</span><span style="color: #000000;"> String decimal(){
+        </span><span style="color: #0000ff;">return</span> "decimal"<span style="color: #000000;">;
+    }
+}</span></code></pre>
+
+<p>浏览器访问：http://localhost:8080/decimal<br />页面输出：</p>
+<src class="cnblogs_code">
+<pre><code>10
+10.60
+00010.60
+10000000,00
+10000000.00
+10.000.000.00</code></pre>
+
+<p><span style="font-size: 15px;"><strong>三、百分比格式化</strong></span></p>
+<p>和小数的格式化类似，同样有4个方法，其中处理单个数字用<br />formatPercent(number,intDig,decDig) <br />第一个参数为单个数字，第二个参数设置最少的整数位数（不足会补0），第三个参数设置保留小数位数</p>
+<p>1、src/main/resources/templates/percent.html</p>
+<src class="cnblogs_code">
+<pre><code><span style="color: #0000ff;">&lt;</span><span style="color: #800000;">div </span><span style="color: #ff0000;">th:text</span><span style="color: #0000ff;">="${#numbers.formatPercent(0.123, 0, 2)}"</span><span style="color: #0000ff;">&gt;&lt;/</span><span style="color: #800000;">div</span><span style="color: #0000ff;">&gt;</span>
+<span style="color: #0000ff;">&lt;</span><span style="color: #800000;">div </span><span style="color: #ff0000;">th:text</span><span style="color: #0000ff;">="${#numbers.formatPercent(0.123, 5, 2)}"</span><span style="color: #0000ff;">&gt;&lt;/</span><span style="color: #800000;">div</span><span style="color: #0000ff;">&gt;</span></code></pre>
+
+<p>2、src/main/java/com/example/demo/PercentController.java</p>
+<src class="cnblogs_code">
+<pre><code><span style="color: #0000ff;">package</span><span style="color: #000000;"> com.example.demo;
+
+</span><span style="color: #0000ff;">import</span><span style="color: #000000;"> org.springframework.stereotype.Controller;
+</span><span style="color: #0000ff;">import</span><span style="color: #000000;"> org.springframework.web.bind.annotation.RequestMapping;
+
+@Controller
+</span><span style="color: #0000ff;">public</span> <span style="color: #0000ff;">class</span><span style="color: #000000;"> PercentController {
+    @RequestMapping(</span>"/percent"<span style="color: #000000;">)
+    </span><span style="color: #0000ff;">public</span><span style="color: #000000;"> String percent(){
+        </span><span style="color: #0000ff;">return</span> "percent"<span style="color: #000000;">;
+    }
+}</span></code></pre>
+
+<p>浏览器访问：http://localhost:8080/percent<br />页面输出：</p>
+<src class="cnblogs_code">
+<pre><code>12.30%
+00,012.30%</code></pre>
+
+<p><strong style="font-size: 15px;">四、sequence方法</strong></p>
+<p>sequence方法返回Integer数组。<br />(1)sequence(from,to)<br />设置开始值与结束值，如果from比to大，则默认步长为1,否则为-1。<br />(2)sequence(from,to,step)<br />设置开始值与结束值，步长。</p>
+<p>1、src/main/resources/templates/sequence.html</p>
+<src class="cnblogs_code">
+<pre><code><span style="color: #0000ff;">&lt;</span><span style="color: #800000;">div </span><span style="color: #ff0000;">th:each</span><span style="color: #0000ff;">="num : ${#numbers.sequence(0,3)}"</span><span style="color: #0000ff;">&gt;</span>
+    <span style="color: #0000ff;">&lt;</span><span style="color: #800000;">div </span><span style="color: #ff0000;">th:text</span><span style="color: #0000ff;">="${num}"</span><span style="color: #0000ff;">&gt;&lt;/</span><span style="color: #800000;">div</span><span style="color: #0000ff;">&gt;</span>
+<span style="color: #0000ff;">&lt;/</span><span style="color: #800000;">div</span><span style="color: #0000ff;">&gt;</span><span style="color: #000000;">
+----------
+</span><span style="color: #0000ff;">&lt;</span><span style="color: #800000;">div </span><span style="color: #ff0000;">th:each</span><span style="color: #0000ff;">="num : ${#numbers.sequence(5,1)}"</span><span style="color: #0000ff;">&gt;</span>
+    <span style="color: #0000ff;">&lt;</span><span style="color: #800000;">div </span><span style="color: #ff0000;">th:text</span><span style="color: #0000ff;">="${num}"</span><span style="color: #0000ff;">&gt;&lt;/</span><span style="color: #800000;">div</span><span style="color: #0000ff;">&gt;</span>
+<span style="color: #0000ff;">&lt;/</span><span style="color: #800000;">div</span><span style="color: #0000ff;">&gt;</span></code></pre>
+
+<p>2、src/main/java/com/example/demo/SequenceController.java</p>
+<src class="cnblogs_code">
+<pre><code><span style="color: #0000ff;">package</span><span style="color: #000000;"> com.example.demo;
+
+</span><span style="color: #0000ff;">import</span><span style="color: #000000;"> org.springframework.stereotype.Controller;
+</span><span style="color: #0000ff;">import</span><span style="color: #000000;"> org.springframework.web.bind.annotation.RequestMapping;
+
+@Controller
+</span><span style="color: #0000ff;">public</span> <span style="color: #0000ff;">class</span><span style="color: #000000;"> SequenceController {
+    @RequestMapping(</span>"/sequence"<span style="color: #000000;">)
+    </span><span style="color: #0000ff;">public</span><span style="color: #000000;"> String sequence(){
+        </span><span style="color: #0000ff;">return</span> "sequence"<span style="color: #000000;">;
+    }
+}</span></code></pre>
+
+<p>浏览器访问：http://localhost:8080/percent<br />页面输出：</p>
+<src class="cnblogs_code">
+<pre><code>0
+1
+2
+3
+----------
+5
+4
+3
+2
+1</code></pre>
+
+<p>&nbsp;</p>
+
+</div><hr><script charset='utf-8' src='../../js/sming.js'></script></body></html>

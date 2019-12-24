@@ -1,0 +1,203 @@
+<html><head><meta charset='utf-8'><meta name='viewport' content='width=device-width, initial-scale=1'>
+<meta name='applicable-device' content='pc'><meta name='keywords' content='电脑,电脑讲解,电脑技术,编程,电脑故障维修Feign切换client到okhttp无法生效天坑！(附带发生的原因)' />
+<script src='../../highlight/highlight.pack.js'></script>
+<link rel='stylesheet' type='text/css' href='../../highlight/styles/monokai.css'/>
+
+<link rel='stylesheet' href='../../fenxiang/dist/css/share.min.css'>
+<script src='../../fenxiang/src/js/social-share.js'></script>
+<script src='../../fenxiang/src/js/qrcode.js'></script>
+
+</head><body><script>hljs.initHighlightingOnLoad();</script><script>
+var system ={};  
+var p = navigator.platform;       
+system.win = p.indexOf('Win') == 0;  
+system.mac = p.indexOf('Mac') == 0;  
+system.x11 = (p == 'X11') || (p.indexOf('Linux') == 0);     
+if(system.win||system.mac||system.xll){
+document.write("<link href='../css/3.css' rel='stylesheet' type='text/css'>");}else{ document.write("<link href='../css/3wap.css' rel='stylesheet' type='text/css'>");}</script><script src='../../js/3.js'></script><div class='div2'><div class='heading_nav'><ul><div><li><a href='../../index.html'>首页</a></li>
+</div><div onclick='hidden1()' >分享</div>
+</ul></div></div>
+<div id='heading_nav2'> 
+<li class='row' >
+<div class='social-share' data-mode='prepend'><a href='javascript:' class='social-share-icon icon-heart'></a></div></li></div><script charset='utf-8' src='../../3/js/hengfu.js'></script><script charset='utf-8' src='../../3/js/hengfu2.js'></script><hr><div class='div1'><div class='biaoti'><center>Feign切换client到okhttp无法生效天坑！(附带发生的原因)</center></div><div class='banquan'>原文出处:本文由博客园博主沐风之境提供。<br/>
+原文连接:https://www.cnblogs.com/mufeng3421/p/11442412.html</div><br>
+    <p>提示：如果只看如何解决问题，请看文章的末尾如何解决这个问题<br />
+<a name="4EROw"></a></p>
+<h2 id="场景描述">1. 场景描述</h2>
+<p>最近项目中使用了feign当做http请求工具来使用、相对于httpclient、resttemplate来说，fegin用起来方便很多。然后项目有httptrace的需求，需要输出请求日志。所以就开启了feign自己的日志，发现它自带的日志是debug级别才能打印。而且是逐行打印的，看日志非常的不方便。所以需要输出json格式的日志最好。</p>
+<p><a name="a6197b8b"></a></p>
+<h2 id="解决步骤">2.解决步骤</h2>
+<p><a name="2b70d0cd"></a></p>
+<h3 id="引入feign依赖">2.1 引入feign依赖</h3>
+<pre><code><code>&lt;dependency&gt;
+  &lt;groupId&gt;org.springframework.cloud&lt;/groupId&gt;
+  &lt;artifactId&gt;spring-cloud-starter-openfeign&lt;/artifactId&gt;
+&lt;/dependency&gt;
+
+&lt;dependencyManagement&gt;
+  &lt;dependencies&gt;
+    &lt;dependency&gt;
+      &lt;groupId&gt;org.springframework.cloud&lt;/groupId&gt;
+      &lt;artifactId&gt;spring-cloud-dependencies&lt;/artifactId&gt;
+      &lt;version&gt;${自行选择适合项目的版本}&lt;/version&gt;
+      &lt;type&gt;pom&lt;/type&gt;
+      &lt;scope&gt;import&lt;/scope&gt;
+    &lt;/dependency&gt;
+  &lt;/dependencies&gt;
+&lt;/dependencyManagement&gt;</code></code></pre>
+<p>这里使用了spring-cloud-openfeing来避免自己手工实现feign的注入，用法上和feign一样</p>
+<p><a name="tDSqd"></a></p>
+<h3 id="配置feign">2.2 配置feign</h3>
+<p>在入口类上添加 <code>@EnableFeignClients</code> 注解</p>
+<pre class="java"><code>@SpringBootApplication
+@EnableFeignClients
+public class Application {
+
+    public static void main(String[] args) {
+        SpringApplication.run(Application.class, args);
+    }
+
+}</code></code></pre>
+<p>使用feing自己的Contract，方便使用feign自己的注解来声明http接口。这里使用了一个配置类</p>
+<pre class="java"><code>@Configuration
+public class FeignConfig {
+    @Bean
+    public Contract feignContract() {
+        return new feign.Contract.Default();
+    }
+}</code></code></pre>
+<p><a name="B3g01"></a></p>
+<h3 id="声明接口">2.3 声明接口</h3>
+<p>只需要声明一个带有@FeignClient注解的接口，就声明好了一个Feign的http请求接口</p>
+<pre class="java"><code>@FeignClient(name = &quot;accessPlatform&quot;, url = &quot;${url.access-platform}&quot;)
+public interface AccessPlatformFeignClient {
+    @RequestLine(&quot;GET /access-platform/resource&quot;)
+    List&lt;AccessResource&gt; queryResourceList(@QueryMap Map&lt;String, Object&gt; query);
+}
+</code></code></pre>
+<p><a name="Nzoud"></a></p>
+<h2 id="切换feign的客户端为okhttp">3.切换Feign的客户端为OkHttp</h2>
+<blockquote>
+<p>由于feign自带的http客户端实现是HttpURLConnection，没有连接池功能，可配置能力也比较差，因此我们使用okhttp作为底层的http客户端的具体实现。</p>
+</blockquote>
+<p><a name="3bPKi"></a></p>
+<h3 id="引入okhttp的依赖">3.1 引入okhttp的依赖</h3>
+<pre><code><code> &lt;dependency&gt;
+    &lt;groupId&gt;io.github.openfeign&lt;/groupId&gt;
+    &lt;artifactId&gt;feign-okhttp&lt;/artifactId&gt;
+    &lt;version&gt;${feign-okhttp.version}&lt;/version&gt;
+&lt;/dependency&gt;</code></code></pre>
+<p><a name="gCZYA"></a></p>
+<h3 id="修改之前的feignconfig配置类">3.2 修改之前的FeignConfig配置类</h3>
+<p>问题就出在这里、不过先不急，我们继续</p>
+<pre class="java"><code>@Configuration
+@ConditionalOnClass(Feign.class)
+@AutoConfigureBefore(FeignAutoConfiguration.class)
+public class FeignConfig {
+    // 注入feignContract
+    @Bean
+    public Contract feignContract() {
+        return new feign.Contract.Default();
+    }
+    
+    // 注入自定义的okHttpClient
+    @Bean
+    public okhttp3.OkHttpClient okHttpClient(){
+        return new okhttp3.OkHttpClient.Builder()
+            .readTimeout(60, TimeUnit.SECONDS)
+            .connectTimeout(60, TimeUnit.SECONDS) 
+            .writeTimeout(120, TimeUnit.SECONDS) 
+            .connectionPool(new ConnectionPool())
+            .build();
+    }
+}</code></code></pre>
+<p>开启okhttp作为feign的客户端</p>
+<pre class="yaml"><code># application.yml
+feign:
+    okhttp:
+        enabled: true</code></code></pre>
+<p>一切完美、网上的许多博客也都是这么写的。然后它们告诉你已经配置完了？呵呵，你们到底自己试过没有？？</p>
+<p><a name="b8iQA"></a></p>
+<h3 id="试着请求一下">3.3 试着请求一下</h3>
+<p>当然这里出问题了，发出的请求并非来自okhttp，还是默认的JDK的HttpURLConnection，问题出在哪里呢？接着看</p>
+<p><a name="VHP0U"></a></p>
+<h2 id="找出问题所在">4.找出问题所在</h2>
+<p>我怀疑是feing在注入配置的时候，根本就没有运行关于okhttp的配置<br />
+<a name="wFmQb"></a></p>
+<h3 id="查看服务启动时feign配置过程">4.1 查看服务启动时feign配置过程</h3>
+<p>1.将服务根日志级别调整为debug级别</p>
+<pre class="yaml"><code>logging:
+    level:
+        root: debug</code></code></pre>
+<p>2.启动服务、查看控制台输出<br />
+<br /><br />
+<img src="./images/Feign切换client到okhttp无法生效天坑！(附带发生的原因)0.png" alt="控制台输出" /><br />
+<br /><br />
+看到没，okhttp的配置不符合配置运行条件。</p>
+<p>3.查询 <code>FeignAutoConfiguration</code> 这个配置类的细节</p>
+<pre class="java"><code>@Configuration
+@ConditionalOnClass({Feign.class})
+@EnableConfigurationProperties({FeignClientProperties.class, FeignHttpClientProperties.class})
+public class FeignAutoConfiguration {
+        // .....其他的配置
+    @Configuration
+    @ConditionalOnClass({OkHttpClient.class})
+    @ConditionalOnMissingClass({&quot;com.netflix.loadbalancer.ILoadBalancer&quot;})
+    @ConditionalOnMissingBean({okhttp3.OkHttpClient.class})
+    @ConditionalOnProperty({&quot;feign.okhttp.enabled&quot;})
+    protected static class OkHttpFeignConfiguration {
+       // ...okhttp的配置
+    }
+  
+    // .....其他的配置
+}</code></code></pre>
+<p>就是这个自动配置类搞的鬼、当我看到 <code>@ConditionalOnMissingBean({okhttp3.OkHttpClient.class})</code> 这个注解时，我就明白了。<br />翻成白话就是，只有当容器中没有OkHttpClient的实例时。他才会运行。如果在 FeignAutoConfiguration之前注入了我们自己定义的OkHttpClient实例，那不好意思，我不干了？无不注入。</p>
+<p><a name="Nx9Ty"></a></p>
+<h2 id="解决问题">5.解决问题</h2>
+<p>既然自动配置不干，那我们自己动手干。拷贝 <code>FeignAutoConfiguration</code> 配置类中的配置过程，粘贴在FeignConfig配置类中手动注入feign的client。Ok！完美解决。</p>
+<pre class="java"><code>@Configuration
+@ConditionalOnClass(Feign.class)
+@AutoConfigureAfter(FeignAutoConfiguration.class)
+public class FeignConfig {
+//    private okhttp3.OkHttpClient okHttpClient;
+
+    @Bean
+    public Contract feignContract() {
+        return new feign.Contract.Default();
+    }
+
+
+    @Bean
+    @ConditionalOnMissingBean({Client.class})
+    public Client feignClient(okhttp3.OkHttpClient client) {
+        return new feign.okhttp.OkHttpClient(client);
+    }
+
+    @Bean
+    @ConditionalOnMissingBean({ConnectionPool.class})
+    public ConnectionPool httpClientConnectionPool(FeignHttpClientProperties httpClientProperties, OkHttpClientConnectionPoolFactory connectionPoolFactory) {
+        Integer maxTotalConnections = httpClientProperties.getMaxConnections();
+        Long timeToLive = httpClientProperties.getTimeToLive();
+        TimeUnit ttlUnit = httpClientProperties.getTimeToLiveUnit();
+        return connectionPoolFactory.create(maxTotalConnections, timeToLive, ttlUnit);
+    }
+
+    @Bean
+    public OkHttpClient client(OkHttpClientFactory httpClientFactory, ConnectionPool connectionPool, FeignHttpClientProperties httpClientProperties) {
+        Boolean followRedirects = httpClientProperties.isFollowRedirects();
+        Integer connectTimeout = httpClientProperties.getConnectionTimeout();
+        Boolean disableSslValidation = httpClientProperties.isDisableSslValidation();
+        return httpClientFactory.createBuilder(disableSslValidation)
+                .connectTimeout((long)connectTimeout, TimeUnit.MILLISECONDS)
+                .followRedirects(followRedirects)
+                .connectionPool(connectionPool)
+                .addInterceptor(new OkHttpLogInterceptor()) // 自定义请求日志拦截器
+                .build();
+    }
+}</code></code></pre>
+<p><a name="CHqZ1"></a></p>
+<h2 id="小结">6.小结</h2>
+<p>如果你没有耐心看完所有的过程的话。就记住一句话：用自己手动注入Feign的Client实现，来代替 Feign的自动配置所做的过程就好了。具体的配置请看第5点</p>
+
+
+</div><hr><script charset='utf-8' src='../../js/sming.js'></script></body></html>

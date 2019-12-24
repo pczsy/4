@@ -1,0 +1,94 @@
+<html><head><meta charset='utf-8'><meta name='viewport' content='width=device-width, initial-scale=1'>
+<meta name='applicable-device' content='pc'><meta name='keywords' content='电脑,电脑讲解,电脑技术,编程,电脑故障维修Hibernate入门教程(二)：Hibernate核心API' />
+<script src='../../highlight/highlight.pack.js'></script>
+<link rel='stylesheet' type='text/css' href='../../highlight/styles/monokai.css'/>
+
+<link rel='stylesheet' href='../../fenxiang/dist/css/share.min.css'>
+<script src='../../fenxiang/src/js/social-share.js'></script>
+<script src='../../fenxiang/src/js/qrcode.js'></script>
+
+</head><body><script>hljs.initHighlightingOnLoad();</script><script>
+var system ={};  
+var p = navigator.platform;       
+system.win = p.indexOf('Win') == 0;  
+system.mac = p.indexOf('Mac') == 0;  
+system.x11 = (p == 'X11') || (p.indexOf('Linux') == 0);     
+if(system.win||system.mac||system.xll){
+document.write("<link href='../css/3.css' rel='stylesheet' type='text/css'>");}else{ document.write("<link href='../css/3wap.css' rel='stylesheet' type='text/css'>");}</script><script src='../../js/3.js'></script><div class='div2'><div class='heading_nav'><ul><div><li><a href='../../index.html'>首页</a></li>
+</div><div onclick='hidden1()' >分享</div>
+</ul></div></div>
+<div id='heading_nav2'> 
+<li class='row' >
+<div class='social-share' data-mode='prepend'><a href='javascript:' class='social-share-icon icon-heart'></a></div></li></div><script charset='utf-8' src='../../3/js/hengfu.js'></script><script charset='utf-8' src='../../3/js/hengfu2.js'></script><hr><div class='div1'><div class='biaoti'><center>Hibernate入门教程(二)：Hibernate核心API</center></div><div class='banquan'>原文出处:本文由博客园博主青春-无悔提供。<br/>
+原文连接:https://www.cnblogs.com/qc-wh/p/11636040.html</div><br>
+    <h1>1.Configuraction</h1>
+<src class="cnblogs_code">
+<pre><code>onfiguration configuration = <span style="color: #0000ff;">new</span><span style="color: #000000;"> Configuration();
+configuration.configure();</span></code></pre>
+
+<p>到src下面找到名称hibernate.cfg.xml配置文件，创建对象，把配置文件放到对象里面(加载核心配置文件)</p>
+<h1>2.SessionFactory(重点)</h1>
+<h2>2.1使用configuration创建SessionFactory对象</h2>
+<h3>2.1.1创建SessionFactory过程中做的事情:</h3>
+<p>　　　根据核心配置文件中，有数据库部分，有映射文件部分，到数据库里面根据映射关系把表创建(需要此代码)</p>
+<src class="cnblogs_code">
+<pre><code>&lt;property name="hibernate.hbm2ddl.auto"&gt;create&lt;/property&gt;</code></pre>
+
+<h2>2.2使用SessionFactory过程中，这个过程特别消耗资源的</h2>
+<h3>2.2.1在Hibernate操作中建议一个项目一般创建一个SessionFactory对象</h3>
+<h3>2.2.2具体简单实现</h3>
+<p>(1)编写工具类，使用静态代码实现：静态代码块在类加载时候执行，只执行一次</p>
+<src class="cnblogs_code">
+<pre><code><span style="color: #0000ff;">package</span><span style="color: #000000;"> com.sve.Test;
+
+</span><span style="color: #0000ff;">import</span><span style="color: #000000;"> org.hibernate.SessionFactory;
+</span><span style="color: #0000ff;">import</span><span style="color: #000000;"> org.hibernate.cfg.Configuration;
+
+</span><span style="color: #0000ff;">public</span> <span style="color: #0000ff;">class</span><span style="color: #000000;"> HibernateUtils {
+    </span><span style="color: #0000ff;">static</span> Configuration fig =<span style="color: #0000ff;">null</span><span style="color: #000000;">;
+    </span><span style="color: #0000ff;">static</span> SessionFactory factory =<span style="color: #0000ff;">null</span><span style="color: #000000;">;
+    
+</span><span style="color: #008000;">//</span><span style="color: #008000;">    静态代码块实现</span>
+    <span style="color: #0000ff;">static</span><span style="color: #000000;">{
+</span><span style="color: #008000;">//</span><span style="color: #008000;">        加载核心配置文件</span>
+        fig=<span style="color: #0000ff;">new</span><span style="color: #000000;"> Configuration();
+        fig.configure();
+        factory</span>=<span style="color: #000000;">fig.buildSessionFactory();
+    }
+    
+</span><span style="color: #008000;">//</span><span style="color: #008000;">    提供方法返回SessionFactory</span>
+    <span style="color: #0000ff;">public</span> <span style="color: #0000ff;">static</span><span style="color: #000000;"> SessionFactory getSessionFactory(){
+        </span><span style="color: #0000ff;">return</span><span style="color: #000000;"> factory;
+    }
+}</span></code></pre>
+
+<p>修改test.java</p>
+<p><img src="./images/Hibernate入门教程(二)：Hibernate核心API0.png" alt="" /></p>
+<src class="cnblogs_code">
+<pre><code>SessionFactory factory=HibernateUtils.getSessionFactory();</code></pre>
+
+<p>运行</p>
+<h1>&nbsp;3.Session(重点)</h1>
+<h2>3.1session类似jdbc中connection</h2>
+<h2>3.2调用session里面不同的方法实现crud操作</h2>
+<p>1）添加save方法</p>
+<p>2）修改update方法</p>
+<p>3）删除delete方法</p>
+<p>4）根据 id 查询get方法</p>
+<h2>3.3session对象单线程对象:session对象不能共用，只能自己使用</h2>
+<h1>4.Transaction</h1>
+<h2>1.事务对象</h2>
+<src class="cnblogs_code">
+<pre><code>Transaction transaction = session.getTransaction();</code></pre>
+
+<h2>2.事务提交和回滚方法</h2>
+<src class="cnblogs_code">
+<pre><code><span style="color: #008000;">//</span><span style="color: #008000;">提交事务</span>
+<span style="color: #000000;">transaction.commit();
+</span><span style="color: #008000;">//</span><span style="color: #008000;">回滚事务</span>
+transaction.rollback();</code></pre>
+
+<h2>3.事务概念</h2>
+<p>1）事务4个特性：原子性，一致性，隔离性，持久性</p>
+
+</div><hr><script charset='utf-8' src='../../js/sming.js'></script></body></html>

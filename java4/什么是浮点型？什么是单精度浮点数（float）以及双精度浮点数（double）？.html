@@ -1,0 +1,97 @@
+<html><head><meta charset='utf-8'><meta name='viewport' content='width=device-width, initial-scale=1'>
+<meta name='applicable-device' content='pc'><meta name='keywords' content='电脑,电脑讲解,电脑技术,编程,电脑故障维修什么是浮点型？什么是单精度浮点数（float）以及双精度浮点数（double）？' />
+<script src='../../highlight/highlight.pack.js'></script>
+<link rel='stylesheet' type='text/css' href='../../highlight/styles/monokai.css'/>
+
+<link rel='stylesheet' href='../../fenxiang/dist/css/share.min.css'>
+<script src='../../fenxiang/src/js/social-share.js'></script>
+<script src='../../fenxiang/src/js/qrcode.js'></script>
+
+</head><body><script>hljs.initHighlightingOnLoad();</script><script>
+var system ={};  
+var p = navigator.platform;       
+system.win = p.indexOf('Win') == 0;  
+system.mac = p.indexOf('Mac') == 0;  
+system.x11 = (p == 'X11') || (p.indexOf('Linux') == 0);     
+if(system.win||system.mac||system.xll){
+document.write("<link href='../css/3.css' rel='stylesheet' type='text/css'>");}else{ document.write("<link href='../css/3wap.css' rel='stylesheet' type='text/css'>");}</script><script src='../../js/3.js'></script><div class='div2'><div class='heading_nav'><ul><div><li><a href='../../index.html'>首页</a></li>
+</div><div onclick='hidden1()' >分享</div>
+</ul></div></div>
+<div id='heading_nav2'> 
+<li class='row' >
+<div class='social-share' data-mode='prepend'><a href='javascript:' class='social-share-icon icon-heart'></a></div></li></div><script charset='utf-8' src='../../3/js/hengfu.js'></script><script charset='utf-8' src='../../3/js/hengfu2.js'></script><hr><div class='div1'><div class='biaoti'><center>什么是浮点型？什么是单精度浮点数（float）以及双精度浮点数（double）？</center></div><div class='banquan'>原文出处:本文由博客园博主宜春提供。<br/>
+原文连接:https://www.cnblogs.com/yichunguo/p/11817440.html</div><br>
+    <h2 id="前言">前言</h2>
+<p>作为一名java学习者，怎能不懂这些java基础中的基础呢？本文就带各位温顾温顾java浮点型、单精度浮点数、双精度浮点数。</p>
+<h2 id="浮点型">浮点型</h2>
+<blockquote>
+<p>首先明确java中浮点型数据类型主要有：单精度<code>float</code>、双精度<code>double</code><br />
+<p> </p></p>
+<p>至于<strong>浮点型</strong>就是跟<code>int</code> ，<code>string</code>类型差不多。都是<strong>数据类型</strong>。</p>
+</blockquote>
+<p>浮点型浮点型别给我整些花里胡哨的定义，<font color=red>浮点型简单来说就是表示带有小数的数据</font>，而恰恰小数点可以在相应的二进制的不同位置浮动，可能是这样就被定义成浮点型了。~不得不佩服这文化程度，定义个数据名称都这么有深度~</p>
+<p>浮点型常量 Java的实常数有两种表示形式：</p>
+<blockquote>
+<p>1、 十进制数形式：由数字和小数点组成,且必须有小数点,如<code>0.123</code> , <code>123.0</code></p>
+</blockquote>
+<blockquote>
+<p>2、科学计数法形式：如:<code>123e3</code>或<code>123E3</code>,其中<code>e</code>或<code>E</code>之前必须有数字,且e或E后面的指数必须为<strong>整数</strong>（当然也包括负整数）。</p>
+</blockquote>
+<h2 id="科学计数法中的e">科学计数法中的E</h2>
+<p>了解浮点型常量 Java的实常数有两种表示形式之后，很有必要给各位科普科普下科学计数法中<code>E</code>的面貌了~</p>
+<blockquote>
+<p><code>E</code>是指数的意思，<code>E</code>代表的英文是<code>exponent</code><strong>，<code>E</code>表示10的多少次方的意思</strong>。<br />
+<p> </p></p>
+<p>比如<code>7.823E5 = 782300</code> 这里<code>E5</code>表示10的5次方，再比如<code>54.3E-2 = 0.543</code>这里<code>E-2</code>表示10的-2次方</p>
+</blockquote>
+<p>再补充一点（<strong>针对负次方理解</strong>）</p>
+<blockquote>
+<p><font color=red>一个数的负几次方就是这个数的几次方的倒数</font>。<br />
+<p> </p></p>
+<p>比如： 2的负1次方＝2的1次方分之一＝<code>1/2</code><br />
+<p> </p></p>
+<p>比如： 3的负2次方＝3的2次方分之一＝<code>1/9</code></p>
+</blockquote>
+<h2 id="单精度浮点数float">单精度浮点数（float）</h2>
+<blockquote>
+<p>单精度浮点数在机内占<code>4</code>个字节、有效数字<code>8</code>位、表示范围：<code>-3.40E+38 ~ +3.40E+38</code></p>
+</blockquote>
+<p>在Java语言当中，所有的浮点型字面值 ~【V8提示】浮点型简单来说就是表示带有小数的数据~ 默认当做<code>double</code>类型来处理，要想该字面值当做<code>float</code>类型来处理，需要在字面值后面添加<code>F/f</code>,或者强制装换为<code>float</code>。具体如下代码：</p>
+<pre><code><code> public static void main(String[] args) {
+   //3.10是浮点型，浮点型字面值默认当做double类型来处理，直接编译通过；
+      double d=3.10;
+   //3.10是浮点型，则必须加 F或者f，若没加，直接编译不通过，会报错“损失精度”   
+      float f=3.10;  //编译出错会报错“损失精度”
+     //   解决办法：
+     //   第一种方式：强制类型转换
+        float f1=（float）5.1；
+     //   第二种方式：没有类型转换；
+        folat f2=5.1f;
+    }</code></code></pre>
+<p>再来看看下面的测试，结果肯定十之八九会在意料之外，哈哈~</p>
+<pre><code><code> public static void main(String[] args) {
+        float a = 12345678.90123456789f;
+        double b=0.12345678901234567890;
+        float c=0.12345678901234567890f;
+     
+        System.out.println(a);
+        System.out.println(b);
+        System.out.println(c);
+        
+        打印结果
+        a = 1.2345679E7
+        b = 0.12345678901234568
+        c = 0.12345679
+    }</code></code></pre>
+<h2 id="双精度浮点数double">双精度浮点数（double）</h2>
+<blockquote>
+<p>双精度浮点数在机内占<code>8</code>个字节、有效数字<code>16</code>位、表示范围：<code>-1.79E+308 ~ +1.79E+308</code></p>
+</blockquote>
+<p><code>double</code>的精度太低，不适合用于做财务软件，财务涉及到钱的问题，要求精度较高，所以在java中有一个基础的类库名为：<code>java.math.BigDecimal</code>，但这个<code>BigDecimal</code><font color=red>类型是<strong>引用类型</strong>不是基础类型</font>，切记！！！</p>
+<p>在讲单精度浮点数（<code>float</code>）的时候，差不多顺道把<code>double</code>之间的区别讲了哈哈，所以最后给张很经典的图片“敷衍敷衍”下，哈哈哈 ~哎哎哎..别打...别打...别打脸QAQ~<br />
+<img src="./images/什么是浮点型？什么是单精度浮点数（float）以及双精度浮点数（double）？0.png" alt="在这里插入图片描述" /><br />
+想深入了解浮点数在计算机中存储方式可以参考这篇文章<br />
+<a href="https://www.cnblogs.com/jillzhang/archive/2007/06/24/793901.html">浮点数在计算机中存储方式</a></p>
+
+
+</div><hr><script charset='utf-8' src='../../js/sming.js'></script></body></html>

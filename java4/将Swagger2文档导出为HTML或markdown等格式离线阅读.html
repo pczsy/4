@@ -1,0 +1,147 @@
+<html><head><meta charset='utf-8'><meta name='viewport' content='width=device-width, initial-scale=1'>
+<meta name='applicable-device' content='pc'><meta name='keywords' content='电脑,电脑讲解,电脑技术,编程,电脑故障维修将Swagger2文档导出为HTML或markdown等格式离线阅读' />
+<script src='../../highlight/highlight.pack.js'></script>
+<link rel='stylesheet' type='text/css' href='../../highlight/styles/monokai.css'/>
+
+<link rel='stylesheet' href='../../fenxiang/dist/css/share.min.css'>
+<script src='../../fenxiang/src/js/social-share.js'></script>
+<script src='../../fenxiang/src/js/qrcode.js'></script>
+
+</head><body><script>hljs.initHighlightingOnLoad();</script><script>
+var system ={};  
+var p = navigator.platform;       
+system.win = p.indexOf('Win') == 0;  
+system.mac = p.indexOf('Mac') == 0;  
+system.x11 = (p == 'X11') || (p.indexOf('Linux') == 0);     
+if(system.win||system.mac||system.xll){
+document.write("<link href='../css/3.css' rel='stylesheet' type='text/css'>");}else{ document.write("<link href='../css/3wap.css' rel='stylesheet' type='text/css'>");}</script><script src='../../js/3.js'></script><div class='div2'><div class='heading_nav'><ul><div><li><a href='../../index.html'>首页</a></li>
+</div><div onclick='hidden1()' >分享</div>
+</ul></div></div>
+<div id='heading_nav2'> 
+<li class='row' >
+<div class='social-share' data-mode='prepend'><a href='javascript:' class='social-share-icon icon-heart'></a></div></li></div><script charset='utf-8' src='../../3/js/hengfu.js'></script><script charset='utf-8' src='../../3/js/hengfu2.js'></script><hr><div class='div1'><div class='biaoti'><center>将Swagger2文档导出为HTML或markdown等格式离线阅读</center></div><div class='banquan'>原文出处:本文由博客园博主字母哥博客提供。<br/>
+原文连接:https://www.cnblogs.com/zimug/p/11933051.html</div><br>
+    <p><img src="./images/将Swagger2文档导出为HTML或markdown等格式离线阅读0.png" alt="file" /></p>
+<p>网上有很多《使用swagger2构建API文档》的文章，该文档是一个在线文档，需要使用HTTP访问。但是在我们日常使用swagger接口文档的时候，有的时候需要接口文档离线访问，如将文档导出为html、markdown格式。又或者我们不希望应用系统与swagger接口文档使用同一个服务，而是导出HTML之后单独部署，这样做保证了对接口文档的访问不影响业务系统，也一定程度提高了接口文档的安全性。核心的实现过程就是：</p>
+<ul>
+<li>在swagger2接口文档所在的应用内，利用swagger2markup将接口文档导出为adoc文件，也可以导出markdown文件。</li>
+<li>然后将adoc文件转换为静态的html格式，可以将html发布到nginx或者其他的web应用容器，提供访问（本文不会讲html静态部署，只讲HTML导出)。</li>
+</ul>
+<blockquote>
+<p>注意：adoc是一种文件格式，不是我的笔误。不是doc文件也不是docx文件。</p>
+</blockquote>
+<h2 id="一maven依赖类库">一、maven依赖类库</h2>
+<p>在已经集成了swagger2的应用内，通过maven坐标引入相关依赖类库,pom.xml代码如下：</p>
+<pre><code><code>&lt;dependency&gt;
+    &lt;groupId&gt;io.github.swagger2markup&lt;/groupId&gt;
+    &lt;artifactId&gt;swagger2markup&lt;/artifactId&gt;
+    &lt;version&gt;1.3.1&lt;/version&gt;
+&lt;/dependency&gt;
+&lt;dependency&gt;
+    &lt;groupId&gt;io.swagger&lt;/groupId&gt;
+    &lt;artifactId&gt;swagger-core&lt;/artifactId&gt;
+    &lt;version&gt;1.5.16&lt;/version&gt;
+&lt;/dependency&gt;
+&lt;dependency&gt;
+    &lt;groupId&gt;io.swagger&lt;/groupId&gt;
+    &lt;artifactId&gt;swagger-models&lt;/artifactId&gt;
+    &lt;version&gt;1.5.16&lt;/version&gt;
+&lt;/dependency&gt;</code></code></pre>
+<p>swagger2markup用于将swagger2在线接口文档导出为html,markdown,adoc等格式文档，用于静态部署或离线阅读。其中第一个maven坐标是必须的。后两个maven坐标，当你在执行后面的代码过程中报下图中的ERROR，或者有的类无法import的时候使用。</p>
+<p><img src="./images/将Swagger2文档导出为HTML或markdown等格式离线阅读1.png" alt="file" /></p>
+<p>产生异常的原因已经有人在github的issues上给出解释了：当你使用swagger-core版本大于等于1.5.11,并且swagger-models版本小于1.5.11就会有异常发生。所以我们显式的引入这两个jar，替换掉swagger2默认引入的这两个jar。</p>
+<p><img src="./images/将Swagger2文档导出为HTML或markdown等格式离线阅读2.png" alt="file" /></p>
+<h2 id="二生成adoc格式文件">二、生成adoc格式文件</h2>
+<p>下面的代码是通过编码方式实现的生成adoc格式文件的方式</p>
+<pre class="java"><code>@RunWith(SpringRunner.class)
+@SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.DEFINED_PORT)
+public class DemoApplicationTests {
+    @Test
+    public void generateAsciiDocs() throws Exception {
+        //    输出Ascii格式
+        Swagger2MarkupConfig config = new Swagger2MarkupConfigBuilder()
+                .withMarkupLanguage(MarkupLanguage.ASCIIDOC) //设置生成格式
+                .withOutputLanguage(Language.ZH)  //设置语言中文还是其他语言
+                .withPathsGroupedBy(GroupBy.TAGS)
+                .withGeneratedExamples()
+                .withoutInlineSchema()
+                .build();
+
+        Swagger2MarkupConverter.from(new URL(&quot;http://localhost:8888/v2/api-docs&quot;))
+                .withConfig(config)
+                .build()
+                .toFile(Paths.get(&quot;src/main/resources/docs/asciidoc&quot;));
+    }
+}</code></code></pre>
+<ul>
+<li>使用RunWith注解和SpringBootTest注解，启动应用服务容器。 SpringBootTest.WebEnvironment.DEFINED_PORT表示使用application.yml定义的端口，而不是随机使用一个端口进行测试，这很重要。</li>
+<li>Swagger2MarkupConfig 是输出文件的配置，如文件的格式和文件中的自然语言等</li>
+<li>Swagger2MarkupConverter的from表示哪一个HTTP服务作为资源导出的源头(JSON格式)，可以自己访问试一下这个链接。8888是我的服务端口，需要根据你自己的应用配置修改。</li>
+<li>toFile表示将导出文件存放的位置，不用加后缀名。也可以使用toFolder表示文件导出存放的路径。二者区别在于使用toFolder导出为文件目录下按标签TAGS分类的多个文件，使用toFile是导出一个文件（toFolder多个文件的合集）。</li>
+</ul>
+<pre><code><code>@Test
+public void generateMarkdownDocsToFile() throws Exception {
+    //    输出Markdown到单文件
+    Swagger2MarkupConfig config = new Swagger2MarkupConfigBuilder()
+            .withMarkupLanguage(MarkupLanguage.MARKDOWN)
+            .withOutputLanguage(Language.ZH)
+            .withPathsGroupedBy(GroupBy.TAGS)
+            .withGeneratedExamples()
+            .withoutInlineSchema()
+            .build();
+
+    Swagger2MarkupConverter.from(new URL(&quot;http://localhost:8888/v2/api-docs&quot;))
+            .withConfig(config)
+            .build()
+            .toFile(Paths.get(&quot;src/main/resources/docs/markdown&quot;));
+}</code></code></pre>
+<p>上面的这一段代码是生成markdown格式接口文件的代码。执行上面的2段单元测试代码，就可以生产对应格式的接口文件。</p>
+<p>还有一种方式是通过maven插件的方式，生成adoc和markdown格式的接口文件。笔者不常使用这种方式，没有使用代码生成的方式配置灵活，很多配置都放到pom.xml感觉很臃肿。但还是介绍一下,首先配置maven插件swagger2markup-maven-plugin。</p>
+<pre><code><code>&lt;plugin&gt;
+    &lt;groupId&gt;io.github.swagger2markup&lt;/groupId&gt;
+    &lt;artifactId&gt;swagger2markup-maven-plugin&lt;/artifactId&gt;
+    &lt;version&gt;1.3.1&lt;/version&gt;
+    &lt;configuration&gt;
+        &lt;swaggerInput&gt;http://localhost:8888/v2/api-docs&lt;/swaggerInput&gt;&lt;!---swagger-api-json路径--&gt;
+        &lt;outputDir&gt;src/main/resources/docs/asciidoc&lt;/outputDir&gt;&lt;!---生成路径--&gt;
+        &lt;config&gt;
+            &lt;swagger2markup.markupLanguage&gt;ASCIIDOC&lt;/swagger2markup.markupLanguage&gt;&lt;!--生成格式--&gt;
+        &lt;/config&gt;
+    &lt;/configuration&gt;
+&lt;/plugin&gt;</code></code></pre>
+<p>然后运行插件就可以了，如下图：</p>
+<p><img src="./images/将Swagger2文档导出为HTML或markdown等格式离线阅读3.png" alt="file" /></p>
+<h2 id="三通过maven插件生成html文档">三、通过maven插件生成HTML文档</h2>
+<pre><code><code>&lt;plugin&gt;
+    &lt;groupId&gt;org.asciidoctor&lt;/groupId&gt;
+    &lt;artifactId&gt;asciidoctor-maven-plugin&lt;/artifactId&gt;
+    &lt;version&gt;1.5.6&lt;/version&gt;
+    &lt;configuration&gt;
+         &lt;!--asciidoc文件目录--&gt;
+        &lt;sourceDirectory&gt;src/main/resources/docs&lt;/sourceDirectory&gt;
+        &lt;!---生成html的路径--&gt;
+        &lt;outputDirectory&gt;src/main/resources/html&lt;/outputDirectory&gt;
+        &lt;backend&gt;html&lt;/backend&gt;
+        &lt;sourceHighlighter&gt;coderay&lt;/sourceHighlighter&gt;
+        &lt;attributes&gt;
+            &lt;!--导航栏在左--&gt;
+            &lt;toc&gt;left&lt;/toc&gt;
+            &lt;!--显示层级数--&gt;
+            &lt;!--&lt;toclevels&gt;3&lt;/toclevels&gt;--&gt;
+            &lt;!--自动打数字序号--&gt;
+            &lt;sectnums&gt;true&lt;/sectnums&gt;
+        &lt;/attributes&gt;
+    &lt;/configuration&gt;
+&lt;/plugin&gt;</code></code></pre>
+<p>adoc的sourceDirectory路径必须和第三小节中生成的adoc文件路径一致。然后按照下图方式运行插件。</p>
+<p><img src="./images/将Swagger2文档导出为HTML或markdown等格式离线阅读4.png" alt="file" /></p>
+<p>HTMl接口文档显示的效果如下，有了HTML接口文档你想转成其他各种格式的文档就太方便了，有很多工具可以使用。这里就不一一介绍了。</p>
+<p><img src="./images/将Swagger2文档导出为HTML或markdown等格式离线阅读5.png" alt="file" /></p>
+<h2 id="期待您的关注">期待您的关注</h2>
+<ul>
+<li>向您推荐博主的系列文档：<a href="http://springboot.zimug.com">《手摸手教您学习SpringBoot系列-16章97节》</a></li>
+<li>本文转载注明出处（必须带连接，不能只转文字）：<a href="http://www.zimug.com">字母哥博客</a>。</li>
+</ul>
+
+
+</div><hr><script charset='utf-8' src='../../js/sming.js'></script></body></html>

@@ -1,0 +1,52 @@
+<html><head><meta charset='utf-8'><meta name='viewport' content='width=device-width, initial-scale=1'>
+<meta name='applicable-device' content='pc'><meta name='keywords' content='电脑,电脑讲解,电脑技术,编程,电脑故障维修Mac安装Redis' />
+<script src='../../highlight/highlight.pack.js'></script>
+<link rel='stylesheet' type='text/css' href='../../highlight/styles/monokai.css'/>
+
+<link rel='stylesheet' href='../../fenxiang/dist/css/share.min.css'>
+<script src='../../fenxiang/src/js/social-share.js'></script>
+<script src='../../fenxiang/src/js/qrcode.js'></script>
+
+</head><body><script>hljs.initHighlightingOnLoad();</script><script>
+var system ={};  
+var p = navigator.platform;       
+system.win = p.indexOf('Win') == 0;  
+system.mac = p.indexOf('Mac') == 0;  
+system.x11 = (p == 'X11') || (p.indexOf('Linux') == 0);     
+if(system.win||system.mac||system.xll){
+document.write("<link href='../css/3.css' rel='stylesheet' type='text/css'>");}else{ document.write("<link href='../css/3wap.css' rel='stylesheet' type='text/css'>");}</script><script src='../../js/3.js'></script><div class='div2'><div class='heading_nav'><ul><div><li><a href='../../index.html'>首页</a></li>
+</div><div onclick='hidden1()' >分享</div>
+</ul></div></div>
+<div id='heading_nav2'> 
+<li class='row' >
+<div class='social-share' data-mode='prepend'><a href='javascript:' class='social-share-icon icon-heart'></a></div></li></div><script charset='utf-8' src='../../3/js/hengfu.js'></script><script charset='utf-8' src='../../3/js/hengfu2.js'></script><hr><div class='div1'><div class='biaoti'><center>Mac安装Redis</center></div><div class='banquan'>原文出处:本文由博客园博主Coder小明提供。<br/>
+原文连接:https://www.cnblogs.com/coderxx/p/11908924.html</div><br>
+    <h2 id="安装homebrew">安装Homebrew</h2>
+<p>如果已经安装可以忽略，没有安装的请查看小明之前写好的文章 <a href="https://mp.weixin.qq.com/s/a454PtDeCtqWykd2uqP0ig">mac安装homebrew</a></p>
+<h2 id="使用homebrew安装redis">使用Homebrew安装Redis</h2>
+<h5 id="安装命令">(1) 安装命令</h5>
+<pre><code><code>brew install redis</code></code></pre>
+<h5 id="查看软件安装及配置文件位置">(2) 查看软件安装及配置文件位置</h5>
+<p>Homebrew安装的软件会默认在<code>/usr/local/Cellar/</code>路径下；</p>
+<p>redis的配置文件<code>redis.conf</code>存放在<code>/usr/local/etc</code>路径下。</p>
+<h5 id="启动redis服务">(3) 启动redis服务</h5>
+<h6 id="方法一">方法一：</h6>
+<p>brew除了可以帮助我们安装软件以外，还可以帮助我们启动软件</p>
+<pre><code><code>brew services start redis</code></code></pre>
+<h6 id="方法二">方法二：</h6>
+<pre><code><code>redis-server /usr/local/etc/redis.conf</code></code></pre>
+<h5 id="查看redis服务进程">(4) 查看redis服务进程</h5>
+<p>我们可以通过下面命令查看redis是否正在运行</p>
+<pre><code><code>ps axu | grep redis</code></code></pre>
+<h5 id="redis-cli连接redis服务">(5) redis-cli连接redis服务</h5>
+<p>redis默认端口号<strong>6379</strong>，默认<strong>auth</strong>为空，输入以下命令即可连接</p>
+<pre><code><code>redis-cli -h 127.0.0.1 -p 6379</code></code></pre>
+<h5 id="关闭redis服务">(6) 关闭redis服务</h5>
+<p>优雅的关闭<code>redis-cli shutdown</code>或者杀死<code>sudo pkill redis-server</code></p>
+<h5 id="redis.conf配置文件说明">(7) redis.conf配置文件说明</h5>
+<p>redis默认是前台启动，如果我们想以守护进程的方式运行（后台运行），可以在<strong>redis.conf</strong>中将<code>daemonize no</code>,修改成<code>yes</code>即可。</p>
+<h3 id="欢迎关注微信公众号获取更多资源">欢迎关注微信公众号，获取更多资源</h3>
+<p><img src="./images/Mac安装Redis0.png" alt="程序员小明" /></p>
+
+
+</div><hr><script charset='utf-8' src='../../js/sming.js'></script></body></html>

@@ -1,0 +1,177 @@
+<html><head><meta charset='utf-8'><meta name='viewport' content='width=device-width, initial-scale=1'>
+<meta name='applicable-device' content='pc'><meta name='keywords' content='电脑,电脑讲解,电脑技术,编程,电脑故障维修springCloud搭建微服务集群+Zuul服务器端负载均衡' />
+<script src='../../highlight/highlight.pack.js'></script>
+<link rel='stylesheet' type='text/css' href='../../highlight/styles/monokai.css'/>
+
+<link rel='stylesheet' href='../../fenxiang/dist/css/share.min.css'>
+<script src='../../fenxiang/src/js/social-share.js'></script>
+<script src='../../fenxiang/src/js/qrcode.js'></script>
+
+</head><body><script>hljs.initHighlightingOnLoad();</script><script>
+var system ={};  
+var p = navigator.platform;       
+system.win = p.indexOf('Win') == 0;  
+system.mac = p.indexOf('Mac') == 0;  
+system.x11 = (p == 'X11') || (p.indexOf('Linux') == 0);     
+if(system.win||system.mac||system.xll){
+document.write("<link href='../css/3.css' rel='stylesheet' type='text/css'>");}else{ document.write("<link href='../css/3wap.css' rel='stylesheet' type='text/css'>");}</script><script src='../../js/3.js'></script><div class='div2'><div class='heading_nav'><ul><div><li><a href='../../index.html'>首页</a></li>
+</div><div onclick='hidden1()' >分享</div>
+</ul></div></div>
+<div id='heading_nav2'> 
+<li class='row' >
+<div class='social-share' data-mode='prepend'><a href='javascript:' class='social-share-icon icon-heart'></a></div></li></div><script charset='utf-8' src='../../3/js/hengfu.js'></script><script charset='utf-8' src='../../3/js/hengfu2.js'></script><hr><div class='div1'><div class='biaoti'><center>springCloud搭建微服务集群+Zuul服务器端负载均衡</center></div><div class='banquan'>原文出处:本文由博客园博主颜色不一样的烟火提供。<br/>
+原文连接:https://www.cnblogs.com/zhouyun-yx/p/12009950.html</div><br>
+    <ul>
+<li><span style="font-size: 18pt;"><strong>概述</strong></span><span style="font-size: 18pt;"><strong><br /></strong><span style="font-size: 18px;">　最近研究了一下springCloud的微服务集群，主要用到了SpringCloud的服务发现和服务器端负载均衡，所有的项目都是用的springboot，<br />可以和springCloud无缝对接。<br /><br /></span></span></li>
+<li><span style="font-size: 18pt;"><span style="font-size: 18px;"><span style="font-size: 18pt;"><strong>技术选型<br /></strong></span><br />服务发现：eureka<br />负载均衡：zuul<br /><br /></span></span></li>
+<li><span style="font-size: 18pt;"><span style="font-size: 18pt;"><span style="font-size: 18pt;"><span style="font-size: 18pt;"><span style="font-size: 18px;"><span style="font-size: 18pt;"><span style="font-size: 18px;"><span style="font-size: 18pt;"><strong>实现<br /></strong><span style="font-size: 18px;">Eureka集群（eurekaServer）：8001、<span style="font-size: 18pt;"><span style="font-size: 18px;"><span style="font-size: 18pt;"><span style="font-size: 18px;"><span style="font-size: 18pt;"><span style="font-size: 18px;">8002、</span></span></span></span></span></span><span style="font-size: 18pt;"><span style="font-size: 18px;"><span style="font-size: 18pt;"><span style="font-size: 18px;"><span style="font-size: 18pt;"><span style="font-size: 18px;">8003<br />服务提供方（<span style="font-size: 18pt;"><span style="font-size: 18px;"><span style="font-size: 18pt;"><span style="font-size: 18px;"><span style="font-size: 18pt;"><span style="font-size: 18px;">eurekaClient</span></span></span></span></span></span>）：9001、9002<br />服务端负载均衡服务：9100<br /></span></span></span></span></span></span><br />1、新建工程eureka服务器，用idea创建springboot项目，引入eureka依赖<br /><img src="./images/springCloud搭建微服务集群+Zuul服务器端负载均衡0.png" alt="" width="496" height="200" /><br />下面是三台服务器的配置文件<br /></span></span></span></span></span></span></span></span></span>
+<src class="cnblogs_Highlighter">
+<pre><code>//第一台
+server:
+  port: 8001
+
+spring:
+  application:
+    name: eureka-server
+
+eureka:
+  server:
+    use-read-only-response-cache: false  #禁用readOnlyMap，分为ReadWriteMap和ReadOnlyMap
+    eviction-interval-timer-in-ms: 3000  #主动失效检测时间
+  instance:
+    hostname: server8001
+  client:
+#    register-with-eureka: false  #false表示不将自己也作为服务注册到eureka
+#    fetch-registry: false
+    service-url:
+      #集群设置，搭建eureka集群,用逗号分隔
+      defaultZone: http://localhost:8002/eureka/,http://localhost:8003/eureka/
+
+//第二台
+server:
+  port: 8002
+
+spring:
+  application:
+    name: eureka-server
+
+eureka:
+  server:
+    use-read-only-response-cache: false
+    eviction-interval-timer-in-ms: 3000
+  instance:
+    hostname: server8002
+  client:
+#    register-with-eureka: false #表示不将自己作为服务注册进eureka
+#    fetch-registry: false
+    service-url:
+      #集群设置，搭建eureka集群,用逗号分隔，defaultZone是map类型，所以没有提示
+      defaultZone: http://localhost:8001/eureka/,http://localhost:8003/eureka/
+
+//第三台
+server:
+  port: 8003
+
+spring:
+  application:
+    name: eureka-server
+
+eureka:
+  server:
+    use-read-only-response-cache: false
+    eviction-interval-timer-in-ms: 3000
+  instance:
+    hostname: server8003
+  client:
+#    register-with-eureka: false #表示不将自己作为服务注册进eureka
+#    fetch-registry: false
+    service-url:
+      #集群设置，搭建eureka集群,用逗号分隔，defaultZone是map类型，所以没有提示
+      defaultZone: http://localhost:8001/eureka/,http://localhost:8002/eureka/
+</code></pre>
+
+在入口处加上EnableEurekaServer注解<br /><img src="./images/springCloud搭建微服务集群+Zuul服务器端负载均衡1.png" alt="" />
+<p>&nbsp;</p>
+&nbsp;<br />2、服务提供者<br />
+<src class="cnblogs_Highlighter">
+<pre><code>//第一台
+server:
+  port: 9001
+
+spring:
+  application:
+    name: eureka-client
+
+eureka:
+  client:
+    service-url:
+      # 指定集群服务器列表
+      defaultZone: http://localhost:8001/eureka/,http://localhost:8002/eureka/,http://localhost:8003/eureka/
+  instance:
+    instance-id: client9001.com
+    prefer-ip-address: true
+    lease-renewal-interval-in-seconds: 5       #发送心跳包服务刷新时间
+    lease-expiration-duration-in-seconds: 15  #服务过期时间
+
+//第二台
+server:
+  port: 9002
+spring:
+  application:
+    name: eureka-client
+
+eureka:
+  client:
+    service-url:
+      # 指定集群服务器列表
+      defaultZone: http://localhost:8001/eureka/
+  instance:
+    instance-id: client9002.com
+    prefer-ip-address: true
+    lease-renewal-interval-in-seconds: 5       #发送心跳包服务刷新时间
+    lease-expiration-duration-in-seconds: 15  #服务过期时间
+</code></pre>
+
+<p>添加EnableEurekaClient注解，并添加api业务测试接口<br /><img src="./images/springCloud搭建微服务集群+Zuul服务器端负载均衡2.png" alt="" /></p>
+<p>&nbsp;</p>
+<p>&nbsp;<br />3、zuul负载均衡服务</p>
+<src class="cnblogs_Highlighter">
+<pre><code>server:
+  port: 9100
+
+spring:
+  application:
+    name: zuul-gateway
+
+eureka:
+  client:
+    service-url:
+      defaultZone: http://localhost:8001/eureka,http://localhost:8002/eureka,http://localhost:8003/eureka
+    registry-fetch-interval-seconds: 5  #拉取服务列表时间
+  instance:
+    instance-id: gateway-9100.com
+    prefer-ip-address: true
+
+zuul:
+  prefix: /gateway
+  ignored-services: eureka-client
+  routes:
+    eureka-client.serviceId: eureka-client
+    eureka-client.path: /client/**
+</code></pre>
+
+<p>&nbsp;依次启动Eureka服务器、服务提供者client，zull服务，访问其中一台Eureka服务器的控制台显示如下<br /><img src="./images/springCloud搭建微服务集群+Zuul服务器端负载均衡3.png" alt="" height="300" /></p>
+<p>&nbsp;</p>
+<p>&nbsp;</p>
+<p><br />&nbsp; <br /><br /></p>
+问题：<br />1）、在配置eureka时，defaultZone是个map类型，不提供检测，所以会发现在配置时没有提示，直接写就行；<br />2）、eurekaServer的hostname起的作用暂不明确，在控制台显示的都是application的name，三台eureka集群和两台服务提供客户端的application.name分别是一样的；<br />3）、eureka服务器的服务清单分为ReadWriteMap和ReadOnlyMap，其他服务读取时是从ReadOnlyMap读取的，当有服务注册时，写入的是ReadWriteMap，然后会同步到<br />ReadOnlyMap，这是为了解决读写锁的问题。当一台服务提供应用宕机之后会发现控制台还是有这台服务器的信息，表示没有将服务下线，服务清单列表没有删除这台<br />服务器的信息，导致zuul在负载均衡时，有时会调用到宕机的那台应用导致返回异常，解决方法是禁用掉eureka服务器的ReadOnlyMap，设置主动失效检测时间，让服务器定时<br />去检测服务，服务提供者设置服务失效时间和发送心跳包的时间，zuul设置拉取服务清单的时间间隔<br />4）、zuul路由设置，设置路径前缀和服务的匹配关系<br /><br /></li>
+<li><span style="font-size: 18pt;"><strong>测试</strong></span><br /><img src="./images/springCloud搭建微服务集群+Zuul服务器端负载均衡4.png" alt="" />
+<p>&nbsp;</p>
+<p>&nbsp;</p>
+<img src="./images/springCloud搭建微服务集群+Zuul服务器端负载均衡5.png" alt="" />
+<p>&nbsp;</p>
+<p>&nbsp;不停刷新页面，会在9001和9002之间切换，证明配置成功，关闭9002应用，刷新页面，刚开始还会出现访问失败，过了一段时间后就稳定了，<br />会有一个时间差，也可以给zuul配置熔断器来进行服务降级或者转发请求到其他正常服务。</p>
+</li>
+</ul>
+
+</div><hr><script charset='utf-8' src='../../js/sming.js'></script></body></html>

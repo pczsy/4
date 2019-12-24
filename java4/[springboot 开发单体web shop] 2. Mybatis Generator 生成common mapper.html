@@ -1,0 +1,301 @@
+<html><head><meta charset='utf-8'><meta name='viewport' content='width=device-width, initial-scale=1'>
+<meta name='applicable-device' content='pc'><meta name='keywords' content='电脑,电脑讲解,电脑技术,编程,电脑故障维修[springboot 开发单体web shop] 2. Mybatis Generator 生成common mapper' />
+<script src='../../highlight/highlight.pack.js'></script>
+<link rel='stylesheet' type='text/css' href='../../highlight/styles/monokai.css'/>
+
+<link rel='stylesheet' href='../../fenxiang/dist/css/share.min.css'>
+<script src='../../fenxiang/src/js/social-share.js'></script>
+<script src='../../fenxiang/src/js/qrcode.js'></script>
+
+</head><body><script>hljs.initHighlightingOnLoad();</script><script>
+var system ={};  
+var p = navigator.platform;       
+system.win = p.indexOf('Win') == 0;  
+system.mac = p.indexOf('Mac') == 0;  
+system.x11 = (p == 'X11') || (p.indexOf('Linux') == 0);     
+if(system.win||system.mac||system.xll){
+document.write("<link href='../css/3.css' rel='stylesheet' type='text/css'>");}else{ document.write("<link href='../css/3wap.css' rel='stylesheet' type='text/css'>");}</script><script src='../../js/3.js'></script><div class='div2'><div class='heading_nav'><ul><div><li><a href='../../index.html'>首页</a></li>
+</div><div onclick='hidden1()' >分享</div>
+</ul></div></div>
+<div id='heading_nav2'> 
+<li class='row' >
+<div class='social-share' data-mode='prepend'><a href='javascript:' class='social-share-icon icon-heart'></a></div></li></div><script charset='utf-8' src='../../3/js/hengfu.js'></script><script charset='utf-8' src='../../3/js/hengfu2.js'></script><hr><div class='div1'><div class='biaoti'><center>[springboot 开发单体web shop] 2. Mybatis Generator 生成common mapper</center></div><div class='banquan'>原文出处:本文由博客园博主IsaacZhang提供。<br/>
+原文连接:https://www.cnblogs.com/zhangpan1244/p/11803023.html</div><br>
+    <h2 id="mybatis-generator-tool">Mybatis Generator tool</h2>
+<hr />
+<p>在我们开启一个新项目的研发后，通常要编写很多的<code>entity/pojo/dto/mapper/dao...</code>, 大多研发兄弟们都会抱怨，为什么我要重复写<code>CRUD</code>? 我们为了避免编写一些不必要的重复代码，这节给大家介绍介绍使用一个开源工具，来帮助我们从这种简单枯燥的编码中解救出来。<br />
+隆重有请： <a href="https://github.com/abel533/Mapper">MyBatis通用Mapper4</a></p>
+<blockquote>
+<p>通用Mapper都可以极大的方便开发人员。可以随意的按照自己的需要选择通用方法，还可以很方便的开发自己的通用方法。<br />
+极其方便的使用<strong>MyBatis单表</strong>的增删改查。<br />
+支持单表操作，不支持通用的多表联合查询。<br />
+通用 Mapper 支持 <strong>Mybatis-3.2.4</strong> 及以上版本。<br />
+<strong>Tips:</strong><br />
+各位技术同仁一定要有版本意识哦～<br />
+Let's code!</p>
+</blockquote>
+<h3 id="create-mybatis-generator-tool-module">Create mybatis-generator-tool Module</h3>
+<p>参考<a href="https://www.cnblogs.com/zhangpan1244/p/11793065.html#4415077">上一节</a>中的Module创建<code>mybatis-generator-tool</code>.</p>
+<hr />
+<ul>
+<li>添加依赖</li>
+</ul>
+<pre><code><code>&lt;?xml version=&quot;1.0&quot; encoding=&quot;UTF-8&quot;?&gt;
+&lt;project xmlns=&quot;http://maven.apache.org/POM/4.0.0&quot;
+         xmlns:xsi=&quot;http://www.w3.org/2001/XMLSchema-instance&quot;
+         xsi:schemaLocation=&quot;http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd&quot;&gt;
+    &lt;parent&gt;
+        &lt;artifactId&gt;expensive-shop&lt;/artifactId&gt;
+        &lt;groupId&gt;com.life-runner&lt;/groupId&gt;
+        &lt;version&gt;1.0-SNAPSHOT&lt;/version&gt;
+    &lt;/parent&gt;
+    &lt;modelVersion&gt;4.0.0&lt;/modelVersion&gt;
+
+    &lt;artifactId&gt;mybatis-generator-tool&lt;/artifactId&gt;
+
+    &lt;properties&gt;
+        &lt;project.build.sourceEncoding&gt;UTF-8&lt;/project.build.sourceEncoding&gt;
+    &lt;/properties&gt;
+
+    &lt;build&gt;
+        &lt;plugins&gt;
+            &lt;!--springboot 构建可执行fat jars必须的插件，如不添加，在生产环境会有问题--&gt;
+            &lt;plugin&gt;
+                &lt;groupId&gt;org.springframework.boot&lt;/groupId&gt;
+                &lt;artifactId&gt;spring-boot-maven-plugin&lt;/artifactId&gt;
+            &lt;/plugin&gt;
+            &lt;plugin&gt;
+                &lt;groupId&gt;org.mybatis.generator&lt;/groupId&gt;
+                &lt;artifactId&gt;mybatis-generator-maven-plugin&lt;/artifactId&gt;
+                &lt;version&gt;1.3.6&lt;/version&gt;
+                &lt;configuration&gt;
+                    &lt;!-- 设置配置文件路径 --&gt;
+                    &lt;configurationFile&gt;
+                        ${basedir}/src/main/resources/generator/generatorConfig.xml
+                    &lt;/configurationFile&gt;
+                    &lt;!--允许覆盖--&gt;
+                    &lt;overwrite&gt;true&lt;/overwrite&gt;
+                    &lt;verbose&gt;true&lt;/verbose&gt;
+                &lt;/configuration&gt;
+                &lt;dependencies&gt;
+                    &lt;!-- mysql8 驱动--&gt;
+                    &lt;dependency&gt;
+                        &lt;groupId&gt;mysql&lt;/groupId&gt;
+                        &lt;artifactId&gt;mysql-connector-java&lt;/artifactId&gt;
+                        &lt;version&gt;8.0.16&lt;/version&gt;
+                    &lt;/dependency&gt;
+                    &lt;!--通用 Mapper--&gt;
+                    &lt;dependency&gt;
+                        &lt;groupId&gt;tk.mybatis&lt;/groupId&gt;
+                        &lt;artifactId&gt;mapper&lt;/artifactId&gt;
+                        &lt;version&gt;4.1.5&lt;/version&gt;
+                    &lt;/dependency&gt;
+                &lt;/dependencies&gt;
+            &lt;/plugin&gt;
+        &lt;/plugins&gt;
+    &lt;/build&gt;
+&lt;/project&gt;</code></code></pre>
+<hr />
+<ul>
+<li>编写配置文件<br />
+根据我们在pom文件中指定的路径：<code>${basedir}/src/main/resources/generator/generatorConfig.xml</code>, 我们需要在项目<code>src=&gt;main=&gt;resource</code>目录下创建<code>generator</code>文件夹，在文件夹下创建文件<code>generatorConfig.xml</code>,内容如下：</li>
+</ul>
+<pre><code><code>&lt;?xml version=&quot;1.0&quot; encoding=&quot;UTF-8&quot;?&gt;
+&lt;!DOCTYPE generatorConfiguration
+  PUBLIC &quot;-//mybatis.org//DTD MyBatis Generator Configuration 1.0//EN&quot;
+  &quot;http://mybatis.org/dtd/mybatis-generator-config_1_0.dtd&quot;&gt;
+
+&lt;generatorConfiguration&gt;
+  &lt;!--引入数据库配置内容--&gt;
+  &lt;properties resource=&quot;generator/config.properties&quot;/&gt;
+
+  &lt;context id=&quot;MysqlContext&quot; targetRuntime=&quot;MyBatis3Simple&quot; defaultModelType=&quot;flat&quot;&gt;
+    &lt;!--配置是否使用通用 Mapper 自带的注释扩展，默认 true--&gt;
+    &lt;!--&lt;property name=&quot;useMapperCommentGenerator&quot; value=&quot;false&quot;/&gt;--&gt;
+
+    &lt;plugin type=&quot;tk.mybatis.mapper.generator.MapperPlugin&quot;&gt;
+      &lt;!--设置Mapper生成的basic,可自定义--&gt;
+      &lt;property name=&quot;mappers&quot; value=&quot;tk.mybatis.mapper.common.Mapper&quot;/&gt;
+      &lt;!--大小写转换敏感--&gt;
+      &lt;property name=&quot;caseSensitive&quot; value=&quot;true&quot;/&gt;
+      &lt;!--引入lombok注解--&gt;
+      &lt;property name=&quot;lombok&quot; value=&quot;Getter,Setter,ToString&quot;/&gt;
+      &lt;!--分隔符定义--&gt;
+      &lt;property name=&quot;beginningDelimiter&quot; value=&quot;`&quot;/&gt;
+      &lt;property name=&quot;endingDelimiter&quot; value=&quot;`&quot;/&gt;
+    &lt;/plugin&gt;
+
+    &lt;!-- 设置数据库配置 --&gt;
+    &lt;jdbcConnection driverClass=&quot;${jdbc.driverClass}&quot;
+      connectionURL=&quot;${jdbc.url}&quot;
+      userId=&quot;${jdbc.user}&quot;
+      password=&quot;${jdbc.password}&quot;&gt;
+    &lt;/jdbcConnection&gt;
+
+    &lt;!-- 对应生成的pojo所在包 --&gt;
+    &lt;javaModelGenerator targetPackage=&quot;com.liferunner.pojo&quot; targetProject=&quot;src/main/java&quot;/&gt;
+
+    &lt;!-- 对应生成的mapper所在目录 --&gt;
+    &lt;sqlMapGenerator targetPackage=&quot;mapper&quot; targetProject=&quot;src/main/resources&quot;/&gt;
+
+    &lt;!-- 配置mapper对应的java映射 --&gt;
+    &lt;javaClientGenerator targetPackage=&quot;com.liferunner.mapper&quot; targetProject=&quot;src/main/java&quot; type=&quot;XMLMAPPER&quot;/&gt;
+
+    &lt;!-- 数据库表 --&gt;
+    &lt;table tableName=&quot;carousel&quot;&gt;&lt;/table&gt;
+    &lt;table tableName=&quot;category&quot;&gt;&lt;/table&gt;
+    &lt;table tableName=&quot;items&quot;&gt;&lt;/table&gt;
+    &lt;table tableName=&quot;items_comments&quot;&gt;&lt;/table&gt;
+    &lt;table tableName=&quot;items_img&quot;&gt;&lt;/table&gt;
+    &lt;table tableName=&quot;items_param&quot;&gt;&lt;/table&gt;
+    &lt;table tableName=&quot;items_spec&quot;&gt;&lt;/table&gt;
+    &lt;table tableName=&quot;order_items&quot;&gt;&lt;/table&gt;
+    &lt;table tableName=&quot;order_status&quot;&gt;&lt;/table&gt;
+    &lt;table tableName=&quot;orders&quot;&gt;&lt;/table&gt;
+    &lt;table tableName=&quot;shop_users&quot;&gt;&lt;/table&gt;
+    &lt;table tableName=&quot;user_address&quot;&gt;&lt;/table&gt;
+    &lt;table tableName=&quot;users&quot;&gt;&lt;/table&gt;
+  &lt;/context&gt;
+&lt;/generatorConfiguration&gt;</code></code></pre>
+<p>我们可以看到一行配置内容：<code>&lt;properties resource=&quot;generator/config.properties&quot;/&gt;</code>,这里是为了将我们的数据库连接、账号等信息外置，配置内容如下：</p>
+<pre class="properties"><code>jdbc.driverClass = com.mysql.cj.jdbc.Driver
+jdbc.url = jdbc:mysql://localhost:3306/expensiveshop?characterEncoding=UTF-8&amp;useSSL\
+  =false&amp;useUnicode=true&amp;serverTimezone=UTC
+jdbc.user = root
+jdbc.password = 12345678</code></code></pre>
+<p>可以看到这里设置的内容就是下属代码中用到的。</p>
+<pre><code><code>...
+   &lt;jdbcConnection driverClass=&quot;${jdbc.driverClass}&quot;
+      connectionURL=&quot;${jdbc.url}&quot;
+      userId=&quot;${jdbc.user}&quot;
+      password=&quot;${jdbc.password}&quot;&gt;
+    &lt;/jdbcConnection&gt;
+...</code></code></pre>
+<p>配置信息大家可以参考:<a href="https://github.com/abel533/Mapper/wiki/4.2.codegenerator">传送门</a></p>
+<hr />
+<ul>
+<li>使用maven测试生成<br />
+执行以下命令：</li>
+</ul>
+<pre class="shell"><code>mybatis-generator-tool&gt;mvn mybatis-generator:generate
+[INFO] Scanning for projects...
+[INFO]
+[INFO] ---------------&lt; com.life-runner:mybatis-generator-tool &gt;---------------
+[INFO] Building mybatis-generator-tool 1.0-SNAPSHOT
+[INFO] --------------------------------[ jar ]---------------------------------
+[INFO]
+[INFO] --- mybatis-generator-maven-plugin:1.3.6:generate (default-cli) @ mybatis-generator-tool ---
+[INFO] Connecting to the Database
+[INFO] Introspecting table carousel
+[INFO] Introspecting table category
+...
+[INFO] Generating Record class for table carousel
+[INFO] Generating Mapper Interface for table carousel
+[INFO] Generating SQL Map for table carousel
+...
+[INFO] Saving file CarouselMapper.xml
+...
+[INFO] Saving file Carousel.java
+[INFO] Saving file Users.java
+...
+[WARNING] Table configuration with catalog null, schema null, and table shop_users did not resolve to any tables
+[INFO] ------------------------------------------------------------------------
+[INFO] BUILD SUCCESS
+[INFO] ------------------------------------------------------------------------
+[INFO] Total time:  1.374 s
+[INFO] Finished at: 2019-11-05T15:40:07+08:00
+[INFO] ------------------------------------------------------------------------
+</code></code></pre>
+<p>可以看到执行成功，虽然这里执行成功，但是当我们打开文件的时候会发现：</p>
+<pre class="java"><code>package com.liferunner.pojo;
+
+import java.util.Date;
+import javax.persistence.*;
+import lombok.Getter;
+import lombok.Setter;
+import lombok.ToString;
+
+@Getter
+@Setter
+@ToString
+@Table(name = &quot;Carousel&quot;)
+public class Carousel {
+    /**
+     * ����id �û�id
+     */
+    @Id
+    private String id;
+
+    /**
+     * �û��� �û���
+     */
+    private String imageUrl;
+    ...
+}</code></code></pre>
+<p>这里出现了乱码问题，这又是怎么回事呢？<br />
+没关系，let's bing... <a href="https://cn.bing.com/search?q=mybatis+generator+%E7%94%9F%E6%88%90%E6%B3%A8%E9%87%8A%E4%B9%B1%E7%A0%81&amp;qs=n&amp;form=QBRE&amp;sp=-1&amp;pq=mybatis+generator+%E7%94%9F%E6%88%90%E6%B3%A8%E9%87%8A%E4%B9%B1%E7%A0%81&amp;sc=0-24&amp;sk=&amp;cvid=6C3157BC96D3468E830CF5F42ACA29A6">传送门</a>，可以看到有265000条结果，那就说明我们的问题已经有太多的人遇到了，随便点开一个：<br />
+<img src="./images/[springboot 开发单体web shop] 2. Mybatis Generator 生成common mapper0.png" alt="bug1" /><br />
+可以看到红框里面的内容我们缺失了，在<code>\expensive-shop\mybatis-generator-tool\src\main\resources\generator\generatorConfig.xml</code>中添加上 <code>&lt;property name=&quot;javaFileEncoding&quot; value=&quot;UTF-8&quot;/&gt;</code>,重新执行生成命令，可以看到我们的乱码就没有了。</p>
+<pre class="java"><code>@Getter
+@Setter
+@ToString
+@Table(name = &quot;`carousel`&quot;)
+public class Carousel {
+    /**
+     * 主键
+     */
+    @Id
+    @Column(name = &quot;`id`&quot;)
+    private String id;
+
+    /**
+     * 图片 图片地址
+     */
+    @Column(name = &quot;`image_url`&quot;)
+    private String imageUrl;
+    ...</code></code></pre>
+<blockquote>
+<p>Tips:<br />
+在这一环节先剧透一个bug，否则我担心在后续大家遇到的时候，因为它确实是和Common Mapper生成相关的。</p>
+</blockquote>
+<p>我们点开生成的<code>Users.java</code>,可以看到如下所示：</p>
+<pre class="java"><code>@Getter
+@Setter
+@ToString
+@Table(name = &quot;users&quot;)
+public class Users {
+    @Column(name = &quot;USER&quot;)
+    private String user;
+
+    @Column(name = &quot;CURRENT_CONNECTIONS&quot;)
+    private Long currentConnections;
+
+    @Column(name = &quot;TOTAL_CONNECTIONS&quot;)
+    private Long totalConnections;
+}</code></code></pre>
+<p>可是我们的<code>Users</code>表不是这样的呀，这是怎么回事？？？<br />
+让我们分析分析：<br />
+1.既然没有用到我们自己的Users表，但是又确实通过生成器生成了，那么很明显肯定是Mysql数据库中表，这是肯定的。<br />
+2.那么问题就来了，它从哪里冒出来的？找它，盘它。<br />
+3.到底是哪个数据库中的呢？sys？information_schema？performance_schema？<br />
+4.挨个查询，果然：<br />
+<img src="./images/[springboot 开发单体web shop] 2. Mybatis Generator 生成common mapper1.png" alt="bug2" /><br />
+可以看到，在<code>performance_schema</code>数据库中有一个<code>users</code>表，那么到底是不是我们生成出来的呢？执行<code>SHOW CREATE TABLE users</code>, 结果如上图，字段和生成出来的是一致的！<br />
+5.抓住它了，怎么盘它？？？</p>
+<blockquote>
+<p>很简单，修改jdbc:mysql://localhost:3306/expensiveshop?<strong>nullCatalogMeansCurrent=true</strong>&amp;characterEncoding=UTF-8&amp;useSSL
+ =false&amp;useUnicode=true&amp;serverTimezone=UTC，新增上加粗部分就可以了。</p>
+</blockquote>
+<p><code>nullCatalogMeansCurrent</code> 字面意思很简单，就是说如果是null catalog,我就选择current.因为<code>mysql不支持catalog</code>,我们需要告知<code>mybatis</code>这个特性，设置为<code>true</code>就行了。</p>
+<blockquote>
+<p>按照SQL标准的解释，在SQL环境下Catalog和Schema都属于抽象概念，主要用来解决命名冲突问题。<br />
+从概念上说，一个数据库系统包含多个Catalog，每个Catalog又包含多个Schema，而每个Schema又包含多个数据库对象（表、视图、序列等），反过来讲一个数据库对象必然属于一个Schema，而该Schema又必然属于一个Catalog，这样我们就可以得到该数据库对象的完全限定名称从而解决命名冲突的问题了<br />
+从实现的角度来看，各种数据库系统对Catalog和Schema的支持和实现方式千差万别，针对具体问题需要参考具体的产品说明书，比较简单而常用的实现方式是使用数据库名作为Catalog名，Oracle使用用户名作为Schema名.</p>
+</blockquote>
+<p><img src="./images/[springboot 开发单体web shop] 2. Mybatis Generator 生成common mapper2.png" alt="bug2-1" /></p>
+<p>可查阅Mysql官网说明:<a href="https://dev.mysql.com/doc/connector-j/5.1/en/connector-j-reference-configuration-properties.html">传送门</a></p>
+<p>本节我们讲解了如何生成我们想要的，简单和重要又重复的工作我们可以通过工具实现啦，下一次我们将开始实际业务的编码实现.<br />
+gogogo.</p>
+
+
+</div><hr><script charset='utf-8' src='../../js/sming.js'></script></body></html>

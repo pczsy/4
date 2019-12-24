@@ -1,0 +1,205 @@
+<html><head><meta charset='utf-8'><meta name='viewport' content='width=device-width, initial-scale=1'>
+<meta name='applicable-device' content='pc'><meta name='keywords' content='电脑,电脑讲解,电脑技术,编程,电脑故障维修SpringBoot自定义异常，优雅解决业务逻辑中的错误' />
+<script src='../../highlight/highlight.pack.js'></script>
+<link rel='stylesheet' type='text/css' href='../../highlight/styles/monokai.css'/>
+
+<link rel='stylesheet' href='../../fenxiang/dist/css/share.min.css'>
+<script src='../../fenxiang/src/js/social-share.js'></script>
+<script src='../../fenxiang/src/js/qrcode.js'></script>
+
+</head><body><script>hljs.initHighlightingOnLoad();</script><script>
+var system ={};  
+var p = navigator.platform;       
+system.win = p.indexOf('Win') == 0;  
+system.mac = p.indexOf('Mac') == 0;  
+system.x11 = (p == 'X11') || (p.indexOf('Linux') == 0);     
+if(system.win||system.mac||system.xll){
+document.write("<link href='../css/3.css' rel='stylesheet' type='text/css'>");}else{ document.write("<link href='../css/3wap.css' rel='stylesheet' type='text/css'>");}</script><script src='../../js/3.js'></script><div class='div2'><div class='heading_nav'><ul><div><li><a href='../../index.html'>首页</a></li>
+</div><div onclick='hidden1()' >分享</div>
+</ul></div></div>
+<div id='heading_nav2'> 
+<li class='row' >
+<div class='social-share' data-mode='prepend'><a href='javascript:' class='social-share-icon icon-heart'></a></div></li></div><script charset='utf-8' src='../../3/js/hengfu.js'></script><script charset='utf-8' src='../../3/js/hengfu2.js'></script><hr><div class='div1'><div class='biaoti'><center>SpringBoot自定义异常，优雅解决业务逻辑中的错误</center></div><div class='banquan'>原文出处:本文由博客园博主糟糕的艺术家提供。<br/>
+原文连接:https://www.cnblogs.com/menmenz/p/11649613.html</div><br>
+    <h2 id="概要">概要</h2>
+<p>你是不是在为业务逻辑中出现的异常弄的焦头烂额，常常在后台报错，前端却无法提示错误内容，导致用户体验极差？比如下单失败，前端只能提示下单失败，但是却不知道为什么失败，是库存不足，还是余额不足，亦或是商品已经失效？</p>
+<p>之前想在 service 层直接返回封装好的 Reponse(code, data,msg) 对象，这样的话我就直接在service层提示出错原因了（msg：错误提示），但是这样代码就不够美观，因为Response原本是设计为后端统一返回的对象，太臃肿，最后决定用自定义异常来完成。</p>
+<h2 id="定义常见的错误枚举类">定义常见的错误枚举类</h2>
+<pre><code><code>
+import lombok.AllArgsConstructor;
+import lombok.Getter;
+
+/**
+ * @author: zp
+ * @Date: 2019-10-10 14:47
+ * @Description:
+ */
+@Getter
+@AllArgsConstructor
+public enum  ErrorType {
+    /**
+     * 错误类型
+     */
+    OBJECT_NOT_FOUND(0,&quot;对象不存在&quot;),
+
+    INVALID_PARAMS(1,&quot;参数不正确&quot;),
+
+    result_not_exist(2,&quot;记录不存在&quot;)
+
+    ;
+
+    /**
+     * 错误码
+     */
+    private int code;
+
+    /**
+     * 提示信息
+     */
+    private String msg;
+}</code></code></pre>
+<h2 id="自定义异常">自定义异常</h2>
+<p>提供了两个构造方法，一个用来提示常见的错误（枚举类中的），另一个提示不常用的（一次两次的那种），可拓展。</p>
+<pre><code><code>import com.example.demojpa.enums.ErrorType;
+import lombok.Getter;
+
+/**
+ * @author: zp
+ * @Date: 2019-10-10 14:42
+ * @Description:
+ */
+@Getter
+public class ServiceException extends RuntimeException{
+    private Integer code;
+
+    /**
+     * 使用已有的错误类型
+     * @param type 枚举类中的错误类型
+     */
+    public ServiceException(ErrorType type){
+        super(type.getMsg());
+        this.code = type.getCode();
+    }
+
+    /**
+     * 自定义错误类型
+     * @param code 自定义的错误码
+     * @param msg 自定义的错误提示
+     */
+    public ServiceException(Integer code, String msg){
+        super(msg);
+        this.code = code;
+    }
+}</code></code></pre>
+<h2 id="定义响应对象及工具类这个不是必需的">定义响应对象及工具类（这个不是必需的）</h2>
+<ul>
+<li><p>响应对象</p>
+<pre><code><code>/**
+ * @author: zp
+ * @Date: 2019-10-10 15:22
+ * @Description:
+ */
+@Data
+public class Response&lt;T&gt; {
+
+        /**
+         * 状态码
+         */
+        private Integer code;
+
+        /**
+         * 请求成功时返回的对象
+         */
+        private T data;
+
+        /**
+         * 提示信息
+         */
+        private String msg;
+
+}</code></code></pre></li>
+<li><p>工具类</p>
+<pre><code><code>import com.example.demojpa.model.Response;
+
+/**
+ * @author: zp
+ * @Date: 2019-10-10 15:48
+ * @Description:
+ */
+public class ResponseUtils {
+        /**
+         * 调用成功
+         */
+        private static final String SUCCESS = &quot;调用成功！&quot;;
+
+        public static Response success(Object obj){
+                Response res = new Response();
+                res.setCode(200);
+                res.setData(obj);
+                res.setMsg(SUCCESS);
+                return res;
+        }
+
+        public static Response success(){
+                return success(null);
+        }
+
+        public static Response error(Integer code, String msg){
+                Response res = new Response();
+                res.setCode(code);
+                res.setMsg(msg);
+                return res;
+        }
+
+}</code></code></pre></li>
+</ul>
+<h2 id="异常处理类">异常处理类</h2>
+<pre><code><code>import com.example.demojpa.exception.ServiceException;
+import com.example.demojpa.model.Response;
+import com.example.demojpa.utils.ResponseUtils;
+import org.springframework.web.bind.annotation.ControllerAdvice;
+import org.springframework.web.bind.annotation.ExceptionHandler;
+import org.springframework.web.bind.annotation.ResponseBody;
+
+/**
+ * @author: zp
+ * @Date: 2019-10-10 15:11
+ * @Description:
+ */
+
+@ControllerAdvice 
+public class ServiceExceptionHandler {
+
+    /**
+     * @ExceptionHandler相当于controller的@RequestMapping
+     * 如果抛出的的是ServiceException，则调用该方法
+     * @param se 业务异常
+     * @return
+     */
+    @ExceptionHandler(ServiceException.class)
+    @ResponseBody
+    public Response handle(ServiceException se){
+        return ResponseUtils.error(se.getCode(),se.getMessage());
+    }
+}
+</code></code></pre>
+<h2 id="测试">测试</h2>
+<p>为了简单一点，我直接在controller中抛异常，看看结果。</p>
+<pre><code><code>@GetMapping(&quot;/exception/{msg}&quot;)
+    public String exception(@PathVariable String msg) throws InvalidParamExceptionAbstract, NoSuchObjectExceptionAbstract {
+        if(StringUtils.isEmpty(msg)){
+            throw new ServiceException(ErrorType.INVALID_PARAMS);
+        }else if(&quot;null&quot;.equals(msg)) {
+            throw new ServiceException(ErrorType.OBJECT_NOT_FOUND);
+        }else{
+            throw new ServiceException(250,&quot;瞧你那傻样！&quot;);
+        }
+    }</code></code></pre>
+<p><img src="./images/SpringBoot自定义异常，优雅解决业务逻辑中的错误0.png" alt="file" /><br />
+<center></p>
+<p><img src="./images/SpringBoot自定义异常，优雅解决业务逻辑中的错误1.png" alt="file" /></p>
+<p><font size = 4><strong>关注我不会让你失望哟～</strong></font></p>
+</center>
+
+
+</div><hr><script charset='utf-8' src='../../js/sming.js'></script></body></html>

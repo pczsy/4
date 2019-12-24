@@ -1,0 +1,258 @@
+<html><head><meta charset='utf-8'><meta name='viewport' content='width=device-width, initial-scale=1'>
+<meta name='applicable-device' content='pc'><meta name='keywords' content='电脑,电脑讲解,电脑技术,编程,电脑故障维修zookeeper伪集群' />
+<script src='../../highlight/highlight.pack.js'></script>
+<link rel='stylesheet' type='text/css' href='../../highlight/styles/monokai.css'/>
+
+<link rel='stylesheet' href='../../fenxiang/dist/css/share.min.css'>
+<script src='../../fenxiang/src/js/social-share.js'></script>
+<script src='../../fenxiang/src/js/qrcode.js'></script>
+
+</head><body><script>hljs.initHighlightingOnLoad();</script><script>
+var system ={};  
+var p = navigator.platform;       
+system.win = p.indexOf('Win') == 0;  
+system.mac = p.indexOf('Mac') == 0;  
+system.x11 = (p == 'X11') || (p.indexOf('Linux') == 0);     
+if(system.win||system.mac||system.xll){
+document.write("<link href='../css/3.css' rel='stylesheet' type='text/css'>");}else{ document.write("<link href='../css/3wap.css' rel='stylesheet' type='text/css'>");}</script><script src='../../js/3.js'></script><div class='div2'><div class='heading_nav'><ul><div><li><a href='../../index.html'>首页</a></li>
+</div><div onclick='hidden1()' >分享</div>
+</ul></div></div>
+<div id='heading_nav2'> 
+<li class='row' >
+<div class='social-share' data-mode='prepend'><a href='javascript:' class='social-share-icon icon-heart'></a></div></li></div><script charset='utf-8' src='../../3/js/hengfu.js'></script><script charset='utf-8' src='../../3/js/hengfu2.js'></script><hr><div class='div1'><div class='biaoti'><center>zookeeper伪集群</center></div><div class='banquan'>原文出处:本文由博客园博主libingshen提供。<br/>
+原文连接:https://www.cnblogs.com/lisingshen/p/11569248.html</div><br>
+    <blockquote>
+<p>Zookeeper运行需要java环境，需要安装jdk，建议本地下载好需要的安装包然后上传到服务器上面，服务器上面下载速度太慢。</p>
+</blockquote>
+<h1 id="上传">上传</h1>
+<pre><code><code>[root@192 ~]# java -version
+java version &quot;1.8.0_202&quot;
+Java(TM) SE Runtime Environment (build 1.8.0_202-b08)
+Java HotSpot(TM) 64-Bit Server VM (build 25.202-b08, mixed mode)</code></code></pre>
+<p><img src="./images/zookeeper伪集群0.png" /></p>
+<h1 id="解压">解压</h1>
+<pre><code><code>[root@192 modules]# tar -zxvf zookeeper-3.4.13.tar.gz -C /opt/soft/</code></code></pre>
+<h1 id="拷贝三份">拷贝三份</h1>
+<pre><code><code>[root@192 soft]# cp -r zookeeper-3.4.13/ zookeeper1
+[root@192 soft]# cp -r zookeeper1 zookeeper2
+[root@192 soft]# cp -r zookeeper1 zookeeper3
+[root@192 soft]# ll
+total 16
+drwxr-xr-x. 12 root root  4096 Sep  9 14:44 zookeeper1
+drwxr-xr-x. 12 root root  4096 Sep  9 14:45 zookeeper2
+drwxr-xr-x. 12 root root  4096 Sep  9 14:46 zookeeper3
+drwxr-xr-x. 12  501 games 4096 Sep  9 14:51 zookeeper-3.4.13</code></code></pre>
+<h1 id="修改配置文件">修改配置文件</h1>
+<h2 id="重命名并修改zookeeper1配置文件">重命名并修改<code>zookeeper1</code>配置文件</h2>
+<pre><code><code>[root@192 conf]# mv zoo_sample.cfg zoo.cfg
+[root@192 conf]# ll
+total 20
+-rw-r--r--. 1 root root  535 Sep  9 11:38 configuration.xsl
+-rw-r--r--. 1 root root 2161 Sep  9 11:38 log4j.properties
+-rw-r--r--. 1 root root  285 Sep  9 15:03 zoo.cfg
+-rw-r--r--. 1 root root 2306 Sep  9 11:48 zookeeper.out
+-rw-r--r--. 1 root root  922 Sep  9 11:38 zoo_sample.cfg
+[root@192 conf]# vim zoo.cfg
+[root@192 conf]# cat zoo.cfg 
+tickTime=2000
+initLimit=10
+syncLimit=5
+dataDir=/opt/soft/zookeeper1/data
+dataLogDir=/opt/soft/zookeeper1/logs
+clientPort=2181
+autopurge.snapRetainCount=500
+autopurge.purgeInterval=24
+server.1= 192.168.1.101:2888:3888
+server.2= 192.168.1.101:2889:3889
+server.3= 192.168.1.101:2890:3890
+[root@192 conf]# </code></code></pre>
+<h2 id="修改zookeeper2配置文件">修改<code>zookeeper2</code>配置文件</h2>
+<pre><code><code>[root@192 conf]# cat /opt/soft/zookeeper2/conf/zoo.cfg 
+tickTime=2000
+initLimit=10
+syncLimit=5
+dataLogDir=/opt/soft/zookeeper2/logs
+dataDir=/opt/soft/zookeeper2/data
+clientPort=2182
+autopurge.snapRetainCount=500
+autopurge.purgeInterval=24
+server.1= 192.168.1.101:2888:3888
+server.2= 192.168.1.101:2889:3889
+server.3= 192.168.1.101:2890:3890
+</code></code></pre>
+<h2 id="修改zookeeper3配置文件">修改<code>zookeeper3</code>配置文件</h2>
+<pre><code><code>[root@192 conf]# cat /opt/soft/zookeeper3/conf/zoo.cfg 
+tickTime=2000
+initLimit=10
+syncLimit=5
+dataLogDir=/opt/soft/zookeeper3/logs
+dataDir=/opt/soft/zookeeper3/data
+clientPort=2183
+autopurge.snapRetainCount=500
+autopurge.purgeInterval=24
+server.1= 192.168.1.101:2888:3888
+server.2= 192.168.1.101:2889:3889
+server.3= 192.168.1.101:2890:3890
+</code></code></pre>
+<h2 id="查看配置好的三个配置文件">查看配置好的三个配置文件</h2>
+<pre><code><code>[root@192 ~]# egrep -v &quot;^#|^$&quot; /opt/soft/zookeeper1/conf/zoo.cfg
+tickTime=2000
+initLimit=10
+syncLimit=5
+dataDir=/opt/soft/zookeeper1/data
+dataLogDir=/opt/soft/zookeeper1/logs
+clientPort=2181
+autopurge.snapRetainCount=500
+autopurge.purgeInterval=24
+server.1= 192.168.1.101:2888:3888
+server.2= 192.168.1.101:2889:3889
+server.3= 192.168.1.101:2890:3890
+[root@192 ~]# egrep -v &quot;^#|^$&quot; /opt/soft/zookeeper2/conf/zoo.cfg
+tickTime=2000
+initLimit=10
+syncLimit=5
+dataLogDir=/opt/soft/zookeeper2/logs
+dataDir=/opt/soft/zookeeper2/data
+clientPort=2182
+autopurge.snapRetainCount=500
+autopurge.purgeInterval=24
+server.1= 192.168.1.101:2888:3888
+server.2= 192.168.1.101:2889:3889
+server.3= 192.168.1.101:2890:3890
+[root@192 ~]# egrep -v &quot;^#|^$&quot; /opt/soft/zookeeper3/conf/zoo.cfg
+tickTime=2000
+initLimit=10
+syncLimit=5
+dataLogDir=/opt/soft/zookeeper3/logs
+dataDir=/opt/soft/zookeeper3/data
+clientPort=2183
+autopurge.snapRetainCount=500
+autopurge.purgeInterval=24
+server.1= 192.168.1.101:2888:3888
+server.2= 192.168.1.101:2889:3889
+server.3= 192.168.1.101:2890:3890</code></code></pre>
+<table>
+<thead>
+<tr class="header">
+<th>参数</th>
+<th>说明</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td><code>tickTime=2000</code></td>
+<td>这个时间是作为<code>zookeeper</code>服务器之间或客户端与服务器之间维持心跳的时间间隔,也就是说每个<code>tickTime</code>时间就会发送一个心跳</td>
+</tr>
+<tr class="even">
+<td><code>initLimit=10</code></td>
+<td>这个配置项是用来配置<code>zookeeper</code>接受客户端（这里所说的客户端不是用户连接<code>zookeeper</code>服务器的客户端,而是zookeeper服务器集群中连接到leader的follower服务器）初始化连接时最长能忍受多少个心跳时间间隔数。<br/>当已经超过<code>10</code>个心跳的时间（也就是<code>tickTime</code>）长度后 <code>zookeeper</code>服务器还没有收到客户端的返回信息,那么表明这个客户端连接失败。总的时间长度就是<code>10*2000=20</code>秒</td>
+</tr>
+<tr class="odd">
+<td><code>syncLimit=5</code></td>
+<td>这个配置项标识<code>leader</code>与<code>follower</code>之间发送消息,请求和应答时间长度,最长不能超过多少个tickTime的时间长度,总的时间长度就是<code>5*2000=10</code>秒</td>
+</tr>
+<tr class="even">
+<td><code>dataDir=/opt/soft/zookeeper1/data</code></td>
+<td><code>zookeeper</code>保存数据的目录,默认情况下<code>zookeeper</code>将写数据的日志文件也保存在这个目录里；</td>
+</tr>
+<tr class="odd">
+<td><code>dataLogDir=/opt/soft/zookeeper1/logs</code></td>
+<td><code>zookeeper</code>保存日志文件数据</td>
+</tr>
+<tr class="even">
+<td><code>clientPort=2181</code></td>
+<td>这个端口就是客户端连接<code>Zookeeper</code>服务器的端口,<code>Zookeeper</code>会监听这个端口接受客户端的访问请求</td>
+</tr>
+<tr class="odd">
+<td><code>server.1= 192.168.1.101:2888:3888</code></td>
+<td><code>server.A=B:C:D</code>中的<code>A</code>是一个数字,表示这个是第几号服务器,<code>B</code>是这个服务器的<code>IP</code>地址，<code>C</code>第一个端口用来集群成员的信息交换,表示这个服务器与集群中的<code>leader</code>服务器交换信息的端口，<code>D</code>是在<code>leader</code>挂掉时专门用来进行选举<code>leader</code>所用的端口。</td>
+</tr>
+</tbody>
+</table>
+<h1 id="创建数据目录和日志目录">创建数据目录和日志目录</h1>
+<pre><code><code>[root@192 ~]# mkdir -p /opt/soft/zookeeper1/{data,logs}
+[root@192 ~]# mkdir -p /opt/soft/zookeeper2/{data,logs}
+[root@192 ~]# mkdir -p /opt/soft/zookeeper3/{data,logs}
+[root@192 ~]# echo &quot;1&quot;&gt;/opt/soft/zookeeper1/data/myid 
+[root@192 ~]# echo &quot;2&quot;&gt;/opt/soft/zookeeper2/data/myid 
+[root@192 ~]# echo &quot;3&quot;&gt;/opt/soft/zookeeper3/data/myid 
+[root@192 ~]# cat /opt/soft/zookeeper1/data/myid 
+1
+[root@192 ~]# cat /opt/soft/zookeeper2/data/myid 
+2
+[root@192 ~]# cat /opt/soft/zookeeper3/data/myid 
+3
+[root@192 ~]# </code></code></pre>
+<p><code>myid</code>中的值对应<code>server.A=B:C:D</code>中的<code>A</code></p>
+<h1 id="配置环境变量">配置环境变量</h1>
+<pre><code><code>[root@192 ~]# vim /etc/profile
+#jdk
+export JAVA_HOME=/usr/java/jdk1.8.0_202-amd64
+export PATH=$PATH:$JAVA_HOME/bin
+export CLASSPATH=.:$JAVA_HOME/jre/lib/rt.jar:$JAVA_HOME/lib/dt.jar:$JAVA_HOME/lib/tools.jar
+
+# append zk1_env
+export PATH=$PATH:/opt/soft/zookeeper1/bin
+# append zk2_env
+export PATH=$PATH:/opt/soft/zookeeper2/bin
+# append zk3_env
+export PATH=$PATH:/opt/soft/zookeeper3/bin
+</code></code></pre>
+<h1 id="启动">启动</h1>
+<pre><code><code>[root@192 ~]# /opt/soft/zookeeper1/bin/zkServer.sh start
+ZooKeeper JMX enabled by default
+Using config: /opt/soft/zookeeper1/bin/../conf/zoo.cfg
+Starting zookeeper ... STARTED
+[root@192 ~]# /opt/soft/zookeeper1/bin/zkServer.sh status
+ZooKeeper JMX enabled by default
+Using config: /opt/soft/zookeeper1/bin/../conf/zoo.cfg
+Error contacting service. It is probably not running.
+[root@192 ~]# /opt/soft/zookeeper2/bin/zkServer.sh start
+ZooKeeper JMX enabled by default
+Using config: /opt/soft/zookeeper2/bin/../conf/zoo.cfg
+Starting zookeeper ... STARTED
+[root@192 ~]# /opt/soft/zookeeper1/bin/zkServer.sh status
+ZooKeeper JMX enabled by default
+Using config: /opt/soft/zookeeper1/bin/../conf/zoo.cfg
+Mode: follower
+[root@192 ~]# /opt/soft/zookeeper2/bin/zkServer.sh status
+ZooKeeper JMX enabled by default
+Using config: /opt/soft/zookeeper2/bin/../conf/zoo.cfg
+Mode: leader
+[root@192 ~]# /opt/soft/zookeeper3/bin/zkServer.sh start
+ZooKeeper JMX enabled by default
+Using config: /opt/soft/zookeeper3/bin/../conf/zoo.cfg
+Starting zookeeper ... STARTED
+[root@192 ~]# /opt/soft/zookeeper3/bin/zkServer.sh status
+ZooKeeper JMX enabled by default
+Using config: /opt/soft/zookeeper3/bin/../conf/zoo.cfg
+Mode: follower
+[root@192 ~]# 
+</code></code></pre>
+<h1 id="停止">停止</h1>
+<pre><code><code>[root@192 ~]# /opt/soft/zookeeper1/bin/zkServer.sh stop
+ZooKeeper JMX enabled by default
+Using config: /opt/soft/zookeeper1/bin/../conf/zoo.cfg
+Stopping zookeeper ... STOPPED
+[root@192 ~]# /opt/soft/zookeeper2/bin/zkServer.sh stop
+ZooKeeper JMX enabled by default
+Using config: /opt/soft/zookeeper2/bin/../conf/zoo.cfg
+Stopping zookeeper ... STOPPED
+[root@192 ~]# /opt/soft/zookeeper3/bin/zkServer.sh stop
+ZooKeeper JMX enabled by default
+Using config: /opt/soft/zookeeper3/bin/../conf/zoo.cfg
+Stopping zookeeper ... STOPPED
+[root@192 ~]# ps -ef|grep zookeeper
+root       4068   3406  0 15:46 pts/0    00:00:00 grep zookeeper
+[root@192 ~]# 
+</code></code></pre>
+<h1 id="查看状态">查看状态</h1>
+<pre><code><code>[root@192 ~]# ps -ef|grep zookeeper
+root       3649      1  0 15:07 pts/0    00:00:02 /usr/java/jdk1.8.0_202-amd64/bin/java -Dzookeeper.log.dir=. -Dzookeeper.root.logger=INFO,CONSOLE -cp /opt/soft/zookeeper1/bin/../build/classes:/opt/soft/zookeeper1/bin/../build/lib/*.jar:/opt/soft/zookeeper1/bin/../lib/slf4j-log4j12-1.7.25.jar:/opt/soft/zookeeper1/bin/../lib/slf4j-api-1.7.25.jar:/opt/soft/zookeeper1/bin/../lib/netty-3.10.6.Final.jar:/opt/soft/zookeeper1/bin/../lib/log4j-1.2.17.jar:/opt/soft/zookeeper1/bin/../lib/jline-0.9.94.jar:/opt/soft/zookeeper1/bin/../lib/audience-annotations-0.5.0.jar:/opt/soft/zookeeper1/bin/../zookeeper-3.4.13.jar:/opt/soft/zookeeper1/bin/../src/java/lib/*.jar:/opt/soft/zookeeper1/bin/../conf:.:/usr/java/jdk1.8.0_202-amd64/jre/lib/rt.jar:/usr/java/jdk1.8.0_202-amd64/lib/dt.jar:/usr/java/jdk1.8.0_202-amd64/lib/tools.jar -Dcom.sun.management.jmxremote -Dcom.sun.management.jmxremote.local.only=false org.apache.zookeeper.server.quorum.QuorumPeerMain /opt/soft/zookeeper1/bin/../conf/zoo.cfg
+root       3725      1  0 15:07 pts/0    00:00:04 /usr/java/jdk1.8.0_202-amd64/bin/java -Dzookeeper.log.dir=. -Dzookeeper.root.logger=INFO,CONSOLE -cp /opt/soft/zookeeper2/bin/../build/classes:/opt/soft/zookeeper2/bin/../build/lib/*.jar:/opt/soft/zookeeper2/bin/../lib/slf4j-log4j12-1.7.25.jar:/opt/soft/zookeeper2/bin/../lib/slf4j-api-1.7.25.jar:/opt/soft/zookeeper2/bin/../lib/netty-3.10.6.Final.jar:/opt/soft/zookeeper2/bin/../lib/log4j-1.2.17.jar:/opt/soft/zookeeper2/bin/../lib/jline-0.9.94.jar:/opt/soft/zookeeper2/bin/../lib/audience-annotations-0.5.0.jar:/opt/soft/zookeeper2/bin/../zookeeper-3.4.13.jar:/opt/soft/zookeeper2/bin/../src/java/lib/*.jar:/opt/soft/zookeeper2/bin/../conf:.:/usr/java/jdk1.8.0_202-amd64/jre/lib/rt.jar:/usr/java/jdk1.8.0_202-amd64/lib/dt.jar:/usr/java/jdk1.8.0_202-amd64/lib/tools.jar -Dcom.sun.management.jmxremote -Dcom.sun.management.jmxremote.local.only=false org.apache.zookeeper.server.quorum.QuorumPeerMain /opt/soft/zookeeper2/bin/../conf/zoo.cfg
+root       3777      1  0 15:07 pts/0    00:00:02 /usr/java/jdk1.8.0_202-amd64/bin/java -Dzookeeper.log.dir=. -Dzookeeper.root.logger=INFO,CONSOLE -cp /opt/soft/zookeeper3/bin/../build/classes:/opt/soft/zookeeper3/bin/../build/lib/*.jar:/opt/soft/zookeeper3/bin/../lib/slf4j-log4j12-1.7.25.jar:/opt/soft/zookeeper3/bin/../lib/slf4j-api-1.7.25.jar:/opt/soft/zookeeper3/bin/../lib/netty-3.10.6.Final.jar:/opt/soft/zookeeper3/bin/../lib/log4j-1.2.17.jar:/opt/soft/zookeeper3/bin/../lib/jline-0.9.94.jar:/opt/soft/zookeeper3/bin/../lib/audience-annotations-0.5.0.jar:/opt/soft/zookeeper3/bin/../zookeeper-3.4.13.jar:/opt/soft/zookeeper3/bin/../src/java/lib/*.jar:/opt/soft/zookeeper3/bin/../conf:.:/usr/java/jdk1.8.0_202-amd64/jre/lib/rt.jar:/usr/java/jdk1.8.0_202-amd64/lib/dt.jar:/usr/java/jdk1.8.0_202-amd64/lib/tools.jar -Dcom.sun.management.jmxremote -Dcom.sun.management.jmxremote.local.only=false org.apache.zookeeper.server.quorum.QuorumPeerMain /opt/soft/zookeeper3/bin/../conf/zoo.cfg
+root       3995   3406  0 15:45 pts/0    00:00:00 grep zookeeper
+</code></code></pre>
+
+
+</div><hr><script charset='utf-8' src='../../js/sming.js'></script></body></html>

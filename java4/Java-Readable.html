@@ -1,0 +1,73 @@
+<html><head><meta charset='utf-8'><meta name='viewport' content='width=device-width, initial-scale=1'>
+<meta name='applicable-device' content='pc'><meta name='keywords' content='电脑,电脑讲解,电脑技术,编程,电脑故障维修Java-Readable' />
+<script src='../../highlight/highlight.pack.js'></script>
+<link rel='stylesheet' type='text/css' href='../../highlight/styles/monokai.css'/>
+
+<link rel='stylesheet' href='../../fenxiang/dist/css/share.min.css'>
+<script src='../../fenxiang/src/js/social-share.js'></script>
+<script src='../../fenxiang/src/js/qrcode.js'></script>
+
+</head><body><script>hljs.initHighlightingOnLoad();</script><script>
+var system ={};  
+var p = navigator.platform;       
+system.win = p.indexOf('Win') == 0;  
+system.mac = p.indexOf('Mac') == 0;  
+system.x11 = (p == 'X11') || (p.indexOf('Linux') == 0);     
+if(system.win||system.mac||system.xll){
+document.write("<link href='../css/3.css' rel='stylesheet' type='text/css'>");}else{ document.write("<link href='../css/3wap.css' rel='stylesheet' type='text/css'>");}</script><script src='../../js/3.js'></script><div class='div2'><div class='heading_nav'><ul><div><li><a href='../../index.html'>首页</a></li>
+</div><div onclick='hidden1()' >分享</div>
+</ul></div></div>
+<div id='heading_nav2'> 
+<li class='row' >
+<div class='social-share' data-mode='prepend'><a href='javascript:' class='social-share-icon icon-heart'></a></div></li></div><script charset='utf-8' src='../../3/js/hengfu.js'></script><script charset='utf-8' src='../../3/js/hengfu2.js'></script><hr><div class='div1'><div class='biaoti'><center>Java-Readable</center></div><div class='banquan'>原文出处:本文由博客园博主Qiav提供。<br/>
+原文连接:https://www.cnblogs.com/Qiav/p/11965815.html</div><br>
+    <src class="cnblogs_code">
+<pre><code><span style="color: #008080;"> 1</span> <span style="color: #0000ff;">import</span> java.nio.*<span style="color: #000000;">;
+</span><span style="color: #008080;"> 2</span> <span style="color: #0000ff;">import</span> java.util.*<span style="color: #000000;">;
+</span><span style="color: #008080;"> 3</span> <span style="color: #0000ff;">import</span> <span style="color: #0000ff;">static</span> net.mindview.util.Print.*<span style="color: #000000;">;
+</span><span style="color: #008080;"> 4</span>  
+<span style="color: #008080;"> 5</span> <span style="color: #0000ff;">public</span> <span style="color: #0000ff;">class</span> RandomWords <span style="color: #0000ff;">implements</span><span style="color: #000000;"> Readable {
+</span><span style="color: #008080;"> 6</span>   <span style="color: #0000ff;">private</span> <span style="color: #0000ff;">int</span> readCount = 1;<span style="color: #008000;">//</span><span style="color: #008000;">read()执行次数</span>
+<span style="color: #008080;"> 7</span>   <span style="color: #0000ff;">private</span> <span style="color: #0000ff;">int</span> loopCount = 1<span style="color: #000000;">;
+</span><span style="color: #008080;"> 8</span>   <span style="color: #0000ff;">public</span><span style="color: #000000;"> RandomWords() {  }    
+</span><span style="color: #008080;"> 9</span>   <span style="color: #0000ff;">public</span> <span style="color: #0000ff;">int</span><span style="color: #000000;"> read(CharBuffer cb) {
+</span><span style="color: #008080;">10</span>  
+<span style="color: #008080;">11</span>       <span style="color: #0000ff;">if</span> (loopCount == 1){print("进入read执行第" + readCount + "次");readCount++;cb.append("aa bb cc ");loopCount++;<span style="color: #0000ff;">return</span> 1;}<span style="color: #008000;">//</span><span style="color: #008000;">仅仅在第一次和第六次给CharBuffer添加3个数据</span>
+<span style="color: #008080;">12</span>       <span style="color: #0000ff;">if</span> (loopCount == 2){print("进入read执行第" + readCount + "次");readCount++;loopCount++;<span style="color: #0000ff;">return</span> 1;}<span style="color: #008000;">//</span><span style="color: #008000;">其他的时候返回1，但是并不往Buffer中存放数据，来骗被调用者hasNext()，来观察出现了什么现象</span>
+<span style="color: #008080;">13</span>       <span style="color: #0000ff;">if</span> (loopCount == 3){print("进入read执行第" + readCount + "次");readCount++;loopCount++;<span style="color: #0000ff;">return</span> 1<span style="color: #000000;">;}
+</span><span style="color: #008080;">14</span>       <span style="color: #0000ff;">if</span> (loopCount == 4){print("进入read执行第" + readCount + "次");readCount++;loopCount++;<span style="color: #0000ff;">return</span> 1<span style="color: #000000;">;}
+</span><span style="color: #008080;">15</span>       <span style="color: #0000ff;">if</span> (loopCount == 5){print("进入read执行第" + readCount + "次");readCount++;loopCount++;<span style="color: #0000ff;">return</span> 1<span style="color: #000000;">;}
+</span><span style="color: #008080;">16</span>       
+<span style="color: #008080;">17</span>       <span style="color: #0000ff;">if</span> (loopCount == 6){print("进入read执行第" + readCount + "次");readCount++;cb.append("oo pp qq ");loopCount++;<span style="color: #0000ff;">return</span> 1<span style="color: #000000;">;}
+</span><span style="color: #008080;">18</span>       <span style="color: #0000ff;">if</span> (loopCount == 7){print("进入read执行第" + readCount + "次");readCount++;loopCount++;<span style="color: #0000ff;">return</span> 1<span style="color: #000000;">;}
+</span><span style="color: #008080;">19</span>       <span style="color: #0000ff;">if</span> (loopCount == 8){print("进入read执行第" + readCount + "次");readCount++;loopCount++;<span style="color: #0000ff;">return</span> 1<span style="color: #000000;">;}
+</span><span style="color: #008080;">20</span>       <span style="color: #0000ff;">if</span> (loopCount == 9){print("进入read执行第" + readCount + "次");readCount++;loopCount++;<span style="color: #0000ff;">return</span> 1<span style="color: #000000;">;}
+</span><span style="color: #008080;">21</span>       <span style="color: #0000ff;">if</span> (loopCount == 10){print("进入read执行第" + readCount + "次");readCount++;<span style="color: #0000ff;">return</span> -1<span style="color: #000000;">;}
+</span><span style="color: #008080;">22</span>       <span style="color: #0000ff;">return</span> 1<span style="color: #000000;">;      
+</span><span style="color: #008080;">23</span> <span style="color: #000000;">  }
+</span><span style="color: #008080;">24</span>  
+<span style="color: #008080;">25</span>   <span style="color: #0000ff;">public</span> <span style="color: #0000ff;">static</span> <span style="color: #0000ff;">void</span><span style="color: #000000;"> main(String[] args) {
+</span><span style="color: #008080;">26</span>       <span style="color: #0000ff;">int</span> a = 1;<span style="color: #008000;">//</span><span style="color: #008000;">外层循环的次数</span>
+<span style="color: #008080;">27</span>  
+<span style="color: #008080;">28</span>       print("1"<span style="color: #000000;">);
+</span><span style="color: #008080;">29</span>       Scanner s = <span style="color: #0000ff;">new</span> Scanner(<span style="color: #0000ff;">new</span><span style="color: #000000;"> RandomWords())
+</span><span style="color: #008080;">30</span>       print("2"<span style="color: #000000;">);
+</span><span style="color: #008080;">31</span>       
+<span style="color: #008080;">32</span>       
+<span style="color: #008080;">33</span>       <span style="color: #0000ff;">while</span>(s.hasNext()){<span style="color: #008000;">//</span><span style="color: #008000;">这个hasNext()方法会调用read()方法的</span>
+<span style="color: #008080;">34</span>           print("第" + a + "次执行外层循环"<span style="color: #000000;">);
+</span><span style="color: #008080;">35</span>           a ++<span style="color: #000000;">;
+</span><span style="color: #008080;">36</span>           System.out.println("从cb中读出 " +<span style="color: #000000;"> s.next());
+</span><span style="color: #008080;">37</span> <span style="color: #000000;">      }
+</span><span style="color: #008080;">38</span> <span style="color: #000000;">  }
+</span><span style="color: #008080;">39</span> }</code></pre>
+
+<src><span style="font-size: 14px;">上面的执行结果是：</span>
+<src><span style="font-size: 14px;">1</span><br /><span style="font-size: 14px;">2</span><br /><span style="font-size: 14px;">进入read执行第1次</span><br /><span style="font-size: 14px;">第1次执行外层循环</span><br /><span style="font-size: 14px;">从cb中读出 aa</span><br /><span style="font-size: 14px;">第2次执行外层循环</span><br /><span style="font-size: 14px;">从cb中读出 bb</span><br /><span style="font-size: 14px;">第3次执行外层循环</span><br /><span style="font-size: 14px;">从cb中读出 cc</span><br /><span style="background-color: #ffffff; color: #00ff00; font-size: 14px;">进入read执行第2次</span><br /><span style="background-color: #ffffff; color: #00ff00; font-size: 14px;">进入read执行第3次</span><br /><span style="background-color: #ffffff; color: #00ff00; font-size: 14px;">进入read执行第4次</span><br /><span style="background-color: #ffffff; color: #00ff00; font-size: 14px;">进入read执行第5次</span><br /><span style="background-color: #ffffff; color: #00ff00; font-size: 14px;">进入read执行第6次</span><br /><span style="font-size: 14px;">第4次执行外层循环</span><br /><span style="font-size: 14px;">从cb中读出 oo</span><br /><span style="font-size: 14px;">第5次执行外层循环</span><br /><span style="font-size: 14px;">从cb中读出 pp</span><br /><span style="font-size: 14px;">第6次执行外层循环</span><br /><span style="font-size: 14px;">从cb中读出 qq</span><br /><span style="color: #00ff00; font-size: 14px;">进入read执行第7次</span><br /><span style="color: #00ff00; font-size: 14px;">进入read执行第8次</span><br /><span style="color: #00ff00; font-size: 14px;">进入read执行第9次</span><br /><span style="color: #00ff00; font-size: 14px;">进入read执行第10次</span>
+<src><span style="color: #333333;"><span style="color: #333333;">　　<span style="font-size: 18px;">可以看到，在执行到while（s.hasNext()）时，要判断是否输入了内容，此时要进行读取操作，调用read（）函数，执行&nbsp;</span></span></span><span style="font-size: 18px;">loopCount == 1 得到了返回值为1，因此程序判断有输入内容，同时&nbsp;cb.append("aa bb cc ")已经执行，由于s.hasNext()是以空格为间断符</span>
+<src><span style="font-size: 18px;">第一次只能读aa，后面的在cd外排序等待，读完之后执行print（），然后由于一次性给过来的是aa bb cc。因此接着读取bb。最后cc。</span>
+<src><span style="font-size: 18px;">继续执行&nbsp;loopCount == 2 此时返回值仍为1，但是s.hasNext()并未检测到有具体内容要读取进来，因此继续调用read（）函数，直到s.hasNext()检测到返回值为-1为止，或者有读取内容。</span>
+<src>&nbsp;
+<src>&nbsp;
+
+</div><hr><script charset='utf-8' src='../../js/sming.js'></script></body></html>

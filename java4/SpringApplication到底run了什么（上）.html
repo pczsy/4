@@ -1,0 +1,191 @@
+<html><head><meta charset='utf-8'><meta name='viewport' content='width=device-width, initial-scale=1'>
+<meta name='applicable-device' content='pc'><meta name='keywords' content='电脑,电脑讲解,电脑技术,编程,电脑故障维修SpringApplication到底run了什么（上）' />
+<script src='../../highlight/highlight.pack.js'></script>
+<link rel='stylesheet' type='text/css' href='../../highlight/styles/monokai.css'/>
+
+<link rel='stylesheet' href='../../fenxiang/dist/css/share.min.css'>
+<script src='../../fenxiang/src/js/social-share.js'></script>
+<script src='../../fenxiang/src/js/qrcode.js'></script>
+
+</head><body><script>hljs.initHighlightingOnLoad();</script><script>
+var system ={};  
+var p = navigator.platform;       
+system.win = p.indexOf('Win') == 0;  
+system.mac = p.indexOf('Mac') == 0;  
+system.x11 = (p == 'X11') || (p.indexOf('Linux') == 0);     
+if(system.win||system.mac||system.xll){
+document.write("<link href='../css/3.css' rel='stylesheet' type='text/css'>");}else{ document.write("<link href='../css/3wap.css' rel='stylesheet' type='text/css'>");}</script><script src='../../js/3.js'></script><div class='div2'><div class='heading_nav'><ul><div><li><a href='../../index.html'>首页</a></li>
+</div><div onclick='hidden1()' >分享</div>
+</ul></div></div>
+<div id='heading_nav2'> 
+<li class='row' >
+<div class='social-share' data-mode='prepend'><a href='javascript:' class='social-share-icon icon-heart'></a></div></li></div><script charset='utf-8' src='../../3/js/hengfu.js'></script><script charset='utf-8' src='../../3/js/hengfu2.js'></script><hr><div class='div1'><div class='biaoti'><center>SpringApplication到底run了什么（上）</center></div><div class='banquan'>原文出处:本文由博客园博主石玉军提供。<br/>
+原文连接:https://www.cnblogs.com/zhixiang-org-cn/p/11575705.html</div><br>
+    <blockquote>
+<p>在上篇文章：<a href="https://mp.weixin.qq.com/s/h-pvfCSsYIlVSCHd9oCrEg">SpringBoot源码解析：创建SpringApplication对象实例</a>中，我们详细描述了SpringApplication对象实例的创建过程，本篇文章继续看<code>run</code>方法的执行逻辑吧</p>
+</blockquote>
+<pre><code><code>    public ConfigurableApplicationContext run(String... args) {
+        StopWatch stopWatch = new StopWatch();
+        stopWatch.start();
+        ConfigurableApplicationContext context = null;
+        Collection&lt;SpringBootExceptionReporter&gt; exceptionReporters = new ArrayList&lt;&gt;();
+        configureHeadlessProperty();
+        SpringApplicationRunListeners listeners = getRunListeners(args);
+        listeners.starting();
+        try {
+            ApplicationArguments applicationArguments = new DefaultApplicationArguments(
+                    args);
+            ConfigurableEnvironment environment = prepareEnvironment(listeners,
+                    applicationArguments);
+            //后面还有，本篇文章就解析到这。。。。
+    }</code></code></pre>
+<ol>
+<li>第一行使用了<code>StopWatch</code>来记录开始时间</li>
+<li><p>设置了<code>java.awt.headless</code>环境变量，在网上了解了一下这个变量的相关信息</p>
+<blockquote>
+<p>Headless模式是系统的一种配置模式。在系统可能缺少显示设备、键盘或鼠标这些外设的情况下可以使用该模式</p>
+<p>个人理解为是一些图形相关的组件能否使用的开关，欢迎各位大佬指正</p>
+</blockquote></li>
+<li><p>接着遍历所有构造<code>SpringApplication</code>实例时加载的<code>SpringApplicationRunListener</code>，调用它们的<code>started</code>方法</p></li>
+</ol>
+<p>这里构造时仅仅加载了一个<code>EventPublishingRunListener</code>类，所以咱们就来解析一下这个东东</p>
+<pre><code><code>    public void starting() {
+        this.initialMulticaster.multicastEvent(
+                new ApplicationStartingEvent(this.application, this.args));
+    }</code></code></pre>
+<p>可以看到这里调用了<code>SimpleApplicationEventMulticaster</code>类的<code>multicastEvent</code>方法并且传入了<code>ApplicationStartingEvent</code>对象，看名字就知道了这个是SpringBoot启动事件</p>
+<pre><code><code>
+public void multicastEvent(final ApplicationEvent event, @Nullable ResolvableType eventType) {
+        ResolvableType type = (eventType != null ? eventType : resolveDefaultEventType(event));
+        for (final ApplicationListener&lt;?&gt; listener : getApplicationListeners(event, type)) {
+            Executor executor = getTaskExecutor();
+            if (executor != null) {
+                executor.execute(() -&gt; invokeListener(listener, event));
+            }
+            else {
+                invokeListener(listener, event);
+            }
+        }
+    }</code></code></pre>
+<p>其中获取监听器使用的是<code>getApplicationListeners</code>方法，这个方法中主要就是从最启动时获取的所有监听器和这个事件做了下匹配，返回通过匹配的监听器集合</p>
+<p>接着就是看是否设置线程池参数，如果有线程池则使用线程池的线程进行操作，否则将同步调用监听器</p>
+<ol>
+<li>把所有的命令行启动参数封装成<code>ConfigurableEnvironment</code>对象</li>
+<li>准备运行时环境</li>
+</ol>
+<pre><code><code>    private ConfigurableEnvironment prepareEnvironment(
+            SpringApplicationRunListeners listeners,
+            ApplicationArguments applicationArguments) {
+        ConfigurableEnvironment environment = getOrCreateEnvironment();
+        configureEnvironment(environment, applicationArguments.getSourceArgs());
+        listeners.environmentPrepared(environment);
+        if (!this.webEnvironment) {
+            environment = new EnvironmentConverter(getClassLoader())
+                    .convertToStandardEnvironmentIfNecessary(environment);
+        }
+        return environment;
+    }</code></code></pre>
+<h5 id="获取或创建环境getorcreateenvironment">获取或创建环境<code>getOrCreateEnvironment</code></h5>
+<p>方法名就很直观，有就直接获取，没有就新建</p>
+<pre><code><code>    private ConfigurableEnvironment getOrCreateEnvironment() {
+        if (this.environment != null) {
+            return this.environment;
+        }
+        if (this.webApplicationType == WebApplicationType.SERVLET) {
+            return new StandardServletEnvironment();
+        }
+        return new StandardEnvironment();
+    }</code></code></pre>
+<p>上篇文章中说过了，咱们是Servlet环境，所以当前方法是返回一个<code>StandardServletEnvironment</code>对象，这个对象的构造过程中调用了<code>customizePropertySources</code>方法（它父类的父类调用的）</p>
+<pre><code><code>    protected void customizePropertySources(MutablePropertySources propertySources) {
+        propertySources.addLast(new StubPropertySource(&quot;servletConfigInitParams&quot;));
+        propertySources.addLast(new StubPropertySource(&quot;servletContextInitParams&quot;));
+        if (JndiLocatorDelegate.isDefaultJndiEnvironmentAvailable()) {
+            propertySources.addLast(new JndiPropertySource(&quot;jndiProperties&quot;));
+        }
+        super.customizePropertySources(propertySources);
+    }
+  //这是它父类的
+ protected void customizePropertySources(MutablePropertySources propertySources) {
+        propertySources.addLast(new MapPropertySource(&quot;systemProperties&quot;, getSystemProperties()));
+        propertySources.addLast(new SystemEnvironmentPropertySource(&quot;systemEnvironment&quot;, getSystemEnvironment()));
+    }</code></code></pre>
+<p>可以看出<code>StandardServletEnvironment</code>往<code>propertySources</code>中添加了两个<code>StubPropertySource</code>对象，而它的父类添加了一个包含java系统属性和一个操作系统环境变量的对象</p>
+<h5 id="配置-configureenvironment">配置 <code>configureEnvironment</code></h5>
+<pre><code><code>
+protected void configureEnvironment(ConfigurableEnvironment environment,
+    String[] args) {
+    // 配置PropertySources
+    configurePropertySources(environment, args);
+    // 配置Profiles
+    configureProfiles(environment, args);
+}</code></code></pre>
+<p>分别看一下两个方法</p>
+<h6 id="配置propertysources">配置PropertySources</h6>
+<pre><code><code>protected void configurePropertySources(ConfigurableEnvironment environment,
+        String[] args) {
+    MutablePropertySources sources = environment.getPropertySources();
+    if (this.defaultProperties != null &amp;&amp; !this.defaultProperties.isEmpty()) {
+        // 存在默认配置将其放到最后位置
+        sources.addLast(
+                new MapPropertySource(&quot;defaultProperties&quot;, this.defaultProperties));
+    }
+    // 如果存在命令行参数则将原有的替换掉
+    if (this.addCommandLineProperties &amp;&amp; args.length &gt; 0) {
+        String name = CommandLinePropertySource.COMMAND_LINE_PROPERTY_SOURCE_NAME;
+        if (sources.contains(name)) {
+            PropertySource&lt;?&gt; source = sources.get(name);
+            CompositePropertySource composite = new CompositePropertySource(name);
+            composite.addPropertySource(new SimpleCommandLinePropertySource(
+                    &quot;springApplicationCommandLineArgs&quot;, args));
+            composite.addPropertySource(source);
+            sources.replace(name, composite);
+        }
+        else {
+            // 将其放到第一位置
+            sources.addFirst(new SimpleCommandLinePropertySource(args));
+        }
+    }
+}</code></code></pre>
+<p>这里就体现出了这个命令行参数比应用配置文件的优先级高的情况了</p>
+<h6 id="配置profiles">配置Profiles</h6>
+<p>从PropertySources中查找spring.profiles.active属性，存在则将其值添加activeProfiles集合中</p>
+<pre><code><code>protected void configureProfiles(ConfigurableEnvironment environment, String[] args) {
+    environment.getActiveProfiles(); 
+    Set&lt;String&gt; profiles = new LinkedHashSet&lt;&gt;(this.additionalProfiles);
+    profiles.addAll(Arrays.asList(environment.getActiveProfiles()));
+    environment.setActiveProfiles(StringUtils.toStringArray(profiles));
+}</code></code></pre>
+<h5 id="发布environgmentpreparedevent事件">发布<code>EnvirongmentPreparedEvent</code>事件</h5>
+<h5 id="绑定环境">绑定环境</h5>
+<pre><code><code>protected void bindToSpringApplication(ConfigurableEnvironment environment) {
+        try {
+            Binder.get(environment).bind(&quot;spring.main&quot;, Bindable.ofInstance(this));
+        }
+        catch (Exception ex) {
+            throw new IllegalStateException(&quot;Cannot bind to SpringApplication&quot;, ex);
+        }
+    }</code></code></pre>
+<h5 id="转换环境">转换环境</h5>
+<p>如果web环境变更为NONE则将<code>StandardServletEnvironment</code>转换为<code>StandardEnvironment</code></p>
+<h5 id="configurationpropertysources.attachenvironment"><code>ConfigurationPropertySources.attach(environment)</code></h5>
+<pre><code><code>public static void attach(Environment environment) {
+        Assert.isInstanceOf(ConfigurableEnvironment.class, environment);
+        MutablePropertySources sources = ((ConfigurableEnvironment) environment)
+                .getPropertySources();
+        PropertySource&lt;?&gt; attached = sources.get(&quot;configurationProperties&quot;);
+        if (attached != null &amp;&amp; attached.getSource() != sources) {
+            sources.remove(&quot;configurationProperties&quot;);
+            attached = null;
+        }
+        if (attached == null) {
+            sources.addFirst(new ConfigurationPropertySourcesPropertySource(
+                    &quot;configurationProperties&quot;,
+                    new SpringConfigurationPropertySources(sources)));
+        }
+    }</code></code></pre>
+<p>最终这个<code>sources</code>对象的第一个位置放的是它自己，循环引用，这个具体的含义还有待挖掘</p>
+<p><img src="./images/SpringApplication到底run了什么（上）0.png" alt="1" /></p>
+
+
+</div><hr><script charset='utf-8' src='../../js/sming.js'></script></body></html>

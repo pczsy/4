@@ -1,0 +1,127 @@
+<html><head><meta charset='utf-8'><meta name='viewport' content='width=device-width, initial-scale=1'>
+<meta name='applicable-device' content='pc'><meta name='keywords' content='电脑,电脑讲解,电脑技术,编程,电脑故障维修SpringBoot项目下的JUnit测试' />
+<script src='../../highlight/highlight.pack.js'></script>
+<link rel='stylesheet' type='text/css' href='../../highlight/styles/monokai.css'/>
+
+<link rel='stylesheet' href='../../fenxiang/dist/css/share.min.css'>
+<script src='../../fenxiang/src/js/social-share.js'></script>
+<script src='../../fenxiang/src/js/qrcode.js'></script>
+
+</head><body><script>hljs.initHighlightingOnLoad();</script><script>
+var system ={};  
+var p = navigator.platform;       
+system.win = p.indexOf('Win') == 0;  
+system.mac = p.indexOf('Mac') == 0;  
+system.x11 = (p == 'X11') || (p.indexOf('Linux') == 0);     
+if(system.win||system.mac||system.xll){
+document.write("<link href='../css/3.css' rel='stylesheet' type='text/css'>");}else{ document.write("<link href='../css/3wap.css' rel='stylesheet' type='text/css'>");}</script><script src='../../js/3.js'></script><div class='div2'><div class='heading_nav'><ul><div><li><a href='../../index.html'>首页</a></li>
+</div><div onclick='hidden1()' >分享</div>
+</ul></div></div>
+<div id='heading_nav2'> 
+<li class='row' >
+<div class='social-share' data-mode='prepend'><a href='javascript:' class='social-share-icon icon-heart'></a></div></li></div><script charset='utf-8' src='../../3/js/hengfu.js'></script><script charset='utf-8' src='../../3/js/hengfu2.js'></script><hr><div class='div1'><div class='biaoti'><center>SpringBoot项目下的JUnit测试</center></div><div class='banquan'>原文出处:本文由博客园博主buguge提供。<br/>
+原文连接:https://www.cnblogs.com/buguge/p/11889207.html</div><br>
+    <p>在SpringBoot项目里，要编写单元测试用例，需要依赖4个jar。一个是最基本的JUnit，然后是spring-test和spring-boot-test。</p>
+<src class="cnblogs_code">
+<pre><code>        <span style="color: #008000;">&lt;!--</span><span style="color: #008000;">test</span><span style="color: #008000;">--&gt;</span>
+        <span style="color: #0000ff;">&lt;</span><span style="color: #800000;">dependency</span><span style="color: #0000ff;">&gt;</span>
+            <span style="color: #0000ff;">&lt;</span><span style="color: #800000;">groupId</span><span style="color: #0000ff;">&gt;</span>junit<span style="color: #0000ff;">&lt;/</span><span style="color: #800000;">groupId</span><span style="color: #0000ff;">&gt;</span>
+            <span style="color: #0000ff;">&lt;</span><span style="color: #800000;">artifactId</span><span style="color: #0000ff;">&gt;</span>junit<span style="color: #0000ff;">&lt;/</span><span style="color: #800000;">artifactId</span><span style="color: #0000ff;">&gt;</span>
+            <span style="color: #0000ff;">&lt;</span><span style="color: #800000;">version</span><span style="color: #0000ff;">&gt;</span>4.12<span style="color: #0000ff;">&lt;/</span><span style="color: #800000;">version</span><span style="color: #0000ff;">&gt;</span>
+            <span style="color: #0000ff;">&lt;</span><span style="color: #800000;">scope</span><span style="color: #0000ff;">&gt;</span>test<span style="color: #0000ff;">&lt;/</span><span style="color: #800000;">scope</span><span style="color: #0000ff;">&gt;</span>
+        <span style="color: #0000ff;">&lt;/</span><span style="color: #800000;">dependency</span><span style="color: #0000ff;">&gt;</span>
+        <span style="color: #0000ff;">&lt;</span><span style="color: #800000;">dependency</span><span style="color: #0000ff;">&gt;</span>
+            <span style="color: #0000ff;">&lt;</span><span style="color: #800000;">groupId</span><span style="color: #0000ff;">&gt;</span>org.springframework<span style="color: #0000ff;">&lt;/</span><span style="color: #800000;">groupId</span><span style="color: #0000ff;">&gt;</span>
+            <span style="color: #0000ff;">&lt;</span><span style="color: #800000;">artifactId</span><span style="color: #0000ff;">&gt;</span>spring-test<span style="color: #0000ff;">&lt;/</span><span style="color: #800000;">artifactId</span><span style="color: #0000ff;">&gt;</span>
+            <span style="color: #0000ff;">&lt;</span><span style="color: #800000;">version</span><span style="color: #0000ff;">&gt;</span>5.1.9.RELEASE<span style="color: #0000ff;">&lt;/</span><span style="color: #800000;">version</span><span style="color: #0000ff;">&gt;</span>
+            <span style="color: #0000ff;">&lt;</span><span style="color: #800000;">scope</span><span style="color: #0000ff;">&gt;</span>test<span style="color: #0000ff;">&lt;/</span><span style="color: #800000;">scope</span><span style="color: #0000ff;">&gt;</span>
+        <span style="color: #0000ff;">&lt;/</span><span style="color: #800000;">dependency</span><span style="color: #0000ff;">&gt;</span>
+        <span style="color: #0000ff;">&lt;</span><span style="color: #800000;">dependency</span><span style="color: #0000ff;">&gt;</span>
+            <span style="color: #0000ff;">&lt;</span><span style="color: #800000;">groupId</span><span style="color: #0000ff;">&gt;</span>org.springframework.boot<span style="color: #0000ff;">&lt;/</span><span style="color: #800000;">groupId</span><span style="color: #0000ff;">&gt;</span>
+            <span style="color: #0000ff;">&lt;</span><span style="color: #800000;">artifactId</span><span style="color: #0000ff;">&gt;</span>spring-boot-test<span style="color: #0000ff;">&lt;/</span><span style="color: #800000;">artifactId</span><span style="color: #0000ff;">&gt;</span>
+            <span style="color: #0000ff;">&lt;</span><span style="color: #800000;">version</span><span style="color: #0000ff;">&gt;</span>2.1.7.RELEASE<span style="color: #0000ff;">&lt;/</span><span style="color: #800000;">version</span><span style="color: #0000ff;">&gt;</span>
+            <span style="color: #0000ff;">&lt;</span><span style="color: #800000;">scope</span><span style="color: #0000ff;">&gt;</span>test<span style="color: #0000ff;">&lt;/</span><span style="color: #800000;">scope</span><span style="color: #0000ff;">&gt;</span>
+        <span style="color: #0000ff;">&lt;/</span><span style="color: #800000;">dependency</span><span style="color: #0000ff;">&gt;</span></code></pre>
+
+<p>&nbsp;</p>
+<p>如果在运行testcase时，遇到如下问题，那么，原因是因为没有引入spring-core包（错误消息里说的很明白了，见其中的springframework/core）</p>
+<src class="cnblogs_code">
+<pre><code>java.lang.NoSuchMethodError: org.springframework.core.type.AnnotationMetadata.introspect(Ljava/lang/Class;)Lorg/springframework/core/type/<span style="color: #000000;">AnnotationMetadata;
+
+    at org.springframework.beans.factory.annotation.AnnotatedGenericBeanDefinition.</span>&lt;init&gt;(AnnotatedGenericBeanDefinition.java:58<span style="color: #000000;">)
+    at org.springframework.context.annotation.AnnotatedBeanDefinitionReader.doRegisterBean(AnnotatedBeanDefinitionReader.java:</span>253<span style="color: #000000;">)
+    at org.springframework.context.annotation.AnnotatedBeanDefinitionReader.registerBean(AnnotatedBeanDefinitionReader.java:</span>147<span style="color: #000000;">)
+    at org.springframework.context.annotation.AnnotatedBeanDefinitionReader.register(AnnotatedBeanDefinitionReader.java:</span>137<span style="color: #000000;">)
+    at org.springframework.boot.BeanDefinitionLoader.load(BeanDefinitionLoader.java:</span>156<span style="color: #000000;">)
+    at org.springframework.boot.BeanDefinitionLoader.load(BeanDefinitionLoader.java:</span>135<span style="color: #000000;">)
+    at org.springframework.boot.BeanDefinitionLoader.load(BeanDefinitionLoader.java:</span>127<span style="color: #000000;">)
+    at org.springframework.boot.SpringApplication.load(SpringApplication.java:</span>687<span style="color: #000000;">)
+    at org.springframework.boot.SpringApplication.prepareContext(SpringApplication.java:</span>385<span style="color: #000000;">)
+    at org.springframework.boot.SpringApplication.run(SpringApplication.java:</span>311<span style="color: #000000;">)
+    at org.springframework.boot.test.context.SpringBootContextLoader.loadContext(SpringBootContextLoader.java:</span>120<span style="color: #000000;">)
+    at org.springframework.test.context.cache.DefaultCacheAwareContextLoaderDelegate.loadContextInternal(DefaultCacheAwareContextLoaderDelegate.java:</span>99<span style="color: #000000;">)
+    at org.springframework.test.context.cache.DefaultCacheAwareContextLoaderDelegate.loadContext(DefaultCacheAwareContextLoaderDelegate.java:</span>117<span style="color: #000000;">)
+    at org.springframework.test.context.support.DefaultTestContext.getApplicationContext(DefaultTestContext.java:</span>108<span style="color: #000000;">)
+    at org.springframework.test.context.web.ServletTestExecutionListener.setUpRequestContextIfNecessary(ServletTestExecutionListener.java:</span>190<span style="color: #000000;">)
+    at org.springframework.test.context.web.ServletTestExecutionListener.prepareTestInstance(ServletTestExecutionListener.java:</span>132<span style="color: #000000;">)
+    at org.springframework.test.context.TestContextManager.prepareTestInstance(TestContextManager.java:</span>246<span style="color: #000000;">)
+    at org.springframework.test.context.junit4.SpringJUnit4ClassRunner.createTest(SpringJUnit4ClassRunner.java:</span>227<span style="color: #000000;">)
+    at org.springframework.test.context.junit4.SpringJUnit4ClassRunner$</span>1.runReflectiveCall(SpringJUnit4ClassRunner.java:289<span style="color: #000000;">)
+    at org.junit.internal.runners.model.ReflectiveCallable.run(ReflectiveCallable.java:</span>12<span style="color: #000000;">)
+    at org.springframework.test.context.junit4.SpringJUnit4ClassRunner.methodBlock(SpringJUnit4ClassRunner.java:</span>291<span style="color: #000000;">)
+    at org.springframework.test.context.junit4.SpringJUnit4ClassRunner.runChild(SpringJUnit4ClassRunner.java:</span>246<span style="color: #000000;">)
+    at org.springframework.test.context.junit4.SpringJUnit4ClassRunner.runChild(SpringJUnit4ClassRunner.java:</span>97<span style="color: #000000;">)
+    at org.junit.runners.ParentRunner$</span>3.run(ParentRunner.java:290<span style="color: #000000;">)
+    at org.junit.runners.ParentRunner$</span>1.schedule(ParentRunner.java:71<span style="color: #000000;">)
+    at org.junit.runners.ParentRunner.runChildren(ParentRunner.java:</span>288<span style="color: #000000;">)
+    at org.junit.runners.ParentRunner.access$</span>000(ParentRunner.java:58<span style="color: #000000;">)
+    at org.junit.runners.ParentRunner$</span>2.evaluate(ParentRunner.java:268<span style="color: #000000;">)
+    at org.springframework.test.context.junit4.statements.RunBeforeTestClassCallbacks.evaluate(RunBeforeTestClassCallbacks.java:</span>61<span style="color: #000000;">)
+    at org.springframework.test.context.junit4.statements.RunAfterTestClassCallbacks.evaluate(RunAfterTestClassCallbacks.java:</span>70<span style="color: #000000;">)
+    at org.junit.runners.ParentRunner.run(ParentRunner.java:</span>363<span style="color: #000000;">)
+    at org.springframework.test.context.junit4.SpringJUnit4ClassRunner.run(SpringJUnit4ClassRunner.java:</span>190<span style="color: #000000;">)
+    at org.junit.runner.JUnitCore.run(JUnitCore.java:</span>137<span style="color: #000000;">)
+    at com.intellij.junit4.JUnit4IdeaTestRunner.startRunnerWithArgs(JUnit4IdeaTestRunner.java:</span>68<span style="color: #000000;">)
+    at com.intellij.rt.execution.junit.IdeaTestRunner$Repeater.startRunnerWithArgs(IdeaTestRunner.java:</span>47<span style="color: #000000;">)
+    at com.intellij.rt.execution.junit.JUnitStarter.prepareStreamsAndStart(JUnitStarter.java:</span>242<span style="color: #000000;">)
+    at com.intellij.rt.execution.junit.JUnitStarter.main(JUnitStarter.java:</span>70)</code></pre>
+
+<p>&nbsp;</p>
+<p>依赖spring-core包：</p>
+<src class="cnblogs_code">
+<pre><code>        <span style="color: #0000ff;">&lt;</span><span style="color: #800000;">dependency</span><span style="color: #0000ff;">&gt;</span>
+            <span style="color: #0000ff;">&lt;</span><span style="color: #800000;">groupId</span><span style="color: #0000ff;">&gt;</span>org.springframework<span style="color: #0000ff;">&lt;/</span><span style="color: #800000;">groupId</span><span style="color: #0000ff;">&gt;</span>
+            <span style="color: #0000ff;">&lt;</span><span style="color: #800000;">artifactId</span><span style="color: #0000ff;">&gt;</span>spring-core<span style="color: #0000ff;">&lt;/</span><span style="color: #800000;">artifactId</span><span style="color: #0000ff;">&gt;</span>
+            <span style="color: #0000ff;">&lt;</span><span style="color: #800000;">version</span><span style="color: #0000ff;">&gt;</span>5.2.0.RELEASE<span style="color: #0000ff;">&lt;/</span><span style="color: #800000;">version</span><span style="color: #0000ff;">&gt;</span>
+        <span style="color: #0000ff;">&lt;/</span><span style="color: #800000;">dependency</span><span style="color: #0000ff;">&gt;</span></code></pre>
+
+<p>&nbsp;</p>
+<p>如下是一个testcase示例。其中</p>
+<p>@RunWith是JUnit的一个运行器。@RunWith(JUnit4.class)就是指用JUnit4来运行；@RunWith(SpringJUnit4ClassRunner.class),让测试运行于Spring测试环境</p>
+<src class="cnblogs_code">
+<pre><code><span style="color: #0000ff;">import</span><span style="color: #000000;"> com.alibaba.fastjson.JSON;
+</span><span style="color: #0000ff;">import</span><span style="color: #000000;"> org.apache.dubbo.config.annotation.Reference;
+
+</span><span style="color: #0000ff;">import</span><span style="color: #000000;"> org.junit.Test;
+</span><span style="color: #0000ff;">import</span><span style="color: #000000;"> org.junit.runner.RunWith;
+</span><span style="color: #0000ff;">import</span><span style="color: #000000;"> org.springframework.boot.test.context.SpringBootTest;
+</span><span style="color: #0000ff;">import</span><span style="color: #000000;"> org.springframework.test.context.junit4.SpringRunner;
+
+@RunWith(SpringRunner.</span><span style="color: #0000ff;">class</span><span style="color: #000000;">)
+@SpringBootTest
+</span><span style="color: #0000ff;">public</span> <span style="color: #0000ff;">class</span><span style="color: #000000;"> CarSignatureServiceTest {
+
+    @Reference(url </span>= "dubbo://localhost:20880"<span style="color: #000000;">)
+    </span><span style="color: #0000ff;">private</span><span style="color: #000000;"> CarSignatureService carSignatureService;
+
+
+    @Test
+    </span><span style="color: #0000ff;">public</span> <span style="color: #0000ff;">void</span><span style="color: #000000;"> getSignedCarList(){
+        List</span>&lt;ServiceOrderVO&gt; list = carSignatureService.getSignedCarList(<span style="color: #0000ff;">new</span><span style="color: #000000;"> ServiceOrderVO());
+        System.out.println(JSON.toJSONString(list));
+    }
+}</span></code></pre>
+
+<p>&nbsp;</p>
+
+</div><hr><script charset='utf-8' src='../../js/sming.js'></script></body></html>

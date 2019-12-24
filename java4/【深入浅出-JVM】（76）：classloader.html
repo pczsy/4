@@ -1,0 +1,215 @@
+<html><head><meta charset='utf-8'><meta name='viewport' content='width=device-width, initial-scale=1'>
+<meta name='applicable-device' content='pc'><meta name='keywords' content='电脑,电脑讲解,电脑技术,编程,电脑故障维修【深入浅出-JVM】（76）：classloader' />
+<script src='../../highlight/highlight.pack.js'></script>
+<link rel='stylesheet' type='text/css' href='../../highlight/styles/monokai.css'/>
+
+<link rel='stylesheet' href='../../fenxiang/dist/css/share.min.css'>
+<script src='../../fenxiang/src/js/social-share.js'></script>
+<script src='../../fenxiang/src/js/qrcode.js'></script>
+
+</head><body><script>hljs.initHighlightingOnLoad();</script><script>
+var system ={};  
+var p = navigator.platform;       
+system.win = p.indexOf('Win') == 0;  
+system.mac = p.indexOf('Mac') == 0;  
+system.x11 = (p == 'X11') || (p.indexOf('Linux') == 0);     
+if(system.win||system.mac||system.xll){
+document.write("<link href='../css/3.css' rel='stylesheet' type='text/css'>");}else{ document.write("<link href='../css/3wap.css' rel='stylesheet' type='text/css'>");}</script><script src='../../js/3.js'></script><div class='div2'><div class='heading_nav'><ul><div><li><a href='../../index.html'>首页</a></li>
+</div><div onclick='hidden1()' >分享</div>
+</ul></div></div>
+<div id='heading_nav2'> 
+<li class='row' >
+<div class='social-share' data-mode='prepend'><a href='javascript:' class='social-share-icon icon-heart'></a></div></li></div><script charset='utf-8' src='../../3/js/hengfu.js'></script><script charset='utf-8' src='../../3/js/hengfu2.js'></script><hr><div class='div1'><div class='biaoti'><center>【深入浅出-JVM】（76）：classloader</center></div><div class='banquan'>原文出处:本文由博客园博主mousycoder提供。<br/>
+原文连接:https://www.cnblogs.com/mousycoder/p/11528992.html</div><br>
+    <h2 id="方法">方法</h2>
+<ul>
+<li>public Class&lt;?&gt; loadClass(String name) throws ClassNotFoundException<br />
+通过类名发挥这个类的Class实例</li>
+<li>protected final Class&lt;?&gt; defineClass(byte[] b,int off,int len)<br />
+根据给定的字节码流 b，off 和 len 参数表示实际的 class 信息在byte 数组中的位置和长度，其中 byte 数组 b是 classloader 从外部获取的</li>
+<li>protected Class&lt;?&gt; findClass(String name)throws ClassNotFoundException<br />
+查看一个类</li>
+<li><p>protected final Class&lt;?&gt; findLoadedClass(String name)</p>
+<h2 id="分类">分类</h2></li>
+<li>BootStrap ClassLoader</li>
+<li>Extension ClassLoader</li>
+<li><p>AppClassLoader<br />
+<img src="./images/【深入浅出-JVM】（76）：classloader0.png" /><br />
+启动类加载器负责加载系统的核心类（rt.jar的java类），扩展类加载器加载 %JAVA_HOME/lib/ext/*.jar中的类，应用类加载器用于加载用户类 (classpath)，自定义类加载器加载一些特殊路径的类(自定义classloader)</p>
+<h2 id="双亲委托">双亲委托</h2></li>
+</ul>
+<ol>
+<li>当前 classloader 首先从自己已经加载的类中查询是否此类已经加载，如果已经加载了则直接返回原来已经加载的类</li>
+<li>当前 classloader 的缓存中没有找到被加载的类的时候，委托父类加载器去加载，父类加载器采用同样的策略，首先查下自己的缓存，然后委托父类去加载，一直到 bootstrap classloader</li>
+<li>当所有的父类加载器都没有加载的时候，再由当前的类加载器加载，并将其放入自己的缓存中，下次请求的时候直接返回</li>
+<li>一直循环重复</li>
+</ol>
+<h3 id="作用">作用</h3>
+<ul>
+<li>各个类加载器的基础类统一</li>
+</ul>
+<p><img src="./images/【深入浅出-JVM】（76）：classloader1.png" /></p>
+<p>jar -cvf test.jar HelloLoader.class 把class打包成jar</p>
+<h2 id="extension-classloader">Extension ClassLoader</h2>
+<p>例子：在 ext 路径下放一个自己 jar 包并加载</p>
+<pre><code><code>package com.mousycoder.server;
+
+public class HelloWorld {
+
+    public static void main(String[] args) {
+        System.out.println(&quot;Hello World!&quot;);
+    }
+}
+</code></code></pre>
+<p>idea 通过 structs-&gt;artifacts-&gt;jar 然后 build-&gt; build artifacts-&gt;build 生成 helloworld.jar<br />
+放到 /Library/Java/JavaVirtualMachines/jdk1.8.0.jdk/Contents/Home/jre/lib/ext</p>
+<pre><code><code>package com.mousycoder.mycode.thinking_in_jvm;
+
+import java.lang.reflect.Method;
+
+/**
+ * @version 1.0
+ * @author: mousycoder
+ * @date: 2019-09-06 10:35
+ */
+public class ExtClassLoader {
+
+    public static void main(String[] args) throws ClassNotFoundException {
+        System.out.println(System.getProperty(&quot;java.ext.dirs&quot;));
+        Class&lt;?&gt; helloClass = Class.forName(&quot;com.mousycoder.server.HelloWorld&quot;);
+        System.out.println(helloClass.getClassLoader());
+    }
+}
+</code></code></pre>
+<p>输出</p>
+<pre><code><code>/Users/mousycoder/Library/Java/Extensions:/Library/Java/JavaVirtualMachines/jdk1.8.0.jdk/Contents/Home/jre/lib/ext:/Library/Java/Extensions:/Network/Library/Java/Extensions:/System/Library/Java/Extensions:/usr/lib/java
+sun.misc.Launcher$ExtClassLoader@610455d6</code></code></pre>
+<p>可以看出是 ExtClassLoader 加载 java.ext.dirs 目录</p>
+<h2 id="自定义类加载器">自定义类加载器</h2>
+<pre><code><code>package com.mousycoder.mycode.thinking_in_jvm;
+
+import java.io.ByteArrayOutputStream;
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+
+/**
+ * @version 1.0
+ * @author: mousycoder
+ * @date: 2019-09-06 11:13
+ */
+public class MyClassLoader extends ClassLoader {
+
+    private final static Path DEFAULT_CLASS_PATH = Paths.get(&quot;&quot;,&quot;/Users/mousycoder/My&quot;);
+
+    private final Path classDir;
+
+    public MyClassLoader(){
+        super();
+        this.classDir = DEFAULT_CLASS_PATH;
+
+    }
+
+    public MyClassLoader(String classDir){
+        super();
+        this.classDir = Paths.get(classDir);
+    }
+
+    public MyClassLoader(String classDir, ClassLoader parent){
+        super(parent);
+        this.classDir = Paths.get(classDir);
+    }
+
+    @Override
+    protected Class&lt;?&gt; findClass(String name) throws ClassNotFoundException {
+        try {
+            byte[] classBytes = this.readClassBytes(name);
+
+            if (null == classBytes || 0 == classBytes.length){
+                throw new ClassNotFoundException(&quot;can not load the class&quot; + name);
+            }
+            return this.defineClass(name,classBytes,0,classBytes.length);
+        } catch (IOException e){
+            e.printStackTrace();
+        }
+        return null;
+    }
+
+
+    private byte[] readClassBytes(String name) throws ClassNotFoundException, IOException {
+        String classPath = name.replace(&quot;.&quot;,&quot;/&quot;);
+        Path classFullPath = classDir.resolve( &quot;HelloWorld1.class&quot;);
+        if (!classFullPath.toFile().exists()){
+            throw new ClassNotFoundException(&quot;The class&quot; + name + &quot;mpt found&quot;);
+        }
+
+        try (ByteArrayOutputStream baos = new ByteArrayOutputStream()){
+            Files.copy(classFullPath,baos);
+            return baos.toByteArray();
+        } catch (IOException e){
+            throw new ClassNotFoundException(&quot;load the class &quot; + name + &quot;occur error&quot;,e);
+        }
+
+    }
+
+
+    @Override
+    public String toString() {
+        return &quot;My ClassLoader&quot;;
+    }
+}
+
+package com.mousycoder.mycode.thinking_in_jvm;
+
+/**
+ * @version 1.0
+ * @author: mousycoder
+ * @date: 2019-09-06 11:34
+ */
+public class MyClassLoaderTest {
+
+    public static void main(String[] args) throws ClassNotFoundException {
+        MyClassLoader classLoader = new MyClassLoader();
+        Class&lt;?&gt; class1 = classLoader.loadClass(&quot;com.mousycoder.mycode.thinking_in_jvm.HelloWorld1&quot;);
+        System.out.println(class1.getClassLoader());
+    }
+}
+package com.mousycoder.mycode.thinking_in_jvm;
+
+/**
+ * @version 1.0
+ * @author: mousycoder
+ * @date: 2019-09-06 11:46
+ */
+public class HelloWorld1 {
+    public static void main(String[] args) {
+        System.out.println(&quot;Hello world1 &quot;);
+    }
+}
+
+</code></code></pre>
+<p>把helloword1变成class放到/Users/mousycoder/My目录下即可<br />
+输出 My ClassLoader 代表 自定义类加载器加载了该类</p>
+<h2 id="上下文类加载器">上下文类加载器</h2>
+<p><img src="./images/【深入浅出-JVM】（76）：classloader2.png" /></p>
+<h3 id="作用-1">作用</h3>
+<p>打破双亲委托机制，让上层父类加载器可以使用子类的加载器加载对象，比如Spi中的接口类在系统加载器中，但是实现类在应用加载器中</p>
+<h2 id="tomcat-类加载器">Tomcat 类加载器</h2>
+<h3 id="目的">目的</h3>
+<ol>
+<li>保证每个应用的类库独立隔离（即使同限定名不同版本的）</li>
+<li>保证相同类库相同版本的类库共享</li>
+<li>保证容器自身的类库和程序独立</li>
+</ol>
+<h3 id="加载顺序">加载顺序</h3>
+<ol>
+<li>bootstrap 引导类加载器</li>
+<li>system 系统类加载器</li>
+<li>应用类加载器 WEB-INF/classes</li>
+<li>应用类加载器 WEB-INF/lib</li>
+<li>common 类加载器 CATALINA/lib</li>
+</ol>
+
+
+</div><hr><script charset='utf-8' src='../../js/sming.js'></script></body></html>

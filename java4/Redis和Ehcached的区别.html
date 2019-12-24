@@ -1,0 +1,67 @@
+<html><head><meta charset='utf-8'><meta name='viewport' content='width=device-width, initial-scale=1'>
+<meta name='applicable-device' content='pc'><meta name='keywords' content='电脑,电脑讲解,电脑技术,编程,电脑故障维修Redis和Ehcached的区别' />
+<script src='../../highlight/highlight.pack.js'></script>
+<link rel='stylesheet' type='text/css' href='../../highlight/styles/monokai.css'/>
+
+<link rel='stylesheet' href='../../fenxiang/dist/css/share.min.css'>
+<script src='../../fenxiang/src/js/social-share.js'></script>
+<script src='../../fenxiang/src/js/qrcode.js'></script>
+
+</head><body><script>hljs.initHighlightingOnLoad();</script><script>
+var system ={};  
+var p = navigator.platform;       
+system.win = p.indexOf('Win') == 0;  
+system.mac = p.indexOf('Mac') == 0;  
+system.x11 = (p == 'X11') || (p.indexOf('Linux') == 0);     
+if(system.win||system.mac||system.xll){
+document.write("<link href='../css/3.css' rel='stylesheet' type='text/css'>");}else{ document.write("<link href='../css/3wap.css' rel='stylesheet' type='text/css'>");}</script><script src='../../js/3.js'></script><div class='div2'><div class='heading_nav'><ul><div><li><a href='../../index.html'>首页</a></li>
+</div><div onclick='hidden1()' >分享</div>
+</ul></div></div>
+<div id='heading_nav2'> 
+<li class='row' >
+<div class='social-share' data-mode='prepend'><a href='javascript:' class='social-share-icon icon-heart'></a></div></li></div><script charset='utf-8' src='../../3/js/hengfu.js'></script><script charset='utf-8' src='../../3/js/hengfu2.js'></script><hr><div class='div1'><div class='biaoti'><center>Redis和Ehcached的区别</center></div><div class='banquan'>原文出处:本文由博客园博主程序猿辉辉提供。<br/>
+原文连接:https://www.cnblogs.com/gathub/p/reidis_ehcache.html</div><br>
+    <h2 id="redis">Redis</h2>
+<p><strong>属于独立的运行程序，需要单独安装后，使用JAVA中的Jedis来操纵。因为它是独立，所以如果你写个单元测试程序，放一些数据在Redis中，然后又写一个程序去拿数据，那么是可以拿到这个数据的。</strong></p>
+<h2 id="ehcache">Ehcache</h2>
+<p><strong>与Redis明显不同，它与java程序是绑在一起的，java程序活着，它就活着。譬如，写一个独立程序放数据，再写一个独立程序拿数据，那么是拿不到数据的。只能在独立程序中才能拿到数据。ehcache是Hibernate中默认的CacheProvider，直接在jvm虚拟机中缓存，速度快，效率高；但是缓存共享麻烦，集群分布式应用不方便。 缓存数据有两级：内存和磁盘，因此无需担心容量问题，提供Hibernate的缓存实现 。</strong></p>
+<h2 id="ehcache特点">Ehcache特点</h2>
+<h3 id="够快">1. 够快</h3>
+<p><strong>Ehcache的发行有一段时长了，经过几年的努力和不计其数的性能测试，Ehcache终被设计于large, high concurrency systems.</strong></p>
+<h3 id="够简单">2. 够简单</h3>
+<p><strong>开发者提供的接口非常简单明了，从Ehcache的搭建到运用运行仅仅需要的是你宝贵的几分钟。其实很多开发者都不知道自己用在用Ehcache，Ehcache被广泛的运用于其他的开源项目<br />
+比如：hibernate</strong></p>
+<h3 id="够袖珍">3.够袖珍</h3>
+<p><strong>关于这点的特性，官方给了一个很可爱的名字small foot print ，一般Ehcache的发布版本不会到2M，V 2.2.3 才 668KB。</strong></p>
+<h3 id="够轻量">4. 够轻量</h3>
+<p><strong>核心程序仅仅依赖slf4j这一个包，没有之一！</strong></p>
+<h3 id="好扩展">5.好扩展</h3>
+<p><strong>Ehcache提供了对大数据的内存和硬盘的存储，最近版本允许多实例、保存对象高灵活性、提供LRU、LFU、FIFO淘汰算法，基础属性支持热配置、支持的插件多</strong></p>
+<h3 id="监听器">6.监听器</h3>
+<p><strong>缓存管理器监听器 （CacheManagerListener）和 缓存监听器（CacheEvenListener）,做一些统计或数据一致性广播挺好用的</strong></p>
+<h2 id="如何使用">如何使用？</h2>
+<p><strong>够简单就是Ehcache的一大特色，自然用起来just so easy!</strong></p>
+<p><strong>贴一段基本使用代码</strong></p>
+<pre><code><code>CacheManager manager = CacheManager.newInstance(&quot;src/config/ehcache.xml&quot;);
+Ehcache cache = new Cache(&quot;testCache&quot;, 5000, false, false, 5, 2);
+cacheManager.addCache(cache);
+
+ 代码中有个ehcache.xml文件，现在来介绍一下这个文件中的一些属性
+       name:缓存名称。
+       maxElementsInMemory：缓存最大个数。
+       eternal:对象是否永久有效，一但设置了，timeout将不起作用。
+       timeToIdleSeconds：设置对象在失效前的允许闲置时间（单位：秒）。仅当eternal=false对象不是永久有效时使用，可选属性，默认值是0，也就是可闲置时间无穷大。
+       timeToLiveSeconds：设置对象在失效前允许存活时间,最大时间介于创建时间和失效时间之间。仅当eternal=false对象不是永久有效时使用，默认是0.，也就是对象存活时 间无穷大。
+       overflowToDisk：当内存中对象数量达到maxElementsInMemory时，Ehcache将会对象写到磁盘中。
+       diskSpoolBufferSizeMB：这个参数设置DiskStore（磁盘缓存）的缓存区大小。默认是30MB。每个Cache都应该有自己的一个缓冲区。
+       maxElementsOnDisk：硬盘最大缓存个数。
+       diskPersistent：是否缓存虚拟机重启期数据 Whether the disk store persists between restarts of the Virtual Machine. The default value is false.
+       diskExpiryThreadIntervalSeconds：磁盘失效线程运行时间间隔，默认是120秒。
+       memoryStoreEvictionPolicy：当达到maxElementsInMemory限制时，Ehcache将会根据指定的策略去清理内存。默认策略是LRU。你可以设置为 FIFO或是LFU。
+       clearOnFlush：内存数量最大时是否清除。 </code></code></pre>
+<p><strong>redis是通过socket访问到缓存服务，效率比ecache低，比数据库要快很多，处理集群和分布式缓存方便，有成熟的方案。</strong></p>
+<p><strong>如果是单个应用或者对缓存访问要求很高的应用，用ehcache。<br />
+如果是大型系统，存在缓存共享、分布式部署、缓存内容很大的，建议用redis。</strong></p>
+
+
+</div><hr><script charset='utf-8' src='../../js/sming.js'></script></body></html>

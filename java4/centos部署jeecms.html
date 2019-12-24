@@ -1,0 +1,65 @@
+<html><head><meta charset='utf-8'><meta name='viewport' content='width=device-width, initial-scale=1'>
+<meta name='applicable-device' content='pc'><meta name='keywords' content='电脑,电脑讲解,电脑技术,编程,电脑故障维修centos部署jeecms' />
+<script src='../../highlight/highlight.pack.js'></script>
+<link rel='stylesheet' type='text/css' href='../../highlight/styles/monokai.css'/>
+
+<link rel='stylesheet' href='../../fenxiang/dist/css/share.min.css'>
+<script src='../../fenxiang/src/js/social-share.js'></script>
+<script src='../../fenxiang/src/js/qrcode.js'></script>
+
+</head><body><script>hljs.initHighlightingOnLoad();</script><script>
+var system ={};  
+var p = navigator.platform;       
+system.win = p.indexOf('Win') == 0;  
+system.mac = p.indexOf('Mac') == 0;  
+system.x11 = (p == 'X11') || (p.indexOf('Linux') == 0);     
+if(system.win||system.mac||system.xll){
+document.write("<link href='../css/3.css' rel='stylesheet' type='text/css'>");}else{ document.write("<link href='../css/3wap.css' rel='stylesheet' type='text/css'>");}</script><script src='../../js/3.js'></script><div class='div2'><div class='heading_nav'><ul><div><li><a href='../../index.html'>首页</a></li>
+</div><div onclick='hidden1()' >分享</div>
+</ul></div></div>
+<div id='heading_nav2'> 
+<li class='row' >
+<div class='social-share' data-mode='prepend'><a href='javascript:' class='social-share-icon icon-heart'></a></div></li></div><script charset='utf-8' src='../../3/js/hengfu.js'></script><script charset='utf-8' src='../../3/js/hengfu2.js'></script><hr><div class='div1'><div class='biaoti'><center>centos部署jeecms</center></div><div class='banquan'>原文出处:本文由博客园博主人丑就得多读书提供。<br/>
+原文连接:https://www.cnblogs.com/ly1068/p/11711470.html</div><br>
+    <p>首先下载安装包<br />apache-tomcat-8.5.40.tar.gz</p>
+<p>jdk-8u211-linux-x641.rpm</p>
+<p>jeecmsv9.war  已经在WEB-INF/config/jdbc.properties中修改完毕数据库信息</p>
+<p>useUnicode=true&amp;characterEncoding=UTF-8&amp;useSSL=false</p>
+<p>数据库采用云数据库，不再写安装mysql过程</p>
+<p>安装jdk，配置环境变量<br />rpm -ivh jdk-8u211-linux-x641.rpm</p>
+<p>查看环境</p>
+<p>java -version</p>
+<p>安装后配置环境变量</p>
+<p>vim /etc/profile</p>
+<p>在最后加</p>
+<p>export JAVA_HOME=/usr/java/default</p>
+<p>export PATH=$JAVA_HOME/bin:$PATH</p>
+<p>export CLASSPATH=.:$JAVA_HOME/lib/dt.jar:$JAVA_HOME/lib/tools.jar</p>
+<p>保存后source一下</p>
+<p>source /etc/profile</p>
+<p>导入sql脚本<br />将数据库脚本导入数据库，因版本不同可能需要调整部分sql</p>
+<p>配置tomcat<br />解压tomcat</p>
+<p>tar -zxvf apache-tomcat-8.5.40.tar.gz</p>
+<p>本人习惯，移动到/usr/目录</p>
+<p>mv apache-tomcat-8.5.40 /usr/</p>
+<p>进入tomcat目录，编辑jvm参数</p>
+<p>vi bin/catalina.sh</p>
+<p>JAVA_OPTS="-Xms512m -Xmx1024m -Xss1024K -XX:PermSize=512m -XX:MaxPermSize=1024m"</p>
+<p>修改tomcat端口信息</p>
+<p>vi conf/server.xml</p>
+<p>默认端口8080改为80</p>
+<p>&lt;Connector port="80" protocol="HTTP/1.1" connectionTimeout="20000" redirectPort="8443"  URIEncoding="UTF-8"/&gt;</p>
+<p>修改host</p>
+<p>&lt;Host name="62.234.5.190" appBase="webapps" unpackWARs="true" autoDeploy="true"&gt;</p>
+<p>在host下配置启动war</p>
+<p>&lt;Context path="" docBase="ROOT" reloadable="true" debug="0" /&gt;</p>
+<p>复制war包到tomcat</p>
+<p>mv jeecmsv9.war /usr/apache-tomcat-8.5.40/webapps/</p>
+<p>将原有文件夹都删掉 把jeecmsv9.war改名ROOT.war</p>
+<p>mv jeecmsv9.war ROOT.war</p>
+<p>启动tomcat</p>
+<p>./bin/startup.sh</p>
+<p>在浏览器访问即可看到应用已经部署成功</p>
+<p>&nbsp;</p>
+
+</div><hr><script charset='utf-8' src='../../js/sming.js'></script></body></html>

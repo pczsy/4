@@ -1,0 +1,241 @@
+<html><head><meta charset='utf-8'><meta name='viewport' content='width=device-width, initial-scale=1'>
+<meta name='applicable-device' content='pc'><meta name='keywords' content='电脑,电脑讲解,电脑技术,编程,电脑故障维修LeetCode 链表题 ( Java ) ' />
+<script src='../../highlight/highlight.pack.js'></script>
+<link rel='stylesheet' type='text/css' href='../../highlight/styles/monokai.css'/>
+
+<link rel='stylesheet' href='../../fenxiang/dist/css/share.min.css'>
+<script src='../../fenxiang/src/js/social-share.js'></script>
+<script src='../../fenxiang/src/js/qrcode.js'></script>
+
+</head><body><script>hljs.initHighlightingOnLoad();</script><script>
+var system ={};  
+var p = navigator.platform;       
+system.win = p.indexOf('Win') == 0;  
+system.mac = p.indexOf('Mac') == 0;  
+system.x11 = (p == 'X11') || (p.indexOf('Linux') == 0);     
+if(system.win||system.mac||system.xll){
+document.write("<link href='../css/3.css' rel='stylesheet' type='text/css'>");}else{ document.write("<link href='../css/3wap.css' rel='stylesheet' type='text/css'>");}</script><script src='../../js/3.js'></script><div class='div2'><div class='heading_nav'><ul><div><li><a href='../../index.html'>首页</a></li>
+</div><div onclick='hidden1()' >分享</div>
+</ul></div></div>
+<div id='heading_nav2'> 
+<li class='row' >
+<div class='social-share' data-mode='prepend'><a href='javascript:' class='social-share-icon icon-heart'></a></div></li></div><script charset='utf-8' src='../../3/js/hengfu.js'></script><script charset='utf-8' src='../../3/js/hengfu2.js'></script><hr><div class='div1'><div class='biaoti'><center>LeetCode 链表题 ( Java ) </center></div><div class='banquan'>原文出处:本文由博客园博主Max_Lyu提供。<br/>
+原文连接:https://www.cnblogs.com/lyuzt/p/11962759.html</div><br>
+    <h2>leetcode 237. 删除链表中的节点</h2>
+<p>链接：<a href="https://leetcode-cn.com/problems/delete-node-in-a-linked-list/">https://leetcode-cn.com/problems/delete-node-in-a-linked-list/</a></p>
+<p>示例 :</p>
+<pre><code>输入: head = [4,5,1,9], node = 5<br />输出: [4,1,9]<br />解释: 给定你链表中值为&nbsp;5&nbsp;的第二个节点，那么在调用了你的函数之后，该链表应变为 4 -&gt; 1 -&gt; 9.</code></pre>
+<p>&nbsp;这道题比较简单，<span style="color: #800000;">修改之前节点的&nbsp;<code>next</code>&nbsp;指针，使其指向之后的节点</span>：</p>
+<src class="cnblogs_code">
+<pre><code><span style="color: #008000;">/**</span><span style="color: #008000;">
+ * Definition for singly-linked list.
+ * public class ListNode {
+ *     int val;
+ *     ListNode next;
+ *     ListNode(int x) { val = x; }
+ * }
+ </span><span style="color: #008000;">*/</span>
+<span style="color: #0000ff;">class</span><span style="color: #000000;"> Solution {
+    </span><span style="color: #0000ff;">public</span> <span style="color: #0000ff;">void</span><span style="color: #000000;"> deleteNode(ListNode node) {
+        node.val </span>=<span style="color: #000000;"> node.next.val;
+        node.next </span>=<span style="color: #000000;"> node.next.next;
+    }
+}</span></code></pre>
+
+<p>&nbsp;</p>
+<h2>leetcode 160. 相交链表</h2>
+<p>链接：<a href="https://leetcode-cn.com/problems/intersection-of-two-linked-lists/">https://leetcode-cn.com/problems/intersection-of-two-linked-lists/</a></p>
+<p>编写一个程序，找到两个单链表相交的起始节点。</p>
+<p>如下面的两个链表：</p>
+<p><img src="./images/LeetCode 链表题 ( Java ) 0.png" alt="" /></p>
+<p>&nbsp;</p>
+<p>在节点 c1 开始相交。要求返回 c1 这个节点。</p>
+<p><span style="color: #800000;">先得到两条链表的长度差 offset，再将长链表跳过 offset 个节点，然后再让这两个链表轮流逐个遍历节点，直到相遇。</span></p>
+<p>比如上图 A 和 B 差一个长度差为 1，先跳过 b1 这个结点到达 b2，然后 A 开始从 a1 遍历，到达 a2， B 到达 b3； 随后 A 到达 c1，B 到达 c1，两点相遇，返回 c1.&nbsp;</p>
+<src class="cnblogs_code">
+<pre><code><span style="color: #0000ff;">public</span> <span style="color: #0000ff;">class</span><span style="color: #000000;"> Solution {
+    </span><span style="color: #0000ff;">public</span><span style="color: #000000;"> ListNode getIntersectionNode(ListNode headA, ListNode headB) {
+        </span><span style="color: #0000ff;">if</span>(headA == <span style="color: #0000ff;">null</span> || headB == <span style="color: #0000ff;">null</span><span style="color: #000000;">)
+            </span><span style="color: #0000ff;">return</span> <span style="color: #0000ff;">null</span><span style="color: #000000;">;
+
+        </span><span style="color: #0000ff;">int</span> lengthA =<span style="color: #000000;"> getListLength(headA);
+        </span><span style="color: #0000ff;">int</span> lengthB =<span style="color: #000000;"> getListLength(headB);
+        ListNode longList </span>=<span style="color: #000000;"> headA;
+        ListNode shortList </span>=<span style="color: #000000;"> headB;
+        </span><span style="color: #0000ff;">int</span> offset = Math.abs(lengthA -<span style="color: #000000;"> lengthB);
+        </span><span style="color: #0000ff;">if</span>(lengthA &lt;<span style="color: #000000;"> lengthB){
+            longList </span>=<span style="color: #000000;"> headB;
+            shortList </span>=<span style="color: #000000;"> headA;
+        }
+        </span><span style="color: #0000ff;">for</span>(<span style="color: #0000ff;">int</span> i=0; i &lt; offset; i++<span style="color: #000000;">){
+            longList </span>=<span style="color: #000000;"> longList.next;
+        }
+        </span><span style="color: #0000ff;">while</span>(shortList !=<span style="color: #000000;"> longList){
+            shortList </span>=<span style="color: #000000;"> shortList.next;
+            longList </span>=<span style="color: #000000;"> longList.next;
+        }
+        </span><span style="color: #0000ff;">return</span><span style="color: #000000;"> shortList;
+    }
+    </span><span style="color: #0000ff;">public</span> <span style="color: #0000ff;">int</span><span style="color: #000000;"> getListLength(ListNode p){
+        </span><span style="color: #0000ff;">int</span> length = 0<span style="color: #000000;">;
+        </span><span style="color: #0000ff;">while</span>(p != <span style="color: #0000ff;">null</span><span style="color: #000000;">){
+            length</span>++<span style="color: #000000;">;
+            p </span>=<span style="color: #000000;"> p.next;
+        }
+        </span><span style="color: #0000ff;">return</span><span style="color: #000000;"> length;
+    }
+}</span></code></pre>
+
+<p>我又看了这道题的题解，看到有其他解法：两条链表先遍历一轮（消除长度差），当链表到达结尾的时候，反而让到达链表末尾的节点指向另一个链表的头部，然后再接着遍历，这样就消除了两条链表的长度差，可以大致理解为：<a href="https://leetcode-cn.com/problems/intersection-of-two-linked-lists/solution/tu-jie-xiang-jiao-lian-biao-by-user7208t/"><span style="color: #800000;">两个人以同样的速度跑步，跑的路程也一致，那么肯定会同一个时间点到达终点。</span></a></p>
+<src class="cnblogs_code">
+<pre><code><span style="color: #0000ff;">public</span><span style="color: #000000;"> ListNode getIntersectionNode(ListNode headA, ListNode headB) {
+    </span><span style="color: #0000ff;">if</span> (headA == <span style="color: #0000ff;">null</span> || headB == <span style="color: #0000ff;">null</span>) <span style="color: #0000ff;">return</span> <span style="color: #0000ff;">null</span><span style="color: #000000;">;
+    ListNode pA </span>= headA, pB =<span style="color: #000000;"> headB;
+    </span><span style="color: #0000ff;">while</span> (pA !=<span style="color: #000000;"> pB) {
+        pA </span>= pA == <span style="color: #0000ff;">null</span> ?<span style="color: #000000;"> headB : pA.next;
+        pB </span>= pB == <span style="color: #0000ff;">null</span> ?<span style="color: #000000;"> headA : pB.next;
+    }
+    </span><span style="color: #0000ff;">return</span><span style="color: #000000;"> pA;
+}</span></code></pre>
+
+<p>&nbsp;</p>
+<h2>leetcode 206. 反转链表</h2>
+<p>示例:</p>
+<pre><code>输入: 1-&gt;2-&gt;3-&gt;4-&gt;5-&gt;NULL
+输出: 5-&gt;4-&gt;3-&gt;2-&gt;1-&gt;NULL</code></pre>
+<p>&nbsp;此题的思路是<span style="color: #800000;">逐个反转，先变成 NULL&lt;-1&nbsp; 2-&gt;3-&gt;4-&gt;5-&gt;NULL; 然后是 1&lt;-2&nbsp; 3-&gt;4-&gt;5-&gt;NULL; 接着是 1&lt;-2&lt;-3&nbsp; 4-&gt;5-&gt;NULL，以此类推。那么我们首先就要先创建一个空节点为 prev，使得 1 指向它，但是，需要先把 2 这个节点保存起来，不然当 1 指向 NULL 后就失去了 2 以后的数据。完成第一次反转后就一直迭代下去。</span>可能表达得不太行，看代码吧：</p>
+<src class="cnblogs_code">
+<pre><code><span style="color: #008000;">/**</span><span style="color: #008000;">
+ * Definition for singly-linked list.
+ * public class ListNode {
+ *     int val;
+ *     ListNode next;
+ *     ListNode(int x) { val = x; }
+ * }
+ </span><span style="color: #008000;">*/</span>
+<span style="color: #0000ff;">class</span><span style="color: #000000;"> Solution {
+    </span><span style="color: #0000ff;">public</span><span style="color: #000000;"> ListNode reverseList(ListNode head) {
+        ListNode prev </span>= <span style="color: #0000ff;">null</span><span style="color: #000000;">;
+        </span><span style="color: #0000ff;">while</span>(head != <span style="color: #0000ff;">null</span><span style="color: #000000;">) {
+            ListNode next </span>=<span style="color: #000000;"> head.next;
+            head.next </span>=<span style="color: #000000;"> prev;           // 翻转
+            
+            prev </span>=<span style="color: #000000;"> head;
+            head </span>=<span style="color: #000000;"> next;
+        }
+        </span><span style="color: #0000ff;">return</span><span style="color: #000000;"> prev;
+    }
+}</span></code></pre>
+
+<p>如果文字解释看不懂，代码也看不懂，那就视频吧，推荐这个小姐姐讲的&nbsp; <a href="https://www.bilibili.com/video/av49696612?from=search&amp;seid=17662465351682651814" target="_blank">&nbsp;</a><span class="tit"><a href="https://www.bilibili.com/video/av49696612?from=search&amp;seid=17662465351682651814" target="_blank">用Java解决翻转链表 Leetcode206 Reverse Linked List</a>&nbsp;</span></p>
+<h2><span class="tit">leetcode 141. 环形链表</span></h2>
+<p>给定一个链表，判断链表中是否有环。</p>
+<p>为了表示给定链表中的环，我们使用整数 pos 来表示链表尾连接到链表中的位置（索引从 0 开始）。 如果 pos 是 -1，则在该链表中没有环。</p>
+<p>&nbsp;</p>
+<p>示例 1：</p>
+<pre><code>输入：head = [3,2,0,-4], pos = 1<br />输出：true<br />解释：链表中有一个环，其尾部连接到第二个节点。</code></pre>
+<p>&nbsp; &nbsp; &nbsp; 　　&nbsp;<img src="./images/LeetCode 链表题 ( Java ) 1.png" alt="" /></p>
+<p>&nbsp;</p>
+<p>&nbsp;</p>
+<p>示例 3：</p>
+<pre><code>输入：head = [1], pos = -1
+输出：false
+解释：链表中没有环。
+</code></pre>
+<p><img src="./images/LeetCode 链表题 ( Java ) 2.png" alt="" /></p>
+<p>&nbsp;　　&nbsp; &nbsp; &nbsp;&nbsp;<img src="./images/LeetCode 链表题 ( Java ) 3.png" alt="" /></p>
+<p>&nbsp;</p>
+<p>&nbsp;</p>
+<p><strong>（1）&nbsp;哈希</strong></p>
+<p>&nbsp;　遇到这种类型得题目一般大部分都是用 hash ，<span style="color: #800000;">通过遍历把每个节点存起来，如果该节点后续还被访问到，则表示该链表为环形链表。</span></p>
+<src class="cnblogs_code">
+<pre><code><span style="color: #0000ff;">public</span> <span style="color: #0000ff;">boolean</span><span style="color: #000000;"> hasCycle(ListNode head) {
+    Set</span>&lt;ListNode&gt; nodes = <span style="color: #0000ff;">new</span> HashSet&lt;&gt;<span style="color: #000000;">();
+    </span><span style="color: #0000ff;">while</span> (head != <span style="color: #0000ff;">null</span><span style="color: #000000;">) {
+        </span><span style="color: #0000ff;">if</span><span style="color: #000000;"> (nodes.contains(head)) {
+            </span><span style="color: #0000ff;">return</span> <span style="color: #0000ff;">true</span><span style="color: #000000;">;
+        } </span><span style="color: #0000ff;">else</span><span style="color: #000000;"> {
+            nodes.add(head);
+        }
+        head </span>=<span style="color: #000000;"> head.next;
+    }
+    </span><span style="color: #0000ff;">return</span> <span style="color: #0000ff;">false</span><span style="color: #000000;">;
+}</span></code></pre>
+
+<p><strong>（2）双指针</strong></p>
+<p>　<span style="color: #800000;">定义两个指针，从 head 开始，慢指针移动一步，快指针移动两步，如果两个指针相遇则为环形链表，否则不是。这个道理就跟两个不同速度的人在同一条跑道上跑步一样，如果是环形的总会相遇。</span></p>
+<src class="cnblogs_code">
+<pre><code><span style="color: #0000ff;">public</span> <span style="color: #0000ff;">boolean</span><span style="color: #000000;"> hasCycle(ListNode head) {
+        </span><span style="color: #0000ff;">if</span> (head == <span style="color: #0000ff;">null</span> || head.next == <span style="color: #0000ff;">null</span><span style="color: #000000;">)
+            </span><span style="color: #0000ff;">return</span> <span style="color: #0000ff;">false</span><span style="color: #000000;">;
+        ListNode slow </span>=<span style="color: #000000;"> head;
+        ListNode fast </span>=<span style="color: #000000;"> head.next;
+        </span><span style="color: #0000ff;">while</span>(fast != <span style="color: #0000ff;">null</span> &amp;&amp; fast.next != <span style="color: #0000ff;">null</span><span style="color: #000000;">) {
+            </span><span style="color: #0000ff;">if</span> (slow ==<span style="color: #000000;"> fast){
+                </span><span style="color: #0000ff;">return</span> <span style="color: #0000ff;">true</span><span style="color: #000000;">;
+            }
+            slow </span>=<span style="color: #000000;"> slow.next;
+            fast </span>=<span style="color: #000000;"> fast.next.next;
+        }
+        </span><span style="color: #0000ff;">return</span> <span style="color: #0000ff;">false</span><span style="color: #000000;">;
+    }</span></code></pre>
+
+<p>&nbsp;</p>
+<h2>&nbsp;leetcode 19. 删除链表的倒数第N个节点</h2>
+<p>给定一个链表，删除链表的倒数第&nbsp;n&nbsp;个节点，并且返回链表的头结点。</p>
+<p>示例：</p>
+<pre><code>给定一个链表: 1-&gt;2-&gt;3-&gt;4-&gt;5, 和 n = 2.<br />
+当删除了倒数第二个节点后，链表变为 1-&gt;2-&gt;3-&gt;5.</code></pre>
+<p>（1）第一种方法：由于不清楚链表的长度，因此可以先遍历链表得到其长度，然后第二次遍历将倒数第N个节点删除，即被删除节点的前一个节点指向删除节点的后一个节点：</p>
+<src class="cnblogs_code">
+<pre><code><span style="color: #0000ff;">public</span> ListNode removeNthFromEnd(ListNode head, <span style="color: #0000ff;">int</span><span style="color: #000000;"> n) {
+    ListNode dummy </span>= <span style="color: #0000ff;">new</span> ListNode(0<span style="color: #000000;">);
+    dummy.next </span>=<span style="color: #000000;"> head;
+    </span><span style="color: #0000ff;">int</span> length  = 0<span style="color: #000000;">;
+    ListNode list </span>=<span style="color: #000000;"> head;
+    </span><span style="color: #0000ff;">while</span> (list != <span style="color: #0000ff;">null</span><span style="color: #000000;">) {
+        length</span>++<span style="color: #000000;">;
+        list </span>=<span style="color: #000000;"> list.next;
+    }
+    length </span>-=<span style="color: #000000;"> n;
+    list </span>=<span style="color: #000000;"> dummy;
+    </span><span style="color: #0000ff;">while</span> (length &gt; 0<span style="color: #000000;">) {
+        length</span>--<span style="color: #000000;">;
+        list </span>=<span style="color: #000000;"> list.next;
+    }
+    list.next </span>=<span style="color: #000000;"> list.next.next;
+    </span><span style="color: #0000ff;">return</span><span style="color: #000000;"> dummy.next;
+}</span></code></pre>
+
+<p>（2）第二种方法：使用双指针，先让其中一个指针走 N+1 步，然后两个指针同时移动，到达被删除节点的前一个节点时把它删除：</p>
+<p>　　　　<img src="./images/LeetCode 链表题 ( Java ) 4.png" alt="" width="562" height="113" /></p>
+<p>&nbsp;</p>
+<p>&nbsp;</p>
+<p>&nbsp;　　　　<img src="./images/LeetCode 链表题 ( Java ) 5.png" alt="" width="549" height="100" /></p>
+<p>　　　　<img src="./images/LeetCode 链表题 ( Java ) 6.png" alt="" width="560" height="105" /></p>
+<p>&nbsp;</p>
+<p>&nbsp;</p>
+<p>&nbsp;　　　　<img src="./images/LeetCode 链表题 ( Java ) 7.png" alt="" width="554" height="108" /></p>
+<p>&nbsp;</p>
+<p>&nbsp;</p>
+<p>&nbsp;</p>
+<src class="cnblogs_code">
+<pre><code><span style="color: #0000ff;">public</span> ListNode removeNthFromEnd(ListNode head, <span style="color: #0000ff;">int</span><span style="color: #000000;"> n) {
+        ListNode dummy </span>= <span style="color: #0000ff;">new</span> ListNode(0<span style="color: #000000;">);
+        dummy.next </span>=<span style="color: #000000;"> head;
+        ListNode p </span>=<span style="color: #000000;"> dummy;
+        ListNode q </span>=<span style="color: #000000;"> dummy;
+        </span><span style="color: #0000ff;">for</span> (<span style="color: #0000ff;">int</span> i = 0; i &lt;= n; i++<span style="color: #000000;">) {
+            q </span>=<span style="color: #000000;"> q.next;
+        }
+        </span><span style="color: #0000ff;">while</span> (q != <span style="color: #0000ff;">null</span><span style="color: #000000;">) {
+            p </span>=<span style="color: #000000;"> p.next;
+            q </span>=<span style="color: #000000;"> q.next;
+        }
+        p.next </span>=<span style="color: #000000;"> p.next.next;
+        </span><span style="color: #0000ff;">return</span><span style="color: #000000;"> dummy.next;
+   }</span></code></pre>
+
+<p>&nbsp;</p>
+
+</div><hr><script charset='utf-8' src='../../js/sming.js'></script></body></html>

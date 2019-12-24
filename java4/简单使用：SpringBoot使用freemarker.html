@@ -1,0 +1,74 @@
+<html><head><meta charset='utf-8'><meta name='viewport' content='width=device-width, initial-scale=1'>
+<meta name='applicable-device' content='pc'><meta name='keywords' content='电脑,电脑讲解,电脑技术,编程,电脑故障维修简单使用：SpringBoot使用freemarker' />
+<script src='../../highlight/highlight.pack.js'></script>
+<link rel='stylesheet' type='text/css' href='../../highlight/styles/monokai.css'/>
+
+<link rel='stylesheet' href='../../fenxiang/dist/css/share.min.css'>
+<script src='../../fenxiang/src/js/social-share.js'></script>
+<script src='../../fenxiang/src/js/qrcode.js'></script>
+
+</head><body><script>hljs.initHighlightingOnLoad();</script><script>
+var system ={};  
+var p = navigator.platform;       
+system.win = p.indexOf('Win') == 0;  
+system.mac = p.indexOf('Mac') == 0;  
+system.x11 = (p == 'X11') || (p.indexOf('Linux') == 0);     
+if(system.win||system.mac||system.xll){
+document.write("<link href='../css/3.css' rel='stylesheet' type='text/css'>");}else{ document.write("<link href='../css/3wap.css' rel='stylesheet' type='text/css'>");}</script><script src='../../js/3.js'></script><div class='div2'><div class='heading_nav'><ul><div><li><a href='../../index.html'>首页</a></li>
+</div><div onclick='hidden1()' >分享</div>
+</ul></div></div>
+<div id='heading_nav2'> 
+<li class='row' >
+<div class='social-share' data-mode='prepend'><a href='javascript:' class='social-share-icon icon-heart'></a></div></li></div><script charset='utf-8' src='../../3/js/hengfu.js'></script><script charset='utf-8' src='../../3/js/hengfu2.js'></script><hr><div class='div1'><div class='biaoti'><center>简单使用：SpringBoot使用freemarker</center></div><div class='banquan'>原文出处:本文由博客园博主crazy戴夫提供。<br/>
+原文连接:https://www.cnblogs.com/crazy-lc/p/11801412.html</div><br>
+    <p class="md-end-block md-p md-focus"><span class="md-plain md-expand"> 使用步骤：</span></p>
+<p class="md-end-block md-p"><span class="md-tab"> <span class="md-plain">a : 添加依赖</span></span></p>
+<p class="md-end-block md-p"><span class="md-plain"> b: 创建模板文件 保存位置resources/templates 目录下 文件后缀名.ftl</span></p>
+<p class="md-end-block md-p md-focus"><span class="md-tab"> <span class="md-plain md-expand">c 编写controller 把结果传递给模板</span></span></p>
+<p>&nbsp;</p>
+<p>在resources.templates下创建user.ftl文件，内容如下</p>
+<src class="cnblogs_code">
+<pre><code>&lt;html&gt;
+    &lt;head&gt;
+        &lt;title&gt;springboot&lt;/title&gt;
+    &lt;/head&gt;
+    &lt;body&gt;
+        &lt;table border="1px"&gt;
+            &lt;thead&gt;
+                &lt;tr&gt;
+                    &lt;th&gt;id&lt;/th&gt;
+                    &lt;th&gt;用户名&lt;/th&gt;
+                    &lt;th&gt;密码&lt;/th&gt;
+                    &lt;th&gt;姓名&lt;/th&gt;
+                &lt;/tr&gt;
+            &lt;/thead&gt;
+            &lt;tbody&gt;
+                &lt;#list users as user&gt;
+                    &lt;tr&gt;
+                        &lt;td&gt;${user.id}&lt;/td&gt;
+                        &lt;td&gt;${user.username}&lt;/td&gt;
+                        &lt;td&gt;${user.password}&lt;/td&gt;
+                        &lt;td&gt;${user.name}&lt;/td&gt;
+                    &lt;/tr&gt;
+                &lt;/#list&gt;
+            &lt;/tbody&gt;
+        &lt;/table&gt;
+    &lt;/body&gt;
+&lt;/html&gt;<br /><br /><br />dao层：</code></pre>
+<pre><code>List&lt;User&gt; getAllUser();<br /><br /><br />Controller层：</code></pre>
+<pre><code>@RequestMapping("/list")<br />public String show(Model mode){<br />    List&lt;User&gt; users = userDao.findAll();<br />    mode.addAttribute("users",users);<br />    return "user";<br />}</code></pre>
+
+<p>&nbsp;</p>
+<p>&nbsp;</p>
+<p>&nbsp;</p>
+<p>&nbsp;</p>
+<p>&nbsp;</p>
+<p>&nbsp;</p>
+<p>&nbsp;</p>
+<p>&nbsp;</p>
+<p>&nbsp;</p>
+<p>&nbsp;</p>
+<p>&nbsp;</p>
+<p>&nbsp;</p>
+
+</div><hr><script charset='utf-8' src='../../js/sming.js'></script></body></html>

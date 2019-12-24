@@ -1,0 +1,263 @@
+<html><head><meta charset='utf-8'><meta name='viewport' content='width=device-width, initial-scale=1'>
+<meta name='applicable-device' content='pc'><meta name='keywords' content='电脑,电脑讲解,电脑技术,编程,电脑故障维修Java 最全异常讲解' />
+<script src='../../highlight/highlight.pack.js'></script>
+<link rel='stylesheet' type='text/css' href='../../highlight/styles/monokai.css'/>
+
+<link rel='stylesheet' href='../../fenxiang/dist/css/share.min.css'>
+<script src='../../fenxiang/src/js/social-share.js'></script>
+<script src='../../fenxiang/src/js/qrcode.js'></script>
+
+</head><body><script>hljs.initHighlightingOnLoad();</script><script>
+var system ={};  
+var p = navigator.platform;       
+system.win = p.indexOf('Win') == 0;  
+system.mac = p.indexOf('Mac') == 0;  
+system.x11 = (p == 'X11') || (p.indexOf('Linux') == 0);     
+if(system.win||system.mac||system.xll){
+document.write("<link href='../css/3.css' rel='stylesheet' type='text/css'>");}else{ document.write("<link href='../css/3wap.css' rel='stylesheet' type='text/css'>");}</script><script src='../../js/3.js'></script><div class='div2'><div class='heading_nav'><ul><div><li><a href='../../index.html'>首页</a></li>
+</div><div onclick='hidden1()' >分享</div>
+</ul></div></div>
+<div id='heading_nav2'> 
+<li class='row' >
+<div class='social-share' data-mode='prepend'><a href='javascript:' class='social-share-icon icon-heart'></a></div></li></div><script charset='utf-8' src='../../3/js/hengfu.js'></script><script charset='utf-8' src='../../3/js/hengfu2.js'></script><hr><div class='div1'><div class='biaoti'><center>Java 最全异常讲解</center></div><div class='banquan'>原文出处:本文由博客园博主Java知其所以然提供。<br/>
+原文连接:https://www.cnblogs.com/deveypf/p/11437566.html</div><br>
+    <h2 id="导引问题">1. 导引问题</h2>
+<p>实际工作中，遇到的情况不可能是非常完美的。比如：你写的某个模块，用户输入不一定符合你的要求、你的程序要打开某个文件，这个文件可能不存在或者文件格式不对，你要读取数据库的数据，数据可能是空的等。我们的程序再跑着，内存或硬盘可能满了。等等。</p>
+<p>软件程序在运行过程中，非常可能遇到刚刚提到的这些异常问题，我们叫异常，英文是：Exception，意思是例外。这些，例外情况，或者叫异常，怎么让我们写的程序做出合理的处理。而不至于程序崩溃。</p>
+<h3 id="常见的错误">1.1 常见的错误：</h3>
+<ol>
+<li>用户输入错误</li>
+<li>设备错误。硬件问题，比如打印机关掉、服务器问题</li>
+<li>物理限制。磁盘满了</li>
+<li>代码限制。数组下标越界等</li>
+</ol>
+<p>设计良好的程序应该在异常发生时提供处理这些错误的方法，使得程序不会因为异常的发生而终断或产生不可预见的结果。</p>
+<p>如果没有异常处理机制，那么：</p>
+<h3 id="两个坏处">1.2 两个坏处：</h3>
+<p>1．逻辑代码和错误处理代码放一起！</p>
+<p>2．程序员本身需要考虑的例外情况较复杂，对程序员本身要求较高！</p>
+<p>异常机制就是当程序出现错误，程序如何安全退出的机制。</p>
+<h2 id="异常exception的概念">2. 异常（Exception）的概念</h2>
+<p>Java 如何处理异常？</p>
+<p>第一个异常示例和解析：</p>
+<pre><code><code>public static void main(String[]args){
+    int i=1/0;
+}
+执行上述代码的异常信息如下：
+Exception in thread&quot;main&quot;java.lang.ArithmeticException:/by zero at chuji.BubbleSort.main(BubbleSort.java:11)</code></code></pre>
+<p><strong>Java 是采用面向对象的方式来处理异常的。</strong></p>
+<h2 id="处理过程">3. 处理过程</h2>
+<p>抛出异常：在执行一个方法时，如果发生异常，则这个方法生成代表该异常的一个对象，停止当前执行路径，并把异常对象提交给 JRE。</p>
+<p>捕获异常：JRE 得到该异常后，寻找相应的代码来处理该异常。JRE 在方法的调用栈中查找，从生成异常的方法开始回溯，直到找到相应的异常处理代码为止。</p>
+<h2 id="异常分类">4. 异常分类</h2>
+<p>JDK 中定义了很多异常类，这些类对应了各种各样可能出现的异常事件，所有异常对象都是派生于 Throwable 类的一个实例。如果内置的异常类不能够满足需要，还可以创建自己的异常类。</p>
+<p><strong>异常类之间的关系图</strong></p>
+<p><img src="./images/Java 最全异常讲解0.png" alt="img" /></p>
+<blockquote>
+<p>图引用链接：<a href="https://www.cnblogs.com/hwaggLee/p/4509038.html" class="uri">https://www.cnblogs.com/hwaggLee/p/4509038.html</a></p>
+</blockquote>
+<h3 id="error">4.2 Error</h3>
+<p>Error 类层次描述了 Java 运行时系统内部错误和资源耗尽错误。这类错误是我们无法控制的，同时也是非常罕见的错误。所以在编程中，不去处理这类错误。</p>
+<p>Error 表明系统 JVM 已经处于不可恢复的崩溃状态中。我们不需要管他。</p>
+<p>打开 JDK 的：java.lang.error，查看他的所有子类。</p>
+<h3 id="exception">4.3 Exception</h3>
+<p>所有异常类的父类，其子类对应了各种各样可能出现的异常事件。</p>
+<h3 id="error-和-exception-的区别">4.4 Error 和 Exception 的区别</h3>
+<p>我开着车走在路上，一头猪冲在路中间，我刹车。这叫一个异常。</p>
+<p>我开着车在路上，发动机坏了，我停车，这叫错误。系统处于不可恢复的崩溃状态。发动机什么时候坏？我们普通司机能管吗？不能。发动机什么时候坏是汽车厂发动机制造商的事。</p>
+<h3 id="runtime-exception">4.4.1 Runtime Exception</h3>
+<p>出现 RuntimeException 就一定是你的问题，可以不捕获，因为小心点这些异常是可以避免的。 派生于RuntimeException 的异常。是一类特殊的异常，如被 0 除、数组下标超范围等，其产生比较频繁，处理麻烦，如果显式的声明或捕获将会对程序可读性和运行效率影响很大。因此由系统自动检测并将它们交给缺省的异常处理程序（用户可不必对其处理）。这类异常通常是由编程错误导致的，因为只有小心点，这些异常都是可以避免的，所以在编写程序时，并不要求必须使用异常处理机制来处理这类异常,所有这类异常都继承自java.lang.RuntimeException。</p>
+<p><strong>常见的运行时异常有：</strong></p>
+<ol>
+<li><p>ArithmeticException</p>
+<p>如试图除以0</p></li>
+<li><p>NullPointerException</p>
+<p>当程序访问一个空对象的成员变量或方法，访问一个空数组的成员时发生</p></li>
+<li><p>ClassCastException</p>
+<p>发生多态后，如果强制转化的并不是父类的子类时发生。编译的时候可以通过，因为编译的时候并不会检查类型转化的问题</p></li>
+<li><p>ArrayIndexOutOfBoundsException</p>
+<p>访问的元素下表超过数组长度</p></li>
+<li><p>NumberFormatException</p>
+<p>数字格式异常！</p></li>
+</ol>
+<p><strong>心得：</strong></p>
+<p><strong>大家平时在遇到 NullPointerException，也就是空指针的问题时，不要只记得百度，应该从报错的地方去分析自己的代码，因为空指针其实是你的代码写的不严谨造成的。空指针解决方案：Debug，看你对应的值是否为 null。</strong></p>
+<h3 id="checked-exception">4.4.2 Checked Exception</h3>
+<p>所有不是 Runtime Exception 的异常，统称为 Checked Exception，又被称为“已检查异常”。 这类异常的产生不是程序本身的问题，通常由外界因素造成的。为了预防这些异常产生时，造成程序的中断或得到不正确的结果，Java 要求编写可能产生这类异常的程序代码时，一定要去做异常的处理。</p>
+<p>编译器将检查是否为所有已检查异常提供异常处理。</p>
+<p>这一类异常，我们必须捕获进行处理。</p>
+<p>Java 语言将派生于 RuntimeException 类或 Error 类的所有异常称为“未检查异常”。</p>
+<h2 id="异常的处理办法之一捕获异常">5. 异常的处理办法之一：捕获异常</h2>
+<h3 id="try">5.1 try</h3>
+<p>try 语句指定了一段代码，该段代码就是一次捕获并处理的范围。在执行过程中，当任意一条语句产生异常时，就会跳过该段中后面的代码。代码中可能会产生并抛出一种或几种类型的异常对象，它后面的catch语句要分别对这些异常做相应的处理</p>
+<p>一个 try 语句必须带有至少一个 catch 语句块或一个 finally 语句块 。</p>
+<p>注：当异常处理的代码执行结束以后，是不会回到try语句去执行尚未执行的代码。</p>
+<h3 id="catch">5.2 catch</h3>
+<p>1、每个 try 语句块可以伴随一个或多个 catch 语句，用于处理可能产生的不同类型的异常对象。</p>
+<p>2.、常用方法：</p>
+<p>toString ( )方法，显示异常的类名和产生异常的原因<br />
+getMessage( ) 方法，只显示产生异常的原因，但不显示类名。<br />
+printStackTrace( ) 方法，用来跟踪异常事件发生时堆栈的内容。</p>
+<blockquote>
+<p>这些方法均继承自 Throwable 类</p>
+</blockquote>
+<p>3、catch 捕获异常时的捕获顺序：</p>
+<p>如果异常类之间有继承关系，在顺序安排上需注意。越是顶层的类（父类），越放在下面。再不然就直接把多余的catch 省略掉。</p>
+<h3 id="finally">5.3 finally</h3>
+<p>有些语句，不管是否发生了异常，都必须要执行，那么就可以把这样的语句放到finally 语句块中。</p>
+<p>通常在 finally 中关闭程序块已打开的资源，比如：文件流、释放数据库连接等。</p>
+<h3 id="典型代码">5.4 典型代码</h3>
+<pre><code><code>public class TestException {
+    public static void main(String[] args) {
+        FileReader reader = null;
+        try {
+            reader = new FileReader(&quot;d:/a.txt&quot;);
+            char temp = (char) reader.read();
+            System.out.println(&quot;读出的内容：&quot; + temp);
+        } catch (FileNotFoundException e) {
+            System.out.println(&quot;文件没有找到！！&quot;);
+            e.printStackTrace();
+        } catch (IOException e) {
+            e.printStackTrace();
+            System.out.println(&quot;文件读取错误！&quot;);
+        } finally {
+            System.out.println(&quot; 不管有没有异常，我肯定会被执行！&quot;);
+            try {
+                reader.close();
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        }
+    }
+}</code></code></pre>
+<h3 id="try-catchfinally-return-执行顺序">5.5 try, catch,finally ,return 执行顺序</h3>
+<h5 id="执行顺序">执行顺序：</h5>
+<p>1．执行 try，catch ， 给返回值赋值</p>
+<p>2．执行finally</p>
+<p>3．return</p>
+<h2 id="异常的处理办法之二声明异常throws-子句">6. 异常的处理办法之二：声明异常(throws 子句)</h2>
+<p>当 Checked Exception 产生时，不一定立刻处理它，可以再把异常 Throws 出去。</p>
+<p>在方法中使用 try-chatch-finally 由这个方法处理异常。在一些情况下，当前方法并不需要处理发生的异常，而是向上传递给调用它的方法处理。</p>
+<p>如果一个方法中可能产生某种异常，但是并不能确定如何处理这种异常，则应根据异常规范在方法的首部声明该方法可能抛出的异常。</p>
+<p>如果一个方法抛出多个已检查异常，就必须在方法的首部列出所有的异常，之间以逗号隔开。</p>
+<h3 id="典型代码-1">6.1 典型代码</h3>
+<pre><code><code>public class FileTest {
+    public static void main(String[] args) {
+        try {
+            readFile(&quot;d:/a.txt&quot;);
+        } catch (FileNotFoundException e) {
+            System.out.println(&quot;所需要的文件不存在！&quot;);
+            e.printStackTrace();
+        } catch (IOException e) {
+            System.out.println(&quot;文件读写出错误！&quot;);
+            e.printStackTrace();
+        }
+    }
+
+    public static void readFile(String fileName) throws IOException {
+        FileReader in = new FileReader(fileName);
+        try {
+            int tem = 0;
+            tem = in.read();
+            while (tem != -1) {
+                System.out.println((char) tem);
+                tem = in.read();
+            }
+        } finally {
+            in.close();
+        }
+    }
+}</code></code></pre>
+<h3 id="方法重写中声明异常原则">6.2 方法重写中声明异常原则</h3>
+<p><strong>子类声明的异常范围不能超过父类声明的范围。包含如下意思：</strong></p>
+<ol>
+<li>父类没有声明异常，子类也不能；</li>
+<li>不可抛出原有方法抛出异常类的父类或上层类</li>
+<li>抛出的异常类型的数目不可以比原有的方法抛出的还多（不是指个数）</li>
+</ol>
+<h2 id="异常的处理办法之三手动抛出异常throw子句">7. 异常的处理办法之三：手动抛出异常(throw子句)</h2>
+<p>Java 异常类对象除在程序执行过程中出现异常时由系统自动生成并抛出，也可根据需要手工创建并抛出。</p>
+<p>在捕获一个异常前，必须有一段代码先生成异常对象并把它抛出。这个过程我们可以手工做，也可以由 JRE 来实现，但是他们调用的都是 throw 子句。</p>
+<p><strong>对于一个已经存在的异常类，抛出该类异常对象过程如下：</strong></p>
+<ol>
+<li><p>找到一个合适的异常类。</p></li>
+<li><p>创建一个该类的对象。</p></li>
+<li><p>将对象抛出</p></li>
+</ol>
+<pre><code><code>File f=new File(&quot;c:/tt.txt&quot;);
+if(!f.exists()){
+    try{
+        throw new FileNotFoundException(&quot;File can&#39;t be found!&quot;);
+    }catch(FileNotFoundException e){
+        e.printStackTrace();
+    }
+}</code></code></pre>
+<h2 id="自定义异常">8. 自定义异常</h2>
+<p>在程序中，可能会遇到任何标准异常类都没有充分的描述清楚的问题，这种情况下可以创建自己的异常类。</p>
+<p><strong>怎么做：</strong></p>
+<p>从 Exception 类或者它的子类派生一个子类即可</p>
+<p>习惯上，定义的类应该包含 2 个构造器：一个是默认的构造器，另一个是带有详细信息的构造器。</p>
+<p><strong>典型代码</strong></p>
+<pre><code><code>class IllegalAgeException extends Exception {
+    public IllegalAgeException() {
+    }
+
+    public IllegalAgeException(String msg) {
+        super(msg);
+    }
+}
+
+class Person {
+    private String name;
+    private int age;
+
+    public void setName(String name) {
+        this.name = name;
+    }
+
+    public void setAge(int age) {
+        if (age &lt; 0) throw new IllegalAgeException(&quot;人的年龄不应该为负数&quot;);
+        this.age = age;
+    }
+
+    public String toString() {
+        return &quot;name is &quot; + name + &quot; and age is &quot; + age;
+    }
+}
+
+public class MyExceptionTest {
+    public static void main(String[] args) {
+        Person p = new Person();
+        try {
+            p.setName(&quot;Lincoln&quot;);
+            p.setAge(-1);
+        } catch (IllegalAgeException e) {
+            e.printStackTrace();
+            System.exit(-1);
+        }
+        System.out.println(p);
+    }
+}
+</code></code></pre>
+<h2 id="使用异常机制建议">9. 使用异常机制建议</h2>
+<ol>
+<li>要避免使用异常处理代替错误处理，这样会降低程序的清晰性，并且效率低下( Java 是采用面向对象的方式来处理异常的，所以也是会有一定的开销)</li>
+<li>只在异常情况下使用异常机制</li>
+<li>不要进行小粒度的异常处理---应该将整个任务尽可能包装在一个 Try 语句块中</li>
+<li>异常往往在低层抛出，高层处理(捕获)</li>
+</ol>
+<h2 id="总结">10. 总结</h2>
+<ul>
+<li>一个图</li>
+<li>五个关键字（try, catch, finally, throws, throw）</li>
+<li>先逮小的（子类），再逮大的（父类）</li>
+<li>异常和重写的关系</li>
+<li>自定义异常</li>
+</ul>
+<p>现在的喜欢，其实不是真正的喜欢，只是因为不了解而已，真正的喜欢，是建立在非常了解的基础上。了解 java 基础，喜欢上编程，不再迷茫。</p>
+<p><strong>喜欢文章的话可以扫描关注微信公众号</strong></p>
+<p><img src="./images/Java 最全异常讲解1.png" alt="img" /></p>
+<p>搜索微信公众号：Java知其所以然，可免费领取某课、Java 后端面经等资源，还有统一环境（教你怎么配置一套开发环境）视频领取。</p>
+
+
+</div><hr><script charset='utf-8' src='../../js/sming.js'></script></body></html>

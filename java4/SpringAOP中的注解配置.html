@@ -1,0 +1,99 @@
+<html><head><meta charset='utf-8'><meta name='viewport' content='width=device-width, initial-scale=1'>
+<meta name='applicable-device' content='pc'><meta name='keywords' content='电脑,电脑讲解,电脑技术,编程,电脑故障维修SpringAOP中的注解配置' />
+<script src='../../highlight/highlight.pack.js'></script>
+<link rel='stylesheet' type='text/css' href='../../highlight/styles/monokai.css'/>
+
+<link rel='stylesheet' href='../../fenxiang/dist/css/share.min.css'>
+<script src='../../fenxiang/src/js/social-share.js'></script>
+<script src='../../fenxiang/src/js/qrcode.js'></script>
+
+</head><body><script>hljs.initHighlightingOnLoad();</script><script>
+var system ={};  
+var p = navigator.platform;       
+system.win = p.indexOf('Win') == 0;  
+system.mac = p.indexOf('Mac') == 0;  
+system.x11 = (p == 'X11') || (p.indexOf('Linux') == 0);     
+if(system.win||system.mac||system.xll){
+document.write("<link href='../css/3.css' rel='stylesheet' type='text/css'>");}else{ document.write("<link href='../css/3wap.css' rel='stylesheet' type='text/css'>");}</script><script src='../../js/3.js'></script><div class='div2'><div class='heading_nav'><ul><div><li><a href='../../index.html'>首页</a></li>
+</div><div onclick='hidden1()' >分享</div>
+</ul></div></div>
+<div id='heading_nav2'> 
+<li class='row' >
+<div class='social-share' data-mode='prepend'><a href='javascript:' class='social-share-icon icon-heart'></a></div></li></div><script charset='utf-8' src='../../3/js/hengfu.js'></script><script charset='utf-8' src='../../3/js/hengfu2.js'></script><hr><div class='div1'><div class='biaoti'><center>SpringAOP中的注解配置</center></div><div class='banquan'>原文出处:本文由博客园博主Magic_Li提供。<br/>
+原文连接:https://www.cnblogs.com/Magic-Li/p/11770544.html</div><br>
+    <p><span style="font-size: 16px;"><strong><span style="color: #ff6600;">使用注解实现SpringAOP的功能:</span></strong></span><br />    例子:</p>
+<src class="cnblogs_code">
+<pre><code><strong><span style="font-size: 15px;"><span style="color: #008000;">//</span><span style="color: #008000;">表示这是被注入Spring容器中的</span><span style="color: #000000;">
+@Component
+<br /></span><span style="color: #008000;">//</span><span style="color: #008000;">表示这是个切面类</span><span style="color: #000000;">
+@Aspect
+</span><span style="color: #0000ff;">public</span> <span style="color: #0000ff;">class</span><span style="color: #000000;"> AnnotationHandler {
+</span><span style="color: #008000;">/*</span><span style="color: #008000;">
+* 在一个方法上面加上注解来定义切入点
+* 这个切入点的名字就是这个方法的名字
+* 这个方法本身不需要有什么作用
+* 这个方法的意义就是:给这个 @Pointcut注解一个可以书写的地方
+* 因为注解只能写在方法、属性、类的上面,并且方法名作为切入点的名字
+* </span><span style="color: #008000;">*/</span>
+
+<span style="color: #008000;">//</span><span style="color: #008000;">简单来说就是将查到的方法用myPointCut()方法名代替</span>
+@Pointcut("execution(public * com.briup.aop.service..*.*(..))"<span style="color: #000000;">)
+</span><span style="color: #0000ff;">public</span> <span style="color: #0000ff;">void</span><span style="color: #000000;"> myPointCut(){}
+
+</span><span style="color: #008000;">//</span><span style="color: #008000;">注:这里面的所有方法的JoinPoint类型参数都可以去掉不写,如果确实用不上的话</span>
+@Before("myPointCut()")<span style="color: #008000;">//</span><span style="color: #008000;">在myPointCut()中查到的方法之前切入</span>
+<span style="color: #0000ff;">public</span> <span style="color: #0000ff;">void</span><span style="color: #000000;"> beforeTest(JoinPoint p){
+System.out.println(p.getSignature().getName()</span>+" before..."<span style="color: #000000;">);
+}
+
+</span><span style="color: #008000;">/*</span><span style="color: #008000;">
+* @After和@AfterReturning
+* 
+* @After标注的方法会在切入点上的方法结束后被调用(不管是不是正常的结束).
+* @AfterReturning标注的方法只会在切入点上的方法正常结束后才被调用.
+* </span><span style="color: #008000;">*/</span><span style="color: #000000;">
+@After(</span>"myPointCut()")<span style="color: #008000;">//</span><span style="color: #008000;">在myPointCut()中查到的方法之后切入</span>
+<span style="color: #0000ff;">public</span> <span style="color: #0000ff;">void</span><span style="color: #000000;"> afterTest(JoinPoint p){
+System.out.println(p.getSignature().getName()</span>+" after..."<span style="color: #000000;">);
+}
+@AfterReturning(</span>"myPointCut()"<span style="color: #000000;">)
+</span><span style="color: #0000ff;">public</span> <span style="color: #0000ff;">void</span><span style="color: #000000;"> afterReturningTest(JoinPoint p){
+
+System.out.println(p.getSignature().getName()</span>+" afterReturning"<span style="color: #000000;">);
+
+}
+
+@Around(</span>"myPointCut()")<span style="color: #008000;">//</span><span style="color: #008000;">在myPointCut()中查到的方法环绕切入</span>
+<span style="color: #0000ff;">public</span> Object aroundTest(ProceedingJoinPoint pjp)<span style="color: #0000ff;">throws</span><span style="color: #000000;"> Throwable{
+System.out.println(pjp.getSignature().getName()</span>+" is start.."<span style="color: #000000;">);
+</span><span style="color: #008000;">//</span><span style="color: #008000;">调用连接点的方法去执行</span>
+Object obj =<span style="color: #000000;"> pjp.proceed();
+System.out.println(pjp.getSignature().getName()</span>+" is end.."<span style="color: #000000;">);
+</span><span style="color: #0000ff;">return</span><span style="color: #000000;"> obj;
+}
+
+
+</span><span style="color: #008000;">//</span><span style="color: #008000;">在切入点中的方法执行期间抛出异常的时候,会调用这个 @AfterThrowing注解所标注的方法</span>
+@AfterThrowing(value="myPointCut()",throwing="ex"<span style="color: #000000;">)
+</span><span style="color: #0000ff;">public</span> <span style="color: #0000ff;">void</span><span style="color: #000000;"> throwingTest(JoinPoint p,Exception ex){
+System.out.println(p.getSignature().getName()</span>+" is throwing..."+<span style="color: #000000;">ex.getMessage());
+
+}
+
+}</span></span></strong></code></pre>
+
+<p>&nbsp;</p>
+<p> <br />	xml配置:注意给例子中使用的其他的类上面也使用注解</p>
+<src class="cnblogs_code">
+<pre><code><span style="font-size: 15px;"><strong><span style="color: #0000ff;">&lt;</span><span style="color: #800000;">aop:aspectj-autoproxy</span><span style="color: #0000ff;">/&gt;</span>
+<span style="color: #0000ff;">&lt;</span><span style="color: #800000;">context:component-scan </span><span style="color: #ff0000;">base-package</span><span style="color: #0000ff;">="com.briup.aop"</span><span style="color: #0000ff;">/&gt;</span>
+
+<span style="color: #008000;">&lt;!--</span><span style="color: #008000;"> 让Spring扫描注解 </span><span style="color: #008000;">--&gt;</span>
+<span style="color: #0000ff;">&lt;</span><span style="color: #800000;">context:component-scan </span><span style="color: #ff0000;">base-package</span><span style="color: #0000ff;">="com.briup.aop"</span><span style="color: #0000ff;">&gt;&lt;/</span><span style="color: #800000;">context:component-scan</span><span style="color: #0000ff;">&gt;</span>
+<span style="color: #008000;">&lt;!--</span><span style="color: #008000;"> 识别AspectJ的注解 </span><span style="color: #008000;">--&gt;</span>
+<span style="color: #0000ff;">&lt;</span><span style="color: #800000;">aop:aspectj-autoproxy</span><span style="color: #0000ff;">/&gt;</span></strong></span></code></pre>
+
+<p>&nbsp;</p>
+<p>注意:&lt;aop:aspectj-autoproxy proxy-target-class="true"/&gt;这样配置则是强制使用CGLIB进行代理</p>
+
+</div><hr><script charset='utf-8' src='../../js/sming.js'></script></body></html>

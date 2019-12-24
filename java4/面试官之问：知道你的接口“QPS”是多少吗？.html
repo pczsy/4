@@ -1,0 +1,130 @@
+<html><head><meta charset='utf-8'><meta name='viewport' content='width=device-width, initial-scale=1'>
+<meta name='applicable-device' content='pc'><meta name='keywords' content='电脑,电脑讲解,电脑技术,编程,电脑故障维修面试官之问：知道你的接口“QPS”是多少吗？' />
+<script src='../../highlight/highlight.pack.js'></script>
+<link rel='stylesheet' type='text/css' href='../../highlight/styles/monokai.css'/>
+
+<link rel='stylesheet' href='../../fenxiang/dist/css/share.min.css'>
+<script src='../../fenxiang/src/js/social-share.js'></script>
+<script src='../../fenxiang/src/js/qrcode.js'></script>
+
+</head><body><script>hljs.initHighlightingOnLoad();</script><script>
+var system ={};  
+var p = navigator.platform;       
+system.win = p.indexOf('Win') == 0;  
+system.mac = p.indexOf('Mac') == 0;  
+system.x11 = (p == 'X11') || (p.indexOf('Linux') == 0);     
+if(system.win||system.mac||system.xll){
+document.write("<link href='../css/3.css' rel='stylesheet' type='text/css'>");}else{ document.write("<link href='../css/3wap.css' rel='stylesheet' type='text/css'>");}</script><script src='../../js/3.js'></script><div class='div2'><div class='heading_nav'><ul><div><li><a href='../../index.html'>首页</a></li>
+</div><div onclick='hidden1()' >分享</div>
+</ul></div></div>
+<div id='heading_nav2'> 
+<li class='row' >
+<div class='social-share' data-mode='prepend'><a href='javascript:' class='social-share-icon icon-heart'></a></div></li></div><script charset='utf-8' src='../../3/js/hengfu.js'></script><script charset='utf-8' src='../../3/js/hengfu2.js'></script><hr><div class='div1'><div class='biaoti'><center>面试官之问：知道你的接口“QPS”是多少吗？</center></div><div class='banquan'>原文出处:本文由博客园博主Java架构Monster提供。<br/>
+原文连接:https://www.cnblogs.com/sevencutekk/p/11584183.html</div><br>
+    <h2>前言：</h2>
+<blockquote>
+<p>原作：孤独烟。因修改不当之处欢迎指出！</p>
+</blockquote>
+<p>大家好，我是小架架。</p>
+<p>今天一大早就起来水文章了。这篇文章我个人感觉虽然含金量不是特别大，估计大家大概5分钟左右就能看完！到底是因为什么呢，因为平时干货文章分享得有点多，今天的话就一顿截图写几个命令就搞定了，所以含金量不高。</p>
+<p>然后，我们来看一下近期有一段聊天记录</p>
+<p>如下</p>
+<p><img src="./images/面试官之问：知道你的接口“QPS”是多少吗？0.png" alt="" /></p>
+<p>&nbsp;</p>
+<p>&nbsp;</p>
+<p>看到这里，不要吃惊，不要惊讶！看下文哦！</p>
+<p>所以，该吹的牛皮都吹出去了。所以写个文章，自己给自己圆上！</p>
+<h2>正文</h2>
+<p><strong>QPS是什么</strong></p>
+<p>我们先回忆一下，QPS的概念如下所示:</p>
+<p><strong>QPS（Query Per Second）：每秒请求数，就是说服务器在一秒的时间内处理了多少个请求。</strong></p>
+<p>那我们怎么估出每秒钟能处理多少请求呢？</p>
+<p>OK，用日志来估计！那日志怎么记录呢，细分下来，有两种方式。</p>
+<p>&nbsp;</p>
+<p><strong>方式一:自己在接口里记录</strong></p>
+<p>这种方式指的是在你的接口里，日志记录了能体现该接口特性的，并具有唯一性的字符串！</p>
+<p>例如，下面这一段代码</p>
+<src class="cnblogs_code">
+<pre><code><span style="color: #000000;">@RestController 
+@RequestMapping(</span>"/home"<span style="color: #000000;">) 
+</span><span style="color: #0000ff;">public</span> <span style="color: #0000ff;">class</span><span style="color: #000000;"> IndexController {
+ </span><span style="color: #008000;">//</span><span style="color: #008000;">省略</span>
+ @RequestMapping("/index"<span style="color: #000000;">) 
+ String index() { 
+ logger.info(</span>"渣渣烟"<span style="color: #000000;">);
+ </span><span style="color: #0000ff;">return</span> "index"<span style="color: #000000;">; 
+ } 
+} </span></code></pre>
+
+<p><strong></strong></p>
+<p>假设现在我要统计index这个接口的QPS！</p>
+<p>OK，什么叫能体现该接口特性的字符串呢！就像上面的"渣渣烟"这个字符串，只在index这个接口里出现过，没在其他其他接口里出现过！因此，只要统计出"渣渣烟"这个字符串在日志里的出现次数，就能知道该接口的请求次数！</p>
+<p>什么叫具有唯一性的字符串呢！所谓唯一性，指的是"渣渣烟"这个字符串，在这个接口的一次调用流程中，只出现一次！如果出现两次，就会导致到时候统计出来的次数会多一倍，所以尽量选择具有唯一性的字段！</p>
+<p>&nbsp;</p>
+<p><strong>方式二:利用tomcat的access log</strong></p>
+<p>如果你的日志里没有我上面提到的字段。OK，那就用tomcat自带的access log功能吧！</p>
+<p>因为我平时内置的tomcat比较多，指定下面两个属性即可</p>
+<src class="cnblogs_code">
+<pre><code><span style="color: #000000;">server.tomcat.accesslog.directory
+设定log的目录，默认: logs
+server.tomcat.accesslog.enabled
+是否开启access log，默认: </span><span style="color: #0000ff;">false</span></code></pre>
+
+<p>此时，你访问一次/home/index地址，会有下面这样日志</p>
+<src class="cnblogs_code">
+<pre><code>127.0.0.1 - - [19/Aug/2019:23:55:27 +0800] "POST /home/index HTTP/1.1" 200 138</code></pre>
+
+<p>那么，你就可以根据日志中，该记录的出现次数，统计index接口的QPS。</p>
+<p>&nbsp;</p>
+<p><strong>实战</strong></p>
+<p>假设，你这会日志已经拿到手了，名字为xxx.log。</p>
+<p>假设日志内容如下</p>
+<src class="cnblogs_code">
+<pre><code><span style="color: #008000;">//</span><span style="color: #008000;">省略，都长差不多，贴其中一条就行</span>
+0:0:0:0:0:0:0:1 - - [27/Dec/2018:20:41:57 +0800] "GET /mvc2/upload.do HTTP/1.1" 404 949 http-bio-8080-exec-5 43
+<span style="color: #008000;">//</span><span style="color: #008000;">省略</span></code></pre>
+
+<p>这个时候，你执行一串命令长下面这样的，进行统计就行！</p>
+<src class="cnblogs_code">
+<pre><code>cat xx.log |grep 'GET /mvc2'|cut -d ' ' -f4|uniq -c|sort -n -<span style="color: #000000;">r 
+<br /></span></code></pre>
+
+<p>出来等结果就是</p>
+<src class="cnblogs_code">
+<pre><code>2 [27/Dec/2018:20:40:44
+1 [27/Dec/2018:20:47:58
+1 [27/Dec/2018:20:47:42
+1 [27/Dec/2018:20:41:57</code></pre>
+
+<p>然后你就知道，原来在20:40:44 分。。这个接口的QPS最高，达到了惊人的2QPS！</p>
+<p>现在，来讲一下命令什么意思！</p>
+<p>cat xxx.log : 读文件内容</p>
+<p>grep 'GET /mvc2' : 将文件内容按照GET /mvc2 进行过滤</p>
+<p>cut -d ' ' -f4 : 过滤出来的内容按照空格进行分割，取第四列内容</p>
+<p>uniq -c : 每列旁边显示该行重复出现的次数</p>
+<p>sort -n -r : 依照数值的大小排序</p>
+<p>那么，如果是其他日志格式，无外乎 &rdquo;cut语句&ldquo;的处理不同而已，道理类似！此法可以估算出单机的某接口的 &ldquo;QPS&rdquo; 是多少！</p>
+<p>&nbsp;</p>
+<p><strong>估算</strong></p>
+<p>我们现在估计出了单机的QPS。接下来，估算集群的QPS。</p>
+<p>这就要根据负载均衡的策略来估计！</p>
+<p>比如，你部署了32台机器，负载均衡的策略恰巧为轮询，那集群的QPS就是单机的QPS乘32就好了。</p>
+<p>所以，根据具体的策略，来估计整个集群的QPS多大！</p>
+<p>然后接下来就是:</p>
+<p><strong><img src="./images/面试官之问：知道你的接口“QPS”是多少吗？1.png" alt="" /></strong></p>
+<p>&nbsp;</p>
+<p>多嘴一句，一般2000QPS够了！</p>
+<p>总结</p>
+<p>作者写到此处，竟无语凝噎。深感其中之内容，话不能语。希望大家有所收获！</p>
+<p>最后，文章看到这里的各位，需要JAVA岗面试题和架构资料，请关注我哦！</p>
+<p>也希望大家，能够通过我的文章去理解一些东西！能够学而有所成，早日升职加薪！</p>
+<p><img src="./images/面试官之问：知道你的接口“QPS”是多少吗？2.png" alt="" /></p>
+<p>&nbsp;</p>
+<p>&nbsp;<img src="./images/面试官之问：知道你的接口“QPS”是多少吗？3.png" alt="" /></p>
+<p>&nbsp;</p>
+<p>加我的Java交流群：</p>
+<p>772300343</p>
+<p>获取哦！</p>
+<p>&nbsp;</p>
+
+</div><hr><script charset='utf-8' src='../../js/sming.js'></script></body></html>

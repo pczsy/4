@@ -1,0 +1,118 @@
+<html><head><meta charset='utf-8'><meta name='viewport' content='width=device-width, initial-scale=1'>
+<meta name='applicable-device' content='pc'><meta name='keywords' content='电脑,电脑讲解,电脑技术,编程,电脑故障维修Maven项目 - OpenFeign使用细节 - 从此和httpClient说再见' />
+<script src='../../highlight/highlight.pack.js'></script>
+<link rel='stylesheet' type='text/css' href='../../highlight/styles/monokai.css'/>
+
+<link rel='stylesheet' href='../../fenxiang/dist/css/share.min.css'>
+<script src='../../fenxiang/src/js/social-share.js'></script>
+<script src='../../fenxiang/src/js/qrcode.js'></script>
+
+</head><body><script>hljs.initHighlightingOnLoad();</script><script>
+var system ={};  
+var p = navigator.platform;       
+system.win = p.indexOf('Win') == 0;  
+system.mac = p.indexOf('Mac') == 0;  
+system.x11 = (p == 'X11') || (p.indexOf('Linux') == 0);     
+if(system.win||system.mac||system.xll){
+document.write("<link href='../css/3.css' rel='stylesheet' type='text/css'>");}else{ document.write("<link href='../css/3wap.css' rel='stylesheet' type='text/css'>");}</script><script src='../../js/3.js'></script><div class='div2'><div class='heading_nav'><ul><div><li><a href='../../index.html'>首页</a></li>
+</div><div onclick='hidden1()' >分享</div>
+</ul></div></div>
+<div id='heading_nav2'> 
+<li class='row' >
+<div class='social-share' data-mode='prepend'><a href='javascript:' class='social-share-icon icon-heart'></a></div></li></div><script charset='utf-8' src='../../3/js/hengfu.js'></script><script charset='utf-8' src='../../3/js/hengfu2.js'></script><hr><div class='div1'><div class='biaoti'><center>Maven项目 - OpenFeign使用细节 - 从此和httpClient说再见</center></div><div class='banquan'>原文出处:本文由博客园博主吕布戏貂蝉提供。<br/>
+原文连接:https://www.cnblogs.com/cka-0218/p/openFeign.html</div><br>
+    <p><span style="color: #333333; font-size: 18pt;">maven项目使用openfeign，从此和httpClient说拜拜</span></p>
+<p><span style="font-size: 16px; color: #ff0000;">pom.xml:</span></p>
+<src class="cnblogs_code" onclick="cnblogs_code_show('b53fa768-df23-4017-8728-b42474b54337')"><img id="code_img_closed_b53fa768-df23-4017-8728-b42474b54337" class="code_img_closed" src="./images/Maven项目 - OpenFeign使用细节 - 从此和httpClient说再见0.png" alt="" /><img id="code_img_opened_b53fa768-df23-4017-8728-b42474b54337" class="code_img_opened" style="display: none;" onclick="cnblogs_code_hide('b53fa768-df23-4017-8728-b42474b54337',event)" src="./images/Maven项目 - OpenFeign使用细节 - 从此和httpClient说再见1.png" alt="" />
+<src id="cnblogs_code_open_b53fa768-df23-4017-8728-b42474b54337" class="cnblogs_code_hide">
+<pre><code>        &lt;dependency&gt;
+            &lt;groupId&gt;io.github.openfeign&lt;/groupId&gt;
+            &lt;artifactId&gt;feign-jaxb&lt;/artifactId&gt;
+            &lt;version&gt;9.7.0&lt;/version&gt;
+        &lt;/dependency&gt;
+
+        &lt;dependency&gt;
+            &lt;groupId&gt;io.github.openfeign&lt;/groupId&gt;
+            &lt;artifactId&gt;feign-jackson&lt;/artifactId&gt;
+            &lt;version&gt;9.7.0&lt;/version&gt;
+        &lt;/dependency&gt;
+
+        &lt;dependency&gt;
+            &lt;groupId&gt;io.github.openfeign&lt;/groupId&gt;
+            &lt;artifactId&gt;feign-core&lt;/artifactId&gt;
+            &lt;version&gt;9.7.0&lt;/version&gt;
+        &lt;/dependency&gt;</code></pre>
+
+<span class="cnblogs_code_collapse">POM.xml</span>
+<p><img src="./images/Maven项目 - OpenFeign使用细节 - 从此和httpClient说再见2.png" alt="" /></p>
+<p>&nbsp;</p>
+<p><span style="color: #ff0000; font-size: 15px;">响应头实体类：</span></p>
+<src class="cnblogs_code" onclick="cnblogs_code_show('a3a16436-a6b1-4dc5-8e21-b745f958c0ad')"><img id="code_img_closed_a3a16436-a6b1-4dc5-8e21-b745f958c0ad" class="code_img_closed" src="./images/Maven项目 - OpenFeign使用细节 - 从此和httpClient说再见0.png" alt="" /><img id="code_img_opened_a3a16436-a6b1-4dc5-8e21-b745f958c0ad" class="code_img_opened" style="display: none;" onclick="cnblogs_code_hide('a3a16436-a6b1-4dc5-8e21-b745f958c0ad',event)" src="./images/Maven项目 - OpenFeign使用细节 - 从此和httpClient说再见1.png" alt="" />
+<src id="cnblogs_code_open_a3a16436-a6b1-4dc5-8e21-b745f958c0ad" class="cnblogs_code_hide">
+<pre><code><span style="color: #008000;">/**</span><span style="color: #008000;">
+ * esb返回结果
+ *
+ * </span><span style="color: #808080;">@author</span><span style="color: #008000;"> shengyang.xiao
+ </span><span style="color: #008000;">*/</span>
+<span style="color: #0000ff;">public</span> <span style="color: #0000ff;">class</span> EsbRequest&lt;REQUEST_DATA&gt;<span style="color: #000000;"> {
+    </span><span style="color: #008000;">/**</span><span style="color: #008000;">
+     * 响应头
+     </span><span style="color: #008000;">*/</span><span style="color: #000000;">
+    @JsonProperty(</span>"EsbReqHeader"<span style="color: #000000;">)
+    </span><span style="color: #0000ff;">private</span><span style="color: #000000;"> EsbReqHeader resHeader;
+    </span><span style="color: #008000;">/**</span><span style="color: #008000;">
+     * 响应数据集
+     </span><span style="color: #008000;">*/</span><span style="color: #000000;">
+    @JsonProperty(</span>"EsbReqData"<span style="color: #000000;">)
+    </span><span style="color: #0000ff;">private</span> List&lt;REQUEST_DATA&gt;<span style="color: #000000;"> reqData;
+
+    </span><span style="color: #0000ff;">public</span><span style="color: #000000;"> EsbReqHeader getResHeader() {
+        </span><span style="color: #0000ff;">return</span><span style="color: #000000;"> resHeader;
+    }
+
+    </span><span style="color: #0000ff;">public</span> <span style="color: #0000ff;">void</span><span style="color: #000000;"> setResHeader(EsbReqHeader resHeader) {
+        </span><span style="color: #0000ff;">this</span>.resHeader =<span style="color: #000000;"> resHeader;
+    }
+
+    </span><span style="color: #0000ff;">public</span> List&lt;REQUEST_DATA&gt;<span style="color: #000000;"> getReqData() {
+        </span><span style="color: #0000ff;">return</span><span style="color: #000000;"> reqData;
+    }
+
+    </span><span style="color: #0000ff;">public</span> <span style="color: #0000ff;">void</span> setReqData(List&lt;REQUEST_DATA&gt;<span style="color: #000000;"> reqData) {
+        </span><span style="color: #0000ff;">this</span>.reqData =<span style="color: #000000;"> reqData;
+    }
+}</span></code></pre>
+
+<span class="cnblogs_code_collapse">响应头实体</span>
+<p><span style="color: #ff0000; font-size: 15px;"><img src="./images/Maven项目 - OpenFeign使用细节 - 从此和httpClient说再见5.png" alt="" /></span></p>
+<p>&nbsp;</p>
+<p>&nbsp;</p>
+<p><span style="color: #ff0000;">Client:</span></p>
+<src class="cnblogs_code" onclick="cnblogs_code_show('16bc4fed-0e7b-41e3-aad9-e55d65fce349')"><img id="code_img_closed_16bc4fed-0e7b-41e3-aad9-e55d65fce349" class="code_img_closed" src="./images/Maven项目 - OpenFeign使用细节 - 从此和httpClient说再见0.png" alt="" /><img id="code_img_opened_16bc4fed-0e7b-41e3-aad9-e55d65fce349" class="code_img_opened" style="display: none;" onclick="cnblogs_code_hide('16bc4fed-0e7b-41e3-aad9-e55d65fce349',event)" src="./images/Maven项目 - OpenFeign使用细节 - 从此和httpClient说再见1.png" alt="" />
+<src id="cnblogs_code_open_16bc4fed-0e7b-41e3-aad9-e55d65fce349" class="cnblogs_code_hide">
+<pre><code><span style="color: #008000;">/**</span><span style="color: #008000;">
+ * esb服务客户端
+ *
+ * </span><span style="color: #808080;">@author</span><span style="color: #008000;"> shengyang.xiao
+ * </span><span style="color: #808080;">@since</span><span style="color: #008000;"> 2019-08-20 16:08
+ </span><span style="color: #008000;">*/</span>
+<span style="color: #0000ff;">public</span> <span style="color: #0000ff;">interface</span><span style="color: #000000;"> EsbClient {
+
+    </span><span style="color: #008000;">/**</span><span style="color: #008000;">
+     * 从SSO获取当前系统的帐户信息
+     *
+     * </span><span style="color: #808080;">@param</span><span style="color: #008000;"> request
+     * </span><span style="color: #808080;">@return</span><span style="color: #008000;"> EsbResponse&lt;EmployeeDto&gt;
+     * </span><span style="color: #808080;">@author</span><span style="color: #008000;"> shengyang.xiao
+     * </span><span style="color: #808080;">@since</span><span style="color: #008000;"> 2019-08-20 16:08
+     </span><span style="color: #008000;">*/</span><span style="color: #000000;">
+    @RequestLine(</span>"POST "<span style="color: #000000;">)
+    @Headers(</span>"Content-Type: application/json"<span style="color: #000000;">)
+    EsbResponse</span>&lt;EmployeeDto&gt; queryAccountByResCodeFromSso(EsbRequest&lt;QueryAccountRequestData&gt;<span style="color: #000000;"> request);
+}</span></code></pre>
+
+<span class="cnblogs_code_collapse">客户端</span>
+<p><img src="./images/Maven项目 - OpenFeign使用细节 - 从此和httpClient说再见8.png" alt="" /></p>
+<p>&nbsp;</p>
+
+</div><hr><script charset='utf-8' src='../../js/sming.js'></script></body></html>

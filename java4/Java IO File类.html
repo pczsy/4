@@ -1,0 +1,333 @@
+<html><head><meta charset='utf-8'><meta name='viewport' content='width=device-width, initial-scale=1'>
+<meta name='applicable-device' content='pc'><meta name='keywords' content='电脑,电脑讲解,电脑技术,编程,电脑故障维修Java IO File类' />
+<script src='../../highlight/highlight.pack.js'></script>
+<link rel='stylesheet' type='text/css' href='../../highlight/styles/monokai.css'/>
+
+<link rel='stylesheet' href='../../fenxiang/dist/css/share.min.css'>
+<script src='../../fenxiang/src/js/social-share.js'></script>
+<script src='../../fenxiang/src/js/qrcode.js'></script>
+
+</head><body><script>hljs.initHighlightingOnLoad();</script><script>
+var system ={};  
+var p = navigator.platform;       
+system.win = p.indexOf('Win') == 0;  
+system.mac = p.indexOf('Mac') == 0;  
+system.x11 = (p == 'X11') || (p.indexOf('Linux') == 0);     
+if(system.win||system.mac||system.xll){
+document.write("<link href='../css/3.css' rel='stylesheet' type='text/css'>");}else{ document.write("<link href='../css/3wap.css' rel='stylesheet' type='text/css'>");}</script><script src='../../js/3.js'></script><div class='div2'><div class='heading_nav'><ul><div><li><a href='../../index.html'>首页</a></li>
+</div><div onclick='hidden1()' >分享</div>
+</ul></div></div>
+<div id='heading_nav2'> 
+<li class='row' >
+<div class='social-share' data-mode='prepend'><a href='javascript:' class='social-share-icon icon-heart'></a></div></li></div><script charset='utf-8' src='../../3/js/hengfu.js'></script><script charset='utf-8' src='../../3/js/hengfu2.js'></script><hr><div class='div1'><div class='biaoti'><center>Java IO File类</center></div><div class='banquan'>原文出处:本文由博客园博主头发是我最后的倔强提供。<br/>
+原文连接:https://www.cnblogs.com/vfdxvffd/p/11694086.html</div><br>
+    <h1 id="file类">File类</h1>
+<h2 id="构造方法">构造方法</h2>
+<p>  作为IO操作中的最基本的类，File类可以封装文件夹和文件，其构造方法如下：</p>
+<p><strong>1、通过给定的父抽象路径名和子路径名字符串创建一个新的File实例。</strong></p>
+<pre><code><code>File(File parent, String child);</code></code></pre>
+<p><strong>2、通过将给定路径名字符串转换成抽象路径名来创建一个新 File 实例。</strong></p>
+<pre><code><code>File(String pathname) </code></code></pre>
+<p><strong>3、根据 parent 路径名字符串和 child 路径名字符串创建一个新 File 实例。</strong></p>
+<pre><code><code>File(String parent, String child) </code></code></pre>
+<p><strong>4、通过将给定的 file: URI 转换成一个抽象路径名来创建一个新的 File 实例。</strong></p>
+<pre><code><code>File(URI uri) </code></code></pre>
+<h4 id="下面是对构造方法的演示">下面是对构造方法的演示：</h4>
+<pre><code><code>public static void main(String[] args)
+    {
+        /**
+            File类的构造函数
+            如何创建文件对象
+        **/
+        String pathname = &quot;D:\\forio&quot;;
+        String pathname2 = &quot;D:\\forio\\3.txt&quot;;  //封装的是3.txt这个文件
+        File f1 = new File(pathname);   //将forio文件夹封装成对象，注意也可以封装不存在的文件或者文件夹，变成对象，可以再创建嘛
+        System.out.println(f1);
+
+
+        File f2 = new File(&quot;D:\\forio&quot;,&quot;3.txt&quot;);//分开之后可以将后面的变成一个变量
+        System.out.println(f2);
+
+        File dir = new File(&quot;D:\\forio&quot;);
+        File f3 = new File(dir,&quot;3.txt&quot;);
+        System.out.println(f3);
+
+        //也可以像下面这样，File.separator表示系统分隔符，可以适应所有系统，不止Windows
+        File f4 = new File(&quot;D:&quot;+File.separator+&quot;forio&quot;+File.separator+&quot;3.txt&quot;);
+        System.out.println(f4);
+    }</code></code></pre>
+<h2 id="操作文件的方法">操作文件的方法</h2>
+<p>成功创建对象后就可以调用类的方法来操作文件或文件夹，这些方法比较多，就不罗列了，可以去文档查，下面介绍几个比较常用的方法。<br />
+<strong>1、获取基本信息</strong></p>
+<pre><code><code>public static void main(String[] args)
+{
+    /*
+      File类的方法演示
+      获取文件的信息，名称，大小，时间
+    */
+    File file = new File(&quot;D://forio//3.txt&quot;);
+
+    String absPath = file.getAbsolutePath();    //绝对路径
+    String pathString= file.getPath();   //File中封装的路径是什么获取的就是什么
+    String filename = file.getName();
+    long size = file.length();          //字节数
+    long time = file.lastModified();    //毫秒值
+
+    System.out.println(&quot;absPath=&quot;+absPath);
+    System.out.println(&quot;Path=&quot;+pathString);
+    System.out.println(&quot;filename=&quot;+filename);
+    System.out.println(&quot;size=&quot;+size);
+    System.out.println(&quot;time=&quot;+time);
+
+    //毫秒值--Date--格式化--字符串文本
+    String str_date = DateFormat.getDateTimeInstance(DateFormat.LONG,DateFormat.LONG).format(new Date(time));
+    System.out.println(str_date);
+}</code></code></pre>
+<p><strong>2、创建、删除、存在</strong><br />
+对文件夹和文件还有创建和删除操作，以及判断目录是否存在。</p>
+<p>对文件夹的： <code>File dir = new File(&quot;D:\\demo&quot;);</code>  <code>File dirs = new File(&quot;D:\\haha\\hehe\\xixi&quot;);</code></p>
+<ul>
+<li>创建单层文件夹：dir.mkdir();</li>
+<li>创建多层文件夹：dirs.mkdirs();</li>
+<li>删除文件夹：dir.delete();  dirs.delete();如果文件夹中有内容，需要先删除其中内容，再对文件夹进行删除</li>
+<li>判断是否存在： dir.exists();</li>
+</ul>
+<p>对文件的：<code>File file = new File(&quot;D:\\forio\\3.txt&quot;);</code></p>
+<ul>
+<li>创建文件：file.createNewFile();</li>
+<li>删除文件：file.delete();</li>
+<li>判断存在：file.exists();</li>
+</ul>
+<p><strong> 以上方法的返回值都是boolean类型，成功或存在返回True，否则返回False</strong></p>
+<ul>
+<li>创建文件，如果文件不存在，创建，返回true</li>
+<li>如果存在，不创建，返回false</li>
+<li>如果路径错误，IOException</li>
+<li>删除时返回false的两种情况：1、不存在，2、正在使用</li>
+</ul>
+<p><strong>3、ListFile方法，列举目录下的全部内容</strong></p>
+<p>ListFile方法返回值是一个File对象的数组，存放着目录中所有文件以及文件夹对象</p>
+<pre><code><code>import java.io.File;
+
+public class ListFiles {
+    public static void main(String[] args)
+    {
+        //需求：对给定的目录获取内部的内容
+        File dir = new File(&quot;D:\\forio&quot;);
+        //判断：1、必须是存在的   2、必须是目录，否则容易引发空指针异常NullPointerException
+
+        String[] names = dir.list();    //获取的是目录下的当前的文件以及文件夹名称
+        for (String name : names) {
+            //  System.out.println(name);
+        }
+
+
+        File[]files = dir.listFiles();  //获取目录下的当前文件以及文件夹对象
+        for (File file : files) {
+            System.out.println(file.getName());
+        }
+    }
+}</code></code></pre>
+<p><strong>4、过滤器</strong></p>
+<p>过滤文件名的过滤器，实现FilenameFilter接口，并重写accept方法，如果文件名按照预先设定的规则，就返回True，否则返回False</p>
+<pre><code><code>public class FilenameFilterByTxt implements FilenameFilter {
+    private String suffix;
+
+    //构造函数
+    public FilenameFilterByTxt(String s){
+        suffix = s;
+    }
+
+    //重写accept函数
+    @Override
+    public boolean accept(File file, String name) {
+        return name.endsWith(suffix);   //也可以直接endwith(&quot;.txt&quot;); 但这样可以减少耦合性，更灵活的选择以哪种结束
+    }
+}</code></code></pre>
+<pre><code><code>public class FileDemo {
+    public static void main(String[] args)
+    {
+        //需求：获取目录中的文件，只要.txt文件
+
+        File dir = new File(&quot;D:\\forio&quot;);
+
+        File[] files = dir.listFiles(new FilenameFilterByTxt(&quot;.txt&quot;));      //传入过滤器，如果懵逼了可以查看listFiles的API
+
+        /*  listFiles方法的源码：
+         *
+         * public File[] listFiles(FilenameFilter filter)
+         * {
+                String ss[] = list();       //调用File类中的list方法，先获取所有的名称
+                if (ss == null) return null;    //判断，如果数组为空，返回
+                ArrayList&lt;File&gt; files = new ArrayList&lt;&gt;();  //创建了一个集合，元素是File类型
+                for (String s : ss)             //遍历数组名称
+
+                //调用accept方法，对遍历的名称进行过滤器判断，将当前目录this，遍历到名称s传递给accept方法，如果过滤器为空，即没有过滤条件。则全部为真
+                    if ((filter == null) || filter.accept(this, s))
+                        files.add(new File(s, this));   //将满足过滤条件的添加到集合中，将名称和当前目录封装成File对象。new File(dir,name);
+                return files.toArray(new File[files.size()]);   //将集合转成数组返回，因为不需要增删操作
+            }
+         * */
+
+
+        for (File file : files) {
+            System.out.println(file);
+        }
+    }
+}</code></code></pre>
+<p>过滤文件夹的过滤器,和上面迭代器的不同，少了一个私有成员，accept函数也少了一个参数，实际上是对accept函数的重载</p>
+<pre><code><code>public class FileFilterByDir implements FileFilter {
+
+    @Override
+    public boolean accept(File pathname) {
+        // TODO Auto-generated method stub
+        return pathname.isDirectory();
+    }
+}</code></code></pre>
+<pre><code><code>import java.io.File;
+import java.io.FileFilter;
+
+public class Demo 
+{
+    public static void main(String[] args) 
+    {
+        File dir = new File(&quot;D:\\forio&quot;);
+        /*
+    public File[] listFiles(FileFilter filter) {
+        String[] ss = this.list();
+        if (ss == null) {
+            return null;
+        } else {
+            ArrayList&lt;File&gt; files = new ArrayList();
+            String[] var4 = ss;
+            int var5 = ss.length;
+
+            for(int var6 = 0; var6 &lt; var5; ++var6) {
+                String s = var4[var6];
+                File f = new File(s, this);
+                if (filter == null || filter.accept(f)) {
+                    files.add(f);
+                }
+            }
+        */
+        File[] files = dir.listFiles(new FileFilterByDir());//传入过滤器，如果懵逼了可以查看listFiles的API
+        for (File file : files) {
+            System.out.println(file);
+        }
+    }
+}</code></code></pre>
+<h2 id="练习">练习</h2>
+<p>1、获取目录中的所有内容，因为一个文件夹内可能包含文件也可能还包含文件夹，所以需要使用递归，用一个全局变量统计数目。</p>
+<pre><code><code>public class exercise1 {
+
+    static int acount=0;    //统计数目
+    public static void main(String[] args)
+    {
+        /***
+         * File类的listFiles()列出当前目录下的文件以及文件夹内容
+         *
+         * 需求：能不能列出当前目录下的子目录中的所有内容
+         * 思路：
+         *  1、在遍历当前目录时，会获取到当前的所有文件及文件夹
+         *  2、要遍历子目录需要对获取的当前的file对象进行判断，只有是目录时才可以作为子目录进行继续遍历
+         */
+
+        File dirFile = new File(&quot;D:\\VS 2019&quot;);
+        ListAll(dirFile);
+        System.out.println(&quot;一共有&quot;+acount+&quot;个文件和文件夹&quot;);
+    }
+
+    public static void ListAll(File dir)    //dir用来接收待遍历的目录
+    {
+        File[] files = dir.listFiles();
+
+        for (File file2 : files) {
+            if(file2.isDirectory())     //如果遍历到当前的file对象是个目录，继续遍历，递归调用
+            {
+                ListAll(file2);
+            }
+            acount++;
+            System.out.println(file2.getName());
+        }
+    }
+}
+</code></code></pre>
+<p>2、不使用递归获取一个目录下的所有子目录，既然不使用递归，那就需要考虑广度优先搜索，将目录加入一个队列，然后将文件直接输出文件名，然后出队第一个子目录，继续对其进行遍历，重复上述操作，即可获取全部内容。</p>
+<pre><code><code>public class exercise2 {
+
+    static int acount=0;
+    public static void main(String[] args)
+    {
+        /*
+         * 遍历文件夹，且不使用递归：
+         * 思路：
+         *  1、遍历test目录，将子目录存储到容器内
+         *  2、遍历容器。从容器中取出子目录，进行遍历
+         *  3、子目录中还有目录，继续存储，让遍历过的容器中的目录出队，释放容器空间
+         *  4、容器大小不确定，所以用集合
+         *  5、目录名有可能重复，所以用队列
+         */
+
+
+        File dir = new File(&quot;D:\\C++&quot;);
+
+        Queue&lt;File&gt; queue = new Queue&lt;File&gt;();
+        //1、对dir进行当前目录的遍历
+        File[]files = dir.listFiles();
+        for (File file : files)
+        {
+            //2、如果有子目录，存储到队列中
+            if(file.isDirectory())
+            {
+                acount++;
+                queue.myAdd(file);
+            }
+            else
+            {
+                acount++;
+                System.out.println(file.getName());
+            }
+        }
+        //3、遍历队列容器。因为子目录都在队列中
+        while(!queue.IsEmpty())
+        {
+            File[] files2 = queue.myRemove().listFiles();
+            for (File file : files2) {
+                if(file.isDirectory())
+                {
+                    acount++;
+                    queue.myAdd(file);
+                }
+                else {
+                    System.out.println(file.getName());
+                    acount++;
+                }
+            }
+        }
+        System.out.println(&quot;一共有&quot;+acount+&quot;个文件&quot;);
+    }
+}
+
+class Queue&lt;E&gt;
+{
+    private LinkedList&lt;E&gt; link;
+    public Queue()
+    {
+        link = new LinkedList&lt;E&gt;();
+    }
+    public void myAdd(E obj)
+    {
+        link.addFirst(obj);
+    }
+    public E myRemove()
+    {
+        return  link.removeLast();
+    }
+    public boolean IsEmpty()
+    {
+        return link.isEmpty();
+    }
+}</code></code></pre>
+
+
+</div><hr><script charset='utf-8' src='../../js/sming.js'></script></body></html>

@@ -1,0 +1,52 @@
+<html><head><meta charset='utf-8'><meta name='viewport' content='width=device-width, initial-scale=1'>
+<meta name='applicable-device' content='pc'><meta name='keywords' content='电脑,电脑讲解,电脑技术,编程,电脑故障维修Spring Boot 设置项目名后静态文件相对路径问题' />
+<script src='../../highlight/highlight.pack.js'></script>
+<link rel='stylesheet' type='text/css' href='../../highlight/styles/monokai.css'/>
+
+<link rel='stylesheet' href='../../fenxiang/dist/css/share.min.css'>
+<script src='../../fenxiang/src/js/social-share.js'></script>
+<script src='../../fenxiang/src/js/qrcode.js'></script>
+
+</head><body><script>hljs.initHighlightingOnLoad();</script><script>
+var system ={};  
+var p = navigator.platform;       
+system.win = p.indexOf('Win') == 0;  
+system.mac = p.indexOf('Mac') == 0;  
+system.x11 = (p == 'X11') || (p.indexOf('Linux') == 0);     
+if(system.win||system.mac||system.xll){
+document.write("<link href='../css/3.css' rel='stylesheet' type='text/css'>");}else{ document.write("<link href='../css/3wap.css' rel='stylesheet' type='text/css'>");}</script><script src='../../js/3.js'></script><div class='div2'><div class='heading_nav'><ul><div><li><a href='../../index.html'>首页</a></li>
+</div><div onclick='hidden1()' >分享</div>
+</ul></div></div>
+<div id='heading_nav2'> 
+<li class='row' >
+<div class='social-share' data-mode='prepend'><a href='javascript:' class='social-share-icon icon-heart'></a></div></li></div><script charset='utf-8' src='../../3/js/hengfu.js'></script><script charset='utf-8' src='../../3/js/hengfu2.js'></script><hr><div class='div1'><div class='biaoti'><center>Spring Boot 设置项目名后静态文件相对路径问题</center></div><div class='banquan'>原文出处:本文由博客园博主佩奇er提供。<br/>
+原文连接:https://www.cnblogs.com/hxun/p/11934769.html</div><br>
+    <h1 id="item-1">出现问题的原因</h1>
+<p>server.servlet.context-path=testDemo<br />spring.mvc.static-path-pattern=/static/**<br />定义项目名和静态资源路径后发现，templates中html 中引用的css,js的相对路径出现异常<br /><span class="img-wrap"><img src="./images/Spring Boot 设置项目名后静态文件相对路径问题0.png" alt="" /><br />在上面目录中，index.html 通过相对路径引用css href="../static/xxx" 就获取不到了<br />在没有定义 server.servlet.context-path=testDemo 的前href="../static/xxx" 这样写是没有问题的<br /><span class="img-wrap"><img src="./images/Spring Boot 设置项目名后静态文件相对路径问题1.png" alt="" /><br />在设置项目名后，使用相对路径的时候就会缺少项目名，从而获取不到静态资源</span></span></p>
+<h1 id="item-2">解决方案</h1>
+<ul>
+<li>1）使用绝对路径</li>
+<li>2）修改路径，将href="../static/xxx" 改成href="static/xxx"</li>
+<li>3）使用<span style="color: #ff0000;">spring thymeleaf</span>的<span style="color: #ff00ff;">th:src</span>或者<span style="color: #ff00ff;">th:href</span>属性改变标签的链接路径，如</li>
+
+</ul>
+<src class="cnblogs_code">
+<pre><code><span style="color: #0000ff;">&lt;</span><span style="color: #800000;">link </span><span style="color: #ff0000;">rel</span><span style="color: #0000ff;">="stylesheet"</span><span style="color: #ff0000;"> th:href</span><span style="color: #0000ff;">="@{/pace/themes/blue/pace-theme-flash.css}&gt;</span></code></pre>
+
+<p>但这3种方案，编译器无法识别路径，导致编写代码无提示，这就很难受了，下面两种方案以解决编译器无法提示的问题</p>
+<ul>
+<li>同样使用spring thymeleaf的th:src或者th:href，并且写的时候再加多src,href 供编译识别（<span style="color: #ff0000;">推荐</span>）</li>
+</ul>
+<src class="cnblogs_code">
+<pre><code><span style="color: #0000ff;">&lt;</span><span style="color: #800000;">link </span><span style="color: #ff0000;">rel</span><span style="color: #0000ff;">="stylesheet"</span><span style="color: #ff0000;"> href</span><span style="color: #0000ff;">="../static/pace/themes/blue/pace-theme-flash.css"</span><span style="color: #ff0000;">th:href</span><span style="color: #0000ff;">="@{/pace/themes/blue/pace-theme-flash.css}"</span><span style="color: #0000ff;">&gt;</span></code></pre>
+
+<ul>
+<li><span style="color: #ff0000;">不使用thymeleaf</span>或者<span style="color: #ff0000;">不想每个css,js引入都多写一次路径</span>，在html head添加<span style="color: #ff0000;">&lt;base href="XXX/"&gt;</span>标签，这样../就不会丢失项目名，而是去掉了XXX/</li>
+</ul>
+<src class="cnblogs_code">
+<pre><code><span style="color: #0000ff;">&lt;</span><span style="color: #800000;">base </span><span style="color: #ff0000;">href</span><span style="color: #0000ff;">="XXX/"</span><span style="color: #0000ff;">&gt;</span>
+<span style="color: #0000ff;">&lt;</span><span style="color: #800000;">link </span><span style="color: #ff0000;">rel</span><span style="color: #0000ff;">="stylesheet"</span><span style="color: #ff0000;">  href</span><span style="color: #0000ff;">="../static/pace/themes/blue/pace-theme-flash.css"</span><span style="color: #0000ff;">&gt;</span></code></pre>
+
+<pre class="hljs xml"><br /><br /><span style="color: #ff0000;">ending...</span></code></pre>
+
+</div><hr><script charset='utf-8' src='../../js/sming.js'></script></body></html>

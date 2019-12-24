@@ -1,0 +1,241 @@
+<html><head><meta charset='utf-8'><meta name='viewport' content='width=device-width, initial-scale=1'>
+<meta name='applicable-device' content='pc'><meta name='keywords' content='电脑,电脑讲解,电脑技术,编程,电脑故障维修【源码解析】自动配置的这些细节都不知道，别说你会 springboot' />
+<script src='../../highlight/highlight.pack.js'></script>
+<link rel='stylesheet' type='text/css' href='../../highlight/styles/monokai.css'/>
+
+<link rel='stylesheet' href='../../fenxiang/dist/css/share.min.css'>
+<script src='../../fenxiang/src/js/social-share.js'></script>
+<script src='../../fenxiang/src/js/qrcode.js'></script>
+
+</head><body><script>hljs.initHighlightingOnLoad();</script><script>
+var system ={};  
+var p = navigator.platform;       
+system.win = p.indexOf('Win') == 0;  
+system.mac = p.indexOf('Mac') == 0;  
+system.x11 = (p == 'X11') || (p.indexOf('Linux') == 0);     
+if(system.win||system.mac||system.xll){
+document.write("<link href='../css/3.css' rel='stylesheet' type='text/css'>");}else{ document.write("<link href='../css/3wap.css' rel='stylesheet' type='text/css'>");}</script><script src='../../js/3.js'></script><div class='div2'><div class='heading_nav'><ul><div><li><a href='../../index.html'>首页</a></li>
+</div><div onclick='hidden1()' >分享</div>
+</ul></div></div>
+<div id='heading_nav2'> 
+<li class='row' >
+<div class='social-share' data-mode='prepend'><a href='javascript:' class='social-share-icon icon-heart'></a></div></li></div><script charset='utf-8' src='../../3/js/hengfu.js'></script><script charset='utf-8' src='../../3/js/hengfu2.js'></script><hr><div class='div1'><div class='biaoti'><center>【源码解析】自动配置的这些细节都不知道，别说你会 springboot</center></div><div class='banquan'>原文出处:本文由博客园博主逸飞兮提供。<br/>
+原文连接:https://www.cnblogs.com/lw5946/p/11689890.html</div><br>
+    <p>spring-boot 相对于 spring，很重要的一个特点就是自动配置，使约定大于配置思想成功落地。xxx-spring-boot-starter 一系列引导器能够开箱即用，或者只需要很少的配置（对于初学人员）就是因为已做了默认的自动配置。</p>
+<p>自动配置在一开始就初始化了一些配置，同时提供修改配置的入口。</p>
+<h1 id="整体结构">整体结构</h1>
+<p><code>spring-boot-autoconfigure</code> 包是 <code>spring-boot-starter</code> 中一个非常重要的包，其中提供了自动配置功能，还对常用依赖，设置了默认配置。</p>
+<h1 id="依赖">依赖</h1>
+<p>其依赖的包有三种：</p>
+<ul>
+<li>基础包：spring-boot</li>
+<li>可选功能依赖包：提供默认配置的常用依赖包，实际使用时由使用者提供</li>
+<li>测试包</li>
+</ul>
+<p>可选功能依赖包有 spring-data-redis、validator、thymeleaf、websocket 等等。下面会选几个作为示例具体讲解。</p>
+<h1 id="原理">原理</h1>
+<h2 id="enableautoconfiguration">@EnableAutoConfiguration</h2>
+<pre><code><code>@AutoConfigurationPackage
+@Import(AutoConfigurationImportSelector.class)
+public @interface EnableAutoConfiguration {
+  /**
+   *  当此名对应属性为 true 时，才开启自动配置
+   */
+  String ENABLED_OVERRIDE_PROPERTY = &quot;spring.boot.enableautoconfiguration&quot;;
+  
+  /**
+   *  需要排除的类（通常当此类在类路径下时使用）
+   */
+  Class&lt;?&gt;[] exclude() default {};
+
+  /**
+   *  需要排除的类名（当此类不在类路径下时使用）
+   */
+  String[] excludeName() default {};
+}</code></code></pre>
+<h3 id="autoconfigurationpackage">@AutoConfigurationPackage</h3>
+<p>将使用此注解的类所属于的包注册成 spring bean。<br />
+此 spring bean 的 beanName 为 AutoConfigurationPackages，<br />
+beanClass 为 BasePackages。</p>
+<h3 id="autoconfigurationimportselector">AutoConfigurationImportSelector</h3>
+<p>自动配置选择器，选择哪些类自动配置。</p>
+<h4 id="selectimports">selectImports</h4>
+<p>核心方法：<code>String[] selectImports(AnnotationMetadata annotationMetadata)</code> ，此方法返回需要自动配置的全类名数组。<br />
+需要自动配置的类满足以下条件：</p>
+<ol>
+<li>META-INF/spring.factories 中 key 为 <code>org.springframework.boot.autoconfigure.EnableAutoConfiguration</code> 的类</li>
+<li>@EnableAutoConfiguration 注解中 exclude 、 excludeName 属性代表的类， 配置中 spring.autoconfigure.exclude 中设置的类（若类路径中存在，但是步骤 1 不存在，则抛异常）</li>
+<li>满足包含三种注解的条件：<code>OnBeanCondition</code>（如：ConditionalOnBean、ConditionalOnMissingBean） 、<code>OnClassCondition</code> （如：ConditionalOnClass、ConditionalOnMissingClass）、<code>OnWebApplicationCondition</code>（如：ConditionalOnWebApplication、ConditionalOnNotWebApplication）</li>
+</ol>
+<p>最后，会激活 <code>AutoConfigurationImportEvent</code> 事件。</p>
+<h4 id="getimportgroup-与-deferredimportselector.group">getImportGroup 与 DeferredImportSelector.Group</h4>
+<p>对来自不同 ImportSelector 的结果进行分组</p>
+<h2 id="自动配置的顺序">自动配置的顺序</h2>
+<ul>
+<li>AutoConfigurationSorter</li>
+<li>@AutoConfigureOrder</li>
+<li>@AutoConfigureBefore</li>
+<li>@AutoConfigureAfter</li>
+</ul>
+<p><code>AutoConfigurationSorter</code> 是具体控制排序的逻辑<br />
+<code>@AutoConfigureOrder</code> 是 <code>@Order</code> 的 Auto-configuration 特定变体，因此需要制定自定配置的顺序时，可以用 <code>@AutoConfigureOrder</code> 。控制应用配置类的<code>绝对顺序</code>。<br />
+<code>@AutoConfigureBefore</code> 和 <code>@AutoConfigureAfter</code> 控制应用配置类的相对顺序。</p>
+<p>具体培训顺序如下：</p>
+<ol>
+<li>根据类名按照<code>字母表递增</code>排序</li>
+<li>根据 <code>@AutoConfigureOrder</code> value 值（默认：0）<code>递增</code>排序</li>
+<li>根据 <code>@AutoConfigureBefore</code> 和 <code>@AutoConfigureAfter</code> 调整排序</li>
+</ol>
+<p>那么 <code>@Order</code> 还能控制自动配置类的顺序吗？</p>
+<h2 id="springbootapplication">@SpringBootApplication</h2>
+<p><code>2.1.8.RELEASE</code> 版本中，此注解的组合注解如下：</p>
+<pre><code><code>// 省略不需关心的注解
+@SpringBootConfiguration
+@EnableAutoConfiguration
+@ComponentScan(excludeFilters = { @Filter(type = FilterType.CUSTOM, classes = TypeExcludeFilter.class),
+        @Filter(type = FilterType.CUSTOM, classes = AutoConfigurationExcludeFilter.class) })
+public @interface SpringBootApplication {</code></code></pre>
+<p>已有原来的 <code>@Configuration</code> 改为 <code>@SpringBootConfiguration</code>，其意义如下：</p>
+<ul>
+<li>相当于是 @Configuration 类</li>
+<li>使用该注解的类提供 Spring Boot 应用。<br />
+一个应用只能包含一个 @SpringBootConfiguration 类，通常使用 @SpringBootApplication 就可以了</li>
+</ul>
+<h2 id="abstractdependsonbeanfactorypostprocessor">AbstractDependsOnBeanFactoryPostProcessor</h2>
+<p><strong>此类实现 BeanFactoryPostProcessor，会在 spring-boot 启动过程中在合适的时机执行</strong><br />
+继承此类，通过构造器动态决定指定类型的 bean 应该依赖于哪些 bean。</p>
+<h2 id="backgroundpreinitializer">BackgroundPreinitializer</h2>
+<p>此类实现 <code>ApplicationListener&lt;SpringApplicationEvent&gt;</code><br />
+此类功能为：在耗时任务的后台线程中触发早期初始化，如：<br />
+<code>ValidationInitializer</code>、<code>MessageConverterInitializer</code>、<code>JacksonInitializer</code>、<code>CharsetInitializer</code>、<code>ConversionServiceInitializer</code>、<code>MBeanFactoryInitializer</code>等</p>
+<h2 id="importautoconfiguration">@ImportAutoConfiguration</h2>
+<p>导入自动配置类。从源码来看，都是测试时用于自动配置。使用此类的注解，也在 <code>META-INF/spring.factories</code> 中配置，示例如下：</p>
+<pre><code><code>@ImportAutoConfiguration
+public @interface AutoConfigureDataJpa {}</code></code></pre>
+<pre><code><code>org.springframework.boot.test.autoconfigure.orm.jpa.AutoConfigureDataJpa=\
+org.springframework.boot.autoconfigure.data.jpa.JpaRepositoriesAutoConfiguration,\
+org.springframework.boot.autoconfigure.flyway.FlywayAutoConfiguration,\
+org.springframework.boot.autoconfigure.jdbc.DataSourceAutoConfiguration,\
+org.springframework.boot.autoconfigure.jdbc.DataSourceTransactionManagerAutoConfiguration,\
+org.springframework.boot.autoconfigure.jdbc.JdbcTemplateAutoConfiguration,\
+org.springframework.boot.autoconfigure.liquibase.LiquibaseAutoConfiguration,\
+org.springframework.boot.autoconfigure.orm.jpa.HibernateJpaAutoConfiguration,\
+org.springframework.boot.autoconfigure.transaction.TransactionAutoConfiguration</code></code></pre>
+<p>因此使用注解 <code>AutoConfigureDataJpa</code> 就相当于导入了 JpaRepositoriesAutoConfiguration、DataSourceAutoConfiguration 等类。</p>
+<p>使用如下：</p>
+<pre><code><code>@BootstrapWith(DataJpaTestContextBootstrapper.class)
+@ExtendWith(SpringExtension.class)
+@OverrideAutoConfiguration(enabled = false)
+@TypeExcludeFilters(DataJpaTypeExcludeFilter.class)
+@Transactional
+@AutoConfigureCache
+@AutoConfigureDataJpa
+@AutoConfigureTestDatabase
+@AutoConfigureTestEntityManager
+@ImportAutoConfiguration
+public @interface DataJpaTest {
+  // ...
+}</code></code></pre>
+<pre><code><code>@RunWith(SpringRunner.class)
+@DataJpaTest
+@TestPropertySource(properties = &quot;spring.jpa.hibernate.use-new-id-generator-mappings=false&quot;)
+public class DataJpaTestIntegrationTests {
+
+    @Autowired
+    private TestEntityManager entities;
+
+    @Autowired
+    private JdbcTemplate jdbcTemplate;
+
+    @Autowired
+    private ExampleRepository repository;
+
+    @Autowired
+    private DataSource dataSource;
+
+    @Autowired
+    private ApplicationContext applicationContext;
+
+    @Test
+    public void testEntityManager() {
+        ExampleEntity entity = this.entities.persist(new ExampleEntity(&quot;spring&quot;, &quot;123&quot;));
+        this.entities.flush();
+        Object id = this.entities.getId(entity);
+        ExampleEntity found = this.entities.find(ExampleEntity.class, id);
+        assertThat(found.getName()).isEqualTo(&quot;spring&quot;);
+    }
+    
+    // ...</code></code></pre>
+<h1 id="对常用工具的支持">对常用工具的支持</h1>
+<p>以上原理是提供自动配置的基石，但实际在使用的时候，很多内容不需要任何（或极少量）配置就能直接使用，一方面是各 xxx-spring-boot-starter 中包含了 spring-boot-autoconfigure 并写了自动配置逻辑，一方面，是 spring-boot 官方在 spring-boot-autoconfigure 包中已经直接支持了。<br />
+<img src="./images/【源码解析】自动配置的这些细节都不知道，别说你会 springboot0.png" alt="spring-boot 对常用工具的支持" /><br />
+<img src="./images/【源码解析】自动配置的这些细节都不知道，别说你会 springboot1.png" alt="spring-boot 对常用数据源的支持" /></p>
+<h2 id="示例gson-自动配置">示例：gson 自动配置</h2>
+<p>支持有如下类：</p>
+<ul>
+<li>GsonProperties</li>
+<li>GsonBuilderCustomizer</li>
+<li>GsonAutoConfiguration</li>
+</ul>
+<p><code>GsonProperties</code> 类获取 <code>Gson</code> 的配置属性</p>
+<pre><code><code>@ConfigurationProperties(prefix = &quot;spring.gson&quot;)
+public class GsonProperties {
+  private Boolean generateNonExecutableJson;
+  private Boolean excludeFieldsWithoutExposeAnnotation;
+  private Boolean serializeNulls;
+  private String dateFormat;
+  // ...
+}</code></code></pre>
+<pre><code><code>@FunctionalInterface
+public interface GsonBuilderCustomizer {
+    /**
+     * 自定义 GsonBuilder
+     */
+    void customize(GsonBuilder gsonBuilder);
+}</code></code></pre>
+<p><code>GsonAutoConfiguration</code> 中使用 GsonProperties 和 GsonBuilderCustomizer（内部类中实现）</p>
+<pre><code><code>@Configuration
+@ConditionalOnClass(Gson.class)
+@EnableConfigurationProperties(GsonProperties.class)
+public class GsonAutoConfiguration {
+    @Bean
+    @ConditionalOnMissingBean
+    public GsonBuilder gsonBuilder(List&lt;GsonBuilderCustomizer&gt; customizers) {
+        GsonBuilder builder = new GsonBuilder();
+        customizers.forEach((c) -&gt; c.customize(builder));
+        return builder;
+    }
+
+    @Bean
+    @ConditionalOnMissingBean
+    public Gson gson(GsonBuilder gsonBuilder) {
+        return gsonBuilder.create();
+    }
+
+    @Bean
+    public StandardGsonBuilderCustomizer standardGsonBuilderCustomizer(GsonProperties gsonProperties) {
+        return new StandardGsonBuilderCustomizer(gsonProperties);
+    }
+
+    static final class StandardGsonBuilderCustomizer implements GsonBuilderCustomizer, Ordered {
+
+        private final GsonProperties properties;
+
+        StandardGsonBuilderCustomizer(GsonProperties properties) {
+            this.properties = properties;
+        }
+
+        @Override
+        public int getOrder() {
+            return 0;
+        }
+
+        @Override
+        public void customize(GsonBuilder builder) {
+         // ...
+        }</code></code></pre>
+<p>公众号：逸飞兮（专注于 Java 领域知识的<strong>深入学习</strong>，从源码到原理，系统有序的学习）</p>
+<p><img src="./images/【源码解析】自动配置的这些细节都不知道，别说你会 springboot2.png" alt="逸飞兮" /></p>
+
+
+</div><hr><script charset='utf-8' src='../../js/sming.js'></script></body></html>

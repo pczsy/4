@@ -1,0 +1,195 @@
+<html><head><meta charset='utf-8'><meta name='viewport' content='width=device-width, initial-scale=1'>
+<meta name='applicable-device' content='pc'><meta name='keywords' content='电脑,电脑讲解,电脑技术,编程,电脑故障维修Spring Security 入门—内存用户验证' />
+<script src='../../highlight/highlight.pack.js'></script>
+<link rel='stylesheet' type='text/css' href='../../highlight/styles/monokai.css'/>
+
+<link rel='stylesheet' href='../../fenxiang/dist/css/share.min.css'>
+<script src='../../fenxiang/src/js/social-share.js'></script>
+<script src='../../fenxiang/src/js/qrcode.js'></script>
+
+</head><body><script>hljs.initHighlightingOnLoad();</script><script>
+var system ={};  
+var p = navigator.platform;       
+system.win = p.indexOf('Win') == 0;  
+system.mac = p.indexOf('Mac') == 0;  
+system.x11 = (p == 'X11') || (p.indexOf('Linux') == 0);     
+if(system.win||system.mac||system.xll){
+document.write("<link href='../css/3.css' rel='stylesheet' type='text/css'>");}else{ document.write("<link href='../css/3wap.css' rel='stylesheet' type='text/css'>");}</script><script src='../../js/3.js'></script><div class='div2'><div class='heading_nav'><ul><div><li><a href='../../index.html'>首页</a></li>
+</div><div onclick='hidden1()' >分享</div>
+</ul></div></div>
+<div id='heading_nav2'> 
+<li class='row' >
+<div class='social-share' data-mode='prepend'><a href='javascript:' class='social-share-icon icon-heart'></a></div></li></div><script charset='utf-8' src='../../3/js/hengfu.js'></script><script charset='utf-8' src='../../3/js/hengfu2.js'></script><hr><div class='div1'><div class='biaoti'><center>Spring Security 入门—内存用户验证</center></div><div class='banquan'>原文出处:本文由博客园博主浮云Cloud提供。<br/>
+原文连接:https://www.cnblogs.com/cloudfloating/p/11826083.html</div><br>
+    <h2 id="简介">简介</h2>
+<p>作为 Spring 全家桶组件之一，Spring Security 是一个提供安全机制的组件，它主要解决两个问题：</p>
+<ul>
+<li>认证：验证用户名和密码；</li>
+<li>授权：对于不同的 URL 权限不一样，只有当认证的用户拥有某个 URL 的需要的权限时才能访问。</li>
+</ul>
+<blockquote>
+<p>Spring Security 底层使用的是过滤器，针对 URL 进行的拦截，对应到 Java 中也就是类; 因此被称为粗粒度授权验证，就是验证 URL ，当前用户是否有这个 URL 的权限。</p>
+</blockquote>
+<h2 id="入门">入门</h2>
+<h3 id="创建项目">创建项目</h3>
+<p>使用 Idea 创建 Spring Boot 项目，勾选需要的组件：</p>
+<ul>
+<li>Spring Web</li>
+<li>Spring Security</li>
+</ul>
+<p>或者创建项目后添加依赖：</p>
+<pre><code><code>&lt;dependency&gt;
+    &lt;groupId&gt;org.springframework.boot&lt;/groupId&gt;
+    &lt;artifactId&gt;spring-boot-starter-security&lt;/artifactId&gt;
+&lt;/dependency&gt;
+&lt;dependency&gt;
+    &lt;groupId&gt;org.springframework.boot&lt;/groupId&gt;
+    &lt;artifactId&gt;spring-boot-starter-web&lt;/artifactId&gt;
+&lt;/dependency&gt;</code></code></pre>
+<p>这里使用的是 JSP 作为模板，有关如何在 Spring Boot 中使用 JSP 作为模板请访问：<a href="https://www.cnblogs.com/cloudfloating/p/11787222.html" class="uri">https://www.cnblogs.com/cloudfloating/p/11787222.html</a></p>
+<h3 id="websecurityconfig">WebSecurityConfig</h3>
+<pre class="java"><code>package top.cloudli.demo.security;
+
+import org.springframework.context.annotation.Configuration;
+import org.springframework.security.config.annotation.authentication.builders.AuthenticationManagerBuilder;
+import org.springframework.security.config.annotation.method.configuration.EnableGlobalMethodSecurity;
+import org.springframework.security.config.annotation.web.builders.HttpSecurity;
+import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
+import org.springframework.security.config.annotation.web.configuration.WebSecurityConfigurerAdapter;
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
+import org.springframework.security.crypto.password.PasswordEncoder;
+
+@Configuration
+@EnableWebSecurity
+@EnableGlobalMethodSecurity(prePostEnabled=true)
+public class SecurityConfig extends WebSecurityConfigurerAdapter {
+    @Override
+    protected void configure(AuthenticationManagerBuilder auth) throws Exception {
+        PasswordEncoder encoder = new BCryptPasswordEncoder();
+        
+        auth.inMemoryAuthentication()
+                .passwordEncoder(encoder)
+                .withUser(&quot;root&quot;)
+                .password(encoder.encode(&quot;root@123456&quot;))
+                .roles(&quot;ROOT&quot;, &quot;USER&quot;)
+                .and()
+                .withUser(&quot;user&quot;)
+                .password(encoder.encode(&quot;user@123456&quot;))
+                .roles(&quot;USER&quot;);
+    }
+
+    @Override
+    protected void configure(HttpSecurity http) throws Exception {
+        http.authorizeRequests()
+                .antMatchers(&quot;/css/**&quot;)
+                .permitAll()        // css 不用验证
+                .anyRequest()
+                .authenticated()    // 其它页面全部需要验证
+                .and()
+                .formLogin()        // 使用默认登录页面
+                .and()
+                .exceptionHandling()
+                .accessDeniedPage(&quot;/401&quot;)   // 无权限时跳转的页面
+                .and()
+                .logout();
+    }
+}</code></code></pre>
+<ul>
+<li><code>@EnableWebSecurity</code> 注解启用验证；</li>
+<li><code>@EnableGlobalMethodSecurity(prePostEnabled=true)</code> 注解允许我们在控制器的方法中使用 <code>@PreAuthorize</code> 实现权限分割。</li>
+</ul>
+<p>此处创建了两个用户并保存在内存中，分别是拥有 ROOT 和 USER 权限的 root 用户和仅拥有 USER 权限的 user 用户。</p>
+<p><code>fromLogin()</code> 方法可以接着调用 <code>loginPage()</code> 指定一个自定义登录页面，这里使用的是默认登录页面。</p>
+<h3 id="编写页面">编写页面</h3>
+<p>1.index.jsp，所有通过验证的用户都可以访问：</p>
+<pre class="html"><code>&lt;%--
+  任何通过验证的用户都能访问的页面
+--%&gt;
+&lt;%@ page contentType=&quot;text/html;charset=UTF-8&quot; language=&quot;java&quot; %&gt;
+&lt;html&gt;
+&lt;head&gt;
+    &lt;title&gt;Spring Security Demo Application&lt;/title&gt;
+    &lt;link rel=&quot;stylesheet&quot; type=&quot;text/css&quot; href=&quot;css/style.css&quot;&gt;
+&lt;/head&gt;
+&lt;body&gt;
+&lt;div class=&quot;content&quot;&gt;
+    &lt;h1&gt;Spring Security In Memory Authentication&lt;/h1&gt;
+    &lt;h2&gt;这是被保护的页面（ROLE_USER）。&lt;/h2&gt;
+&lt;/div&gt;
+&lt;/body&gt;
+&lt;/html&gt;</code></code></pre>
+<p>2.root.jsp，只有拥有 ROOT 权限的用户能访问：</p>
+<pre class="html"><code>&lt;%--
+  需要 ROLE_ROOT 才能访问的页面
+--%&gt;
+&lt;%@ page contentType=&quot;text/html;charset=UTF-8&quot; language=&quot;java&quot; %&gt;
+&lt;html&gt;
+&lt;head&gt;
+    &lt;title&gt;Root Page&lt;/title&gt;
+    &lt;link rel=&quot;stylesheet&quot; type=&quot;text/css&quot; href=&quot;css/style.css&quot;&gt;
+&lt;/head&gt;
+&lt;body&gt;
+&lt;div class=&quot;content&quot;&gt;
+    &lt;h1&gt;Root Page&lt;/h1&gt;
+    &lt;h2&gt;你正在访问受保护的页面（ROLE_ROOT）。&lt;/h2&gt;
+&lt;/div&gt;
+&lt;/body&gt;
+&lt;/html&gt;</code></code></pre>
+<p>3.401.jsp，没有权限时跳转的页面：</p>
+<pre class="html"><code>&lt;%--
+  权限不够时跳转的页面
+--%&gt;
+&lt;%@ page contentType=&quot;text/html;charset=UTF-8&quot; language=&quot;java&quot; %&gt;
+&lt;html&gt;
+&lt;head&gt;
+    &lt;title&gt;401 Unauthorized&lt;/title&gt;
+    &lt;link rel=&quot;stylesheet&quot; type=&quot;text/css&quot; href=&quot;css/style.css&quot;&gt;
+&lt;/head&gt;
+&lt;body class=&quot;error&quot;&gt;
+&lt;div class=&quot;content&quot;&gt;
+    &lt;h1&gt;401 Unauthorized!&lt;/h1&gt;
+    &lt;h2&gt;你没有权限访问此页面。&lt;/h2&gt;
+&lt;/div&gt;
+&lt;/body&gt;
+&lt;/html&gt;</code></code></pre>
+<h3 id="控制器">控制器</h3>
+<pre class="java"><code>package top.cloudli.demo.controller;
+
+import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.stereotype.Controller;
+import org.springframework.web.bind.annotation.GetMapping;
+
+@Controller
+public class DemoController {
+
+    @PreAuthorize(&quot;hasAnyAuthority(&#39;ROLE_USER&#39;)&quot;)
+    @GetMapping(&quot;/&quot;)
+    public String index() {
+        return &quot;index&quot;;
+    }
+
+    @PreAuthorize(&quot;hasAnyAuthority(&#39;ROLE_ROOT&#39;)&quot;)
+    @GetMapping(&quot;/root&quot;)
+    public String root() {
+        return &quot;root&quot;;
+    }
+
+    @GetMapping(&quot;/401&quot;)
+    public String accessDenied() {
+        return &quot;401&quot;;
+    }
+}</code></code></pre>
+<p><code>@PreAuthorize</code> 注解指定了访问页面所需要的权限，这里的权限要加上 <code>ROLE_</code> 前缀。</p>
+<h3 id="run">Run</h3>
+<p>访问 <code>http://localhost:8080/</code> 将进入登录页面（这里使用的是 Spring Security 的默认登录页面）：</p>
+<p><img src="./images/Spring Security 入门—内存用户验证0.png" alt="image" /></p>
+<p>使用刚才创建的内存用户 user 登录后将返回 index 页面：</p>
+<p><img src="./images/Spring Security 入门—内存用户验证1.png" alt="image" /></p>
+<p>访问 <code>http://localhost:8080/root</code>，由于 user 用户没有 ROLE_ROOT 权限，跳转到 401 页面：</p>
+<p><img src="./images/Spring Security 入门—内存用户验证2.png" alt="image" /></p>
+<p>访问 <code>http://localhost:8080/logout</code> 将进入默认登出页面：</p>
+<p><img src="./images/Spring Security 入门—内存用户验证3.png" alt="image" /></p>
+<p>这里的登录和登出页面均可以使用自定义页面，只需要在自定义的页面中把数据通过 PSOT 请求提交到 <code>/login</code> 或 <code>/logout</code> 即可完成登录和登出。</p>
+
+
+</div><hr><script charset='utf-8' src='../../js/sming.js'></script></body></html>

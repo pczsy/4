@@ -1,0 +1,122 @@
+<html><head><meta charset='utf-8'><meta name='viewport' content='width=device-width, initial-scale=1'>
+<meta name='applicable-device' content='pc'><meta name='keywords' content='电脑,电脑讲解,电脑技术,编程,电脑故障维修线程状态---Day24' />
+<script src='../../highlight/highlight.pack.js'></script>
+<link rel='stylesheet' type='text/css' href='../../highlight/styles/monokai.css'/>
+
+<link rel='stylesheet' href='../../fenxiang/dist/css/share.min.css'>
+<script src='../../fenxiang/src/js/social-share.js'></script>
+<script src='../../fenxiang/src/js/qrcode.js'></script>
+
+</head><body><script>hljs.initHighlightingOnLoad();</script><script>
+var system ={};  
+var p = navigator.platform;       
+system.win = p.indexOf('Win') == 0;  
+system.mac = p.indexOf('Mac') == 0;  
+system.x11 = (p == 'X11') || (p.indexOf('Linux') == 0);     
+if(system.win||system.mac||system.xll){
+document.write("<link href='../css/3.css' rel='stylesheet' type='text/css'>");}else{ document.write("<link href='../css/3wap.css' rel='stylesheet' type='text/css'>");}</script><script src='../../js/3.js'></script><div class='div2'><div class='heading_nav'><ul><div><li><a href='../../index.html'>首页</a></li>
+</div><div onclick='hidden1()' >分享</div>
+</ul></div></div>
+<div id='heading_nav2'> 
+<li class='row' >
+<div class='social-share' data-mode='prepend'><a href='javascript:' class='social-share-icon icon-heart'></a></div></li></div><script charset='utf-8' src='../../3/js/hengfu.js'></script><script charset='utf-8' src='../../3/js/hengfu2.js'></script><hr><div class='div1'><div class='biaoti'><center>线程状态---Day24</center></div><div class='banquan'>原文出处:本文由博客园博主CeliaTodd提供。<br/>
+原文连接:https://www.cnblogs.com/hpcz190911/p/11909363.html</div><br>
+    <p><span style="font-size: 18px;"><strong>线程状态概述:</strong></span></p>
+<p><span style="font-size: 18px;">　　当线程被创建并启动以后，它既不是一启动就进入了执行状态，也不是一直处于执行状态。在线程的生命周期中， 有几种状态呢？在API中 java.lang.Thread.State 这个枚举中给出了六种线程状态<img src="./images/线程状态---Day240.png" alt="" /></span></p>
+<p><span style="font-size: 18px;"><strong>Timed Waiting（计时等待）&nbsp;</strong></span></p>
+<p><span style="font-size: 18px;">　　Timed Waiting在API中的描述为：一个正在限时等待另一个线程执行一个（唤醒）动作的线程处于这一状态</span></p>
+<p><span style="font-size: 18px;">　　在我们写卖票的案例中，为了减少线程执行太快，现象不明显等问题，我们在run方法中添加了sleep语句，这样就 强制当前正在执行的线程休眠（暂停执行），以&ldquo;减慢线程&rdquo;。其实当我们调用了sleep方法之后，当前执行的线程就进入到&ldquo;休眠状态&rdquo;，其实就是所谓的Timed Waiting(计时等 待)，那么我们通过一个案例加深对该状态的一个理解。</span></p>
+<src class="cnblogs_code">
+<pre><code><span style="font-size: 18px;"><span style="color: #008080;"> 1</span> <span style="color: #0000ff;">package</span><span style="color: #000000;"> demosummary.threadstate;
+</span><span style="color: #008080;"> 2</span> 
+<span style="color: #008080;"> 3</span> <span style="color: #008000;">/**</span>
+<span style="color: #008080;"> 4</span> <span style="color: #008000;"> * 实现一个计数器，计数到100，在每个数字之间暂停1秒，每隔10个数字输出一个字符串
+</span><span style="color: #008080;"> 5</span>  <span style="color: #008000;">*/</span>
+<span style="color: #008080;"> 6</span> <span style="color: #0000ff;">public</span> <span style="color: #0000ff;">class</span> ThreadState <span style="color: #0000ff;">extends</span><span style="color: #000000;"> Thread {
+</span><span style="color: #008080;"> 7</span> <span style="color: #000000;">    @Override
+</span><span style="color: #008080;"> 8</span>     <span style="color: #0000ff;">public</span> <span style="color: #0000ff;">void</span><span style="color: #000000;"> run() {
+</span><span style="color: #008080;"> 9</span>         <span style="color: #0000ff;">for</span> (<span style="color: #0000ff;">int</span> i = 1; i &lt; 100; i++<span style="color: #000000;">) {
+</span><span style="color: #008080;">10</span>             <span style="color: #0000ff;">if</span> (i % 10 == 0<span style="color: #000000;">) {
+</span><span style="color: #008080;">11</span>                 System.out.println("每隔10个数字输出一个字符串"<span style="color: #000000;">);
+</span><span style="color: #008080;">12</span> <span style="color: #000000;">            }
+</span><span style="color: #008080;">13</span> <span style="color: #000000;">            System.out.println(i);
+</span><span style="color: #008080;">14</span>             <span style="color: #0000ff;">try</span><span style="color: #000000;"> {
+</span><span style="color: #008080;">15</span>                 Thread.sleep(1000<span style="color: #000000;">);
+</span><span style="color: #008080;">16</span>             } <span style="color: #0000ff;">catch</span><span style="color: #000000;"> (InterruptedException e) {
+</span><span style="color: #008080;">17</span> <span style="color: #000000;">                e.printStackTrace();
+</span><span style="color: #008080;">18</span> <span style="color: #000000;">            }
+</span><span style="color: #008080;">19</span> <span style="color: #000000;">        }
+</span><span style="color: #008080;">20</span> <span style="color: #000000;">    }
+</span><span style="color: #008080;">21</span> 
+<span style="color: #008080;">22</span>     <span style="color: #0000ff;">public</span> <span style="color: #0000ff;">static</span> <span style="color: #0000ff;">void</span><span style="color: #000000;"> main(String[] args) {
+</span><span style="color: #008080;">23</span>         <span style="color: #0000ff;">new</span><span style="color: #000000;"> ThreadState().start();
+</span><span style="color: #008080;">24</span> <span style="color: #000000;">    }
+</span><span style="color: #008080;">25</span> }</span></code></pre>
+
+<p><span style="font-size: 18px;">　　通过案例可以发现，sleep方法的使用还是很简单的。我们需要记住下面几点：</span><br /><span style="font-size: 18px;">　　　　1. 进入 TIMED_WAITING 状态的一种常见情形是调用的 sleep 方法，单独的线程也可以调用，不一定非要有协 作关系。 </span></p>
+<p><span style="font-size: 18px;">　　　　2. 为了让其他线程有机会执行，可以将Thread.sleep()的调用放线程run()之内。这样才能保证该线程执行过程 中会睡眠 </span></p>
+<p><span style="font-size: 18px;">　　　　3. sleep与锁无关，线程睡眠到期自动苏醒，并返回到Runnable（可运行）状态。</span></p>
+<p><span style="font-size: 18px;">　　　　tip：sleep()中指定的时间是线程不会运行的最短时间。因此，sleep()方法不能保证该线程睡眠到期后就开始立刻执行</span></p>
+<p><span style="font-size: 18px;">　　Timed Waiting线程状态图</span></p>
+<p><span style="font-size: 18px;">　　<img src="./images/线程状态---Day241.png" alt="" />　　　</span></p>
+<p>&nbsp;</p>
+<p><span style="font-size: 18px;"><strong>BLOCKED（锁阻塞）</strong></span></p>
+<p><span style="font-size: 18px;">　　Blocked状态在API中的介绍为：一个正在阻塞等待一个监视器锁（锁对象）的线程处于这一状态，比如，线程A与线程B代码中使用同一锁，如果线程A获 取到锁，线程A进入到Runnable状态，那么线程B就进入到Blocked锁阻塞状态。</span></p>
+<p><span style="font-size: 18px;">　　blocked线程状态图</span></p>
+<p><span style="font-size: 18px;">　　<img src="./images/线程状态---Day242.png" alt="" /></span></p>
+<p>&nbsp;</p>
+<p><span style="font-size: 18px;"><strong>Waiting（无限等待）&nbsp;</strong></span></p>
+<p><span style="font-size: 18px;">　　Wating状态在API中介绍为：一个正在无限期等待另一个线程执行一个特别的（唤醒）动作的线程处于这一状态</span></p>
+<src class="cnblogs_code">
+<pre><code><span style="font-size: 18px;"><span style="color: #008080;"> 1</span> <span style="color: #0000ff;">package</span><span style="color: #000000;"> demosummary.threadstate;
+</span><span style="color: #008080;"> 2</span> 
+<span style="color: #008080;"> 3</span> <span style="color: #0000ff;">public</span> <span style="color: #0000ff;">class</span><span style="color: #000000;"> ThreadWaiting {
+</span><span style="color: #008080;"> 4</span>     <span style="color: #0000ff;">public</span> <span style="color: #0000ff;">static</span> Object obj = <span style="color: #0000ff;">new</span><span style="color: #000000;"> Object();
+</span><span style="color: #008080;"> 5</span> 
+<span style="color: #008080;"> 6</span>     <span style="color: #0000ff;">public</span> <span style="color: #0000ff;">static</span> <span style="color: #0000ff;">void</span><span style="color: #000000;"> main(String[] args) {
+</span><span style="color: #008080;"> 7</span>         <span style="color: #0000ff;">new</span> Thread(<span style="color: #0000ff;">new</span><span style="color: #000000;"> Runnable() {
+</span><span style="color: #008080;"> 8</span> <span style="color: #000000;">            @Override
+</span><span style="color: #008080;"> 9</span>             <span style="color: #0000ff;">public</span> <span style="color: #0000ff;">void</span><span style="color: #000000;"> run() {
+</span><span style="color: #008080;">10</span>                 <span style="color: #0000ff;">while</span> (<span style="color: #0000ff;">true</span><span style="color: #000000;">) {
+</span><span style="color: #008080;">11</span>                     <span style="color: #0000ff;">synchronized</span><span style="color: #000000;"> (obj) {
+</span><span style="color: #008080;">12</span>                         <span style="color: #0000ff;">try</span><span style="color: #000000;"> {
+</span><span style="color: #008080;">13</span>                             System.out.println(Thread.currentThread().getName()+"获取到锁对象,调用wait方法,进入等待状态"<span style="color: #000000;">);
+</span><span style="color: #008080;">14</span> <span style="color: #000000;">                            obj.wait();
+</span><span style="color: #008080;">15</span>                             <span style="color: #008000;">//</span><span style="color: #008000;">也可以设置等待时间,时间到自动唤醒
+</span><span style="color: #008080;">16</span>                             <span style="color: #008000;">//</span><span style="color: #008000;">obj.wait(3000);</span>
+<span style="color: #008080;">17</span>                         } <span style="color: #0000ff;">catch</span><span style="color: #000000;"> (InterruptedException e) {
+</span><span style="color: #008080;">18</span> <span style="color: #000000;">                            e.printStackTrace();
+</span><span style="color: #008080;">19</span> <span style="color: #000000;">                        }
+</span><span style="color: #008080;">20</span>                         System.out.println(Thread.currentThread().getName()+"---从waiting状态醒来,继续执行"<span style="color: #000000;">);
+</span><span style="color: #008080;">21</span> <span style="color: #000000;">                    }
+</span><span style="color: #008080;">22</span> <span style="color: #000000;">                }
+</span><span style="color: #008080;">23</span> <span style="color: #000000;">            }
+</span><span style="color: #008080;">24</span>         },"等待线程"<span style="color: #000000;">).start();
+</span><span style="color: #008080;">25</span>         <span style="color: #0000ff;">new</span> Thread(<span style="color: #0000ff;">new</span><span style="color: #000000;"> Runnable() {
+</span><span style="color: #008080;">26</span> <span style="color: #000000;">            @Override
+</span><span style="color: #008080;">27</span>             <span style="color: #0000ff;">public</span> <span style="color: #0000ff;">void</span><span style="color: #000000;"> run() {
+</span><span style="color: #008080;">28</span>                 <span style="color: #0000ff;">while</span> (<span style="color: #0000ff;">true</span><span style="color: #000000;">) {
+</span><span style="color: #008080;">29</span>                     <span style="color: #0000ff;">try</span><span style="color: #000000;"> {
+</span><span style="color: #008080;">30</span>                         System.out.println(Thread.currentThread().getName()+"---等待三秒后自动唤醒"<span style="color: #000000;">);
+</span><span style="color: #008080;">31</span>                         Thread.sleep(3000<span style="color: #000000;">);
+</span><span style="color: #008080;">32</span>                     } <span style="color: #0000ff;">catch</span><span style="color: #000000;"> (InterruptedException e) {
+</span><span style="color: #008080;">33</span> <span style="color: #000000;">                        e.printStackTrace();
+</span><span style="color: #008080;">34</span> <span style="color: #000000;">                    }
+</span><span style="color: #008080;">35</span> 
+<span style="color: #008080;">36</span>                     <span style="color: #0000ff;">synchronized</span><span style="color: #000000;"> (obj) {
+</span><span style="color: #008080;">37</span>                         System.out.println(Thread.currentThread().getName() + "获取到锁对象,调用notify方法,释放对象"<span style="color: #000000;">);
+</span><span style="color: #008080;">38</span> <span style="color: #000000;">                        obj.notify();
+</span><span style="color: #008080;">39</span> <span style="color: #000000;">                    }
+</span><span style="color: #008080;">40</span> <span style="color: #000000;">                }
+</span><span style="color: #008080;">41</span> <span style="color: #000000;">            }
+</span><span style="color: #008080;">42</span>         },"等待线程"<span style="color: #000000;">).start();
+</span><span style="color: #008080;">43</span> <span style="color: #000000;">    }
+</span><span style="color: #008080;">44</span> }　</span></code></pre>
+
+<p><span style="font-size: 18px;">　　通过上述案例我们会发现，一个调用了某个对象的 Object.wait 方法的线程会等待另一个线程调用此对象的 Object.notify()方法 或 Object.notifyAll()方法。其实waiting状态并不是一个线程的操作，它体现的是多个线程间的通信，可以理解为多个线程之间的协作关系， 多个线程会争取锁，同时相互之间又存在协作关系。就好比在公司里你和你的同事们，你们可能存在晋升时的竞<em id="__mceDel"> 争，但更多时候你们更多是一起合作以完成某些任务。</em></span></p>
+<p><span style="font-size: 18px;">　　当多个线程协作时，比如A，B线程，如果A线程在Runnable（可运行）状态中调用了wait()方法那么A线程就进入 了Waiting（无限等待）状态，同时失去了同步锁。假如这个时候B线程获取到了同步锁，在运行状态中调用了 notify()方法，那么就会将无限等待的A线程唤醒。注意是唤醒，如果获取到锁对象，那么A线程唤醒后就进入 Runnable（可运行）状态；如果没有获取锁对象，那么就进入到Blocked（锁阻塞状态）</span></p>
+<p><span style="font-size: 18px;">　　<img src="./images/线程状态---Day243.png" alt="" /></span></p>
+<p><span style="font-size: 18px;">　　<img src="./images/线程状态---Day244.png" alt="" /></span></p>
+<p><span style="font-size: 18px;">　　我们在翻阅API的时候会发现Timed Waiting（计时等待） 与 Waiting（无限等待） 状态联系还是很紧密的， 比如Waiting（无限等待） 状态中wait方法是空参的，而timed waiting（计时等待） 中wait方法是带参的。 这种带参的方法，其实是一种倒计时操作，相当于我们生活中的小闹钟，我们设定好时间，到时通知，可是 如果提前得到（唤醒）通知，那么设定好时间在通知也就显得多此一举了，那么这种设计方案其实是一举两 得。如果没有得到（唤醒）通知，那么线程就处于Timed Waiting状态,直到倒计时完毕自动醒来；如果在倒 计时期间得到（唤醒）通知，那么线程从Timed Waiting状态立刻唤醒。</span></p>
+
+</div><hr><script charset='utf-8' src='../../js/sming.js'></script></body></html>

@@ -1,0 +1,382 @@
+<html><head><meta charset='utf-8'><meta name='viewport' content='width=device-width, initial-scale=1'>
+<meta name='applicable-device' content='pc'><meta name='keywords' content='电脑,电脑讲解,电脑技术,编程,电脑故障维修Docker搭建disconf环境，三部曲之三：细说搭建过程' />
+<script src='../../highlight/highlight.pack.js'></script>
+<link rel='stylesheet' type='text/css' href='../../highlight/styles/monokai.css'/>
+
+<link rel='stylesheet' href='../../fenxiang/dist/css/share.min.css'>
+<script src='../../fenxiang/src/js/social-share.js'></script>
+<script src='../../fenxiang/src/js/qrcode.js'></script>
+
+</head><body><script>hljs.initHighlightingOnLoad();</script><script>
+var system ={};  
+var p = navigator.platform;       
+system.win = p.indexOf('Win') == 0;  
+system.mac = p.indexOf('Mac') == 0;  
+system.x11 = (p == 'X11') || (p.indexOf('Linux') == 0);     
+if(system.win||system.mac||system.xll){
+document.write("<link href='../css/3.css' rel='stylesheet' type='text/css'>");}else{ document.write("<link href='../css/3wap.css' rel='stylesheet' type='text/css'>");}</script><script src='../../js/3.js'></script><div class='div2'><div class='heading_nav'><ul><div><li><a href='../../index.html'>首页</a></li>
+</div><div onclick='hidden1()' >分享</div>
+</ul></div></div>
+<div id='heading_nav2'> 
+<li class='row' >
+<div class='social-share' data-mode='prepend'><a href='javascript:' class='social-share-icon icon-heart'></a></div></li></div><script charset='utf-8' src='../../3/js/hengfu.js'></script><script charset='utf-8' src='../../3/js/hengfu2.js'></script><hr><div class='div1'><div class='biaoti'><center>Docker搭建disconf环境，三部曲之三：细说搭建过程</center></div><div class='banquan'>原文出处:本文由博客园博主zq2599提供。<br/>
+原文连接:https://www.cnblogs.com/bolingcavalry/p/11510255.html</div><br>
+    <h3 id="docker下的disconf实战全文链接">Docker下的disconf实战全文链接</h3>
+<ol>
+<li><a href="https://blog.csdn.net/boling_cavalry/article/details/71082610">《Docker搭建disconf环境，三部曲之一：极速搭建disconf》</a>；</li>
+<li><a href="https://blog.csdn.net/boling_cavalry/article/details/71107498">《Docker搭建disconf环境，三部曲之二：本地快速构建disconf镜像》</a>；</li>
+<li><a href="https://blog.csdn.net/boling_cavalry/article/details/71120725">《Docker搭建disconf环境，三部曲之三：细说搭建过程》</a>；</li>
+<li><a href="https://blog.csdn.net/boling_cavalry/article/details/71404395">《Docker下使用disconf：极速体验》</a>；</li>
+<li><a href="https://blog.csdn.net/boling_cavalry/article/details/71424124">《Docker下使用disconf：细说demo开发》</a>；</li>
+</ol>
+<h3 id="细说搭建过程">细说搭建过程</h3>
+<p>在前两章中，我们利用远程或本地的镜像，快速体验了本地启动disconf的过程，本章我们一起来分析和梳理整个定制和搭建过程，了解这些后，我们就能根据自己的需要来定制本地的disconf环境了。</p>
+<p>以下两点请注意</p>
+<ol>
+<li>本机环境已经安装了maven，并且把maven的bin目录配置到环境变量PATH下；</li>
+<li>编译编译disconf源码时，要用到官方shell脚本，所以本次实践的操作系统建议用linux或mac，如果用windows，有三种方法：一个是把shell改成bat脚本，一个是用虚拟机的linux，还有一种是用在docker上搭建一个maven容器，把disconf源码放在这个容器下编译；</li>
+</ol>
+<h3 id="先分析再实战">先分析再实战</h3>
+<p>首先把disconf环境依赖的所有server都列出来：</p>
+<ol>
+<li>redis&lt;无需定制，用官方镜像&gt;</li>
+<li>zookeeper&lt;无需定制，用官方镜像&gt;</li>
+<li>mysql&lt;<font color="red">定制</font>，创建库，表，导入初始化数据&gt;</li>
+<li>tomcat&lt;<font color="red">定制</font>，包含业务war包，路径配置&gt;</li>
+<li>nginx&lt;<font color="red">定制</font>，配置动静分离，包含静态web资源&gt;</li>
+</ol>
+<p>下一步，是理清各个server之间的依赖关系（例如tomcat上的业务要连接mysql数据库），依赖关系如下，搞清楚了这个就知道link参数怎么写了：</p>
+<p><img src="./images/Docker搭建disconf环境，三部曲之三：细说搭建过程0.png" alt="这里写图片描述" /></p>
+<p>server的关系已经理清了，接下来就要开始定制mysql，tomcat，nginx这些镜像了，首先是准备材料，disconf是个开源的应用，我们可以在git上下载最新的源码，执行命令：</p>
+<pre><code><code>git clone git@github.com:knightliao/disconf.git</code></code></pre>
+<p>下载完毕，打开文件夹，内容如下图：</p>
+<p><img src="./images/Docker搭建disconf环境，三部曲之三：细说搭建过程1.png" alt="这里写图片描述" /></p>
+<p>接下来我们开始实战把，实战一共五个步骤，依次是： 定制mysql镜像 -&gt; 定制tomcat镜像 -&gt; 定制nginx镜像 -&gt; 编写docker-compose脚本 -&gt; docker-compose启动</p>
+<h3 id="定制mysql镜像">定制mysql镜像</h3>
+<p>mysql定制：目的是让容器在创建时自动执行sql脚本，创建库和表，并导入初始化数据，在docker上实现数据库脚本自动执行的方法可以参照<a href="http://blog.csdn.net/boling_cavalry/article/details/71055159">《让docker中的mysql启动时自动执行sql》</a>一文，这里简单说一下步骤：</p>
+<ol>
+<li>打开disconf源码文件夹，在disconf/disconf-web/sql目录下找到以下四个文件：</li>
+</ol>
+<blockquote>
+<p>0-init_table.sql<br />
+1-init_data.sql<br />
+201512/20151225.sql<br />
+20160701/20160701.sql</p>
+</blockquote>
+<ol>
+<li>新建一个目录mysql，把上面提到的四个sql文件复制到这个目录下，再新建一个名为install_data.sh的脚本，内容如下：</li>
+</ol>
+<pre><code><code>#!/bin/bash
+mysql -uroot -p$MYSQL_ROOT_PASSWORD &lt;&lt;EOF
+source $WORK_PATH/$FILE_0;
+source $WORK_PATH/$FILE_1;
+source $WORK_PATH/$FILE_2; 
+source $WORK_PATH/$FILE_3; </code></code></pre>
+<p>内容很简单，就是自动登录mysql，密码是docker启动的时候传入的环境变量，然后执行四个sql脚本文件</p>
+<ol>
+<li>在mysql目录下新建Dockerfile文件，内容如下：</li>
+</ol>
+<pre><code><code># Docker image of disconf mysql
+# VERSION 0.0.1
+# Author: bolingcavalry
+
+#基础镜像使用daocloud.io/library/mysql:8
+FROM daocloud.io/library/mysql:8
+
+#作者
+MAINTAINER BolingCavalry &lt;zq2599@gmail.com&gt;
+
+#定义工作目录
+ENV WORK_PATH /usr/local/work
+
+#定义会被容器自动执行的目录
+ENV AUTO_RUN_DIR /docker-entrypoint-initdb.d
+
+#定义sql文件名
+ENV FILE_0 0-init_table.sql
+ENV FILE_1 1-init_data.sql
+ENV FILE_2 20151225.sql
+ENV FILE_3 20160701.sql
+
+#定义shell文件名
+ENV INSTALL_DATA_SHELL install_data.sh
+
+#创建文件夹
+RUN mkdir -p $WORK_PATH
+
+#把数据库初始化数据的文件复制到工作目录下
+COPY ./$FILE_0 $WORK_PATH/
+COPY ./$FILE_1 $WORK_PATH/
+COPY ./$FILE_2 $WORK_PATH/
+COPY ./$FILE_3 $WORK_PATH/
+
+#把要执行的shell文件放到/docker-entrypoint-initdb.d/目录下，容器会自动执行这个shell
+COPY ./$INSTALL_DATA_SHELL $AUTO_RUN_DIR/
+
+#给执行文件增加可执行权限
+RUN chmod a+x $AUTO_RUN_DIR/$INSTALL_DATA_SHELL</code></code></pre>
+<ol>
+<li>打开终端在mysql目录下执行以下命令，构建msql镜像：</li>
+</ol>
+<pre><code><code>docker build -t conf_mysql:0.0.1 .</code></code></pre>
+<p>msql镜像构建成功</p>
+<h3 id="定制tomcat镜像">定制tomcat镜像</h3>
+<p>构建tomcat镜像时最重要的就是war包的生成，步骤如下：</p>
+<ol>
+<li>创建两个文件夹，分别设置到<font color="red">ONLINE_CONFIG_PATH</font>和<font color="red">WAR_ROOT_PATH</font>这两个环境变量中，环境变量的设置方式在不同的操作系统下各不相同，我用的是mac，配置方式是在~/.bash_profile文件中加入以下内容（写完记得执行source ~/.bash_profile使环境变量在当前命令行窗口生效）：</li>
+</ol>
+<pre><code><code>ONLINE_CONFIG_PATH=/Users/zq2599/temp/201705/03/005/online-resources
+WAR_ROOT_PATH=/Users/zq2599/temp/201705/03/005/war
+export ONLINE_CONFIG_PATH
+export WAR_ROOT_PATH</code></code></pre>
+<p><font color="red">/Users/zq2599/temp/201705/03/005/online-resources</font>和<font color="red">/Users/zq2599/temp/201705/03/005/war</font>都是刚刚新建的文件夹；</p>
+<ol>
+<li>打开disconf的源文件的子目录disconf-web/profile/rd，里面的文件如下图：</li>
+</ol>
+<p><img src="./images/Docker搭建disconf环境，三部曲之三：细说搭建过程2.png" alt="这里写图片描述" /></p>
+<p>把这些文件全部复制到<font color="red">ONLINE_CONFIG_PATH</font>变量对应的目录下，在这个目录下依次修改jdbc-mysql.properties，redis-config.properties，zoo.properties这三个文件：</p>
+<p>jdbc-mysql.properties的改动如下图，主要是数据url改成一个固定的名字mysqlhost，这个在docker run的时候要和link参数中的别名一致，还有就是数据库的用户名密码：</p>
+<p><img src="./images/Docker搭建disconf环境，三部曲之三：细说搭建过程3.png" alt="这里写图片描述" /></p>
+<p>redis-config.properties的改动如下图，主要是host参数，也要和docker run时候的link参数的别名对齐，<font color="red">注意，这里要配置两个redis</font></p>
+<p><img src="./images/Docker搭建disconf环境，三部曲之三：细说搭建过程4.png" alt="这里写图片描述" /></p>
+<p>zoo.properties的配置如下图，主要是host参数，也要和docker run时候的link参数的别名对齐：</p>
+<p><img src="./images/Docker搭建disconf环境，三部曲之三：细说搭建过程5.png" alt="这里写图片描述" /></p>
+<p>把application-demo.properties文件改名为application.properties</p>
+<p>好了，修改参数的事情就算做完了，有了这些和link参数一致的host配置，tomcat在运行的时候就能连接上对应的容器了。</p>
+<p>现在我们用maven来编译和打包disconf的源码，用终端进入disconf源码的disconf-web子目录，执行以下命令开始编译和打包：</p>
+<pre><code><code>sh deploy/deploy.sh</code></code></pre>
+<p>执行完毕后，在环境变量<font color="red">WAR_ROOT_PATH</font>对应的目录下，可以看到编译和打包的结果，如下图：</p>
+<p><img src="./images/Docker搭建disconf环境，三部曲之三：细说搭建过程6.png" alt="这里写图片描述" /></p>
+<p>新建一个名叫tomcat的文件夹，把上图中的disconf-web.war复制到这个文件夹下，再在这里新增一个server.xml文件，内容如下，用来指定tomcat服务的根路径对应的应用：</p>
+<pre class="xml"><code>&lt;?xml version=&#39;1.0&#39; encoding=&#39;utf-8&#39;?&gt;
+&lt;Server port=&quot;8005&quot; shutdown=&quot;SHUTDOWN&quot;&gt;
+  &lt;Listener className=&quot;org.apache.catalina.startup.VersionLoggerListener&quot; /&gt;
+  &lt;Listener className=&quot;org.apache.catalina.core.AprLifecycleListener&quot; SSLEngine=&quot;on&quot; /&gt;
+  &lt;Listener className=&quot;org.apache.catalina.core.JasperListener&quot; /&gt;
+  &lt;Listener className=&quot;org.apache.catalina.core.JreMemoryLeakPreventionListener&quot; /&gt;
+  &lt;Listener className=&quot;org.apache.catalina.mbeans.GlobalResourcesLifecycleListener&quot; /&gt;
+  &lt;Listener className=&quot;org.apache.catalina.core.ThreadLocalLeakPreventionListener&quot; /&gt;
+  &lt;GlobalNamingResources&gt;
+    &lt;Resource name=&quot;UserDatabase&quot; auth=&quot;Container&quot;
+              type=&quot;org.apache.catalina.UserDatabase&quot;
+              description=&quot;User database that can be updated and saved&quot;
+              factory=&quot;org.apache.catalina.users.MemoryUserDatabaseFactory&quot;
+              pathname=&quot;conf/tomcat-users.xml&quot; /&gt;
+  &lt;/GlobalNamingResources&gt;
+  &lt;Service name=&quot;Catalina&quot;&gt;
+    &lt;Connector port=&quot;8080&quot; protocol=&quot;HTTP/1.1&quot;
+               connectionTimeout=&quot;20000&quot;
+               redirectPort=&quot;8443&quot; /&gt;
+    &lt;Connector port=&quot;8009&quot; protocol=&quot;AJP/1.3&quot; redirectPort=&quot;8443&quot; /&gt;
+    &lt;Engine name=&quot;Catalina&quot; defaultHost=&quot;localhost&quot;&gt;
+      &lt;Realm className=&quot;org.apache.catalina.realm.LockOutRealm&quot;&gt;
+        &lt;Realm className=&quot;org.apache.catalina.realm.UserDatabaseRealm&quot;
+               resourceName=&quot;UserDatabase&quot;/&gt;
+      &lt;/Realm&gt;
+      &lt;Host name=&quot;localhost&quot;  appBase=&quot;webapps&quot;
+            unpackWARs=&quot;true&quot; autoDeploy=&quot;true&quot;&gt;
+        &lt;Valve className=&quot;org.apache.catalina.valves.AccessLogValve&quot; directory=&quot;logs&quot;
+               prefix=&quot;localhost_access_log.&quot; suffix=&quot;.txt&quot;
+               pattern=&quot;%h %l %u %t &amp;quot;%r&amp;quot; %s %b&quot; /&gt;
+        &lt;Context path=&quot;&quot; docBase=&quot;/usr/local/tomcat/webapps/disconf-web&quot; debug=&quot;0&quot; reloadable=&quot;true&quot; crossContext=&quot;true&quot;/&gt;        
+      &lt;/Host&gt;
+    &lt;/Engine&gt;
+  &lt;/Service&gt;
+&lt;/Server&gt;</code></code></pre>
+<p>这个配置信息和官方tomcat中的server.xml文件相比，其实只增加了下面这一个节点的内容：</p>
+<pre><code><code>&lt;Context path=&quot;&quot; docBase=&quot;/usr/local/tomcat/webapps/disconf-web&quot; debug=&quot;0&quot; reloadable=&quot;true&quot; crossContext=&quot;true&quot;/&gt;</code></code></pre>
+<p>在tomcat文件夹下新增Dockerfile文件，内容如下：</p>
+<pre><code><code># Docker image of disconf tomcat
+# VERSION 0.0.1
+# Author: bolingcavalry
+
+#基础镜像使用tomcat:7.0.77-jre8
+FROM tomcat:7.0.77-jre8
+
+#作者
+MAINTAINER BolingCavalry &lt;zq2599@gmail.com&gt;
+
+#定义工作目录
+ENV TOMCAT_BASE /usr/local/tomcat
+
+
+#复制配置文件
+COPY ./server.xml $TOMCAT_BASE/conf/
+
+#复制war包
+COPY ./disconf-web.war $TOMCAT_BASE/webapps/
+
+#给配置文件增加读权限
+RUN chmod a+xr $TOMCAT_BASE/conf/server.xml
+
+#删除默认的ROOT文件件
+RUN rm -rf $TOMCAT_BASE/webapps/ROOT</code></code></pre>
+<p>看的出Dockerfile做的事情并不多，就是复制war包，复制server.xml，删除默认的ROOT应用文件夹这些事情；</p>
+<p>现在打开终端在tomcat目录下执行以下命令，构建tomcat镜像：</p>
+<pre><code><code>docker build -t conf_tomcat:0.0.1 .</code></code></pre>
+<p>tomcat镜像构建成功！</p>
+<h3 id="构建nginx镜像">构建nginx镜像</h3>
+<ol>
+<li>新建一个nginx目录，在里面新增一个nginx.conf文件，内容如下：</li>
+</ol>
+<pre class="conf"><code>
+user  nginx;
+worker_processes  1;
+
+error_log  /var/log/nginx/error.log warn;
+pid        /var/run/nginx.pid;
+
+
+events {
+    worker_connections  1024;
+}
+
+
+http {
+    include       /etc/nginx/mime.types;
+    default_type  application/octet-stream;
+
+    log_format  main  &#39;$remote_addr - $remote_user [$time_local] &quot;$request&quot; &#39;
+                      &#39;$status $body_bytes_sent &quot;$http_referer&quot; &#39;
+                      &#39;&quot;$http_user_agent&quot; &quot;$http_x_forwarded_for&quot;&#39;;
+
+    access_log  /var/log/nginx/access.log  main;
+
+    sendfile        on;
+    #tcp_nopush     on;
+
+    keepalive_timeout  65;
+
+    #gzip  on;
+
+    #include /etc/nginx/conf.d/*.conf;
+
+
+    upstream disconf {  
+        server tomcathost:8080;  
+    }  
+  
+    server {  
+        listen   80;  
+        server_name localhost;  
+        access_log logs/disconf_access.log;  
+        error_log logs/disconf_error.log;  
+  
+        location / {  
+            root /usr/local/work/html;  
+            if ($query_string) {  
+                expires max;  
+            }  
+        }  
+  
+        location ~ ^/(api|export) {  
+            proxy_pass_header Server;  
+            proxy_set_header Host $http_host;  
+            proxy_redirect off;  
+            proxy_set_header X-Real-IP $remote_addr;  
+            proxy_set_header X-Scheme $scheme;  
+            proxy_pass http://disconf;  
+        }  
+    }  
+
+}</code></code></pre>
+<p>主要的配置有三点：</p>
+<blockquote>
+<p>将默认的/etc/nginx/conf.d/*.conf配置注释掉；<br />
+增加tomcat的host信息，“tomcathost”和后面docker run的link参数的别名保持一致;<br />
+动静分离的配置，请求url中如果带有api和export，nginx就把请求转发到tomcathost:8080，其他的请求直接访问nginx服务器的/usr/local/work/html文件夹；</p>
+</blockquote>
+<ol>
+<li>在环境变量<font color="red">WAR_ROOT_PATH</font>对应的目录下，有个html文件夹如下图红框位置，这是web工程全部静态文件，把这个文件夹复制到刚才新建的nginx目录下：</li>
+</ol>
+<p><img src="./images/Docker搭建disconf环境，三部曲之三：细说搭建过程7.png" alt="这里写图片描述" /></p>
+<ol>
+<li>在nginx文件夹下新增Dockerfile文件，内容如下：</li>
+</ol>
+<pre><code><code># Docker image of disconf nginx
+# VERSION 0.0.1
+# Author: bolingcavalry
+
+#基础镜像使用nginx:stable
+FROM nginx:stable
+
+#作者
+MAINTAINER BolingCavalry &lt;zq2599@gmail.com&gt;
+
+#定义工作目录
+ENV WORK_PATH /usr/local/work/html
+
+#定义nginx配置文件所在目录
+ENV NGINX_CONF_DIR /etc/nginx
+
+#定义nginx配置文件名称
+ENV NGINX_CONF_FILE_NAME nginx.conf
+
+#创建工作文件夹
+RUN mkdir -p $WORK_PATH
+
+#创建nginx日志文件夹
+RUN mkdir -p /etc/nginx/logs/
+
+#复制nginx配置文件
+COPY ./$NGINX_CONF_FILE_NAME $NGINX_CONF_DIR/
+
+#复制网页的静态资源文件
+COPY ./html $WORK_PATH/
+
+#给配置文件增加读权限
+RUN chmod a+xr $NGINX_CONF_DIR/$NGINX_CONF_FILE_NAME</code></code></pre>
+<ol>
+<li>现在打开终端在nginx目录下执行以下命令，构建nginx镜像：</li>
+</ol>
+<pre><code><code>docker build -t conf_nginx:0.0.1 .</code></code></pre>
+<p>nginx镜像构建成功！</p>
+<h3 id="编写docker-compose脚本">编写docker-compose脚本</h3>
+<p>新增一个docker-compose.yml文件(位置无所谓)，内容如下：</p>
+<pre class="yml"><code>version: &#39;2&#39;
+services:
+  disconf_redis_1: 
+    image: daocloud.io/library/redis
+    restart: always
+  disconf_redis_2: 
+    image: daocloud.io/library/redis
+    restart: always
+  disconf_zookeeper: 
+    image: zookeeper:3.3.6
+    restart: always
+  disconf_mysql: 
+    image: conf_mysql:0.0.1
+    environment:
+      MYSQL_ROOT_PASSWORD: 123456
+    restart: always
+  disconf_tomcat: 
+    image: conf_tomcat:0.0.1
+    links: 
+      - disconf_redis_1:redishost001 
+      - disconf_redis_2:redishost002
+      - disconf_zookeeper:zkhost
+      - disconf_mysql:mysqlhost
+    restart: always
+  disconf_nginx: 
+    image: conf_nginx:0.0.1
+    links: 
+      - disconf_tomcat:tomcathost 
+    ports: 
+      - &quot;80:80&quot; 
+    restart: always</code></code></pre>
+<p>按照我们最初梳理的依赖关系，启动两个redis官方镜像，一个zookeeper官方镜像，再启动定制的msyql镜像，然后tomcat启动并通过link关联redis，zookeeper，mysql等容器，最后是定制的nginx启动，link关联tomcat，并且nginx容器的80端口映射到当前电脑的80端口；</p>
+<h3 id="启动所有容器">启动所有容器</h3>
+<p>在docker-compose.yml文件所在的目录下，执行命令：</p>
+<pre><code><code>docker-compose up -d</code></code></pre>
+<p>终端会显示正在启动各个容器，如下图，每个容器的名称会被docker-compose加上前缀和后缀：</p>
+<p><img src="./images/Docker搭建disconf环境，三部曲之三：细说搭建过程8.png" alt="这里写图片描述" /></p>
+<p>tomcat的应用启动需要一点时间，我们可以通过docker logs -f disconf_disconf_tomcat_1命令来查看tomcat启动日志，disconf_disconf_tomcat_1是容器名称，如上图中的红框所示。</p>
+<p>启动完毕后，在浏览器上输入localhost，可以看见熟悉的disconf登录页面，用户名admin，密码admin，登录进去试试吧：</p>
+<p><img src="./images/Docker搭建disconf环境，三部曲之三：细说搭建过程9.png" alt="这里写图片描述" /></p>
+<p>至此，disconf环境搭建三部曲已经结束，从体验到亲手一步一步配置都经历了，我们可以按照自己的要求为自己定制一个disconf环境了。</p>
+<p>后面的文章中，我们一起来实战一下disconf系统的使用吧，体验一下动态配置给业务带来的便利。</p>
+<h3 id="欢迎关注我的公众号">欢迎关注我的公众号</h3>
+<p><img src="./images/Docker搭建disconf环境，三部曲之三：细说搭建过程10.png" alt="在这里插入图片描述" /></p>
+
+
+</div><hr><script charset='utf-8' src='../../js/sming.js'></script></body></html>

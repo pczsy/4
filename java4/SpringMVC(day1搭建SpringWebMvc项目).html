@@ -1,0 +1,264 @@
+<html><head><meta charset='utf-8'><meta name='viewport' content='width=device-width, initial-scale=1'>
+<meta name='applicable-device' content='pc'><meta name='keywords' content='电脑,电脑讲解,电脑技术,编程,电脑故障维修SpringMVC(day1搭建SpringWebMvc项目)' />
+<script src='../../highlight/highlight.pack.js'></script>
+<link rel='stylesheet' type='text/css' href='../../highlight/styles/monokai.css'/>
+
+<link rel='stylesheet' href='../../fenxiang/dist/css/share.min.css'>
+<script src='../../fenxiang/src/js/social-share.js'></script>
+<script src='../../fenxiang/src/js/qrcode.js'></script>
+
+</head><body><script>hljs.initHighlightingOnLoad();</script><script>
+var system ={};  
+var p = navigator.platform;       
+system.win = p.indexOf('Win') == 0;  
+system.mac = p.indexOf('Mac') == 0;  
+system.x11 = (p == 'X11') || (p.indexOf('Linux') == 0);     
+if(system.win||system.mac||system.xll){
+document.write("<link href='../css/3.css' rel='stylesheet' type='text/css'>");}else{ document.write("<link href='../css/3wap.css' rel='stylesheet' type='text/css'>");}</script><script src='../../js/3.js'></script><div class='div2'><div class='heading_nav'><ul><div><li><a href='../../index.html'>首页</a></li>
+</div><div onclick='hidden1()' >分享</div>
+</ul></div></div>
+<div id='heading_nav2'> 
+<li class='row' >
+<div class='social-share' data-mode='prepend'><a href='javascript:' class='social-share-icon icon-heart'></a></div></li></div><script charset='utf-8' src='../../3/js/hengfu.js'></script><script charset='utf-8' src='../../3/js/hengfu2.js'></script><hr><div class='div1'><div class='biaoti'><center>SpringMVC(day1搭建SpringWebMvc项目)</center></div><div class='banquan'>原文出处:本文由博客园博主Magic_Li提供。<br/>
+原文连接:https://www.cnblogs.com/Magic-Li/p/11775495.html</div><br>
+    <p><span style="color: #ff0000; font-size: 18px;"><strong>MVC和webMVC的区别</strong></span></p>
+<p><span style="font-size: 15px;"> Model(模型)</span><br /><span style="font-size: 15px;">			数据模型,提供要展示的数据,因此包含数据和行为,行为是用来处理这些数据的。不过现在一般都分离开来:Value Object（数据） 和 服务层（行为）。也就是数据由实体类或者javabean来提供,行为由service层来提供.</span><br />		<br /><span style="font-size: 15px;">		View(视图)</span><br /><span style="font-size: 15px;">			负责进行模型的展示,一般就是我们见到的用户界面,客户想看到的东西。</span></p>
+<p><span style="font-size: 15px;">		Controller(控制器)</span><br /><span style="font-size: 15px;">			接收用户请求,委托给模型进行处理,处理完毕后把返回的模型数据交给给视图。也就是说控制器在中间起到一个调度的作用。</span></p>
+<p><span style="font-size: 15px;">在标准的MVC中,模型能主动推数据给视图进行更新(可以采用观察者设计模式实现,在模型上注册视图,当模型更新时自动更新视图),但在Web开发中模型是无法主动推给视图,即无法主动更新用户界面,因为在Web的访问是请求-响应的模式。必须由客户端主动发出请求后,服务器才能把数据返回。</span></p>
+<p><span style="color: #ff0000;"><strong><span style="font-size: 18px;">MVC和三层架构的区别</span></strong></span></p>
+<p><span style="font-size: 15px;">MVC是属于三层架构中的表示层的一个框架，M相当于javabean，V相当于jsp，而C就相当于Servlet</span></p>
+<p><span style="font-size: 15px;">SpringWebMVC概述(SpringMVC)</span></p>
+<p><span style="font-size: 15px;">SpringWebMVC简称SpringMVC</span></p>
+<p><span style="font-size: 15px;">SpringMVC就是Spring框架提供的一个模块,通过实现MVC模式来很好地将数据、业务与展现进行分离,SpringMVC框架的目的是要简化我们日常的Web开发。</span></p>
+<p><span style="font-size: 15px;">SpringMVC框架跟其他的WebMVC框架一样,都是*请求驱动*,并且设计围绕一个能够分发请求到控制器以及提供其他加快web应用开发功能的核心Servlet(叫做DispatcherServlet,即前端控制器)。Spring的DispatcherServlet实现比其他框架中还要多的功能。它和spring的ioc容器完全整合,并且允许使用spring中其他的所有功能。</span></p>
+<p><span style="font-size: 15px;">		SpringMVC框架设计的一个核心的原则就是"开闭原则",对扩展开放,对修改关闭.所以SpringMVC框架中很多方法都是final的,不允许用户随意覆盖,但是却提供给用户很多可扩展的机制(springmvc提供了很多接口)。SpringMVC目前已经成为非常流行的web应用的框架。</span></p>
+<p><span style="font-size: 18px;"><strong><span style="color: #ff0000;">通过这张图我们来认识SpringMVC框架的核心组件</span></strong></span></p>
+<p><img src="./images/SpringMVC(day1搭建SpringWebMvc项目)0.png" alt="" width="501" height="331" /></p>
+<p>		<span style="font-size: 15px;">1.DispatcherServlet这是Spring提供的一个核心Servlet可以将请求分发给不同的Handler进行处理，用法很简单啊，在web.xml文件中配置一下就可以了</span></p>
+<p><span style="font-size: 15px;">例如：</span></p>
+<src class="cnblogs_code">
+<pre><code>          <span style="color: #0000ff;">&lt;</span><span style="color: #800000;">servlet</span><span style="color: #0000ff;">&gt;</span>
+            <span style="color: #0000ff;">&lt;</span><span style="color: #800000;">servlet-name</span><span style="color: #0000ff;">&gt;</span>SpringMVC<span style="color: #0000ff;">&lt;/</span><span style="color: #800000;">servlet-name</span><span style="color: #0000ff;">&gt;</span>
+            <span style="color: #0000ff;">&lt;</span><span style="color: #800000;">servlet-class</span><span style="color: #0000ff;">&gt;</span>org.springframework.web.servlet.DispatcherServlet<span style="color: #0000ff;">&lt;/</span><span style="color: #800000;">servlet-class</span><span style="color: #0000ff;">&gt;</span>
+            <span style="color: #0000ff;">&lt;</span><span style="color: #800000;">load-on-startup</span><span style="color: #0000ff;">&gt;</span>1<span style="color: #0000ff;">&lt;/</span><span style="color: #800000;">load-on-startup</span><span style="color: #0000ff;">&gt;</span>
+          <span style="color: #0000ff;">&lt;/</span><span style="color: #800000;">servlet</span><span style="color: #0000ff;">&gt;</span>
+          <span style="color: #0000ff;">&lt;</span><span style="color: #800000;">servlet-mapping</span><span style="color: #0000ff;">&gt;</span>
+            <span style="color: #0000ff;">&lt;</span><span style="color: #800000;">servlet-name</span><span style="color: #0000ff;">&gt;</span>SpringMVC<span style="color: #0000ff;">&lt;/</span><span style="color: #800000;">servlet-name</span><span style="color: #0000ff;">&gt;</span>
+            <span style="color: #0000ff;">&lt;</span><span style="color: #800000;">url-pattern</span><span style="color: #0000ff;">&gt;</span>*.action<span style="color: #0000ff;">&lt;/</span><span style="color: #800000;">url-pattern</span><span style="color: #0000ff;">&gt;</span>
+          <span style="color: #0000ff;">&lt;/</span><span style="color: #800000;">servlet-mapping</span><span style="color: #0000ff;">&gt;</span></code></pre>
+
+<p>&nbsp;</p>
+<p><span style="font-size: 15px;">这个类是与指定要读取的配置文件有关的，类中的许多方法取决于你的配置，在配置文件中配置的HandlerMapping: 处理器映射器，HandlerAdaptor:处理器适配器是与这个类的初始化有关的</span></p>
+<p><span style="font-size: 15px;">　　　　　　　　　　　　　　　　　　　　　　　　　　　　　　　　⬇</span></p>
+<p><span style="font-size: 15px;">2.HandlerMapping: 处理器映射器。DispatcherServlet接收到客户端请求的URL之后,根据一定的匹配规则,再把请求转发给对应的Handler,这个匹配规则由HandlerMapping决定。</span></p>
+<p>也就是说转发请求给哪个handler处理是取决于HandlerMapping的映射关系的，一般来说我们使用默认的根据url和处理器名字进行匹配&lt;bean class="org.springframework.web.servlet.handler.BeanNameUrlHandlerMapping"&gt;<br />		</p>
+<p>　　　　　　　　　　　　　　　　　　　　　　　　　　　　　　　　　　 ⬇</p>
+<p><span style="font-size: 15px;">3.HandlerAdaptor:处理器适配器。处理器适配器用来适配每一个要执行的Handler对象。通过HandlerAdapter可以支持任意的类作为处理器，一般来说我们使用</span>默认适配器，可以处理的是实现了Controller接口的控制器对象【实现</p>
+<p>Controller接口的控制器】&lt;bean class="org.springframework.web.servlet.mvc.SimpleControllerHandlerAdapter"/&gt;这个类中定义了方法，可以分析处理器映射器映射到的handler是否是Controller的实现类，可以调用Controller的实现类中的</p>
+<p>handleRequest方法。这个适配器可以仿照默认的自己写一个，可以实现让任意一个类来做处理器。以下是默认处理器适配器部分源码</p>
+<src class="cnblogs_code">
+<pre><code><strong><span style="color: #0000ff;">public</span> <span style="color: #0000ff;">class</span> SimpleControllerHandlerAdapter <span style="color: #0000ff;">implements</span><span style="color: #000000;"> HandlerAdapter {
+
+　　</span><span style="color: #008000;">/*</span><span style="color: #008000;">先判断handler是不是一个处理器</span><span style="color: #008000;">*/</span><span style="color: #000000;">
+
+　　@Override
+　　</span><span style="color: #0000ff;">public</span> <span style="color: #0000ff;">boolean</span><span style="color: #000000;"> supports(Object handler) {
+　　　　</span><span style="color: #0000ff;">return</span> (handler <span style="color: #0000ff;">instanceof</span><span style="color: #000000;"> Controller);
+　　}
+
+　　@Override
+　　</span><span style="color: #0000ff;">public</span> ModelAndView handle(HttpServletRequest request, HttpServletResponse response, Object handler)<span style="color: #0000ff;">throws</span><span style="color: #000000;"> Exception {
+
+　　　　</span><span style="color: #008000;">/*</span><span style="color: #008000;">指定调用handler中的handleRequest方法</span><span style="color: #008000;">*/</span>
+
+　　　　<span style="color: #0000ff;">return</span><span style="color: #000000;"> ((Controller) handler).handleRequest(request, response);
+　　}
+
+}</span></strong></code></pre>
+
+<p>&nbsp;</p>
+<p>4.根据源码我们可以发现，实际上是HandlerAdaptor帮我们调用了Handler中的方法Controller/Headler: 控制器/处理器。开发人员自定义,用来处理用户请求的,并且处理完成之后返回给用户指定视图的对象。</p>
+<p>例如一个简单的Handler：</p>
+<src class="cnblogs_code">
+<pre><code><span style="color: #008000;">//</span><span style="color: #008000;">控制器、处理器
+</span><span style="color: #008000;">//</span><span style="color: #008000;">用来接收前端控制器发送过来的请求，并且处理请求返回模型视图对象。</span>
+<span style="color: #0000ff;">public</span> <span style="color: #0000ff;">class</span> HelloController <span style="color: #0000ff;">implements</span><span style="color: #000000;"> Controller{
+
+    @Override
+    </span><span style="color: #0000ff;">public</span><span style="color: #000000;"> ModelAndView handleRequest(HttpServletRequest request, 
+            HttpServletResponse response) </span><span style="color: #0000ff;">throws</span><span style="color: #000000;"> Exception {
+        </span><span style="color: #008000;">//</span><span style="color: #008000;">操作和原来servlet是一样的
+        
+        </span><span style="color: #008000;">//</span><span style="color: #008000;">模型和视图对象</span>
+        ModelAndView mv = <span style="color: #0000ff;">new</span><span style="color: #000000;"> ModelAndView();
+        
+        </span><span style="color: #008000;">//</span><span style="color: #008000;">往模型对象中存放值</span>
+        mv.addObject("name", "tom"<span style="color: #000000;">);
+        
+        </span><span style="color: #008000;">//</span><span style="color: #008000;">指定跳转页面的逻辑视图名
+        </span><span style="color: #008000;">//</span><span style="color: #008000;">mv.setViewName("/WEB-INF/jsp/hello.jsp");</span>
+        mv.setViewName("hello"<span style="color: #000000;">);
+        
+        </span><span style="color: #0000ff;">return</span><span style="color: #000000;"> mv;
+    }
+}</span></code></pre>
+
+<p>&nbsp;</p>
+<p><span style="font-size: 15px;">　　　　　　　　⬇</span></p>
+<p><span style="font-size: 15px;">5.ViewResolver:视图解析器。Handler返回的是逻辑视图名,需要有一个解析器能够将逻辑视图名转换成实际的物理视图。而且Spring的可扩展性决定了视图可以由很多种,所以需要不同的视图解析器,解析不同的视图。但是一般由jsp充当视图的情况居多一般来说还是使用默认的居多</span></p>
+<p>&nbsp;</p>
+<src class="cnblogs_code">
+<pre><code><span style="color: #008000;">　　 &lt;!--</span><span style="color: #008000;"> 将逻辑视图名变为要访问的资源地址 </span><span style="color: #008000;">--&gt;</span>
+    <span style="color: #0000ff;">&lt;</span><span style="color: #800000;">bean
+        </span><span style="color: #ff0000;">class</span><span style="color: #0000ff;">="org.springframework.web.servlet.view.InternalResourceViewResolver"</span><span style="color: #0000ff;">&gt;</span>
+        <span style="color: #008000;">&lt;!--</span><span style="color: #008000;"> 配置jstl相关内容 </span><span style="color: #008000;">--&gt;</span>
+        <span style="color: #0000ff;">&lt;</span><span style="color: #800000;">property </span><span style="color: #ff0000;">name</span><span style="color: #0000ff;">="viewClass"</span><span style="color: #ff0000;">
+            value</span><span style="color: #0000ff;">="org.springframework.web.servlet.view.JstlView"</span> <span style="color: #0000ff;">/&gt;</span>
+        <span style="color: #008000;">&lt;!--</span><span style="color: #008000;"> 给逻辑视图名加前缀 </span><span style="color: #008000;">--&gt;</span>
+        <span style="color: #0000ff;">&lt;</span><span style="color: #800000;">property </span><span style="color: #ff0000;">name</span><span style="color: #0000ff;">="prefix"</span><span style="color: #ff0000;"> value</span><span style="color: #0000ff;">="/WEB-INF/jsp/"</span> <span style="color: #0000ff;">/&gt;</span>
+        <span style="color: #008000;">&lt;!--</span><span style="color: #008000;"> 给逻辑视图名加后缀 </span><span style="color: #008000;">--&gt;</span>
+        <span style="color: #0000ff;">&lt;</span><span style="color: #800000;">property </span><span style="color: #ff0000;">name</span><span style="color: #0000ff;">="suffix"</span><span style="color: #ff0000;"> value</span><span style="color: #0000ff;">=".jsp"</span> <span style="color: #0000ff;">/&gt;</span>
+    <span style="color: #0000ff;">&lt;/</span><span style="color: #800000;">bean</span><span style="color: #0000ff;">&gt;</span></code></pre>
+
+<p><span style="font-size: 15px;">　　　　　　　　⬇</span></p>
+<p><span style="font-size: 15px;"> SpringMVC框架提供一个核心的Servlet对象(DispatcherServlet,前端控制器)来对服务器接收到的请求进行解析,当这个请求被DispatcherServlet获取到之后,DispatherServlet需要根据HandlerMapping对象的映射关系,将这个请求转交给真正能够处理客户端请求的Controller控制器(我们要写的就是这个东西,相当于之前的servlet)来处理。Controller处理完成后返回ModelAndView对象,也就是模型和视图的结合体。ViewResolver视图解析器根据ModelAndView中的逻辑视图名找到真正的物理视图,同时使用ModelAndView中模型里面的数据对视图进行渲染。最后把准备好的视图展现给用户</span></p>
+<p><span style="font-size: 18px; color: #ff0000;"><strong>SpringMVC框架在项目中的搭建</strong></span></p>
+<p><span style="font-size: 15px;"><strong><span style="color: #ff6600;">第一步：构建Web项目</span></strong></span><br /><span style="font-size: 15px;"><strong><span style="color: #ff6600;">	第二步：导入所需jar包</span></strong></span><br /><span style="font-size: 15px;"><strong><span style="color: #ff6600;">	第三步：配置前端控制器DispatcherServlet</span></strong></span><br /><span style="font-size: 15px;"><strong><span style="color: #ff6600;">	第四步：编写Controller控制器(也称为Handler处理器)</span></strong></span><br /><span style="font-size: 15px;"><strong><span style="color: #ff6600;">	第五步：配置处理器映射器(可省去,有默认配置)</span></strong></span><br /><span style="font-size: 15px;"><strong><span style="color: #ff6600;">	第六步：配置处理器适配器(可省去,有默认配置)</span></strong></span><br /><span style="font-size: 15px;"><strong><span style="color: #ff6600;">	第七步：配置视图解析器(可省去,有默认配置,但是前缀和后缀都为"")</span></strong></span><br /><span style="font-size: 15px;"><strong><span style="color: #ff6600;">	第八步：配置控制器/处理器</span></strong></span></p>
+<p>&nbsp;</p>
+<p><strong>1)构建Web项目</strong><br />		在自己Eclipse中创建一个动态web项目(DynamicWebProject),注意JDK版本和项目版本的选择</p>
+<p><strong>2)导入所需的jar包</strong><br />		在lib目录下放入如下jar包,这是初始jar包,根据后续需求会陆续加入jar包<br />		commons-logging-1.2.jar<br />		spring-beans-4.3.7.RELEASE.jar<br />		spring-context-4.3.7.RELEASE.jar<br />		spring-core-4.3.7.RELEASE.jar<br />		spring-expression-4.3.7.RELEASE.jar<br />		spring-web-4.3.7.RELEASE.jar<br />		spring-webmvc-4.3.7.RELEASE.jar</p>
+<p><strong>	3)配置前端控制器DispatcherServlet以及需要读取的xml配置文件</strong></p>
+<p>SpringMVC的前端控制器就是一个Servlet对象,继承自HttpServlet,所以需要在web.xml文件中配置。</p>
+<p>SpringMVC是Spring提供的一个模块,Spring所有的模块都是基于Spring IOC功能的。所以SpringMVC的DispatcherServlet对象在初始化之前也会去实例化Spring的容器对象（ApplicationContext）,那么就需要读取Spring的配置文件。</p>
+<p>		默认SpringMVC会在你web应用的WEB-INF目录下查找一个名字为[servlet-name]-servlet.xml文件,并且创建在这个文件中定义的bean对象。</p>
+<p>		如果你提供的spring配置文件的名字或者位置和默认的不同,那么需要在配置servlet时同时指定配置文件的位置。</p>
+<p> 例如:</p>
+<src class="cnblogs_code">
+<pre><code><span style="color: #0000ff;">&lt;</span><span style="color: #800000;">servlet</span><span style="color: #0000ff;">&gt;</span>
+<span style="color: #0000ff;">&lt;</span><span style="color: #800000;">servlet-name</span><span style="color: #0000ff;">&gt;</span>SpringMVC<span style="color: #0000ff;">&lt;/</span><span style="color: #800000;">servlet-name</span><span style="color: #0000ff;">&gt;</span>
+<span style="color: #0000ff;">&lt;</span><span style="color: #800000;">servlet-class</span><span style="color: #0000ff;">&gt;</span>org.springframework.web.servlet.DispatcherServlet<span style="color: #0000ff;">&lt;/</span><span style="color: #800000;">servlet-class</span><span style="color: #0000ff;">&gt;</span>
+<span style="color: #0000ff;">&lt;</span><span style="color: #800000;">load-on-startup</span><span style="color: #0000ff;">&gt;</span>1<span style="color: #0000ff;">&lt;/</span><span style="color: #800000;">load-on-startup</span><span style="color: #0000ff;">&gt;</span>
+<span style="color: #0000ff;">&lt;/</span><span style="color: #800000;">servlet</span><span style="color: #0000ff;">&gt;</span>
+<span style="color: #0000ff;">&lt;</span><span style="color: #800000;">servlet-mapping</span><span style="color: #0000ff;">&gt;</span>
+<span style="color: #0000ff;">&lt;</span><span style="color: #800000;">servlet-name</span><span style="color: #0000ff;">&gt;</span>SpringMVC<span style="color: #0000ff;">&lt;/</span><span style="color: #800000;">servlet-name</span><span style="color: #0000ff;">&gt;</span>
+<span style="color: #0000ff;">&lt;</span><span style="color: #800000;">url-pattern</span><span style="color: #0000ff;">&gt;</span>*.action<span style="color: #0000ff;">&lt;/</span><span style="color: #800000;">url-pattern</span><span style="color: #0000ff;">&gt;</span>
+<span style="color: #0000ff;">&lt;/</span><span style="color: #800000;">servlet-mapping</span><span style="color: #0000ff;">&gt;</span></code></pre>
+
+<p>&nbsp;</p>
+<p> 如上配置,框架会自动去当前应用的WEB-INF目录下查找名字为SpringMVC-servlet.xml文件(默认前缀和&lt;servlet-name&gt;标签中的值一致)。<br />		也可以自己指定配置文件的名字和位置:</p>
+<src class="cnblogs_code">
+<pre><code><span style="color: #0000ff;">&lt;</span><span style="color: #800000;">servlet</span><span style="color: #0000ff;">&gt;</span>
+<span style="color: #0000ff;">&lt;</span><span style="color: #800000;">servlet-name</span><span style="color: #0000ff;">&gt;</span>SpringMVC<span style="color: #0000ff;">&lt;/</span><span style="color: #800000;">servlet-name</span><span style="color: #0000ff;">&gt;</span>
+<span style="color: #0000ff;">&lt;</span><span style="color: #800000;">servlet-class</span><span style="color: #0000ff;">&gt;</span>org.springframework.web.servlet.DispatcherServlet<span style="color: #0000ff;">&lt;/</span><span style="color: #800000;">servlet-class</span><span style="color: #0000ff;">&gt;</span>
+<span style="color: #0000ff;">&lt;</span><span style="color: #800000;">init-param</span><span style="color: #0000ff;">&gt;</span>
+<span style="color: #0000ff;">&lt;</span><span style="color: #800000;">param-name</span><span style="color: #0000ff;">&gt;</span>contextConfigLocation<span style="color: #0000ff;">&lt;/</span><span style="color: #800000;">param-name</span><span style="color: #0000ff;">&gt;</span>
+<span style="color: #0000ff;">&lt;</span><span style="color: #800000;">param-value</span><span style="color: #0000ff;">&gt;</span>classpath:spring-web-mvc.xml<span style="color: #0000ff;">&lt;/</span><span style="color: #800000;">param-value</span><span style="color: #0000ff;">&gt;</span>
+<span style="color: #0000ff;">&lt;/</span><span style="color: #800000;">init-param</span><span style="color: #0000ff;">&gt;</span>
+<span style="color: #0000ff;">&lt;</span><span style="color: #800000;">load-on-startup</span><span style="color: #0000ff;">&gt;</span>1<span style="color: #0000ff;">&lt;/</span><span style="color: #800000;">load-on-startup</span><span style="color: #0000ff;">&gt;</span>
+<span style="color: #0000ff;">&lt;/</span><span style="color: #800000;">servlet</span><span style="color: #0000ff;">&gt;</span>
+<span style="color: #0000ff;">&lt;</span><span style="color: #800000;">servlet-mapping</span><span style="color: #0000ff;">&gt;</span>
+<span style="color: #0000ff;">&lt;</span><span style="color: #800000;">servlet-name</span><span style="color: #0000ff;">&gt;</span>SpringMVC<span style="color: #0000ff;">&lt;/</span><span style="color: #800000;">servlet-name</span><span style="color: #0000ff;">&gt;</span>
+<span style="color: #0000ff;">&lt;</span><span style="color: #800000;">url-pattern</span><span style="color: #0000ff;">&gt;</span>*.action<span style="color: #0000ff;">&lt;/</span><span style="color: #800000;">url-pattern</span><span style="color: #0000ff;">&gt;</span>
+<span style="color: #0000ff;">&lt;/</span><span style="color: #800000;">servlet-mapping</span><span style="color: #0000ff;">&gt;</span></code></pre>
+
+<p>&nbsp;</p>
+<p><strong> 注意:</strong><br /><strong>			配置文件在WEB-INF下:</strong><br /><strong>			&lt;param-value&gt;/WEB-INF/spring-web-mvc.xml&lt;/param-value&gt;</strong><br /><strong>			配置文件在classpath下:</strong><br /><strong>			&lt;param-value&gt;classpath:spring-web-mvc.xml&lt;/param-value&gt;</strong></p>
+<p><strong>		注意:</strong><br /><strong>			&lt;url-pattern&gt;*.action&lt;/url-pattern&gt;</strong><br /><strong>			也可以配置成</strong><br /><strong>			&lt;url-pattern&gt;/&lt;/url-pattern&gt;</strong><br />			<br /><strong>			注意:这里是/ 不是/*,后面会说明它们之间的区别</strong></p>
+<p><strong>4)编写Controller控制器(headler)并且在xml中配置</strong></p>
+<src class="cnblogs_code">
+<pre><code><span style="color: #008000;">&lt;!--</span><span style="color: #008000;"> 配置Controller处理器 </span><span style="color: #008000;">--&gt;</span>
+<span style="color: #0000ff;">&lt;</span><span style="color: #800000;">bean </span><span style="color: #ff0000;">name</span><span style="color: #0000ff;">="/hello.action"</span><span style="color: #ff0000;">
+class</span><span style="color: #0000ff;">="com.briup.controller.HelloController"</span><span style="color: #0000ff;">&gt;&lt;/</span><span style="color: #800000;">bean</span><span style="color: #0000ff;">&gt;</span></code></pre>
+
+<p>&nbsp;</p>
+<p><strong>5)配置映射器(可省去,有默认配置)</strong></p>
+<p><strong>&lt;bean class="org.springframework.web.servlet.handler.BeanNameUrlHandlerMapping"/&gt;</strong></p>
+<p><strong>6)配置适配器(可省去,有默认配置)</strong></p>
+<p>想要正确运行自定义处理器,需要配置处理器适配器,在spring的配置文件中(就是本例中的SpringMVC-servlet.xml),进行如下配置：</p>
+<p>&lt;bean class="org.springframework.web.servlet.mvc.SimpleControllerHandlerAdapter"/&gt;</p>
+<p>SimpleControllerHandlerAdapter：表示所有实现了org.springframework.web.servlet.mvc.Controller接口的Bean可以作为SpringMVC中的处理器。如果需要其他类型的处理器可以通过实现HadlerAdapter来解决。</p>
+<p><strong>&nbsp;7)配置视图解析器(可省去,有默认配置,但是前缀和后缀都为"")</strong></p>
+<p>当处理器执行完成后,返回给spring容器一个ModelAndView对象,这个对象需要能够被解析成与之相对应的视图,并且使用返回的Model数据对视图进行渲染。</p>
+<src class="cnblogs_code">
+<pre><code><span style="color: #0000ff;">&lt;</span><span style="color: #800000;">bean </span><span style="color: #ff0000;">class</span><span style="color: #0000ff;">="org.springframework.web.servlet.view.InternalResourceViewResolver"</span><span style="color: #0000ff;">&gt;</span> 
+<span style="color: #0000ff;">&lt;</span><span style="color: #800000;">property </span><span style="color: #ff0000;">name</span><span style="color: #0000ff;">="viewClass"</span><span style="color: #ff0000;"> value</span><span style="color: #0000ff;">="org.springframework.web.servlet.view.JstlView"</span><span style="color: #0000ff;">/&gt;</span> 
+<span style="color: #0000ff;">&lt;</span><span style="color: #800000;">property </span><span style="color: #ff0000;">name</span><span style="color: #0000ff;">="prefix"</span><span style="color: #ff0000;"> value</span><span style="color: #0000ff;">="/WEB-INF/jsp/"</span><span style="color: #0000ff;">/&gt;</span> 
+<span style="color: #0000ff;">&lt;</span><span style="color: #800000;">property </span><span style="color: #ff0000;">name</span><span style="color: #0000ff;">="suffix"</span><span style="color: #ff0000;"> value</span><span style="color: #0000ff;">=".jsp"</span><span style="color: #0000ff;">/&gt;</span> 
+<span style="color: #0000ff;">&lt;/</span><span style="color: #800000;">bean</span><span style="color: #0000ff;">&gt;</span></code></pre>
+
+<p>&nbsp;</p>
+<p> 如果配置设置为如上操作,那么在自定义的Handler中返回的逻辑视图的名字不能有后缀.jsp,并且具体页面一定放在/WEB-INF目录下。<br />		<br />		InternalResourceViewResolver：用于支持Servlet、JSP视图解析；<br />		viewClass：JstlView表示JSP模板页面需要使用JSTL标签库,classpath中必须包含jstl的相关jar包；<br />		prefix和suffix：视图页面的前缀和后缀(前缀+逻辑视图名+后缀),比如传进来的逻辑视图名为hello,则该该jsp视图页面应该存放在"WEB-INF/jsp/hello.jsp"<br />		<br />		注意:放在WEB-INF下的页面,只能通过内部跳转的方式访问到,因为客户端访问不到WEB-INF目录,而且服务器端可以访问到WEB-INF目录<br />		注意:需要引入jstl相关jar包<br />		注意:页面中的路径问题   <br />		           相对路径<br />			 &lt;%<br />				String path = request.getContextPath();<br />				String basePath = request.getScheme()+"://"+request.getServerName()+":"+request.getServerPort()+path+"/";<br />			 %&gt;</p>
+<p>			 &lt;base href="&lt;%=basePath%&gt;" /&gt;</p>
+<p><strong>	8)配置处理器</strong><br />		把编写好的handler/controller在spring中进配置,让其接受Spring IoC容器管理<br />		&lt;bean name="/hello.action" class="com.briup.web.controller.HelloWorldController"/&gt;</p>
+<p><span style="color: #ff0000;"><strong><span style="font-size: 18px;">现在我们来处理DispatcherServlet中的映射路径问题</span></strong></span></p>
+<p>&nbsp;</p>
+<src class="cnblogs_code">
+<pre><code><span style="color: #0000ff;">&lt;</span><span style="color: #800000;">servlet</span><span style="color: #0000ff;">&gt;</span>
+　　<span style="color: #0000ff;">&lt;</span><span style="color: #800000;">servlet-name</span><span style="color: #0000ff;">&gt;</span>SpringMVC<span style="color: #0000ff;">&lt;/</span><span style="color: #800000;">servlet-name</span><span style="color: #0000ff;">&gt;</span>
+　　<span style="color: #0000ff;">&lt;</span><span style="color: #800000;">servlet-class</span><span style="color: #0000ff;">&gt;</span>org.springframework.web.servlet.DispatcherServlet<span style="color: #0000ff;">&lt;/</span><span style="color: #800000;">servlet-class</span><span style="color: #0000ff;">&gt;</span>
+　　<span style="color: #0000ff;">&lt;</span><span style="color: #800000;">load-on-startup</span><span style="color: #0000ff;">&gt;</span>1<span style="color: #0000ff;">&lt;/</span><span style="color: #800000;">load-on-startup</span><span style="color: #0000ff;">&gt;</span>
+<span style="color: #0000ff;">&lt;/</span><span style="color: #800000;">servlet</span><span style="color: #0000ff;">&gt;</span>
+<span style="color: #0000ff;">&lt;</span><span style="color: #800000;">servlet-mapping</span><span style="color: #0000ff;">&gt;</span>
+　　<span style="color: #0000ff;">&lt;</span><span style="color: #800000;">servlet-name</span><span style="color: #0000ff;">&gt;</span>SpringMVC<span style="color: #0000ff;">&lt;/</span><span style="color: #800000;">servlet-name</span><span style="color: #0000ff;">&gt;</span>
+　　<span style="color: #0000ff;">&lt;</span><span style="color: #800000;">url-pattern</span><span style="color: #0000ff;">&gt;</span>/<span style="color: #0000ff;">&lt;/</span><span style="color: #800000;">url-pattern</span><span style="color: #0000ff;">&gt;</span>
+<span style="color: #0000ff;">&lt;/</span><span style="color: #800000;">servlet-mapping</span><span style="color: #0000ff;">&gt;</span></code></pre>
+
+<p>&nbsp;</p>
+<p><strong><span style="color: #ff6600;">1)拦截所有请求 /</span></strong><br />		&lt;url-pattern&gt;/&lt;/url-pattern&gt;<br />		此处需要特别强调的是,配置中使用的是/,而不是/*,如果使用/*,那么请求时可以通过DispatcherServlet转发到相应的Controller中,但是Controller返回的时候,如返回的jsp还会再次被拦截,这样导致404错误,即访问不到jsp。<br />		<br />		拦截/,例如：/user/add<br />		将来可以实现REST风格的访问<br />		弊端：会导致静态文件（jpg,js,css）被拦截后不能正常显示。</p>
+<p>		拦截/*,请求可以走到Controller中,但跳转到jsp时再次被拦截,不能访问到jsp,可以说这是错误的配置。</p>
+<p><span style="color: #ff6600;"><strong>2)自定义拦截请求的后缀名</strong></span><br />		拦截*.do、*.html、*.action, 例如/user/add.do<br />		这是最传统的方式,最简单也最实用。不会导致静态文件（jpg,js,css）被拦截。<br />		<br />		弊端:<br />			Controller的后缀只能固定成某一个<br />			将来不便于实现REST风格的访问</p>
+<p><span style="color: #ff6600;"><strong>3)静态资源的访问,如jpg,js,css</strong></span><br />		如果DispatcherServlet拦截"*.do"这样的有后缀的URL,就不存在访问不到静态资源的问题。<br />	　　如果DispatcherServlet拦截"/",为了实现REST风格,拦截了所有的请求,那么同时对*.js,*.jpg等静态文件的访问也就被拦截了。<br />		例如:<br />		&lt;link href="static/css/hello.css" rel="stylesheet" type="text/css"/&gt;<br />		&lt;script type="text/javascript" src="static/js/hello.js"&gt;&lt;/script&gt;<br />		&lt;img alt="none" src="static/images/logo.png"&gt;	</p>
+<p><strong>		解决方式一：利用Tomcat的defaultServlet来处理静态文件</strong></p>
+<src class="cnblogs_code">
+<pre><code><span style="color: #0000ff;">&lt;</span><span style="color: #800000;">servlet-mapping</span><span style="color: #0000ff;">&gt;</span>
+　　<span style="color: #0000ff;">&lt;</span><span style="color: #800000;">servlet-name</span><span style="color: #0000ff;">&gt;</span>default<span style="color: #0000ff;">&lt;/</span><span style="color: #800000;">servlet-name</span><span style="color: #0000ff;">&gt;</span>
+　　<span style="color: #0000ff;">&lt;</span><span style="color: #800000;">url-pattern</span><span style="color: #0000ff;">&gt;</span>*.jpg<span style="color: #0000ff;">&lt;/</span><span style="color: #800000;">url-pattern</span><span style="color: #0000ff;">&gt;</span>
+<span style="color: #0000ff;">&lt;/</span><span style="color: #800000;">servlet-mapping</span><span style="color: #0000ff;">&gt;</span>
+
+<span style="color: #0000ff;">&lt;</span><span style="color: #800000;">servlet-mapping</span><span style="color: #0000ff;">&gt;</span>
+　　<span style="color: #0000ff;">&lt;</span><span style="color: #800000;">servlet-name</span><span style="color: #0000ff;">&gt;</span>default<span style="color: #0000ff;">&lt;/</span><span style="color: #800000;">servlet-name</span><span style="color: #0000ff;">&gt;</span>
+　　<span style="color: #0000ff;">&lt;</span><span style="color: #800000;">url-pattern</span><span style="color: #0000ff;">&gt;</span>*.js<span style="color: #0000ff;">&lt;/</span><span style="color: #800000;">url-pattern</span><span style="color: #0000ff;">&gt;</span>
+<span style="color: #0000ff;">&lt;/</span><span style="color: #800000;">servlet-mapping</span><span style="color: #0000ff;">&gt;</span>
+
+<span style="color: #0000ff;">&lt;</span><span style="color: #800000;">servlet-mapping</span><span style="color: #0000ff;">&gt;</span>
+　　<span style="color: #0000ff;">&lt;</span><span style="color: #800000;">servlet-name</span><span style="color: #0000ff;">&gt;</span>default<span style="color: #0000ff;">&lt;/</span><span style="color: #800000;">servlet-name</span><span style="color: #0000ff;">&gt;</span>
+　　<span style="color: #0000ff;">&lt;</span><span style="color: #800000;">url-pattern</span><span style="color: #0000ff;">&gt;</span>*.css<span style="color: #0000ff;">&lt;/</span><span style="color: #800000;">url-pattern</span><span style="color: #0000ff;">&gt;</span>
+<span style="color: #0000ff;">&lt;/</span><span style="color: #800000;">servlet-mapping</span><span style="color: #0000ff;">&gt;</span></code></pre>
+
+<p>&nbsp;</p>
+<p>或者:</p>
+<src class="cnblogs_code">
+<pre><code><span style="color: #0000ff;">&lt;</span><span style="color: #800000;">servlet-mapping</span><span style="color: #0000ff;">&gt;</span>
+　　<span style="color: #0000ff;">&lt;</span><span style="color: #800000;">servlet-name</span><span style="color: #0000ff;">&gt;</span>default<span style="color: #0000ff;">&lt;/</span><span style="color: #800000;">servlet-name</span><span style="color: #0000ff;">&gt;</span>
+　　<span style="color: #0000ff;">&lt;</span><span style="color: #800000;">url-pattern</span><span style="color: #0000ff;">&gt;</span>*.css<span style="color: #0000ff;">&lt;/</span><span style="color: #800000;">url-pattern</span><span style="color: #0000ff;">&gt;</span>
+　　<span style="color: #0000ff;">&lt;</span><span style="color: #800000;">url-pattern</span><span style="color: #0000ff;">&gt;</span>*.js<span style="color: #0000ff;">&lt;/</span><span style="color: #800000;">url-pattern</span><span style="color: #0000ff;">&gt;</span>
+　　<span style="color: #0000ff;">&lt;</span><span style="color: #800000;">url-pattern</span><span style="color: #0000ff;">&gt;</span>*.png<span style="color: #0000ff;">&lt;/</span><span style="color: #800000;">url-pattern</span><span style="color: #0000ff;">&gt;</span>
+<span style="color: #0000ff;">&lt;/</span><span style="color: #800000;">servlet-mapping</span><span style="color: #0000ff;">&gt;</span></code></pre>
+
+<p>&nbsp;</p>
+<p> 特点：1.要配置多个，每种文件配置一个。<br />		　　  2.要写在DispatcherServlet的前面(和tomcat版本有关),让defaultServlet先拦截请求,	这样请求就不会进入Spring了<br />		　　  3. 高性能。</p>
+<p><strong>解决方式二: 使用&lt;mvc:resources&gt;标签,例如:</strong><br />		&lt;mvc:resources mapping="/images/**" location="/images/"/&gt;  <br />		&lt;mvc:resources mapping="/js/**" location="/js/"/&gt;  <br />		&lt;mvc:resources mapping="/css/**" location="/css/"/&gt; <br />		<br />		mapping： 映射<br />		两个*,表示映射指定路径下所有的URL,包括子路径<br />		location：本地资源路径</p>
+<p>		这样如果有访问/images或者/js或者/css路径下面的资源的时候,spring就不会拦截了</p>
+<p>		<strong>解决方式三: 使用&lt;mvc:default-servlet-handler/&gt;标签</strong><br />		在spring配置文件中加入此标签配置即可</p>
+<p><strong><span style="color: #ff6600;">最后是一个spring提供的编码过滤器（这是Springmvc提供的过滤器）</span></strong><br />	查看这个过滤器类源码便可知这里所传的俩个参数的作用</p>
+<src class="cnblogs_code">
+<pre><code><span style="color: #0000ff;">&lt;</span><span style="color: #800000;">filter</span><span style="color: #0000ff;">&gt;</span>
+　　<span style="color: #0000ff;">&lt;</span><span style="color: #800000;">filter-name</span><span style="color: #0000ff;">&gt;</span>CharacterEncodingFilter<span style="color: #0000ff;">&lt;/</span><span style="color: #800000;">filter-name</span><span style="color: #0000ff;">&gt;</span>
+　　<span style="color: #0000ff;">&lt;</span><span style="color: #800000;">filter-class</span><span style="color: #0000ff;">&gt;</span>org.springframework.web.filter.CharacterEncodingFilter<span style="color: #0000ff;">&lt;/</span><span style="color: #800000;">filter-class</span><span style="color: #0000ff;">&gt;</span>
+　　<span style="color: #0000ff;">&lt;</span><span style="color: #800000;">init-param</span><span style="color: #0000ff;">&gt;</span>
+　　　　<span style="color: #0000ff;">&lt;</span><span style="color: #800000;">param-name</span><span style="color: #0000ff;">&gt;</span>encoding<span style="color: #0000ff;">&lt;/</span><span style="color: #800000;">param-name</span><span style="color: #0000ff;">&gt;</span>
+　　　　<span style="color: #0000ff;">&lt;</span><span style="color: #800000;">param-value</span><span style="color: #0000ff;">&gt;</span>UTF-8<span style="color: #0000ff;">&lt;/</span><span style="color: #800000;">param-value</span><span style="color: #0000ff;">&gt;</span>
+　　<span style="color: #0000ff;">&lt;/</span><span style="color: #800000;">init-param</span><span style="color: #0000ff;">&gt;</span>
+　　<span style="color: #0000ff;">&lt;</span><span style="color: #800000;">init-param</span><span style="color: #0000ff;">&gt;</span>
+　　　　<span style="color: #0000ff;">&lt;</span><span style="color: #800000;">param-name</span><span style="color: #0000ff;">&gt;</span>forceEncoding<span style="color: #0000ff;">&lt;/</span><span style="color: #800000;">param-name</span><span style="color: #0000ff;">&gt;</span>
+　　　　<span style="color: #0000ff;">&lt;</span><span style="color: #800000;">param-value</span><span style="color: #0000ff;">&gt;</span>true<span style="color: #0000ff;">&lt;/</span><span style="color: #800000;">param-value</span><span style="color: #0000ff;">&gt;</span>
+　　<span style="color: #0000ff;">&lt;/</span><span style="color: #800000;">init-param</span><span style="color: #0000ff;">&gt;</span>
+<span style="color: #0000ff;">&lt;/</span><span style="color: #800000;">filter</span><span style="color: #0000ff;">&gt;</span>
+<span style="color: #0000ff;">&lt;</span><span style="color: #800000;">filter-mapping</span><span style="color: #0000ff;">&gt;</span>
+　　<span style="color: #0000ff;">&lt;</span><span style="color: #800000;">filter-name</span><span style="color: #0000ff;">&gt;</span>CharacterEncodingFilter<span style="color: #0000ff;">&lt;/</span><span style="color: #800000;">filter-name</span><span style="color: #0000ff;">&gt;</span>
+　　<span style="color: #0000ff;">&lt;</span><span style="color: #800000;">url-pattern</span><span style="color: #0000ff;">&gt;</span>/*<span style="color: #0000ff;">&lt;/</span><span style="color: #800000;">url-pattern</span><span style="color: #0000ff;">&gt;</span>
+<span style="color: #0000ff;">&lt;/</span><span style="color: #800000;">filter-mapping</span><span style="color: #0000ff;">&gt;</span></code></pre>
+
+<p>&nbsp;</p>
+
+</div><hr><script charset='utf-8' src='../../js/sming.js'></script></body></html>

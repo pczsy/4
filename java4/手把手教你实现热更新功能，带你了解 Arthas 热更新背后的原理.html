@@ -1,0 +1,306 @@
+<html><head><meta charset='utf-8'><meta name='viewport' content='width=device-width, initial-scale=1'>
+<meta name='applicable-device' content='pc'><meta name='keywords' content='电脑,电脑讲解,电脑技术,编程,电脑故障维修手把手教你实现热更新功能，带你了解 Arthas 热更新背后的原理' />
+<script src='../../highlight/highlight.pack.js'></script>
+<link rel='stylesheet' type='text/css' href='../../highlight/styles/monokai.css'/>
+
+<link rel='stylesheet' href='../../fenxiang/dist/css/share.min.css'>
+<script src='../../fenxiang/src/js/social-share.js'></script>
+<script src='../../fenxiang/src/js/qrcode.js'></script>
+
+</head><body><script>hljs.initHighlightingOnLoad();</script><script>
+var system ={};  
+var p = navigator.platform;       
+system.win = p.indexOf('Win') == 0;  
+system.mac = p.indexOf('Mac') == 0;  
+system.x11 = (p == 'X11') || (p.indexOf('Linux') == 0);     
+if(system.win||system.mac||system.xll){
+document.write("<link href='../css/3.css' rel='stylesheet' type='text/css'>");}else{ document.write("<link href='../css/3wap.css' rel='stylesheet' type='text/css'>");}</script><script src='../../js/3.js'></script><div class='div2'><div class='heading_nav'><ul><div><li><a href='../../index.html'>首页</a></li>
+</div><div onclick='hidden1()' >分享</div>
+</ul></div></div>
+<div id='heading_nav2'> 
+<li class='row' >
+<div class='social-share' data-mode='prepend'><a href='javascript:' class='social-share-icon icon-heart'></a></div></li></div><script charset='utf-8' src='../../3/js/hengfu.js'></script><script charset='utf-8' src='../../3/js/hengfu2.js'></script><hr><div class='div1'><div class='biaoti'><center>手把手教你实现热更新功能，带你了解 Arthas 热更新背后的原理</center></div><div class='banquan'>原文出处:本文由博客园博主good_andyxu提供。<br/>
+原文连接:https://www.cnblogs.com/goodAndyxublog/p/11880314.html</div><br>
+    <p><img src="./images/手把手教你实现热更新功能，带你了解 Arthas 热更新背后的原理0.png" /></p>
+<blockquote>
+<p>文章来源：<a href="https://studyidea.cn/java-hotswap" class="uri">https://studyidea.cn/java-hotswap</a></p>
+</blockquote>
+<h2 id="一前言">一、前言</h2>
+<p>一天下午正在摸鱼的时候，测试小姐姐走了过来求助，说是需要改动测试环境 mock 应用。但是这个应用一时半会又找不到源代码存在何处。但是测试小姐姐的活还是一定要帮，突然想起了 Arthas 可以热更新应用代码，按照网上的步骤，反编译应用代码，加上需要改动的逻辑，最后热更新成功。对此，测试小姐姐很满意，并表示下次会少提 Bug。</p>
+<p>嘿嘿，以前一直对热更新背后原理很好奇，借着这个机会，研究一下热更新的原理。</p>
+<h2 id="二arthas-热更新">二、Arthas 热更新</h2>
+<p>我们先来看下 Arthas 是如何热更新的。</p>
+<blockquote>
+<p>详情参考:<a href="http://hengyunabc.github.io/arthas-online-hotswap">阿里巴巴Arthas实践--jad/mc/redefine线上热更新一条龙</a></p>
+</blockquote>
+<p>假设我们现在有一个 <code>HelloService</code> 类，逻辑如下，现在我们使用 Arthas 热更新代码，让其输出 <code>hello arthas</code>。</p>
+<pre><code><code>public class HelloService {
+
+    public static void main(String[] args) throws InterruptedException {
+
+        while (true){
+            TimeUnit.SECONDS.sleep(1);
+            hello();
+        }
+    }
+
+    public static void hello(){
+        System.out.println(&quot;hello world&quot;);
+    }
+
+}</code></code></pre>
+<h3 id="jad-反编译代码">2.1、jad 反编译代码</h3>
+<p>首先运行 <code>jad</code> 命令反编译 class 文件获取源代码,运行命令如下：。</p>
+<pre class="sh"><code>jad --source-only com.andyxh.HelloService &gt; /tmp/HelloService.java</code></code></pre>
+<h3 id="修改反编译之后的代码">2.2、修改反编译之后的代码</h3>
+<p>拿到源代码之后，使用 VIM 等文本编辑工具编辑源代码，加入需要改动的逻辑。</p>
+<h3 id="查找-classloader">2.3、查找 <code>ClassLoader</code></h3>
+<p>然后使用 <code>sc</code> 命令查找加载修改类的 <code>ClassLoader</code>，运行命令如下:</p>
+<pre class="sh"><code>$ sc -d  com.andyxh.HelloService | grep classLoaderHash
+ classLoaderHash   4f8e5cde</code></code></pre>
+<p>这里运行之后将会得到 <code>ClassLoader</code> 哈希值。</p>
+<h3 id="mc-内存编译源代码">2.4、 <code>mc</code> 内存编译源代码</h3>
+<p>使用 mc 命令编译上一步修改保存的源代码，生成最终 <code>class</code> 文件。</p>
+<pre class="sh"><code>$ mc -c 4f8e5cde  /tmp/HelloService.java  -d /tmp
+Memory compiler output:
+/tmp/com/andyxh/HelloService.class
+Affect(row-cnt:1) cost in 463 ms.</code></code></pre>
+<h3 id="redefine-热更新代码">2.5、redefine 热更新代码</h3>
+<p>运行 redefine 命令：</p>
+<pre class="sh"><code>$ redefine /tmp/com/andyxh/HelloService.class
+redefine success, size: 1</code></code></pre>
+<p>热更新成功之后，程序输出结果如下：</p>
+<p><img src="./images/手把手教你实现热更新功能，带你了解 Arthas 热更新背后的原理1.png" alt="image.png" /></p>
+<p>一般情况下，我们本地将会有源代码，上面的步骤我们可以进一步省略，我们可以先在自己 IDE 上改动代码，编译生成 class 文件。这样我们只需要运行 <code>redefine</code> 命令即可。也就是说实际上起到作用只是 <code>redefine</code> 。</p>
+<h2 id="三-instrumentation-与-attach-机制">三、 Instrumentation 与 attach 机制</h2>
+<p>Arthas 热更新功能看起来很神奇，实际上离不开 JDK 一些 API，分别为 instrument API 与 attach API。</p>
+<h3 id="instrumentation">3.1 Instrumentation</h3>
+<p>Java Instrumentation 是 JDK5 之后提供接口。使用这组接口，我们可以获取到正在运行 JVM 相关信息，使用这些信息我们构建相关监控程序检测 JVM。另外， 最重要我们可以<strong>替换</strong>和<strong>修改</strong>类的，这样就实现了热更新。</p>
+<p>Instrumentation 存在两种使用方式，一种为 <code>pre-main</code> 方式，这种方式需要在虚拟机参数指定 Instrumentation 程序，然后程序启动之前将会完成修改或替换类。使用方式如下:</p>
+<pre><code><code>java -javaagent:jar Instrumentation_jar -jar xxx.jar</code></code></pre>
+<p>有没有觉得这种启动方式很熟悉，仔细观察一下 IDEA 运行输出窗口。</p>
+<p><img src="./images/手把手教你实现热更新功能，带你了解 Arthas 热更新背后的原理2.png" alt="image.png" /></p>
+<p>另外很多应用监控工具，如：zipkin、pinpoint、skywalking。</p>
+<p>这种方式只能在应用启动之前生效，存在一定的局限性。</p>
+<p>JDK6 针对这种情况作出了改进，增加 <code>agent-main</code> 方式。我们可以在应用启动之后，再运行 <code>Instrumentation</code> 程序。启动之后，只有连接上相应的应用，我们才能做出相应改动，这里我们就需要使用 Java 提供 attach API。</p>
+<h3 id="attach-api">3.2 Attach API</h3>
+<p>Attach API 位于 tools.jar 包，可以用来连接目标 JVM。Attach API 非常简单，内部只有两个主要的类，<code>VirtualMachine</code> 与 <code>VirtualMachineDescriptor</code>。</p>
+<p><code>VirtualMachine</code> 代表一个 JVM 实例， 使用它提供 <code>attach</code> 方法，我们就可以连接上目标 JVM。</p>
+<pre><code><code> VirtualMachine vm = VirtualMachine.attach(pid);</code></code></pre>
+<p><code>VirtualMachineDescriptor</code> 则是一个描述虚拟机的容器类，通过该实例我们可以获取到 JVM PID(进程 ID),该实例主要通过 <code>VirtualMachine#list</code> 方法获取。</p>
+<pre><code><code>        for (VirtualMachineDescriptor descriptor : VirtualMachine.list()){
+
+            System.out.println(descriptor.id());
+        }</code></code></pre>
+<p>介绍完热更新涉及的相关原理，接下去使用上面 API 实现热更新功能。</p>
+<h2 id="四实现热更新功能">四、实现热更新功能</h2>
+<p>这里我们使用 Instrumentation <code>agent-main</code> 方式。</p>
+<h3 id="实现-agent-main">4.1、实现 agent-main</h3>
+<p>首先需要编写一个类，包含以下两个方法：</p>
+<pre><code><code>public static void agentmain (String agentArgs, Instrumentation inst);          [1]
+public static void agentmain (String agentArgs);            [2]</code></code></pre>
+<blockquote>
+<p>上面的方法只需要实现一个即可。若两个都实现， [1] 优先级大于 [2]，将会被优先执行。</p>
+</blockquote>
+<p>接着读取外部传入 class 文件，调用 <code>Instrumentation#redefineClasses</code>，这个方法将会使用新 class 替换当前正在运行的 class，这样我们就完成了类的修改。</p>
+<pre><code><code>public class AgentMain {
+    /**
+     *
+     * @param agentArgs 外部传入的参数，类似于 main 函数 args
+     * @param inst
+     */
+    public static void agentmain(String agentArgs, Instrumentation inst) {
+        // 从 agentArgs 获取外部参数
+        System.out.println(&quot;开始热更新代码&quot;);
+        // 这里将会传入 class 文件路径
+        String path = agentArgs;
+        try {
+            // 读取 class 文件字节码
+            RandomAccessFile f = new RandomAccessFile(path, &quot;r&quot;);
+            final byte[] bytes = new byte[(int) f.length()];
+            f.readFully(bytes);
+            // 使用 asm 框架获取类名
+            final String clazzName = readClassName(bytes);
+
+            // inst.getAllLoadedClasses 方法将会获取所有已加载的 class
+            for (Class clazz : inst.getAllLoadedClasses()) {
+                // 匹配需要替换 class
+                if (clazz.getName().equals(clazzName)) {
+                    ClassDefinition definition = new ClassDefinition(clazz, bytes);
+                    // 使用指定的 class 替换当前系统正在使用 class
+                    inst.redefineClasses(definition);
+                }
+            }
+
+        } catch (UnmodifiableClassException | IOException | ClassNotFoundException e) {
+            System.out.println(&quot;热更新数据失败&quot;);
+        }
+
+
+    }
+
+    /**
+     * 使用 asm 读取类名
+     *
+     * @param bytes
+     * @return
+     */
+    private static String readClassName(final byte[] bytes) {
+        return new ClassReader(bytes).getClassName().replace(&quot;/&quot;, &quot;.&quot;);
+    }
+}</code></code></pre>
+<p>完成代码之后，我们还需要往 jar 包 manifest 写入以下属性。</p>
+<pre class="txt"><code>## 指定 agent-main 全名
+Agent-Class: com.andyxh.AgentMain
+## 设置权限，默认为 false，没有权限替换 class
+Can-Redefine-Classes: true</code></code></pre>
+<p>我们使用 <code>maven-assembly-plugin</code>，将上面的属性写入文件中。</p>
+<pre class="xml"><code>&lt;plugin&gt;
+    &lt;artifactId&gt;maven-assembly-plugin&lt;/artifactId&gt;
+    &lt;version&gt;3.1.0&lt;/version&gt;
+    &lt;configuration&gt;
+        &lt;!--指定最后产生 jar 名字--&gt;
+        &lt;finalName&gt;hotswap-jdk&lt;/finalName&gt;
+        &lt;appendAssemblyId&gt;false&lt;/appendAssemblyId&gt;
+        &lt;descriptorRefs&gt;
+            &lt;!--将工程依赖 jar 一块打包--&gt;
+            &lt;descriptorRef&gt;jar-with-dependencies&lt;/descriptorRef&gt;
+        &lt;/descriptorRefs&gt;
+        &lt;archive&gt;
+            &lt;manifestEntries&gt;
+                &lt;!--指定 class 名字--&gt;
+                &lt;Agent-Class&gt;
+                    com.andyxh.AgentMain
+                &lt;/Agent-Class&gt;
+                &lt;Can-Redefine-Classes&gt;
+                    true
+                &lt;/Can-Redefine-Classes&gt;
+            &lt;/manifestEntries&gt;
+            &lt;manifest&gt;
+                &lt;!--指定 mian 类名字，下面将会使用到--&gt;
+                &lt;mainClass&gt;com.andyxh.JvmAttachMain&lt;/mainClass&gt;
+            &lt;/manifest&gt;
+        &lt;/archive&gt;
+    &lt;/configuration&gt;
+    &lt;executions&gt;
+        &lt;execution&gt;
+            &lt;id&gt;make-assembly&lt;/id&gt; &lt;!-- this is used for inheritance merges --&gt;
+            &lt;phase&gt;package&lt;/phase&gt; &lt;!-- bind to the packaging phase --&gt;
+            &lt;goals&gt;
+                &lt;goal&gt;single&lt;/goal&gt;
+            &lt;/goals&gt;
+        &lt;/execution&gt;
+    &lt;/executions&gt;
+&lt;/plugin&gt;</code></code></pre>
+<p>到这里我们就完成热更新主要代码，接着使用 Attach API，连接目标虚拟机，触发热更新的代码。</p>
+<pre><code><code>public class JvmAttachMain {
+    public static void main(String[] args) throws IOException, AttachNotSupportedException, AgentLoadException, AgentInitializationException {
+        // 输入参数，第一个参数为需要 Attach jvm pid 第二参数为 class 路径
+        if(args==null||args.length&lt;2){
+            System.out.println(&quot;请输入必要参数，第一个参数为 pid，第二参数为 class 绝对路径&quot;);
+            return;
+        }
+        String pid=args[0];
+        String classPath=args[1];
+        System.out.println(&quot;当前需要热更新 jvm pid 为 &quot;+pid);
+        System.out.println(&quot;更换 class 绝对路径为 &quot;+classPath);
+        // 获取当前 jar 路径
+        URL jarUrl=JvmAttachMain.class.getProtectionDomain().getCodeSource().getLocation();
+        String jarPath=jarUrl.getPath();
+
+        System.out.println(&quot;当前热更新工具 jar 路径为 &quot;+jarPath);
+        VirtualMachine vm = VirtualMachine.attach(pid);//7997是待绑定的jvm进程的pid号
+        // 运行最终 AgentMain 中方法
+        vm.loadAgent(jarPath, classPath);
+    }
+}</code></code></pre>
+<p>在这个启动类，我们最终调用 <code>VirtualMachine#loadAgent</code>，JVM 将会使用上面 AgentMain 方法使用传入 class 文件替换正在运行 class。</p>
+<h3 id="运行">4.2、运行</h3>
+<p>这里我们继续开头使用的例子，不过这里加入一个方法获取 JVM 运行进程 ID。</p>
+<pre><code><code>public class HelloService {
+
+    public static void main(String[] args) throws InterruptedException {
+        System.out.println(getPid());
+        while (true){
+            TimeUnit.SECONDS.sleep(1);
+            hello();
+        }
+    }
+
+    public static void hello(){
+        System.out.println(&quot;hello world&quot;);
+    }
+
+    /**
+     * 获取当前运行 JVM PID
+     * @return
+     */
+    private static String getPid() {
+        // get name representing the running Java virtual machine.
+        String name = ManagementFactory.getRuntimeMXBean().getName();
+        System.out.println(name);
+        // get pid
+        return name.split(&quot;@&quot;)[0];
+    }
+
+}</code></code></pre>
+<p>首先运行 <code>HelloService</code>，获取当前 PID,接着复制 <code>HelloService</code> 代码到另一个工程，修改 <code>hello</code> 方法输出 <code>hello agent</code>，重新编译生成新的 class 文件。</p>
+<p>最后在命令行运行生成的 jar 包。</p>
+<p><img src="./images/手把手教你实现热更新功能，带你了解 Arthas 热更新背后的原理3.png" alt="image.png" /></p>
+<p><code>HelloService</code> 输出效果如下所示：</p>
+<p><img src="./images/手把手教你实现热更新功能，带你了解 Arthas 热更新背后的原理4.png" alt="image.png" /></p>
+<p><a href="https://github.com/9526xu/hotswap-example">源代码地址：https://github.com/9526xu/hotswap-example</a></p>
+<h3 id="调试技巧">4.3、调试技巧</h3>
+<p>普通的应用我们可以在 IDE 直接使用 Debug 模式调试程序，但是上面的程序无法直接使用 Debug。刚开始运行的程序碰到很多问题，无奈之下，只能选择最原始的办法，打印错误日志。后来查看 arthas 的文档，发现上面一篇文章介绍使用 IDEA Remote Debug 模式调试程序。</p>
+<p>首先我们需要在 <code>HelloService</code> JVM 参数加入以下参数：</p>
+<pre class="sh"><code>-Xrunjdwp:transport=dt_socket,server=y,address=8001  </code></code></pre>
+<p>此时程序将会被阻塞，直到远程调试程序连接上 8001 端口，输出如下：</p>
+<p><img src="./images/手把手教你实现热更新功能，带你了解 Arthas 热更新背后的原理5.png" alt="image.png" /></p>
+<p>然后在 <code>Agent-main</code> 这个工程增加一个 remote 调试。</p>
+<p><img src="./images/手把手教你实现热更新功能，带你了解 Arthas 热更新背后的原理6.png" alt="image.png" /></p>
+<p><img src="./images/手把手教你实现热更新功能，带你了解 Arthas 热更新背后的原理7.png" alt="image.png" /></p>
+<p>图中参数如下:</p>
+<pre class="sh"><code>-agentlib:jdwp=transport=dt_socket,server=y,suspend=n,address=8001</code></code></pre>
+<p>在 <code>Agent-main</code> 工程打上断点，运行远程调试， <code>HelloService</code> 程序将会被启动。</p>
+<p>最后在命令行窗口运行 <code>Agent-main</code> 程序，远程调试将会暂停到相应断点处，接下来调试就跟普通 Debug 模式一样，不再叙述。</p>
+<h3 id="相关问题">4.4、相关问题</h3>
+<p>由于 Attach API 位于 tools.jar 中，而在 JDK8 之前 tools.jar 与我们常用JDK jar 包并不在同一个位置，所以编译与运行过程可能找不到该 jar 包，从而导致报错。</p>
+<p>如果 maven 编译与运行都使用 JDK9 之后，不用担心下面问题。</p>
+<p><strong>maven 编译问题</strong></p>
+<p>maven 编译过程可能发生如下错误。</p>
+<p><img src="./images/手把手教你实现热更新功能，带你了解 Arthas 热更新背后的原理8.png" alt="image.png" /></p>
+<p>解决办法为在 pom 下加入 tools.jar 。</p>
+<pre class="xml"><code>        &lt;dependency&gt;
+            &lt;groupId&gt;jdk.tools&lt;/groupId&gt;
+            &lt;artifactId&gt;jdk.tools&lt;/artifactId&gt;
+            &lt;scope&gt;system&lt;/scope&gt;
+            &lt;version&gt;1.6&lt;/version&gt;
+            &lt;systemPath&gt;${java.home}/../lib/tools.jar&lt;/systemPath&gt;
+        &lt;/dependency&gt;</code></code></pre>
+<p>或者使用下面依赖。</p>
+<pre class="xml"><code>        &lt;dependency&gt;
+            &lt;groupId&gt;com.github.olivergondza&lt;/groupId&gt;
+            &lt;artifactId&gt;maven-jdk-tools-wrapper&lt;/artifactId&gt;
+            &lt;version&gt;0.1&lt;/version&gt;
+            &lt;scope&gt;provided&lt;/scope&gt;
+            &lt;optional&gt;true&lt;/optional&gt;
+        &lt;/dependency&gt;</code></code></pre>
+<p><strong>程序运行过程 tools.jar 找不到</strong></p>
+<p>运行程序时抛出 <code>java.lang.NoClassDefFoundError</code>，主要原因还是系统未找到 tools.jar 导致。</p>
+<p><img src="./images/手把手教你实现热更新功能，带你了解 Arthas 热更新背后的原理9.png" alt="image.png" /></p>
+<p>在运行参数加入 <code>-Xbootclasspath/a:${java_home}/lib/tools.jar</code>，完整运行命令如下：</p>
+<p><img src="./images/手把手教你实现热更新功能，带你了解 Arthas 热更新背后的原理10.png" alt="image.png" /></p>
+<h3 id="热更新存在一些限制">4.5、热更新存在一些限制</h3>
+<p>并不是所有改动热更新都将会成功，当前使用 <code>Instrumentation#redefineClasses</code> 还是存在一些限制。我们仅只能修改方法内部逻辑，属性值等，不能添加，删除方法或字段，也不能更改方法的签名或继承关系。</p>
+<h2 id="五彩蛋">五、彩蛋</h2>
+<p>写完热更新代码，收到一封系统邮件提示 xxx bug 待修复。恩，说好的少提 Bug 呢 o(╥﹏╥)o。</p>
+<h2 id="六帮助">六、帮助</h2>
+<p><a href="https://www.ibm.com/developerworks/cn/java/j-lo-hotdeploy/index.html">1.深入探索 Java 热部署</a><br />
+<a href="https://www.ibm.com/developerworks/cn/java/j-lo-jse61/index.html">2.Instrumentation 新功能</a></p>
+<blockquote>
+<p>欢迎关注我的公众号：程序通事，获得日常干货推送。如果您对我的专题内容感兴趣，也可以关注我的博客：<a href="https://studyidea.cn">studyidea.cn</a></p>
+</blockquote>
+<p><img src="./images/手把手教你实现热更新功能，带你了解 Arthas 热更新背后的原理11.png" alt="其他平台.png" /></p>
+
+
+</div><hr><script charset='utf-8' src='../../js/sming.js'></script></body></html>

@@ -1,0 +1,279 @@
+<html><head><meta charset='utf-8'><meta name='viewport' content='width=device-width, initial-scale=1'>
+<meta name='applicable-device' content='pc'><meta name='keywords' content='电脑,电脑讲解,电脑技术,编程,电脑故障维修echarts动态刷新数据' />
+<script src='../../highlight/highlight.pack.js'></script>
+<link rel='stylesheet' type='text/css' href='../../highlight/styles/monokai.css'/>
+
+<link rel='stylesheet' href='../../fenxiang/dist/css/share.min.css'>
+<script src='../../fenxiang/src/js/social-share.js'></script>
+<script src='../../fenxiang/src/js/qrcode.js'></script>
+
+</head><body><script>hljs.initHighlightingOnLoad();</script><script>
+var system ={};  
+var p = navigator.platform;       
+system.win = p.indexOf('Win') == 0;  
+system.mac = p.indexOf('Mac') == 0;  
+system.x11 = (p == 'X11') || (p.indexOf('Linux') == 0);     
+if(system.win||system.mac||system.xll){
+document.write("<link href='../css/3.css' rel='stylesheet' type='text/css'>");}else{ document.write("<link href='../css/3wap.css' rel='stylesheet' type='text/css'>");}</script><script src='../../js/3.js'></script><div class='div2'><div class='heading_nav'><ul><div><li><a href='../../index.html'>首页</a></li>
+</div><div onclick='hidden1()' >分享</div>
+</ul></div></div>
+<div id='heading_nav2'> 
+<li class='row' >
+<div class='social-share' data-mode='prepend'><a href='javascript:' class='social-share-icon icon-heart'></a></div></li></div><script charset='utf-8' src='../../3/js/hengfu.js'></script><script charset='utf-8' src='../../3/js/hengfu2.js'></script><hr><div class='div1'><div class='biaoti'><center>echarts动态刷新数据</center></div><div class='banquan'>原文出处:本文由博客园博主西红柿炒番茄拌土豆提供。<br/>
+原文连接:https://www.cnblogs.com/-ccj/p/11844740.html</div><br>
+    <p>在这次的项目中图表显示的部分比较多，这边给分享下用到的图表的数据刷新</p>
+<p>&nbsp;</p>
+<p><img src="./images/echarts动态刷新数据0.png" alt="" /></p>
+<p>&nbsp;</p>
+<p>&nbsp;饼图最后的效果</p>
+<p>先看下</p>
+<p>前端部分</p>
+<src class="cnblogs_code">
+<pre><code>&lt;div div style=<span style="color: #800000;">"</span><span style="color: #800000;">height: 40%; width: 17.5%; background-color: white;</span>
+margin-top: 20px; <span style="color: #0000ff;">float</span>: left; border-left: black;<span style="color: #800000;">"</span><span style="color: #800000;"> id=</span><span style="color: #800000;">"</span>member<span style="color: #800000;">"</span><span style="color: #800000;">&gt;</span>
+
+&lt;/div&gt;</code></pre>
+
+<p>这是右边图的 echarts的html&nbsp; 一定要定义好大小</p>
+<p>接下来是 js部分 先定义一个模板 官网有 自己稍加修改 （比较懒没加注释）</p>
+<src class="cnblogs_code">
+<pre><code><span style="color: #008000;">//</span><span style="color: #008000;"> 绘制会员量比例图表</span>
+    <span style="color: #0000ff;">var</span> memberChart = echarts.init(document.getElementById('member'<span style="color: #000000;">));
+        memberChart.setOption({
+        tooltip: {
+            trigger: </span>'item'<span style="color: #000000;">,
+            formatter: </span>"{a} &lt;br/&gt;{b}: {c} ({d}%)"<span style="color: #000000;">
+        },
+        legend: {
+            itemHeight: </span>10<span style="color: #000000;">,
+            itemWidth: </span>10<span style="color: #000000;">,
+            orient: </span>'vertical'<span style="color: #000000;">,
+            x: </span>'center'<span style="color: #000000;">,
+            y: </span>'bottom'<span style="color: #000000;">,
+            icon: </span>'roundRect'<span style="color: #000000;">,
+            formatter: </span><span style="color: #0000ff;">function</span><span style="color: #000000;">(name) {
+                </span><span style="color: #0000ff;">var</span> index = 0<span style="color: #000000;">;
+                </span><span style="color: #0000ff;">var</span> clientlabels = ['新增会员','老会员'<span style="color: #000000;">];
+                </span><span style="color: #0000ff;">var</span> clientcounts = [621,32032<span style="color: #000000;">];
+                clientlabels.forEach(</span><span style="color: #0000ff;">function</span><span style="color: #000000;">(value,i){
+                    </span><span style="color: #0000ff;">if</span>(value ==<span style="color: #000000;"> name){
+                        index </span>=<span style="color: #000000;"> i;
+                    }
+                });
+                </span><span style="color: #0000ff;">return</span> name + "  " +<span style="color: #000000;"> clientcounts[index];
+            }
+        },
+        series: [
+            {
+                name:</span>'男女比例'<span style="color: #000000;">,
+                type:</span>'pie'<span style="color: #000000;">,
+                radius: [</span>'45%', '53%'<span style="color: #000000;">],
+                avoidLabelOverlap: </span><span style="color: #0000ff;">false</span><span style="color: #000000;">,
+                hoverAnimation: </span><span style="color: #0000ff;">false</span><span style="color: #000000;">,
+                data:[
+                    {value:</span>621, name:'新增会员'<span style="color: #000000;">},
+                    {value:</span>32032, name:'老会员'<span style="color: #000000;">},
+                ],
+                itemStyle: {
+                    normal:{
+                        label:{
+                            position : </span>'outside'<span style="color: #000000;">,
+                            formatter: </span>'{d}%'<span style="color: #000000;">,
+                            fontSize: </span>10<span style="color: #000000;">,
+                        },
+                        labelLine :{
+                            length: </span>2<span style="color: #000000;">,
+                            length2: </span>2<span style="color: #000000;">,
+                            show:</span><span style="color: #0000ff;">false</span><span style="color: #000000;">,
+                        }
+                    }
+
+                }
+            }
+        ],
+        color:[</span>'#0090FF','#F6A20C'<span style="color: #000000;">],
+        title: {
+            subtext: </span>'会员总人数'<span style="color: #000000;">,
+            text: </span>'32653'<span style="color: #000000;">,
+            x: </span>'center'<span style="color: #000000;">,
+            y: </span>'center'<span style="color: #000000;">,
+            padding: </span>0<span style="color: #000000;">,
+            itemGap: </span>0<span style="color: #000000;">,
+            textStyle:{
+                fontSize: </span>20<span style="color: #000000;">,
+            },
+            subtextStyle:{
+                fontSize: </span>10<span style="color: #000000;">,
+            },
+        },
+        graphic: {
+            type: </span>'text'<span style="color: #000000;">,
+            style:{
+                x: </span>15<span style="color: #000000;">,
+                y: </span>15<span style="color: #000000;">,
+                font: </span>'bolder 1.2em "PingFang-SC-Medium", sans-serif'<span style="color: #000000;">,
+                text:</span>'今日新增会员比例'<span style="color: #000000;">,
+            },
+        },
+    });</span></code></pre>
+
+<p>因为 主副标题被我拿去显示不同数据了&nbsp; 所有用上了</p>
+<pre><code><span>graphic</span></code></pre>
+<p>原生图形元素组件</p>
+<p>&nbsp;</p>
+<p>接下来 看下 动态刷新数据的js</p>
+<src class="cnblogs_code">
+<pre><code><span style="color: #0000ff;">function</span><span style="color: #000000;"> reflushMember(data) {
+        memberChart.setOption({
+            legend: {
+                formatter: </span><span style="color: #0000ff;">function</span><span style="color: #000000;">(name) {
+                    </span><span style="color: #0000ff;">var</span> index = 0<span style="color: #000000;">;
+                    </span><span style="color: #0000ff;">var</span> clientlabels = ['新增会员','老会员'<span style="color: #000000;">];
+                    </span><span style="color: #0000ff;">var</span> clientcounts =<span style="color: #000000;"> [data.newMemberCount, data.oldMemberCount];
+                    clientlabels.forEach(</span><span style="color: #0000ff;">function</span><span style="color: #000000;">(value,i){
+                        </span><span style="color: #0000ff;">if</span>(value ==<span style="color: #000000;"> name){
+                            index </span>=<span style="color: #000000;"> i;
+                        }
+                    });
+                    </span><span style="color: #0000ff;">return</span> name + "  " +<span style="color: #000000;"> clientcounts[index];
+                }
+            },
+
+            series: [
+                {
+                    data:[
+                        {value:data.newMemberCount, name:</span>'新增会员'<span style="color: #000000;">},
+                        {value:data.oldMemberCount, name:</span>'老会员'<span style="color: #000000;">},
+                    ],
+
+                }],
+            title: {
+                text:data.memberCount,
+            }
+
+    })
+    }</span></code></pre>
+
+<p>主要就是把之前模板上的数据部分替换成 后台获取到的数据&nbsp; &nbsp;</p>
+<p>&nbsp;</p>
+<p>饼图的刷新就到这里</p>
+<p>还有个横向柱状图 其实都是差不多的 但是还是也看下吧</p>
+<p>先看效果</p>
+<p><img src="./images/echarts动态刷新数据1.png" alt="" /></p>
+<p>&nbsp;</p>
+<p>&nbsp;这是4个横向柱状图&nbsp; 适应不同的搜索条件 就看下 月度top5的吧</p>
+<src class="cnblogs_code">
+<pre><code>&lt;p id="monthTitle" style="<span style="color: #000000;">position:absolute;margin-left: 18%;margin-top: 1.4%;
+    font: bolder 1.2em PingFang-SC-Medium sans-serif;</span>"&gt;&lt;/p&gt;
+    &lt;div style="height: 100%;width: 100%;position:absolute;" id="monthArea"&gt;&lt;/div&gt;</code></pre>
+
+<p>P标签是那个 标题</p>
+<src class="cnblogs_code">
+<pre><code><span style="color: #008000;">//</span><span style="color: #008000;"> 绘制月度热力商圈图表</span>
+    <span style="color: #0000ff;">var</span> monthAreaChart = echarts.init(document.getElementById('monthArea'<span style="color: #000000;">));
+        monthAreaChart.setOption({
+        dataset: {
+            source: [
+               </span><span style="color: #008000;">/*</span><span style="color: #008000;"> [58212, '小郡干串串'],
+                [78254, '钢管厂'],
+                [41032, '耐克'],
+                [12755, '金大福'],
+                [20145, '肯德基'],</span><span style="color: #008000;">*/</span><span style="color: #000000;">
+            ]
+        },
+        </span><span style="color: #008000;">/*</span><span style="color: #008000;">grid: {containLabel: true},</span><span style="color: #008000;">*/</span><span style="color: #000000;">
+        xAxis: {name: </span>'(人)'<span style="color: #000000;">,
+            show:</span><span style="color: #0000ff;">true</span><span style="color: #000000;">,
+            splitLine: {
+                show: </span><span style="color: #0000ff;">false</span><span style="color: #000000;">
+            }},
+        yAxis: {type: </span>'category'<span style="color: #000000;">,
+            axisLine:{show:</span><span style="color: #0000ff;">false</span>},     <span style="color: #008000;">//</span><span style="color: #008000;">坐标轴</span>
+            axisTick:[{    <span style="color: #008000;">//</span><span style="color: #008000;">坐标轴小标记</span>
+                show:<span style="color: #0000ff;">false</span><span style="color: #000000;">
+            }],
+        },
+        grid:{
+            height:</span>'70%'<span style="color: #000000;">,
+            y2:</span>20<span style="color: #000000;">,
+            left:</span>'15%'<span style="color: #000000;">,
+        },
+        series: [
+            {
+
+                textStyle:{
+                    fontSize:</span>10<span style="color: #000000;">,
+                },
+                type: </span>'bar'<span style="color: #000000;">,
+                encode: {
+                    </span><span style="color: #008000;">//</span><span style="color: #008000;"> Map the "amount" column to X axis.</span>
+                    x: 'amount'<span style="color: #000000;">,
+                    </span><span style="color: #008000;">//</span><span style="color: #008000;"> Map the "product" column to Y axis</span>
+                    y: 'product'<span style="color: #000000;">
+                },
+                </span><span style="color: #008000;">/*</span><span style="color: #008000;">barWidth: 10,</span><span style="color: #008000;">*/</span><span style="color: #000000;">
+                barGap:</span>'70%',<span style="color: #008000;">/*</span><span style="color: #008000;">多个并排柱子设置柱子之间的间距</span><span style="color: #008000;">*/</span><span style="color: #000000;">
+                barCategoryGap:</span>'50%',<span style="color: #008000;">/*</span><span style="color: #008000;">多个并排柱子设置柱子之间的间距</span><span style="color: #008000;">*/</span><span style="color: #000000;">
+                itemStyle: {
+                    normal: {
+                        color: </span><span style="color: #0000ff;">new</span> echarts.graphic.LinearGradient(0, 0, 1, 0<span style="color: #000000;">, [{
+                            offset: </span>0<span style="color: #000000;">,
+                            color: </span>'#438CFF'<span style="color: #000000;">
+                        }, {
+                            offset: </span>1<span style="color: #000000;">,
+                            color: </span>'#20C0F4'<span style="color: #000000;">
+                        }]),
+                        label: {
+                            show: </span><span style="color: #0000ff;">true</span>, <span style="color: #008000;">//</span><span style="color: #008000;">开启显示</span>
+                            position: 'right', <span style="color: #008000;">//</span><span style="color: #008000;">在上方显示</span>
+                            textStyle: { <span style="color: #008000;">//</span><span style="color: #008000;">数值样式</span>
+                                color: 'black'<span style="color: #000000;">,
+                                fontSize: </span>10<span style="color: #000000;">
+                            }
+                        },
+                    }
+                },
+            }
+        ],
+        graphic: {
+            type: </span>'text'<span style="color: #000000;">,
+            style:{
+                x: </span>15<span style="color: #000000;">,
+                y: </span>15<span style="color: #000000;">,
+                font: </span>'bolder 1.2em "PingFang-SC-Medium", sans-serif'<span style="color: #000000;">,
+                text:</span>'月度TOP5'<span style="color: #000000;">,
+            },
+        },</span></code></pre>
+
+<p>上面是 横向柱状图 模板例子</p>
+<src class="cnblogs_code">
+<pre><code><span style="color: #0000ff;">var</span> listTop5Result =<span style="color: #000000;"> result.listTop5Result;
+
+                    </span><span style="color: #0000ff;">for</span>(<span style="color: #0000ff;">var</span> i = listTop5Result.length - 1; i &gt;= 0; i--<span style="color: #000000;">){
+                        names.push(listTop5Result[i].deptName);    </span><span style="color: #008000;">//</span><span style="color: #008000;">挨个取出类别并填入类别数组</span>
+<span style="color: #000000;">                    }
+                    </span><span style="color: #0000ff;">for</span>(<span style="color: #0000ff;">var</span> i = listTop5Result.length - 1; i &gt;= 0; i--<span style="color: #000000;">){
+                        nums.push(listTop5Result[i].num);    </span><span style="color: #008000;">//</span><span style="color: #008000;">挨个取出人次并填入销量数组</span>
+<span style="color: #000000;">                    }
+                    myChart.hideLoading();    </span><span style="color: #008000;">//</span><span style="color: #008000;">隐藏加载动画</span>
+                    myChart.setOption({        <span style="color: #008000;">//</span><span style="color: #008000;">加载数据图表</span>
+<span style="color: #000000;">
+                        yAxis: {
+                            data: names
+                        },
+                        series: [{
+                            data: nums
+                        }]
+
+                    });</span></code></pre>
+
+<p>上面是 动态获取 并要刷新的数据&nbsp; 和饼图不同的是 柱状图传进去的要是数组</p>
+<p>&nbsp;</p>
+<p>以上就是我要分享的内容了&nbsp;&nbsp;</p>
+<p>&nbsp;</p>
+<p>感谢</p>
+<p>&nbsp;</p>
+<p>如果有什么错误 请多多指教！</p>
+<p>2019-11-12 19:52:21</p>
+
+</div><hr><script charset='utf-8' src='../../js/sming.js'></script></body></html>

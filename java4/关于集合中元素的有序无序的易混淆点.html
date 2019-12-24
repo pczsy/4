@@ -1,0 +1,90 @@
+<html><head><meta charset='utf-8'><meta name='viewport' content='width=device-width, initial-scale=1'>
+<meta name='applicable-device' content='pc'><meta name='keywords' content='电脑,电脑讲解,电脑技术,编程,电脑故障维修关于集合中元素的有序无序的易混淆点' />
+<script src='../../highlight/highlight.pack.js'></script>
+<link rel='stylesheet' type='text/css' href='../../highlight/styles/monokai.css'/>
+
+<link rel='stylesheet' href='../../fenxiang/dist/css/share.min.css'>
+<script src='../../fenxiang/src/js/social-share.js'></script>
+<script src='../../fenxiang/src/js/qrcode.js'></script>
+
+</head><body><script>hljs.initHighlightingOnLoad();</script><script>
+var system ={};  
+var p = navigator.platform;       
+system.win = p.indexOf('Win') == 0;  
+system.mac = p.indexOf('Mac') == 0;  
+system.x11 = (p == 'X11') || (p.indexOf('Linux') == 0);     
+if(system.win||system.mac||system.xll){
+document.write("<link href='../css/3.css' rel='stylesheet' type='text/css'>");}else{ document.write("<link href='../css/3wap.css' rel='stylesheet' type='text/css'>");}</script><script src='../../js/3.js'></script><div class='div2'><div class='heading_nav'><ul><div><li><a href='../../index.html'>首页</a></li>
+</div><div onclick='hidden1()' >分享</div>
+</ul></div></div>
+<div id='heading_nav2'> 
+<li class='row' >
+<div class='social-share' data-mode='prepend'><a href='javascript:' class='social-share-icon icon-heart'></a></div></li></div><script charset='utf-8' src='../../3/js/hengfu.js'></script><script charset='utf-8' src='../../3/js/hengfu2.js'></script><hr><div class='div1'><div class='biaoti'><center>关于集合中元素的有序无序的易混淆点</center></div><div class='banquan'>原文出处:本文由博客园博主程序员-可乐先生提供。<br/>
+原文连接:https://www.cnblogs.com/12three/p/11483556.html</div><br>
+    <p>最近在整理Java基础知识的面试题，看到了一个题目的答案不够准确，这里跟大家分享一下。</p>
+<p>一、面试题的小错误</p>
+<p><img src="./images/关于集合中元素的有序无序的易混淆点0.png" alt="" width="606" height="350" /></p>
+<p>&nbsp;对于TreeSet和TreeMap来说，元素应该是无序（指元素的存取）而不是有序的，而在表中它可能想表达的是可以排序，不够严谨，严格来讲</p>
+<p>元素的有序&ne;可以排序。元素的存取有序和排序本质上应该是两码事，不应该混为一听。</p>
+<p>二、元素的有序和无序</p>
+<p>&nbsp;　　下面具体来讲讲，集合中元素的存取有序的问题。&nbsp;</p>
+<p>　　众所周知，List的特点：&nbsp; &nbsp; ①元素可重复 ②元素是有序的</p>
+<p>　　相对地，Set的特点是：&nbsp; &nbsp; ①元素唯一&nbsp; &nbsp; ②元素是无序的</p>
+<p>　　首先，我们来明确这里的<span style="color: #ff0000;">有序/无序</span>的准确定义。</p>
+<p>　　有序是指元素的<span style="color: #ff0000;">存取顺序</span>是一致的，即你以什么顺序将元素存入List，比如1，3，4，13，那么取（遍历）出来的顺序也是1，3，4，13。</p>
+<p>　　无序是指元素的<span style="color: #ff0000;">存取顺序</span>是不一致的（这里注意，事实上会有小概率可能，你可能<span style="color: #ff0000;">碰巧</span>发现你的set中元素的存取顺序很<span style="color: #ff0000;">巧合地一致</span>了，不符合这个定义了，那么set中的元素究竟是不是一致的呢？我们下面会讲解）</p>
+<p>&nbsp;三、具体例子</p>
+<p>　　①List</p>
+<p>　　List中<span style="color: #ff0000;">元素的存取</span>是有序的，有序很好理解，比如一个数组arr（以ArrayList为例）,该数组的输出顺序是跟你存入(add)的顺序是一致的，为 15 , 2, 3, 9。</p>
+<src class="cnblogs_code">
+<pre><code><span style="color: #0000ff;">import</span><span style="color: #000000;"> java.util.ArrayList;
+</span><span style="color: #0000ff;">import</span><span style="color: #000000;"> java.util.List;
+</span><span style="color: #0000ff;">public</span> <span style="color: #0000ff;">class</span><span style="color: #000000;"> Test {
+
+    </span><span style="color: #0000ff;">public</span> <span style="color: #0000ff;">static</span> <span style="color: #0000ff;">void</span><span style="color: #000000;"> main(String[] args) {
+     　　   List</span>&lt;Integer&gt; arr=<span style="color: #0000ff;">new</span><span style="color: #000000;"> ArrayList();
+       　　　　 arr.add(</span>15<span style="color: #000000;">);
+       　　　　 arr.add(</span>2<span style="color: #000000;">);
+      　　 　　 arr.add(</span>3<span style="color: #000000;">);
+      　　　　  arr.add(</span>9<span style="color: #000000;">);
+             </span><span style="color: #0000ff;">for</span>(<span style="color: #0000ff;">int</span><span style="color: #000000;"> a:arr) {
+            System.out.println(a);
+        }
+　　　　</span><span style="color: #008000;">//</span><span style="color: #008000;"> 输出结果   15   2    3   9 
+　　   </span><span style="color: #008000;">//</span><span style="color: #008000;">arraylist的元素存取是有序的</span>
+<span style="color: #000000;">    }
+}</span></code></pre>
+
+<p>　②Set</p>
+<src class="cnblogs_Highlighter">
+<pre class="brush:java;gutter:true;">import java.util.HashSet;
+import java.util.Set;
+
+public class Test {
+
+	public static void main(String[] args) {
+		Set&lt;Integer&gt; set=new HashSet();
+		set.add(122);
+		set.add(234);
+		set.add(2);
+		set.add(12);<br />
+		for(Integer s:set) {
+			System.out.println(s+"  "+s.hashCode());
+		}
+// 输出为 2  122   234   12
+//HashSet是元素无序的
+	}
+}
+</code></pre>
+
+<p>　　Set中元素的存取是无序的。那么为什么会出现小概率的<span style="color: #ff0000;">&ldquo;有序&rdquo;</span>情况呢？</p>
+<p>　　以HashSet来讲，HashSet的底层是Hash表，我们每次add元素进去后，每个元素将调用hashcode方法（匹配1个Hash函数）得到一个对应的hashcode值，然后根据这个hashcode值在hash表中对应的位置存入元素。举例来说,我们现在存的顺序是123，22，12，3。而取出来的时候是按照这些元素在Hash表中的<span style="color: #ff0000;">真正的存储位置<span style="color: #000000;">顺序</span></span>(或者逆序或者某种规则)遍历，所以便会出现存取顺序不一致的情况。也就是说，Hash表内部的排序是根据hash值而不是add的先后顺序来排序的，而上面出现的特殊情况，也就是说正好你的元素的add顺序和它对应的Hash值在Hash表中的排列顺序刚好一致，让你感觉上好像变成有序了。其实，从Hash表的角度上来讲，HashSet中元素的存取并不是完全无序（随机）的，只不过它是按照自己的规则来存入和输出元素（Hash表中的Hash值的大小顺序）。</p>
+<p>　　同理，对于TreeMap来说，其底层为红黑树。add元素的先后顺序并不重要，真正的存储顺序是按照二叉树的规则存储的，所以最后遍历都是自然排序后的输出。</p>
+<p>四、总结</p>
+<p>　　最后总结：从本质上讲，List和Set内元素有序/无序的<span style="color: #ff0000;">核心区别</span></p>
+<p>　　List的元素有序是因为它的底层是线性结构的数组（或者链表），元素的存取是和add的先后(时间)次序有关的&mdash;&mdash;本质上与时间相关</p>
+<p>　　Set的元素无序是因为它的底层是非线性结构的哈希表/二叉树，元素的存取是和add的先后(时间)顺序无关的&mdash;&mdash;你先add还是后add，都是存在Hash表中的同一个位置/在二叉树中，无论你先add还是后add，最后都输出的是排序（默认自然排序）后的数组&mdash;&mdash;本质上和时间无关</p>
+<p>　</p>
+<p>　　</p>
+
+</div><hr><script charset='utf-8' src='../../js/sming.js'></script></body></html>

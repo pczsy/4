@@ -1,0 +1,121 @@
+<html><head><meta charset='utf-8'><meta name='viewport' content='width=device-width, initial-scale=1'>
+<meta name='applicable-device' content='pc'><meta name='keywords' content='电脑,电脑讲解,电脑技术,编程,电脑故障维修SpringSecurity动态加载用户角色权限实现登录及鉴权' />
+<script src='../../highlight/highlight.pack.js'></script>
+<link rel='stylesheet' type='text/css' href='../../highlight/styles/monokai.css'/>
+
+<link rel='stylesheet' href='../../fenxiang/dist/css/share.min.css'>
+<script src='../../fenxiang/src/js/social-share.js'></script>
+<script src='../../fenxiang/src/js/qrcode.js'></script>
+
+</head><body><script>hljs.initHighlightingOnLoad();</script><script>
+var system ={};  
+var p = navigator.platform;       
+system.win = p.indexOf('Win') == 0;  
+system.mac = p.indexOf('Mac') == 0;  
+system.x11 = (p == 'X11') || (p.indexOf('Linux') == 0);     
+if(system.win||system.mac||system.xll){
+document.write("<link href='../css/3.css' rel='stylesheet' type='text/css'>");}else{ document.write("<link href='../css/3wap.css' rel='stylesheet' type='text/css'>");}</script><script src='../../js/3.js'></script><div class='div2'><div class='heading_nav'><ul><div><li><a href='../../index.html'>首页</a></li>
+</div><div onclick='hidden1()' >分享</div>
+</ul></div></div>
+<div id='heading_nav2'> 
+<li class='row' >
+<div class='social-share' data-mode='prepend'><a href='javascript:' class='social-share-icon icon-heart'></a></div></li></div><script charset='utf-8' src='../../3/js/hengfu.js'></script><script charset='utf-8' src='../../3/js/hengfu2.js'></script><hr><div class='div1'><div class='biaoti'><center>SpringSecurity动态加载用户角色权限实现登录及鉴权</center></div><div class='banquan'>原文出处:本文由博客园博主字母哥博客提供。<br/>
+原文连接:https://www.cnblogs.com/zimug/p/11939522.html</div><br>
+    <p><img src="./images/SpringSecurity动态加载用户角色权限实现登录及鉴权0.png" alt="file" /></p>
+<p>很多人觉得Spring Security实现登录验证很难，我最开始学习的时候也这样觉得。因为我好久都没看懂我该怎么样将自己写的用于接收用户名密码的Controller与Spring Security结合使用，这是一个先入为主的误区。后来我搞懂了：根本不用你自己去写Controller。你只需要告诉Spring Security用户信息、角色信息、权限信息、登录页是什么？登陆成功页是什么？或者其他有关登录的一切信息。具体的登录验证逻辑它来帮你实现。</p>
+<h2 id="一动态数据登录验证的基础知识">一、动态数据登录验证的基础知识</h2>
+<p>在本号之前的文章中，已经介绍了Spring Security的formLogin登录认证模式，RBAC的权限控制管理模型，并且针对Spring Security的登录认证逻辑源码进行了解析等等。我们所有的用户、角色、权限信息都是在配置文件里面写死的，然而在实际的业务系统中，这些信息通常是存放在RBAC权限模型的数据库表中的。下面我们来回顾一下其中的核心概念：</p>
+<ul>
+<li>RBAC的权限模型可以从用户获取为用户分配的一个或多个角色，从用户的角色又可以获取该角色的多种权限。通过关联查询可以获取某个用户的角色信息和权限信息。</li>
+<li>在源码解析的文章中，我们知道如果我们不希望用户、角色、权限信息写死在配置里面。我们应该实现UserDetails与UserDetailsService接口，从而从数据库或者其他的存储上动态的加载这些信息。</li>
+</ul>
+<p>以上是对一些核心的基础知识的总结，如果您对这些知识还不是很清晰，建议您先往下读本文。如果看完本文仍然理解困难，建议您翻看本号之前的文章。</p>
+<h2 id="二userdetails与userdetailsservice接口">二、UserDetails与UserDetailsService接口</h2>
+<ul>
+<li>UserDetailsService接口有一个方法叫做loadUserByUsername，我们实现动态加载用户、角色、权限信息就是通过实现该方法。函数见名知义：通过用户名加载用户。该方法的返回值就是UserDetails。</li>
+<li>UserDetails就是用户信息，即：用户名、密码、该用户所具有的权限。</li>
+</ul>
+<p>下面我们来看一下UserDetails接口都有哪些方法。</p>
+<pre><code><code>public interface UserDetails extends Serializable {
+    //获取用户的权限集合
+    Collection&lt;? extends GrantedAuthority&gt; getAuthorities();
+
+    //获取密码
+    String getPassword();
+
+    //获取用户名
+    String getUsername();
+
+    //账号是否没过期
+    boolean isAccountNonExpired();
+
+    //账号是否没被锁定
+    boolean isAccountNonLocked();
+
+    //密码是否没过期
+    boolean isCredentialsNonExpired();
+
+    //账户是否可用
+    boolean isEnabled();
+}</code></code></pre>
+<p>现在，我们明白了，只要我们把这些信息提供给Spring Security，Spring Security就知道怎么做登录验证了，根本不需要我们自己写Controller实现登录验证逻辑。</p>
+<h2 id="三实现userdetails-接口">三、实现UserDetails 接口</h2>
+<pre><code><code>public class SysUser implements UserDetails{
+    
+    String password();  //密码
+    String username();  //用户名
+    boolean accountNonExpired;   //是否没过期
+    boolean accountNonLocked;   //是否没被锁定
+    boolean credentialsNonExpired;  //是否没过期
+    boolean enabled;  //账号是否可用
+    Collection&lt;? extends GrantedAuthority&gt; authorities;  //用户的权限集合
+
+    //省略构造方法
+    //省略set方法
+    //省略get方法（即接口UserDetails的方法）
+}</code></code></pre>
+<p>我们就是写了一个适应于UserDetails的java POJO类，所谓的 UserDetails接口实现就是一些get方法。get方法由Spring Security调用，我们通过set方法或构造函数为 Spring Security提供UserDetails数据。</p>
+<h2 id="四实现userdetailsservice接口">四、实现UserDetailsService接口</h2>
+<pre><code><code>@Component
+public class MyUserDetailsService implements UserDetailsService{
+
+    @Override
+    public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
+            
+       //这里从数据库sys_user表里面查询实体类对象。loadUser方法可使用Mybatis或JDBC或JPA自行实现。
+       SysUser sysUser =  loadUser(username);   
+
+        // 判断用户是否存在 
+       if(user == null)  {  throw  new  UsernameNotFoundException(&quot;用户名不存在&quot;);  }
+
+       //从数据库该用户所有的角色信息，所有的权限标志
+       //遍历所有的ROLE角色及所有的Authority权限（菜单、按钮）。
+       //用逗号分隔他们的唯一标志，具体过程自行实现。
+       sysUser.setAuthorities(
+               AuthorityUtils.commaSeparatedStringToAuthorityList(&quot;ROLE_AMIN , system:user:delete&quot;));
+        
+        //sysUser.setAccountNonLocked(true或false);
+        return sysUser;
+    }
+}
+</code></code></pre>
+<ul>
+<li>通常数据库表sys_user字段要和SysUser属性一一对应，比如username、password、enabled。但是比如accountNonLocked字段用于登录多次错误锁定，但我们一般不会在表里存是否锁定，而是存一个锁定时间字段。通过锁定时间是否大于当前时间判断账号是否锁定，所以实现过程中可以灵活做判断并用好set方法，不必拘泥于一一对应的形式。</li>
+<li>角色是一种特殊的权限，在Spring Security我们可以使用hasRole(角色标识)表达式判断用户是否具有某个角色，决定他是否可以做某个操作;通过hasAuthority(权限标识)表达式判断是否具有某个操作权限。</li>
+</ul>
+<h2 id="五最后说明">五、最后说明</h2>
+<p>至此，我们将系统里面的所有的用户、角色、权限信息都通过UserDetailsService和UserDetails告知了Spring Security。但是多数朋友可能仍然不知道该怎样实现登录的功能，其实剩下的事情很简单了：</p>
+<ul>
+<li>写一个登录界面，写一个登录表单，表单使用post方法提交到默认的/login路径</li>
+<li>表单的用户名、密码字段名称默认是username、password。</li>
+<li>写一个登录成功之后的跳转页面，比如index.html</li>
+</ul>
+<p>然后把这些信息通过配置方式告知Spring Security ，以上的配置信息名称都可以灵活修改。如果您不知道如何配置请参考本号之前的文章《formLogin登录认证模式》。</p>
+<h2 id="期待您的关注">期待您的关注</h2>
+<ul>
+<li>向您推荐博主的系列文档：<a href="http://springboot.zimug.com">《手摸手教您学习SpringBoot系列-16章97节》</a></li>
+<li>本文转载注明出处（必须带连接，不能只转文字）：<a href="http://www.zimug.com">字母哥博客</a>。</li>
+</ul>
+
+
+</div><hr><script charset='utf-8' src='../../js/sming.js'></script></body></html>

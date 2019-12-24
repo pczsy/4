@@ -1,0 +1,100 @@
+<html><head><meta charset='utf-8'><meta name='viewport' content='width=device-width, initial-scale=1'>
+<meta name='applicable-device' content='pc'><meta name='keywords' content='电脑,电脑讲解,电脑技术,编程,电脑故障维修Tomcat源码分析二：先看看Tomcat的整体架构' />
+<script src='../../highlight/highlight.pack.js'></script>
+<link rel='stylesheet' type='text/css' href='../../highlight/styles/monokai.css'/>
+
+<link rel='stylesheet' href='../../fenxiang/dist/css/share.min.css'>
+<script src='../../fenxiang/src/js/social-share.js'></script>
+<script src='../../fenxiang/src/js/qrcode.js'></script>
+
+</head><body><script>hljs.initHighlightingOnLoad();</script><script>
+var system ={};  
+var p = navigator.platform;       
+system.win = p.indexOf('Win') == 0;  
+system.mac = p.indexOf('Mac') == 0;  
+system.x11 = (p == 'X11') || (p.indexOf('Linux') == 0);     
+if(system.win||system.mac||system.xll){
+document.write("<link href='../css/3.css' rel='stylesheet' type='text/css'>");}else{ document.write("<link href='../css/3wap.css' rel='stylesheet' type='text/css'>");}</script><script src='../../js/3.js'></script><div class='div2'><div class='heading_nav'><ul><div><li><a href='../../index.html'>首页</a></li>
+</div><div onclick='hidden1()' >分享</div>
+</ul></div></div>
+<div id='heading_nav2'> 
+<li class='row' >
+<div class='social-share' data-mode='prepend'><a href='javascript:' class='social-share-icon icon-heart'></a></div></li></div><script charset='utf-8' src='../../3/js/hengfu.js'></script><script charset='utf-8' src='../../3/js/hengfu2.js'></script><hr><div class='div1'><div class='biaoti'><center>Tomcat源码分析二：先看看Tomcat的整体架构</center></div><div class='banquan'>原文出处:本文由博客园博主web_bird提供。<br/>
+原文连接:https://www.cnblogs.com/zhiyouwu/p/11670694.html</div><br>
+    <h2 id="tomcat源码分析二先看看tomcat的整体架构">Tomcat源码分析二：先看看Tomcat的整体架构</h2>
+<h3 id="tomcat架构图">Tomcat架构图</h3>
+<p>我们先来看一张比较经典的Tomcat架构图：</p>
+<p><img src="./images/Tomcat源码分析二：先看看Tomcat的整体架构0.png" /></p>
+<p>从这张图中，我们可以看出Tomcat中含有Server、Service、Connector、Container等组件，接下来我们一起去大致的看看这些组件的作用和他们之间的相互联系。在这之前，我们先补充一个知识点，也就是Tomcat它实现的功能点是什么呢？通过查找一些资料，这里参考下极客时间《深入拆解Tomcat_Jetty》中的总结，即Tomcat 要实现 2 个核心功能：</p>
+<ul>
+<li>处理 Socket 连接，负责网络字节流与 Request 和 Response 对象的转化；</li>
+<li>加载和管理 Servlet，以及具体处理 Request 请求。</li>
+</ul>
+<blockquote>
+<p>对应到架构图中，Tomcat 设计了两个核心组件：连接器（Connector）和容器（Container）来分别做这两件事情。连接器负责对外交流，也就是处理Socket连接，容器负责内部处理。</p>
+</blockquote>
+<h3 id="各组件介绍">各组件介绍</h3>
+<p>在介绍各组件之前，我们先关注一下下面这张关系图：</p>
+<p><img src="./images/Tomcat源码分析二：先看看Tomcat的整体架构1.png" /></p>
+<p>从图中可以看出，最顶层为Server(图中未标明)，也就是一个Tomcat实例。在一个Server下面可以有很多个Service服务，而每个Service服务又分为连接器和容器，也就是上面架构图中Connector和Container，其中连接器可以有多个，而容器只有一个，连接器Connector和容器Container之间的交互是通过ServletRequest和ServletResponse通信的。</p>
+<blockquote>
+<p>Tomcat 内可能有多个 Service，这种设计是出于灵活性的考虑。通过在 Tomcat 中配置多个 Service，可以实现通过不同的端口号来访问同一台机器上部署的不同应用。</p>
+</blockquote>
+<p>其实，我们可以关注以下Tomcat中conf/web.xml的配置：</p>
+<p><img src="./images/Tomcat源码分析二：先看看Tomcat的整体架构2.png" /></p>
+<p>下面，我们来着重看一下连接器connector和容器container的内容</p>
+<h3 id="连接器connector">连接器Connector</h3>
+<p>Connector对 Servlet 容器屏蔽了协议类型及 I/O 模型等的区别，无论是 HTTP 还是 AJP，在容器中获取到的都是一个标准的 ServletRequest 对象。先来看一下Connector的设计结构图：</p>
+<p><img src="./images/Tomcat源码分析二：先看看Tomcat的整体架构3.png" /></p>
+<p>引用《深入拆解Tomcat_Jetty》中关于Connector的功能总结，主要有如下功能：</p>
+<ul>
+<li>监听网络端口。</li>
+<li>接受网络连接请求。</li>
+<li>读取请求网络字节流。</li>
+<li>根据具体应用层协议（HTTP/AJP）解析字节流，生成统一的 Tomcat Request 对象。</li>
+<li>将 Tomcat Request 对象转成标准的 ServletRequest。</li>
+<li>调用 Servlet 容器，得到 ServletResponse。</li>
+<li>将 ServletResponse 转成 Tomcat Response 对象。</li>
+<li>将 Tomcat Response 转成网络字节流。</li>
+<li>将响应字节流写回给浏览器。</li>
+</ul>
+<p>从上面的结构图中可以看出，在Connector中使用ProtocolHandler来处理请求，其主要包含3个组件，分别为Endpoint、Processor、Adapter等。我们来看下ProtocolHandler的接口及其子类的类图：</p>
+<p><img src="./images/Tomcat源码分析二：先看看Tomcat的整体架构4.png" /></p>
+<blockquote>
+<p>关于连接器Connector的具体内容将在后期单独做详细介绍。</p>
+</blockquote>
+<h3 id="容器container">容器Container</h3>
+<p>Tomcat 设计了 4 种容器，分别是 Engine、Host、Context 和 Wrapper，其属于父子关系。具体可以参考上文提及的Tomcat中conf/web.xml。其具体的关系可以参考下图（来源：百度）：</p>
+<p><img src="./images/Tomcat源码分析二：先看看Tomcat的整体架构5.png" /></p>
+<p>这四种容器的应用范围为：</p>
+<ul>
+<li>Engine：整个Catalina Servlet引擎；</li>
+<li>Host:包含一个或多个Context容器的虚拟主机；</li>
+<li>Context：表示一个Web应用程序，可以包含多个Wrapper；</li>
+<li>Wrapper：表示一个独立的Servlet；</li>
+</ul>
+<blockquote>
+<p>关于容器Container的具体内容将在后期单独做详细介绍。</p>
+</blockquote>
+<p>本文主要介绍了Tomcat 的大体架构，也大致介绍了Connector和Container的结构，后面将以源码为基础，详细的介绍其中的组件内容及相关的技术实现。</p>
+<h3 id="参考资料">参考资料</h3>
+<ul>
+<li>《深入拆解Tomcat_Jetty》 极客时间</li>
+</ul>
+<h3 id="微信公众号-源码湾">微信公众号： 源码湾</h3>
+<p>欢迎关注本人微信公众号： 源码湾。 本公众号将不定期进行相关源码及相关开发技术的分享，共同成长，共同进步～</p>
+<p><img src="./images/Tomcat源码分析二：先看看Tomcat的整体架构6.png" /></p>
+<hr />
+<h3 id="blog">Blog:</h3>
+<ul>
+<li>简书： <a href="https://www.jianshu.com/u/91378a397ffe" class="uri">https://www.jianshu.com/u/91378a397ffe</a></li>
+<li>csdn： <a href="https://blog.csdn.net/ZhiyouWu" class="uri">https://blog.csdn.net/ZhiyouWu</a></li>
+<li>开源中国： <a href="https://my.oschina.net/u/3204088" class="uri">https://my.oschina.net/u/3204088</a></li>
+<li>掘金： <a href="https://juejin.im/user/5b5979efe51d451949094265" class="uri">https://juejin.im/user/5b5979efe51d451949094265</a></li>
+<li>博客园： <a href="https://www.cnblogs.com/zhiyouwu/" class="uri">https://www.cnblogs.com/zhiyouwu/</a></li>
+<li>微信公众号： 源码湾</li>
+<li>微信： WZY1782357529 (欢迎沟通交流)</li>
+</ul>
+
+
+</div><hr><script charset='utf-8' src='../../js/sming.js'></script></body></html>

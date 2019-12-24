@@ -1,0 +1,71 @@
+<html><head><meta charset='utf-8'><meta name='viewport' content='width=device-width, initial-scale=1'>
+<meta name='applicable-device' content='pc'><meta name='keywords' content='电脑,电脑讲解,电脑技术,编程,电脑故障维修原码、反码、补码与位运算' />
+<script src='../../highlight/highlight.pack.js'></script>
+<link rel='stylesheet' type='text/css' href='../../highlight/styles/monokai.css'/>
+
+<link rel='stylesheet' href='../../fenxiang/dist/css/share.min.css'>
+<script src='../../fenxiang/src/js/social-share.js'></script>
+<script src='../../fenxiang/src/js/qrcode.js'></script>
+
+</head><body><script>hljs.initHighlightingOnLoad();</script><script>
+var system ={};  
+var p = navigator.platform;       
+system.win = p.indexOf('Win') == 0;  
+system.mac = p.indexOf('Mac') == 0;  
+system.x11 = (p == 'X11') || (p.indexOf('Linux') == 0);     
+if(system.win||system.mac||system.xll){
+document.write("<link href='../css/3.css' rel='stylesheet' type='text/css'>");}else{ document.write("<link href='../css/3wap.css' rel='stylesheet' type='text/css'>");}</script><script src='../../js/3.js'></script><div class='div2'><div class='heading_nav'><ul><div><li><a href='../../index.html'>首页</a></li>
+</div><div onclick='hidden1()' >分享</div>
+</ul></div></div>
+<div id='heading_nav2'> 
+<li class='row' >
+<div class='social-share' data-mode='prepend'><a href='javascript:' class='social-share-icon icon-heart'></a></div></li></div><script charset='utf-8' src='../../3/js/hengfu.js'></script><script charset='utf-8' src='../../3/js/hengfu2.js'></script><hr><div class='div1'><div class='biaoti'><center>原码、反码、补码与位运算</center></div><div class='banquan'>原文出处:本文由博客园博主二柱子7提供。<br/>
+原文连接:https://www.cnblogs.com/yqxx1116/p/11657307.html</div><br>
+    <p><span data-mce-=""><strong>目录导引</strong><span data-mce-="">：</span></span></p>
+<p><span data-mce-=""><strong>　　<a href="#bit">一、原码、反码、补码</a></strong></span></p>
+<p><span data-mce-=""><strong>　　<a href="#operation">二、<strong>位运算</strong></a></strong></span></p>
+<h3><a name="bit"></a>一、原码、反码、补码</h3>
+<p>　　计算机只有加法运算器，计算器中存储、计算数据都是补码，正数和0的原码、反码、补码相同，负数的原码、反码、补码不同。</p>
+<p>　　原码：符号位+绝对值（0表示正数，1表示负数）</p>
+<p>　　反码：符号位不变，其余位取反</p>
+<p>　　补码：反码+1</p>
+<p>　　1、为什么要用补码存储，以及补码计算？</p>
+<p>　　因为原码和反码计算会出现+0 和 -0以及计算错误问题，而补码是正确而简单的，符号位也直接参与运算。</p>
+<p>　　示例：</p>
+<p>　　int是4字节，1字节是8位，所以一个int值是32位，第一位是符号位，所以int的取值范围是 -2^31 ~ 2^31-1（10000000 00000000 00000000 00000000~01111111 11111111 11111111 11111111，该二进制是补码）</p>
+<p>　　分别计算 2+(-1)和1+(-1),过程如下：</p>
+<p>&nbsp;</p>
+<p>　　2的原码、反码、补码分别是 00000000 00000000 00000010，00000000 00000000 00000010，00000000 00000000 00000010</p>
+<p>　　1的原码、反码、补码分别是 00000000 00000000 00000001，00000000 00000000 00000001，00000000 00000000 00000001</p>
+<p>　　-1的原码、反码、补码分别是 10000000 00000000 00000001，11111111 11111111 11111111 11111110，11111111 11111111 11111111 11111111</p>
+<p>&nbsp;</p>
+<p>　　2和-1原码相加，结果为：10000000 00000000 00000011(原码)，0代表正数，1代表负数，所以值为-3，错误。</p>
+<p>　　2和-1反码相加，结果为：00000000 00000000 00000000(反码)，对应原码的结果为00000000 00000000 00000000(原码)，值为0，错误。</p>
+<p>　　2和-1补码相加，结果为：00000000 00000000 00000001(补码)，对应原码的结果为00000000 00000000 00000001(原码)，值为1，正确。</p>
+<p>&nbsp;</p>
+<p>　　1和-1原码相加，结果为：10000000 00000000 00000010(原码)，值为-2，错误。</p>
+<p>　　1和-1反码相加，结果为：11111111 11111111 11111111 11111111(反码)，对应原码的结果为10000000 00000000 00000000(原码)，值为-0，不准确。（关于+0和-0的设计，有兴趣可自行百度）</p>
+<p>　　1和-1补码相加，结果为：00000000 00000000 00000000(补码)，对应原码的结果为00000000 00000000 00000000(原码)，值为0，正确。</p>
+<h3><a name="operation"></a>二、位运算</h3>
+<p>　　位运算符包括:　与（&amp;）、或（|）、非（~）、异或（^）、左移（&lt;&lt;）、右移（&gt;&gt;）、无符号右移（&gt;&gt;&gt;）</p>
+<p>　　&amp;：二进制位同时为1时，结果为1，否则为0 　　</p>
+<p>　　&nbsp;| ：位有一个为1时，结果为1，否则为0</p>
+<p>　　~：位0变1,1变0</p>
+<p>　　^：位不同时，结果为1，否则为0</p>
+<p>　　&lt;&lt;：位整体向左移动，右边补0</p>
+<p>　　&gt;&gt;：位整体向右移动，正数左边补0，负数左边补1</p>
+<p>　　&gt;&gt;&gt;：位整体向右移动，左边补0</p>
+<p>　　示例：</p>
+<src class="cnblogs_code">
+<pre><code>public class BitOperationTest {<br /><br />    public static void main(String[] args) {<br />        int a = 13, b = 6;<br />        System.out.println("  a   ：" + getBinaryStr(a));<br />        System.out.println("  b   ：" + getBinaryStr(b));<br />        System.out.println(" a&amp;b  ：" + getBinaryStr(a &amp; b));<br />        System.out.println(" a|b  ：" + getBinaryStr(a | b));<br />        System.out.println("  ~a  ：" + getBinaryStr(~a));<br />        System.out.println(" a^b  ：" + getBinaryStr(a ^ b));<br />        System.out.println(" a&lt;&lt;b ：" + getBinaryStr(a &lt;&lt; b));<br />        System.out.println(" a&gt;&gt;b ：" + getBinaryStr(a &gt;&gt; (b - 4)));<br />        System.out.println("  -a  ：" + getBinaryStr(-a));<br />        System.out.println(" a&gt;&gt;&gt;b：" + getBinaryStr(a &gt;&gt; (b - 4)));<br />        System.out.println("-a&gt;&gt;&gt;b：" + getBinaryStr((-a) &gt;&gt; (b - 4)));<br />    }<br /><br />    private static String getBinaryStr(int n) {<br />        StringBuilder str = new StringBuilder(Integer.toBinaryString(n));<br />        int len = str.length();<br />        if (len &lt; 32) {<br />            for (int i = 0; i &lt; 32 - len; i++) {<br />                str.insert(0, "0");<br />            }<br />        }<br />        return str.substring(0, 8) + " " + str.substring(8, 16) + " " + str.substring(16, 24) + " " + str.substring(24, 32);<br />    }<br />}<br /><br /></code></pre>
+<pre><code><span style="color: #008000;">//</span><span style="color: #008000;">Result</span> <br />&nbsp;&nbsp; a&nbsp;&nbsp;&nbsp; ：00000000 00000000 00000000 00001101<br />&nbsp;&nbsp; b&nbsp;&nbsp;&nbsp; ：00000000 00000000 00000000 00000110<br />&nbsp; a&amp;b&nbsp;&nbsp; ：00000000 00000000 00000000 00000100<br />&nbsp; a|b&nbsp;&nbsp; ：00000000 00000000 00000000 00001111<br />&nbsp;&nbsp; ~a&nbsp;&nbsp; ：11111111 11111111 11111111 11110010<br />&nbsp; a^b&nbsp;&nbsp; ：00000000 00000000 00000000 00001011<br />&nbsp; a&lt;&lt;2&nbsp; ：00000000 00000000 00000000 00110100<br />&nbsp;&nbsp; -a&nbsp;&nbsp; ：11111111 11111111 11111111 11110011<br />&nbsp; a&gt;&gt;2&nbsp; ：00000000 00000000 00000000 00000011<br />(-a)&gt;&gt;2 ：11111111 11111111 11111111 11111100<br />&nbsp; a&gt;&gt;&gt;2 ：00000000 00000000 00000000 00000011<br />(-a)&gt;&gt;&gt;2：00111111 11111111 11111111 11111100</code></pre>
+
+<p>&nbsp;</p>
+<p>&nbsp;</p>
+<blockquote>
+<p>　　如有疑问欢迎提出，如有错误欢迎指正。</p>
+<p>　　转载请注明本文地址：<a id="Editor_Edit_hlEntryLink" title="view: 原码、反码、补码与位运算" href="https://www.cnblogs.com/yqxx1116/p/11657307.html">https://www.cnblogs.com/yqxx1116/p/11657307.html</a></p>
+</blockquote>
+<p>&nbsp;</p>
+
+</div><hr><script charset='utf-8' src='../../js/sming.js'></script></body></html>

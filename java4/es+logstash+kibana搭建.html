@@ -1,0 +1,417 @@
+<html><head><meta charset='utf-8'><meta name='viewport' content='width=device-width, initial-scale=1'>
+<meta name='applicable-device' content='pc'><meta name='keywords' content='电脑,电脑讲解,电脑技术,编程,电脑故障维修es+logstash+kibana搭建' />
+<script src='../../highlight/highlight.pack.js'></script>
+<link rel='stylesheet' type='text/css' href='../../highlight/styles/monokai.css'/>
+
+<link rel='stylesheet' href='../../fenxiang/dist/css/share.min.css'>
+<script src='../../fenxiang/src/js/social-share.js'></script>
+<script src='../../fenxiang/src/js/qrcode.js'></script>
+
+</head><body><script>hljs.initHighlightingOnLoad();</script><script>
+var system ={};  
+var p = navigator.platform;       
+system.win = p.indexOf('Win') == 0;  
+system.mac = p.indexOf('Mac') == 0;  
+system.x11 = (p == 'X11') || (p.indexOf('Linux') == 0);     
+if(system.win||system.mac||system.xll){
+document.write("<link href='../css/3.css' rel='stylesheet' type='text/css'>");}else{ document.write("<link href='../css/3wap.css' rel='stylesheet' type='text/css'>");}</script><script src='../../js/3.js'></script><div class='div2'><div class='heading_nav'><ul><div><li><a href='../../index.html'>首页</a></li>
+</div><div onclick='hidden1()' >分享</div>
+</ul></div></div>
+<div id='heading_nav2'> 
+<li class='row' >
+<div class='social-share' data-mode='prepend'><a href='javascript:' class='social-share-icon icon-heart'></a></div></li></div><script charset='utf-8' src='../../3/js/hengfu.js'></script><script charset='utf-8' src='../../3/js/hengfu2.js'></script><hr><div class='div1'><div class='biaoti'><center>es+logstash+kibana搭建</center></div><div class='banquan'>原文出处:本文由博客园博主骑着蜗牛看海呀提供。<br/>
+原文连接:https://www.cnblogs.com/zk-blog/p/11633633.html</div><br>
+    <h1>1.简介</h1>
+<p>ELK(elasticsearch+logstash+kibana)是目前比较常用的日志分析系统，包括日志收集(logstash)，日志存储搜索(elasticsearch)，展示查询(kibana)，使用ELK作为日志的存储分析系统并通过为每个请求分配requestId链接相关日志。ELK具体结构如下图所示：</p>
+<h2>1.1es基本概念</h2>
+<h4>Index</h4>
+<p>类似于mysql数据库中的database</p>
+<h4>Type</h4>
+<p>类似于mysql数据库中的table表，es中可以在Index中建立type（table），通过mapping进行映射。</p>
+<h4>Document</h4>
+<p>由于es存储的数据是文档型的，一条数据对应一篇文档即相当于mysql数据库中的一行数据row， 一个文档中可以有多个字段也就是mysql数据库一行可以有多列。</p>
+<h4>Field</h4>
+<p>es中一个文档中对应的多个列与mysql数据库中每一列对应</p>
+<h4>Mapping</h4>
+<p>可以理解为mysql或者solr中对应的schema，只不过有些时候es中的mapping增加了动态识别功能，感觉很强大的样子， 其实实际生产环境上不建议使用，最好还是开始制定好了对应的schema为主。</p>
+<h4>indexed</h4>
+<p>就是名义上的建立索引。mysql中一般会对经常使用的列增加相应的索引用于提高查询速度，而在es中默认都是会加 上索引的，除非你特殊制定不建立索引只是进行存储用于展示，这个需要看你具体的需求和业务进行设定了。</p>
+<h4>Query DSL</h4>
+<p>类似于mysql的sql语句，只不过在es中是使用的json格式的查询语句，专业术语就叫：QueryDSL</p>
+<h4>GET/PUT/POST/DELETE</h4>
+<p>分别类似与mysql中的select/update/delete......</p>
+<h2>1.2es架构</h2>
+<p>elasticsearch提供了一个分布式多用户能力的全文搜索引擎，基于RESTfulweb接口。ElasticSearch是用Java开发的， 并作为Apache许可条款下的开放源码发布，是当前流行的企业级搜索引擎。设计用于云计算中，能够达到实时搜索，稳定，可靠，快速，安装使用方便。构建在全 文检索开源软件Lucene之上的Elasticsearch，不仅能对海量规模的数据完成分布式索引与检索，还能提供数据聚合分析。据国际权威的 数据库产品评测机构DBEngines的统计，在2016年1月，Elasticsearch已超过Solr等，成为排名第一的搜索引擎类应用 概括：基于Restful标准的高扩展高可用的实时数据分析的全文搜索工具，elasticsearch架构</p>
+<p align="center">&nbsp;</p>
+<h4>Gateway层</h4>
+<p>es用来存储索引文件的一个文件系统且它支持很多类型，例如：本地磁盘、共享存储（做snapshot的时候需要用到）、hadoop 的hdfs分布式存储、亚马逊的S3。它的主要职责是用来对数据进行长持久化以及整个集群重启之后可以通过gateway重新恢复数据。</p>
+<h4>Distributed Lucene Directory</h4>
+<p>Gateway上层就是一个lucene的分布式框架，lucene是做检索的，但是它是一个单机的搜索引擎，像这种es分布式搜索引擎系 统，虽然底层用lucene，但是需要在每个节点上都运行lucene进行相应的索引、查询以及更新，所以需要做成一个分布式的运 行框架来满足业务的需要。</p>
+<h4>四大模块组件</h4>
+<p>districted lucene directory之上就是一些es的模块</p>
+<p>1. <strong>Index Module</strong>是索引模块，就是对数据建立索引也就是通常所说的建立一些倒排索引等；</p>
+<p>2. <strong>Search Module</strong>是搜索模块，就是对数据进行查询搜索；</p>
+<p>3. <strong>Mapping</strong>模块是数据映射与解析模块，就是你的数据的每个字段可以根据你建立的表结构 通过mapping进行映射解析，如果你没有建立表结构，es就会根据你的数据类型推测你 的数据结构之后自己生成一个mapping，然后都是根据这个mapping进行解析你的数据；</p>
+<p>4. <strong>River</strong>模块在es2.0之后应该是被取消了，它的意思表示是第三方插件，例如可以通过一 些自定义的脚本将传统的数据库（mysql）等数据源通过格式化转换后直接同步到es集群里， 这个river大部分是自己写的，写出来的东西质量参差不齐，将这些东西集成到es中会引发 很多内部bug，严重影响了es的正常应用，所以在es2.0之后考虑将其去掉。</p>
+<h4>Discovery、Script</h4>
+<p>es4大模块组件之上有 Discovery模块：es是一个集群包含很多节点，很多节点需要互相发现对方，然后组成一个集群包括选 主的，这些es都是用的discovery模块，默认使用的是Zen，也可是使用EC2；es查询还可以支撑多种script即脚本语言，包括 mvel、js、python等等。</p>
+<h4>Transport协议层</h4>
+<p>再上一层就是es的通讯接口Transport，支持的也比较多：Thrift、Memcached以及Http，默认的是http，JMX就是java的一个 远程监控管理框架，因为es是通过java实现的。</p>
+<h4>RESTful接口层</h4>
+<p>最上层就是es暴露给我们的访问接口，官方推荐的方案就是这种Restful接口，直接发送http请求，方便后续使用nginx做代理、 分发包括可能后续会做权限的管理，通过http很容易做这方面的管理。如果使用java客户端它是直接调用api，在做负载均衡以 及权限管理还是不太好做。</p>
+<h2>1.3RestfulAPI</h2>
+<p>一种软件架构风格、设计风格，而不是标准，只是提供了一组设计原则和约束条件。它主要用于客户端和服务器交互类的软件。 基于这个风格设计的软件可以更简洁，更有层次，更易于实现缓存等机制。在目前主流的三种Web服务交互方案中，REST相比于S OAP（Simple Object Access protocol，简单对象访问协议）以及XML-RPC更加简单明了。</p>
+<p>接口类型：</p>
+<p align="left">(Representational State Transfer 意思是：表述性状态传递)</p>
+<p align="left">它使用典型的HTTP方法，诸如GET,POST.DELETE,PUT来实现资源的获取，添加，修改，删除等操作。即通过HTTP动词来实现资源的状态扭转</p>
+<p align="left">GET 用来获取资源</p>
+<p align="left">POST 用来新建资源（也可以用于更新资源）</p>
+<p align="left">PUT 用来更新资源</p>
+<p align="left">DELETE 用来删除资源</p>
+<h2>1.4CRUL命令</h2>
+<p align="left">以命令的方式执行HTTP协议的请求</p>
+<p align="left">GET/POST/PUT/DELETE</p>
+<p align="left">示例：</p>
+<p align="left">访问一个网页</p>
+<p align="left">curl www.baidu.com</p>
+<p align="left">curl -o tt.html www.baidu.com</p>
+<p align="left">显示响应的头信息</p>
+<p align="left">curl -i www.baidu.com</p>
+<p align="left">显示一次HTTP请求的通信过程</p>
+<p align="left">curl -v www.baidu.com</p>
+<p align="left">执行GET/POST/PUT/DELETE操作</p>
+<p align="left">curl -X GET/POST/PUT/DELETE url</p>
+<h1>2.安装logstash</h1>
+<h2>2.1安装jdk</h2>
+<p>logstash需要依赖jdk，安装logstash之前先安装java环境。下载JDK,</p>
+<p>在oracle的官方网站下载，<a href="http://www.oracle.com/technetwork/java/javase/downloads/jdk8-downloads-2133151.html">http://www.oracle.com/technetwork/java/javase/downloads/jdk8-downloads-2133151.html</a>，根据操作系统的版本下载对应的JDK安装包，本次实验下载的是jdk-8u101-linux-x64.tar.gz<br />
+&nbsp;&nbsp;&nbsp; 上传文件到服务器并执行：</p>
+<p># mkdir
+/usr/local/java</p>
+<p># tar -zxf
+jdk-8u45-linux-x64.tar.gz -C /usr/local/java/</p>
+<p>配置java环境：</p>
+<p>export JAVA_HOME=/usr/local/java/jdk1.8.0_45</p>
+<p>export PATH=$PATH:$JAVA_HOME/bin</p>
+<p>export
+CLASSPATH=.:$JAVA_HOME/lib/tools.jar:$JAVA_HOME/lib/dt.jar:$CLASSPATH</p>
+<p>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; 执行java -version命令，打印出java版本信息表示JDK配置成功。</p>
+<p>#&nbsp;&nbsp;&nbsp;&nbsp; java -version</p>
+<p>&nbsp;</p>
+<h2>2.2下载logstash</h2>
+<p>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; 下载并解压</p>
+<p>#&nbsp; wget
+https://download.elastic.co/logstash/logstash/logstash-2.4.0.tar.gz<br />
+#&nbsp; tar -xzvf logstash-2.4.0.tar.gz</p>
+<p>进入安装目录： cd
+#{dir}/logstash-2.4.0，创建logstash测试配置文件：</p>
+<p>#&nbsp; vim test.conf<br />
+编辑内容如下:</p>
+<p align="left">input {</p>
+<p align="left">&nbsp;stdin { }</p>
+<p align="left">}</p>
+<p align="left">output {</p>
+<p align="left">&nbsp;stdout {</p>
+<p align="left">&nbsp;codec =&gt; rubydebug {}</p>
+<p align="left">&nbsp;}</p>
+<p align="left">}</p>
+<p>运行logstash测试：</p>
+<p>#&nbsp; bin/logstash -f test.conf</p>
+<p>显示:</p>
+<p>&nbsp;</p>
+<p>证明logstash已经启动了，<br />
+输入hello world</p>
+<p>&nbsp;</p>
+<p>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; 因为我们配置内容为，控制台输出日志内容，所以显示以上格式即为成功。</p>
+<h1>3. 安装elasticsearch</h1>
+<p>下载安装包：<br />
+wget <a href="https://download.elastic.co/elasticsearch/release/org/elasticsearch/distribution/">https://download.elastic.co/elasticsearch/release/org/elasticsearch/distribution/</a></p>
+<p>tar/elasticsearch/2.4.0/elasticsearch-2.4.0.tar.gz</p>
+<p>解压并配置：<br />
+#&nbsp;
+tar -xzvf elasticsearch-2.4.0.tar.gz<br />
+#&nbsp; cd #{dir}/elasticsearch-2.4.0<br />
+#&nbsp; vim config/elasticsearch.yml</p>
+<p>修改：</p>
+<p align="left">path.data:
+/data/es &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;#数据路径</p>
+<p align="left">path.logs:
+/data/logs/es &nbsp;&nbsp;&nbsp;#日志路径</p>
+<p align="left">network.host:
+本机地址 &nbsp;#服务器地址</p>
+<p align="left">http.port:
+9200 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;#端口</p>
+<p>配置执行用户和目录：</p>
+<p align="left">groupadd
+elsearch</p>
+<p align="left">useradd elsearch
+-g elsearch -p elasticsearch</p>
+<p align="left">chown -R
+elsearch:elsearch elasticsearch-2.4.0</p>
+<p align="left">mkdir
+/data/es</p>
+<p align="left">mkdir
+/data/logs/es</p>
+<p align="left">chown -R
+elsearch:elsearch /data/es</p>
+<p align="left">chown -R
+elsearch:elsearch /data/logs/es</p>
+<p>启动elasticsearch:</p>
+<p>#&nbsp; su elsearch<br />
+#&nbsp; bin/elasticsearch</p>
+<p>通过浏览器访问:</p>
+<p>&nbsp;</p>
+<p>安装成功.<br />
+集成logstash和elasticsearch，修改Logstash配置为：</p>
+<p align="left">input {</p>
+<p align="left">&nbsp;stdin { } </p>
+<p align="left">}</p>
+<p align="left">output {</p>
+<p align="left">&nbsp;elasticsearch {</p>
+<p align="left">&nbsp;hosts =&gt; "elasticsearchIP:9200"</p>
+<p align="left">&nbsp;index =&gt; "logstash-test"</p>
+<p align="left">&nbsp;} </p>
+<p align="left">&nbsp;stdout {</p>
+<p align="left">&nbsp;codec =&gt; rubydebug {}</p>
+<p align="left">&nbsp;} </p>
+<p align="left">}</p>
+<p>再次启动logstash，并输入任意文字：&ldquo;hello
+elasticsearch&rdquo;</p>
+<p>&nbsp;</p>
+<p>通过elasticsearch搜索到了刚才输入的文字，集成成功。通过elasticsearch的原生接口查询和展示都不够便捷直观，下面我们配置一下更方便的查询分析工具kibana。</p>
+<h1>4.安装kibana</h1>
+<p>下载安装包：<br />
+wget https://download.elastic.co/kibana/kibana/kibana-4.6.1-linux-x86_64.tar.gz<br />
+&nbsp;&nbsp;&nbsp; 解压kibana，并进入解压后的目录</p>
+<p>&nbsp;&nbsp;&nbsp; 打开config/kibana.yml,修改如下内容</p>
+<p align="left">#启动端口 因为端口受限 所以变更了默认端口</p>
+<p align="left">server.port:
+8601</p>
+<p align="left">#启动服务的ip</p>
+<p align="left">server.host:
+&ldquo;本机ip&rdquo;</p>
+<p align="left">#elasticsearch地址</p>
+<p align="left">elasticsearch.url:
+<a href="http://elasticsearchip:9200/">http://elasticsearchIP:9200</a></p>
+<p align="left">启动程序:</p>
+<p align="left">bin/kibana</p>
+<p>访问配置的ip:port，在discover中搜索刚才输入的字符，内容非常美观的展示了出来。</p>
+<p align="center">&nbsp;</p>
+<p>到这里elk环境已经配置完成，把自己java
+web项目试验日志在elk中的使用。</p>
+<h1>5.创建web工程</h1>
+<p>一个普通的maven
+java web工程，为了测试分布式系统日志的连续性，我们让这个项目自调用n次，并部署2个项目，相互调用，关键代码如下：</p>
+<p>controller</p>
+<p align="left">@RequestMapping("http_client")</p>
+<p align="left">@Controller</p>
+<p align="left">public class
+HttpClientTestController {</p>
+<p align="left">&nbsp;&nbsp;&nbsp;
+@Autowired</p>
+<p align="left">&nbsp;&nbsp;&nbsp;
+private HttpClientTestBo httpClientTestBo;</p>
+<p align="left">&nbsp;&nbsp;&nbsp;
+@RequestMapping(method = RequestMethod.POST)</p>
+<p align="left">&nbsp;&nbsp;&nbsp;
+@ResponseBody</p>
+<p align="left">&nbsp;&nbsp;&nbsp;
+public BaseResult doPost(@RequestBody HttpClientTestResult result) {</p>
+<p align="left">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; HttpClientTestResult testPost =
+httpClientTestBo.testPost(result);</p>
+<p align="left">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; return testPost;</p>
+<p align="left">&nbsp;&nbsp;&nbsp;
+}</p>
+<p align="left">}</p>
+<p>service</p>
+<p align="left">@Service</p>
+<p align="left">public class HttpClientTestBo {</p>
+<p align="left">&nbsp;&nbsp;&nbsp;
+private static Logger logger =
+LoggerFactory.getLogger(HttpClientTestBo.class);</p>
+<p align="left">&nbsp;&nbsp;&nbsp;
+@Value("${test_http_client_url}")</p>
+<p align="left">&nbsp;&nbsp;&nbsp;
+private String testHttpClientUrl;</p>
+<p align="left">&nbsp;&nbsp;&nbsp;
+public HttpClientTestResult testPost(HttpClientTestResult result) {</p>
+<p align="left">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+logger.info(JSONObject.toJSONString(result));</p>
+<p align="left">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; result.setCount(result.getCount() + 1);</p>
+<p align="left">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; if (result.getCount() &lt;= 3) {</p>
+<p align="left">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Map&lt;String, String&gt; headerMap = new
+HashMap&lt;String, String&gt;();</p>
+<p align="left">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; String requestId =
+RequestIdUtil.requestIdThreadLocal.get();</p>
+<p align="left">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+headerMap.put(RequestIdUtil.REQUEST_ID_KEY, requestId);</p>
+<p align="left">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; Map&lt;String, String&gt; paramMap
+= new HashMap&lt;String, String&gt;();</p>
+<p align="left">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; paramMap.put("status",
+result.getStatus() + "");</p>
+<p align="left">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; paramMap.put("errorCode",
+result.getErrorCode());</p>
+<p align="left">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; paramMap.put("message",
+result.getMessage());</p>
+<p align="left">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; paramMap.put("count",
+result.getCount() + "");</p>
+<p align="left">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; String resultString =
+JsonHttpClientUtil.post(testHttpClientUrl, headerMap, paramMap,
+"UTF-8");</p>
+<p align="left">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; logger.info(resultString);</p>
+<p align="left">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; }</p>
+<p align="left">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+logger.info(JSONObject.toJSONString(result));</p>
+<p align="left">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; return result;</p>
+<p align="left">&nbsp;&nbsp;&nbsp;
+}</p>
+<p align="left">}</p>
+<p>为了表示调用的链接性我们在web.xml中配置requestId的filter，用于创建</p>
+<p align="left">/*&nbsp;
+</p>
+<p align="left">*&nbsp;
+&nbsp; requestId</p>
+<p align="left">*&nbsp;
+&nbsp; requestIdFilter</p>
+<p align="left">*&nbsp;
+&nbsp; com.virxue.baseweb.utils.RequestIdFilter</p>
+<p align="left">* &nbsp;&nbsp; requestIdFilter</p>
+<p align="left">/*</p>
+<p align="left">public class RequestIdFilter
+implements Filter {</p>
+<p align="left">&nbsp;&nbsp;&nbsp;
+private static final Logger logger =
+LoggerFactory.getLogger(RequestIdFilter.class);</p>
+<p align="left">&nbsp;&nbsp;&nbsp;
+/* (non-Javadoc)</p>
+<p align="left">&nbsp;&nbsp;&nbsp;&nbsp; * @see
+javax.servlet.Filter#init(javax.servlet.FilterConfig)</p>
+<p align="left">&nbsp;&nbsp;&nbsp;&nbsp; */</p>
+<p align="left">&nbsp;&nbsp;&nbsp;
+public void init(FilterConfig filterConfig) throws ServletException {</p>
+<p align="left">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; logger.info("RequestIdFilter
+init");</p>
+<p align="left">&nbsp;&nbsp;&nbsp;
+}</p>
+<p align="left">&nbsp;&nbsp;&nbsp;
+/* (non-Javadoc)</p>
+<p align="left">&nbsp;&nbsp;&nbsp;&nbsp; * @see
+javax.servlet.Filter#doFilter(javax.servlet.ServletRequest,
+javax.servlet.ServletResponse, javax.servlet.FilterChain)</p>
+<p align="left">&nbsp;&nbsp;&nbsp;&nbsp; */</p>
+<p align="left">&nbsp;&nbsp;&nbsp;
+public void doFilter(ServletRequest request, ServletResponse response,
+FilterChain chain) throws IOException,</p>
+<p align="left">&nbsp;&nbsp;&nbsp;
+&nbsp;&nbsp;&nbsp;&nbsp;ServletException {</p>
+<p align="left">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; String requestId =
+RequestIdUtil.getRequestId((HttpServletRequest) request);</p>
+<p align="left">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; MDC.put("requestId",
+requestId);</p>
+<p align="left">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; chain.doFilter(request, response);</p>
+<p align="left">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+RequestIdUtil.requestIdThreadLocal.remove();</p>
+<p align="left">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; MDC.remove("requestId");</p>
+<p align="left">&nbsp;&nbsp;&nbsp;
+}</p>
+<p align="left">&nbsp;&nbsp;&nbsp;
+/* (non-Javadoc)</p>
+<p align="left">&nbsp;&nbsp;&nbsp;&nbsp; * @see javax.servlet.Filter#destroy()</p>
+<p align="left">&nbsp;&nbsp;&nbsp;&nbsp; */</p>
+<p align="left">&nbsp;&nbsp;&nbsp;
+public void destroy() {</p>
+<p align="left">&nbsp;&nbsp;&nbsp;
+}</p>
+<p align="left">}</p>
+<p>utils</p>
+<p align="left">public class RequestIdUtil {</p>
+<p align="left">&nbsp;&nbsp;&nbsp;
+public static final String REQUEST_ID_KEY = "requestId";</p>
+<p align="left">&nbsp;&nbsp;&nbsp;
+public static ThreadLocal&lt;String&gt; requestIdThreadLocal = new
+ThreadLocal&lt;String&gt;();</p>
+<p align="left">&nbsp;&nbsp;&nbsp;
+private static final Logger logger =
+LoggerFactory.getLogger(RequestIdUtil.class);</p>
+<p align="left">&nbsp;&nbsp;&nbsp;
+/**</p>
+<p align="left">&nbsp;&nbsp;&nbsp;&nbsp; * 获取requestId</p>
+<p align="left">&nbsp;&nbsp;&nbsp;&nbsp; * @Title getRequestId</p>
+<p align="left">&nbsp;&nbsp;&nbsp;&nbsp; * @Description TODO</p>
+<p align="left">&nbsp;&nbsp;&nbsp;&nbsp; * @return</p>
+<p align="left">&nbsp;&nbsp;&nbsp;&nbsp; *</p>
+<p align="left">&nbsp;&nbsp;&nbsp;&nbsp; * @author zhengkai</p>
+<p align="left">&nbsp;&nbsp;&nbsp;&nbsp; * @date 2019年10月3日 下午21:58:28</p>
+<p align="left">&nbsp;&nbsp;&nbsp;&nbsp; */</p>
+<p align="left">&nbsp;&nbsp;&nbsp;
+public static String getRequestId(HttpServletRequest request) {</p>
+<p align="left">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; String requestId = null;</p>
+<p align="left">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; String parameterRequestId =
+request.getParameter(REQUEST_ID_KEY);</p>
+<p align="left">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; String headerRequestId =
+request.getHeader(REQUEST_ID_KEY);</p>
+<p align="left">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; if (parameterRequestId == null
+&amp;&amp; headerRequestId == null) {</p>
+<p align="left">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; logger.info("request parameter
+和header 都没有requestId入参");</p>
+<p align="left">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; requestId = UUID.randomUUID().toString();</p>
+<p align="left">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; } else {</p>
+<p align="left">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; requestId = parameterRequestId !=
+null ? parameterRequestId : headerRequestId;</p>
+<p align="left">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; }</p>
+<p align="left">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; requestIdThreadLocal.set(requestId);</p>
+<p align="left">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; return requestId;</p>
+<p align="left">&nbsp;&nbsp;&nbsp;
+}</p>
+<p align="left">}</p>
+<p>我们使使用了Logback作为日志输出的插件，并且使用它的MDC类，可以无侵入的在任何地方输出requestId，具体的配置如下:</p>
+<p align="left">UTF-8</p>
+<p align="left">&nbsp;${log_base}/java-base-web.log</p>
+<p align="left">&nbsp;
+${log_base}/java-base-web-%d{yyyy-MM-dd}-%i.log 10 200MB </p>
+<p align="left">&nbsp;%d^|^%X{requestId}^|^%-5level^|^%logger{36}%M^|^%msg%n</p>
+<p>这里的日志格式使用了&ldquo;^|^&rdquo;做为分隔符，方便logstash进行切分。在测试服务器部署2个web项目，并且修改日志输出位置，并修改url调用链接使项目相互调用。</p>
+<h1>6. 修改logstash读取项目输出日志</h1>
+<p>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; 新增stdin.conf，内容如下:</p>
+<p align="left">input {</p>
+<p align="left">&nbsp;file {</p>
+<p align="left">&nbsp;path =&gt;
+["/data/logs/java-base-web1/java-base-web.log",
+"/data/logs/java-base-web2/java-base-web.log"]</p>
+<p align="left">&nbsp;type =&gt; "logs"</p>
+<p align="left">&nbsp;start_position =&gt; "beginning"</p>
+<p align="left">&nbsp;codec =&gt; multiline {</p>
+<p align="left">&nbsp;pattern =&gt;
+"^\[\d{4}-\d{1,2}-\d{1,2}\s\d{1,2}:\d{1,2}:\d{1,2}"</p>
+<p align="left">&nbsp;negate =&gt; true </p>
+<p align="left">&nbsp;what =&gt; "next"</p>
+<p align="left">&nbsp;} </p>
+<p align="left">&nbsp;} </p>
+<p align="left">}</p>
+<p align="left">filter{</p>
+<p align="left">&nbsp;mutate{</p>
+<p align="left">&nbsp;split=&gt;["message","^|^"]</p>
+<p align="left">&nbsp;add_field =&gt; {</p>
+<p align="left">&nbsp;"messageJson" =&gt;
+"{datetime:%{[message][0]},
+requestId:%{[message][1]},level:%{[message][2]}, class:%{[message][3]},
+content:%{[message][4]}}"</p>
+<p align="left">&nbsp;} </p>
+<p align="left">&nbsp;remove_field =&gt; ["message"]</p>
+<p align="left">&nbsp;} </p>
+<p align="left">&nbsp;</p>
+<p align="left">}</p>
+<p align="left">output {</p>
+<p align="left">&nbsp;elasticsearch {</p>
+<p align="left">&nbsp;hosts =&gt; "10.160.110.48:9200"</p>
+<p align="left">&nbsp;index =&gt; "logstash-${type}" </p>
+<p align="left">&nbsp;} </p>
+<p align="left">&nbsp;stdout {</p>
+<p align="left">&nbsp;codec =&gt; rubydebug {}</p>
+<p align="left">&nbsp;} </p>
+<p align="left">}</p>
+<p>其中path为日志文件地址；codec
+=&gt; multiline为处理Exception日志，使换行的异常内容和异常头分割在同一个日志中；filter为日志内容切分，把日志内容做为json格式，方便查询分析，测试一下：</p>
+<p>&nbsp;</p>
+
+</div><hr><script charset='utf-8' src='../../js/sming.js'></script></body></html>

@@ -1,0 +1,190 @@
+<html><head><meta charset='utf-8'><meta name='viewport' content='width=device-width, initial-scale=1'>
+<meta name='applicable-device' content='pc'><meta name='keywords' content='电脑,电脑讲解,电脑技术,编程,电脑故障维修Java自学-数字与字符串 比较字符串' />
+<script src='../../highlight/highlight.pack.js'></script>
+<link rel='stylesheet' type='text/css' href='../../highlight/styles/monokai.css'/>
+
+<link rel='stylesheet' href='../../fenxiang/dist/css/share.min.css'>
+<script src='../../fenxiang/src/js/social-share.js'></script>
+<script src='../../fenxiang/src/js/qrcode.js'></script>
+
+</head><body><script>hljs.initHighlightingOnLoad();</script><script>
+var system ={};  
+var p = navigator.platform;       
+system.win = p.indexOf('Win') == 0;  
+system.mac = p.indexOf('Mac') == 0;  
+system.x11 = (p == 'X11') || (p.indexOf('Linux') == 0);     
+if(system.win||system.mac||system.xll){
+document.write("<link href='../css/3.css' rel='stylesheet' type='text/css'>");}else{ document.write("<link href='../css/3wap.css' rel='stylesheet' type='text/css'>");}</script><script src='../../js/3.js'></script><div class='div2'><div class='heading_nav'><ul><div><li><a href='../../index.html'>首页</a></li>
+</div><div onclick='hidden1()' >分享</div>
+</ul></div></div>
+<div id='heading_nav2'> 
+<li class='row' >
+<div class='social-share' data-mode='prepend'><a href='javascript:' class='social-share-icon icon-heart'></a></div></li></div><script charset='utf-8' src='../../3/js/hengfu.js'></script><script charset='utf-8' src='../../3/js/hengfu2.js'></script><hr><div class='div1'><div class='biaoti'><center>Java自学-数字与字符串 比较字符串</center></div><div class='banquan'>原文出处:本文由博客园博主半米高峰提供。<br/>
+原文连接:https://www.cnblogs.com/jeddzd/p/11627100.html</div><br>
+    <h2 id="java-比较字符串">Java 比较字符串</h2>
+<p>示例 1 : <strong>是否是同一个对象</strong></p>
+<p>str1和str2的内容一定是一样的！<br />
+但是，并不是同一个字符串对象</p>
+<pre><code><code>package character;
+ 
+public class TestString {
+ 
+    public static void main(String[] args) {
+ 
+        String str1 = &quot;the light&quot;;
+         
+        String str2 = new String(str1);
+         
+        //==用于判断是否是同一个字符串对象
+        System.out.println( str1  ==  str2);
+         
+    }
+ 
+}</code></code></pre>
+<p>示例 2 : <strong>是否是同一个对象-特例</strong></p>
+<p>str1 = &quot;the light&quot;;<br />
+str3 = &quot;the light&quot;;</p>
+<p>一般说来，编译器每碰到一个字符串的字面值，就会创建一个新的对象<br />
+所以在第6行会创建了一个新的字符串&quot;the light&quot;<br />
+但是在第7行，编译器发现已经存在现成的&quot;the light&quot;，那么就直接拿来使用，而没有进行重复创建</p>
+<pre><code><code>package character;
+ 
+public class TestString {
+ 
+    public static void main(String[] args) {
+        String str1 = &quot;the light&quot;; //第6行
+        String str3 = &quot;the light&quot;; //第7行
+        System.out.println( str1  ==  str3);
+    }
+ 
+}</code></code></pre>
+<p>示例 3 : <strong>内容是否相同</strong></p>
+<p>使用equals进行字符串内容的比较，必须大小写一致<br />
+equalsIgnoreCase，忽略大小写判断内容是否一致</p>
+<pre><code><code>package character;
+  
+public class TestString {
+  
+    public static void main(String[] args) {
+  
+        String str1 = &quot;the light&quot;;
+          
+        String str2 = new String(str1);
+         
+        String str3 = str1.toUpperCase();
+ 
+        //==用于判断是否是同一个字符串对象
+        System.out.println( str1  ==  str2);
+         
+        System.out.println(str1.equals(str2));//完全一样返回true
+         
+        System.out.println(str1.equals(str3));//大小写不一样，返回false
+        System.out.println(str1.equalsIgnoreCase(str3));//忽略大小写的比较，返回true
+         
+    }
+  
+}</code></code></pre>
+<p>示例 4 : <strong>是否以子字符串开始或者结束</strong></p>
+<p>startsWith //以...开始<br />
+endsWith //以...结束</p>
+<pre><code><code>package character;
+  
+
+public class TestString {
+  
+    public static void main(String[] args) {
+        String str1 = &quot;the light&quot;;
+         
+        String start = &quot;the&quot;;
+        String end = &quot;Ight&quot;;
+         
+        System.out.println(str1.startsWith(start));//以...开始
+        System.out.println(str1.endsWith(end));//以...结束
+          
+    }
+  
+}</code></code></pre>
+<p><strong>练习</strong>： <a href="http://how2j.cn/k/number-string/number-string-compare/326.html?p=43278">比较字符串</a></p>
+<p>创建一个长度是100的字符串数组<br />
+使用长度是2的随机字符填充该字符串数组<br />
+统计这个字符串数组里<strong>重复的字符串有多少种</strong>(忽略大小写)<br />
+<img src="./images/Java自学-数字与字符串 比较字符串0.png" alt="在这里插入图片描述" /></p>
+<p><strong>答案</strong>：</p>
+<pre class="java"><code>package character;
+ 
+public class TestString {
+ 
+    public static void main(String[] args) {
+ 
+        String[] ss = new String[100];
+        // 初始化
+        for (int i = 0; i &lt; ss.length; i++) {
+            ss[i] = randomString(2);
+        }
+        // 打印
+        for (int i = 0; i &lt; ss.length; i++) {
+            System.out.print(ss[i] + &quot; &quot;);
+            if (19 == i % 20)
+                System.out.println();
+        }
+ 
+        for (String s1 : ss) {
+            int repeat = 0;
+            for (String s2 : ss) {
+                if (s1.equalsIgnoreCase(s2)) {
+                    repeat++;
+                    if (2 == repeat) {
+                        // 当repeat==2的时候，就找打了一个非己的重复字符串
+ 
+                        putIntoDuplicatedArray(s1);
+                        break;
+                    }
+                }
+            }
+        }
+ 
+        System.out.printf(&quot;总共有 %d种重复的字符串%n&quot;, pos);
+        if (pos != 0) {
+            System.out.println(&quot;分别是：&quot;);
+            for (int i = 0; i &lt; pos; i++) {
+                System.out.print(foundDuplicated[i] + &quot; &quot;);
+            }
+        }
+    }
+ 
+    static String[] foundDuplicated = new String[100];
+    static int pos;
+ 
+    private static void putIntoDuplicatedArray(String s) {
+        for (int i = 0; i &lt; pos; i++){
+            if (foundDuplicated[i].equalsIgnoreCase(s))
+                return;
+        }
+ 
+        foundDuplicated[pos++] = s;
+    }
+ 
+    private static String randomString(int length) {
+        String pool = &quot;&quot;;
+        for (short i = &#39;0&#39;; i &lt;= &#39;9&#39;; i++) {
+            pool += (char) i;
+        }
+        for (short i = &#39;a&#39;; i &lt;= &#39;z&#39;; i++) {
+            pool += (char) i;
+        }
+        for (short i = &#39;A&#39;; i &lt;= &#39;Z&#39;; i++) {
+            pool += (char) i;
+        }
+        char cs[] = new char[length];
+        for (int i = 0; i &lt; cs.length; i++) {
+            int index = (int) (Math.random() * pool.length());
+            cs[i] = pool.charAt(index);
+        }
+        String result = new String(cs);
+        return result;
+    }
+ 
+}</code></code></pre>
+
+
+</div><hr><script charset='utf-8' src='../../js/sming.js'></script></body></html>

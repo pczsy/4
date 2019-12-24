@@ -1,0 +1,232 @@
+<html><head><meta charset='utf-8'><meta name='viewport' content='width=device-width, initial-scale=1'>
+<meta name='applicable-device' content='pc'><meta name='keywords' content='电脑,电脑讲解,电脑技术,编程,电脑故障维修Spring扩展点之FactoryBean接口' />
+<script src='../../highlight/highlight.pack.js'></script>
+<link rel='stylesheet' type='text/css' href='../../highlight/styles/monokai.css'/>
+
+<link rel='stylesheet' href='../../fenxiang/dist/css/share.min.css'>
+<script src='../../fenxiang/src/js/social-share.js'></script>
+<script src='../../fenxiang/src/js/qrcode.js'></script>
+
+</head><body><script>hljs.initHighlightingOnLoad();</script><script>
+var system ={};  
+var p = navigator.platform;       
+system.win = p.indexOf('Win') == 0;  
+system.mac = p.indexOf('Mac') == 0;  
+system.x11 = (p == 'X11') || (p.indexOf('Linux') == 0);     
+if(system.win||system.mac||system.xll){
+document.write("<link href='../css/3.css' rel='stylesheet' type='text/css'>");}else{ document.write("<link href='../css/3wap.css' rel='stylesheet' type='text/css'>");}</script><script src='../../js/3.js'></script><div class='div2'><div class='heading_nav'><ul><div><li><a href='../../index.html'>首页</a></li>
+</div><div onclick='hidden1()' >分享</div>
+</ul></div></div>
+<div id='heading_nav2'> 
+<li class='row' >
+<div class='social-share' data-mode='prepend'><a href='javascript:' class='social-share-icon icon-heart'></a></div></li></div><script charset='utf-8' src='../../3/js/hengfu.js'></script><script charset='utf-8' src='../../3/js/hengfu2.js'></script><hr><div class='div1'><div class='biaoti'><center>Spring扩展点之FactoryBean接口</center></div><div class='banquan'>原文出处:本文由博客园博主石玉军提供。<br/>
+原文连接:https://www.cnblogs.com/zhixiang-org-cn/p/11526546.html</div><br>
+    <h4 id="前言">前言</h4>
+<p>首先看一下接口定义</p>
+<pre><code><code>
+public interface FactoryBean&lt;T&gt; {
+
+    /**
+     * 返回对象实例
+     */
+    @Nullable
+    T getObject() throws Exception;
+
+    /**
+     * 返回对象类型,
+     */
+    @Nullable
+    Class&lt;?&gt; getObjectType();
+
+    /**
+     * 该工厂管理的对象是否为单例?
+     */
+    default boolean isSingleton() {
+        return true;
+    }
+
+}</code></code></pre>
+<p>由接口定义可以看出来，实现这个接口的bean不是主要功能，<code>getObject()</code>创建的对象才是重点。那么在这我们就可以猜到了，可以是使用<code>FactoryBean</code>创建一些实例化过程比较复杂的bean</p>
+<h4 id="factorybean的注册"><code>FactoryBean</code>的注册</h4>
+<p><code>FactoryBean</code>的处理逻辑在<code>AbstractBeanFactory.doGetBean</code>方法内</p>
+<pre><code><code>
+protected &lt;T&gt; T doGetBean(
+            final String name, final Class&lt;T&gt; requiredType, final Object[] args, boolean typeCheckOnly)
+            throws BeansException {
+        //获取bean名称
+        final String beanName = transformedBeanName(name);
+        Object bean;
+              //省略部分内容
+            //这里就是FactoryBean的相关处理，下面会展开说
+            bean = getObjectForBeanInstance(sharedInstance, name, beanName, null);
+             //省略部分内容
+
+        return (T) bean;
+    }</code></code></pre>
+<p>看一下具体的逻辑，这里需要注意Spring关于bean的name有个潜规则，凡是以&amp;开头的bean名称都默认为<code>FactoryBean</code></p>
+<pre><code><code>
+protected Object getObjectForBeanInstance(
+        Object beanInstance, String name, String beanName, @Nullable RootBeanDefinition mbd) {
+
+      // 如果beanName以工厂引用&amp;开头
+    if (BeanFactoryUtils.isFactoryDereference(name)) {
+        if (beanInstance instanceof NullBean) {
+            return beanInstance;
+        }
+        // 如果name以&amp;开头，而beanInstance不是FactoryBean类型，则抛异常
+        if (!(beanInstance instanceof FactoryBean)) {
+            throw new BeanIsNotAFactoryException(transformedBeanName(name), beanInstance.getClass());
+        }
+    }
+
+    // 如果beanInstance不是FactoryBean类型，则直接返回beanInstance
+    // 或者name以&amp;开头，也直接返回beanInstance，说明我们就想获取FactoryBean实例
+    if (!(beanInstance instanceof FactoryBean) || BeanFactoryUtils.isFactoryDereference(name)) {
+        return beanInstance;
+    }
+
+    Object object = null;
+    if (mbd == null) {
+        object = getCachedObjectForFactoryBean(beanName);
+    }
+    if (object == null) {
+        // 此时beanInstance是FactoryBean类型，而name又不是以&amp;开头; 这是我们示例工程的情况，也是最普通、用的最多的情况
+        // 将beanInstance强转成FactoryBean类型
+        FactoryBean&lt;?&gt; factory = (FactoryBean&lt;?&gt;) beanInstance;
+        // 从缓存中获取我们需要的实例对象
+        if (mbd == null &amp;&amp; containsBeanDefinition(beanName)) {
+            mbd = getMergedLocalBeanDefinition(beanName);
+        }
+        boolean synthetic = (mbd != null &amp;&amp; mbd.isSynthetic());
+        // 调用FactoryBean的getObject方法创建我们需要的实例对象
+        object = getObjectFromFactoryBean(factory, beanName, !synthetic);
+    }
+    return object;
+}
+
+protected Object getObjectFromFactoryBean(FactoryBean&lt;?&gt; factory, String beanName, boolean shouldPostProcess) {
+    //针对单例的处理
+    if (factory.isSingleton() &amp;&amp; containsSingleton(beanName)) {
+        synchronized (getSingletonMutex()) {
+            Object object = this.factoryBeanObjectCache.get(beanName);
+            if (object == null) {
+                //通过factory.getObject获取
+                object = doGetObjectFromFactoryBean(factory, beanName);
+                Object alreadyThere = this.factoryBeanObjectCache.get(beanName);
+                if (alreadyThere != null) {
+                    object = alreadyThere;
+                }
+                else {
+                    if (shouldPostProcess) {
+                        if (isSingletonCurrentlyInCreation(beanName)) {
+                            // Temporarily return non-post-processed object, not storing it yet..
+                            return object;
+                        }
+                        beforeSingletonCreation(beanName);
+                        try {
+                            object = postProcessObjectFromFactoryBean(object, beanName);
+                        }
+                        catch (Throwable ex) {
+                            throw new BeanCreationException(beanName,
+                                    &quot;Post-processing of FactoryBean&#39;s singleton object failed&quot;, ex);
+                        }
+                        finally {
+                            afterSingletonCreation(beanName);
+                        }
+                    }
+                    if (containsSingleton(beanName)) {
+                        //将获取到的对象放到factoryBeanObjectCache单例缓存map进行存储
+                        this.factoryBeanObjectCache.put(beanName, object);
+                    }
+                }
+            }
+            return object;
+        }
+    }
+    else {
+        //非单例的处理，直接通过factory.getObejct获取，然后再返回给用户
+        Object object = doGetObjectFromFactoryBean(factory, beanName);
+        if (shouldPostProcess) {
+            try {
+                object = postProcessObjectFromFactoryBean(object, beanName);
+            }
+            catch (Throwable ex) {
+                throw new BeanCreationException(beanName, &quot;Post-processing of FactoryBean&#39;s object failed&quot;, ex);
+            }
+        }
+        return object;
+    }
+}</code></code></pre>
+<p>生成bean对象的方法：</p>
+<pre><code><code>
+private Object doGetObjectFromFactoryBean(final FactoryBean&lt;?&gt; factory, final String beanName)
+      throws BeanCreationException {
+
+   Object object;
+   try {
+      if (System.getSecurityManager() != null) {
+         AccessControlContext acc = getAccessControlContext();
+         try {
+            object = AccessController.doPrivileged((PrivilegedExceptionAction&lt;Object&gt;) factory::getObject, acc);
+         }
+         catch (PrivilegedActionException pae) {
+            throw pae.getException();
+         }
+      }
+      else {
+         object = factory.getObject();//生成对象
+      }
+   }
+   catch (FactoryBeanNotInitializedException ex) {
+      throw new BeanCurrentlyInCreationException(beanName, ex.toString());
+   }
+   catch (Throwable ex) {
+      throw new BeanCreationException(beanName, &quot;FactoryBean threw exception on object creation&quot;, ex);
+   }
+
+   // Do not accept a null value for a FactoryBean that&#39;s not fully
+   // initialized yet: Many FactoryBeans just return null then.
+   if (object == null) {
+      if (isSingletonCurrentlyInCreation(beanName)) {
+         throw new BeanCurrentlyInCreationException(
+               beanName, &quot;FactoryBean which is currently in creation returned null from getObject&quot;);
+      }
+      object = new NullBean();
+   }
+   return object;}</code></code></pre>
+<h4 id="spring的实现">Spring的实现</h4>
+<p>Spring中实现这个接口的bean有很多，但是我们最熟悉也是最重要的就是在我之前文章中提到过得<code>ProxyFactoryBean</code>这个bean是实现AOP技术的重点，简单回顾一下吧<br />
+<img src="./images/Spring扩展点之FactoryBean接口0.png" alt="1" /></p>
+<pre><code><code>public Object getObject() throws BeansException {
+        initializeAdvisorChain();
+        if (isSingleton()) {
+            return getSingletonInstance();
+        }
+        else {
+            if (this.targetName == null) {
+                logger.warn(&quot;Using non-singleton proxies with singleton targets is often undesirable. &quot; +
+                        &quot;Enable prototype proxies by setting the &#39;targetName&#39; property.&quot;);
+            }
+            return newPrototypeInstance();
+        }
+    }
+private synchronized Object getSingletonInstance() {
+        if (this.singletonInstance == null) {
+            this.targetSource = freshTargetSource();
+            if (this.autodetectInterfaces &amp;&amp; getProxiedInterfaces().length == 0 &amp;&amp; !isProxyTargetClass()) {
+                // Rely on AOP infrastructure to tell us what interfaces to proxy.
+                Class&lt;?&gt; targetClass = getTargetClass();
+                if (targetClass == null) {
+                    throw new FactoryBeanNotInitializedException(&quot;Cannot determine target class for proxy&quot;);
+                }
+                setInterfaces(ClassUtils.getAllInterfacesForClass(targetClass, this.proxyClassLoader));
+            }
+            // Initialize the shared singleton instance.
+            super.setFrozen(this.freezeProxy);
+            this.singletonInstance = getProxy(createAopProxy());
+        }
+        return this.singletonInstance;
+    }</code></code></pre>
+
+
+</div><hr><script charset='utf-8' src='../../js/sming.js'></script></body></html>

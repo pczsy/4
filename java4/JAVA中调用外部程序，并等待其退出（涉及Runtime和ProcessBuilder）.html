@@ -1,0 +1,34 @@
+<html><head><meta charset='utf-8'><meta name='viewport' content='width=device-width, initial-scale=1'>
+<meta name='applicable-device' content='pc'><meta name='keywords' content='电脑,电脑讲解,电脑技术,编程,电脑故障维修JAVA中调用外部程序，并等待其退出（涉及Runtime和ProcessBuilder）' />
+<script src='../../highlight/highlight.pack.js'></script>
+<link rel='stylesheet' type='text/css' href='../../highlight/styles/monokai.css'/>
+
+<link rel='stylesheet' href='../../fenxiang/dist/css/share.min.css'>
+<script src='../../fenxiang/src/js/social-share.js'></script>
+<script src='../../fenxiang/src/js/qrcode.js'></script>
+
+</head><body><script>hljs.initHighlightingOnLoad();</script><script>
+var system ={};  
+var p = navigator.platform;       
+system.win = p.indexOf('Win') == 0;  
+system.mac = p.indexOf('Mac') == 0;  
+system.x11 = (p == 'X11') || (p.indexOf('Linux') == 0);     
+if(system.win||system.mac||system.xll){
+document.write("<link href='../css/3.css' rel='stylesheet' type='text/css'>");}else{ document.write("<link href='../css/3wap.css' rel='stylesheet' type='text/css'>");}</script><script src='../../js/3.js'></script><div class='div2'><div class='heading_nav'><ul><div><li><a href='../../index.html'>首页</a></li>
+</div><div onclick='hidden1()' >分享</div>
+</ul></div></div>
+<div id='heading_nav2'> 
+<li class='row' >
+<div class='social-share' data-mode='prepend'><a href='javascript:' class='social-share-icon icon-heart'></a></div></li></div><script charset='utf-8' src='../../3/js/hengfu.js'></script><script charset='utf-8' src='../../3/js/hengfu2.js'></script><hr><div class='div1'><div class='biaoti'><center>JAVA中调用外部程序，并等待其退出（涉及Runtime和ProcessBuilder）</center></div><div class='banquan'>原文出处:本文由博客园博主ZSQDH提供。<br/>
+原文连接:https://www.cnblogs.com/zsqdh/p/11792549.html</div><br>
+    <p><span style="font-size: 14px;">这段时间要写一个java调用外部程序的功能，踩了几个坑，这里分享一下。</span></p>
+<p><span style="font-size: 14px;">首先用的是RunTime，调用代码如下：</span></p>
+<pre><code><span style="font-size: 14px;">　　Process pro = Runtime.getRuntime().exec("cmd.exe /C start " + exePath + " " + params);</span>// exePath是外部程序路径，params是参数，不清楚为什么这样写，没研究太细，但是不这样写程序调不起来</code></pre>
+<pre><code><span style="font-size: 14px;">　　pro.waitFor();</span>// 等待进程退出//////  <span style="font-size: 15px;">问题就在这 <span style="background-color: #ffff00;">用WaitFor等待程序退出完全不起作用！！！</span></span></code></pre>
+<p><span style="font-size: 14px;">　它并不会等待程序退出而是直接走下一步了，从而导致我后面的操作出了问题。</span></p>
+<p><span style="font-size: 14px;">　后来又用了Java里另外一个类 ProcessBuilder。</span></p>
+<pre><code><span style="font-size: 14px;">　　ProcessBuilder pb = new ProcessBuilder(exePath, params);// exePath是外部程序路径,params是参数，要注意的是，这里面参数如果有空格的话，一定要分开写，不然会出错。</span></code></pre>
+<pre><code><span style="font-size: 14px;">　　Process pro = pb.start(); // Start the process.</span></code></pre>
+<pre><code><span style="font-size: 14px;">　　int exitVal = pro.waitFor();// 再用waitFor等待就可以等待了</span><br /><br /><span style="font-size: 14px;">这样就解决了我的问题，但要注意的是用ProcessBuilder调用控制台程序是<span style="background-color: #999999;">没有黑框</span>显示的。</span><br /> <br /><span style="font-size: 14px;">关于它们其他的操作，我这里也没深入研究，等用到的时候再说。<br /><br />作者：ZSQDH<br />本文地址：https://www.cnblogs.com/zsqdh/p/11792549.html<br />版权声明：本文为博主原创文章，转载请附上博文链接！<br /></span></code></pre>
+
+</div><hr><script charset='utf-8' src='../../js/sming.js'></script></body></html>

@@ -1,0 +1,152 @@
+<html><head><meta charset='utf-8'><meta name='viewport' content='width=device-width, initial-scale=1'>
+<meta name='applicable-device' content='pc'><meta name='keywords' content='电脑,电脑讲解,电脑技术,编程,电脑故障维修十一、Spring之事件监听' />
+<script src='../../highlight/highlight.pack.js'></script>
+<link rel='stylesheet' type='text/css' href='../../highlight/styles/monokai.css'/>
+
+<link rel='stylesheet' href='../../fenxiang/dist/css/share.min.css'>
+<script src='../../fenxiang/src/js/social-share.js'></script>
+<script src='../../fenxiang/src/js/qrcode.js'></script>
+
+</head><body><script>hljs.initHighlightingOnLoad();</script><script>
+var system ={};  
+var p = navigator.platform;       
+system.win = p.indexOf('Win') == 0;  
+system.mac = p.indexOf('Mac') == 0;  
+system.x11 = (p == 'X11') || (p.indexOf('Linux') == 0);     
+if(system.win||system.mac||system.xll){
+document.write("<link href='../css/3.css' rel='stylesheet' type='text/css'>");}else{ document.write("<link href='../css/3wap.css' rel='stylesheet' type='text/css'>");}</script><script src='../../js/3.js'></script><div class='div2'><div class='heading_nav'><ul><div><li><a href='../../index.html'>首页</a></li>
+</div><div onclick='hidden1()' >分享</div>
+</ul></div></div>
+<div id='heading_nav2'> 
+<li class='row' >
+<div class='social-share' data-mode='prepend'><a href='javascript:' class='social-share-icon icon-heart'></a></div></li></div><script charset='utf-8' src='../../3/js/hengfu.js'></script><script charset='utf-8' src='../../3/js/hengfu2.js'></script><hr><div class='div1'><div class='biaoti'><center>十一、Spring之事件监听</center></div><div class='banquan'>原文出处:本文由博客园博主ねぇ提供。<br/>
+原文连接:https://www.cnblogs.com/lee0527/p/11829305.html</div><br>
+    <h2 id="spring之事件监听">Spring之事件监听</h2>
+<h3 id="applicationlistener">ApplicationListener</h3>
+<p>ApplicationListener是Spring事件机制的一部分，与抽象类ApplicationEvent类配合来完成ApplicationContext的事件机制。</p>
+<p>如果容器中存在ApplicationListener的Bean，当ApplicationContext调用publishEvent方法时，对应的Bean会被触发。这一过程是典型的观察者模式的实现。</p>
+<p><strong>源码</strong>：</p>
+<pre><code><code>@FunctionalInterface
+public interface ApplicationListener&lt;E extends ApplicationEvent&gt; extends EventListener {
+
+    /**
+     * Handle an application event.
+     * @param event the event to respond to
+     */
+    void onApplicationEvent(E event);
+
+}</code></code></pre>
+<h3 id="contextrefreshedevent事件的监听">ContextRefreshedEvent事件的监听</h3>
+<p>以Spring的内置事件ContextRefreshedEvent为例，当ApplicationContext被初始化或刷新时，会触发ContextRefreshedEvent事件，下面我们就实现一个ApplicationListener来监听此事件的发生。</p>
+<pre><code><code>@Component // 需对该类进行Bean的实例化
+public class LearnListener implements ApplicationListener&lt;ContextRefreshedEvent&gt; {
+   @Override
+   public void onApplicationEvent(ContextRefreshedEvent event) {
+      // 打印容器中出事Bean的数量
+      System.out.println(&quot;监听器获得容器中初始化Bean数量：&quot; + event.getApplicationContext().getBeanDefinitionCount());
+   }
+}</code></code></pre>
+<h3 id="事件发布">事件发布</h3>
+<p>在容器创建完成后，在finishRefresh()方法中发布了一个事件——ContextRefreshedEvent</p>
+<p><img src="./images/十一、Spring之事件监听0.png" /></p>
+<p>我们来具体看一下这个事件是如何发布的</p>
+<pre><code><code>protected void publishEvent(Object event, @Nullable ResolvableType eventType) {
+    Assert.notNull(event, &quot;Event must not be null&quot;);
+
+    // Decorate event as an ApplicationEvent if necessary
+    ApplicationEvent applicationEvent;
+    if (event instanceof ApplicationEvent) {
+        applicationEvent = (ApplicationEvent) event;
+    }
+    else {
+        applicationEvent = new PayloadApplicationEvent&lt;&gt;(this, event);
+        if (eventType == null) {
+            eventType = ((PayloadApplicationEvent&lt;?&gt;) applicationEvent).getResolvableType();
+        }
+    }
+
+    // Multicast right now if possible - or lazily once the multicaster is initialized
+    if (this.earlyApplicationEvents != null) {
+        this.earlyApplicationEvents.add(applicationEvent);
+    }
+    else {
+        //获取事件的派发器
+        getApplicationEventMulticaster().multicastEvent(applicationEvent, eventType);
+    }
+
+    // Publish event via parent context as well...
+    if (this.parent != null) {
+        if (this.parent instanceof AbstractApplicationContext) {
+            ((AbstractApplicationContext) this.parent).publishEvent(event, eventType);
+        }
+        else {
+            this.parent.publishEvent(event);
+        }
+    }
+}</code></code></pre>
+<p>派发事件：getApplicationEventMulticaster().multicastEvent(applicationEvent, eventType);</p>
+<p><img src="./images/十一、Spring之事件监听1.png" /></p>
+<p>这里的执行invokeListener主要是来回调listener的接口方法</p>
+<p><img src="./images/十一、Spring之事件监听2.png" /></p>
+<p>以上就是spring中事件发布的流程。</p>
+<h3 id="事件派发器">事件派发器</h3>
+<p>在事件发布的过程中，有一步是获取事件的派发器，那么事件派发器是在哪里创建的呢？</p>
+<p>实际上在容器初始化时，执行了initApplicationEventMulticaster()这个方法，来为容器初始化事件派发器。</p>
+<pre><code><code>protected void initApplicationEventMulticaster() {
+    ConfigurableListableBeanFactory beanFactory = getBeanFactory();
+    //先来判断容器中有没有applicationEventMulticaster
+    if (beanFactory.containsLocalBean(APPLICATION_EVENT_MULTICASTER_BEAN_NAME)) {
+        this.applicationEventMulticaster =
+            beanFactory.getBean(APPLICATION_EVENT_MULTICASTER_BEAN_NAME, ApplicationEventMulticaster.class);
+        if (logger.isTraceEnabled()) {
+            logger.trace(&quot;Using ApplicationEventMulticaster [&quot; + this.applicationEventMulticaster + &quot;]&quot;);
+        }
+    }
+    else {
+        //如果没有则创建一个派发器
+        this.applicationEventMulticaster = new SimpleApplicationEventMulticaster(beanFactory);
+        beanFactory.registerSingleton(APPLICATION_EVENT_MULTICASTER_BEAN_NAME, this.applicationEventMulticaster);
+        if (logger.isTraceEnabled()) {
+            logger.trace(&quot;No &#39;&quot; + APPLICATION_EVENT_MULTICASTER_BEAN_NAME + &quot;&#39; bean, using &quot; +
+                         &quot;[&quot; + this.applicationEventMulticaster.getClass().getSimpleName() + &quot;]&quot;);
+        }
+    }
+}</code></code></pre>
+<p>APPLICATION_EVENT_MULTICASTER_BEAN_NAME：</p>
+<pre><code><code>public static final String APPLICATION_EVENT_MULTICASTER_BEAN_NAME = &quot;applicationEventMulticaster&quot;;</code></code></pre>
+<h3 id="监听器从哪里来">监听器从哪里来</h3>
+<p>refresh()方法中执行了registerListeners()来给容器中注册监听器</p>
+<pre><code><code>protected void registerListeners() {
+    // Register statically specified listeners first.
+    for (ApplicationListener&lt;?&gt; listener : getApplicationListeners()) {
+        getApplicationEventMulticaster().addApplicationListener(listener);
+    }
+
+    // Do not initialize FactoryBeans here: We need to leave all regular beans
+    // uninitialized to let post-processors apply to them!
+    //根据类型获取所有的监听器的Bean名称
+    String[] listenerBeanNames = getBeanNamesForType(ApplicationListener.class, true, false);
+    for (String listenerBeanName : listenerBeanNames) {
+       //将监听器加入到派发器当中
+       getApplicationEventMulticaster().addApplicationListenerBean(listenerBeanName);
+    }
+
+    // Publish early application events now that we finally have a multicaster...
+    Set&lt;ApplicationEvent&gt; earlyEventsToProcess = this.earlyApplicationEvents;
+    this.earlyApplicationEvents = null;
+    if (earlyEventsToProcess != null) {
+        for (ApplicationEvent earlyEvent : earlyEventsToProcess) {
+            getApplicationEventMulticaster().multicastEvent(earlyEvent);
+        }
+    }
+}</code></code></pre>
+<h3 id="eventlistener">@EventListener</h3>
+<p>除了实现ApplicationListener接口来完成事件监听以外，@EventListener这个注解也同样可以监听事件的发生</p>
+<p>只需要将@EventListener标注在方法上面：</p>
+<pre><code><code>@EventListener(classes = {ApplicationEvent.class})
+public void listen(ApplicationEvent applicationEvent){
+    System.out.println(&quot;监听到：&quot;+applicationEvent);
+}</code></code></pre>
+
+
+</div><hr><script charset='utf-8' src='../../js/sming.js'></script></body></html>

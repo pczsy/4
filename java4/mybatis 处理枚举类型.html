@@ -1,0 +1,182 @@
+<html><head><meta charset='utf-8'><meta name='viewport' content='width=device-width, initial-scale=1'>
+<meta name='applicable-device' content='pc'><meta name='keywords' content='电脑,电脑讲解,电脑技术,编程,电脑故障维修mybatis 处理枚举类型' />
+<script src='../../highlight/highlight.pack.js'></script>
+<link rel='stylesheet' type='text/css' href='../../highlight/styles/monokai.css'/>
+
+<link rel='stylesheet' href='../../fenxiang/dist/css/share.min.css'>
+<script src='../../fenxiang/src/js/social-share.js'></script>
+<script src='../../fenxiang/src/js/qrcode.js'></script>
+
+</head><body><script>hljs.initHighlightingOnLoad();</script><script>
+var system ={};  
+var p = navigator.platform;       
+system.win = p.indexOf('Win') == 0;  
+system.mac = p.indexOf('Mac') == 0;  
+system.x11 = (p == 'X11') || (p.indexOf('Linux') == 0);     
+if(system.win||system.mac||system.xll){
+document.write("<link href='../css/3.css' rel='stylesheet' type='text/css'>");}else{ document.write("<link href='../css/3wap.css' rel='stylesheet' type='text/css'>");}</script><script src='../../js/3.js'></script><div class='div2'><div class='heading_nav'><ul><div><li><a href='../../index.html'>首页</a></li>
+</div><div onclick='hidden1()' >分享</div>
+</ul></div></div>
+<div id='heading_nav2'> 
+<li class='row' >
+<div class='social-share' data-mode='prepend'><a href='javascript:' class='social-share-icon icon-heart'></a></div></li></div><script charset='utf-8' src='../../3/js/hengfu.js'></script><script charset='utf-8' src='../../3/js/hengfu2.js'></script><hr><div class='div1'><div class='biaoti'><center>mybatis 处理枚举类型</center></div><div class='banquan'>原文出处:本文由博客园博主Magic_Li提供。<br/>
+原文连接:https://www.cnblogs.com/Magic-Li/p/11684218.html</div><br>
+    <p>MyBatis支持持久化enum类型属性。假设t_user表中有一列gender（性别）类型为 varchar2(10)，存储 MALE 或者 FEMALE 两种值。并且，User对象有一个enum类型的gender 属性，如下所示：<br /> </p>
+<src class="cnblogs_code">
+<pre><code><span style="color: #0000ff;">public</span> <span style="color: #0000ff;">enum</span><span style="color: #000000;"> Gender { 
+MALE,FEMALE; 
+}</span></code></pre>
+
+<p>&nbsp;</p>
+<p>默认情况下MyBatis使用EnumTypeHandler来处理enum类型的Java属性，并且将其存储为enum值的名称。我们不需要为此做任何额外的配置。可以像使用基本数据类型属性一样使用enum类型属性，如下：</p>
+<src class="cnblogs_code">
+<pre><code><span style="color: #0000ff;">create</span> <span style="color: #0000ff;">table</span><span style="color: #000000;"> t_user(
+          id </span><span style="color: #0000ff;">number</span> <span style="color: #0000ff;">primary</span> <span style="color: #0000ff;">key</span><span style="color: #000000;">,
+          name </span><span style="color: #0000ff;">varchar2</span>(<span style="color: #800000; font-weight: bold;">50</span><span style="color: #000000;">),
+          gender </span><span style="color: #0000ff;">varchar2</span>(<span style="color: #800000; font-weight: bold;">10</span><span style="color: #000000;">)
+);</span></code></pre>
+
+<p>&nbsp;</p>
+<src class="cnblogs_code">
+<pre><code><span style="color: #0000ff;">public</span> <span style="color: #0000ff;">class</span><span style="color: #000000;"> User{ 
+            </span><span style="color: #0000ff;">private</span><span style="color: #000000;"> Integer id; 
+            </span><span style="color: #0000ff;">private</span><span style="color: #000000;"> String name; 
+            </span><span style="color: #0000ff;">private</span><span style="color: #000000;"> Gender gender; 
+
+            </span><span style="color: #008000;">//</span><span style="color: #008000;">setters and getters </span>
+} </code></pre>
+
+<p>&nbsp;映射文件：</p>
+<src class="cnblogs_code">
+<pre><code><span style="color: #0000ff;">&lt;</span><span style="color: #800000;">insert </span><span style="color: #ff0000;">id</span><span style="color: #0000ff;">="insertUser"</span><span style="color: #ff0000;"> parameterType</span><span style="color: #0000ff;">="User"</span><span style="color: #0000ff;">&gt;</span> 
+    <span style="color: #0000ff;">&lt;</span><span style="color: #800000;">selectKey </span><span style="color: #ff0000;">keyProperty</span><span style="color: #0000ff;">="id"</span><span style="color: #ff0000;"> resultType</span><span style="color: #0000ff;">="int"</span><span style="color: #ff0000;"> order</span><span style="color: #0000ff;">="BEFORE"</span><span style="color: #0000ff;">&gt;</span><span style="color: #000000;">
+        select my_seq.nextval from dual
+    </span><span style="color: #0000ff;">&lt;/</span><span style="color: #800000;">selectKey</span><span style="color: #0000ff;">&gt;</span><span style="color: #000000;">
+    insert into t_user(id,name,gender) 
+    values(#{id},#{name},#{gender}) 
+</span><span style="color: #0000ff;">&lt;/</span><span style="color: #800000;">insert</span><span style="color: #0000ff;">&gt;</span></code></pre>
+
+<p>映射接口：</p>
+<src class="cnblogs_code">
+<pre><code><span style="color: #0000ff;">public</span> <span style="color: #0000ff;">interface</span><span style="color: #000000;"> XxxxMapper{
+    </span><span style="color: #0000ff;">int</span><span style="color: #000000;"> insertUser(User user);    
+}</span></code></pre>
+
+<p>测试方法：</p>
+<src class="cnblogs_code">
+<pre><code><span style="color: #000000;">@Test
+</span><span style="color: #0000ff;">public</span> <span style="color: #0000ff;">void</span><span style="color: #000000;"> test_insertUser(){
+
+SqlSession sqlSession </span>= <span style="color: #0000ff;">null</span><span style="color: #000000;">;
+</span><span style="color: #0000ff;">try</span><span style="color: #000000;"> {
+sqlSession </span>=<span style="color: #000000;"> MyBatisSqlSessionFactory.openSession();
+
+SpecialMapper mapper </span>= sqlSession.getMapper(SpecialMapper.<span style="color: #0000ff;">class</span><span style="color: #000000;">);
+User user </span>= <span style="color: #0000ff;">new</span> User("tom"<span style="color: #000000;">,Gender.MALE);
+
+mapper.insertUser(user);
+
+sqlSession.commit();
+} </span><span style="color: #0000ff;">catch</span><span style="color: #000000;"> (Exception e) {
+e.printStackTrace();
+}
+}</span></code></pre>
+
+<p>&nbsp;</p>
+<p>当执行insertStudent语句的时候MyBatis会取Gender枚举（FEMALE/MALE）的名称，存储到GENDER列中。</p>
+<p> 如果你想存储FEMALE为0，MALE为1到gender列中，需要在mybatis-config.xml文件中配置专门的类型处理器，并指定它处理的枚举类型是哪个。<br />		&lt;typeHandler handler="org.apache.ibatis.type.EnumOrdinalTypeHandler" javaType="com.briup.special.Gender"/&gt;</p>
+<p>EnumOrdinalTypeHandler这是个类型处理器，源码中有个set方法就是在帮助我们存值，源码如下</p>
+<src class="cnblogs_code">
+<pre><code><span style="color: #008000;">/**</span><span style="color: #008000;">
+ *    Copyright 2009-2017 the original author or authors.
+ *
+ *    Licensed under the Apache License, Version 2.0 (the "License");
+ *    you may not use this file except in compliance with the License.
+ *    You may obtain a copy of the License at
+ *
+ *       </span><span style="color: #008000; text-decoration: underline;">http://www.apache.org/licenses/LICENSE-2.0</span><span style="color: #008000;">
+ *
+ *    Unless required by applicable law or agreed to in writing, software
+ *    distributed under the License is distributed on an "AS IS" BASIS,
+ *    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ *    See the License for the specific language governing permissions and
+ *    limitations under the License.
+ </span><span style="color: #008000;">*/</span>
+<span style="color: #0000ff;">package</span><span style="color: #000000;"> org.apache.ibatis.type;
+
+</span><span style="color: #0000ff;">import</span><span style="color: #000000;"> java.sql.CallableStatement;
+</span><span style="color: #0000ff;">import</span><span style="color: #000000;"> java.sql.PreparedStatement;
+</span><span style="color: #0000ff;">import</span><span style="color: #000000;"> java.sql.ResultSet;
+</span><span style="color: #0000ff;">import</span><span style="color: #000000;"> java.sql.SQLException;
+
+</span><span style="color: #008000;">/**</span><span style="color: #008000;">
+ * </span><span style="color: #808080;">@author</span><span style="color: #008000;"> Clinton Begin
+ </span><span style="color: #008000;">*/</span>
+<span style="color: #0000ff;">public</span> <span style="color: #0000ff;">class</span> EnumOrdinalTypeHandler&lt;E <span style="color: #0000ff;">extends</span> Enum&lt;E&gt;&gt; <span style="color: #0000ff;">extends</span> BaseTypeHandler&lt;E&gt;<span style="color: #000000;"> {
+
+  </span><span style="color: #0000ff;">private</span> <span style="color: #0000ff;">final</span> Class&lt;E&gt;<span style="color: #000000;"> type;
+  </span><span style="color: #0000ff;">private</span> <span style="color: #0000ff;">final</span><span style="color: #000000;"> E[] enums;
+
+  </span><span style="color: #0000ff;">public</span> EnumOrdinalTypeHandler(Class&lt;E&gt;<span style="color: #000000;"> type) {
+    </span><span style="color: #0000ff;">if</span> (type == <span style="color: #0000ff;">null</span><span style="color: #000000;">) {
+      </span><span style="color: #0000ff;">throw</span> <span style="color: #0000ff;">new</span> IllegalArgumentException("Type argument cannot be null"<span style="color: #000000;">);
+    }
+    </span><span style="color: #0000ff;">this</span>.type =<span style="color: #000000;"> type;
+    </span><span style="color: #0000ff;">this</span>.enums =<span style="color: #000000;"> type.getEnumConstants();
+    </span><span style="color: #0000ff;">if</span> (<span style="color: #0000ff;">this</span>.enums == <span style="color: #0000ff;">null</span><span style="color: #000000;">) {
+      </span><span style="color: #0000ff;">throw</span> <span style="color: #0000ff;">new</span> IllegalArgumentException(type.getSimpleName() + " does not represent an enum type."<span style="color: #000000;">);
+    }
+  }
+
+  @Override
+  </span><span style="color: #0000ff;">public</span> <span style="color: #0000ff;">void</span> setNonNullParameter(PreparedStatement ps, <span style="color: #0000ff;">int</span> i, E parameter, JdbcType jdbcType) <span style="color: #0000ff;">throws</span><span style="color: #000000;"> SQLException {
+    ps.setInt(i, parameter.ordinal());
+  }
+
+  @Override
+  </span><span style="color: #0000ff;">public</span> E getNullableResult(ResultSet rs, String columnName) <span style="color: #0000ff;">throws</span><span style="color: #000000;"> SQLException {
+    </span><span style="color: #0000ff;">int</span> i =<span style="color: #000000;"> rs.getInt(columnName);
+    </span><span style="color: #0000ff;">if</span><span style="color: #000000;"> (rs.wasNull()) {
+      </span><span style="color: #0000ff;">return</span> <span style="color: #0000ff;">null</span><span style="color: #000000;">;
+    } </span><span style="color: #0000ff;">else</span><span style="color: #000000;"> {
+      </span><span style="color: #0000ff;">try</span><span style="color: #000000;"> {
+        </span><span style="color: #0000ff;">return</span><span style="color: #000000;"> enums[i];
+      } </span><span style="color: #0000ff;">catch</span><span style="color: #000000;"> (Exception ex) {
+        </span><span style="color: #0000ff;">throw</span> <span style="color: #0000ff;">new</span> IllegalArgumentException("Cannot convert " + i + " to " + type.getSimpleName() + " by ordinal value."<span style="color: #000000;">, ex);
+      }
+    }
+  }
+
+  @Override
+  </span><span style="color: #0000ff;">public</span> E getNullableResult(ResultSet rs, <span style="color: #0000ff;">int</span> columnIndex) <span style="color: #0000ff;">throws</span><span style="color: #000000;"> SQLException {
+    </span><span style="color: #0000ff;">int</span> i =<span style="color: #000000;"> rs.getInt(columnIndex);
+    </span><span style="color: #0000ff;">if</span><span style="color: #000000;"> (rs.wasNull()) {
+      </span><span style="color: #0000ff;">return</span> <span style="color: #0000ff;">null</span><span style="color: #000000;">;
+    } </span><span style="color: #0000ff;">else</span><span style="color: #000000;"> {
+      </span><span style="color: #0000ff;">try</span><span style="color: #000000;"> {
+        </span><span style="color: #0000ff;">return</span><span style="color: #000000;"> enums[i];
+      } </span><span style="color: #0000ff;">catch</span><span style="color: #000000;"> (Exception ex) {
+        </span><span style="color: #0000ff;">throw</span> <span style="color: #0000ff;">new</span> IllegalArgumentException("Cannot convert " + i + " to " + type.getSimpleName() + " by ordinal value."<span style="color: #000000;">, ex);
+      }
+    }
+  }
+
+  @Override
+  </span><span style="color: #0000ff;">public</span> E getNullableResult(CallableStatement cs, <span style="color: #0000ff;">int</span> columnIndex) <span style="color: #0000ff;">throws</span><span style="color: #000000;"> SQLException {
+    </span><span style="color: #0000ff;">int</span> i =<span style="color: #000000;"> cs.getInt(columnIndex);
+    </span><span style="color: #0000ff;">if</span><span style="color: #000000;"> (cs.wasNull()) {
+      </span><span style="color: #0000ff;">return</span> <span style="color: #0000ff;">null</span><span style="color: #000000;">;
+    } </span><span style="color: #0000ff;">else</span><span style="color: #000000;"> {
+      </span><span style="color: #0000ff;">try</span><span style="color: #000000;"> {
+        </span><span style="color: #0000ff;">return</span><span style="color: #000000;"> enums[i];
+      } </span><span style="color: #0000ff;">catch</span><span style="color: #000000;"> (Exception ex) {
+        </span><span style="color: #0000ff;">throw</span> <span style="color: #0000ff;">new</span> IllegalArgumentException("Cannot convert " + i + " to " + type.getSimpleName() + " by ordinal value."<span style="color: #000000;">, ex);
+      }
+    }
+  }
+  
+}</span></code></pre>
+
+<p>枚举类型的【顺序值】是根据enum中的声明顺序赋值的。如果改变了Gender里面对象的声明顺序，则数据库存储的数据和此顺序值就不匹配了。</p>
+
+</div><hr><script charset='utf-8' src='../../js/sming.js'></script></body></html>

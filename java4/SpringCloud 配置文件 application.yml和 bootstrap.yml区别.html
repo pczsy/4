@@ -1,0 +1,46 @@
+<html><head><meta charset='utf-8'><meta name='viewport' content='width=device-width, initial-scale=1'>
+<meta name='applicable-device' content='pc'><meta name='keywords' content='电脑,电脑讲解,电脑技术,编程,电脑故障维修SpringCloud 配置文件 application.yml和 bootstrap.yml区别' />
+<script src='../../highlight/highlight.pack.js'></script>
+<link rel='stylesheet' type='text/css' href='../../highlight/styles/monokai.css'/>
+
+<link rel='stylesheet' href='../../fenxiang/dist/css/share.min.css'>
+<script src='../../fenxiang/src/js/social-share.js'></script>
+<script src='../../fenxiang/src/js/qrcode.js'></script>
+
+</head><body><script>hljs.initHighlightingOnLoad();</script><script>
+var system ={};  
+var p = navigator.platform;       
+system.win = p.indexOf('Win') == 0;  
+system.mac = p.indexOf('Mac') == 0;  
+system.x11 = (p == 'X11') || (p.indexOf('Linux') == 0);     
+if(system.win||system.mac||system.xll){
+document.write("<link href='../css/3.css' rel='stylesheet' type='text/css'>");}else{ document.write("<link href='../css/3wap.css' rel='stylesheet' type='text/css'>");}</script><script src='../../js/3.js'></script><div class='div2'><div class='heading_nav'><ul><div><li><a href='../../index.html'>首页</a></li>
+</div><div onclick='hidden1()' >分享</div>
+</ul></div></div>
+<div id='heading_nav2'> 
+<li class='row' >
+<div class='social-share' data-mode='prepend'><a href='javascript:' class='social-share-icon icon-heart'></a></div></li></div><script charset='utf-8' src='../../3/js/hengfu.js'></script><script charset='utf-8' src='../../3/js/hengfu2.js'></script><hr><div class='div1'><div class='biaoti'><center>SpringCloud 配置文件 application.yml和 bootstrap.yml区别</center></div><div class='banquan'>原文出处:本文由博客园博主小宁526提供。<br/>
+原文连接:https://www.cnblogs.com/ningwuyu/p/11856734.html</div><br>
+    <p><strong>前言：</strong></p>
+<p>SpringBoot默认支持properties和YAML两种格式的配置文件。前者格式简单，但是只支持键值对。如果需要表达列表，最好使用YAML格式。SpringBoot支持自动加载约定名称的配置文件，例如application.yml。如果是自定义名称的配置文件，就要另找方法了。可惜的是，不像前者有@PropertySource这样方便的加载方式，后者的加载必须借助编码逻辑来实现。</p>
+<p><strong>一、bootstrap.yml（bootstrap.properties）与application.yml（application.properties）执行顺序</strong></p>
+<p>bootstrap.yml（bootstrap.properties）用来程序引导时执行，应用于更加早期配置信息读取，如可以使用来配置application.yml中使用到参数等</p>
+<p>application.yml（application.properties)&nbsp;应用程序特有配置信息，可以用来配置后续各个模块中需使用的公共参数等。</p>
+<p>加载顺序</p>
+<p>bootstrap.yml &gt; application.yml &gt; application-dev(prod).yml</p>
+<p><br /><strong>二、遇到问题及解决方案</strong></p>
+<p><strong>&nbsp; &nbsp; 问题一、</strong></p>
+<p>在springcloud工程中，资源文件夹中有 application.yml 、 application-dev(prod、test).yml时，,工程启动时会启动一个端口为8080的tomcat，即使在application.yml、application-dev.yml中指定了端口，工程也不会加载，推测资源文件加载失败。</p>
+<p><img src="./images/SpringCloud 配置文件 application.yml和 bootstrap.yml区别0.png" alt="" /></p>
+<p>&nbsp;</p>
+<p><strong>问题二</strong></p>
+<p>当资源文件中有bootstrap.yml、application.yml 、 application-dev(prod、test).yml文件时，并且三个文件都设置三个不同的tomcat的端口，此时application-dev会覆盖掉bootstrap.yml中的端口。</p>
+<p><img src="./images/SpringCloud 配置文件 application.yml和 bootstrap.yml区别1.png" alt="" /></p>
+<p>&nbsp;</p>
+<p><strong>问题三</strong></p>
+<p><strong>当只有bootstrap.yml application.yml时，application.yml中的端口则不会覆盖掉bootstrap.yml中的端口，</strong></p>
+<p>&nbsp;<img src="./images/SpringCloud 配置文件 application.yml和 bootstrap.yml区别2.png" alt="" /></p>
+<p>&nbsp;</p>
+<p>&nbsp;所以在springcloud中，能用bootstrap.yml的地方，就不要用application.yml。</p>
+
+</div><hr><script charset='utf-8' src='../../js/sming.js'></script></body></html>

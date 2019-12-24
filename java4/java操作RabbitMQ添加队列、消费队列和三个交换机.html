@@ -1,0 +1,340 @@
+<html><head><meta charset='utf-8'><meta name='viewport' content='width=device-width, initial-scale=1'>
+<meta name='applicable-device' content='pc'><meta name='keywords' content='电脑,电脑讲解,电脑技术,编程,电脑故障维修java操作RabbitMQ添加队列、消费队列和三个交换机' />
+<script src='../../highlight/highlight.pack.js'></script>
+<link rel='stylesheet' type='text/css' href='../../highlight/styles/monokai.css'/>
+
+<link rel='stylesheet' href='../../fenxiang/dist/css/share.min.css'>
+<script src='../../fenxiang/src/js/social-share.js'></script>
+<script src='../../fenxiang/src/js/qrcode.js'></script>
+
+</head><body><script>hljs.initHighlightingOnLoad();</script><script>
+var system ={};  
+var p = navigator.platform;       
+system.win = p.indexOf('Win') == 0;  
+system.mac = p.indexOf('Mac') == 0;  
+system.x11 = (p == 'X11') || (p.indexOf('Linux') == 0);     
+if(system.win||system.mac||system.xll){
+document.write("<link href='../css/3.css' rel='stylesheet' type='text/css'>");}else{ document.write("<link href='../css/3wap.css' rel='stylesheet' type='text/css'>");}</script><script src='../../js/3.js'></script><div class='div2'><div class='heading_nav'><ul><div><li><a href='../../index.html'>首页</a></li>
+</div><div onclick='hidden1()' >分享</div>
+</ul></div></div>
+<div id='heading_nav2'> 
+<li class='row' >
+<div class='social-share' data-mode='prepend'><a href='javascript:' class='social-share-icon icon-heart'></a></div></li></div><script charset='utf-8' src='../../3/js/hengfu.js'></script><script charset='utf-8' src='../../3/js/hengfu2.js'></script><hr><div class='div1'><div class='biaoti'><center>java操作RabbitMQ添加队列、消费队列和三个交换机</center></div><div class='banquan'>原文出处:本文由博客园博主默闻120提供。<br/>
+原文连接:https://www.cnblogs.com/mowen120/p/11905211.html</div><br>
+    <h3>假设已经在服务器上安装完RabbitMQ。<a href="https://www.cnblogs.com/mowen120/p/11904567.html"><font color="#0000ff">我写的教程</font></a></h3><h1>一、发送消息到队列（生产者）</h1><p>新建一个maven项目，在pom.xml文件加入以下依赖</p><p><br></p><pre><code>&lt;dependencies&gt;
+    &lt;dependency&gt;
+        &lt;groupId&gt;com.rabbitmq&lt;/groupId&gt;
+        &lt;artifactId&gt;amqp-client&lt;/artifactId&gt;
+        &lt;version&gt;3.6.5&lt;/version&gt;
+    &lt;/dependency&gt;
+&lt;/dependencies&gt;<br></code></pre><pre><code></code></pre>新建一个P1类<pre class="brush: java;html-script: false;quick-code: true;smart-tabs: true;auto-links: false;toolbar: false;gutter; true;light: false;ruler: false;pad-line-numbers: 2;collapse: false;tab-size: 4;first-line: 1;">package com.rabbitMQ.test;
+
+import com.rabbitmq.client.Channel;
+import com.rabbitmq.client.Connection;
+import com.rabbitmq.client.ConnectionFactory;
+
+import java.io.IOException;
+import java.util.concurrent.TimeoutException;
+
+/**
+ * @author mowen
+ * @create 2019/11/20-11:23
+ */
+public class P1 {
+    public static void main(String[] args) throws IOException, TimeoutException {
+        //消息队列名字
+        String queueName="queue";
+        //实例连接工厂
+        ConnectionFactory connectionFactory=new ConnectionFactory();
+        //设置地址
+        connectionFactory.setHost("192.168.128.233");
+        //设置端口
+        connectionFactory.setPort(5672);
+        //设置用户名
+        connectionFactory.setUsername("mowen");
+        //设置密码
+        connectionFactory.setPassword("123456");
+        //获取连接（跟jdbc很像）
+        Connection connection = connectionFactory.newConnection();
+        //创建通道
+        Channel channel = connection.createChannel();
+        //声明队列。
+        //参数1：队列名
+        //参数2：持久化 （true表示是，队列将在服务器重启时依旧存在）
+        //参数3：独占队列（创建者可以使用的私有队列，断开后自动删除）
+        //参数4：当所有消费者客户端连接断开时是否自动删除队列
+        //参数5：队列的其他参数
+        channel.queueDeclare(queueName,true,false,false,null);
+
+        for (int i = 0; i &lt; 10; i++) {
+            String msg="msg"+i;
+            // 基本发布消息
+            // 第一个参数为交换机名称、
+            // 第二个参数为队列映射的路由key、
+            // 第三个参数为消息的其他属性、
+            // 第四个参数为发送信息的主体
+            channel.basicPublish("",queueName,null,msg.getBytes());
+        }
+
+        channel.close();
+        connection.close();
+    }
+}
+</code></pre><p>运行后再浏览器进入RabbitMQ的控制台，切换到queue看到</p><p><a href="https://img2018.cnblogs.com/blog/1871158/201911/1871158-20191121140029706-2100287550.png"><img width="411" height="29" title="image" style="display: inline; background-image: none;" alt="image" src="./images/java操作RabbitMQ添加队列、消费队列和三个交换机0.png" border="0"></a></p><h1>二、获取队列消息（消费者）</h1><p>新建一个C1类</p><pre class="brush: java;html-script: false;quick-code: true;smart-tabs: true;auto-links: false;toolbar: false;gutter; true;light: false;ruler: false;pad-line-numbers: 2;collapse: false;tab-size: 4;first-line: 1;">package com.rabbitMQ.test;
+
+
+import com.rabbitmq.client.*;
+
+import java.io.IOException;
+import java.util.concurrent.TimeoutException;
+
+/**
+ * @author mowen
+ * @create 2019/11/20-13:12
+ */
+public class C1 {
+    public static void main(String[] args) throws IOException, TimeoutException {
+        //消息队列名字
+        String queueName="queue";
+        //实例连接工厂
+        ConnectionFactory connectionFactory=new ConnectionFactory();
+        //设置地址
+        connectionFactory.setHost("192.168.128.233");
+        //设置端口
+        connectionFactory.setPort(5672);
+        //设置用户名
+        connectionFactory.setUsername("mowen");
+        //设置密码
+        connectionFactory.setPassword("123456");
+        //获取连接（跟jdbc很像）
+        Connection connection = connectionFactory.newConnection();
+        //创建通道
+        Channel channel = connection.createChannel();
+
+        // 创建一个消费者
+        Consumer consumer = new DefaultConsumer(channel){
+            @Override
+            public void handleDelivery(String consumerTag, Envelope envelope, AMQP.BasicProperties properties, byte[] body) throws IOException {
+                // 消费收到消息的时候调用的回调
+                System.out.println("C3接收到:" + new String(body));
+            }
+        };
+
+
+        //把消费着绑定到指定队列
+        //第一个是队列名
+        //第二个是 是否自动确认
+        //第三个是消费者
+        channel.basicConsume(queueName,true,consumer);
+
+    }
+}
+</code></pre><p>运行后输出为</p><p><a href="https://img2018.cnblogs.com/blog/1871158/201911/1871158-20191121140030370-441012863.png"><img width="244" height="149" title="image" style="margin: 0px; display: inline; background-image: none;" alt="image" src="./images/java操作RabbitMQ添加队列、消费队列和三个交换机1.png" border="0"></a>消费者一般都不会关闭，会一直等待队列消息，可以手动关闭程序。</p><p>channel.basicConsume(queueName,true,consumer);中的true为收到消息后自动确认，改为false取消自动确认。</p><p>在handleDelivery方法最后面用</p><pre><code>// 手动确认<br>// 确认收到消息</code></pre><pre class="brush: java;html-script: false;quick-code: true;smart-tabs: true;auto-links: false;toolbar: false;gutter; true;light: false;ruler: false;pad-line-numbers: 2;collapse: false;tab-size: 4;first-line: 1;">channel.basicAck(envelope.getDeliveryTag(),false);</code></pre><p>来收到手动确认消息。消费者可以有多个并且可以同时消费一个队列；</p><p>当有多个消费者同时消费同一个队列时，收到的消息是平均分配的（消费者没收到之前已经确认每个消费者受到的消息），</p><p>但当其中一个消费者性能差的话，会影响其他的消费者，因为还要等它收完消息，这样会拖累其他消费者。</p><p>可以设置channel 的basicQos方法</p><pre class="brush: java;html-script: false;quick-code: true;smart-tabs: true;auto-links: false;toolbar: false;gutter; true;light: false;ruler: false;pad-line-numbers: 2;collapse: false;tab-size: 4;first-line: 1;">//设置最多接受消息数量
+// 设置了这个参数之后要吧自动确认关掉
+channel.basicQos(1);
+</code></pre><h1>三、扇形（fanout）交换机</h1><p>扇形交换机是基本的交换机类型，会把收到的消息以广播的形式发送到绑定的队列里，因为不需要经过条件筛选，所以它的速度最快。</p><p><br></p><p>在生产者项目新建一个fanout类</p><pre class="brush: java;html-script: false;quick-code: true;smart-tabs: true;auto-links: false;toolbar: false;gutter; true;light: false;ruler: false;pad-line-numbers: 2;collapse: false;tab-size: 4;first-line: 1;">package com.rabbitMQ.routing;
+
+import com.rabbitmq.client.Channel;
+import com.rabbitmq.client.Connection;
+import com.rabbitmq.client.ConnectionFactory;
+
+import java.io.IOException;
+import java.util.concurrent.TimeoutException;
+
+/**
+ * @author mowen
+ * @date  2019/11/20-11:23
+ */
+public class fanout {
+    public static void main(String[] args) throws IOException, TimeoutException {
+        //交换机名字
+        String exchangeName="fanout";
+        //交换机名字类型
+        String exchangeType="fanout";
+        //消息队列名字
+        String queueName1="fanout.queue1";
+        String queueName2="fanout.queue2";
+        String queueName3="fanout.queue3";
+        //实例连接工厂
+        ConnectionFactory connectionFactory=new ConnectionFactory();
+        //设置地址
+        connectionFactory.setHost("192.168.128.233");
+        //设置端口
+        connectionFactory.setPort(5672);
+        //设置用户名
+        connectionFactory.setUsername("mowen");
+        //设置密码
+        connectionFactory.setPassword("123456");
+        //获取连接（跟jdbc很像）
+        Connection connection = connectionFactory.newConnection();
+        //创建通道
+        Channel channel = connection.createChannel();
+        //声明队列。
+        //参数1：队列名
+        //参数2：持久化 （true表示是，队列将在服务器重启时依旧存在）
+        //参数3：独占队列（创建者可以使用的私有队列，断开后自动删除）
+        //参数4：当所有消费者客户端连接断开时是否自动删除队列
+        //参数5：队列的其他参数
+        channel.queueDeclare(queueName1,true,false,false,null);
+        channel.queueDeclare(queueName2,true,false,false,null);
+        channel.queueDeclare(queueName3,true,false,false,null);
+
+        //声明交换机
+        channel.exchangeDeclare(exchangeName,exchangeType);
+
+        //队列绑定到交换机
+        channel.queueBind(queueName1,exchangeName,"");
+        channel.queueBind(queueName2,exchangeName,"");
+        channel.queueBind(queueName3,exchangeName,"");
+
+        for (int i = 0; i &lt; 10; i++) {
+            String msg="msg"+i;
+            // 基本发布消息
+            // 第一个参数为交换机名称、
+            // 第二个参数为队列映射的路由key、
+            // 第三个参数为消息的其他属性、
+            // 第四个参数为发送信息的主体
+            channel.basicPublish(exchangeName,"",null,msg.getBytes());
+        }
+
+        channel.close();
+        connection.close();
+    }
+}
+</code></pre><p>运行后在RabbitMQ网页管理后台的queue会看到</p><p><a href="https://img2018.cnblogs.com/blog/1871158/201911/1871158-20191121140030997-1055648893.png"><img width="392" height="59" title="image" style="display: inline; background-image: none;" alt="image" src="./images/java操作RabbitMQ添加队列、消费队列和三个交换机2.png" border="0"></a></p><p>切换到Exchanges会看到一个</p><p><a href="https://img2018.cnblogs.com/blog/1871158/201911/1871158-20191121140031591-469876201.png"><img width="314" height="21" title="image" style="display: inline; background-image: none;" alt="image" src="./images/java操作RabbitMQ添加队列、消费队列和三个交换机3.png" border="0"></a></p><p>就是我们声明的交换机，点击会看到我们绑定的队列</p><p><a href="https://img2018.cnblogs.com/blog/1871158/201911/1871158-20191121140032129-2008943320.png"><img width="346" height="330" title="image" style="display: inline; background-image: none;" alt="image" src="./images/java操作RabbitMQ添加队列、消费队列和三个交换机4.png" border="0"></a></p><h1>四、直连（direct）交换机</h1><p>直连交换机会带路由功能，队列通过routing_key与直连交换机绑定，发送消息需要指定routing_key，交换机收到消息时，交换机会根据routing_key发送到指定队列里，同样的routing_key可以支持多个队列。</p><p><br></p><p>在生产者项目新建direct类</p><pre class="brush: java;html-script: false;quick-code: true;smart-tabs: true;auto-links: false;toolbar: false;gutter; true;light: false;ruler: false;pad-line-numbers: 2;collapse: false;tab-size: 4;first-line: 1;">package com.rabbitMQ.routing;
+
+import com.rabbitmq.client.Channel;
+import com.rabbitmq.client.Connection;
+import com.rabbitmq.client.ConnectionFactory;
+
+import java.io.IOException;
+import java.util.concurrent.TimeoutException;
+
+/**
+ * @author mowen
+ * @date  2019/11/20-11:23
+ */
+public class direct {
+    public static void main(String[] args) throws IOException, TimeoutException {
+        String exchangeName="direct";
+        String exchangeType="direct";
+        //消息队列名字
+        String queueName1="direct.queue1";
+        String queueName2="direct.queue2";
+        String queueName3="direct.queue3";
+        //实例连接工厂
+        ConnectionFactory connectionFactory=new ConnectionFactory();
+        //设置地址
+        connectionFactory.setHost("192.168.128.233");
+        //设置端口
+        connectionFactory.setPort(5672);
+        //设置用户名
+        connectionFactory.setUsername("mowen");
+        //设置密码
+        connectionFactory.setPassword("123456");
+        //获取连接（跟jdbc很像）
+        Connection connection = connectionFactory.newConnection();
+        //创建通道
+        Channel channel = connection.createChannel();
+        //声明队列。
+        //参数1：队列名
+        //参数2：持久化 （true表示是，队列将在服务器重启时依旧存在）
+        //参数3：独占队列（创建者可以使用的私有队列，断开后自动删除）
+        //参数4：当所有消费者客户端连接断开时是否自动删除队列
+        //参数5：队列的其他参数
+        channel.queueDeclare(queueName1,true,false,false,null);
+        channel.queueDeclare(queueName2,true,false,false,null);
+        channel.queueDeclare(queueName3,true,false,false,null);
+
+        //声明交换机
+        channel.exchangeDeclare(exchangeName,exchangeType);
+
+        //队列绑定到交换机并指定rouing_key
+        channel.queueBind(queueName1,exchangeName,"key1");
+        channel.queueBind(queueName2,exchangeName,"key2");
+        channel.queueBind(queueName3,exchangeName,"key1");
+
+        for (int i = 0; i &lt; 10; i++) {
+            String msg="msg"+i;
+            // 基本发布消息
+            // 第一个参数为交换机名称、
+            // 第二个参数为队列映射的路由key、
+            // 第三个参数为消息的其他属性、
+            // 第四个参数为发送信息的主体
+            channel.basicPublish(exchangeName,"key1",null,msg.getBytes());
+        }
+
+        channel.close();
+        connection.close();
+    }
+}
+</code></pre><p>运行后到后台的queue会看到</p><p><a href="https://img2018.cnblogs.com/blog/1871158/201911/1871158-20191121140032747-165109106.png"><img width="409" height="62" title="image" style="display: inline; background-image: none;" alt="image" src="./images/java操作RabbitMQ添加队列、消费队列和三个交换机5.png" border="0"></a></p><p>切换到Exchanges会看到</p><p><a href="https://img2018.cnblogs.com/blog/1871158/201911/1871158-20191121140033332-1735532390.png"><img width="433" height="27" title="image" style="display: inline; background-image: none;" alt="image" src="./images/java操作RabbitMQ添加队列、消费队列和三个交换机6.png" border="0"></a></p><p>点击进去</p><p><a href="https://img2018.cnblogs.com/blog/1871158/201911/1871158-20191121140033874-92858656.png"><img width="343" height="272" title="image" style="display: inline; background-image: none;" alt="image" src="./images/java操作RabbitMQ添加队列、消费队列和三个交换机7.png" border="0"></a></p><h1>五、主题（topic）交换机</h1><p>主题交换机的routing_key可以有一定的规则，交换机和队列的routing_key需要采用*.#.*…..的格式</p><p>每个部分用.分开</p><p>*代表一个单词（不是字符）</p><p>#代表任意数量（0或n个）单词</p><p><br></p><p>在生产者项目新进topic类</p><pre class="brush: java;html-script: false;quick-code: true;smart-tabs: true;auto-links: false;toolbar: false;gutter; true;light: false;ruler: false;pad-line-numbers: 2;collapse: false;tab-size: 4;first-line: 1;">package com.rabbitMQ.routing;
+
+import com.rabbitmq.client.Channel;
+import com.rabbitmq.client.Connection;
+import com.rabbitmq.client.ConnectionFactory;
+
+import java.io.IOException;
+import java.util.concurrent.TimeoutException;
+
+/**
+ * @author mowen
+ * @date  2019/11/20-11:23
+ */
+public class topic {
+    public static void main(String[] args) throws IOException, TimeoutException {
+        String exchangeName="topic";
+        String exchangeType="topic";
+        //消息队列名字
+        String queueName1="topic.queue1";
+        String queueName2="topic.queue2";
+        String queueName3="topic.queue3";
+        //实例连接工厂
+        ConnectionFactory connectionFactory=new ConnectionFactory();
+        //设置地址
+        connectionFactory.setHost("192.168.128.233");
+        //设置端口
+        connectionFactory.setPort(5672);
+        //设置用户名
+        connectionFactory.setUsername("mowen");
+        //设置密码
+        connectionFactory.setPassword("123456");
+        //获取连接（跟jdbc很像）
+        Connection connection = connectionFactory.newConnection();
+        //创建通道
+        Channel channel = connection.createChannel();
+        //声明队列。
+        //参数1：队列名
+        //参数2：持久化 （true表示是，队列将在服务器重启时依旧存在）
+        //参数3：独占队列（创建者可以使用的私有队列，断开后自动删除）
+        //参数4：当所有消费者客户端连接断开时是否自动删除队列
+        //参数5：队列的其他参数
+        channel.queueDeclare(queueName1,true,false,false,null);
+        channel.queueDeclare(queueName2,true,false,false,null);
+        channel.queueDeclare(queueName3,true,false,false,null);
+
+        //声明交换机
+        channel.exchangeDeclare(exchangeName,exchangeType);
+
+        //队列绑定到交换机并指定rouing_key
+        channel.queueBind(queueName1,exchangeName,"com.aaa.*");
+        channel.queueBind(queueName2,exchangeName,"com.*.topic");
+        channel.queueBind(queueName3,exchangeName,"com.bbb.*");
+
+        for (int i = 0; i &lt; 10; i++) {
+            String msg="msg"+i;
+            // 基本发布消息
+            // 第一个参数为交换机名称、
+            // 第二个参数为队列映射的路由key、
+            // 第三个参数为消息的其他属性、
+            // 第四个参数为发送信息的主体
+            channel.basicPublish(exchangeName,"com.aaa.topic",null,msg.getBytes());
+        }
+
+        channel.close();
+        connection.close();
+    }
+}
+</code></pre><p>运行后，到后台queue会看到</p><p><a href="https://img2018.cnblogs.com/blog/1871158/201911/1871158-20191121140034506-1523758241.png"><img width="481" height="76" title="image" style="display: inline; background-image: none;" alt="image" src="./images/java操作RabbitMQ添加队列、消费队列和三个交换机8.png" border="0"></a></p><p>切换到Exchanges会看到</p><p><a href="https://img2018.cnblogs.com/blog/1871158/201911/1871158-20191121140035074-86298614.png"><img width="403" height="26" title="image" style="display: inline; background-image: none;" alt="image" src="./images/java操作RabbitMQ添加队列、消费队列和三个交换机9.png" border="0"></a></p><p>点击进入会看到</p><p><a href="https://img2018.cnblogs.com/blog/1871158/201911/1871158-20191121140035613-1720314980.png"><img width="422" height="309" title="image" style="display: inline; background-image: none;" alt="image" src="./images/java操作RabbitMQ添加队列、消费队列和三个交换机10.png" border="0"></a></p>
+
+</div><hr><script charset='utf-8' src='../../js/sming.js'></script></body></html>

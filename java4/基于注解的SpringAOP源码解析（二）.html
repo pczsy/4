@@ -1,0 +1,502 @@
+<html><head><meta charset='utf-8'><meta name='viewport' content='width=device-width, initial-scale=1'>
+<meta name='applicable-device' content='pc'><meta name='keywords' content='电脑,电脑讲解,电脑技术,编程,电脑故障维修基于注解的SpringAOP源码解析（二）' />
+<script src='../../highlight/highlight.pack.js'></script>
+<link rel='stylesheet' type='text/css' href='../../highlight/styles/monokai.css'/>
+
+<link rel='stylesheet' href='../../fenxiang/dist/css/share.min.css'>
+<script src='../../fenxiang/src/js/social-share.js'></script>
+<script src='../../fenxiang/src/js/qrcode.js'></script>
+
+</head><body><script>hljs.initHighlightingOnLoad();</script><script>
+var system ={};  
+var p = navigator.platform;       
+system.win = p.indexOf('Win') == 0;  
+system.mac = p.indexOf('Mac') == 0;  
+system.x11 = (p == 'X11') || (p.indexOf('Linux') == 0);     
+if(system.win||system.mac||system.xll){
+document.write("<link href='../css/3.css' rel='stylesheet' type='text/css'>");}else{ document.write("<link href='../css/3wap.css' rel='stylesheet' type='text/css'>");}</script><script src='../../js/3.js'></script><div class='div2'><div class='heading_nav'><ul><div><li><a href='../../index.html'>首页</a></li>
+</div><div onclick='hidden1()' >分享</div>
+</ul></div></div>
+<div id='heading_nav2'> 
+<li class='row' >
+<div class='social-share' data-mode='prepend'><a href='javascript:' class='social-share-icon icon-heart'></a></div></li></div><script charset='utf-8' src='../../3/js/hengfu.js'></script><script charset='utf-8' src='../../3/js/hengfu2.js'></script><hr><div class='div1'><div class='biaoti'><center>基于注解的SpringAOP源码解析（二）</center></div><div class='banquan'>原文出处:本文由博客园博主石玉军提供。<br/>
+原文连接:https://www.cnblogs.com/zhixiang-org-cn/p/11445445.html</div><br>
+    <p>在<a href="https://mp.weixin.qq.com/s/yMw1MZIRjQ4c504SSuPFaw">上篇文章</a><br />
+中我们搭建了一个阅读源码的demo工程，然后简单介绍了一下<code>@EnableAspectJAutoProxy</code>注解，这个注解最重要的功能就是为向Spring中注入了一个bean<code>AnnotationAwareAspectJAutoProxyCreator</code>,本篇文章就继续来撸AOP的源码</p>
+<p>前文已经简单提到了这个类的功能，不过这里还是要先看一下这个类的继承图<br />
+<img src="1.png" /><br />
+观察类图可知，AnnotationAwareAspectJAutoProxyCreator这个类间接实现了BeanPostProcessor接口。还记得我们之前在对SpringIOC的源码进行解析时提到过，Spring在实例化Bean的前后会分别调用方法<code>postProcessBeforeInstantiation</code>和<code>postProcessAfterInstantiation</code><br />
+而AOP的整体逻辑就是通过这两个方法来实现的</p>
+<h4 id="postprocessbeforeinstantiation"><code>postProcessBeforeInstantiation</code></h4>
+<p>首先看一下这个<code>postProcessBeforeInstantiation</code>方法，它是在bean实例化之前调用的，主要是针对切面类。这个方法不在AnnotationAwareAspectJAutoProxyCreator这个类中，而是在其父类AbstractAutoProxyCreator中</p>
+<pre><code><code>public Object postProcessBeforeInstantiation(Class&lt;?&gt; beanClass, String beanName) throws BeansException {
+        Object cacheKey = getCacheKey(beanClass, beanName);
+
+        if (!StringUtils.hasLength(beanName) || !this.targetSourcedBeans.contains(beanName)) {
+            if (this.advisedBeans.containsKey(cacheKey)) {
+                return null;
+            }
+            //加载所有增强
+            if (isInfrastructureClass(beanClass) || shouldSkip(beanClass, beanName)) {
+                this.advisedBeans.put(cacheKey, Boolean.FALSE);
+                return null;
+            }
+        }
+
+        TargetSource targetSource = getCustomTargetSource(beanClass, beanName);
+        if (targetSource != null) {
+            if (StringUtils.hasLength(beanName)) {
+                this.targetSourcedBeans.add(beanName);
+            }
+            Object[] specificInterceptors = getAdvicesAndAdvisorsForBean(beanClass, beanName, targetSource);
+            Object proxy = createProxy(beanClass, beanName, specificInterceptors, targetSource);
+            this.proxyTypes.put(cacheKey, proxy.getClass());
+            return proxy;
+        }
+
+        return null;
+    }
+</code></code></pre>
+<h5 id="加载增强">加载增强</h5>
+<p>上方代码中最重要的一个方法就是shouldSkip方法了，这个方法被AspectJAwareAdvisorAutoProxyCreator所重载</p>
+<pre><code><code>protected boolean shouldSkip(Class&lt;?&gt; beanClass, String beanName) {
+  
+    //查找所有标识了@Aspect注解的类，这里是重点，接着往下看
+    List&lt;Advisor&gt; candidateAdvisors = findCandidateAdvisors();
+    for (Advisor advisor : candidateAdvisors) {
+        if (advisor instanceof AspectJPointcutAdvisor) {
+            if (((AbstractAspectJAdvice) advisor.getAdvice()).getAspectName().equals(beanName)) {
+                return true;
+            }
+        }
+    }
+    return super.shouldSkip(beanClass, beanName);
+    }
+
+
+    protected List&lt;Advisor&gt; findCandidateAdvisors() {
+        return this.advisorRetrievalHelper.findAdvisorBeans();
+    }
+    
+    protected List&lt;Advisor&gt; findCandidateAdvisors() {
+        List&lt;Advisor&gt; advisors = super.findCandidateAdvisors();
+        //buildAspectJAdvisors是重点
+           advisors.addAll(this.aspectJAdvisorsBuilder.buildAspectJAdvisors());
+        return advisors;
+    }
+
+</code></code></pre>
+<p>一个长方法buildAspectJAdvisors</p>
+<pre><code><code>    public List&lt;Advisor&gt; buildAspectJAdvisors() {
+    //所有Aspect类的名称集合
+        List&lt;String&gt; aspectNames = this.aspectBeanNames;
+        if (aspectNames == null) {
+            synchronized (this) {
+                aspectNames = this.aspectBeanNames;
+                //这个双重检查是不是在学习安全的单例模式的时候见过
+                if (aspectNames == null) {
+                    List&lt;Advisor&gt; advisors = new LinkedList&lt;Advisor&gt;();
+                    aspectNames = new LinkedList&lt;String&gt;();
+                    //获取所有Bean名称
+                    String[] beanNames = BeanFactoryUtils.beanNamesForTypeIncludingAncestors(
+                            this.beanFactory, Object.class, true, false);
+                    for (String beanName : beanNames) {
+                        //判断是否符合条件，比如说有时会排除一些类，不让这些类注入进Spring
+                        if (!isEligibleBean(beanName)) {
+                            continue;
+                        }
+               
+                        Class&lt;?&gt; beanType = this.beanFactory.getType(beanName);
+                        if (beanType == null) {
+                            continue;
+                        }
+                        //判断Bean的Class上是否标识@Aspect注解
+                        if (this.advisorFactory.isAspect(beanType)) {
+                            aspectNames.add(beanName);
+                            AspectMetadata amd = new AspectMetadata(beanType, beanName);
+                            if (amd.getAjType().getPerClause().getKind() == PerClauseKind.SINGLETON) {
+                                MetadataAwareAspectInstanceFactory factory =
+                                        new BeanFactoryAspectInstanceFactory(this.beanFactory, beanName);
+                                //下一步说，重点的重点
+                                List&lt;Advisor&gt; classAdvisors = this.advisorFactory.getAdvisors(factory);
+                                if (this.beanFactory.isSingleton(beanName)) {
+                                    //将解析的Bean名称及类上的增强缓存起来,每个Bean只解析一次
+                                    this.advisorsCache.put(beanName, classAdvisors);
+                                }
+                                else {
+                                    this.aspectFactoryCache.put(beanName, factory);
+                                }
+                                advisors.addAll(classAdvisors);
+                            }
+                            else {
+                                if (this.beanFactory.isSingleton(beanName)) {
+                                    throw new IllegalArgumentException(&quot;Bean with name &#39;&quot; + beanName +
+                                            &quot;&#39; is a singleton, but aspect instantiation model is not singleton&quot;);
+                                }
+                                MetadataAwareAspectInstanceFactory factory =
+                                        new PrototypeAspectInstanceFactory(this.beanFactory, beanName);
+                                this.aspectFactoryCache.put(beanName, factory);
+                                advisors.addAll(this.advisorFactory.getAdvisors(factory));
+                            }
+                        }
+                    }
+
+                    this.aspectBeanNames = aspectNames;
+                    return advisors;
+                }
+            }
+        }
+
+        if (aspectNames.isEmpty()) {
+            return Collections.emptyList();
+        }
+        List&lt;Advisor&gt; advisors = new LinkedList&lt;Advisor&gt;();
+        for (String aspectName : aspectNames) {
+            //从缓存中获取当前Bean的切面实例，如果不为空，则指明当前Bean的Class标识了@Aspect，且有切面方法
+            List&lt;Advisor&gt; cachedAdvisors = this.advisorsCache.get(aspectName);
+            if (cachedAdvisors != null) {
+                advisors.addAll(cachedAdvisors);
+            }
+            else {
+                MetadataAwareAspectInstanceFactory factory = this.aspectFactoryCache.get(aspectName);
+                advisors.addAll(this.advisorFactory.getAdvisors(factory));
+            }
+        }
+        return advisors;
+    }
+
+</code></code></pre>
+<h6 id="生成增强">生成增强</h6>
+<p>advisorFactory.getAdvisors方法会从@Aspect标识的类上获取@Before，@Pointcut等注解的信息及其标识的方法的信息，生成增强</p>
+<pre><code><code>    public List&lt;Advisor&gt; getAdvisors(MetadataAwareAspectInstanceFactory aspectInstanceFactory) {
+        Class&lt;?&gt; aspectClass = aspectInstanceFactory.getAspectMetadata().getAspectClass();
+        String aspectName = aspectInstanceFactory.getAspectMetadata().getAspectName();
+        //校验类的合法性相关
+        validate(aspectClass);
+
+        MetadataAwareAspectInstanceFactory lazySingletonAspectInstanceFactory =
+                new LazySingletonAspectInstanceFactoryDecorator(aspectInstanceFactory);
+
+        List&lt;Advisor&gt; advisors = new LinkedList&lt;Advisor&gt;();
+        //获取这个类所有的增强方法
+        for (Method method : getAdvisorMethods(aspectClass)) {
+            //生成增强实例
+            Advisor advisor = getAdvisor(method, lazySingletonAspectInstanceFactory, advisors.size(), aspectName);
+            if (advisor != null) {
+                advisors.add(advisor);
+            }
+        }
+
+        if (!advisors.isEmpty() &amp;&amp; lazySingletonAspectInstanceFactory.getAspectMetadata().isLazilyInstantiated()) {
+            Advisor instantiationAdvisor = new SyntheticInstantiationAdvisor(lazySingletonAspectInstanceFactory);
+            advisors.add(0, instantiationAdvisor);
+        }
+
+        for (Field field : aspectClass.getDeclaredFields()) {
+            Advisor advisor = getDeclareParentsAdvisor(field);
+            if (advisor != null) {
+                advisors.add(advisor);
+            }
+        }
+
+        return advisors;
+    }
+
+    //获取类的的方法
+    private List&lt;Method&gt; getAdvisorMethods(Class&lt;?&gt; aspectClass) {
+        final List&lt;Method&gt; methods = new LinkedList&lt;Method&gt;();
+        ReflectionUtils.doWithMethods(aspectClass, new ReflectionUtils.MethodCallback() {
+            @Override
+            public void doWith(Method method) throws IllegalArgumentException {
+                    //在@Aspect标识的类内部排除@Pointcut标识之外的所有方法，得到的方法集合包括继承自父类的方法，包括继承自Object的方法
+                if (AnnotationUtils.getAnnotation(method, Pointcut.class) == null) {
+                    methods.add(method);
+                }
+            }
+        });
+        //对得到的所有方法排序，
+        //如果方法标识了切面注解，则按@Around, @Before, @After, @AfterReturning, @AfterThrowing的顺序排序
+        //如果没有标识这些注解，则按方法名称的字符串排序,
+        //有注解的方法排在无注解的方法之前
+        //最后的排序应该是这样的Around.class, Before.class, After.class, AfterReturning.class, AfterThrowing.class。。。
+        Collections.sort(methods, METHOD_COMPARATOR);
+        return methods;
+    }
+</code></code></pre>
+<p>调用生成增强实例的方法</p>
+<pre><code><code>
+    public Advisor getAdvisor(Method candidateAdviceMethod, MetadataAwareAspectInstanceFactory aspectInstanceFactory,
+            int declarationOrderInAspect, String aspectName) {
+        //再次校验类的合法性
+        validate(aspectInstanceFactory.getAspectMetadata().getAspectClass());
+        //切点表达式的包装类里面包含这些东西：execution(public * cn.shiyujun.service.IOCService.hollo(..))
+        AspectJExpressionPointcut expressionPointcut = getPointcut(
+                candidateAdviceMethod, aspectInstanceFactory.getAspectMetadata().getAspectClass());
+        if (expressionPointcut == null) {
+            return null;
+        }
+        //根据方法、切点、AOP实例工厂、类名、序号生成切面实例，详细代码往下看
+        return new InstantiationModelAwarePointcutAdvisorImpl(expressionPointcut, candidateAdviceMethod,
+                this, aspectInstanceFactory, declarationOrderInAspect, aspectName);
+    }
+
+    private AspectJExpressionPointcut getPointcut(Method candidateAdviceMethod, Class&lt;?&gt; candidateAspectClass) {
+        //查询方法上的切面注解，根据注解生成相应类型的AspectJAnnotation,在调用AspectJAnnotation的构造函数的同时
+        //根据注解value或pointcut属性得到切点表达式，有argNames则设置参数名称
+        AspectJAnnotation&lt;?&gt; aspectJAnnotation =
+                AbstractAspectJAdvisorFactory.findAspectJAnnotationOnMethod(candidateAdviceMethod);
+        //过滤那些不含@Before, @Around, @After, @AfterReturning, @AfterThrowing注解的方法
+        if (aspectJAnnotation == null) {
+            return null;
+        }
+        //生成带表达式的切面切入点，设置其切入点表达式
+        AspectJExpressionPointcut ajexp =
+                new AspectJExpressionPointcut(candidateAspectClass, new String[0], new Class&lt;?&gt;[0]);
+        ajexp.setExpression(aspectJAnnotation.getPointcutExpression());
+        ajexp.setBeanFactory(this.beanFactory);
+        return ajexp;
+    }
+</code></code></pre>
+<p>InstantiationModelAwarePointcutAdvisorImpl的构造方法</p>
+<pre><code><code>public InstantiationModelAwarePointcutAdvisorImpl(AspectJExpressionPointcut declaredPointcut,
+            Method aspectJAdviceMethod, AspectJAdvisorFactory aspectJAdvisorFactory,
+            MetadataAwareAspectInstanceFactory aspectInstanceFactory, int declarationOrder, String aspectName) {
+
+        this.declaredPointcut = declaredPointcut;
+        this.declaringClass = aspectJAdviceMethod.getDeclaringClass();
+        this.methodName = aspectJAdviceMethod.getName();
+        this.parameterTypes = aspectJAdviceMethod.getParameterTypes();
+        this.aspectJAdviceMethod = aspectJAdviceMethod;
+        this.aspectJAdvisorFactory = aspectJAdvisorFactory;
+        this.aspectInstanceFactory = aspectInstanceFactory;
+        this.declarationOrder = declarationOrder;
+        this.aspectName = aspectName;
+
+        if (aspectInstanceFactory.getAspectMetadata().isLazilyInstantiated()) {
+            Pointcut preInstantiationPointcut = Pointcuts.union(
+                    aspectInstanceFactory.getAspectMetadata().getPerClausePointcut(), this.declaredPointcut);
+
+            this.pointcut = new PerTargetInstantiationModelPointcut(
+                    this.declaredPointcut, preInstantiationPointcut, aspectInstanceFactory);
+            this.lazy = true;
+        }
+        else {
+            this.pointcut = this.declaredPointcut;
+            this.lazy = false;
+            //重点在这里
+            this.instantiatedAdvice = instantiateAdvice(this.declaredPointcut);
+        }
+    }
+    
+    private Advice instantiateAdvice(AspectJExpressionPointcut pointcut) {
+    //再往下看
+        Advice advice = this.aspectJAdvisorFactory.getAdvice(this.aspectJAdviceMethod, pointcut,
+                this.aspectInstanceFactory, this.declarationOrder, this.aspectName);
+        return (advice != null ? advice : EMPTY_ADVICE);
+    }
+</code></code></pre>
+<p>生成增强</p>
+<pre><code><code>public class ReflectiveAspectJAdvisorFactory extends AbstractAspectJAdvisorFactory implements Serializable {
+
+    public Advice getAdvice(Method candidateAdviceMethod, AspectJExpressionPointcut expressionPointcut,
+            MetadataAwareAspectInstanceFactory aspectInstanceFactory, int declarationOrder, String aspectName) {
+
+        Class&lt;?&gt; candidateAspectClass = aspectInstanceFactory.getAspectMetadata().getAspectClass();
+        //又是一次校验
+        validate(candidateAspectClass);
+
+        AspectJAnnotation&lt;?&gt; aspectJAnnotation =
+                AbstractAspectJAdvisorFactory.findAspectJAnnotationOnMethod(candidateAdviceMethod);
+        if (aspectJAnnotation == null) {
+            return null;
+        }
+
+        if (!isAspect(candidateAspectClass)) {
+            throw new AopConfigException(&quot;Advice must be declared inside an aspect type: &quot; +
+                    &quot;Offending method &#39;&quot; + candidateAdviceMethod + &quot;&#39; in class [&quot; +
+                    candidateAspectClass.getName() + &quot;]&quot;);
+        }
+
+        if (logger.isDebugEnabled()) {
+            logger.debug(&quot;Found AspectJ method: &quot; + candidateAdviceMethod);
+        }
+
+        AbstractAspectJAdvice springAdvice;
+        //根据注解类型生成不同的通知实例
+        switch (aspectJAnnotation.getAnnotationType()) {
+            case AtBefore:
+                springAdvice = new AspectJMethodBeforeAdvice(
+                        candidateAdviceMethod, expressionPointcut, aspectInstanceFactory);
+                break;
+            case AtAfter:
+                springAdvice = new AspectJAfterAdvice(
+                        candidateAdviceMethod, expressionPointcut, aspectInstanceFactory);
+                break;
+            case AtAfterReturning:
+                springAdvice = new AspectJAfterReturningAdvice(
+                        candidateAdviceMethod, expressionPointcut, aspectInstanceFactory);
+                AfterReturning afterReturningAnnotation = (AfterReturning) aspectJAnnotation.getAnnotation();
+                if (StringUtils.hasText(afterReturningAnnotation.returning())) {
+                    springAdvice.setReturningName(afterReturningAnnotation.returning());
+                }
+                break;
+            case AtAfterThrowing:
+                springAdvice = new AspectJAfterThrowingAdvice(
+                        candidateAdviceMethod, expressionPointcut, aspectInstanceFactory);
+                AfterThrowing afterThrowingAnnotation = (AfterThrowing) aspectJAnnotation.getAnnotation();
+                if (StringUtils.hasText(afterThrowingAnnotation.throwing())) {
+                    springAdvice.setThrowingName(afterThrowingAnnotation.throwing());
+                }
+                break;
+            case AtAround:
+                springAdvice = new AspectJAroundAdvice(
+                        candidateAdviceMethod, expressionPointcut, aspectInstanceFactory);
+                break;
+            case AtPointcut:
+                if (logger.isDebugEnabled()) {
+                    logger.debug(&quot;Processing pointcut &#39;&quot; + candidateAdviceMethod.getName() + &quot;&#39;&quot;);
+                }
+                return null;
+            default:
+                throw new UnsupportedOperationException(
+                        &quot;Unsupported advice type on method: &quot; + candidateAdviceMethod);
+        }
+
+        //设置通知方法所属的类
+        springAdvice.setAspectName(aspectName);
+        //设置通知的序号,同一个类中有多个切面注解标识的方法时,按上方说的排序规则来排序，
+        //其序号就是此方法在列表中的序号，第一个就是0
+        springAdvice.setDeclarationOrder(declarationOrder);
+        //获取通知方法的所有参数
+        String[] argNames = this.parameterNameDiscoverer.getParameterNames(candidateAdviceMethod);
+        //将通知方法上的参数设置到通知中
+        if (argNames != null) {
+            springAdvice.setArgumentNamesFromStringArray(argNames);
+        }
+        //计算参数绑定工作，此方法详解请接着往下看
+        springAdvice.calculateArgumentBindings();
+        return springAdvice;
+    }
+}</code></code></pre>
+<p>校验方法参数并绑定</p>
+<pre><code><code>    public synchronized final void calculateArgumentBindings() {
+        if (this.argumentsIntrospected || this.parameterTypes.length == 0) {
+            return;
+        }
+
+        int numUnboundArgs = this.parameterTypes.length;
+        Class&lt;?&gt;[] parameterTypes = this.aspectJAdviceMethod.getParameterTypes();
+        //切面注解标识的方法第一个参数要求是JoinPoint,或StaticPart，若是@Around注解则也可以是ProceedingJoinPoint
+        if (maybeBindJoinPoint(parameterTypes[0]) || maybeBindProceedingJoinPoint(parameterTypes[0])) {
+            numUnboundArgs--;
+        }
+        else if (maybeBindJoinPointStaticPart(parameterTypes[0])) {
+            numUnboundArgs--;
+        }
+
+        if (numUnboundArgs &gt; 0) {
+        //绑定属性
+            bindArgumentsByName(numUnboundArgs);
+        }
+
+        this.argumentsIntrospected = true;
+    }
+    private void bindArgumentsByName(int numArgumentsExpectingToBind) {
+        if (this.argumentNames == null) { //获取方法参数的名称
+            this.argumentNames = createParameterNameDiscoverer().getParameterNames(this.aspectJAdviceMethod);
+        }
+        if (this.argumentNames != null) {
+            // 往下看
+            bindExplicitArguments(numArgumentsExpectingToBind);
+        }
+        else {
+            throw new IllegalStateException(&quot;Advice method [&quot; + this.aspectJAdviceMethod.getName() + &quot;] &quot; +
+                    &quot;requires &quot; + numArgumentsExpectingToBind + &quot; arguments to be bound by name, but &quot; +
+                    &quot;the argument names were not specified and could not be discovered.&quot;);
+        }
+    }
+
+    private void bindExplicitArguments(int numArgumentsLeftToBind) {
+        //此属性用来存储方法未绑定的参数名称，及参数的序号
+        this.argumentBindings = new HashMap&lt;String, Integer&gt;();
+
+        int numExpectedArgumentNames = this.aspectJAdviceMethod.getParameterTypes().length;
+        if (this.argumentNames.length != numExpectedArgumentNames) {
+            throw new IllegalStateException(&quot;Expecting to find &quot; + numExpectedArgumentNames +
+                    &quot; arguments to bind by name in advice, but actually found &quot; +
+                    this.argumentNames.length + &quot; arguments.&quot;);
+        }
+
+        // So we match in number...,argumentIndexOffset代表第一个未绑定参数的顺序 
+        int argumentIndexOffset = this.parameterTypes.length - numArgumentsLeftToBind;
+        for (int i = argumentIndexOffset; i &lt; this.argumentNames.length; i++) {
+            //存储未绑定的参数名称及其顺序的映射关系
+            this.argumentBindings.put(this.argumentNames[i], i);
+        }
+
+        // Check that returning and throwing were in the argument names list if
+        // specified, and find the discovered argument types.
+        //如果是@AfterReturning注解的returningName 有值，验证，解析，同时得到定义返回值的类型
+        if (this.returningName != null) {
+            if (!this.argumentBindings.containsKey(this.returningName)) {
+                throw new IllegalStateException(&quot;Returning argument name &#39;&quot; + this.returningName +
+                        &quot;&#39; was not bound in advice arguments&quot;);
+            }
+            else {
+                Integer index = this.argumentBindings.get(this.returningName);
+                this.discoveredReturningType = this.aspectJAdviceMethod.getParameterTypes()[index];
+                this.discoveredReturningGenericType = this.aspectJAdviceMethod.getGenericParameterTypes()[index];
+            }
+        }
+        //如果是@AfterThrowing注解的throwingName 有值，验证，解析，同时得到抛出异常的类型
+        if (this.throwingName != null) {
+            if (!this.argumentBindings.containsKey(this.throwingName)) {
+                throw new IllegalStateException(&quot;Throwing argument name &#39;&quot; + this.throwingName +
+                        &quot;&#39; was not bound in advice arguments&quot;);
+            }
+            else {
+                Integer index = this.argumentBindings.get(this.throwingName);
+                this.discoveredThrowingType = this.aspectJAdviceMethod.getParameterTypes()[index];
+            }
+        }
+
+        // configure the pointcut expression accordingly.
+        configurePointcutParameters(argumentIndexOffset);
+    }
+
+    private void configurePointcutParameters(int argumentIndexOffset) {
+        int numParametersToRemove = argumentIndexOffset;
+        if (this.returningName != null) {
+            numParametersToRemove++;
+        }
+        if (this.throwingName != null) {
+            numParametersToRemove++;
+        }
+        String[] pointcutParameterNames = new String[this.argumentNames.length - numParametersToRemove];
+        Class&lt;?&gt;[] pointcutParameterTypes = new Class&lt;?&gt;[pointcutParameterNames.length];
+        Class&lt;?&gt;[] methodParameterTypes = this.aspectJAdviceMethod.getParameterTypes();
+
+        int index = 0;
+        for (int i = 0; i &lt; this.argumentNames.length; i++) {
+            if (i &lt; argumentIndexOffset) {
+                continue;
+            }
+            if (this.argumentNames[i].equals(this.returningName) ||
+                this.argumentNames[i].equals(this.throwingName)) {
+                continue;
+            }
+            pointcutParameterNames[index] = this.argumentNames[i];
+            pointcutParameterTypes[index] = methodParameterTypes[i];
+            index++;
+        }
+        //剩余的未绑定的参数会赋值给AspectJExpressionPointcut(表达式形式的切入点)的属性，以备后续使用
+        this.pointcut.setParameterNames(pointcutParameterNames);
+        this.pointcut.setParameterTypes(pointcutParameterTypes);
+    }
+
+</code></code></pre>
+<p>未完待续<br />
+限于平台字数限制，本篇文章就到这里</p>
+
+
+</div><hr><script charset='utf-8' src='../../js/sming.js'></script></body></html>

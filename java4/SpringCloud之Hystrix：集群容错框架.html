@@ -1,0 +1,502 @@
+<html><head><meta charset='utf-8'><meta name='viewport' content='width=device-width, initial-scale=1'>
+<meta name='applicable-device' content='pc'><meta name='keywords' content='电脑,电脑讲解,电脑技术,编程,电脑故障维修SpringCloud之Hystrix：集群容错框架' />
+<script src='../../highlight/highlight.pack.js'></script>
+<link rel='stylesheet' type='text/css' href='../../highlight/styles/monokai.css'/>
+
+<link rel='stylesheet' href='../../fenxiang/dist/css/share.min.css'>
+<script src='../../fenxiang/src/js/social-share.js'></script>
+<script src='../../fenxiang/src/js/qrcode.js'></script>
+
+</head><body><script>hljs.initHighlightingOnLoad();</script><script>
+var system ={};  
+var p = navigator.platform;       
+system.win = p.indexOf('Win') == 0;  
+system.mac = p.indexOf('Mac') == 0;  
+system.x11 = (p == 'X11') || (p.indexOf('Linux') == 0);     
+if(system.win||system.mac||system.xll){
+document.write("<link href='../css/3.css' rel='stylesheet' type='text/css'>");}else{ document.write("<link href='../css/3wap.css' rel='stylesheet' type='text/css'>");}</script><script src='../../js/3.js'></script><div class='div2'><div class='heading_nav'><ul><div><li><a href='../../index.html'>首页</a></li>
+</div><div onclick='hidden1()' >分享</div>
+</ul></div></div>
+<div id='heading_nav2'> 
+<li class='row' >
+<div class='social-share' data-mode='prepend'><a href='javascript:' class='social-share-icon icon-heart'></a></div></li></div><script charset='utf-8' src='../../3/js/hengfu.js'></script><script charset='utf-8' src='../../3/js/hengfu2.js'></script><hr><div class='div1'><div class='biaoti'><center>SpringCloud之Hystrix：集群容错框架</center></div><div class='banquan'>原文出处:本文由博客园博主gdjlc提供。<br/>
+原文连接:https://www.cnblogs.com/gdjlc/p/11889484.html</div><br>
+    <p>分布式环境中，可能会有一些被依赖的服务会失效，影响系统的稳定运行。<br />Hystrix通过添加延迟阈值以及容错的逻辑，以控制分布式系统间组件的交互。<br />Hystrix通过隔离服务间的访问点、停止它们之间的级联故障、提供可回退操作来实现容错。</p>
+<p>下面例子为在Spring Cloud的使用。<br />开发工具：IntelliJ IDEA 2019.2.3</p>
+<p><span style="font-size: 16px;"><strong>一、服务器端</strong></span></p>
+<p><span style="color: #333399;"><strong>1、创建项目</strong></span></p>
+<p>IDEA中创建一个新的SpringBoot项目，名称为&ldquo;spring-hystrix-server&rdquo;，SpringBoot版本选择2.1.10，在选择Dependencies(依赖)的界面勾选Spring Cloud Discovery -&gt;<br />Eureka Server，创建完成后的pom.xml配置文件自动添加SpringCloud最新稳定版本依赖，当前为Greenwich.SR3。<br />pom.xml完整内容如下：</p>
+<src class="cnblogs_code" onclick="cnblogs_code_show('664aa0d9-6da1-42e2-8082-e4b7220b2b6d')"><img id="code_img_closed_664aa0d9-6da1-42e2-8082-e4b7220b2b6d" class="code_img_closed" src="./images/SpringCloud之Hystrix：集群容错框架0.png" alt="" /><img id="code_img_opened_664aa0d9-6da1-42e2-8082-e4b7220b2b6d" class="code_img_opened" style="display: none;" onclick="cnblogs_code_hide('664aa0d9-6da1-42e2-8082-e4b7220b2b6d',event)" src="./images/SpringCloud之Hystrix：集群容错框架1.png" alt="" />
+<src id="cnblogs_code_open_664aa0d9-6da1-42e2-8082-e4b7220b2b6d" class="cnblogs_code_hide">
+<pre><code><span style="color: #0000ff;">&lt;?</span><span style="color: #ff00ff;">xml version="1.0" encoding="UTF-8"</span><span style="color: #0000ff;">?&gt;</span>
+<span style="color: #0000ff;">&lt;</span><span style="color: #800000;">project </span><span style="color: #ff0000;">xmlns</span><span style="color: #0000ff;">="http://maven.apache.org/POM/4.0.0"</span><span style="color: #ff0000;"> xmlns:xsi</span><span style="color: #0000ff;">="http://www.w3.org/2001/XMLSchema-instance"</span><span style="color: #ff0000;">
+         xsi:schemaLocation</span><span style="color: #0000ff;">="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd"</span><span style="color: #0000ff;">&gt;</span>
+    <span style="color: #0000ff;">&lt;</span><span style="color: #800000;">modelVersion</span><span style="color: #0000ff;">&gt;</span>4.0.0<span style="color: #0000ff;">&lt;/</span><span style="color: #800000;">modelVersion</span><span style="color: #0000ff;">&gt;</span>
+    <span style="color: #0000ff;">&lt;</span><span style="color: #800000;">parent</span><span style="color: #0000ff;">&gt;</span>
+        <span style="color: #0000ff;">&lt;</span><span style="color: #800000;">groupId</span><span style="color: #0000ff;">&gt;</span>org.springframework.boot<span style="color: #0000ff;">&lt;/</span><span style="color: #800000;">groupId</span><span style="color: #0000ff;">&gt;</span>
+        <span style="color: #0000ff;">&lt;</span><span style="color: #800000;">artifactId</span><span style="color: #0000ff;">&gt;</span>spring-boot-starter-parent<span style="color: #0000ff;">&lt;/</span><span style="color: #800000;">artifactId</span><span style="color: #0000ff;">&gt;</span>
+        <span style="color: #0000ff;">&lt;</span><span style="color: #800000;">version</span><span style="color: #0000ff;">&gt;</span>2.1.10.RELEASE<span style="color: #0000ff;">&lt;/</span><span style="color: #800000;">version</span><span style="color: #0000ff;">&gt;</span>
+        <span style="color: #0000ff;">&lt;</span><span style="color: #800000;">relativePath</span><span style="color: #0000ff;">/&gt;</span> <span style="color: #008000;">&lt;!--</span><span style="color: #008000;"> lookup parent from repository </span><span style="color: #008000;">--&gt;</span>
+    <span style="color: #0000ff;">&lt;/</span><span style="color: #800000;">parent</span><span style="color: #0000ff;">&gt;</span>
+    <span style="color: #0000ff;">&lt;</span><span style="color: #800000;">groupId</span><span style="color: #0000ff;">&gt;</span>com.example<span style="color: #0000ff;">&lt;/</span><span style="color: #800000;">groupId</span><span style="color: #0000ff;">&gt;</span>
+    <span style="color: #0000ff;">&lt;</span><span style="color: #800000;">artifactId</span><span style="color: #0000ff;">&gt;</span>spring-hystrix-server<span style="color: #0000ff;">&lt;/</span><span style="color: #800000;">artifactId</span><span style="color: #0000ff;">&gt;</span>
+    <span style="color: #0000ff;">&lt;</span><span style="color: #800000;">version</span><span style="color: #0000ff;">&gt;</span>0.0.1-SNAPSHOT<span style="color: #0000ff;">&lt;/</span><span style="color: #800000;">version</span><span style="color: #0000ff;">&gt;</span>
+    <span style="color: #0000ff;">&lt;</span><span style="color: #800000;">name</span><span style="color: #0000ff;">&gt;</span>spring-hystrix-server<span style="color: #0000ff;">&lt;/</span><span style="color: #800000;">name</span><span style="color: #0000ff;">&gt;</span>
+    <span style="color: #0000ff;">&lt;</span><span style="color: #800000;">description</span><span style="color: #0000ff;">&gt;</span>Demo project for Spring Boot<span style="color: #0000ff;">&lt;/</span><span style="color: #800000;">description</span><span style="color: #0000ff;">&gt;</span>
+
+    <span style="color: #0000ff;">&lt;</span><span style="color: #800000;">properties</span><span style="color: #0000ff;">&gt;</span>
+        <span style="color: #0000ff;">&lt;</span><span style="color: #800000;">java.version</span><span style="color: #0000ff;">&gt;</span>1.8<span style="color: #0000ff;">&lt;/</span><span style="color: #800000;">java.version</span><span style="color: #0000ff;">&gt;</span>
+        <span style="color: #0000ff;">&lt;</span><span style="color: #800000;">spring-cloud.version</span><span style="color: #0000ff;">&gt;</span>Greenwich.SR3<span style="color: #0000ff;">&lt;/</span><span style="color: #800000;">spring-cloud.version</span><span style="color: #0000ff;">&gt;</span>
+    <span style="color: #0000ff;">&lt;/</span><span style="color: #800000;">properties</span><span style="color: #0000ff;">&gt;</span>
+
+    <span style="color: #0000ff;">&lt;</span><span style="color: #800000;">dependencies</span><span style="color: #0000ff;">&gt;</span>
+        <span style="color: #0000ff;">&lt;</span><span style="color: #800000;">dependency</span><span style="color: #0000ff;">&gt;</span>
+            <span style="color: #0000ff;">&lt;</span><span style="color: #800000;">groupId</span><span style="color: #0000ff;">&gt;</span>org.springframework.cloud<span style="color: #0000ff;">&lt;/</span><span style="color: #800000;">groupId</span><span style="color: #0000ff;">&gt;</span>
+            <span style="color: #0000ff;">&lt;</span><span style="color: #800000;">artifactId</span><span style="color: #0000ff;">&gt;</span>spring-cloud-starter-netflix-eureka-server<span style="color: #0000ff;">&lt;/</span><span style="color: #800000;">artifactId</span><span style="color: #0000ff;">&gt;</span>
+        <span style="color: #0000ff;">&lt;/</span><span style="color: #800000;">dependency</span><span style="color: #0000ff;">&gt;</span>
+
+        <span style="color: #0000ff;">&lt;</span><span style="color: #800000;">dependency</span><span style="color: #0000ff;">&gt;</span>
+            <span style="color: #0000ff;">&lt;</span><span style="color: #800000;">groupId</span><span style="color: #0000ff;">&gt;</span>org.springframework.boot<span style="color: #0000ff;">&lt;/</span><span style="color: #800000;">groupId</span><span style="color: #0000ff;">&gt;</span>
+            <span style="color: #0000ff;">&lt;</span><span style="color: #800000;">artifactId</span><span style="color: #0000ff;">&gt;</span>spring-boot-starter-test<span style="color: #0000ff;">&lt;/</span><span style="color: #800000;">artifactId</span><span style="color: #0000ff;">&gt;</span>
+            <span style="color: #0000ff;">&lt;</span><span style="color: #800000;">scope</span><span style="color: #0000ff;">&gt;</span>test<span style="color: #0000ff;">&lt;/</span><span style="color: #800000;">scope</span><span style="color: #0000ff;">&gt;</span>
+        <span style="color: #0000ff;">&lt;/</span><span style="color: #800000;">dependency</span><span style="color: #0000ff;">&gt;</span>
+    <span style="color: #0000ff;">&lt;/</span><span style="color: #800000;">dependencies</span><span style="color: #0000ff;">&gt;</span>
+
+    <span style="color: #0000ff;">&lt;</span><span style="color: #800000;">dependencyManagement</span><span style="color: #0000ff;">&gt;</span>
+        <span style="color: #0000ff;">&lt;</span><span style="color: #800000;">dependencies</span><span style="color: #0000ff;">&gt;</span>
+            <span style="color: #0000ff;">&lt;</span><span style="color: #800000;">dependency</span><span style="color: #0000ff;">&gt;</span>
+                <span style="color: #0000ff;">&lt;</span><span style="color: #800000;">groupId</span><span style="color: #0000ff;">&gt;</span>org.springframework.cloud<span style="color: #0000ff;">&lt;/</span><span style="color: #800000;">groupId</span><span style="color: #0000ff;">&gt;</span>
+                <span style="color: #0000ff;">&lt;</span><span style="color: #800000;">artifactId</span><span style="color: #0000ff;">&gt;</span>spring-cloud-dependencies<span style="color: #0000ff;">&lt;/</span><span style="color: #800000;">artifactId</span><span style="color: #0000ff;">&gt;</span>
+                <span style="color: #0000ff;">&lt;</span><span style="color: #800000;">version</span><span style="color: #0000ff;">&gt;</span>${spring-cloud.version}<span style="color: #0000ff;">&lt;/</span><span style="color: #800000;">version</span><span style="color: #0000ff;">&gt;</span>
+                <span style="color: #0000ff;">&lt;</span><span style="color: #800000;">type</span><span style="color: #0000ff;">&gt;</span>pom<span style="color: #0000ff;">&lt;/</span><span style="color: #800000;">type</span><span style="color: #0000ff;">&gt;</span>
+                <span style="color: #0000ff;">&lt;</span><span style="color: #800000;">scope</span><span style="color: #0000ff;">&gt;</span>import<span style="color: #0000ff;">&lt;/</span><span style="color: #800000;">scope</span><span style="color: #0000ff;">&gt;</span>
+            <span style="color: #0000ff;">&lt;/</span><span style="color: #800000;">dependency</span><span style="color: #0000ff;">&gt;</span>
+        <span style="color: #0000ff;">&lt;/</span><span style="color: #800000;">dependencies</span><span style="color: #0000ff;">&gt;</span>
+    <span style="color: #0000ff;">&lt;/</span><span style="color: #800000;">dependencyManagement</span><span style="color: #0000ff;">&gt;</span>
+
+    <span style="color: #0000ff;">&lt;</span><span style="color: #800000;">build</span><span style="color: #0000ff;">&gt;</span>
+        <span style="color: #0000ff;">&lt;</span><span style="color: #800000;">plugins</span><span style="color: #0000ff;">&gt;</span>
+            <span style="color: #0000ff;">&lt;</span><span style="color: #800000;">plugin</span><span style="color: #0000ff;">&gt;</span>
+                <span style="color: #0000ff;">&lt;</span><span style="color: #800000;">groupId</span><span style="color: #0000ff;">&gt;</span>org.springframework.boot<span style="color: #0000ff;">&lt;/</span><span style="color: #800000;">groupId</span><span style="color: #0000ff;">&gt;</span>
+                <span style="color: #0000ff;">&lt;</span><span style="color: #800000;">artifactId</span><span style="color: #0000ff;">&gt;</span>spring-boot-maven-plugin<span style="color: #0000ff;">&lt;/</span><span style="color: #800000;">artifactId</span><span style="color: #0000ff;">&gt;</span>
+            <span style="color: #0000ff;">&lt;/</span><span style="color: #800000;">plugin</span><span style="color: #0000ff;">&gt;</span>
+        <span style="color: #0000ff;">&lt;/</span><span style="color: #800000;">plugins</span><span style="color: #0000ff;">&gt;</span>
+    <span style="color: #0000ff;">&lt;/</span><span style="color: #800000;">build</span><span style="color: #0000ff;">&gt;</span>
+
+<span style="color: #0000ff;">&lt;/</span><span style="color: #800000;">project</span><span style="color: #0000ff;">&gt;</span></code></pre>
+
+<span class="cnblogs_code_collapse">View Code</span>
+<p><strong style="color: #333399;">2、修改配置application.yml</strong></p>
+<p>修改端口号为8761；取消将自己信息注册到Eureka服务器，不从Eureka服务器抓取注册信息。</p>
+<src class="cnblogs_code">
+<pre><code>server:
+  port: 8761
+eureka:
+  client:
+    register-with-eureka: false
+    fetch-registry: false</code></pre>
+
+<p><strong style="color: #333399;">3、修改启动类代码</strong></p>
+<p>增加注解@EnableEurekaServer</p>
+<p>&nbsp;</p>
+<p><span style="font-size: 16px;"><strong>二、服务提供者</strong></span></p>
+<p><strong><span style="color: #333399;">1、创建项目</span></strong></p>
+<p>IDEA中创建一个新的SpringBoot项目，除了名称为&ldquo;spring-hystrix-provider&rdquo;，其它步骤和上面创建服务器端一样。</p>
+<p><strong><span style="color: #333399;">2、修改配置application.yml</span></strong></p>
+<src class="cnblogs_code">
+<pre><code>server:
+  port: 8080
+spring:
+  application:
+    name: spring-hystrix-provider
+eureka:
+  instance:
+    hostname: localhost
+  client:
+    serviceUrl:
+      defaultZone: http://localhost:8761/eureka/</code></pre>
+
+<p><strong style="color: #333399;">3、添加一个实体类User.java</strong></p>
+<src class="cnblogs_code">
+<pre><code><span style="color: #0000ff;">package</span><span style="color: #000000;"> com.example.springhystrixprovider;
+
+</span><span style="color: #0000ff;">public</span> <span style="color: #0000ff;">class</span><span style="color: #000000;"> User {
+    String name;
+    Integer age;
+
+    </span><span style="color: #0000ff;">public</span><span style="color: #000000;"> String getName() {
+        </span><span style="color: #0000ff;">return</span><span style="color: #000000;"> name;
+    }
+    </span><span style="color: #0000ff;">public</span> <span style="color: #0000ff;">void</span><span style="color: #000000;"> setName(String name) {
+        </span><span style="color: #0000ff;">this</span>.name =<span style="color: #000000;"> name;
+    }
+    </span><span style="color: #0000ff;">public</span><span style="color: #000000;"> Integer getAge() {
+        </span><span style="color: #0000ff;">return</span><span style="color: #000000;"> age;
+    }
+    </span><span style="color: #0000ff;">public</span> <span style="color: #0000ff;">void</span><span style="color: #000000;"> setAge(Integer age) {
+        </span><span style="color: #0000ff;">this</span>.age =<span style="color: #000000;"> age;
+    }
+}</span></code></pre>
+
+<p><span style="color: #333399;"><strong>4、修改启动类代码</strong></span></p>
+<src class="cnblogs_code">
+<pre><code><span style="color: #0000ff;">package</span><span style="color: #000000;"> com.example.springhystrixprovider;
+
+</span><span style="color: #0000ff;">import</span><span style="color: #000000;"> org.springframework.boot.SpringApplication;
+</span><span style="color: #0000ff;">import</span><span style="color: #000000;"> org.springframework.boot.autoconfigure.SpringBootApplication;
+</span><span style="color: #0000ff;">import</span><span style="color: #000000;"> org.springframework.cloud.netflix.eureka.EnableEurekaClient;
+</span><span style="color: #0000ff;">import</span><span style="color: #000000;"> org.springframework.http.MediaType;
+</span><span style="color: #0000ff;">import</span><span style="color: #000000;"> org.springframework.web.bind.annotation.PathVariable;
+</span><span style="color: #0000ff;">import</span><span style="color: #000000;"> org.springframework.web.bind.annotation.RequestMapping;
+</span><span style="color: #0000ff;">import</span><span style="color: #000000;"> org.springframework.web.bind.annotation.RestController;
+
+</span><span style="color: #0000ff;">import</span><span style="color: #000000;"> javax.servlet.http.HttpServletRequest;
+
+@SpringBootApplication
+@EnableEurekaClient
+@RestController
+</span><span style="color: #0000ff;">public</span> <span style="color: #0000ff;">class</span><span style="color: #000000;"> SpringHystrixProviderApplication {
+
+    </span><span style="color: #0000ff;">public</span> <span style="color: #0000ff;">static</span> <span style="color: #0000ff;">void</span><span style="color: #000000;"> main(String[] args) {
+        SpringApplication.run(SpringHystrixProviderApplication.</span><span style="color: #0000ff;">class</span><span style="color: #000000;">, args);
+    }
+
+    @RequestMapping(</span>"/hello"<span style="color: #000000;">)
+    </span><span style="color: #0000ff;">public</span><span style="color: #000000;"> String hello(HttpServletRequest request) {
+        </span><span style="color: #0000ff;">return</span> "hello world." +<span style="color: #000000;"> request.getServerPort();
+    }
+
+    @RequestMapping(value</span>="/user/{name}", produces =<span style="color: #000000;"> MediaType.APPLICATION_JSON_VALUE)
+    </span><span style="color: #0000ff;">public</span><span style="color: #000000;"> User user(@PathVariable String name) {
+        User u </span>= <span style="color: #0000ff;">new</span><span style="color: #000000;"> User();
+        u.setName(name);
+        u.setAge(</span>30<span style="color: #000000;">);
+        </span><span style="color: #0000ff;">return</span><span style="color: #000000;"> u;
+    }
+}</span></code></pre>
+
+<p>&nbsp;</p>
+<p><strong style="font-size: 16px;">三、服务调用者</strong></p>
+<p><span style="color: #333399;"><strong>1、创建项目</strong></span></p>
+<p>IDEA中创建一个新的SpringBoot项目，名称为&ldquo;spring-hystrix-invoker&rdquo;，SpringBoot版本选择2.1.10，在选择Dependencies(依赖)的界面勾选Spring Cloud Discovery -&gt; Eureka Server，Spring Cloud Circuit Breaker -&gt; Hystrix。<br />pom.xml完整内容如下：</p>
+<src class="cnblogs_code" onclick="cnblogs_code_show('35710727-fccd-4949-9f8b-f94b4cb43dad')"><img id="code_img_closed_35710727-fccd-4949-9f8b-f94b4cb43dad" class="code_img_closed" src="./images/SpringCloud之Hystrix：集群容错框架0.png" alt="" /><img id="code_img_opened_35710727-fccd-4949-9f8b-f94b4cb43dad" class="code_img_opened" style="display: none;" onclick="cnblogs_code_hide('35710727-fccd-4949-9f8b-f94b4cb43dad',event)" src="./images/SpringCloud之Hystrix：集群容错框架1.png" alt="" />
+<src id="cnblogs_code_open_35710727-fccd-4949-9f8b-f94b4cb43dad" class="cnblogs_code_hide">
+<pre><code><span style="color: #0000ff;">&lt;?</span><span style="color: #ff00ff;">xml version="1.0" encoding="UTF-8"</span><span style="color: #0000ff;">?&gt;</span>
+<span style="color: #0000ff;">&lt;</span><span style="color: #800000;">project </span><span style="color: #ff0000;">xmlns</span><span style="color: #0000ff;">="http://maven.apache.org/POM/4.0.0"</span><span style="color: #ff0000;"> xmlns:xsi</span><span style="color: #0000ff;">="http://www.w3.org/2001/XMLSchema-instance"</span><span style="color: #ff0000;">
+         xsi:schemaLocation</span><span style="color: #0000ff;">="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd"</span><span style="color: #0000ff;">&gt;</span>
+    <span style="color: #0000ff;">&lt;</span><span style="color: #800000;">modelVersion</span><span style="color: #0000ff;">&gt;</span>4.0.0<span style="color: #0000ff;">&lt;/</span><span style="color: #800000;">modelVersion</span><span style="color: #0000ff;">&gt;</span>
+    <span style="color: #0000ff;">&lt;</span><span style="color: #800000;">parent</span><span style="color: #0000ff;">&gt;</span>
+        <span style="color: #0000ff;">&lt;</span><span style="color: #800000;">groupId</span><span style="color: #0000ff;">&gt;</span>org.springframework.boot<span style="color: #0000ff;">&lt;/</span><span style="color: #800000;">groupId</span><span style="color: #0000ff;">&gt;</span>
+        <span style="color: #0000ff;">&lt;</span><span style="color: #800000;">artifactId</span><span style="color: #0000ff;">&gt;</span>spring-boot-starter-parent<span style="color: #0000ff;">&lt;/</span><span style="color: #800000;">artifactId</span><span style="color: #0000ff;">&gt;</span>
+        <span style="color: #0000ff;">&lt;</span><span style="color: #800000;">version</span><span style="color: #0000ff;">&gt;</span>2.1.10.RELEASE<span style="color: #0000ff;">&lt;/</span><span style="color: #800000;">version</span><span style="color: #0000ff;">&gt;</span>
+        <span style="color: #0000ff;">&lt;</span><span style="color: #800000;">relativePath</span><span style="color: #0000ff;">/&gt;</span> <span style="color: #008000;">&lt;!--</span><span style="color: #008000;"> lookup parent from repository </span><span style="color: #008000;">--&gt;</span>
+    <span style="color: #0000ff;">&lt;/</span><span style="color: #800000;">parent</span><span style="color: #0000ff;">&gt;</span>
+    <span style="color: #0000ff;">&lt;</span><span style="color: #800000;">groupId</span><span style="color: #0000ff;">&gt;</span>com.example<span style="color: #0000ff;">&lt;/</span><span style="color: #800000;">groupId</span><span style="color: #0000ff;">&gt;</span>
+    <span style="color: #0000ff;">&lt;</span><span style="color: #800000;">artifactId</span><span style="color: #0000ff;">&gt;</span>spring-hystrix-invoker<span style="color: #0000ff;">&lt;/</span><span style="color: #800000;">artifactId</span><span style="color: #0000ff;">&gt;</span>
+    <span style="color: #0000ff;">&lt;</span><span style="color: #800000;">version</span><span style="color: #0000ff;">&gt;</span>0.0.1-SNAPSHOT<span style="color: #0000ff;">&lt;/</span><span style="color: #800000;">version</span><span style="color: #0000ff;">&gt;</span>
+    <span style="color: #0000ff;">&lt;</span><span style="color: #800000;">name</span><span style="color: #0000ff;">&gt;</span>spring-hystrix-invoker<span style="color: #0000ff;">&lt;/</span><span style="color: #800000;">name</span><span style="color: #0000ff;">&gt;</span>
+    <span style="color: #0000ff;">&lt;</span><span style="color: #800000;">description</span><span style="color: #0000ff;">&gt;</span>Demo project for Spring Boot<span style="color: #0000ff;">&lt;/</span><span style="color: #800000;">description</span><span style="color: #0000ff;">&gt;</span>
+
+    <span style="color: #0000ff;">&lt;</span><span style="color: #800000;">properties</span><span style="color: #0000ff;">&gt;</span>
+        <span style="color: #0000ff;">&lt;</span><span style="color: #800000;">java.version</span><span style="color: #0000ff;">&gt;</span>1.8<span style="color: #0000ff;">&lt;/</span><span style="color: #800000;">java.version</span><span style="color: #0000ff;">&gt;</span>
+        <span style="color: #0000ff;">&lt;</span><span style="color: #800000;">spring-cloud.version</span><span style="color: #0000ff;">&gt;</span>Greenwich.SR3<span style="color: #0000ff;">&lt;/</span><span style="color: #800000;">spring-cloud.version</span><span style="color: #0000ff;">&gt;</span>
+    <span style="color: #0000ff;">&lt;/</span><span style="color: #800000;">properties</span><span style="color: #0000ff;">&gt;</span>
+
+    <span style="color: #0000ff;">&lt;</span><span style="color: #800000;">dependencies</span><span style="color: #0000ff;">&gt;</span>
+        <span style="color: #0000ff;">&lt;</span><span style="color: #800000;">dependency</span><span style="color: #0000ff;">&gt;</span>
+            <span style="color: #0000ff;">&lt;</span><span style="color: #800000;">groupId</span><span style="color: #0000ff;">&gt;</span>org.springframework.cloud<span style="color: #0000ff;">&lt;/</span><span style="color: #800000;">groupId</span><span style="color: #0000ff;">&gt;</span>
+            <span style="color: #0000ff;">&lt;</span><span style="color: #800000;">artifactId</span><span style="color: #0000ff;">&gt;</span>spring-cloud-starter-netflix-eureka-server<span style="color: #0000ff;">&lt;/</span><span style="color: #800000;">artifactId</span><span style="color: #0000ff;">&gt;</span>
+        <span style="color: #0000ff;">&lt;/</span><span style="color: #800000;">dependency</span><span style="color: #0000ff;">&gt;</span>
+        <span style="color: #0000ff;">&lt;</span><span style="color: #800000;">dependency</span><span style="color: #0000ff;">&gt;</span>
+            <span style="color: #0000ff;">&lt;</span><span style="color: #800000;">groupId</span><span style="color: #0000ff;">&gt;</span>org.springframework.cloud<span style="color: #0000ff;">&lt;/</span><span style="color: #800000;">groupId</span><span style="color: #0000ff;">&gt;</span>
+            <span style="color: #0000ff;">&lt;</span><span style="color: #800000;">artifactId</span><span style="color: #0000ff;">&gt;</span>spring-cloud-starter-netflix-hystrix<span style="color: #0000ff;">&lt;/</span><span style="color: #800000;">artifactId</span><span style="color: #0000ff;">&gt;</span>
+        <span style="color: #0000ff;">&lt;/</span><span style="color: #800000;">dependency</span><span style="color: #0000ff;">&gt;</span>
+
+        <span style="color: #0000ff;">&lt;</span><span style="color: #800000;">dependency</span><span style="color: #0000ff;">&gt;</span>
+            <span style="color: #0000ff;">&lt;</span><span style="color: #800000;">groupId</span><span style="color: #0000ff;">&gt;</span>org.springframework.boot<span style="color: #0000ff;">&lt;/</span><span style="color: #800000;">groupId</span><span style="color: #0000ff;">&gt;</span>
+            <span style="color: #0000ff;">&lt;</span><span style="color: #800000;">artifactId</span><span style="color: #0000ff;">&gt;</span>spring-boot-starter-test<span style="color: #0000ff;">&lt;/</span><span style="color: #800000;">artifactId</span><span style="color: #0000ff;">&gt;</span>
+            <span style="color: #0000ff;">&lt;</span><span style="color: #800000;">scope</span><span style="color: #0000ff;">&gt;</span>test<span style="color: #0000ff;">&lt;/</span><span style="color: #800000;">scope</span><span style="color: #0000ff;">&gt;</span>
+        <span style="color: #0000ff;">&lt;/</span><span style="color: #800000;">dependency</span><span style="color: #0000ff;">&gt;</span>
+    <span style="color: #0000ff;">&lt;/</span><span style="color: #800000;">dependencies</span><span style="color: #0000ff;">&gt;</span>
+
+    <span style="color: #0000ff;">&lt;</span><span style="color: #800000;">dependencyManagement</span><span style="color: #0000ff;">&gt;</span>
+        <span style="color: #0000ff;">&lt;</span><span style="color: #800000;">dependencies</span><span style="color: #0000ff;">&gt;</span>
+            <span style="color: #0000ff;">&lt;</span><span style="color: #800000;">dependency</span><span style="color: #0000ff;">&gt;</span>
+                <span style="color: #0000ff;">&lt;</span><span style="color: #800000;">groupId</span><span style="color: #0000ff;">&gt;</span>org.springframework.cloud<span style="color: #0000ff;">&lt;/</span><span style="color: #800000;">groupId</span><span style="color: #0000ff;">&gt;</span>
+                <span style="color: #0000ff;">&lt;</span><span style="color: #800000;">artifactId</span><span style="color: #0000ff;">&gt;</span>spring-cloud-dependencies<span style="color: #0000ff;">&lt;/</span><span style="color: #800000;">artifactId</span><span style="color: #0000ff;">&gt;</span>
+                <span style="color: #0000ff;">&lt;</span><span style="color: #800000;">version</span><span style="color: #0000ff;">&gt;</span>${spring-cloud.version}<span style="color: #0000ff;">&lt;/</span><span style="color: #800000;">version</span><span style="color: #0000ff;">&gt;</span>
+                <span style="color: #0000ff;">&lt;</span><span style="color: #800000;">type</span><span style="color: #0000ff;">&gt;</span>pom<span style="color: #0000ff;">&lt;/</span><span style="color: #800000;">type</span><span style="color: #0000ff;">&gt;</span>
+                <span style="color: #0000ff;">&lt;</span><span style="color: #800000;">scope</span><span style="color: #0000ff;">&gt;</span>import<span style="color: #0000ff;">&lt;/</span><span style="color: #800000;">scope</span><span style="color: #0000ff;">&gt;</span>
+            <span style="color: #0000ff;">&lt;/</span><span style="color: #800000;">dependency</span><span style="color: #0000ff;">&gt;</span>
+        <span style="color: #0000ff;">&lt;/</span><span style="color: #800000;">dependencies</span><span style="color: #0000ff;">&gt;</span>
+    <span style="color: #0000ff;">&lt;/</span><span style="color: #800000;">dependencyManagement</span><span style="color: #0000ff;">&gt;</span>
+
+    <span style="color: #0000ff;">&lt;</span><span style="color: #800000;">build</span><span style="color: #0000ff;">&gt;</span>
+        <span style="color: #0000ff;">&lt;</span><span style="color: #800000;">plugins</span><span style="color: #0000ff;">&gt;</span>
+            <span style="color: #0000ff;">&lt;</span><span style="color: #800000;">plugin</span><span style="color: #0000ff;">&gt;</span>
+                <span style="color: #0000ff;">&lt;</span><span style="color: #800000;">groupId</span><span style="color: #0000ff;">&gt;</span>org.springframework.boot<span style="color: #0000ff;">&lt;/</span><span style="color: #800000;">groupId</span><span style="color: #0000ff;">&gt;</span>
+                <span style="color: #0000ff;">&lt;</span><span style="color: #800000;">artifactId</span><span style="color: #0000ff;">&gt;</span>spring-boot-maven-plugin<span style="color: #0000ff;">&lt;/</span><span style="color: #800000;">artifactId</span><span style="color: #0000ff;">&gt;</span>
+            <span style="color: #0000ff;">&lt;/</span><span style="color: #800000;">plugin</span><span style="color: #0000ff;">&gt;</span>
+        <span style="color: #0000ff;">&lt;/</span><span style="color: #800000;">plugins</span><span style="color: #0000ff;">&gt;</span>
+    <span style="color: #0000ff;">&lt;/</span><span style="color: #800000;">build</span><span style="color: #0000ff;">&gt;</span>
+
+<span style="color: #0000ff;">&lt;/</span><span style="color: #800000;">project</span><span style="color: #0000ff;">&gt;</span></code></pre>
+
+<span class="cnblogs_code_collapse">View Code</span>
+<p><strong style="color: #333399;">2、修改配置application.yml</strong></p>
+<src class="cnblogs_code">
+<pre><code>server:
+  port: 9000
+spring:
+  application:
+    name: spring-hystrix-invoker
+eureka:
+  instance:
+    hostname: localhost
+  client:
+    serviceUrl:
+      defaultZone: http://localhost:8761/eureka/</code></pre>
+
+<p><strong style="color: #333399;">3、修改启动类代码</strong></p>
+<p>增加注解@EnableEurekaClient和@EnableCircuitBreaker。</p>
+<src class="cnblogs_code">
+<pre><code><span style="color: #0000ff;">package</span><span style="color: #000000;"> com.example.springhystrixinvoker;
+
+</span><span style="color: #0000ff;">import</span><span style="color: #000000;"> org.springframework.boot.SpringApplication;
+</span><span style="color: #0000ff;">import</span><span style="color: #000000;"> org.springframework.boot.autoconfigure.SpringBootApplication;
+</span><span style="color: #0000ff;">import</span><span style="color: #000000;"> org.springframework.boot.web.servlet.ServletComponentScan;
+</span><span style="color: #0000ff;">import</span><span style="color: #000000;"> org.springframework.cloud.client.circuitbreaker.EnableCircuitBreaker;
+</span><span style="color: #0000ff;">import</span><span style="color: #000000;"> org.springframework.cloud.client.loadbalancer.LoadBalanced;
+</span><span style="color: #0000ff;">import</span><span style="color: #000000;"> org.springframework.cloud.netflix.eureka.EnableEurekaClient;
+</span><span style="color: #0000ff;">import</span><span style="color: #000000;"> org.springframework.context.annotation.Bean;
+</span><span style="color: #0000ff;">import</span><span style="color: #000000;"> org.springframework.web.client.RestTemplate;
+
+@SpringBootApplication
+@EnableEurekaClient
+@EnableCircuitBreaker
+</span><span style="color: #0000ff;">public</span> <span style="color: #0000ff;">class</span><span style="color: #000000;"> SpringHystrixInvokerApplication {
+
+    @LoadBalanced
+    @Bean
+    </span><span style="color: #0000ff;">public</span><span style="color: #000000;"> RestTemplate getRestTemplate(){
+        </span><span style="color: #0000ff;">return</span> <span style="color: #0000ff;">new</span><span style="color: #000000;"> RestTemplate();
+    }
+
+    </span><span style="color: #0000ff;">public</span> <span style="color: #0000ff;">static</span> <span style="color: #0000ff;">void</span><span style="color: #000000;"> main(String[] args) {
+        SpringApplication.run(SpringHystrixInvokerApplication.</span><span style="color: #0000ff;">class</span><span style="color: #000000;">, args);
+    }
+
+}</span></code></pre>
+
+<p><strong><span style="color: #333399;">4、添加一个实体类User.java</span></strong></p>
+<src class="cnblogs_code">
+<pre><code><span style="color: #0000ff;">package</span><span style="color: #000000;"> com.example.springhystrixinvoker;
+
+</span><span style="color: #0000ff;">public</span> <span style="color: #0000ff;">class</span><span style="color: #000000;"> User {
+    String name;
+    Integer age;
+
+    </span><span style="color: #0000ff;">public</span><span style="color: #000000;"> String getName() {
+        </span><span style="color: #0000ff;">return</span><span style="color: #000000;"> name;
+    }
+    </span><span style="color: #0000ff;">public</span> <span style="color: #0000ff;">void</span><span style="color: #000000;"> setName(String name) {
+        </span><span style="color: #0000ff;">this</span>.name =<span style="color: #000000;"> name;
+    }
+    </span><span style="color: #0000ff;">public</span><span style="color: #000000;"> Integer getAge() {
+        </span><span style="color: #0000ff;">return</span><span style="color: #000000;"> age;
+    }
+    </span><span style="color: #0000ff;">public</span> <span style="color: #0000ff;">void</span><span style="color: #000000;"> setAge(Integer age) {
+        </span><span style="color: #0000ff;">this</span>.age =<span style="color: #000000;"> age;
+    }
+}</span></code></pre>
+
+<p><strong style="color: #333399;">5、添加一个服务类，在服务方法中调用服务</strong></p>
+<p>服务方法用@HystrixCommand注解进行修饰，并配置了回退方法。</p>
+<src class="cnblogs_code">
+<pre><code><span style="color: #0000ff;">package</span><span style="color: #000000;"> com.example.springhystrixinvoker;
+
+</span><span style="color: #0000ff;">import</span><span style="color: #000000;"> com.netflix.hystrix.contrib.javanica.annotation.HystrixCommand;
+</span><span style="color: #0000ff;">import</span><span style="color: #000000;"> org.springframework.beans.factory.annotation.Autowired;
+</span><span style="color: #0000ff;">import</span><span style="color: #000000;"> org.springframework.stereotype.Component;
+</span><span style="color: #0000ff;">import</span><span style="color: #000000;"> org.springframework.web.client.RestTemplate;
+
+@Component
+</span><span style="color: #0000ff;">public</span> <span style="color: #0000ff;">class</span><span style="color: #000000;"> UserService {
+    @Autowired
+    </span><span style="color: #0000ff;">private</span><span style="color: #000000;"> RestTemplate restTemplate;
+
+    @HystrixCommand(fallbackMethod </span>= "getUserFallback"<span style="color: #000000;">)
+    </span><span style="color: #0000ff;">public</span><span style="color: #000000;"> User getUser(String name){
+        User user </span>= restTemplate.getForObject("http://spring-hystrix-provider/user/{name}", User.<span style="color: #0000ff;">class</span><span style="color: #000000;">, name);
+        </span><span style="color: #0000ff;">return</span><span style="color: #000000;"> user;
+    }
+
+    </span><span style="color: #0000ff;">public</span><span style="color: #000000;"> User getUserFallback(String name){
+        User user </span>= <span style="color: #0000ff;">new</span><span style="color: #000000;"> User();
+        user.setName(</span>"无名"<span style="color: #000000;">);
+        user.setAge(</span>20<span style="color: #000000;">);
+        </span><span style="color: #0000ff;">return</span><span style="color: #000000;"> user;
+    }
+}</span></code></pre>
+
+<p><strong><span style="color: #333399;">6、添加控制器 InvokerController.java</span></strong></p>
+<src class="cnblogs_code">
+<pre><code><span style="color: #0000ff;">package</span><span style="color: #000000;"> com.example.springhystrixinvoker;
+
+</span><span style="color: #0000ff;">import</span><span style="color: #000000;"> org.springframework.beans.factory.annotation.Autowired;
+</span><span style="color: #0000ff;">import</span><span style="color: #000000;"> org.springframework.http.MediaType;
+</span><span style="color: #0000ff;">import</span><span style="color: #000000;"> org.springframework.web.bind.annotation.PathVariable;
+</span><span style="color: #0000ff;">import</span><span style="color: #000000;"> org.springframework.web.bind.annotation.RequestMapping;
+</span><span style="color: #0000ff;">import</span><span style="color: #000000;"> org.springframework.web.bind.annotation.RequestMethod;
+</span><span style="color: #0000ff;">import</span><span style="color: #000000;"> org.springframework.web.bind.annotation.RestController;
+
+@RestController
+</span><span style="color: #0000ff;">public</span> <span style="color: #0000ff;">class</span><span style="color: #000000;"> InvokerController {
+    @Autowired
+    </span><span style="color: #0000ff;">private</span><span style="color: #000000;"> UserService userService;
+
+    @RequestMapping(value </span>= "/invokeUser/{name}", method = RequestMethod.GET, produces =<span style="color: #000000;"> MediaType.APPLICATION_JSON_VALUE)
+    </span><span style="color: #0000ff;">public</span><span style="color: #000000;"> User invokeUser(@PathVariable String name){
+        User user </span>=<span style="color: #000000;"> userService.getUser(name);
+        </span><span style="color: #0000ff;">return</span><span style="color: #000000;"> user;
+    }
+}</span></code></pre>
+
+<p>&nbsp;</p>
+<p><strong style="font-size: 16px;">四、测试</strong></p>
+<p><span style="color: #333399;">1、启动服务器端。</span><br />浏览器访问http://localhost:8761/，正常<br /><span style="color: #333399;">2、启动服务提供者</span><br />浏览器访问 http://localhost:8080/user/小明<br />页面输出：{"name":"小明","age":30}<br /><span style="color: #333399;">3、启动服务调用者。</span><br />浏览器访问http://localhost:9000/invokeUser/小明<br />页面输出：{"name":"小明","age":30}<br /><span style="color: #333399;">4、停止8080服务提供者，再访问9000地址</span><br />页面输出：{"name":"无名","age":20}<br />由此可见，由于调用失败，触发了回退方法。</p>
+<p>&nbsp;</p>
+<p><span style="font-size: 16px;"><strong>五、缓存注解</strong></span></p>
+<p>Hystrix支持缓存功能，如果在<strong><span style="color: #ff0000;">一次请求过程</span></strong>中，多个地方调用同一个接口，可以考虑使用缓存。<br />缓存可以通过注解实现，缓存与合并请求功能需要先初始化请求上下文才能实现。</p>
+<p><strong><span style="color: #333399;">1、新建一个javax.servlet.Filter，用于创建与销毁Hystrix的请求上下文</span></strong></p>
+<src class="cnblogs_code">
+<pre><code><span style="color: #0000ff;">package</span><span style="color: #000000;"> com.example.springhystrixinvoker;
+
+</span><span style="color: #0000ff;">import</span><span style="color: #000000;"> com.netflix.hystrix.strategy.concurrency.HystrixRequestContext;
+
+</span><span style="color: #0000ff;">import</span> javax.servlet.*<span style="color: #000000;">;
+</span><span style="color: #0000ff;">import</span><span style="color: #000000;"> javax.servlet.annotation.WebFilter;
+</span><span style="color: #0000ff;">import</span><span style="color: #000000;"> java.io.IOException;
+
+@WebFilter(urlPatterns </span>= "/*", filterName = "hystrixFilter"<span style="color: #000000;">)
+</span><span style="color: #0000ff;">public</span> <span style="color: #0000ff;">class</span> HystrixFilter <span style="color: #0000ff;">implements</span><span style="color: #000000;"> Filter {
+    </span><span style="color: #0000ff;">public</span> <span style="color: #0000ff;">void</span> init(FilterConfig filterConfig) <span style="color: #0000ff;">throws</span><span style="color: #000000;"> ServletException {
+    }
+
+    </span><span style="color: #0000ff;">public</span> <span style="color: #0000ff;">void</span><span style="color: #000000;"> doFilter(ServletRequest request, ServletResponse response,
+                         FilterChain chain) </span><span style="color: #0000ff;">throws</span><span style="color: #000000;"> IOException, ServletException {
+        HystrixRequestContext context </span>=<span style="color: #000000;"> HystrixRequestContext.initializeContext();
+        </span><span style="color: #0000ff;">try</span><span style="color: #000000;">{
+            chain.doFilter(request,response);
+        }</span><span style="color: #0000ff;">finally</span><span style="color: #000000;"> {
+            context.shutdown();
+        }
+    }
+
+    </span><span style="color: #0000ff;">public</span> <span style="color: #0000ff;">void</span><span style="color: #000000;"> destroy() {
+    }
+}</span></code></pre>
+
+<p><strong style="color: #333399;">2、在启动类中加入注解</strong>@ServletComponentScan</p>
+<p><strong><span style="color: #333399;">3、编写服务方法，使用缓存注解</span></strong></p>
+<p>（1）@CacheResult 被修饰的方法返回结果会被缓存，和@HystrixCommand搭配<br />（2）@CacheRemove 让缓存失效<br />（3）@CacheKey 修饰方法参数，表示该参数作为缓存的key</p>
+<src class="cnblogs_code">
+<pre><code><span style="color: #0000ff;">package</span><span style="color: #000000;"> com.example.springhystrixinvoker;
+
+</span><span style="color: #0000ff;">import</span><span style="color: #000000;"> com.netflix.hystrix.contrib.javanica.annotation.HystrixCommand;
+</span><span style="color: #0000ff;">import</span><span style="color: #000000;"> com.netflix.hystrix.contrib.javanica.cache.annotation.CacheRemove;
+</span><span style="color: #0000ff;">import</span><span style="color: #000000;"> com.netflix.hystrix.contrib.javanica.cache.annotation.CacheResult;
+</span><span style="color: #0000ff;">import</span><span style="color: #000000;"> org.springframework.stereotype.Component;
+
+@Component
+</span><span style="color: #0000ff;">public</span> <span style="color: #0000ff;">class</span><span style="color: #000000;"> CacheService {
+    @CacheResult
+    @HystrixCommand(commandKey </span>= "removeKey"<span style="color: #000000;">)
+    </span><span style="color: #0000ff;">public</span><span style="color: #000000;"> String cacheMethod(String name){
+        System.out.println(</span>"执行cacheMethod方法"<span style="color: #000000;">);
+        </span><span style="color: #0000ff;">return</span> "hello"<span style="color: #000000;">;
+    }
+
+    @CacheRemove(commandKey </span>= "removeKey"<span style="color: #000000;">)
+    @HystrixCommand(commandKey </span>= "removeKey"<span style="color: #000000;">)
+    </span><span style="color: #0000ff;">public</span><span style="color: #000000;"> String updateMethod(String name){
+        System.out.println(</span>"执行updateMethod方法"<span style="color: #000000;">);
+        </span><span style="color: #0000ff;">return</span> "update"<span style="color: #000000;">;
+    }
+}</span></code></pre>
+
+<p><strong><span style="color: #333399;">4、控制器中调用</span></strong></p>
+<p>浏览器访问：http://localhost:9000/cacheMethod，IDEA控制台输出：</p>
+<src class="cnblogs_code">
+<pre><code>控制器调用服务：0
+执行cacheMethod方法
+控制器调用服务：1
+控制器调用服务：2
+控制器调用服务：3
+控制器调用服务：4
+控制器调用服务：5
+执行updateMethod方法
+控制器调用服务：6
+执行cacheMethod方法
+控制器调用服务：7
+控制器调用服务：8
+控制器调用服务：9</code></pre>
+
+<p>&nbsp;</p>
+<p><span style="font-size: 16px;"><strong>六、Feign与Hystrix整合</strong></span></p>
+<p>修改服务调用者项目的代码<br /><span style="color: #333399;"><strong>1、pom.xml加入Feign依赖</strong></span></p>
+<src class="cnblogs_code">
+<pre><code><span style="color: #0000ff;">        &lt;</span><span style="color: #800000;">dependency</span><span style="color: #0000ff;">&gt;</span>
+            <span style="color: #0000ff;">&lt;</span><span style="color: #800000;">groupId</span><span style="color: #0000ff;">&gt;</span>org.springframework.cloud<span style="color: #0000ff;">&lt;/</span><span style="color: #800000;">groupId</span><span style="color: #0000ff;">&gt;</span>
+            <span style="color: #0000ff;">&lt;</span><span style="color: #800000;">artifactId</span><span style="color: #0000ff;">&gt;</span>spring-cloud-starter-openfeign<span style="color: #0000ff;">&lt;/</span><span style="color: #800000;">artifactId</span><span style="color: #0000ff;">&gt;</span>
+        <span style="color: #0000ff;">&lt;/</span><span style="color: #800000;">dependency</span><span style="color: #0000ff;">&gt;</span></code></pre>
+
+<p><strong style="color: #333399;">2、修改配置application.yml</strong></p>
+<p>增加下面配置：打开Feign的Hystrix的配置</p>
+<src class="cnblogs_code">
+<pre><code>feign:
+  hystrix:
+    enabled: true</code></pre>
+
+<p><strong style="color: #333399;">3、启动类加上注解@EnableFeignClients</strong></p>
+<p><span style="color: #333399;"><strong>4、新建Feign接口</strong></span></p>
+<src class="cnblogs_code">
+<pre><code><span style="color: #0000ff;">package</span><span style="color: #000000;"> com.example.springhystrixinvoker;
+
+</span><span style="color: #0000ff;">import</span><span style="color: #000000;"> org.springframework.cloud.openfeign.FeignClient;
+</span><span style="color: #0000ff;">import</span><span style="color: #000000;"> org.springframework.stereotype.Component;
+</span><span style="color: #0000ff;">import</span><span style="color: #000000;"> org.springframework.web.bind.annotation.PathVariable;
+</span><span style="color: #0000ff;">import</span><span style="color: #000000;"> org.springframework.web.bind.annotation.RequestMapping;
+</span><span style="color: #0000ff;">import</span><span style="color: #000000;"> org.springframework.web.bind.annotation.RequestMethod;
+
+</span><span style="color: #008000;">//</span><span style="color: #008000;">指定调用的服务名称</span>
+@FeignClient(name="spring-hystrix-provider", fallback = UserClient.UserClientFallback.<span style="color: #0000ff;">class</span><span style="color: #000000;">)
+</span><span style="color: #0000ff;">public</span> <span style="color: #0000ff;">interface</span><span style="color: #000000;"> UserClient {
+    @RequestMapping(method </span>= RequestMethod.GET, value = "/user/{name}"<span style="color: #000000;">)
+    User getUser(@PathVariable(</span>"name"<span style="color: #000000;">) String name);
+
+    @Component
+    </span><span style="color: #0000ff;">static</span> <span style="color: #0000ff;">class</span> UserClientFallback <span style="color: #0000ff;">implements</span><span style="color: #000000;"> UserClient{
+        </span><span style="color: #0000ff;">public</span><span style="color: #000000;"> User getUser(String name){
+            User user </span>= <span style="color: #0000ff;">new</span><span style="color: #000000;"> User();
+            user.setName(</span>"无名"<span style="color: #000000;">);
+            user.setAge(</span>20<span style="color: #000000;">);
+            </span><span style="color: #0000ff;">return</span><span style="color: #000000;"> user;
+        }
+    }
+}</span></code></pre>
+
+<p><strong style="color: #333399;">5、控制器InvokerController，添加代码</strong></p>
+<src class="cnblogs_code">
+<pre><code><span style="color: #000000;">    @Autowired
+    </span><span style="color: #0000ff;">private</span><span style="color: #000000;"> UserClient userClient;
+
+    @RequestMapping(value </span>= "/invokeUser2/{name}", method = RequestMethod.GET, produces =<span style="color: #000000;"> MediaType.APPLICATION_JSON_VALUE)
+    </span><span style="color: #0000ff;">public</span><span style="color: #000000;"> User invokeUser2(@PathVariable String name){
+        User user </span>=<span style="color: #000000;"> userClient.getUser(name);
+        </span><span style="color: #0000ff;">return</span><span style="color: #000000;"> user;
+    }</span></code></pre>
+
+<p>&nbsp;</p>
+
+</div><hr><script charset='utf-8' src='../../js/sming.js'></script></body></html>

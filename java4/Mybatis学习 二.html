@@ -1,0 +1,86 @@
+<html><head><meta charset='utf-8'><meta name='viewport' content='width=device-width, initial-scale=1'>
+<meta name='applicable-device' content='pc'><meta name='keywords' content='电脑,电脑讲解,电脑技术,编程,电脑故障维修Mybatis学习 二' />
+<script src='../../highlight/highlight.pack.js'></script>
+<link rel='stylesheet' type='text/css' href='../../highlight/styles/monokai.css'/>
+
+<link rel='stylesheet' href='../../fenxiang/dist/css/share.min.css'>
+<script src='../../fenxiang/src/js/social-share.js'></script>
+<script src='../../fenxiang/src/js/qrcode.js'></script>
+
+</head><body><script>hljs.initHighlightingOnLoad();</script><script>
+var system ={};  
+var p = navigator.platform;       
+system.win = p.indexOf('Win') == 0;  
+system.mac = p.indexOf('Mac') == 0;  
+system.x11 = (p == 'X11') || (p.indexOf('Linux') == 0);     
+if(system.win||system.mac||system.xll){
+document.write("<link href='../css/3.css' rel='stylesheet' type='text/css'>");}else{ document.write("<link href='../css/3wap.css' rel='stylesheet' type='text/css'>");}</script><script src='../../js/3.js'></script><div class='div2'><div class='heading_nav'><ul><div><li><a href='../../index.html'>首页</a></li>
+</div><div onclick='hidden1()' >分享</div>
+</ul></div></div>
+<div id='heading_nav2'> 
+<li class='row' >
+<div class='social-share' data-mode='prepend'><a href='javascript:' class='social-share-icon icon-heart'></a></div></li></div><script charset='utf-8' src='../../3/js/hengfu.js'></script><script charset='utf-8' src='../../3/js/hengfu2.js'></script><hr><div class='div1'><div class='biaoti'><center>Mybatis学习 二</center></div><div class='banquan'>原文出处:本文由博客园博主Lo随风的风v提供。<br/>
+原文连接:https://www.cnblogs.com/lovetq520/p/11699070.html</div><br>
+    <p>MyBatis是一个支持<strong><em>普通</em></strong><strong><em>SQL</em></strong><strong><em>查询</em></strong>，<strong><em>存储过程</em></strong>和<strong><em>高级映射</em></strong>的优秀<strong>持久层框架</strong>。MyBatis消除了几乎所有的JDBC代码和参数的手工设置以及对结果集的检索封装。MyBatis可以使用简单的<strong>XML或注解</strong>用于配置和原始映射，将接口和Java的POJO（Plain Old Java Objects，普通的Java对象）映射成数据库中的记录。</p>
+<h3 id="blogTitle2"><strong>2.1、准备开发环境</strong></h3>
+<p>&nbsp;1、创建测试项目，普通java项目或者是JavaWeb项目均可，并导入mybatis包</p>
+<pre><code>&lt;!-- https://mvnrepository.com/artifact/org.mybatis/mybatis --&gt;<br />&lt;dependency&gt;<br />    &lt;groupId&gt;org.mybatis&lt;/groupId&gt;<br />    &lt;artifactId&gt;mybatis&lt;/artifactId&gt;<br />    &lt;version&gt;3.4.6&lt;/version&gt;<br />&lt;/dependency&gt;<br /><br /></code></pre>
+<p>2、建立测试数据库表及对应的POJO</p>
+<p><img src="./images/Mybatis学习 二0.png" alt="" /></p>
+<p>&nbsp;</p>
+<p>&nbsp;<img src="./images/Mybatis学习 二1.png" alt="" /></p>
+<p>&nbsp;</p>
+<p>&nbsp;</p>
+<p>3、resources建立mybatis配置文件mybatis_config.xml</p>
+<p>&nbsp;</p>
+<p><img src="./images/Mybatis学习 二2.png" alt="" /></p>
+<p>&nbsp;</p>
+<p>&nbsp;</p>
+<p>Mybatis的配置文件默认命名为mybatis-config.xml，程序运行前需要加载这个文件；</p>
+<p>第一行是XML声明，指定字符集；</p>
+<p><strong>&lt;configuration&gt;</strong>：Mybatis配置文件的根元素为</p>
+<p><strong>&lt;environment&gt;</strong>：用来配置Mybatis的环境，即连接的数据库。</p>
+<p><strong>&lt;transationManager&gt;</strong>：配置Mybatis的事务管理</p>
+<p><strong>&lt;dataSource&gt;</strong>：数据源，Mybatis推荐使用数据源（维持着一个连接池，而不用每次连接都开启一个连接）来管理数据库连接</p>
+<p>&nbsp;</p>
+<p>4、定义操作表的sql映射文件</p>
+<p><img src="./images/Mybatis学习 二3.png" alt="" /></p>
+<p>&nbsp;</p>
+<p>&nbsp;</p>
+<pre><code>&lt;mapper namespace="com.test.springtest.User"</code></pre>
+<p>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; 为这个mapper指定一个唯一的namespace，它习惯上设置为：&ldquo;包名+sql映射文件名&rdquo;，这样可以保值名的唯一。namespace只要求唯一，不是指向某个具体文件</p>
+<p>Mapper中Namespace的定义本身是没有限制的，只要不重复即可，但如果使用Mybatis的DAO接口动态代理，则namespace必须为DAO接口的全路径，例如：com.zpc.mybatis.dao.UserDao</p>
+<p>&nbsp;</p>
+<p>5、测试</p>
+<p><img src="./images/Mybatis学习 二4.png" alt="" /></p>
+<p>&nbsp;</p>
+<p>&nbsp;<img src="./images/Mybatis学习 二5.png" alt="" /></p>
+<p>&nbsp;</p>
+<p>&nbsp;</p>
+<p>&nbsp;</p>
+<p>&nbsp;</p>
+<p>&nbsp;</p>
+<p><strong>在使用idea运行时，遇到一个奇怪的问题，控制台报</strong></p>
+<p>### Cause: org.apache.ibatis.builder.BuilderException: Error parsing SQL Mapper Configuration. Cause: java.io.IOException: Could not find resource com/founderit/mapper/Object.xml<br />	at org.apache.ibatis.exceptions.ExceptionFactory.wrapException(ExceptionFactory.java:30)<br />	at org.apache.ibatis.session.SqlSessionFactoryBuilder.build(SqlSessionFactoryBuilder.java:80)<br />	at org.apache.ibatis.session.SqlSessionFactoryBuilder.build(SqlSessionFactoryBuilder.java:64)<br />	at com.founderit.main.TestMain.main(TestMain.java:20)<br />Caused by: org.apache.ibatis.builder.BuilderException: Error parsing SQL Mapper Configuration. Cause: java.io.IOException: Could not find resource com/founderit/mapper/Object.xml<br />	at org.apache.ibatis.builder.xml.XMLConfigBuilder.parseConfiguration(XMLConfigBuilder.java:121)<br />	at org.apache.ibatis.builder.xml.XMLConfigBuilder.parse(XMLConfigBuilder.java:99)<br />	at org.apache.ibatis.session.SqlSessionFactoryBuilder.build(SqlSessionFactoryBuilder.java:78)<br />	... 2 more<br />Caused by: java.io.IOException: Could not find resource com/founderit/mapper/Object.xml<br />	at org.apache.ibatis.io.Resources.getResourceAsStream(Resources.java:114)<br />	at org.apache.ibatis.io.Resources.getResourceAsStream(Resources.java:100)<br />	at org.apache.ibatis.builder.xml.XMLConfigBuilder.mapperElement(XMLConfigBuilder.java:371)<br />	at org.apache.ibatis.builder.xml.XMLConfigBuilder.parseConfiguration(XMLConfigBuilder.java:119)<br />	... 4 more</p>
+<p>&nbsp;</p>
+<p>Object.xml文件明明存在，后来通过万能的baidu查到原因</p>
+<h3 id="原因-idea不会编译src的java目录的xml文件">原因： idea不会编译src的java目录的xml文件</h3>
+<p>&nbsp;解决方法：将IDEA maven项目中src源代码下的xml等资源文件编译进classes文件夹</p>
+<pre><code>&lt;build&gt;<br />    &lt;resources&gt;<br />        &lt;resource&gt;<br />            &lt;directory&gt;src/main/java&lt;/directory&gt;<br />            &lt;includes&gt;<br />                &lt;include&gt;**/*.xml&lt;/include&gt;<br />            &lt;/includes&gt;<br />            &lt;filtering&gt;true&lt;/filtering&gt;<br />        &lt;/resource&gt;<br />    &lt;/resources&gt;<br />&lt;/build&gt;</code></pre>
+<p>&nbsp;</p>
+<p>&nbsp;</p>
+<p>说明：</p>
+<p>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; 程序先读取配置文件，然后通过SqlSession对象来操作持久化对象。</p>
+<p>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; 为了使用Mybatis进行持久化操作，可以把上述程序总结如下操作步骤：</p>
+<p><strong>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; 1）编写持久化类（e.g. User）和其持久化操作的Mapper.xml（e.g. User.xml），并在mapper.xml中定义SQL语句</strong></p>
+<p><strong>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; 2）获取SqlSessionFactory</strong></p>
+<p><strong>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; 3）获取SqlSession</strong></p>
+<p><strong>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; 4）用面向对象的方式操作数据库（session.insert()、session.update()、session.select()。。。。）</strong></p>
+<p><strong>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; 5）提交事务，关闭SqlSession</strong></p>
+<p>还有几点需要注意</p>
+<p>SqlSession是线程不安全的，多线程下不能被共享</p>
+<p>SqlSession每次使用完后必须正确关闭，这一步是必须的</p>
+<p>SqlSession可以直接调用方法的id进行数据库操作，但是一般建议使用SqlSession获取Dao接口的代理类，执行代理对象的方法，可以更安全的进行类型检查操作</p>
+<p>&nbsp;</p>
+
+</div><hr><script charset='utf-8' src='../../js/sming.js'></script></body></html>

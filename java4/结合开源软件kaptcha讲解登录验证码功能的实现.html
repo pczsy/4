@@ -1,0 +1,189 @@
+<html><head><meta charset='utf-8'><meta name='viewport' content='width=device-width, initial-scale=1'>
+<meta name='applicable-device' content='pc'><meta name='keywords' content='电脑,电脑讲解,电脑技术,编程,电脑故障维修结合开源软件kaptcha讲解登录验证码功能的实现' />
+<script src='../../highlight/highlight.pack.js'></script>
+<link rel='stylesheet' type='text/css' href='../../highlight/styles/monokai.css'/>
+
+<link rel='stylesheet' href='../../fenxiang/dist/css/share.min.css'>
+<script src='../../fenxiang/src/js/social-share.js'></script>
+<script src='../../fenxiang/src/js/qrcode.js'></script>
+
+</head><body><script>hljs.initHighlightingOnLoad();</script><script>
+var system ={};  
+var p = navigator.platform;       
+system.win = p.indexOf('Win') == 0;  
+system.mac = p.indexOf('Mac') == 0;  
+system.x11 = (p == 'X11') || (p.indexOf('Linux') == 0);     
+if(system.win||system.mac||system.xll){
+document.write("<link href='../css/3.css' rel='stylesheet' type='text/css'>");}else{ document.write("<link href='../css/3wap.css' rel='stylesheet' type='text/css'>");}</script><script src='../../js/3.js'></script><div class='div2'><div class='heading_nav'><ul><div><li><a href='../../index.html'>首页</a></li>
+</div><div onclick='hidden1()' >分享</div>
+</ul></div></div>
+<div id='heading_nav2'> 
+<li class='row' >
+<div class='social-share' data-mode='prepend'><a href='javascript:' class='social-share-icon icon-heart'></a></div></li></div><script charset='utf-8' src='../../3/js/hengfu.js'></script><script charset='utf-8' src='../../3/js/hengfu2.js'></script><hr><div class='div1'><div class='biaoti'><center>结合开源软件kaptcha讲解登录验证码功能的实现</center></div><div class='banquan'>原文出处:本文由博客园博主字母哥博客提供。<br/>
+原文连接:https://www.cnblogs.com/zimug/p/11957255.html</div><br>
+    <p><img src="./images/结合开源软件kaptcha讲解登录验证码功能的实现0.png" alt="file" /></p>
+<h2 id="一验证码生成之配置使用kaptcha">一、验证码生成之配置使用kaptcha</h2>
+<p>使用google开源的验证码实现类库kaptcha，通过maven坐标引入</p>
+<pre><code><code>&lt;dependency&gt;
+   &lt;groupId&gt;com.github.penggle&lt;/groupId&gt;
+   &lt;artifactId&gt;kaptcha&lt;/artifactId&gt;
+   &lt;version&gt;2.3.2&lt;/version&gt;
+   &lt;exclusions&gt;
+      &lt;exclusion&gt;
+         &lt;artifactId&gt;javax.servlet-api&lt;/artifactId&gt;
+         &lt;groupId&gt;javax.servlet&lt;/groupId&gt;
+      &lt;/exclusion&gt;
+   &lt;/exclusions&gt;
+&lt;/dependency&gt;</code></code></pre>
+<ul>
+<li>假设我们的配置文件是application.yml，新建一个单独的文件叫做kaptcha.properties。因为kaptcha的配置不符合yaml的规范格式,所以只能采用properties。需配合注解PropertySourc使用。</li>
+<li>假设我们的配置文件是application.properties，将下面这段代码加入进去即可，不用单独建立文件。</li>
+<li>下面的验证码配置，从英文单词的角度很容易理解，当我们需要调整验证码的边框、颜色、大小、字体等属性的时候，可以修改这些配置。</li>
+</ul>
+<pre><code><code>kaptcha.border=no
+kaptcha.border.color=105,179,90
+kaptcha.image.width=100
+kaptcha.image.height=45
+kaptcha.session.key=code
+kaptcha.textproducer.font.color=blue
+kaptcha.textproducer.font.size=35
+kaptcha.textproducer.char.length=4
+kaptcha.textproducer.font.names=宋体,楷体,微软雅黑</code></code></pre>
+<p>下面的代码加载了配置文件中的kaptcha配置（参考Spring Boot的配置加载），如果是独立的properties文件，需加上PropertySource注解说明。<br />
+另外，我们通过加载完成的配置，初始化captchaProducer的Spring Bean，用于生成验证码。</p>
+<pre><code><code>@Component
+@PropertySource(value = {&quot;classpath:kaptcha.properties&quot;})
+public class CaptchaConfig {
+
+    @Value(&quot;${kaptcha.border}&quot;)
+    private String border;
+    @Value(&quot;${kaptcha.border.color}&quot;)
+    private String borderColor;
+    @Value(&quot;${kaptcha.textproducer.font.color}&quot;)
+    private String fontColor;
+    @Value(&quot;${kaptcha.image.width}&quot;)
+    private String imageWidth;
+    @Value(&quot;${kaptcha.image.height}&quot;)
+    private String imageHeight;
+    @Value(&quot;${kaptcha.session.key}&quot;)
+    private String sessionKey;
+    @Value(&quot;${kaptcha.textproducer.char.length}&quot;)
+    private String charLength;
+    @Value(&quot;${kaptcha.textproducer.font.names}&quot;)
+    private String fontNames;
+    @Value(&quot;${kaptcha.textproducer.font.size}&quot;)
+    private String fontSize;
+
+    @Bean(name = &quot;captchaProducer&quot;)
+    public DefaultKaptcha getKaptchaBean() {
+        DefaultKaptcha defaultKaptcha = new DefaultKaptcha();
+        Properties properties = new Properties();
+        properties.setProperty(&quot;kaptcha.border&quot;, border);
+        properties.setProperty(&quot;kaptcha.border.color&quot;, borderColor);
+        properties.setProperty(&quot;kaptcha.textproducer.font.color&quot;, fontColor);
+        properties.setProperty(&quot;kaptcha.image.width&quot;, imageWidth);
+        properties.setProperty(&quot;kaptcha.image.height&quot;, imageHeight);
+        properties.setProperty(&quot;kaptcha.session.key&quot;, sessionKey);
+        properties.setProperty(&quot;kaptcha.textproducer.char.length&quot;, charLength);
+        properties.setProperty(&quot;kaptcha.textproducer.font.names&quot;, fontNames);
+        properties.setProperty(&quot;kaptcha.textproducer.font.size&quot;,fontSize);
+        Config config = new Config(properties);
+        defaultKaptcha.setConfig(config);
+        return defaultKaptcha;
+    }
+
+}</code></code></pre>
+<p>至此，Kaptcha开源验证码软件的配置我们就完成了，如果发现IDEA环境下配置文件读取中文乱码，修改如下配置。<br />
+<img src="images/screenshot_1574988640635.png" /></p>
+<h2 id="二验证码生成之session保存">二、验证码生成之session保存</h2>
+<p>生成验证码的Controller。同时需要开放路径&quot;/kaptcha&quot;的访问权限，配置成不需登录也无需任何权限即可访问的路径。如何进行配置，笔者之前的文章已经讲过了。</p>
+<ul>
+<li>通过captchaProducer.createText()生成验证码文字，并和失效时间一起保存到CaptchaImageVO中。</li>
+<li>将CaptchaImageVO验证码信息类对象，保存到session中。（这个类的代码后文有介绍）</li>
+<li>通过captchaProducer.createImage(capText)生成验证码图片，并通过ServletOutputStream返回给前端</li>
+</ul>
+<pre><code><code>@RestController
+public class CaptchaController {
+
+    @Resource
+    DefaultKaptcha captchaProducer;
+
+    /**
+     * 获取验证码
+     */
+    @RequestMapping(value = &quot;/kaptcha&quot;, method = RequestMethod.GET)
+    public void kaptcha(HttpSession session, HttpServletResponse response) throws Exception {
+
+        response.setDateHeader(&quot;Expires&quot;, 0);
+        response.setHeader(&quot;Cache-Control&quot;, &quot;no-store, no-cache, must-revalidate&quot;);
+        response.addHeader(&quot;Cache-Control&quot;, &quot;post-check=0, pre-check=0&quot;);
+        response.setHeader(&quot;Pragma&quot;, &quot;no-cache&quot;);
+        response.setContentType(&quot;image/jpeg&quot;);
+
+        String capText = captchaProducer.createText();
+        CaptchaImageVO captchaImageVO = new CaptchaImageVO(capText,2 * 60);
+        //将验证码存到session
+        session.setAttribute(Constants.KAPTCHA_SESSION_KEY, captchaImageVO);
+
+        //将图片返回给前端
+        try(ServletOutputStream out = response.getOutputStream();) {
+            BufferedImage bi = captchaProducer.createImage(capText);
+            ImageIO.write(bi, &quot;jpg&quot;, out);
+            out.flush();
+        }//使用try-with-resources不用手动关闭流
+    }
+
+}</code></code></pre>
+<p>我们要把CaptchaImageVO保存到session里面。所以该类中不要加图片，只保存验证码文字和失效时间，用于后续验证即可。把验证码图片保存起来既没有用处，又浪费内存。</p>
+<pre><code><code>@Data
+public class CaptchaImageVO {
+
+    //验证码文字
+    private String code;
+    //验证码失效时间
+    private LocalDateTime expireTime;
+ 
+    public CaptchaImageVO(String code, int expireAfterSeconds){
+        this.code = code;
+        this.expireTime = LocalDateTime.now().plusSeconds(expireAfterSeconds);
+    }
+ 
+    //验证码是否失效
+    public boolean isExpried() {
+        return LocalDateTime.now().isAfter(expireTime);
+    }
+ 
+}</code></code></pre>
+<h2 id="三验证码用户访问">三、验证码用户访问</h2>
+<p>把如下代码加入到登录页面合适的位置，注意图片img标签放到登录表单中。</p>
+<pre><code><code>&lt;img src=&quot;/kaptcha&quot; id=&quot;kaptcha&quot; width=&quot;110px&quot; height=&quot;40px&quot;/&gt;
+
+&lt;script&gt;
+    window.onload=function(){
+        var kaptchaImg = document.getElementById(&quot;kaptcha&quot;);
+        kaptchaImg.onclick = function(){
+            kaptchaImg.src = &quot;/kaptcha?&quot; + Math.floor(Math.random() * 100)
+        }
+    }
+&lt;/script&gt;</code></code></pre>
+<ul>
+<li>实现的效果是，页面初始化即加载验证码。以后每一次点击，都会更新验证码。</li>
+<li>注意：一定设置width和height，否则图片无法显示。</li>
+</ul>
+<h2 id="四验证码之安全校验">四、验证码之安全校验</h2>
+<p><img src="images/screenshot_1574992432209.png" /></p>
+<ul>
+<li>编写我们的自定义图片验证码过滤器VerificationCodeFilter，过滤器中拦截登录请求</li>
+<li>VerificationCodeFilter过滤器中从seesion获取验证码文字与用户输入比对，比对通过执行其他过滤器链</li>
+<li>比对不通过，自定义一个异常，交给AuthenticationFailureHandler处理</li>
+<li>最后将VerificationCodeFilter放在UsernamePasswordAuthenticationFilter表单过滤器之前执行。</li>
+</ul>
+<p>以上是在Spring Security实现登录验证码验证的逻辑。如果你是使用的shiro或者其他的自定义的登录验证实现，那就更简单了。就在你的登录验证的controller里面取出session比对验证码即可，不需要自定义过滤器。</p>
+<h2 id="期待您的关注">期待您的关注</h2>
+<ul>
+<li>向您推荐博主的系列文档：<a href="http://springboot.zimug.com">《手摸手教您学习SpringBoot系列-16章97节》</a></li>
+<li>本文转载注明出处（必须带连接，不能只转文字）：<a href="http://www.zimug.com">字母哥博客</a>。</li>
+</ul>
+
+
+</div><hr><script charset='utf-8' src='../../js/sming.js'></script></body></html>

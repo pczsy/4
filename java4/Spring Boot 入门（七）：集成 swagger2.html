@@ -1,0 +1,151 @@
+<html><head><meta charset='utf-8'><meta name='viewport' content='width=device-width, initial-scale=1'>
+<meta name='applicable-device' content='pc'><meta name='keywords' content='电脑,电脑讲解,电脑技术,编程,电脑故障维修Spring Boot 入门（七）：集成 swagger2' />
+<script src='../../highlight/highlight.pack.js'></script>
+<link rel='stylesheet' type='text/css' href='../../highlight/styles/monokai.css'/>
+
+<link rel='stylesheet' href='../../fenxiang/dist/css/share.min.css'>
+<script src='../../fenxiang/src/js/social-share.js'></script>
+<script src='../../fenxiang/src/js/qrcode.js'></script>
+
+</head><body><script>hljs.initHighlightingOnLoad();</script><script>
+var system ={};  
+var p = navigator.platform;       
+system.win = p.indexOf('Win') == 0;  
+system.mac = p.indexOf('Mac') == 0;  
+system.x11 = (p == 'X11') || (p.indexOf('Linux') == 0);     
+if(system.win||system.mac||system.xll){
+document.write("<link href='../css/3.css' rel='stylesheet' type='text/css'>");}else{ document.write("<link href='../css/3wap.css' rel='stylesheet' type='text/css'>");}</script><script src='../../js/3.js'></script><div class='div2'><div class='heading_nav'><ul><div><li><a href='../../index.html'>首页</a></li>
+</div><div onclick='hidden1()' >分享</div>
+</ul></div></div>
+<div id='heading_nav2'> 
+<li class='row' >
+<div class='social-share' data-mode='prepend'><a href='javascript:' class='social-share-icon icon-heart'></a></div></li></div><script charset='utf-8' src='../../3/js/hengfu.js'></script><script charset='utf-8' src='../../3/js/hengfu2.js'></script><hr><div class='div1'><div class='biaoti'><center>Spring Boot 入门（七）：集成 swagger2</center></div><div class='banquan'>原文出处:本文由博客园博主从入门到到放弃提供。<br/>
+原文连接:https://www.cnblogs.com/dz-boss/p/11729334.html</div><br>
+    <p>本片文章是基于前一篇写的，《<a id="PostsList1_rpPosts_TitleUrl_0" href="https://www.cnblogs.com/dz-boss/p/10548323.html">Spring Boot 入门（六）：集成 treetable 和 zTree 实现树形图</a>》，本篇主要介绍了spring boot集成swagger2。关于swagger的介绍，自行谷歌。我这里有在网上购买的相关视频资料，有需要可以呼叫我。</p>
+<p><span style="font-size: 18pt;">1.引入相关依赖</span></p>
+<src class="cnblogs_code">
+<pre><code><span style="color: #008080;"> 1</span>  <span style="color: #0000ff;">&lt;</span><span style="color: #800000;">dependency</span><span style="color: #0000ff;">&gt;</span>
+<span style="color: #008080;"> 2</span>             <span style="color: #0000ff;">&lt;</span><span style="color: #800000;">groupId</span><span style="color: #0000ff;">&gt;</span>io.springfox<span style="color: #0000ff;">&lt;/</span><span style="color: #800000;">groupId</span><span style="color: #0000ff;">&gt;</span>
+<span style="color: #008080;"> 3</span>             <span style="color: #0000ff;">&lt;</span><span style="color: #800000;">artifactId</span><span style="color: #0000ff;">&gt;</span>springfox-swagger2<span style="color: #0000ff;">&lt;/</span><span style="color: #800000;">artifactId</span><span style="color: #0000ff;">&gt;</span>
+<span style="color: #008080;"> 4</span>             <span style="color: #0000ff;">&lt;</span><span style="color: #800000;">version</span><span style="color: #0000ff;">&gt;</span>2.4.0<span style="color: #0000ff;">&lt;/</span><span style="color: #800000;">version</span><span style="color: #0000ff;">&gt;</span>
+<span style="color: #008080;"> 5</span>         <span style="color: #0000ff;">&lt;/</span><span style="color: #800000;">dependency</span><span style="color: #0000ff;">&gt;</span>
+<span style="color: #008080;"> 6</span>         <span style="color: #0000ff;">&lt;</span><span style="color: #800000;">dependency</span><span style="color: #0000ff;">&gt;</span>
+<span style="color: #008080;"> 7</span>             <span style="color: #0000ff;">&lt;</span><span style="color: #800000;">groupId</span><span style="color: #0000ff;">&gt;</span>io.springfox<span style="color: #0000ff;">&lt;/</span><span style="color: #800000;">groupId</span><span style="color: #0000ff;">&gt;</span>
+<span style="color: #008080;"> 8</span>             <span style="color: #0000ff;">&lt;</span><span style="color: #800000;">artifactId</span><span style="color: #0000ff;">&gt;</span>springfox-swagger-ui<span style="color: #0000ff;">&lt;/</span><span style="color: #800000;">artifactId</span><span style="color: #0000ff;">&gt;</span>
+<span style="color: #008080;"> 9</span>             <span style="color: #0000ff;">&lt;</span><span style="color: #800000;">version</span><span style="color: #0000ff;">&gt;</span>2.4.0<span style="color: #0000ff;">&lt;/</span><span style="color: #800000;">version</span><span style="color: #0000ff;">&gt;</span>
+<span style="color: #008080;">10</span>         <span style="color: #0000ff;">&lt;/</span><span style="color: #800000;">dependency</span><span style="color: #0000ff;">&gt;</span>
+<span style="color: #008080;">11</span> 
+<span style="color: #008080;">12</span>         <span style="color: #0000ff;">&lt;</span><span style="color: #800000;">dependency</span><span style="color: #0000ff;">&gt;</span>
+<span style="color: #008080;">13</span>             <span style="color: #0000ff;">&lt;</span><span style="color: #800000;">groupId</span><span style="color: #0000ff;">&gt;</span>org.apache.directory.studio<span style="color: #0000ff;">&lt;/</span><span style="color: #800000;">groupId</span><span style="color: #0000ff;">&gt;</span>
+<span style="color: #008080;">14</span>             <span style="color: #0000ff;">&lt;</span><span style="color: #800000;">artifactId</span><span style="color: #0000ff;">&gt;</span>org.apache.commons.codec<span style="color: #0000ff;">&lt;/</span><span style="color: #800000;">artifactId</span><span style="color: #0000ff;">&gt;</span>
+<span style="color: #008080;">15</span>             <span style="color: #0000ff;">&lt;</span><span style="color: #800000;">version</span><span style="color: #0000ff;">&gt;</span>1.8<span style="color: #0000ff;">&lt;/</span><span style="color: #800000;">version</span><span style="color: #0000ff;">&gt;</span>
+<span style="color: #008080;">16</span>         <span style="color: #0000ff;">&lt;/</span><span style="color: #800000;">dependency</span><span style="color: #0000ff;">&gt;</span></code></pre>
+
+<p>很多地方只引入了前2个依赖，这里如果缺少第3个依赖，容易产生一个异常：<span class="hljs-keyword">&nbsp;java.lang.NoSuchMethodError: com.google.common.collect.FluentIterable.toList()Lcom/google/common/collect/ImmutableList;</span></p>
+<p><span style="font-size: 18pt;">&nbsp;2.增加conf</span></p>
+<src class="cnblogs_code">
+<pre><code><span style="color: #008080;"> 3</span> <span style="color: #0000ff;">import</span><span style="color: #000000;"> io.swagger.annotations.ApiOperation;
+</span><span style="color: #008080;"> 4</span> <span style="color: #0000ff;">import</span><span style="color: #000000;"> org.springframework.context.annotation.Bean;
+</span><span style="color: #008080;"> 5</span> <span style="color: #0000ff;">import</span><span style="color: #000000;"> org.springframework.context.annotation.Configuration;
+</span><span style="color: #008080;"> 6</span> <span style="color: #0000ff;">import</span><span style="color: #000000;"> springfox.documentation.builders.ApiInfoBuilder;
+</span><span style="color: #008080;"> 7</span> <span style="color: #0000ff;">import</span><span style="color: #000000;"> springfox.documentation.builders.PathSelectors;
+</span><span style="color: #008080;"> 8</span> <span style="color: #0000ff;">import</span><span style="color: #000000;"> springfox.documentation.builders.RequestHandlerSelectors;
+</span><span style="color: #008080;"> 9</span> <span style="color: #0000ff;">import</span><span style="color: #000000;"> springfox.documentation.service.ApiInfo;
+</span><span style="color: #008080;">10</span> <span style="color: #0000ff;">import</span><span style="color: #000000;"> springfox.documentation.service.Contact;
+</span><span style="color: #008080;">11</span> <span style="color: #0000ff;">import</span><span style="color: #000000;"> springfox.documentation.spi.DocumentationType;
+</span><span style="color: #008080;">12</span> <span style="color: #0000ff;">import</span><span style="color: #000000;"> springfox.documentation.spring.web.plugins.Docket;
+</span><span style="color: #008080;">13</span> <span style="color: #0000ff;">import</span><span style="color: #000000;"> springfox.documentation.swagger2.annotations.EnableSwagger2;
+</span><span style="color: #008080;">14</span> 
+<span style="color: #008080;">15</span> <span style="color: #008000;">/**</span>
+<span style="color: #008080;">16</span> <span style="color: #008000;"> * @program:
+</span><span style="color: #008080;">17</span> <span style="color: #008000;"> * @description: Swagger配置
+</span><span style="color: #008080;">18</span> <span style="color: #008000;"> * </span><span style="color: #808080;">@author</span><span style="color: #008000;">: DZ
+</span><span style="color: #008080;">19</span> <span style="color: #008000;"> * @create: 2019-10-14 18:41
+</span><span style="color: #008080;">20</span> <span style="color: #008000;"> *</span><span style="color: #008000;">*/</span>
+<span style="color: #008080;">21</span> <span style="color: #000000;">@Configuration
+</span><span style="color: #008080;">22</span> <span style="color: #000000;">@EnableSwagger2
+</span><span style="color: #008080;">23</span> <span style="color: #0000ff;">public</span> <span style="color: #0000ff;">class</span><span style="color: #000000;"> SwaggerConfig {
+</span><span style="color: #008080;">24</span> 
+<span style="color: #008080;">25</span> <span style="color: #000000;">    @Bean
+</span><span style="color: #008080;">26</span>     <span style="color: #0000ff;">public</span><span style="color: #000000;"> Docket createRestApi() {
+</span><span style="color: #008080;">27</span>         <span style="color: #0000ff;">return</span> <span style="color: #0000ff;">new</span><span style="color: #000000;"> Docket(DocumentationType.SWAGGER_2)
+</span><span style="color: #008080;">28</span> <span style="color: #000000;">                .apiInfo(apiInfo())
+</span><span style="color: #008080;">29</span> <span style="color: #000000;">                .select()
+</span><span style="color: #008080;">30</span>                 <span style="color: #008000;">//</span><span style="color: #008000;"> 设置basePackage会将包下的所有类的所有方法作为api
+</span><span style="color: #008080;">31</span> <span style="color: #008000;">//</span><span style="color: #008000;">                .apis(RequestHandlerSelectors.basePackage("com.example.demo2.controller"))
+</span><span style="color: #008080;">32</span>                 <span style="color: #008000;">//</span><span style="color: #008000;">只有标记了@ApiOperation的方法才会暴露出给swagger</span>
+<span style="color: #008080;">33</span>                 .apis(RequestHandlerSelectors.withMethodAnnotation(ApiOperation.<span style="color: #0000ff;">class</span><span style="color: #000000;">))
+</span><span style="color: #008080;">34</span> <span style="color: #000000;">                .paths(PathSelectors.any())
+</span><span style="color: #008080;">35</span> <span style="color: #000000;">                .build();
+</span><span style="color: #008080;">36</span> <span style="color: #000000;">    }
+</span><span style="color: #008080;">37</span> 
+<span style="color: #008080;">38</span> 
+<span style="color: #008080;">39</span>     <span style="color: #0000ff;">private</span><span style="color: #000000;"> ApiInfo apiInfo() {
+</span><span style="color: #008080;">40</span>         <span style="color: #008000;">//</span><span style="color: #008000;">swagger2中termsOfServiceUrl方法已经启用，且contact的参数时一个对象，弃用字符串了</span>
+<span style="color: #008080;">41</span>         Contact contact=<span style="color: #0000ff;">new</span> Contact("dz"<span style="color: #000000;">,
+</span><span style="color: #008080;">42</span>                 "<a href="https://www.cnblogs.com/dz-boss/p/11729334.html">https://www.cnblogs.com/dz-boss/p/11729334.html</a>","3541437581@qq.com"<span style="color: #000000;">);
+</span><span style="color: #008080;">43</span>         <span style="color: #0000ff;">return</span> <span style="color: #0000ff;">new</span><span style="color: #000000;"> ApiInfoBuilder()
+</span><span style="color: #008080;">44</span>                 .title("xx项目说明文档"<span style="color: #000000;">)
+</span><span style="color: #008080;">45</span>                 .description("xx系统说明"<span style="color: #000000;">)
+</span><span style="color: #008080;">46</span>                 <span style="color: #008000;">//</span><span style="color: #008000;">.termsOfServiceUrl("<a href="https://www.cnblogs.com/dz-boss/p/11729334.html">https://www.cnblogs.com/dz-boss/p/11729334.html</a></span><span style="color: #008000;">")</span>
+<span style="color: #008080;">47</span> <span style="color: #000000;">                .contact(contact)
+</span><span style="color: #008080;">48</span>                 .version("1.0"<span style="color: #000000;">)
+</span><span style="color: #008080;">49</span> <span style="color: #000000;">                .build();
+</span><span style="color: #008080;">50</span> <span style="color: #000000;">    }
+</span><span style="color: #008080;">51</span> 
+<span style="color: #008080;">52</span> }</code></pre>
+
+<p>其中Contact构造函数中3个参数依次是：作者，地址，邮箱</p>
+<p>&nbsp;</p>
+<p><span style="font-size: 18pt;">&nbsp;3.增加注解</span></p>
+<src class="cnblogs_code">
+<pre><code><span style="color: #008080;"> 6</span> <span style="color: #0000ff;">import</span> io.swagger.annotations.*<span style="color: #000000;">;
+</span><span style="color: #008080;"> 7</span> <span style="color: #0000ff;">import</span><span style="color: #000000;"> lombok.extern.slf4j.Slf4j;
+</span><span style="color: #008080;"> 8</span> <span style="color: #0000ff;">import</span><span style="color: #000000;"> org.springframework.amqp.rabbit.connection.CorrelationData;
+</span><span style="color: #008080;"> 9</span> <span style="color: #0000ff;">import</span><span style="color: #000000;"> org.springframework.amqp.rabbit.core.RabbitTemplate;
+</span><span style="color: #008080;">10</span> <span style="color: #0000ff;">import</span><span style="color: #000000;"> org.springframework.beans.factory.annotation.Autowired;
+</span><span style="color: #008080;">11</span> <span style="color: #0000ff;">import</span><span style="color: #000000;"> org.springframework.beans.factory.annotation.Value;
+</span><span style="color: #008080;">12</span> <span style="color: #0000ff;">import</span><span style="color: #000000;"> org.springframework.stereotype.Controller;
+</span><span style="color: #008080;">13</span> <span style="color: #0000ff;">import</span> org.springframework.web.bind.annotation.*<span style="color: #000000;">;
+</span><span style="color: #008080;">14</span> 
+<span style="color: #008080;">15</span> <span style="color: #008000;">/**</span>
+<span style="color: #008080;">16</span> <span style="color: #008000;"> * @program:
+</span><span style="color: #008080;">17</span> <span style="color: #008000;"> * @description: 
+</span><span style="color: #008080;">18</span> <span style="color: #008000;"> * </span><span style="color: #808080;">@author</span><span style="color: #008000;">: DZ
+</span><span style="color: #008080;">19</span> <span style="color: #008000;"> * @create: 2019-10-09 15:27
+</span><span style="color: #008080;">20</span> <span style="color: #008000;"> *</span><span style="color: #008000;">*/</span>
+<span style="color: #008080;">21</span> @Api(value = "API接口", tags = "Test", description = "API接口"<span style="color: #000000;">)
+</span><span style="color: #008080;">22</span> <span style="color: #000000;">@Slf4j</span><span style="color: #008080;">25</span> <br /><span style="color: #000000;">@Controller
+</span><span style="color: #008080;">26</span> <span style="color: #0000ff;">public</span> <span style="color: #0000ff;">class</span><span style="color: #000000;"> Test {
+</span><span style="color: #008080;">27</span> 
+<span style="color: #008080;">28</span>     <span style="color: #008000;">//</span><span style="color: #008000;">测试接口</span>
+<span style="color: #008080;">29</span>     @ApiOperation(value = "测试", notes = "测试接口"<span style="color: #000000;">)
+</span><span style="color: #008080;">30</span> <span style="color: #000000;">    @ApiImplicitParams({
+</span><span style="color: #008080;">31</span>             @ApiImplicitParam(name = "id", value = "id", required = <span style="color: #0000ff;">true</span>, dataType = "String", paramType = "query", defaultValue = "123"<span style="color: #000000;">),
+</span><span style="color: #008080;">32</span>             @ApiImplicitParam(name = "userId", value = "用户id", required = <span style="color: #0000ff;">false</span>, dataType = "String", paramType = "query", defaultValue = "654"<span style="color: #000000;">)
+</span><span style="color: #008080;">33</span> <span style="color: #000000;">    })
+</span><span style="color: #008080;">34</span>     @ApiResponses(value =<span style="color: #000000;"> {
+</span><span style="color: #008080;">35</span>             @ApiResponse(code = 200, message = "Successful &mdash; 请求已完成"<span style="color: #000000;">),
+</span><span style="color: #008080;">36</span>             @ApiResponse(code = 400, message = "请求中有语法问题，或不能满足请求"<span style="color: #000000;">),
+</span><span style="color: #008080;">37</span>             @ApiResponse(code = 401, message = "未授权客户机访问数据"<span style="color: #000000;">),
+</span><span style="color: #008080;">38</span>             @ApiResponse(code = 404, message = "服务器找不到给定的资源；文档不存在"<span style="color: #000000;">),
+</span><span style="color: #008080;">39</span>             @ApiResponse(code = 500, message = "服务器不能完成请求"<span style="color: #000000;">)}
+</span><span style="color: #008080;">40</span> <span style="color: #000000;">    )
+</span><span style="color: #008080;">41</span> <span style="color: #000000;">    @ResponseBody
+</span><span style="color: #008080;">42</span>     @RequestMapping(value = "index", method =<span style="color: #000000;"> RequestMethod.POST)
+</span><span style="color: #008080;">43</span>     <span style="color: #0000ff;">public</span> String test(@RequestParam("id") String id, @RequestParam(value = "userId", required = <span style="color: #0000ff;">false</span><span style="color: #000000;">) String userId) {
+</span><span style="color: #008080;">44</span>         <span style="color: #0000ff;">return</span><span style="color: #000000;"> "";
+</span><span style="color: #008080;">45</span> <span style="color: #000000;">    }
+</span><span style="color: #008080;">46</span> }</code></pre>
+
+<p>&nbsp;其中关键的注解为类的注解：@Api和方法的注解@ApiOperation，增加了这2个注解，就可以通过swagger的方式访问；</p>
+<p>@ApiImplicitParams和@ApiResponses这2个注解主要对入参和出参进行增加中文注解，可有可无。</p>
+<p>最后还需要在启动类增加注解@EnableSwagger2&nbsp;&nbsp;</p>
+<p>&nbsp;</p>
+<p>&nbsp;访问：<a href="http://localhost:8081/swagger-ui.html">http://localhost:8080/swagger-ui.html</a></p>
+<p><img src="./images/Spring Boot 入门（七）：集成 swagger20.png" alt="" /></p>
+<p>&nbsp;</p>
+<src class="postDesc2">&nbsp;
+<p>&nbsp;</p>
+
+</div><hr><script charset='utf-8' src='../../js/sming.js'></script></body></html>

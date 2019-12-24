@@ -1,0 +1,507 @@
+<html><head><meta charset='utf-8'><meta name='viewport' content='width=device-width, initial-scale=1'>
+<meta name='applicable-device' content='pc'><meta name='keywords' content='电脑,电脑讲解,电脑技术,编程,电脑故障维修Java-关于接口调用的处理' />
+<script src='../../highlight/highlight.pack.js'></script>
+<link rel='stylesheet' type='text/css' href='../../highlight/styles/monokai.css'/>
+
+<link rel='stylesheet' href='../../fenxiang/dist/css/share.min.css'>
+<script src='../../fenxiang/src/js/social-share.js'></script>
+<script src='../../fenxiang/src/js/qrcode.js'></script>
+
+</head><body><script>hljs.initHighlightingOnLoad();</script><script>
+var system ={};  
+var p = navigator.platform;       
+system.win = p.indexOf('Win') == 0;  
+system.mac = p.indexOf('Mac') == 0;  
+system.x11 = (p == 'X11') || (p.indexOf('Linux') == 0);     
+if(system.win||system.mac||system.xll){
+document.write("<link href='../css/3.css' rel='stylesheet' type='text/css'>");}else{ document.write("<link href='../css/3wap.css' rel='stylesheet' type='text/css'>");}</script><script src='../../js/3.js'></script><div class='div2'><div class='heading_nav'><ul><div><li><a href='../../index.html'>首页</a></li>
+</div><div onclick='hidden1()' >分享</div>
+</ul></div></div>
+<div id='heading_nav2'> 
+<li class='row' >
+<div class='social-share' data-mode='prepend'><a href='javascript:' class='social-share-icon icon-heart'></a></div></li></div><script charset='utf-8' src='../../3/js/hengfu.js'></script><script charset='utf-8' src='../../3/js/hengfu2.js'></script><hr><div class='div1'><div class='biaoti'><center>Java-关于接口调用的处理</center></div><div class='banquan'>原文出处:本文由博客园博主茫茫的大海提供。<br/>
+原文连接:https://www.cnblogs.com/zhangrhua/p/11454397.html</div><br>
+    <p><strong>前言：这是我的第一篇博文，是我对现在一些接口调用的梳理，写的不好，请见谅。</strong></p>
+<p><strong>序：接口无非就是&ldquo;你调用别人的接口&rdquo;和&ldquo;别人调用你的接口&rdquo;，我会对这两种情况分别的理一下我的思路。</strong></p>
+<p><span><strong>准备：我使用的是HttpClient,它的特性是实现了Http全部的方法和支持HTTPS协议，是一种比较纯净的JAVA语言。</strong></span></p>
+<p><strong>一、&ldquo;你调用别人的接口&rdquo;：</strong></p>
+<p><span>我这里提供的方法是POST和GET的方法.</span></p>
+<p>使用HttpClient发送请求、接收响应很简单，一般需要如下几步即可。</p>
+<p>1.&nbsp;创建HttpClient对象。</p>
+<p>2.&nbsp;创建请求方法的实例，并指定请求URL。如果需要发送GET请求，创建HttpGet对象；如果需要发送POST请求，创建HttpPost对象。</p>
+<p>3.&nbsp;如果需要发送请求参数,我使用的是List&lt;NameValuePair&gt;，采用键值对的形式</p>
+<p>4.&nbsp;释放连接。无论执行方法是否成功，都必须释放连接<br /><br /></p>
+<p>来个代码进行讨论把，我会在代码里面进行详细的讲解，这里主要是post和get的方法.</p>
+<p>1.先来一个常量类：</p>
+<src class="cnblogs_code">
+<pre><code><span style="color: #008000;">/**</span><span style="color: #008000;">***********************************************接口部分*************************************************</span><span style="color: #008000;">*/</span>
+    
+    <span style="color: #008000;">/**</span><span style="color: #008000;">
+     * 请求正常
+     </span><span style="color: #008000;">*/</span>
+    <span style="color: #0000ff;">public</span> <span style="color: #0000ff;">static</span> <span style="color: #0000ff;">final</span> <span style="color: #0000ff;">int</span> SUCCESS = 200<span style="color: #000000;">;
+    
+    </span><span style="color: #008000;">/**</span><span style="color: #008000;">
+     * 请求参数有误
+     </span><span style="color: #008000;">*/</span>
+    <span style="color: #0000ff;">public</span> <span style="color: #0000ff;">static</span> <span style="color: #0000ff;">final</span> <span style="color: #0000ff;">int</span> PARAMETER_EXCEPTION = 400<span style="color: #000000;">;
+    
+    </span><span style="color: #008000;">/**</span><span style="color: #008000;">
+     * 认证失败
+     </span><span style="color: #008000;">*/</span>
+    <span style="color: #0000ff;">public</span> <span style="color: #0000ff;">static</span> <span style="color: #0000ff;">final</span> <span style="color: #0000ff;">int</span> AUTHENTICATION_FAILED = 401<span style="color: #000000;">;
+    
+    </span><span style="color: #008000;">/**</span><span style="color: #008000;">
+     * 请求地址错误或不存在
+     </span><span style="color: #008000;">*/</span>
+    <span style="color: #0000ff;">public</span> <span style="color: #0000ff;">static</span> <span style="color: #0000ff;">final</span> <span style="color: #0000ff;">int</span> ADDRESS_EXCEPTION = 404<span style="color: #000000;">;
+    
+    </span><span style="color: #008000;">/**</span><span style="color: #008000;">
+     * 请求地址错误或不存在
+     </span><span style="color: #008000;">*/</span>
+    <span style="color: #0000ff;">public</span> <span style="color: #0000ff;">static</span> <span style="color: #0000ff;">final</span> <span style="color: #0000ff;">int</span> SERVER_EXCEPTION = 500<span style="color: #000000;">;
+    
+    
+    </span><span style="color: #008000;">/**</span><span style="color: #008000;">
+     * 接口状态码判断
+     </span><span style="color: #008000;">*/</span>
+    <span style="color: #0000ff;">public</span> <span style="color: #0000ff;">static</span> String putThrowException(<span style="color: #0000ff;">int</span><span style="color: #000000;"> statusCode) {
+        String e </span>= ""<span style="color: #000000;">;
+        </span><span style="color: #0000ff;">if</span>(PARAMETER_EXCEPTION ==<span style="color: #000000;"> statusCode) {
+            e </span>= "请求参数有误"<span style="color: #000000;">;
+        }</span><span style="color: #0000ff;">else</span> <span style="color: #0000ff;">if</span>(AUTHENTICATION_FAILED ==<span style="color: #000000;"> statusCode) {
+            e </span>= "认证失败"<span style="color: #000000;">;
+        }</span><span style="color: #0000ff;">else</span> <span style="color: #0000ff;">if</span>(ADDRESS_EXCEPTION ==<span style="color: #000000;"> statusCode) {
+            e </span>= "请求地址错误或不存在"<span style="color: #000000;">;
+        }</span><span style="color: #0000ff;">else</span> <span style="color: #0000ff;">if</span>(SERVER_EXCEPTION ==<span style="color: #000000;"> statusCode) {
+            e </span>= "服务器状态异常"<span style="color: #000000;">;
+        }
+        </span><span style="color: #0000ff;">return</span><span style="color: #000000;"> e;
+    }    </span><span style="color: #008000;">/**</span><span style="color: #008000;">
+     * Token元素
+     </span><span style="color: #008000;">*/</span>
+    <span style="color: #0000ff;">public</span> <span style="color: #0000ff;">static</span> <span style="color: #0000ff;">final</span> String USERNAME = "tianxun"<span style="color: #000000;">;
+    </span><span style="color: #0000ff;">public</span> <span style="color: #0000ff;">static</span> <span style="color: #0000ff;">final</span> String PASSWORD = "123456"<span style="color: #000000;">;
+    </span><span style="color: #0000ff;">public</span> <span style="color: #0000ff;">static</span> <span style="color: #0000ff;">final</span> String token = "dGlhbnh1biUzQTEyMzQ1Ng==";</code></pre>
+
+<p>&nbsp;</p>
+<p>2.接口类：</p>
+<src class="cnblogs_code">
+<pre><code><span style="color: #0000ff;">package</span><span style="color: #000000;"> cn.tisson.bycs.utils;
+
+</span><span style="color: #0000ff;">import</span><span style="color: #000000;"> java.io.IOException;
+</span><span style="color: #0000ff;">import</span><span style="color: #000000;"> java.io.UnsupportedEncodingException;
+</span><span style="color: #0000ff;">import</span><span style="color: #000000;"> java.net.URLEncoder;
+</span><span style="color: #0000ff;">import</span><span style="color: #000000;"> java.net.UnknownHostException;
+</span><span style="color: #0000ff;">import</span><span style="color: #000000;"> java.util.ArrayList;
+</span><span style="color: #0000ff;">import</span><span style="color: #000000;"> java.util.HashMap;
+</span><span style="color: #0000ff;">import</span><span style="color: #000000;"> java.util.List;
+</span><span style="color: #0000ff;">import</span><span style="color: #000000;"> java.util.Map;
+
+</span><span style="color: #0000ff;">import</span><span style="color: #000000;"> javax.net.ssl.SSLException;
+
+</span><span style="color: #0000ff;">import</span><span style="color: #000000;"> org.apache.commons.httpclient.HttpException;
+</span><span style="color: #0000ff;">import</span><span style="color: #000000;"> org.apache.http.Consts;
+</span><span style="color: #0000ff;">import</span><span style="color: #000000;"> org.apache.http.HttpEntity;
+</span><span style="color: #0000ff;">import</span><span style="color: #000000;"> org.apache.http.HttpEntityEnclosingRequest;
+</span><span style="color: #0000ff;">import</span><span style="color: #000000;"> org.apache.http.HttpRequest;
+</span><span style="color: #0000ff;">import</span><span style="color: #000000;"> org.apache.http.NameValuePair;
+</span><span style="color: #0000ff;">import</span><span style="color: #000000;"> org.apache.http.NoHttpResponseException;
+</span><span style="color: #0000ff;">import</span><span style="color: #000000;"> org.apache.http.client.HttpRequestRetryHandler;
+</span><span style="color: #0000ff;">import</span><span style="color: #000000;"> org.apache.http.client.config.RequestConfig;
+</span><span style="color: #0000ff;">import</span><span style="color: #000000;"> org.apache.http.client.entity.UrlEncodedFormEntity;
+</span><span style="color: #0000ff;">import</span><span style="color: #000000;"> org.apache.http.client.methods.CloseableHttpResponse;
+</span><span style="color: #0000ff;">import</span><span style="color: #000000;"> org.apache.http.client.methods.HttpGet;
+</span><span style="color: #0000ff;">import</span><span style="color: #000000;"> org.apache.http.client.methods.HttpPost;
+</span><span style="color: #0000ff;">import</span><span style="color: #000000;"> org.apache.http.client.protocol.HttpClientContext;
+</span><span style="color: #0000ff;">import</span><span style="color: #000000;"> org.apache.http.client.utils.URIUtils;
+</span><span style="color: #0000ff;">import</span><span style="color: #000000;"> org.apache.http.client.utils.URLEncodedUtils;
+</span><span style="color: #0000ff;">import</span><span style="color: #000000;"> org.apache.http.conn.ConnectTimeoutException;
+</span><span style="color: #0000ff;">import</span><span style="color: #000000;"> org.apache.http.impl.client.CloseableHttpClient;
+</span><span style="color: #0000ff;">import</span><span style="color: #000000;"> org.apache.http.impl.client.HttpClients;
+</span><span style="color: #0000ff;">import</span><span style="color: #000000;"> org.apache.http.message.BasicNameValuePair;
+</span><span style="color: #0000ff;">import</span><span style="color: #000000;"> org.apache.http.protocol.HttpContext;
+</span><span style="color: #0000ff;">import</span><span style="color: #000000;"> org.apache.http.util.EntityUtils;
+</span><span style="color: #0000ff;">import</span><span style="color: #000000;"> org.slf4j.Logger;
+</span><span style="color: #0000ff;">import</span><span style="color: #000000;"> org.slf4j.LoggerFactory;
+</span><span style="color: #0000ff;">import</span><span style="color: #000000;"> org.apache.commons.codec.binary.Base64;
+
+</span><span style="color: #0000ff;">import</span><span style="color: #000000;"> cn.tisson.bycs.cst.Constants;
+
+</span><span style="color: #008000;">/**</span><span style="color: #008000;">
+ *     接口常用工具类
+ * </span><span style="color: #808080;">@author</span><span style="color: #008000;"> zahngrh
+ *
+ </span><span style="color: #008000;">*/</span>
+<span style="color: #0000ff;">public</span> <span style="color: #0000ff;">class</span><span style="color: #000000;"> serviceUtils {
+    
+    </span><span style="color: #0000ff;">private</span> <span style="color: #0000ff;">static</span> <span style="color: #0000ff;">final</span> Logger logger = LoggerFactory.getLogger(serviceUtils.<span style="color: #0000ff;">class</span><span style="color: #000000;">);
+    
+    </span><span style="color: #008000;">/**</span><span style="color: #008000;">
+     * Base64加密Token
+     * </span><span style="color: #808080;">@return</span><span style="color: #008000;">
+     * </span><span style="color: #808080;">@throws</span><span style="color: #008000;"> UnsupportedEncodingException
+     </span><span style="color: #008000;">*/</span>
+    <span style="color: #0000ff;">public</span> <span style="color: #0000ff;">static</span> String getBase64() <span style="color: #0000ff;">throws</span><span style="color: #000000;"> UnsupportedEncodingException {
+        String str </span>= Constants.USERNAME+":"+<span style="color: #000000;">Constants.PASSWORD;
+        </span><span style="color: #0000ff;">final</span> <span style="color: #0000ff;">byte</span>[] textByte = str.getBytes("UTF-8"<span style="color: #000000;">);
+        String result</span>=<span style="color: #000000;"> Base64.encodeBase64String(textByte);
+        </span><span style="color: #0000ff;">return</span><span style="color: #000000;"> result;
+    }
+    </span><span style="color: #0000ff;">public</span> <span style="color: #0000ff;">static</span> <span style="color: #0000ff;">void</span> main(String[] args) <span style="color: #0000ff;">throws</span><span style="color: #000000;"> UnsupportedEncodingException {
+        System.out.println(getBase64());
+    }
+    
+    </span><span style="color: #008000;">/**</span><span style="color: #008000;">
+     * 设置超时重试
+     </span><span style="color: #008000;">*/</span>
+    <span style="color: #0000ff;">public</span> <span style="color: #0000ff;">static</span> HttpRequestRetryHandler myRetryHandler = <span style="color: #0000ff;">new</span><span style="color: #000000;"> HttpRequestRetryHandler() {
+        @Override
+        </span><span style="color: #0000ff;">public</span> <span style="color: #0000ff;">boolean</span> retryRequest(IOException exception,<span style="color: #0000ff;">int</span><span style="color: #000000;"> executionCount,HttpContext context) {
+            System.out.println(</span>"............................第"+executionCount+"次重试"<span style="color: #000000;">);
+        </span><span style="color: #0000ff;">if</span> (executionCount &gt;= 3<span style="color: #000000;">) {
+            </span><span style="color: #0000ff;">return</span> <span style="color: #0000ff;">false</span><span style="color: #000000;">;
+        }</span><span style="color: #0000ff;">else</span> <span style="color: #0000ff;">if</span>(exception <span style="color: #0000ff;">instanceof</span> UnknownHostException || exception <span style="color: #0000ff;">instanceof</span><span style="color: #000000;"> ConnectTimeoutException
+                </span>|| !(exception <span style="color: #0000ff;">instanceof</span> SSLException) || exception <span style="color: #0000ff;">instanceof</span><span style="color: #000000;"> NoHttpResponseException) {
+            </span><span style="color: #0000ff;">return</span> <span style="color: #0000ff;">true</span><span style="color: #000000;">;
+        }
+            HttpClientContext clientContext </span>=<span style="color: #000000;"> HttpClientContext.adapt(context);
+            HttpRequest request </span>=<span style="color: #000000;"> clientContext.getRequest();
+            </span><span style="color: #0000ff;">boolean</span> idempotent = !(request <span style="color: #0000ff;">instanceof</span><span style="color: #000000;"> HttpEntityEnclosingRequest);
+            </span><span style="color: #0000ff;">if</span><span style="color: #000000;"> (idempotent) {
+            </span><span style="color: #008000;">//</span><span style="color: #008000;">如果请求被认为是等幂，则重试</span>
+                <span style="color: #0000ff;">return</span> <span style="color: #0000ff;">true</span><span style="color: #000000;">;
+            }
+            </span><span style="color: #0000ff;">return</span> <span style="color: #0000ff;">false</span><span style="color: #000000;">;
+        }
+    };
+    
+    </span><span style="color: #008000;">/**</span><span style="color: #008000;">
+     * 接口请求工具类
+     </span><span style="color: #008000;">*/</span>
+    <span style="color: #0000ff;">public</span> <span style="color: #0000ff;">static</span> Map&lt;String,String&gt; requestResult(Map&lt;String,String&gt; map,String putType,String url) <span style="color: #0000ff;">throws</span><span style="color: #000000;"> HttpException, IOException {
+            
+        CloseableHttpResponse response </span>= <span style="color: #0000ff;">null</span><span style="color: #000000;">;
+        
+        </span><span style="color: #0000ff;">int</span> statusCode = 0; <span style="color: #008000;">//</span><span style="color: #008000;"> 状态码</span>
+<span style="color: #000000;">        
+        String content </span>=""; <span style="color: #008000;">//</span><span style="color: #008000;"> 返回结果</span>
+<span style="color: #000000;">        
+        Map</span>&lt;String,String&gt; resultMap = <span style="color: #0000ff;">new</span><span style="color: #000000;"> HashMap();
+        
+        </span><span style="color: #008000;">//</span><span style="color: #008000;"> 创建httpclient对象</span>
+        CloseableHttpClient httpClient =<span style="color: #000000;"> HttpClients.createDefault();
+        
+        </span><span style="color: #008000;">//</span><span style="color: #008000;"> 设置参数</span>
+        List&lt;NameValuePair&gt; nameValuePairs = <span style="color: #0000ff;">new</span> ArrayList&lt;NameValuePair&gt;<span style="color: #000000;">();
+        
+        </span><span style="color: #0000ff;">for</span><span style="color: #000000;">(String key:map.keySet()) {
+            nameValuePairs.add(</span><span style="color: #0000ff;">new</span><span style="color: #000000;"> BasicNameValuePair(key,map.get(key).toString()));
+        }
+        
+        String str </span>= EntityUtils.toString(<span style="color: #0000ff;">new</span><span style="color: #000000;"> UrlEncodedFormEntity(nameValuePairs,Consts.UTF_8));
+        
+        </span><span style="color: #008000;">//</span><span style="color: #008000;"> 设置超时时间</span>
+        RequestConfig requestConfig =<span style="color: #000000;"> RequestConfig.custom()
+                .setSocketTimeout(</span>5000<span style="color: #000000;">)
+                .setConnectTimeout(</span>5000<span style="color: #000000;">)
+                .setConnectionRequestTimeout(</span>5000<span style="color: #000000;">)
+                .build();
+        
+        
+        </span><span style="color: #0000ff;">if</span>(putType != <span style="color: #0000ff;">null</span> &amp;&amp; "post"<span style="color: #000000;">.equals(putType)){
+            
+            </span><span style="color: #008000;">//</span><span style="color: #008000;"> 请求URL地址</span>
+            HttpPost httpPost = <span style="color: #0000ff;">new</span><span style="color: #000000;"> HttpPost(url);
+            
+            httpPost.setEntity(</span><span style="color: #0000ff;">new</span><span style="color: #000000;"> UrlEncodedFormEntity(nameValuePairs,Consts.UTF_8));
+            
+            </span><span style="color: #008000;">//</span><span style="color: #008000;"> 设置Token</span>
+            httpPost.setHeader("token"<span style="color: #000000;">,Constants.token);
+            
+            httpPost.setConfig(requestConfig);
+            
+            httpClient </span>=<span style="color: #000000;"> HttpClients.custom().setRetryHandler(serviceUtils.myRetryHandler).build();
+            
+            </span><span style="color: #0000ff;">try</span><span style="color: #000000;"> {
+                response </span>=<span style="color: #000000;"> httpClient.execute(httpPost);
+                
+                </span><span style="color: #008000;">//</span><span style="color: #008000;"> 接收状态码</span>
+                statusCode =<span style="color: #000000;"> response.getStatusLine().getStatusCode();
+                
+            } </span><span style="color: #0000ff;">catch</span><span style="color: #000000;"> (Exception e) {
+                e.printStackTrace();
+            }
+            
+        }</span><span style="color: #0000ff;">else</span> <span style="color: #0000ff;">if</span>(putType != <span style="color: #0000ff;">null</span> &amp;&amp; "get"<span style="color: #000000;">.equals(putType)) {
+            
+            </span><span style="color: #008000;">//</span><span style="color: #008000;"> 请求URL地址</span>
+            HttpGet httpGet = <span style="color: #0000ff;">new</span> HttpGet(url+"?"+<span style="color: #000000;">str);
+            
+            </span><span style="color: #008000;">//</span><span style="color: #008000;"> 设置Token</span>
+            httpGet.setHeader("token"<span style="color: #000000;">,Constants.token);
+            
+            httpGet.setConfig(requestConfig);
+            
+            httpClient </span>=<span style="color: #000000;"> HttpClients.custom().setRetryHandler(serviceUtils.myRetryHandler).build();
+            
+            </span><span style="color: #0000ff;">try</span><span style="color: #000000;"> {
+                response </span>=<span style="color: #000000;"> httpClient.execute(httpGet);
+                
+                </span><span style="color: #008000;">//</span><span style="color: #008000;"> 接收状态码</span>
+                statusCode =<span style="color: #000000;"> response.getStatusLine().getStatusCode();
+                
+            } </span><span style="color: #0000ff;">catch</span><span style="color: #000000;"> (Exception e) {
+                e.printStackTrace();
+            }
+        }
+        
+        </span><span style="color: #008000;">//</span><span style="color: #008000;"> 判断状态码</span>
+        
+        <span style="color: #0000ff;">if</span> (Constants.SUCCESS ==<span style="color: #000000;"> statusCode) {
+            
+            HttpEntity entity </span>=<span style="color: #000000;"> response.getEntity();
+            
+            content </span>= EntityUtils.toString(entity, "utf-8"<span style="color: #000000;">);
+            
+            logger.info(content);
+            
+        } </span><span style="color: #0000ff;">else</span><span style="color: #000000;"> {
+            
+            </span><span style="color: #008000;">//</span><span style="color: #008000;">logger.error("状态码："+Constants.putThrowException(statusCode));</span>
+<span style="color: #000000;">        } 
+        
+        resultMap.put(</span>"statusCode"<span style="color: #000000;">, String.valueOf(statusCode));
+        resultMap.put(</span>"result"<span style="color: #000000;">, content);
+        
+        </span><span style="color: #0000ff;">try</span><span style="color: #000000;"> {
+            </span><span style="color: #008000;">//</span><span style="color: #008000;"> 释放client</span>
+<span style="color: #000000;">            httpClient.close();
+        } </span><span style="color: #0000ff;">catch</span><span style="color: #000000;"> (IOException e) {
+            logger.error(</span>"http接口调用异常：url is::" +<span style="color: #000000;"> url, e);
+        }
+                    
+        </span><span style="color: #0000ff;">return</span><span style="color: #000000;"> resultMap;
+    }
+    
+}</span></code></pre>
+
+<p>3.对于接口类的调用：</p>
+<src class="cnblogs_code">
+<pre><code>/**<br />*根据业务使用接口，对返回值进行自我的调整<br />**/<br />public static void main(String[] args) throws<span> HttpException, IOException {
+        Map&lt;String,String&gt; paraMap = new<span> HashMap();
+        paraMap.put("type", "1"<span>);
+        System.out.println(serviceUtils.requestResult(paraMap, "post", "https://api.apiopen.top/musicRankingsDetails"<span>));
+    }</span></span></span></span></code></pre>
+
+<p>&nbsp;<strong>一、&ldquo;别人调用你的接口&rdquo;：</strong></p>
+<p>别人调用你的接口，你需要：</p>
+<p>1.token的验证（业务需求）的返回</p>
+<p>2.参数的验证的返回</p>
+<p>3.内部错误的返回</p>
+<p>4.正确结果的返回</p>
+<p>这时候你需要先写一个"情况返回的类"对各种错误信息和正确信息的返回</p>
+<p>1.处理类</p>
+<src class="cnblogs_code">
+<pre><code><span style="color: #0000ff;">package</span><span style="color: #000000;"> cn.tisson.bycs.utils.exception;
+
+</span><span style="color: #0000ff;">import</span><span style="color: #000000;"> com.alibaba.fastjson.JSONException;  
+</span><span style="color: #0000ff;">import</span><span style="color: #000000;"> com.alibaba.fastjson.JSONObject;  
+</span><span style="color: #0000ff;">import</span><span style="color: #000000;"> org.slf4j.Logger;  
+</span><span style="color: #0000ff;">import</span><span style="color: #000000;"> org.slf4j.LoggerFactory;  
+</span><span style="color: #0000ff;">import</span><span style="color: #000000;"> org.springframework.web.bind.MissingServletRequestParameterException;  
+</span><span style="color: #0000ff;">import</span><span style="color: #000000;"> org.springframework.web.bind.annotation.ControllerAdvice;  
+</span><span style="color: #0000ff;">import</span><span style="color: #000000;"> org.springframework.web.bind.annotation.ExceptionHandler;  
+</span><span style="color: #0000ff;">import</span><span style="color: #000000;"> org.springframework.web.bind.annotation.ResponseBody;
+</span><span style="color: #0000ff;">import</span><span style="color: #000000;"> org.springframework.web.bind.annotation.ResponseStatus;
+
+</span><span style="color: #0000ff;">import</span><span style="color: #000000;"> java.text.SimpleDateFormat;
+</span><span style="color: #0000ff;">import</span><span style="color: #000000;"> java.util.ArrayList;
+</span><span style="color: #0000ff;">import</span><span style="color: #000000;"> java.util.Date;
+</span><span style="color: #0000ff;">import</span><span style="color: #000000;"> java.util.HashMap;
+</span><span style="color: #0000ff;">import</span><span style="color: #000000;"> java.util.Hashtable;
+</span><span style="color: #0000ff;">import</span><span style="color: #000000;"> java.util.Iterator;
+</span><span style="color: #0000ff;">import</span><span style="color: #000000;"> java.util.List;
+</span><span style="color: #0000ff;">import</span><span style="color: #000000;"> java.util.Map;
+</span><span style="color: #0000ff;">import</span><span style="color: #000000;"> java.util.Set;
+
+</span><span style="color: #0000ff;">import</span><span style="color: #000000;"> javax.servlet.http.HttpServletRequest; 
+
+@ControllerAdvice
+</span><span style="color: #0000ff;">public</span> <span style="color: #0000ff;">class</span><span style="color: #000000;"> GlobalExceptionHandler {
+    </span><span style="color: #0000ff;">private</span> <span style="color: #0000ff;">static</span> <span style="color: #0000ff;">final</span> Logger logger = LoggerFactory.getLogger(GlobalExceptionHandler.<span style="color: #0000ff;">class</span><span style="color: #000000;">);
+    
+    </span><span style="color: #008000;">/**</span><span style="color: #008000;">
+     * &lt;p&gt;判断参数是否为空&lt;/p&gt;&lt;/br&gt;
+     * &lt;p&gt;如果为空，返回resultCode=400和具体信息,&lt;/p&gt;&lt;/br&gt;
+     * &lt;p&gt;如果不为空，则返回resultCode=0。&lt;/p&gt;
+     * @Title: isEmpty 
+     * @Description: TODO
+     * </span><span style="color: #808080;">@param</span> <span style="color: #808080;">@param</span><span style="color: #008000;"> param
+     * </span><span style="color: #808080;">@param</span> <span style="color: #808080;">@return</span><span style="color: #008000;">
+     * </span><span style="color: #808080;">@return</span><span style="color: #008000;"> Hashtable&lt;String,Object&gt;
+     * </span><span style="color: #808080;">@throws</span><span style="color: #008000;"> 
+     * </span><span style="color: #808080;">@author</span><span style="color: #008000;"> zhangrh
+     </span><span style="color: #008000;">*/</span>
+    <span style="color: #0000ff;">public</span> Hashtable&lt;String, Object&gt; isEmpty(Map&lt;String, Map&lt;String, String&gt;&gt;<span style="color: #000000;"> param) {
+        Hashtable</span>&lt;String, Object&gt; resultHt = <span style="color: #0000ff;">new</span> Hashtable&lt;String, Object&gt;<span style="color: #000000;">();
+        </span><span style="color: #0000ff;">int</span> resultCode = 0<span style="color: #000000;">;
+        List</span>&lt;Map&lt;String, String&gt;&gt; list = <span style="color: #0000ff;">new</span> ArrayList&lt;&gt;<span style="color: #000000;">();
+        Set</span>&lt;String&gt; set =<span style="color: #000000;"> param.keySet();
+        Iterator</span>&lt;String&gt; iterator =<span style="color: #000000;"> set.iterator();
+        </span><span style="color: #0000ff;">while</span><span style="color: #000000;">(iterator.hasNext()) {
+            String paramName </span>=<span style="color: #000000;"> iterator.next();
+            Map</span>&lt;String, String&gt; m =<span style="color: #000000;"> param.get(paramName);
+            Set</span>&lt;String&gt; s =<span style="color: #000000;"> m.keySet();
+            Iterator</span>&lt;String&gt; iter =<span style="color: #000000;"> s.iterator();
+            </span><span style="color: #0000ff;">while</span><span style="color: #000000;">(iter.hasNext()) {
+                String describe </span>=<span style="color: #000000;"> iter.next();
+                </span><span style="color: #0000ff;">if</span>(m.get(describe) == <span style="color: #0000ff;">null</span> || ""<span style="color: #000000;">.equals(m.get(describe))) {
+                    resultCode </span>= 400<span style="color: #000000;">;
+                    Map</span>&lt;String, String&gt; detail = <span style="color: #0000ff;">new</span> HashMap&lt;&gt;<span style="color: #000000;">();
+                    detail.put(</span>"objectName"<span style="color: #000000;">, paramName);
+                    detail.put(</span>"defaultMessage"<span style="color: #000000;">, describe);
+                    detail.put(</span>"error", describe + "不能为空"<span style="color: #000000;">);
+                    list.add(detail);
+                }
+            }
+        }
+        </span><span style="color: #0000ff;">if</span>(resultCode == 400<span style="color: #000000;">) {
+            resultHt.put(</span>"resultMsg", "请求参数有误"<span style="color: #000000;">);
+            resultHt.put(</span>"detail"<span style="color: #000000;">, list);
+        }
+        resultHt.put(</span>"resultCode"<span style="color: #000000;">, resultCode);
+        </span><span style="color: #0000ff;">return</span><span style="color: #000000;"> resultHt;
+        
+    }
+
+    </span><span style="color: #008000;">/**</span><span style="color: #008000;">
+     * 接口有参数未传
+     </span><span style="color: #008000;">*/</span><span style="color: #000000;">
+    @ExceptionHandler(value </span>= MissingServletRequestParameterException.<span style="color: #0000ff;">class</span><span style="color: #000000;">)
+    @ResponseBody
+    </span><span style="color: #0000ff;">public</span> JSONObject missActionParam(HttpServletRequest req, List&lt;Map&lt;String, Object&gt;&gt; list) <span style="color: #0000ff;">throws</span><span style="color: #000000;"> Exception {
+        </span><span style="color: #0000ff;">return</span> makeErrorObj("参数异常", "400", req, <span style="color: #0000ff;">null</span><span style="color: #000000;">, list);
+    }
+
+    </span><span style="color: #008000;">/**</span><span style="color: #008000;">
+     * 服务器内部错误
+     </span><span style="color: #008000;">*/</span><span style="color: #000000;">
+    @ExceptionHandler(value </span>= NullPointerException.<span style="color: #0000ff;">class</span><span style="color: #000000;">)
+    @ResponseBody
+    </span><span style="color: #0000ff;">public</span> JSONObject error(HttpServletRequest req) <span style="color: #0000ff;">throws</span><span style="color: #000000;"> Exception {
+        Map</span>&lt;String,Object&gt; resultMap = <span style="color: #0000ff;">new</span> HashMap&lt;&gt;<span style="color: #000000;">();
+        </span><span style="color: #0000ff;">return</span> makeErrorObj("服务器内部错误", "500",req, resultMap, <span style="color: #0000ff;">null</span><span style="color: #000000;">);
+    }
+    
+    </span><span style="color: #008000;">/**</span><span style="color: #008000;">
+     * token验证错误
+     </span><span style="color: #008000;">*/</span><span style="color: #000000;">
+    @ExceptionHandler(value </span>= NullPointerException.<span style="color: #0000ff;">class</span><span style="color: #000000;">)
+    @ResponseBody
+    </span><span style="color: #0000ff;">public</span> JSONObject tokenException(HttpServletRequest req,Map&lt;String,Object&gt; resultMap) <span style="color: #0000ff;">throws</span><span style="color: #000000;"> Exception {
+        </span><span style="color: #0000ff;">return</span> makeErrorObj("token验证失败","401", req,resultMap, <span style="color: #0000ff;">null</span><span style="color: #000000;">);
+    }
+    
+    </span><span style="color: #008000;">/**</span><span style="color: #008000;">
+     * 正常执行
+     </span><span style="color: #008000;">*/</span><span style="color: #000000;">
+    @ResponseBody
+    </span><span style="color: #0000ff;">public</span> JSONObject success(HttpServletRequest req,Map&lt;String,Object&gt;<span style="color: #000000;"> resultMap){
+        </span><span style="color: #0000ff;">return</span> makeErrorObj("执行成功","200", req,resultMap, <span style="color: #0000ff;">null</span><span style="color: #000000;">);
+    }
+
+
+
+
+    </span><span style="color: #008000;">/**</span><span style="color: #008000;">
+     * 构造错误信息
+     * 
+     * </span><span style="color: #808080;">@param</span><span style="color: #008000;"> msg 错误描述
+     * </span><span style="color: #808080;">@param</span><span style="color: #008000;"> e   异常信息
+     * </span><span style="color: #808080;">@return</span>
+     <span style="color: #008000;">*/</span><span style="color: #000000;">
+    @ResponseBody
+    </span><span style="color: #0000ff;">private</span> JSONObject makeErrorObj(String msg,String status, HttpServletRequest req,Map&lt;String,Object&gt; resultMap, List&lt;Map&lt;String, Object&gt;&gt;<span style="color: #000000;"> list) {
+        JSONObject obj </span>= <span style="color: #0000ff;">new</span><span style="color: #000000;"> JSONObject();
+        </span><span style="color: #008000;">//</span><span style="color: #008000;"> 日期格式化</span>
+        SimpleDateFormat sdf =<span style="color: #0000ff;">new</span> SimpleDateFormat("yyyy-MM-dd HH:mm:ss"<span style="color: #000000;"> );
+        String timestamp </span>= sdf.format(<span style="color: #0000ff;">new</span><span style="color: #000000;"> Date());
+        </span><span style="color: #0000ff;">if</span>("200"<span style="color: #000000;">.equals(status)) {
+            </span><span style="color: #0000ff;">for</span><span style="color: #000000;">(String key : resultMap.keySet()) {
+                obj.put(key,resultMap.get(key));
+            }
+        }</span><span style="color: #0000ff;">else</span><span style="color: #000000;"> {
+            obj.put(</span>"errors"<span style="color: #000000;">, list);
+            obj.put(</span>"status"<span style="color: #000000;">, status);
+            obj.put(</span>"msg"<span style="color: #000000;">, msg);
+            obj.put(</span>"path"<span style="color: #000000;">, req.getRequestURL());
+            obj.put(</span>"timestamp"<span style="color: #000000;">, timestamp);
+        }
+        </span><span style="color: #0000ff;">return</span><span style="color: #000000;"> obj;
+    }
+
+}</span></code></pre>
+
+<p>&nbsp;</p>
+<p>2.写一个Controller方法，让别人调用我的接口</p>
+<src class="cnblogs_code">
+<pre><code>@SuppressWarnings({ "unchecked"<span> })
+    @RequestMapping(value = "/queryCheckPassengers", method =<span> { RequestMethod.GET })   //这个一个get请求的方法，如果是post== RequestMethod.POST
+    @ResponseBody public JSONObject  queryCheckPassengers(HttpServletRequest request,HttpServletResponse response,Map&lt;String, String&gt; resultMap)throws<span> Exception{
+        // 验证token
+        String tokenStr = request.getHeader("token"<span>);
+        if(!<span>Constants.token.equals(tokenStr)) {
+            response.setStatus(401<span>);
+            return new GlobalExceptionHandler().tokenException(request, new HashMap&lt;String, Object&gt;<span>());
+        }
+        
+        try<span>{
+            Map&lt;String, Map&lt;String, String&gt;&gt; pMap = new HashMap&lt;&gt;<span>();
+            Map&lt;String, String&gt; m = new HashMap&lt;&gt;<span>();
+            
+            //数据
+            String flightNum =  request.getParameter("flightNum");  //航班号
+            String flightDate =  request.getParameter("flightDate");  //航班日期，格式YYYY-MM-DD
+            String passengerCheckInNumber =  request.getParameter("passengerCheckInNumber");  //值机序号
+            String flightBoardingCode =  request.getParameter("flightBoardingCode");  //始发地（城市名称、3字码）
+<span>            
+            
+            m.put("航班号"<span>, flightNum);
+            pMap.put("flightNum"<span>, m);
+            
+            m = new HashMap&lt;&gt;<span>();
+            m.put("航班日期"<span>, flightDate);
+            pMap.put("flightDate"<span>, m);
+                        
+            m = new HashMap&lt;&gt;<span>();
+            m.put("值机序号"<span>, passengerCheckInNumber);
+            pMap.put("passengerCheckInNumber"<span>, m);
+            
+            m = new HashMap&lt;&gt;<span>();
+            m.put("始发地"<span>, flightBoardingCode);
+            pMap.put("flightBoardingCode"<span>, m);
+            
+            Hashtable&lt;String, Object&gt; ht = new<span> GlobalExceptionHandler().isEmpty(pMap);
+            if(ht.get("resultCode").toString().equals("400"<span>)) {
+                response.setStatus(400<span>);
+                return new GlobalExceptionHandler().missActionParam(request, (List&lt;Map&lt;String, Object&gt;&gt;)ht.get("detail"<span>));
+            }else<span> { <br />                //这里是你需要返回的信息                       
+                Map&lt;String, Object&gt; result =<span> checkActionTypeStub.queryCheckPassengers(flightNum, flightDate, passengerCheckInNumber, flightBoardingCode);
+                response.setStatus(200<span>);
+                return new<span> GlobalExceptionHandler().success(request, result);            
+            }
+        }catch<span> (Exception e) {
+            response.setStatus(500<span>);
+            e.printStackTrace();
+            return new<span> GlobalExceptionHandler().error(request);    
+        }
+    }</span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></code></pre>
+
+<p>说明：别人调用你的接口，有提供一个api的和提供一个controller的方式，这里是提供一个controller的方式，你需要的是提供IP和端口，加上你的类名和方法名</p>
+<p>例：http://172.16.31.199:8080/passton/queryCheckPassengers</p>
+<p><strong>总结：在这里就是对我的一些对接口的应用了，初次写作，还很潦草，就当是我的一次记录吧。</strong></p>
+<pre><code></code></pre>
+<p>&nbsp;</p>
+
+</div><hr><script charset='utf-8' src='../../js/sming.js'></script></body></html>

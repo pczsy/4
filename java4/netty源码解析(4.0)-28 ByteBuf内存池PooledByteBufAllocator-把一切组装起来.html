@@ -1,0 +1,391 @@
+<html><head><meta charset='utf-8'><meta name='viewport' content='width=device-width, initial-scale=1'>
+<meta name='applicable-device' content='pc'><meta name='keywords' content='电脑,电脑讲解,电脑技术,编程,电脑故障维修netty源码解析(4.0)-28 ByteBuf内存池PooledByteBufAllocator-把一切组装起来' />
+<script src='../../highlight/highlight.pack.js'></script>
+<link rel='stylesheet' type='text/css' href='../../highlight/styles/monokai.css'/>
+
+<link rel='stylesheet' href='../../fenxiang/dist/css/share.min.css'>
+<script src='../../fenxiang/src/js/social-share.js'></script>
+<script src='../../fenxiang/src/js/qrcode.js'></script>
+
+</head><body><script>hljs.initHighlightingOnLoad();</script><script>
+var system ={};  
+var p = navigator.platform;       
+system.win = p.indexOf('Win') == 0;  
+system.mac = p.indexOf('Mac') == 0;  
+system.x11 = (p == 'X11') || (p.indexOf('Linux') == 0);     
+if(system.win||system.mac||system.xll){
+document.write("<link href='../css/3.css' rel='stylesheet' type='text/css'>");}else{ document.write("<link href='../css/3wap.css' rel='stylesheet' type='text/css'>");}</script><script src='../../js/3.js'></script><div class='div2'><div class='heading_nav'><ul><div><li><a href='../../index.html'>首页</a></li>
+</div><div onclick='hidden1()' >分享</div>
+</ul></div></div>
+<div id='heading_nav2'> 
+<li class='row' >
+<div class='social-share' data-mode='prepend'><a href='javascript:' class='social-share-icon icon-heart'></a></div></li></div><script charset='utf-8' src='../../3/js/hengfu.js'></script><script charset='utf-8' src='../../3/js/hengfu2.js'></script><hr><div class='div1'><div class='biaoti'><center>netty源码解析(4.0)-28 ByteBuf内存池PooledByteBufAllocator-把一切组装起来</center></div><div class='banquan'>原文出处:本文由博客园博主自带buff提供。<br/>
+原文连接:https://www.cnblogs.com/brandonli/p/11649263.html</div><br>
+    <p>&nbsp;</p>
+<p>　　PooledByteBufAllocator负责初始化PoolArena(PA)和PoolThreadCache(PTC)。它提供了一系列的接口，用来创建使用堆内存或直接内存的PooledByteBuf对象，这些接口只是一张皮，内部完全使用了PA和PTC的能力。初始化过程分两个步骤，首先初始化一系列的默认参数，然后初始化PTC对象和PA数组。</p>
+<p>&nbsp;</p>
+<h2>默认参数和它们的值</h2>
+<p><strong>　　DEFAULT_PAGE_SIZE</strong>:&nbsp;PoolChunk中的page的大小-pageSize,&nbsp; 使用-Dio.netty.allocator.pageSize设置, 默认值:8192。</p>
+<p><strong>　　DEFAULT_MAX_ORDER</strong>:&nbsp;PoolChunk中二叉树的高度: maxOrder, 使用-Dio.netty.allocator.maxOrder设置，默认值:11。</p>
+<p>　　<strong>DEFAULT_NUM_HEAP_ARENA:</strong>&nbsp;使用堆内存的PA数组的长度，使用-Dio.netty.allocator.numHeapArenas设置，默认值: CPU核心数 * 2。</p>
+<p>　　<strong>DEFAULT_NUM_DIRECT_ARENA</strong>: 使用直接内存的PA数组的长度，使用-Dio.netty.allocator.numHeapArenas设置，默认值:&nbsp;CPU核心数 * 2。</p>
+<p>　　<strong>DEFAULT_TINY_CACHE_SIZE</strong>:&nbsp; PTC对象中每个用来缓存Tiny内存的MemoryRegionCache对象中queue的长度，使用-Dio.netty.allocator.tinyCacheSize设置，默认值:512。</p>
+<p>　　<strong>DEFAULT_SMALL_CACHE_SIZE</strong>:&nbsp;PTC对象中每个用来缓存Small内存的MemoryRegionCache对象中queue的长度，使用-Dio.netty.allocator.smallCacheSize设置，默认值:256。</p>
+<p>　　<strong>DEFAULT_NORMAL_CACHE_SIZE</strong>:&nbsp;PTC对象中每个用来缓存Normal内存的MemoryRegionCache对象中queue的长度，使用-Dio.netty.allocator.normalCacheSize设置，默认值:64。</p>
+<p>　　<strong>DEFAULT_MAX_CACHED_BUFFER_CAPACITY</strong>: PTC对象中缓存Normal内存的大小上限。使用-Dio.netty.allocator.maxCachedBufferCapacity设置，默认值32 * 1024。</p>
+<p>　　<strong>DEFAULT_CACHE_TRIM_INTERVAL</strong>:&nbsp; PTC对象中释放缓存的内存阈值。当PTC分配内存次数大于这个值时会释放缓存的内存。使用-Dio.netty.allocator.cacheTrimInterval设置，默认值:8192。</p>
+<p>　　<strong>DEFAULT_USE_CACHE_FOR_ALL_THREADS</strong>: 是否对所有的线程使用缓存。使用-Dio.netty.allocator.useCacheForAllThreads设置，默认值:true。</p>
+<p>　　<strong>DEFAULT_DIRECT_MEMORY_CACHE_ALIGNMENT</strong>: 直接内存的对齐参数，分配直接内存的大小必须是它的整数倍。使用-Dio.netty.allocator.directMemoryCacheAlignment设置，默认值：0, 表示不对齐。</p>
+<p>&nbsp;</p>
+<h2>初始化PoolArena数组</h2>
+<p>　　PooledByteBufAllocator维护了两个数组:</p>
+<src class="cnblogs_code">
+<pre><code>PoolArena&lt;<span style="color: #0000ff;">byte</span>[]&gt;<span style="color: #000000;">[] heapArenas; 
+PoolArena</span>&lt;ByteBuffer&gt;[] directArenas;</code></pre>
+
+<p>　　heapArenas用来管理堆内存，directArenas用来管理直接内存。这两个数组在构造方法中初始化，构造方法的定义是：</p>
+<src class="cnblogs_code">
+<pre><code>    <span style="color: #0000ff;">public</span> PooledByteBufAllocator(<span style="color: #0000ff;">boolean</span> preferDirect, <span style="color: #0000ff;">int</span> nHeapArena, <span style="color: #0000ff;">int</span> nDirectArena, <span style="color: #0000ff;">int</span> pageSize, <span style="color: #0000ff;">int</span><span style="color: #000000;"> maxOrder,
+                                  </span><span style="color: #0000ff;">int</span> tinyCacheSize, <span style="color: #0000ff;">int</span> smallCacheSize, <span style="color: #0000ff;">int</span><span style="color: #000000;"> normalCacheSize,
+                                  </span><span style="color: #0000ff;">boolean</span> useCacheForAllThreads, <span style="color: #0000ff;">int</span> directMemoryCacheAlignment)</code></pre>
+
+<p>　　prefreDirect: 创建PooledByteBuf时，是否优先使用直接内存。</p>
+<p>　　nHeapArena: 默认使用<strong>DEFAULT_NUM_HEAP_ARENA</strong>。</p>
+<p><strong>　　</strong>nDirectArena: 默认使用<strong>DEFAULT_NUM_DIRECT_ARENA</strong>。</p>
+<p>　　pageSize: 默认使用的<strong>DEFAULT_PAGE_SIZE</strong>。</p>
+<p>　　maxOrder: 默认使用<strong>DEFAULT_MAX_ORDER</strong>。</p>
+<p>　　tinyCacheSize:&nbsp; 默认使用<strong>DEFAULT_TINY_CACHE_SIZE</strong>。</p>
+<p>　　smallCacheSize: 默认使用<strong>DEFAULT_SMALL_CACHE_SIZE</strong>。</p>
+<p>　　normalCacheSize: 默认使用<strong>DEFAULT_NORMAL_CACHE_SIZE。</strong></p>
+<p><strong>　　</strong>useCacheForAllThreads: 默认使用<strong>DEFAULT_USE_CACHE_FOR_ALL_THREADS</strong>。</p>
+<p>　　directMemoryCacheAlignment: 默认使用<strong>DEFAULT_DIRECT_MEMORY_CACHE_ALIGNMENT</strong>。</p>
+<p>　　</p>
+<p>　　这两数组的初始化代码如下:</p>
+<src class="cnblogs_code">
+<pre><code><span style="color: #008080;"> 1</span>     　　<span style="color: #0000ff;">int</span> pageShifts =<span style="color: #000000;"> validateAndCalculatePageShifts(pageSize);
+</span><span style="color: #008080;"> 2</span> 
+<span style="color: #008080;"> 3</span>         <span style="color: #0000ff;">if</span> (nHeapArena &gt; 0<span style="color: #000000;">) {
+</span><span style="color: #008080;"> 4</span>             heapArenas =<span style="color: #000000;"> newArenaArray(nHeapArena);
+</span><span style="color: #008080;"> 5</span>             List&lt;PoolArenaMetric&gt; metrics = <span style="color: #0000ff;">new</span> ArrayList&lt;PoolArenaMetric&gt;<span style="color: #000000;">(heapArenas.length);
+</span><span style="color: #008080;"> 6</span>             <span style="color: #0000ff;">for</span> (<span style="color: #0000ff;">int</span> i = 0; i &lt; heapArenas.length; i ++<span style="color: #000000;">) {
+</span><span style="color: #008080;"> 7</span>                 PoolArena.HeapArena arena = <span style="color: #0000ff;">new</span> PoolArena.HeapArena(<span style="color: #0000ff;">this</span><span style="color: #000000;">,
+</span><span style="color: #008080;"> 8</span> <span style="color: #000000;">                        pageSize, maxOrder, pageShifts, chunkSize,
+</span><span style="color: #008080;"> 9</span> <span style="color: #000000;">                        directMemoryCacheAlignment);
+</span><span style="color: #008080;">10</span>                 heapArenas[i] =<span style="color: #000000;"> arena;
+</span><span style="color: #008080;">11</span> <span style="color: #000000;">                metrics.add(arena);
+</span><span style="color: #008080;">12</span> <span style="color: #000000;">            }
+</span><span style="color: #008080;">13</span>             heapArenaMetrics =<span style="color: #000000;"> Collections.unmodifiableList(metrics);
+</span><span style="color: #008080;">14</span>         } <span style="color: #0000ff;">else</span><span style="color: #000000;"> {
+</span><span style="color: #008080;">15</span>             heapArenas = <span style="color: #0000ff;">null</span><span style="color: #000000;">;
+</span><span style="color: #008080;">16</span>             heapArenaMetrics =<span style="color: #000000;"> Collections.emptyList();
+</span><span style="color: #008080;">17</span> <span style="color: #000000;">        }
+</span><span style="color: #008080;">18</span> 
+<span style="color: #008080;">19</span>         <span style="color: #0000ff;">if</span> (nDirectArena &gt; 0<span style="color: #000000;">) {
+</span><span style="color: #008080;">20</span>             directArenas =<span style="color: #000000;"> newArenaArray(nDirectArena);
+</span><span style="color: #008080;">21</span>             List&lt;PoolArenaMetric&gt; metrics = <span style="color: #0000ff;">new</span> ArrayList&lt;PoolArenaMetric&gt;<span style="color: #000000;">(directArenas.length);
+</span><span style="color: #008080;">22</span>             <span style="color: #0000ff;">for</span> (<span style="color: #0000ff;">int</span> i = 0; i &lt; directArenas.length; i ++<span style="color: #000000;">) {
+</span><span style="color: #008080;">23</span>                 PoolArena.DirectArena arena = <span style="color: #0000ff;">new</span><span style="color: #000000;"> PoolArena.DirectArena(
+</span><span style="color: #008080;">24</span>                         <span style="color: #0000ff;">this</span><span style="color: #000000;">, pageSize, maxOrder, pageShifts, chunkSize, directMemoryCacheAlignment);
+</span><span style="color: #008080;">25</span>                 directArenas[i] =<span style="color: #000000;"> arena;
+</span><span style="color: #008080;">26</span> <span style="color: #000000;">                metrics.add(arena);
+</span><span style="color: #008080;">27</span> <span style="color: #000000;">            }
+</span><span style="color: #008080;">28</span>             directArenaMetrics =<span style="color: #000000;"> Collections.unmodifiableList(metrics);
+</span><span style="color: #008080;">29</span>         } <span style="color: #0000ff;">else</span><span style="color: #000000;"> {
+</span><span style="color: #008080;">30</span>             directArenas = <span style="color: #0000ff;">null</span><span style="color: #000000;">;
+</span><span style="color: #008080;">31</span>             directArenaMetrics =<span style="color: #000000;"> Collections.emptyList();
+</span><span style="color: #008080;">32</span>         }</code></pre>
+
+<p>　　1行，计算pageShifts，算法是pageShifts =&nbsp;Integer.SIZE - 1 - Integer.numberOfLeadingZeros(pageSize) = 31 -&nbsp;Integer.numberOfLeadingZeros(pageSize)。&nbsp;Integer.numberOfLeadingZeros(pageSize)是pageSize(32位整数)从最高位起连续是0的位数，因此pageShifts可以简化为pageShifts = log<sub>2</sub>(pageSize)。</p>
+<p>　　4,20行，创建数组，new PoolArena[size]。　　</p>
+<p>　　6-12，22-17行, 初始化数组中的PoolArena对象，分别使用PooArena的两个内部类: HeapArena, DirectArena。</p>
+<p>&nbsp;</p>
+<h3>初始化PoolThreadCache</h3>
+<p>&nbsp;　　PoolThreadCache使用PoolThreadLocalCache(PTLC)间接初始化，PTLC是PooledByteBufAllocator的内部内，它的定义如下:</p>
+<src class="cnblogs_code">
+<pre><code><span style="color: #0000ff;">final</span> <span style="color: #0000ff;">class</span> PoolThreadLocalCache <span style="color: #0000ff;">extends</span> FastThreadLocal&lt;PoolThreadCache&gt;</code></pre>
+
+<p>　　这个类派生自io.netty.util.concurrent.FastThreadLocal&lt;T&gt;,&nbsp; 和java.lang.ThreadLocal&lt;T&gt;功能一样，实现了线程本地存储(TLS)的功能，不同的是FastThreadLocal&lt;T&gt;优化了访问性能。PTLC覆盖了父类的initialValue方法，这个方法负责初始化线程本地的PoolThreadCache对象。当第一次调用PTLC对象的get方法时，这个方法会被调用。</p>
+<src class="cnblogs_code">
+<pre><code><span style="color: #008080;"> 1</span> <span style="color: #000000;">        @Override
+</span><span style="color: #008080;"> 2</span>         <span style="color: #0000ff;">protected</span> <span style="color: #0000ff;">synchronized</span><span style="color: #000000;"> PoolThreadCache initialValue() {
+</span><span style="color: #008080;"> 3</span>             <span style="color: #0000ff;">final</span> PoolArena&lt;<span style="color: #0000ff;">byte</span>[]&gt; heapArena =<span style="color: #000000;"> leastUsedArena(heapArenas);
+</span><span style="color: #008080;"> 4</span>             <span style="color: #0000ff;">final</span> PoolArena&lt;ByteBuffer&gt; directArena =<span style="color: #000000;"> leastUsedArena(directArenas);
+</span><span style="color: #008080;"> 5</span> 
+<span style="color: #008080;"> 6</span>             <span style="color: #0000ff;">if</span> (useCacheForAllThreads || Thread.currentThread() <span style="color: #0000ff;">instanceof</span><span style="color: #000000;"> FastThreadLocalThread) {
+</span><span style="color: #008080;"> 7</span>                 <span style="color: #0000ff;">return</span> <span style="color: #0000ff;">new</span><span style="color: #000000;"> PoolThreadCache(
+</span><span style="color: #008080;"> 8</span> <span style="color: #000000;">                        heapArena, directArena, tinyCacheSize, smallCacheSize, normalCacheSize,
+</span><span style="color: #008080;"> 9</span> <span style="color: #000000;">                        DEFAULT_MAX_CACHED_BUFFER_CAPACITY, DEFAULT_CACHE_TRIM_INTERVAL);
+</span><span style="color: #008080;">10</span> <span style="color: #000000;">            }
+</span><span style="color: #008080;">11</span>             <span style="color: #008000;">//</span><span style="color: #008000;"> No caching for non FastThreadLocalThreads.</span>
+<span style="color: #008080;">12</span>             <span style="color: #0000ff;">return</span> <span style="color: #0000ff;">new</span> PoolThreadCache(heapArena, directArena, 0, 0, 0, 0, 0<span style="color: #000000;">);
+</span><span style="color: #008080;">13</span>         }</code></pre>
+
+<p>　　3，4行，分别从headArenas，directArenas中取出一个使用次数最少的PoolArena对象。PoolArena有一个numThreadCaches属性，这个属性是AtomicInteger类型的原子变量。它的作用是在用来记录被PoolThreadCache对象使用的次数。PoolThreadCache对象创建时会在构造方法中会调用它的getAndIncrement方法，释放时在free0方法中调用他的getAndDecrement方法。</p>
+<p>　　6行,&nbsp; 如果运行每个线程都使用缓存(userCacheForAllThreads==true)，或者当成线程对象是FastThreadLocalThread时, 在第8行创建一个线程专用的PTC对象。</p>
+<p>&nbsp;</p>
+<h2>PoolChunkList(PCKL)</h2>
+<h3>关键属性</h3>
+<p>　　<strong>PoolChunkList&lt;T&gt; nextList</strong></p>
+<p><strong>　　PoolChunkList&lt;T&gt; prevList</strong></p>
+<p>　　这两个属性表明PCKL对象是一个双向链表的节点。</p>
+<p>　　<strong>PoolChunk&lt;T&gt; head</strong></p>
+<p>　　这个属性表明PCKL对象还维护的一个PCK类型的链表，head指向这个链表的头。</p>
+<p>　　<strong>int minUsage;</strong></p>
+<p><strong>　　int maxUsage;</strong></p>
+<p><strong>　　int maxCapacity;</strong></p>
+<p>　　minUsage是PCK链表中每个PCK对象内存的最小使用率，maxUseage是PCK的最大使用率。这两个值是百分比，例如：minUsage=10, maxUse=50，表示PCK链表中只能保存使用率在[10%，50%)的PCK对象。 maxCapacity表示PCK最大可分配的内存数，算法是: maxCapacity = (int)(chunkSize * (100L - minUseage) / 100L)。</p>
+<p>&nbsp;</p>
+<h3>初始化PCKL链表</h3>
+<p>　　PCKL链表有PoolArena负责维护，在PoolArena的构造方法中初始化:</p>
+<src class="cnblogs_code">
+<pre><code><span style="color: #008080;"> 1</span> <span style="color: #008000;">//</span><span style="color: #008000;"> io.netty.buffer.PoolArena#PoolArena(PooledByteBufAllocator parent, int pageSize,
+</span><span style="color: #008080;"> 2</span> <span style="color: #008000;">//</span><span style="color: #008000;">          int maxOrder, int pageShifts, int chunkSize, int cacheAlignment)</span>
+<span style="color: #008080;"> 3</span> 
+<span style="color: #008080;"> 4</span>         q100 = <span style="color: #0000ff;">new</span> PoolChunkList&lt;T&gt;(<span style="color: #0000ff;">this</span>, <span style="color: #0000ff;">null</span>, 100<span style="color: #000000;">, Integer.MAX_VALUE, chunkSize);
+</span><span style="color: #008080;"> 5</span>         q075 = <span style="color: #0000ff;">new</span> PoolChunkList&lt;T&gt;(<span style="color: #0000ff;">this</span>, q100, 75, 100<span style="color: #000000;">, chunkSize);
+</span><span style="color: #008080;"> 6</span>         q050 = <span style="color: #0000ff;">new</span> PoolChunkList&lt;T&gt;(<span style="color: #0000ff;">this</span>, q075, 50, 100<span style="color: #000000;">, chunkSize);
+</span><span style="color: #008080;"> 7</span>         q025 = <span style="color: #0000ff;">new</span> PoolChunkList&lt;T&gt;(<span style="color: #0000ff;">this</span>, q050, 25, 75<span style="color: #000000;">, chunkSize);
+</span><span style="color: #008080;"> 8</span>         q000 = <span style="color: #0000ff;">new</span> PoolChunkList&lt;T&gt;(<span style="color: #0000ff;">this</span>, q025, 1, 50<span style="color: #000000;">, chunkSize);
+</span><span style="color: #008080;"> 9</span>         qInit = <span style="color: #0000ff;">new</span> PoolChunkList&lt;T&gt;(<span style="color: #0000ff;">this</span>, q000, Integer.MIN_VALUE, 25<span style="color: #000000;">, chunkSize);
+</span><span style="color: #008080;">10</span> 
+<span style="color: #008080;">11</span> <span style="color: #000000;">        q100.prevList(q075);
+</span><span style="color: #008080;">12</span> <span style="color: #000000;">        q075.prevList(q050);
+</span><span style="color: #008080;">13</span> <span style="color: #000000;">        q050.prevList(q025);
+</span><span style="color: #008080;">14</span> <span style="color: #000000;">        q025.prevList(q000);
+</span><span style="color: #008080;">15</span>         q000.prevList(<span style="color: #0000ff;">null</span><span style="color: #000000;">);
+</span><span style="color: #008080;">16</span>         qInit.prevList(qInit);　</code></pre>
+
+<p>　　4-9行，初始化PCKL节点。每个节点的名字q{num}，其中num表示这个节点的最小使用率minUsage，如q075节点的minUsage=%75。</p>
+<p>　　11-16行，把PCKL节点组装成一个链表。</p>
+<p>　　使用q(minUsage, maxUsage)表示一个节点，那么:</p>
+<p>　　qInit = q(Integer.MIN_VALUE, 25%)</p>
+<p>　　q000 = q(1%, 50%)</p>
+<p>　　q025 = q(25%, 75%)</p>
+<p>　　q075 = q(75%, 100%)</p>
+<p>　　q100 = q(100%,&nbsp;Integer.MAX_VALUE)</p>
+<p>　　这个链表的结构如下图所示:</p>
+<p>　　<img src="./images/netty源码解析(4.0)-28 ByteBuf内存池PooledByteBufAllocator-把一切组装起来0.png" alt="" /></p>
+<h3>PoolChunk(PCK)在PoolChunkList(PCKL)中移动</h3>
+<p>　　一个新创建的PCK对象，它的内存使用率是usage=%0，被放进qInit节节点。每次从这个PCK对象中分配内存，都会导致它的使用率增加，当usage&gt;=25%，即大于等于qInit的maxUsage时，会把它移动到q000中。继续从PCK对象中分配内存，它的usage继续增加，当usage大于等于它所属PCKL的maxUsage时，把它移动到PKCL链表中的下一个节点，直到q100为止。下面是内存分配导致PCK移动的代码：</p>
+<src class="cnblogs_code">
+<pre><code><span style="color: #008080;"> 1</span>     <span style="color: #008000;">//</span><span style="color: #008000;">io.netty.buffer.PoolChunkList#allocate</span>
+<span style="color: #008080;"> 2</span>     <span style="color: #0000ff;">boolean</span> allocate(PooledByteBuf&lt;T&gt; buf, <span style="color: #0000ff;">int</span> reqCapacity, <span style="color: #0000ff;">int</span><span style="color: #000000;"> normCapacity) {
+</span><span style="color: #008080;"> 3</span>         <span style="color: #0000ff;">if</span> (head == <span style="color: #0000ff;">null</span> || normCapacity &gt;<span style="color: #000000;"> maxCapacity) {
+</span><span style="color: #008080;"> 4</span>             <span style="color: #008000;">//</span><span style="color: #008000;"> Either this PoolChunkList is empty or the requested capacity is larger then the capacity which can
+</span><span style="color: #008080;"> 5</span>             <span style="color: #008000;">//</span><span style="color: #008000;"> be handled by the PoolChunks that are contained in this PoolChunkList.</span>
+<span style="color: #008080;"> 6</span>             <span style="color: #0000ff;">return</span> <span style="color: #0000ff;">false</span><span style="color: #000000;">;
+</span><span style="color: #008080;"> 7</span> <span style="color: #000000;">        }
+</span><span style="color: #008080;"> 8</span> 
+<span style="color: #008080;"> 9</span>         <span style="color: #0000ff;">for</span> (PoolChunk&lt;T&gt; cur =<span style="color: #000000;"> head;;) {
+</span><span style="color: #008080;">10</span>             <span style="color: #0000ff;">long</span> handle =<span style="color: #000000;"> cur.allocate(normCapacity);
+</span><span style="color: #008080;">11</span>             <span style="color: #0000ff;">if</span> (handle &lt; 0<span style="color: #000000;">) {
+</span><span style="color: #008080;">12</span>                 cur =<span style="color: #000000;"> cur.next;
+</span><span style="color: #008080;">13</span>                 <span style="color: #0000ff;">if</span> (cur == <span style="color: #0000ff;">null</span><span style="color: #000000;">) {
+</span><span style="color: #008080;">14</span>                     <span style="color: #0000ff;">return</span> <span style="color: #0000ff;">false</span><span style="color: #000000;">;
+</span><span style="color: #008080;">15</span> <span style="color: #000000;">                }
+</span><span style="color: #008080;">16</span>             } <span style="color: #0000ff;">else</span><span style="color: #000000;"> {
+</span><span style="color: #008080;">17</span> <span style="color: #000000;">                cur.initBuf(buf, handle, reqCapacity);
+</span><span style="color: #008080;">18</span>                 <span style="color: #0000ff;">if</span> (cur.usage() &gt;=<span style="color: #000000;"> maxUsage) {
+</span><span style="color: #008080;">19</span> <span style="color: #000000;">                    remove(cur);
+</span><span style="color: #008080;">20</span> <span style="color: #000000;">                    nextList.add(cur);
+</span><span style="color: #008080;">21</span> <span style="color: #000000;">                }
+</span><span style="color: #008080;">22</span>                 <span style="color: #0000ff;">return</span> <span style="color: #0000ff;">true</span><span style="color: #000000;">;
+</span><span style="color: #008080;">23</span> <span style="color: #000000;">            }
+</span><span style="color: #008080;">24</span> <span style="color: #000000;">        }
+</span><span style="color: #008080;">25</span>     }</code></pre>
+
+<p>　　9-12行，尝试从PCK链表中的所有PCK节点分配所需的内存。</p>
+<p>　　14行，没有找到能分配内存的PCK节点。</p>
+<p>　　17行，从cur节点分配到所需的内存，并初始化PooledByteBuf对象。</p>
+<p>　　18-21行，如cur节点的使用率大于等于当前PCKL节点maxUsage，调用remove方法把cur从head链表中删除，然后调用PCKL链表中的下一个节点的add方法，把cur移动到下一个节点中。</p>
+<p>&nbsp;</p>
+<p>　　如果持续地释放内存，把内存还给PCK对象，会导致usage持续减小，当usage小于它所属的PCKL的minUsage时，把它移动到PCKL链表中的前一个节点，直到q000位为止。当释放内存导致PCK对象的usage等于%0，会销毁这个PCK对象，释放整个chunk的内存。下面是释放内存导致PCK对象移动的代码:</p>
+<src class="cnblogs_code">
+<pre><code><span style="color: #008080;"> 1</span>     <span style="color: #008000;">//</span><span style="color: #008000;">io.netty.buffer.PoolChunkList#free</span>
+<span style="color: #008080;"> 2</span>     <span style="color: #0000ff;">boolean</span> free(PoolChunk&lt;T&gt; chunk, <span style="color: #0000ff;">long</span><span style="color: #000000;"> handle) {
+</span><span style="color: #008080;"> 3</span> <span style="color: #000000;">        chunk.free(handle);
+</span><span style="color: #008080;"> 4</span>         <span style="color: #0000ff;">if</span> (chunk.usage() &lt;<span style="color: #000000;"> minUsage) {
+</span><span style="color: #008080;"> 5</span> <span style="color: #000000;">            remove(chunk);
+</span><span style="color: #008080;"> 6</span>             <span style="color: #008000;">//</span><span style="color: #008000;"> Move the PoolChunk down the PoolChunkList linked-list.</span>
+<span style="color: #008080;"> 7</span>             <span style="color: #0000ff;">return</span><span style="color: #000000;"> move0(chunk);
+</span><span style="color: #008080;"> 8</span> <span style="color: #000000;">        }
+</span><span style="color: #008080;"> 9</span>         <span style="color: #0000ff;">return</span> <span style="color: #0000ff;">true</span><span style="color: #000000;">;
+</span><span style="color: #008080;">10</span> <span style="color: #000000;">    }
+</span><span style="color: #008080;">11</span> 
+<span style="color: #008080;">12</span>     <span style="color: #008000;">//</span><span style="color: #008000;">io.netty.buffer.PoolChunkList#move0</span>
+<span style="color: #008080;">13</span>     <span style="color: #0000ff;">private</span> <span style="color: #0000ff;">boolean</span> move0(PoolChunk&lt;T&gt;<span style="color: #000000;"> chunk) {
+</span><span style="color: #008080;">14</span>         <span style="color: #0000ff;">if</span> (prevList == <span style="color: #0000ff;">null</span><span style="color: #000000;">) {
+</span><span style="color: #008080;">15</span>             <span style="color: #008000;">//</span><span style="color: #008000;"> There is no previous PoolChunkList so return false which result in having the PoolChunk destroyed and
+</span><span style="color: #008080;">16</span>             <span style="color: #008000;">//</span><span style="color: #008000;"> all memory associated with the PoolChunk will be released.</span>
+<span style="color: #008080;">17</span>             <span style="color: #0000ff;">assert</span> chunk.usage() == 0<span style="color: #000000;">;
+</span><span style="color: #008080;">18</span>             <span style="color: #0000ff;">return</span> <span style="color: #0000ff;">false</span><span style="color: #000000;">;
+</span><span style="color: #008080;">19</span> <span style="color: #000000;">        }
+</span><span style="color: #008080;">20</span>         <span style="color: #0000ff;">return</span><span style="color: #000000;"> prevList.move(chunk);
+</span><span style="color: #008080;">21</span>     }</code></pre>
+
+<p>　　第3行，释放内存，把内存返还给PCK对象。</p>
+<p>　　4-7行，如PCK的使用率小于当前PCKL的minUsage，调用remove方法把PCK对象从当前PCKL对象中删除，然后调用move0方法把它移动到前一个PCKL节点。</p>
+<p>　　13-31行，移动PCK到前一个PCKL。</p>
+<p>&nbsp;</p>
+<h2>完整的内存分配释放流程</h2>
+<h3>内存分配</h3>
+<p>　　入口方法:</p>
+<p>　　io.netty.buffer.AbstractByteBufAllocator#heapBuffer(int, int)，创建使用堆内存的ByteBuf, 调用newHeapBuffer方法。</p>
+<p>　　io.netty.buffer.AbstractByteBufAllocator#directBuffer(int, int), 创建使用直接内存的ByteBuf,&nbsp; 调用newDirectBuffer方法。</p>
+<p>　　具体实现:</p>
+<p>　　io.netty.buffer.PooledByteBufAllocator#newHeapBuffer(int initialCapacity, int maxCapacity)。</p>
+<p>　　io.netty.buffer.PooledByteBufAllocator#newDirectBuffer(int initialCapacity, int maxCapacity)。&nbsp;</p>
+<p>　　这两个方法都是从PoolThreadCache对象中得到线程专用的PoolArena对象，然后调用PoolArena的allocate方法创建PoolByteBuf对象。</p>
+<p>　　PoolArena入口方法:</p>
+<p>　　io.netty.buffer.PoolArena#allocate(io.netty.buffer.PoolThreadCache, int, int)，这个方法是PoolArena分配内存，创建PoolByteBuf对象的入口方法。它先调用子类实现的newByteBuf创建一个PoolByteBuf对象，这个方法有两个实现：</p>
+<p>　　io.netty.buffer.PoolArena.HeapArena#newByteBuf(int maxCapacity)，创建使用堆内存的PooledByteBuf对象。</p>
+<p>　　io.netty.buffer.PoolArena.DirectArena#newByteBuf(int maxCapacity)，创建使用直接内存PooledByteBuf对象。</p>
+<p>　　然后调用io.netty.buffer.PoolArena#allocate(io.netty.buffer.PoolThreadCache, io.netty.buffer.PooledByteBuf&lt;T&gt;, int)方法为PoolByteBuf对象分配内存，这个方法是分配内存的核心方法，下面来重点分析一下它的代码:</p>
+<src class="cnblogs_code">
+<pre><code><span style="color: #008080;"> 1</span>      <span style="color: #0000ff;">private</span> <span style="color: #0000ff;">void</span> allocate(PoolThreadCache cache, PooledByteBuf&lt;T&gt; buf, <span style="color: #0000ff;">final</span> <span style="color: #0000ff;">int</span><span style="color: #000000;"> reqCapacity) {
+</span><span style="color: #008080;"> 2</span>         <span style="color: #0000ff;">final</span> <span style="color: #0000ff;">int</span> normCapacity =<span style="color: #000000;"> normalizeCapacity(reqCapacity);
+</span><span style="color: #008080;"> 3</span>         <span style="color: #0000ff;">if</span> (isTinyOrSmall(normCapacity)) { <span style="color: #008000;">//</span><span style="color: #008000;"> capacity &lt; pageSize</span>
+<span style="color: #008080;"> 4</span>             <span style="color: #0000ff;">int</span><span style="color: #000000;"> tableIdx;
+</span><span style="color: #008080;"> 5</span>             PoolSubpage&lt;T&gt;<span style="color: #000000;">[] table;
+</span><span style="color: #008080;"> 6</span>             <span style="color: #0000ff;">boolean</span> tiny =<span style="color: #000000;"> isTiny(normCapacity);
+</span><span style="color: #008080;"> 7</span>             <span style="color: #0000ff;">if</span> (tiny) { <span style="color: #008000;">//</span><span style="color: #008000;"> &lt; 512</span>
+<span style="color: #008080;"> 8</span>                 <span style="color: #0000ff;">if</span> (cache.allocateTiny(<span style="color: #0000ff;">this</span><span style="color: #000000;">, buf, reqCapacity, normCapacity)) {
+</span><span style="color: #008080;"> 9</span>                     <span style="color: #008000;">//</span><span style="color: #008000;"> was able to allocate out of the cache so move on</span>
+<span style="color: #008080;">10</span>                     <span style="color: #0000ff;">return</span><span style="color: #000000;">;
+</span><span style="color: #008080;">11</span> <span style="color: #000000;">                }
+</span><span style="color: #008080;">12</span>                 tableIdx =<span style="color: #000000;"> tinyIdx(normCapacity);
+</span><span style="color: #008080;">13</span>                 table =<span style="color: #000000;"> tinySubpagePools;
+</span><span style="color: #008080;">14</span>             } <span style="color: #0000ff;">else</span><span style="color: #000000;"> {
+</span><span style="color: #008080;">15</span>                 <span style="color: #0000ff;">if</span> (cache.allocateSmall(<span style="color: #0000ff;">this</span><span style="color: #000000;">, buf, reqCapacity, normCapacity)) {
+</span><span style="color: #008080;">16</span>                     <span style="color: #008000;">//</span><span style="color: #008000;"> was able to allocate out of the cache so move on</span>
+<span style="color: #008080;">17</span>                     <span style="color: #0000ff;">return</span><span style="color: #000000;">;
+</span><span style="color: #008080;">18</span> <span style="color: #000000;">                }
+</span><span style="color: #008080;">19</span>                 tableIdx =<span style="color: #000000;"> smallIdx(normCapacity);
+</span><span style="color: #008080;">20</span>                 table =<span style="color: #000000;"> smallSubpagePools;
+</span><span style="color: #008080;">21</span> <span style="color: #000000;">            }
+</span><span style="color: #008080;">22</span> 
+<span style="color: #008080;">23</span>             <span style="color: #0000ff;">final</span> PoolSubpage&lt;T&gt; head =<span style="color: #000000;"> table[tableIdx];
+</span><span style="color: #008080;">24</span> 
+<span style="color: #008080;">25</span>             <span style="color: #008000;">/**</span>
+<span style="color: #008080;">26</span> <span style="color: #008000;">             * Synchronize on the head. This is needed as {</span><span style="color: #808080;">@link</span><span style="color: #008000;"> PoolChunk#allocateSubpage(int)} and
+</span><span style="color: #008080;">27</span> <span style="color: #008000;">             * {</span><span style="color: #808080;">@link</span><span style="color: #008000;"> PoolChunk#free(long)} may modify the doubly linked list as well.
+</span><span style="color: #008080;">28</span>              <span style="color: #008000;">*/</span>
+<span style="color: #008080;">29</span>             <span style="color: #0000ff;">synchronized</span><span style="color: #000000;"> (head) {
+</span><span style="color: #008080;">30</span>                 <span style="color: #0000ff;">final</span> PoolSubpage&lt;T&gt; s =<span style="color: #000000;"> head.next;
+</span><span style="color: #008080;">31</span>                 <span style="color: #0000ff;">if</span> (s !=<span style="color: #000000;"> head) {
+</span><span style="color: #008080;">32</span>                     <span style="color: #0000ff;">assert</span> s.doNotDestroy &amp;&amp; s.elemSize ==<span style="color: #000000;"> normCapacity;
+</span><span style="color: #008080;">33</span>                     <span style="color: #0000ff;">long</span> handle =<span style="color: #000000;"> s.allocate();
+</span><span style="color: #008080;">34</span>                     <span style="color: #0000ff;">assert</span> handle &gt;= 0<span style="color: #000000;">;
+</span><span style="color: #008080;">35</span> <span style="color: #000000;">                    s.chunk.initBufWithSubpage(buf, handle, reqCapacity);
+</span><span style="color: #008080;">36</span> <span style="color: #000000;">                    incTinySmallAllocation(tiny);
+</span><span style="color: #008080;">37</span>                     <span style="color: #0000ff;">return</span><span style="color: #000000;">;
+</span><span style="color: #008080;">38</span> <span style="color: #000000;">                }
+</span><span style="color: #008080;">39</span> <span style="color: #000000;">            }
+</span><span style="color: #008080;">40</span>             <span style="color: #0000ff;">synchronized</span> (<span style="color: #0000ff;">this</span><span style="color: #000000;">) {
+</span><span style="color: #008080;">41</span> <span style="color: #000000;">                allocateNormal(buf, reqCapacity, normCapacity);
+</span><span style="color: #008080;">42</span> <span style="color: #000000;">            }
+</span><span style="color: #008080;">43</span> 
+<span style="color: #008080;">44</span> <span style="color: #000000;">            incTinySmallAllocation(tiny);
+</span><span style="color: #008080;">45</span>             <span style="color: #0000ff;">return</span><span style="color: #000000;">;
+</span><span style="color: #008080;">46</span> <span style="color: #000000;">        }
+</span><span style="color: #008080;">47</span>         <span style="color: #0000ff;">if</span> (normCapacity &lt;=<span style="color: #000000;"> chunkSize) {
+</span><span style="color: #008080;">48</span>             <span style="color: #0000ff;">if</span> (cache.allocateNormal(<span style="color: #0000ff;">this</span><span style="color: #000000;">, buf, reqCapacity, normCapacity)) {
+</span><span style="color: #008080;">49</span>                 <span style="color: #008000;">//</span><span style="color: #008000;"> was able to allocate out of the cache so move on</span>
+<span style="color: #008080;">50</span>                 <span style="color: #0000ff;">return</span><span style="color: #000000;">;
+</span><span style="color: #008080;">51</span> <span style="color: #000000;">            }
+</span><span style="color: #008080;">52</span>             <span style="color: #0000ff;">synchronized</span> (<span style="color: #0000ff;">this</span><span style="color: #000000;">) {
+</span><span style="color: #008080;">53</span> <span style="color: #000000;">                allocateNormal(buf, reqCapacity, normCapacity);
+</span><span style="color: #008080;">54</span>                 ++<span style="color: #000000;">allocationsNormal;
+</span><span style="color: #008080;">55</span> <span style="color: #000000;">            }
+</span><span style="color: #008080;">56</span>         } <span style="color: #0000ff;">else</span><span style="color: #000000;"> {
+</span><span style="color: #008080;">57</span>             <span style="color: #008000;">//</span><span style="color: #008000;"> Huge allocations are never served via the cache so just call allocateHuge</span>
+<span style="color: #008080;">58</span> <span style="color: #000000;">            allocateHuge(buf, reqCapacity);
+</span><span style="color: #008080;">59</span> <span style="color: #000000;">        }
+</span><span style="color: #008080;">60</span>     }</code></pre>
+
+<p>　　第2行，根据需要的内存大小reqCapacity，计算可以分配的标准内存大小normCapacity。必须满足(1)normCapacity&gt;=reqCapacity, (2)normCapacity是directMemoryCacheAlignment的整数倍，此外，还要根据reqCapacity的大小分3中情况:</p>
+<p>　　　　reqCapacity&gt;=chunkSize：normCapacity取同时满足(1),(2)的最小值。</p>
+<p>　　　　reqCapacity&gt;=512且reqCapacity&lt;chunkSize: (3)normCapacity&gt;=512*2<sup>k</sup>, (4)normCapacity&lt;=chunkSize，normCapacit取同时满足(1),(2),(3),(4)的最小值。</p>
+<p>　　　　reqCapacity&lt;412: (5)normCapacity&lt;512, (6)normCapacity是16的整数倍，normCapacity取同时满足(1),(2),(5),(6)的最小值。</p>
+<p>　　8-13行，分配Tiny类型的内存(&lt;512)。 8-10行，如果PoolThreadCache缓存对象中分配到内存，分配内流程结束。12-13行，如果缓存中没有，就从Tiny内存池中分配一块内存。</p>
+<p>　　15-20行，分配Small类型的内存(&gt;=512且&lt;pageSize)。和分配Tiny内存的逻辑相同。</p>
+<p>　　29-27行,&nbsp; 使用从前两个步骤中得到的Tiny或Small内存的索引，从子页面池中分配一块内存。33行，从子页面中分配内存。35行，使用分配到的内存初始化PoolByteBuf对象，如果能到这里，分配内存流程结束。</p>
+<p>　　41行，如果子页面池中还没有内存可用，调用allocateNormal方法从PoolChunk对象中分配一个子页面，再从子页面中分配所需的内存。</p>
+<p>　　47-55行，分配Normal类型的内存(&gt;=pageSize且&lt;chunkSize)。48,49行，从缓存中分配内存，如果成功，分配内存流程结束。53行，缓存中没有可用的内存，调用allocateNormal方法从PoolChunk中分配内存。</p>
+<p>　　58行，如果分配的是&gt;chunkSize的内存。这块内存不会进入PCKL链表中。</p>
+<p>　　</p>
+<p>　　上面代码中的allocateNormal方法封装了创建PCK对象，从PCK对象中分配内存，再把PCK对象放入到PCKL链表中的逻辑，也是十分重要的代码。</p>
+<src class="cnblogs_code">
+<pre><code><span style="color: #008080;"> 1</span>     <span style="color: #0000ff;">private</span> <span style="color: #0000ff;">void</span> allocateNormal(PooledByteBuf&lt;T&gt; buf, <span style="color: #0000ff;">int</span> reqCapacity, <span style="color: #0000ff;">int</span><span style="color: #000000;"> normCapacity) {
+</span><span style="color: #008080;"> 2</span>         <span style="color: #0000ff;">if</span> (q050.allocate(buf, reqCapacity, normCapacity) || q025.allocate(buf, reqCapacity, normCapacity) ||
+<span style="color: #008080;"> 3</span>             q000.allocate(buf, reqCapacity, normCapacity) || qInit.allocate(buf, reqCapacity, normCapacity) ||
+<span style="color: #008080;"> 4</span> <span style="color: #000000;">            q075.allocate(buf, reqCapacity, normCapacity)) {
+</span><span style="color: #008080;"> 5</span>             <span style="color: #0000ff;">return</span><span style="color: #000000;">;
+</span><span style="color: #008080;"> 6</span> <span style="color: #000000;">        }
+</span><span style="color: #008080;"> 7</span> 
+<span style="color: #008080;"> 8</span>         <span style="color: #008000;">//</span><span style="color: #008000;"> Add a new chunk.</span>
+<span style="color: #008080;"> 9</span>         PoolChunk&lt;T&gt; c =<span style="color: #000000;"> newChunk(pageSize, maxOrder, pageShifts, chunkSize);
+</span><span style="color: #008080;">10</span>         <span style="color: #0000ff;">long</span> handle =<span style="color: #000000;"> c.allocate(normCapacity);
+</span><span style="color: #008080;">11</span>         <span style="color: #0000ff;">assert</span> handle &gt; 0<span style="color: #000000;">;
+</span><span style="color: #008080;">12</span> <span style="color: #000000;">        c.initBuf(buf, handle, reqCapacity);
+</span><span style="color: #008080;">13</span> <span style="color: #000000;">        qInit.add(c);
+</span><span style="color: #008080;">14</span>     }</code></pre>
+
+<p>　　2-5行，依次尝试从每个PCKL节点中分配内存，如果成功，分配内存流程结束。</p>
+<p>　　9-13行，先创建一个新的PCK对象，然后从中分配内存，使用内存初始化PooledByteBuf对象，最后把PCK对象添加PCKL链表头节点qInit中。PKCL对象的add方法会和allocate一样，根据PCK对象的内存使用率，把它移动到链表中合适的位置。</p>
+<p>　　</p>
+<h3>内存释放</h3>
+<p>　　io.netty.buffer.PooledByteBuf#deallocate方法调用io.netty.buffer.PoolArena#free方法，这个free方法负责整个内存释放过程。</p>
+<src class="cnblogs_code">
+<pre><code><span style="color: #008080;"> 1</span>     <span style="color: #0000ff;">void</span> free(PoolChunk&lt;T&gt; chunk, <span style="color: #0000ff;">long</span> handle, <span style="color: #0000ff;">int</span><span style="color: #000000;"> normCapacity, PoolThreadCache cache) {
+</span><span style="color: #008080;"> 2</span>         <span style="color: #0000ff;">if</span><span style="color: #000000;"> (chunk.unpooled) {
+</span><span style="color: #008080;"> 3</span>             <span style="color: #0000ff;">int</span> size =<span style="color: #000000;"> chunk.chunkSize();
+</span><span style="color: #008080;"> 4</span> <span style="color: #000000;">            destroyChunk(chunk);
+</span><span style="color: #008080;"> 5</span>             activeBytesHuge.add(-<span style="color: #000000;">size);
+</span><span style="color: #008080;"> 6</span> <span style="color: #000000;">            deallocationsHuge.increment();
+</span><span style="color: #008080;"> 7</span>         } <span style="color: #0000ff;">else</span><span style="color: #000000;"> {
+</span><span style="color: #008080;"> 8</span>             SizeClass sizeClass =<span style="color: #000000;"> sizeClass(normCapacity);
+</span><span style="color: #008080;"> 9</span>             <span style="color: #0000ff;">if</span> (cache != <span style="color: #0000ff;">null</span> &amp;&amp; cache.add(<span style="color: #0000ff;">this</span><span style="color: #000000;">, chunk, handle, normCapacity, sizeClass)) {
+</span><span style="color: #008080;">10</span>                 <span style="color: #008000;">//</span><span style="color: #008000;"> cached so not free it.</span>
+<span style="color: #008080;">11</span>                 <span style="color: #0000ff;">return</span><span style="color: #000000;">;
+</span><span style="color: #008080;">12</span> <span style="color: #000000;">            }
+</span><span style="color: #008080;">13</span> 
+<span style="color: #008080;">14</span> <span style="color: #000000;">            freeChunk(chunk, handle, sizeClass);
+</span><span style="color: #008080;">15</span> <span style="color: #000000;">        }
+</span><span style="color: #008080;">16</span>     }</code></pre>
+
+<p>　　这段代码重点在8-14行。第8，9行，优先把内存放到缓存中，这样下次就能快速地从缓存中直接取用。第14行，在不能放进缓存的情况下把内存返回给PCK对象。</p>
+<src class="cnblogs_code">
+<pre><code><span style="color: #008080;"> 1</span>     <span style="color: #0000ff;">void</span> freeChunk(PoolChunk&lt;T&gt; chunk, <span style="color: #0000ff;">long</span><span style="color: #000000;"> handle, SizeClass sizeClass) {
+</span><span style="color: #008080;"> 2</span>         <span style="color: #0000ff;">final</span> <span style="color: #0000ff;">boolean</span><span style="color: #000000;"> destroyChunk;
+</span><span style="color: #008080;"> 3</span>         <span style="color: #0000ff;">synchronized</span> (<span style="color: #0000ff;">this</span><span style="color: #000000;">) {
+</span><span style="color: #008080;"> 4</span>             <span style="color: #0000ff;">switch</span><span style="color: #000000;"> (sizeClass) {
+</span><span style="color: #008080;"> 5</span>             <span style="color: #0000ff;">case</span><span style="color: #000000;"> Normal:
+</span><span style="color: #008080;"> 6</span>                 ++<span style="color: #000000;">deallocationsNormal;
+</span><span style="color: #008080;"> 7</span>                 <span style="color: #0000ff;">break</span><span style="color: #000000;">;
+</span><span style="color: #008080;"> 8</span>             <span style="color: #0000ff;">case</span><span style="color: #000000;"> Small:
+</span><span style="color: #008080;"> 9</span>                 ++<span style="color: #000000;">deallocationsSmall;
+</span><span style="color: #008080;">10</span>                 <span style="color: #0000ff;">break</span><span style="color: #000000;">;
+</span><span style="color: #008080;">11</span>             <span style="color: #0000ff;">case</span><span style="color: #000000;"> Tiny:
+</span><span style="color: #008080;">12</span>                 ++<span style="color: #000000;">deallocationsTiny;
+</span><span style="color: #008080;">13</span>                 <span style="color: #0000ff;">break</span><span style="color: #000000;">;
+</span><span style="color: #008080;">14</span>             <span style="color: #0000ff;">default</span><span style="color: #000000;">:
+</span><span style="color: #008080;">15</span>                 <span style="color: #0000ff;">throw</span> <span style="color: #0000ff;">new</span><span style="color: #000000;"> Error();
+</span><span style="color: #008080;">16</span> <span style="color: #000000;">            }
+</span><span style="color: #008080;">17</span>             destroyChunk = !<span style="color: #000000;">chunk.parent.free(chunk, handle);
+</span><span style="color: #008080;">18</span> <span style="color: #000000;">        }
+</span><span style="color: #008080;">19</span>         <span style="color: #0000ff;">if</span><span style="color: #000000;"> (destroyChunk) {
+</span><span style="color: #008080;">20</span>             <span style="color: #008000;">//</span><span style="color: #008000;"> destroyChunk not need to be called while holding the synchronized lock.</span>
+<span style="color: #008080;">21</span> <span style="color: #000000;">            destroyChunk(chunk);
+</span><span style="color: #008080;">22</span> <span style="color: #000000;">        }
+</span><span style="color: #008080;">23</span>     }</code></pre>
+
+<p>　　第17行，掉用PCKL对象的free方法把内存还给PCK对象，移动PCK对象在PCKL链表中位置。如果此时这个PCK对象的使用率变成0，destroyChunk=true。</p>
+<p>　　第21行，调用destroyChunk方法销毁掉PCK对象。</p>
+<p>&nbsp;　　</p>
+<p>　　</p>
+<p>&nbsp;</p>
+<p>&nbsp;</p>
+<p>　　</p>
+
+</div><hr><script charset='utf-8' src='../../js/sming.js'></script></body></html>

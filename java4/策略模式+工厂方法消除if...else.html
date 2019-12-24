@@ -1,0 +1,129 @@
+<html><head><meta charset='utf-8'><meta name='viewport' content='width=device-width, initial-scale=1'>
+<meta name='applicable-device' content='pc'><meta name='keywords' content='电脑,电脑讲解,电脑技术,编程,电脑故障维修策略模式+工厂方法消除if...else' />
+<script src='../../highlight/highlight.pack.js'></script>
+<link rel='stylesheet' type='text/css' href='../../highlight/styles/monokai.css'/>
+
+<link rel='stylesheet' href='../../fenxiang/dist/css/share.min.css'>
+<script src='../../fenxiang/src/js/social-share.js'></script>
+<script src='../../fenxiang/src/js/qrcode.js'></script>
+
+</head><body><script>hljs.initHighlightingOnLoad();</script><script>
+var system ={};  
+var p = navigator.platform;       
+system.win = p.indexOf('Win') == 0;  
+system.mac = p.indexOf('Mac') == 0;  
+system.x11 = (p == 'X11') || (p.indexOf('Linux') == 0);     
+if(system.win||system.mac||system.xll){
+document.write("<link href='../css/3.css' rel='stylesheet' type='text/css'>");}else{ document.write("<link href='../css/3wap.css' rel='stylesheet' type='text/css'>");}</script><script src='../../js/3.js'></script><div class='div2'><div class='heading_nav'><ul><div><li><a href='../../index.html'>首页</a></li>
+</div><div onclick='hidden1()' >分享</div>
+</ul></div></div>
+<div id='heading_nav2'> 
+<li class='row' >
+<div class='social-share' data-mode='prepend'><a href='javascript:' class='social-share-icon icon-heart'></a></div></li></div><script charset='utf-8' src='../../3/js/hengfu.js'></script><script charset='utf-8' src='../../3/js/hengfu2.js'></script><hr><div class='div1'><div class='biaoti'><center>策略模式+工厂方法消除if...else</center></div><div class='banquan'>原文出处:本文由博客园博主fztomaster提供。<br/>
+原文连接:https://www.cnblogs.com/fztomaster/p/11434405.html</div><br>
+    <p>今天来讲一下如何通过策略模式和工厂方法来消除累赘的if...else，具体什么是策略模式，大家可以自行百度学习，我就不再这里做过多的介绍了。</p>
+<blockquote>
+<p>注意：如果业务场景简单，建议使用if...else，因为代码逻辑简单，便于理解</p>
+</blockquote>
+<h2 id="策略接口">策略接口</h2>
+<p><code>Eat.java</code></p>
+<pre><code><code>/**
+ * 策略接口
+ *
+ */
+public interface Eat {
+    
+    public void eatFruit(String fruit);
+    
+}</code></code></pre>
+<h2 id="策略类">策略类</h2>
+<p><code>EatApple.java</code></p>
+<pre><code><code>/**
+ * 具体的策略类：吃苹果
+ */
+public class EatApple implements Eat{
+    
+    @Override
+    public void eatFruit(String fruit) {
+        System.out.println(&quot;吃苹果&quot;);
+    }
+
+}</code></code></pre>
+<p><code>EatBanana.java</code></p>
+<pre><code><code>/**
+ * 具体的策略类：吃香蕉
+ */
+public class EatBanana implements Eat {
+
+    @Override
+    public void eatFruit(String fruit) {
+        System.out.println(&quot;吃香蕉&quot;);
+    }
+
+}</code></code></pre>
+<p><code>EatPear.java</code></p>
+<pre><code><code>/**
+ * 具体的策略类：吃梨
+ */
+public class EatPear implements Eat {
+
+    @Override
+    public void eatFruit(String fruit) {
+        System.out.println(&quot;吃梨&quot;);
+    }
+
+}</code></code></pre>
+<h2 id="策略上下文">策略上下文</h2>
+<p><code>EatContext.java</code></p>
+<pre><code><code>/**
+ * 策略上下文
+ */
+public class EatContext {
+
+    private Eat eat;
+
+    public EatContext(Eat eat) {
+        this.eat = eat;
+    }
+    
+    public void eatContext(String fruit) {
+        eat.eatFruit(fruit);
+    }
+    
+}</code></code></pre>
+<h2 id="策略工厂类">策略工厂类</h2>
+<p><code>EatFactory.java</code></p>
+<pre><code><code>/**
+ * 策略工厂类
+ */
+public class EatFactory {
+
+    private static Map&lt;String, Eat&gt; map = new HashMap&lt;&gt;();
+    
+    static {
+        map.put(&quot;apple&quot;, new EatApple());
+        map.put(&quot;banana&quot;, new EatBanana());
+        map.put(&quot;pear&quot;, new EatPear());
+    }
+    
+    public static Eat getEatStrategy(String fruitType) {
+        return map.get(fruitType);
+    }
+}</code></code></pre>
+<h2 id="测试">测试</h2>
+<pre><code><code>public class Demo {
+
+    public static void main(String[] args) {
+        String fruit = &quot;apple&quot;;
+        // 传入具体水果类型，得到苹果策略接口
+        Eat eat = EatFactory.getEatStrategy(fruit);
+        // 调用具体策略方法
+        eat.eatFruit(fruit);
+    }
+}</code></code></pre>
+<p><strong>测试结果：</strong></p>
+<pre><code><code>吃苹果</code></code></pre>
+<p>第一次写博客，写的不好的地方，还望大家留言指教！</p>
+
+
+</div><hr><script charset='utf-8' src='../../js/sming.js'></script></body></html>

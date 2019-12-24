@@ -1,0 +1,49 @@
+<html><head><meta charset='utf-8'><meta name='viewport' content='width=device-width, initial-scale=1'>
+<meta name='applicable-device' content='pc'><meta name='keywords' content='电脑,电脑讲解,电脑技术,编程,电脑故障维修Java中遍历Map对象的4种方法' />
+<script src='../../highlight/highlight.pack.js'></script>
+<link rel='stylesheet' type='text/css' href='../../highlight/styles/monokai.css'/>
+
+<link rel='stylesheet' href='../../fenxiang/dist/css/share.min.css'>
+<script src='../../fenxiang/src/js/social-share.js'></script>
+<script src='../../fenxiang/src/js/qrcode.js'></script>
+
+</head><body><script>hljs.initHighlightingOnLoad();</script><script>
+var system ={};  
+var p = navigator.platform;       
+system.win = p.indexOf('Win') == 0;  
+system.mac = p.indexOf('Mac') == 0;  
+system.x11 = (p == 'X11') || (p.indexOf('Linux') == 0);     
+if(system.win||system.mac||system.xll){
+document.write("<link href='../css/3.css' rel='stylesheet' type='text/css'>");}else{ document.write("<link href='../css/3wap.css' rel='stylesheet' type='text/css'>");}</script><script src='../../js/3.js'></script><div class='div2'><div class='heading_nav'><ul><div><li><a href='../../index.html'>首页</a></li>
+</div><div onclick='hidden1()' >分享</div>
+</ul></div></div>
+<div id='heading_nav2'> 
+<li class='row' >
+<div class='social-share' data-mode='prepend'><a href='javascript:' class='social-share-icon icon-heart'></a></div></li></div><script charset='utf-8' src='../../3/js/hengfu.js'></script><script charset='utf-8' src='../../3/js/hengfu2.js'></script><hr><div class='div1'><div class='biaoti'><center>Java中遍历Map对象的4种方法</center></div><div class='banquan'>原文出处:本文由博客园博主NoviceLearning提供。<br/>
+原文连接:https://www.cnblogs.com/riter-xu/p/11493826.html</div><br>
+    <p>java中的所有map都实现了Map接口，以下方法适用于任何map实现（HashMap, TreeMap, LinkedHashMap, Hashtable, 等等）。</p>
+<src class="cnblogs_code"><pre><code><span style="color: rgb(0, 128, 128);">  1</span> HashMap&lt;Integer, String&gt; map = <span style="color: rgb(0, 0, 255);">new</span> HashMap&lt;&gt;();
+<span style="color: rgb(0, 128, 128);">  2</span> map.put(1, "<span style="color: rgb(139, 0, 0);">jack</span>");
+<span style="color: rgb(0, 128, 128);">  3</span> map.put(2, "<span style="color: rgb(139, 0, 0);">tom</span>");
+<span style="color: rgb(0, 128, 128);">  4</span> map.put(3, "<span style="color: rgb(139, 0, 0);">jeffy</span>");</code></pre>
+<h3>方法一：在for-each循环中使用entries来遍历</h3>
+<p>
+<p>这是最常见的并且在大多数情况下也是最可取的遍历方式。在键值都需要时使用。<src class="cnblogs_code"><pre><code><span style="color: rgb(0, 128, 128);"> 1</span> <span style="color: rgb(0, 0, 255);">for</span>(Map.Entry&lt;Integer, String&gt; entry:map.entrySet()) {<br />
+<span style="color: rgb(0, 128, 128);"> 2</span> System.out.println(&quot;<span style="color: rgb(139, 0, 0);">key = </span>&quot;+entry.getKey()+&quot;<span style="color: rgb(139, 0, 0);">,value = </span>&quot;+entry.getValue());<br />
+<span style="color: rgb(0, 128, 128);"> 3</span> }</code></pre>如果你遍历的是一个空的map对象，for-each循环将抛出NullPointerException，因此在遍历前你总是应该检查是否为空引用。<h3>方法二：在for-each循环中遍历keys或values</h3><p>如果只需要map中的键或者值，你可以通过keySet或values来实现遍历，而不是用entrySet。<src class="cnblogs_code"><pre><code><span style="color: rgb(0, 128, 128);"> 1</span> <span style="color: rgb(0, 0, 255);">for</span>(Integer key:map.keySet()) {<br />
+<span style="color: rgb(0, 128, 128);"> 2</span> System.out.println(&quot;<span style="color: rgb(139, 0, 0);">key = </span>&quot;+key);<br />
+<span style="color: rgb(0, 128, 128);"> 3</span> }<br />
+<span style="color: rgb(0, 128, 128);"> 4</span> <span style="color: rgb(0, 0, 255);">for</span>(String value:map.values()) {<br />
+<span style="color: rgb(0, 128, 128);"> 5</span> System.out.println(&quot;<span style="color: rgb(139, 0, 0);">value = </span>&quot;+value);<br />
+<span style="color: rgb(0, 128, 128);"> 6</span> }</code></pre><p>该方法比entrySet遍历在性能上稍好（快了10%），而且代码更加干净。</p><h3>方法三：使用Iterator遍历</h3><src class="cnblogs_code"><pre><code><span style="color: rgb(0, 128, 128);"> 1</span> Iterator&lt;Map.Entry&lt;Integer, String&gt;&gt; irs = map.entrySet().iterator();<br />
+<span style="color: rgb(0, 128, 128);"> 2</span> <span style="color: rgb(0, 0, 255);">while</span>(irs.hasNext()) {<br />
+<span style="color: rgb(0, 128, 128);"> 3</span> Map.Entry&lt;Integer, String&gt; entry = irs.next();<br />
+<span style="color: rgb(0, 128, 128);"> 4</span> System.out.println(&quot;<span style="color: rgb(139, 0, 0);">key = </span>&quot;+entry.getKey()+&quot;<span style="color: rgb(139, 0, 0);">,value = </span>&quot;+entry.getValue());<br />
+<span style="color: rgb(0, 128, 128);"> 5</span> }</code></pre><h3><strong>方法四: 通过键找值遍历（效率低）</strong></h3><src class="cnblogs_code"><pre><code><span style="color: rgb(0, 128, 128);"> 1</span> Map&lt;Integer, String&gt; map2 = map;<br />
+<span style="color: rgb(0, 128, 128);"> 2</span> <span style="color: rgb(0, 0, 255);">for</span>(Integer key:map2.keySet()) {<br />
+<span style="color: rgb(0, 128, 128);"> 3</span> String value = map2.get(key);<br />
+<span style="color: rgb(0, 128, 128);"> 4</span> System.out.println(&quot;<span style="color: rgb(139, 0, 0);">key = </span>&quot;+key+&quot;<span style="color: rgb(139, 0, 0);">,value = </span>&quot;+value);<br />
+<span style="color: rgb(0, 128, 128);"> 5</span> }</code></pre><p>因为通过键取值是非常耗时的操作，所以这种方法相当慢且无效率的。</p><h3>总结：</h3><p>如果仅需要键(keys)或值(values)使用方法二。如果你使用的语言版本低于java 5，或是打算在遍历时删除entries，必须使用方法三。否则使用方法一(键值都要)。</p></p>
+
+
+</div><hr><script charset='utf-8' src='../../js/sming.js'></script></body></html>

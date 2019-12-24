@@ -1,0 +1,180 @@
+<html><head><meta charset='utf-8'><meta name='viewport' content='width=device-width, initial-scale=1'>
+<meta name='applicable-device' content='pc'><meta name='keywords' content='电脑,电脑讲解,电脑技术,编程,电脑故障维修Java自学-日期 日期格式化' />
+<script src='../../highlight/highlight.pack.js'></script>
+<link rel='stylesheet' type='text/css' href='../../highlight/styles/monokai.css'/>
+
+<link rel='stylesheet' href='../../fenxiang/dist/css/share.min.css'>
+<script src='../../fenxiang/src/js/social-share.js'></script>
+<script src='../../fenxiang/src/js/qrcode.js'></script>
+
+</head><body><script>hljs.initHighlightingOnLoad();</script><script>
+var system ={};  
+var p = navigator.platform;       
+system.win = p.indexOf('Win') == 0;  
+system.mac = p.indexOf('Mac') == 0;  
+system.x11 = (p == 'X11') || (p.indexOf('Linux') == 0);     
+if(system.win||system.mac||system.xll){
+document.write("<link href='../css/3.css' rel='stylesheet' type='text/css'>");}else{ document.write("<link href='../css/3wap.css' rel='stylesheet' type='text/css'>");}</script><script src='../../js/3.js'></script><div class='div2'><div class='heading_nav'><ul><div><li><a href='../../index.html'>首页</a></li>
+</div><div onclick='hidden1()' >分享</div>
+</ul></div></div>
+<div id='heading_nav2'> 
+<li class='row' >
+<div class='social-share' data-mode='prepend'><a href='javascript:' class='social-share-icon icon-heart'></a></div></li></div><script charset='utf-8' src='../../3/js/hengfu.js'></script><script charset='utf-8' src='../../3/js/hengfu2.js'></script><hr><div class='div1'><div class='biaoti'><center>Java自学-日期 日期格式化</center></div><div class='banquan'>原文出处:本文由博客园博主半米高峰提供。<br/>
+原文连接:https://www.cnblogs.com/jeddzd/p/11651777.html</div><br>
+    <h2 id="java中使用simpledateformat-进行日期格式化类">Java中使用SimpleDateFormat 进行日期格式化类</h2>
+<p>SimpleDateFormat 日期格式化类</p>
+<p>示例 1 : <strong>日期转字符串</strong></p>
+<p>y 代表年<br />
+M 代表月<br />
+d 代表日<br />
+H 代表24进制的小时<br />
+h 代表12进制的小时<br />
+m 代表分钟<br />
+s 代表秒<br />
+S 代表毫秒<br />
+<img src="./images/Java自学-日期 日期格式化0.png" alt="日期转字符串" /></p>
+<pre><code><code>package date;
+  
+import java.text.SimpleDateFormat;
+import java.util.Date;
+  
+public class TestDate {
+  
+    public static void main(String[] args) {
+          
+        //y 代表年
+        //M 代表月
+        //d 代表日
+        //H 代表24进制的小时
+        //h 代表12进制的小时
+        //m 代表分钟
+        //s 代表秒
+        //S 代表毫秒
+        SimpleDateFormat sdf =new SimpleDateFormat(&quot;yyyy-MM-dd HH:mm:ss SSS&quot; );
+        Date d= new Date();
+        String str = sdf.format(d);
+        System.out.println(&quot;当前时间通过 yyyy-MM-dd HH:mm:ss SSS 格式化后的输出: &quot;+str);
+         
+        SimpleDateFormat sdf1 =new SimpleDateFormat(&quot;yyyy-MM-dd&quot; );
+        Date d1= new Date();
+        String str1 = sdf1.format(d1);
+        System.out.println(&quot;当前时间通过 yyyy-MM-dd 格式化后的输出: &quot;+str1);
+         
+    }
+}</code></code></pre>
+<p>示例 2 : <strong>字符串转日期</strong></p>
+<p>模式（yyyy/MM/dd HH:mm:ss）需要和字符串格式保持一致，如果不一样就会抛出解析异常ParseException<br />
+<img src="./images/Java自学-日期 日期格式化1.png" alt="字符串转日期" /></p>
+<pre><code><code>package date;
+  
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
+import java.util.Date;
+  
+public class TestDate {
+  
+    public static void main(String[] args) {
+        SimpleDateFormat sdf =new SimpleDateFormat(&quot;yyyy/MM/dd HH:mm:ss&quot; );
+  
+        String str = &quot;2016/1/5 12:12:12&quot;;
+          
+        try {
+            Date d = sdf.parse(str);
+            System.out.printf(&quot;字符串 %s 通过格式  yyyy/MM/dd HH:mm:ss %n转换为日期对象: %s&quot;,str,d.toString());
+        } catch (ParseException e) {
+            // TODO Auto-generated catch block
+            e.printStackTrace();
+        }
+          
+    }
+}</code></code></pre>
+<p><strong>练习</strong>： <a href="http://how2j.cn/k/date/date-format/348.html?p=43278">日期格式化</a></p>
+<p>准备一个长度是9的日期数组<br />
+使用1900年-2000年之间的随机日期初始化该数组<br />
+按照这些日期的<strong>时间</strong>进行升序排序<br />
+比如 1988-1-21 <strong>12:33:22</strong> 就会排在 1978-4-21 <strong>19:07:23</strong> 前面，因为它的时间更小，虽然日期更大</p>
+<p><img src="./images/Java自学-日期 日期格式化2.png" alt="日期格式化" /><br />
+<strong>答案</strong>：</p>
+<pre class="java"><code>package date;
+
+import java.util.Date;
+import java.util.Scanner;
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
+
+public class DateSort{
+     //随机日期产生方法
+     public static Date getRandomDate(int start,int end){
+            SimpleDateFormat sdf = new SimpleDateFormat(&quot;yyyy&quot;);
+            long timeStart=0;
+            long timeEnd=0;
+            try {
+                Date dateStart = sdf.parse(String.valueOf(start));
+                //System.out.println(dateStart);
+                Date dateEnd = sdf.parse(String.valueOf(end));
+                timeEnd = dateEnd.getTime()-1;
+                timeStart = dateStart.getTime();
+            } catch (ParseException e) {
+                // TODO Auto-generated catch block
+                e.printStackTrace();
+            }
+            long randomTime = (long)(timeStart+(Math.random()*(timeEnd-timeStart)));
+            //System.out.println(randomTime);
+            return new Date(randomTime);
+     }
+     //格式化输出日期字符串方法
+     public static String toString(Date d,String format){       
+         SimpleDateFormat sdf = new SimpleDateFormat(format);
+         return sdf.format(d);
+         
+     }
+     public static void main(String[] args) {
+         
+            Date[] ds = new Date[9];  //创建随机日期数组
+            
+
+//          Scanner s = new Scanner(System.in);
+//          System.out.println(&quot;请输入开始年份：&quot;);
+//          int startYear = s.nextInt();
+//          System.out.println(&quot;请输入结束年份：&quot;);
+//          int endYear = s.nextInt();
+            
+            for (int i = 0; i &lt; ds.length; i++) {     //初始化数组
+                ds[i] = getRandomDate(1900,2000);           
+            }
+            
+            System.out.println(&quot;排序前的随机日期数组:&quot;);
+            for (int i = 0; i &lt; ds.length; i++) {
+                System.out.print(toString(ds[i],&quot;yyyy-MM-dd HH:mm:ss&quot;)+&quot;\t&quot;);
+                if(i%3==2)
+                    System.out.println();
+                
+            }                  
+                            
+            for (int i = 0; i &lt; ds.length; i++) {
+                for (int j = 0; j &lt; ds.length-1-i; j++) {
+                    String str1 = DateSort.toString(ds[j],&quot;HHmmss&quot;);
+                    String str2 = toString(ds[j+1],&quot;HHmmss&quot;);
+                    
+                    int j1 = Integer.parseInt(str1);
+                    int j2 = Integer.parseInt(str2);
+                    
+                    if (j1&gt;j2) {
+                        Date temp = ds[j];
+                        ds[j]=ds[j+1];
+                        ds[j+1]=temp;                                
+                        
+                    }
+                }
+            }
+            System.out.println(&quot;排序后得到的日期数组:&quot;);
+            for (int i = 0; i &lt; ds.length; i++) {
+                System.out.print(toString(ds[i],&quot;yyyy-MM-dd HH:mm:ss&quot;)+&quot;\t&quot;);
+                if(i%3==2)
+                    System.out.println();
+            }
+     }        
+}</code></code></pre>
+
+
+</div><hr><script charset='utf-8' src='../../js/sming.js'></script></body></html>

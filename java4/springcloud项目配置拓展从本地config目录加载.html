@@ -1,0 +1,162 @@
+<html><head><meta charset='utf-8'><meta name='viewport' content='width=device-width, initial-scale=1'>
+<meta name='applicable-device' content='pc'><meta name='keywords' content='电脑,电脑讲解,电脑技术,编程,电脑故障维修springcloud项目配置拓展从本地config目录加载' />
+<script src='../../highlight/highlight.pack.js'></script>
+<link rel='stylesheet' type='text/css' href='../../highlight/styles/monokai.css'/>
+
+<link rel='stylesheet' href='../../fenxiang/dist/css/share.min.css'>
+<script src='../../fenxiang/src/js/social-share.js'></script>
+<script src='../../fenxiang/src/js/qrcode.js'></script>
+
+</head><body><script>hljs.initHighlightingOnLoad();</script><script>
+var system ={};  
+var p = navigator.platform;       
+system.win = p.indexOf('Win') == 0;  
+system.mac = p.indexOf('Mac') == 0;  
+system.x11 = (p == 'X11') || (p.indexOf('Linux') == 0);     
+if(system.win||system.mac||system.xll){
+document.write("<link href='../css/3.css' rel='stylesheet' type='text/css'>");}else{ document.write("<link href='../css/3wap.css' rel='stylesheet' type='text/css'>");}</script><script src='../../js/3.js'></script><div class='div2'><div class='heading_nav'><ul><div><li><a href='../../index.html'>首页</a></li>
+</div><div onclick='hidden1()' >分享</div>
+</ul></div></div>
+<div id='heading_nav2'> 
+<li class='row' >
+<div class='social-share' data-mode='prepend'><a href='javascript:' class='social-share-icon icon-heart'></a></div></li></div><script charset='utf-8' src='../../3/js/hengfu.js'></script><script charset='utf-8' src='../../3/js/hengfu2.js'></script><hr><div class='div1'><div class='biaoti'><center>springcloud项目配置拓展从本地config目录加载</center></div><div class='banquan'>原文出处:本文由博客园博主冀子@提供。<br/>
+原文连接:https://www.cnblogs.com/li-yg/p/11419732.html</div><br>
+    <p>本文受阿里开源的Nacos启发，应用启动后从Nacos服务加载配置到应用中，想着本地开发的时候加载配置能否从本地存储中加载，这样也能加快开发效率</p>
+<h2 id="首先">首先</h2>
+<p>我们来看下SpringCloud项目应用Nacos服务的<code>bootstrap.yaml</code>配置如下</p>
+<pre><code><code>spring:
+  cloud:
+    nacos:
+      config:
+        server-addr: 127.0.0.1:8848
+        file-extension: yaml
+      discovery:
+        server-addr: 127.0.0.1:8848
+  application:
+    name: demo
+  profiles:
+    active: db,redis,rabbit,es,zk</code></code></pre>
+<h2 id="然后在nacos控制台加配置">然后在Nacos控制台加配置</h2>
+<p>经过如上之后，这样应用就能从Nacos取配置。</p>
+<h2 id="问题点">问题点</h2>
+<p>笔者认为这里开发的时候如果能从文件系统中加载配置替代Nacos，能加快开发效率，也能心情舒畅的Coding业务代码了。</p>
+<h2 id="解决思路">解决思路</h2>
+<h3 id="分析">分析</h3>
+<p>经过分析启动配置<code>spring.factories</code>和配置类<code>NacosConfigProperties</code></p>
+<pre class="txt"><code>org.springframework.cloud.bootstrap.BootstrapConfiguration=\
+org.springframework.cloud.alibaba.nacos.NacosConfigBootstrapConfiguration</code></code></pre>
+<p>找到<code>NacosConfigBootstrapConfiguration</code> 代码如下</p>
+<pre class="java"><code>@Configuration
+@ConditionalOnProperty(name = &quot;spring.cloud.nacos.config.enabled&quot;, matchIfMissing = true)
+public class NacosConfigBootstrapConfiguration {
+
+    @Bean
+    @ConditionalOnMissingBean
+    public NacosConfigProperties nacosConfigProperties() {
+        return new NacosConfigProperties();
+    }
+
+    @Bean
+    public NacosPropertySourceLocator nacosPropertySourceLocator(
+            NacosConfigProperties nacosConfigProperties) {
+        return new NacosPropertySourceLocator(nacosConfigProperties);
+    }
+
+}</code></code></pre>
+<p>里面关键是<code>NacosPropertySourceLocator</code>实现的接口<code>PropertySourceLocator</code></p>
+<pre class="java"><code>/**
+ * Strategy for locating (possibly remote) property sources for the Environment.
+ * Implementations should not fail unless they intend to prevent the application from
+ * starting.
+ *
+ * @author Dave Syer
+ *
+ */
+public interface PropertySourceLocator {
+
+    /**
+     * @param environment The current Environment.
+     * @return A PropertySource, or null if there is none.
+     * @throws IllegalStateException if there is a fail-fast condition.
+     */
+    PropertySource&lt;?&gt; locate(Environment environment);
+
+}
+</code></code></pre>
+<p>到了这里就明白怎么做了。</p>
+<h3 id="实现">实现</h3>
+<h3 id="定义自己的应用启动配置类mylocalconfigbootstrapconfiguration">定义自己的应用启动配置类<code>MyLocalConfigBootstrapConfiguration</code></h3>
+<pre class="java"><code>@Configuration
+@ConditionalOnProperty(name = &quot;spring.cloud.nacos.config.enabled&quot;, havingValue = &quot;false&quot;)
+public class MyLocalConfigBootstrapConfiguration {
+
+    @Bean
+    public MyLocalPropertySourceLocator fyLocalPropertySourceLocator() {
+        return new MyLocalPropertySourceLocator();
+    }
+}</code></code></pre>
+<h3 id="定义meta-infspring.factories">定义META-INF/spring.factories</h3>
+<pre class="txt"><code>org.springframework.cloud.bootstrap.BootstrapConfiguration=\
+com.liyghting.core.MyLocalConfigBootstrapConfiguration</code></code></pre>
+<h3 id="定义自己的配置加载器mylocalpropertysourcelocator">定义自己的配置加载器<code>MyLocalPropertySourceLocator</code></h3>
+<pre class="java"><code>@Order(0)
+public class MyLocalPropertySourceLocator implements PropertySourceLocator {
+    private static final Logger LOGGER = LoggerFactory
+            .getLogger(MyLocalPropertySourceLocator.class);
+    private static final String MYLOCAL_PROPERTY_SOURCE_NAME = &quot;MYLOCAL&quot;;
+
+    @Override
+    public PropertySource&lt;?&gt; locate(Environment environment) {
+
+        CompositePropertySource composite = new CompositePropertySource(
+                MYLOCAL_PROPERTY_SOURCE_NAME);
+        String dataIdPrefix = environment.getProperty(&quot;spring.application.name&quot;);
+        String fileExtension = &quot;.yaml&quot;;
+        PropertySourceLoader propertySourceLoader = new YamlPropertySourceLoader();
+
+        URL baseClassesUrl = this.getClass().getClassLoader().getResource(&quot;&quot;);
+        File baseClassesFile = new File(baseClassesUrl.getFile());
+        String basePath = baseClassesFile.getParentFile().getParentFile().getAbsolutePath();
+
+        Resource resource = new FileSystemResource(basePath + &quot;/config/&quot; + dataIdPrefix + fileExtension);
+        try {
+            composite.addFirstPropertySource(propertySourceLoader.load(dataIdPrefix + fileExtension, resource).get(0));
+        } catch (IOException e) {
+            LOGGER.warn(&quot;can not load property source {}, exception: {}&quot;, dataIdPrefix + fileExtension, e);
+        }
+        for (String activeProfile : environment.getActiveProfiles()) {
+            try {
+                resource = resource.createRelative(dataIdPrefix + &quot;-&quot; + activeProfile + fileExtension);
+                composite.addFirstPropertySource(propertySourceLoader.load(dataIdPrefix + &quot;-&quot; + activeProfile + fileExtension, resource).get(0));
+            } catch (IOException e) {
+                LOGGER.warn(&quot;can not load property source {}, exception: {}&quot;, dataIdPrefix + &quot;-&quot; + activeProfile + fileExtension, e);
+            }
+        }
+
+        return composite;
+    }
+}</code></code></pre>
+<p>版本信息spring-boot 2.1.6.RELEASE<br />
+spring-cloud Greenwich.SR2<br />
+spring-cloud-alibaba 0.9.0.RELEASE<br />
+<a href="https://github.com/lyg123/SpringCloudLocalCofigDemo">具体请看我分享的git库</a></p>
+<p>新的<code>bootstarp.yaml</code>配置如下</p>
+<pre><code><code>spring:
+  cloud:
+    nacos:
+      config:
+        enabled: false
+        server-addr: 127.0.0.1:8848
+        file-extension: yaml
+      discovery:
+        server-addr: 127.0.0.1:8848
+  application:
+    name: demo
+  profiles:
+    active: db,redis,rabbit,es,zk
+
+</code></code></pre>
+<p>这样应用启动配置能从本地文件系统加载或Nacos服务加载</p>
+
+
+</div><hr><script charset='utf-8' src='../../js/sming.js'></script></body></html>

@@ -1,0 +1,139 @@
+<html><head><meta charset='utf-8'><meta name='viewport' content='width=device-width, initial-scale=1'>
+<meta name='applicable-device' content='pc'><meta name='keywords' content='电脑,电脑讲解,电脑技术,编程,电脑故障维修Java多线程面试问答' />
+<script src='../../highlight/highlight.pack.js'></script>
+<link rel='stylesheet' type='text/css' href='../../highlight/styles/monokai.css'/>
+
+<link rel='stylesheet' href='../../fenxiang/dist/css/share.min.css'>
+<script src='../../fenxiang/src/js/social-share.js'></script>
+<script src='../../fenxiang/src/js/qrcode.js'></script>
+
+</head><body><script>hljs.initHighlightingOnLoad();</script><script>
+var system ={};  
+var p = navigator.platform;       
+system.win = p.indexOf('Win') == 0;  
+system.mac = p.indexOf('Mac') == 0;  
+system.x11 = (p == 'X11') || (p.indexOf('Linux') == 0);     
+if(system.win||system.mac||system.xll){
+document.write("<link href='../css/3.css' rel='stylesheet' type='text/css'>");}else{ document.write("<link href='../css/3wap.css' rel='stylesheet' type='text/css'>");}</script><script src='../../js/3.js'></script><div class='div2'><div class='heading_nav'><ul><div><li><a href='../../index.html'>首页</a></li>
+</div><div onclick='hidden1()' >分享</div>
+</ul></div></div>
+<div id='heading_nav2'> 
+<li class='row' >
+<div class='social-share' data-mode='prepend'><a href='javascript:' class='social-share-icon icon-heart'></a></div></li></div><script charset='utf-8' src='../../3/js/hengfu.js'></script><script charset='utf-8' src='../../3/js/hengfu2.js'></script><hr><div class='div1'><div class='biaoti'><center>Java多线程面试问答</center></div><div class='banquan'>原文出处:本文由博客园博主Java知己提供。<br/>
+原文连接:https://www.cnblogs.com/java-friend/p/11724488.html</div><br>
+    <p>今天，我们将讨论Java 多线程面试问答。</p>
+<p>线程是Java面试问题中的热门话题之一。在这里，我从面试的角度列出了大多数重要的Java多线程面试问题，但是您应该对Java线程有足够的知识来处理后续问题。</p>
+<h2 id="java多线程面试问答">Java多线程面试问答</h2>
+<h3 id="process和thread有什么区别">1、Process和Thread有什么区别？</h3>
+<p>进程是一个独立的执行环境，可以将其视为程序或应用程序，而线程是进程中执行的对应任务。Java运行时环境作为交替运行，其中包含不同的类和程序作为进程。线程可以称为轻量级进程。线程需要更多的资源来创建和存在于进程中，线程共享进程资源。</p>
+<h3 id="多线程编程的好处是什么">2、多线程编程的好处是什么？</h3>
+<p>在多线程编程中，多个线程可以同时执行，从而提高性能，因为如果某些线程正在等待获取某些资源，则CPU不会处于中断状态。多个线程共享堆内存，因此最好创建多个线程来执行某些任务，而不要创建多个进程。例如，Servlet的在性能上比CGI更好，因为Servlet的支持多线程，但CGI不支持。</p>
+<h3 id="用户线程和守护线程之间有什么区别">3、用户线程和守护线程之间有什么区别？</h3>
+<p>当我们在的Java程序中创建线程时，它被称为用户线程。守护程序线程在后台运行，并且不会阻止JVM终止。当没有用户线程在运行时，JVM会关闭程序并退出。从守护程序线程创建的子线程也是守护程序线程。</p>
+<h3 id="我们如何在java中创建线程">4、我们如何在Java中创建线程？</h3>
+<p>在Java中创建线程的方法-一种是通过实现Runnable接口，然后从该接口创建线程对象，其二是继承Thread类。</p>
+<h3 id="线程生命周期中有哪几种不同状态">5、线程生命周期中有哪几种不同状态？</h3>
+<p>当我们在Java程序中创建线程时，其状态为“new”。然后，我们启动将其状态更改为Runnable的线程。线程调度程序负责将CPU分配给可运行线程池中的线程，使其状态更改为running(运行中)。其他线程状态为Waiting(等待)，Blocked(阻塞)和Dead(死亡)。</p>
+<h3 id="我们可以调用线程类的run方法吗">6、我们可以调用线程类的run()方法吗？</h3>
+<p>可以，我们可以调用Thread类的run()方法，但是它的行为类似于普通方法。要在线程中实际执行它，我们需要使用<strong>Thread.start()</strong>方法启动它。</p>
+<h3 id="我们如何在特定时间内暂停执行线程">7、我们如何在特定时间内暂停执行线程？</h3>
+<p>我们可以使用Thread类sleep()方法将Thread的执行暂停一定时间。请注意，这不会在特定时间内停止线程的处理，一旦线程从睡眠中醒来，它的状态将更改为可运行，并根据线程调度执行它。</p>
+<h3 id="您对线程优先级有什么了解">8、您对线程优先级有什么了解？</h3>
+<p>每个线程都有一个优先级，通常更高优先级的线程在执行时享有优先权，但它取决于OS的线程计划程序实现。我们可以指定线程的优先级，但不能保证更高优先级的线程将在较低优先级的线程之前执行。线程优先级是一个_整数，其值在1到10之间变化，其中1是最低优先级线程，而10是最高优先级线程。</p>
+<h3 id="什么是多线程中的上下文切换">9、什么是多线程中的上下文切换？</h3>
+<p>上下文切换是存储和恢复CPU状态的过程，以便可以在以后的某个时间点从同一点恢复线程执行。上下文切换是多任务操作系统的基本功能，并且支持多线程环境。</p>
+<h3 id="我们如何确保main是java程序中要完成的最后一个线程">10、我们如何确保main()是Java程序中要完成的最后一个线程？</h3>
+<p>在完成main函数之前，我们可以使用Thread join()方法来确保程序创建的所有线程均已死。</p>
+<h3 id="线程如何相互通信">11、线程如何相互通信？</h3>
+<p>当线程共享资源时，线程之间的通信对于协调其工作很重要。对象类的wait()，notify()和notifyAll()方法允许线程就资源的锁定状态进行通信。</p>
+<h3 id="为什么线程通信方法waitnotify和notifyall在object类中">12、为什么线程通信方法wait()，notify()和notifyAll()在Object类中？</h3>
+<p>在Java中，每个对象都有一个监视器并等待，通知方法用于等待对象监视器或通知其他线程该对象监视器现在是空闲的。Java中没有线程监视程序，因此同步可以与任何Object一起使用，这就是为什么它是Object类的一部分的原因，因此Java中的每个类都具有这些线程间通信的基本方法。</p>
+<h3 id="为什么必须从同步方法或块中调用waitnotify和notifyall方法">13、为什么必须从同步方法或块中调用wait()，notify()和notifyAll()方法？</h3>
+<p>当线程在任何对象上调用wait()时，它必须在要离开的对象上具有监视器，并进入等待状态，直到对该对象上的任何其他线程调用notify()为止。同样，当线程在任何对象上调用notify()时，它将监视器留在对象上，而其他等待线程可以在对象上获取监视器。由于所有这些方法都要求Thread具有“对象”监视器，这只能通过同步来实现，因此需要从同步方法或块中调用它们。</p>
+<h3 id="为什么线程sleep和yield方法是静态的">14、为什么线程sleep()和yield()方法是静态的？</h3>
+<p>线程sleep()和yield()方法在当前正在执行的线程上工作。因此，在其他处于等待状态的线程上调用这些方法毫无意义。这就是为什么将这些方法设为静态的原因，以便当该方法被静态调用时，它可以在当前执行的线程上运行，并且避免使可能会认为可以在某些非运行线程上调用这些方法的程序员感到困惑。</p>
+<h3 id="我们如何在java中实现线程安全">15、我们如何在Java中实现线程安全？</h3>
+<p>有几种方法可以在Java中实现线程安全–同步，原子并发类，实现并发Lock接口，使用volatile关键字，使用不可变类和Thread安全类。</p>
+<h3 id="什么是java中的volatile关键字">16、什么是Java中的volatile关键字</h3>
+<p>当我们将volatile关键字与变量一起使用时，所有线程都直接从内存中读取它的值，而不缓存它。这样可以确保读取的值与存储器中的值相同。</p>
+<h3 id="哪个更优选同步方法还是同步块">17、哪个更优选–同步方法还是同步块？</h3>
+<p>同步块是更可取的方式，因为它不会锁定对象，同步方法会锁定对象，并且如果类中有多个同步块，即使它们不相关，也会使它们停止执行并将其置于等待状态获得对象上的锁。</p>
+<h3 id="如何在java中创建守护程序线程">18、如何在Java中创建守护程序线程？</h3>
+<p>Tread.setDaemon(true)可用于在Java中创建守护程序线程。我们需要在调用start()方法之前调用此方法，否则它将引发IllegalThreadStateException。</p>
+<h3 id="什么是threadlocal">19、什么是ThreadLocal？</h3>
+<p>Java ThreadLocal用于创建线程局部变量。我们知道对象的所有线程都共享它的变量，因此，如果变量不是线程安全的，则可以使用同步，但是如果要避免同步，则可以使用ThreadLocal变量。<br />
+每个线程都有自己的ThreadLocal变量，他们可以使用它的gets()和set()方法获取默认值或将其值更改为Thread本地。ThreadLocal实例通常是希望将状态与线程关联的类中的私有静态字段。</p>
+<h3 id="什么是threadgroup为什么建议不要使用它">20、什么是ThreadGroup？为什么建议不要使用它？</h3>
+<p>ThreadGroup是一个类，旨在提供有关线程组的信息。ThreadGroup API很弱，并且没有为Thread提供任何功能。它具有两个主要功能–获取线程组中活动线程的列表，并为该线程设置未捕获的异常处理程序。但是Java 1.5添加了_setUncaughtExceptionHandler(UncaughtExceptionHandler eh)_方法，使用该方法可以将未捕获的异常处理程序添加到线程中。因此ThreadGroup已过时，因此不建议再使用。</p>
+<pre><code><code>
+t1.setUncaughtExceptionHandler(new UncaughtExceptionHandler(){
+
+    @Override
+    public void uncaughtException(Thread t, Throwable e) {
+        System.out.println(&quot;exception occured:&quot;+e.getMessage());
+    }
+            
+});
+</code></code></pre>
+<h3 id="什么是java线程转储我们如何获取程序的java线程转储">21、什么是Java线程转储，我们如何获取程序的Java线程转储？</h3>
+<p>线程转储是JVM中所有活动线程的列表，线程转储对于分析应用程序中的瓶颈和分析死锁情况非常有帮助。可以使用多种方法来生成线程转储–使用Profiler，Kill -3命令，jstack工具等。我更喜欢使用jstack工具来生成程序的线程转储，因为它易于使用并且随JDK安装一起提供。由于它是基于终端的工具，因此我们可以创建脚本以定期生成线程转储，以供日后分析。</p>
+<h3 id="什么是死锁如何分析和避免死锁情况">22、什么是死锁？如何分析和避免死锁情况？</h3>
+<p>死锁是两个或多个线程永远被阻塞的编程情况，这种情况发生在至少两个线程和两个或更多资源的情况下。</p>
+<p>要分析死锁，我们需要查看应用程序的Java线程转储，我们需要查找状态为BLOCKED的线程，然后查找等待锁定的资源，每个资源都有一个唯一的ID，我们可以使用该ID来查找哪个线程已经对该对象进行了锁定。</p>
+<p>避免嵌套锁，仅锁定所需内容和避免无限期等待是避免死锁的常见方法。</p>
+<h3 id="什么是java计时器类如何安排任务在指定间隔后运行">23、什么是Java计时器类？如何安排任务在指定间隔后运行？</h3>
+<p>java.util.Timer是一个实用程序类，可用于安排将来某个特定时间执行的线程。Java Timer类可用于安排任务一次运行或定期运行。</p>
+<p>java.util.TimerTask是实现Runnable接口的抽象类，我们需要扩展此类以创建可以使用java Timer类进行调度的自己的TimerTask。</p>
+<h3 id="什么是线程池我们如何在java中创建线程池">24、什么是线程池？我们如何在Java中创建线程池？</h3>
+<p>线程池管理工作线程池，它包含一个队列，使任务等待执行。</p>
+<p>线程池管理可运行线程的集合，工作线程从队列中执行可运行线程。</p>
+<p>java.util.concurrent.Executors提供java.util.concurrent.Executor接口的实现，以在Java中创建线程池。</p>
+<h3 id="如果我们不重写thread类的run方法将会发生什么">25、如果我们不重写Thread类的run()方法，将会发生什么？</h3>
+<p>线程类的run()方法代码如下所示。</p>
+<pre><code><code>
+public void run() {
+    if (target != null) {
+        target.run();
+    }
+}
+</code></code></pre>
+<p>在Thread类的init()方法中设置的目标上方，如果我们将Thread类的实例创建为<code>new TestThread()</code>，则将其设置为null。因此，如果不重写run()方法，将不会发生任何事情。下面是一个简单的示例来说明这一点。</p>
+<pre><code><code>
+public class TestThread extends Thread {
+
+    //not overriding Thread.run() method
+    
+    //main method, can be in other class too
+    public static void main(String args[]){
+        Thread t = new TestThread();
+        System.out.println(&quot;Before starting thread&quot;);
+        t.start();
+        System.out.println(&quot;After starting thread&quot;);
+    }
+}
+
+</code></code></pre>
+<p>它将仅在输出下方打印并终止。</p>
+<pre><code><code>
+Before starting thread
+After starting thread
+</code></code></pre>
+<h3 id="什么是线程调度程序和时间分片">26、什么是线程调度程序和时间分片？</h3>
+<p>线程调度程序是一种操作系统服务，它将CPU时间分配给可用的可运行线程。创建并启动线程后，其执行取决于Thread Scheduler的实现。时间分片是将可用CPU时间划分为可用可运行线程的过程。可以根据线程优先级为线程分配CPU时间，或者等待更长时间的线程将在获得CPU时间时获得更高的优先级。线程调度不能由Java控制，因此始终最好从应用程序本身进行控制。</p>
+<p>我希望这里列出的问题对你的Java面试有所帮助。</p>
+<hr />
+<blockquote>
+<p>“不积跬步，无以至千里”，希望未来的你能：有梦为马 随处可栖！加油，少年！</p>
+</blockquote>
+<p>关注公众号:<strong>「Java 知己」</strong>，每天更新Java知识哦，期待你的到来！</p>
+<ul>
+<li>发送「<strong>Group</strong>」，与 10 万程序员一起进步。</li>
+<li>发送「<strong>面试</strong>」，领取BATJ面试资料、面试视频攻略。</li>
+<li>发送「<strong>玩转算法</strong>」，领取《玩转算法》系列视频教程。</li>
+<li>千万不要发送「<strong>1024</strong>」...</li>
+</ul>
+<p><img src="./images/Java多线程面试问答0.png" alt="每日福利" /><br />
+每日福利</p>
+
+
+</div><hr><script charset='utf-8' src='../../js/sming.js'></script></body></html>

@@ -1,0 +1,46 @@
+<html><head><meta charset='utf-8'><meta name='viewport' content='width=device-width, initial-scale=1'>
+<meta name='applicable-device' content='pc'><meta name='keywords' content='电脑,电脑讲解,电脑技术,编程,电脑故障维修SpringBootSecurity学习（02）网页版登陆配置类代替默认配置' />
+<script src='../../highlight/highlight.pack.js'></script>
+<link rel='stylesheet' type='text/css' href='../../highlight/styles/monokai.css'/>
+
+<link rel='stylesheet' href='../../fenxiang/dist/css/share.min.css'>
+<script src='../../fenxiang/src/js/social-share.js'></script>
+<script src='../../fenxiang/src/js/qrcode.js'></script>
+
+</head><body><script>hljs.initHighlightingOnLoad();</script><script>
+var system ={};  
+var p = navigator.platform;       
+system.win = p.indexOf('Win') == 0;  
+system.mac = p.indexOf('Mac') == 0;  
+system.x11 = (p == 'X11') || (p.indexOf('Linux') == 0);     
+if(system.win||system.mac||system.xll){
+document.write("<link href='../css/3.css' rel='stylesheet' type='text/css'>");}else{ document.write("<link href='../css/3wap.css' rel='stylesheet' type='text/css'>");}</script><script src='../../js/3.js'></script><div class='div2'><div class='heading_nav'><ul><div><li><a href='../../index.html'>首页</a></li>
+</div><div onclick='hidden1()' >分享</div>
+</ul></div></div>
+<div id='heading_nav2'> 
+<li class='row' >
+<div class='social-share' data-mode='prepend'><a href='javascript:' class='social-share-icon icon-heart'></a></div></li></div><script charset='utf-8' src='../../3/js/hengfu.js'></script><script charset='utf-8' src='../../3/js/hengfu2.js'></script><hr><div class='div1'><div class='biaoti'><center>SpringBootSecurity学习（02）网页版登陆配置类代替默认配置</center></div><div class='banquan'>原文出处:本文由博客园博主程序员郭艺宾提供。<br/>
+原文连接:https://www.cnblogs.com/guos/p/11601259.html</div><br>
+    <h1 id="增加security配置类">增加Security配置类</h1>
+<p>前面演示了一个简单的登录入门例子，使用springboot-security默认的配置实现，虽然非常简单，但是基本实现了登录功能。不过在生产环境下，显然不能仅仅使用如此简单的登录功能，我们还需要更多个性化的登录配置，所以我们要使用配置类来代替默认配置。新建一个配置类 WebSecurityConfig，继承 WebSecurityConfigurerAdapter ：</p>
+<p><img src="./images/SpringBootSecurity学习（02）网页版登陆配置类代替默认配置0.png" alt="file" /></p>
+<p>现在的配置类没有配置任何内容，重启项目，访问登录页面发现找不到默认登录页面了：</p>
+<p><img src="./images/SpringBootSecurity学习（02）网页版登陆配置类代替默认配置1.png" alt="file" /></p>
+<p>访问主页，发现可以直接访问，不会默认跳转到登录页面了：</p>
+<p><img src="./images/SpringBootSecurity学习（02）网页版登陆配置类代替默认配置2.png" alt="file" /></p>
+<h1 id="恢复默认登录页面">恢复默认登录页面</h1>
+<p>配置默认登录页面的配置很简单：</p>
+<p><img src="./images/SpringBootSecurity学习（02）网页版登陆配置类代替默认配置3.png" alt="file" /></p>
+<p>重启再次访问，就可以看到登录页面了：</p>
+<p><img src="./images/SpringBootSecurity学习（02）网页版登陆配置类代替默认配置4.png" alt="file" /></p>
+<h1 id="恢复自动跳转到登录页面">恢复自动跳转到登录页面</h1>
+<p>用户在没有登录的情况下，访问任何未授权的页面，都会自动跳转到登录页面，这是登录的基本功能。在security中加入如下的授权配置：</p>
+<p><img src="./images/SpringBootSecurity学习（02）网页版登陆配置类代替默认配置5.png" alt="file" /></p>
+<p>其中，调用authorizeRequests()的意思是指通过authorizeRequests()方法来开始请求权限配置，anyRequest().fullyAuthenticated()是对http所有的请求必须通过授权认证才可以访问。除了fullyAuthenticated方法，还可以使用authenticated方法，这两个有什么区别呢？来看一下官方文档的描述：</p>
+<p><img src="./images/SpringBootSecurity学习（02）网页版登陆配置类代替默认配置6.png" alt="file" /></p>
+<p>也就是说，fullyAuthenticated不仅可以让有权限的用户访问，还可以让remember-me的用户访问。所以，如果登录页面有记住我，一定要使用fullyAuthenticated。</p>
+<p>现在重启访问，可以发现恢复了原来入门例子中的效果。后面的例子中，我们会加入更多的个性化配置。</p>
+<p>代码地址：<a href="https://gitee.com/blueses/spring-boot-security" class="uri">https://gitee.com/blueses/spring-boot-security</a> 02</p>
+
+
+</div><hr><script charset='utf-8' src='../../js/sming.js'></script></body></html>

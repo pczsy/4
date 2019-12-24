@@ -1,0 +1,90 @@
+<html><head><meta charset='utf-8'><meta name='viewport' content='width=device-width, initial-scale=1'>
+<meta name='applicable-device' content='pc'><meta name='keywords' content='电脑,电脑讲解,电脑技术,编程,电脑故障维修Maven下载速度过慢问题已解决' />
+<script src='../../highlight/highlight.pack.js'></script>
+<link rel='stylesheet' type='text/css' href='../../highlight/styles/monokai.css'/>
+
+<link rel='stylesheet' href='../../fenxiang/dist/css/share.min.css'>
+<script src='../../fenxiang/src/js/social-share.js'></script>
+<script src='../../fenxiang/src/js/qrcode.js'></script>
+
+</head><body><script>hljs.initHighlightingOnLoad();</script><script>
+var system ={};  
+var p = navigator.platform;       
+system.win = p.indexOf('Win') == 0;  
+system.mac = p.indexOf('Mac') == 0;  
+system.x11 = (p == 'X11') || (p.indexOf('Linux') == 0);     
+if(system.win||system.mac||system.xll){
+document.write("<link href='../css/3.css' rel='stylesheet' type='text/css'>");}else{ document.write("<link href='../css/3wap.css' rel='stylesheet' type='text/css'>");}</script><script src='../../js/3.js'></script><div class='div2'><div class='heading_nav'><ul><div><li><a href='../../index.html'>首页</a></li>
+</div><div onclick='hidden1()' >分享</div>
+</ul></div></div>
+<div id='heading_nav2'> 
+<li class='row' >
+<div class='social-share' data-mode='prepend'><a href='javascript:' class='social-share-icon icon-heart'></a></div></li></div><script charset='utf-8' src='../../3/js/hengfu.js'></script><script charset='utf-8' src='../../3/js/hengfu2.js'></script><hr><div class='div1'><div class='biaoti'><center>Maven下载速度过慢问题已解决</center></div><div class='banquan'>原文出处:本文由博客园博主陈彦斌提供。<br/>
+原文连接:https://www.cnblogs.com/chenyanbin/p/11706339.html</div><br>
+    <p>因为Maven 默认仓库的服务器在国外所以我们国内的使用效果极差，我们可以修改成为国内镜像地址加速下载。</p>
+<h1>两种方法</h1>
+<h2>修改全局文件</h2>
+<p>C:\Users\您电脑帐号\ .m2\settings.xml<br />没有文件的下载附件里面</p>
+<h2>修改局部,需要使用的时候指定配置文件</h2>
+<p>修改Maven安装目录下<code>/conf/settings.xml</code>文件</p>
+<p>找到<code>&lt;mirrors&gt;&lt;/mirrors&gt;</code>在这里面 加入国内镜像源&middot;华为云和阿里云提供的镜像</p>
+<p><span style="font-size: 15px;"><strong><span style="color: #ff0000;">注：您要是觉得手动配置节点麻烦的，请直接下载，覆盖相应路径文件即可：</span></strong></span><a href="https://files-cdn.cnblogs.com/files/chenyanbin/settings.xml" target="_blank">直接下载</a></p>
+<src class="cnblogs_code">
+<pre><code>&lt;mirror&gt;
+    &lt;id&gt;HuaweiCloud&lt;/id&gt;
+    &lt;mirrorOf&gt;*,!HuaweiCloudSDK&lt;/mirrorOf&gt;
+     &lt;url&gt;https:<span style="color: #008000;">//</span><span style="color: #008000;">mirrors.huaweicloud.com/repository/maven/&lt;/url&gt;</span>
+&lt;/mirror&gt;
+&lt;mirror&gt;
+&lt;id&gt;AliYUN&lt;/id&gt;
+    &lt;name&gt;AliYUN Maven&lt;/name&gt;
+    &lt;mirrorOf&gt;*,!HuaweiCloudSDK&lt;/mirrorOf&gt;
+    &lt;url&gt;http:<span style="color: #008000;">//</span><span style="color: #008000;">maven.aliyun.com/nexus/content/groups/public/&lt;/url&gt;</span>
+&lt;/mirror&gt;</code></pre>
+
+<h4>注意:</h4>
+<h5>如果需要使用华为云套件的话,请加入以下配置</h5>
+<p>在profiles节点中添加如下内容：</p>
+<src class="cnblogs_code">
+<pre><code><span style="color: #008080;"> 1</span> &lt;profile&gt;
+<span style="color: #008080;"> 2</span>     &lt;id&gt;HWSDK&lt;/id&gt;
+<span style="color: #008080;"> 3</span>     &lt;repositories&gt;
+<span style="color: #008080;"> 4</span>         &lt;repository&gt;
+<span style="color: #008080;"> 5</span>             &lt;id&gt;HuaweiCloudSDK&lt;/id&gt;
+<span style="color: #008080;"> 6</span>             &lt;url&gt;https:<span style="color: #008000;">//</span><span style="color: #008000;">mirrors.huaweicloud.com/repository/maven/huaweicloudsdk/&lt;/url&gt;</span>
+<span style="color: #008080;"> 7</span>             &lt;releases&gt;
+<span style="color: #008080;"> 8</span>                 &lt;enabled&gt;<span style="color: #0000ff;">true</span>&lt;/enabled&gt;
+<span style="color: #008080;"> 9</span>             &lt;/releases&gt;
+<span style="color: #008080;">10</span>             &lt;snapshots&gt;
+<span style="color: #008080;">11</span>                 &lt;enabled&gt;<span style="color: #0000ff;">false</span>&lt;/enabled&gt;
+<span style="color: #008080;">12</span>             &lt;/snapshots&gt;
+<span style="color: #008080;">13</span>         &lt;/repository&gt;
+<span style="color: #008080;">14</span>     &lt;/repositories&gt;
+<span style="color: #008080;">15</span>     &lt;pluginRepositories&gt;
+<span style="color: #008080;">16</span>         &lt;pluginRepository&gt;
+<span style="color: #008080;">17</span>             &lt;id&gt;HuaweiCloudSDK&lt;/id&gt;
+<span style="color: #008080;">18</span>             &lt;url&gt;https:<span style="color: #008000;">//</span><span style="color: #008000;">mirrors.huaweicloud.com/repository/maven/huaweicloudsdk/&lt;/url&gt;</span>
+<span style="color: #008080;">19</span>             &lt;releases&gt;
+<span style="color: #008080;">20</span>                 &lt;enabled&gt;<span style="color: #0000ff;">true</span>&lt;/enabled&gt;
+<span style="color: #008080;">21</span>             &lt;/releases&gt;
+<span style="color: #008080;">22</span>             &lt;snapshots&gt;
+<span style="color: #008080;">23</span>                 &lt;enabled&gt;<span style="color: #0000ff;">false</span>&lt;/enabled&gt;
+<span style="color: #008080;">24</span>             &lt;/snapshots&gt;
+<span style="color: #008080;">25</span>         &lt;/pluginRepository&gt;
+<span style="color: #008080;">26</span>     &lt;/pluginRepositories&gt;
+<span style="color: #008080;">27</span> &lt;/profile&gt;</code></pre>
+
+<p>增加activeProfiles标签激活配置：</p>
+<src class="cnblogs_code">
+<pre><code><span style="color: #008080;">1</span> &lt;activeProfiles&gt;
+<span style="color: #008080;">2</span>     &lt;activeProfile&gt;HWSDK&lt;/activeProfile&gt;
+<span style="color: #008080;">3</span> &lt;/activeProfiles&gt;</code></pre>
+
+<p>然后在Idea 等工具指定使用你设置好的配置文件</p>
+<p><img src="./images/Maven下载速度过慢问题已解决0.png" alt="" /></p>
+<p>&nbsp;</p>
+<p>&nbsp;效果</p>
+<p><img src="./images/Maven下载速度过慢问题已解决1.png" alt="" /></p>
+<p>&nbsp;</p>
+
+</div><hr><script charset='utf-8' src='../../js/sming.js'></script></body></html>

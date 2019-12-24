@@ -1,0 +1,107 @@
+<html><head><meta charset='utf-8'><meta name='viewport' content='width=device-width, initial-scale=1'>
+<meta name='applicable-device' content='pc'><meta name='keywords' content='电脑,电脑讲解,电脑技术,编程,电脑故障维修Java连载48-final关键字' />
+<script src='../../highlight/highlight.pack.js'></script>
+<link rel='stylesheet' type='text/css' href='../../highlight/styles/monokai.css'/>
+
+<link rel='stylesheet' href='../../fenxiang/dist/css/share.min.css'>
+<script src='../../fenxiang/src/js/social-share.js'></script>
+<script src='../../fenxiang/src/js/qrcode.js'></script>
+
+</head><body><script>hljs.initHighlightingOnLoad();</script><script>
+var system ={};  
+var p = navigator.platform;       
+system.win = p.indexOf('Win') == 0;  
+system.mac = p.indexOf('Mac') == 0;  
+system.x11 = (p == 'X11') || (p.indexOf('Linux') == 0);     
+if(system.win||system.mac||system.xll){
+document.write("<link href='../css/3.css' rel='stylesheet' type='text/css'>");}else{ document.write("<link href='../css/3wap.css' rel='stylesheet' type='text/css'>");}</script><script src='../../js/3.js'></script><div class='div2'><div class='heading_nav'><ul><div><li><a href='../../index.html'>首页</a></li>
+</div><div onclick='hidden1()' >分享</div>
+</ul></div></div>
+<div id='heading_nav2'> 
+<li class='row' >
+<div class='social-share' data-mode='prepend'><a href='javascript:' class='social-share-icon icon-heart'></a></div></li></div><script charset='utf-8' src='../../3/js/hengfu.js'></script><script charset='utf-8' src='../../3/js/hengfu2.js'></script><hr><div class='div1'><div class='biaoti'><center>Java连载48-final关键字</center></div><div class='banquan'>原文出处:本文由博客园博主心悦君兮君不知-睿提供。<br/>
+原文连接:https://www.cnblogs.com/ruigege0000/p/11809706.html</div><br>
+    <p>一、final关键字</p>
+<p>1.注意点：</p>
+<p>（1）final是一个关键字，表示最终的，不可变的。</p>
+<p>（2）final修饰的类无法被继承</p>
+<p>（3）final修饰的方法无法被覆盖</p>
+<p>（4）final修饰的变量一旦被赋值之后，不可以被重新赋值</p>
+<p>（5）final修饰的实例变量</p>
+<p>（6）final修饰的引用</p>
+<src class="cnblogs_code">
+<pre><code> 
+
+<span style="color: #0000ff;">package</span><span style="color: #000000;"> com.bjpowernode.java_learning;
+
+​
+
+</span><span style="color: #0000ff;">public</span> <span style="color: #0000ff;">class</span><span style="color: #000000;"> D48_FinalKyeWord {
+
+  </span><span style="color: #0000ff;">public</span> <span style="color: #0000ff;">static</span> <span style="color: #0000ff;">void</span><span style="color: #000000;"> main(String[] args) {
+
+    Exercise_48_1 e1 </span>= <span style="color: #0000ff;">new</span><span style="color: #000000;"> Exercise_48_1();
+
+  }
+
+}
+
+</span><span style="color: #0000ff;">final</span> <span style="color: #0000ff;">class</span><span style="color: #000000;"> Exercise_48{ 
+
+}
+
+</span><span style="color: #0000ff;">class</span> Exercise_48_1 <span style="color: #0000ff;">extends</span><span style="color: #000000;"> Exercise_48{
+
+}
+
+ </span></code></pre>
+
+<p>&nbsp;</p>
+<p>&nbsp;<img src="./images/Java连载48-final关键字0.png" alt="" /></p>
+<p>2.关于myeclipse怎么连接源码</p>
+<p>打开某个.class字节码文件，​当没有看到源码的时候：点击&ldquo;Attach Source""</p>
+<p>-workspace​...源码在当前工作区</p>
+<p>-External File ...源码在某个压缩包之中，</p>
+<p>-External Folder...源码在某个目录之中</p>
+<p>3.对于之后学习的类库，一般是包括​三个部分：源码（看源码理解程序）、字节码（程序开发过程中使用的就是这部分）、帮助文档（对源码的解释说明被提取出来，更方便程序的开发）</p>
+<p>4.java语言最终规定实例变量使用final修饰之后，必须手动赋值，不能采用系统默认值。</p>
+<p>​例如</p>
+<src class="cnblogs_code">
+<pre><code> 
+
+<span style="color: #0000ff;">final</span> <span style="color: #0000ff;">int</span> i ;<span style="color: #008000;">//</span><span style="color: #008000;">编译错误，因为没赋值。</span>
+<span style="color: #000000;">
+​
+
+</span><span style="color: #008000;">//</span><span style="color: #008000;">或者使用构造方法给它赋值</span>
+
+<span style="color: #0000ff;">public</span> <span style="color: #0000ff;">class</span><span style="color: #000000;"> test1{
+
+  </span><span style="color: #0000ff;">final</span> <span style="color: #0000ff;">int</span><span style="color: #000000;"> i ;
+
+  </span><span style="color: #0000ff;">public</span><span style="color: #000000;"> test1{
+
+    self.i </span>= 100<span style="color: #000000;">;
+
+   }
+
+  </span><span style="color: #0000ff;">final</span> User u1 = <span style="color: #0000ff;">new</span> User("jfoae"<span style="color: #000000;">);
+
+  u1 </span>= <span style="color: #0000ff;">new</span> User("iefr");<span style="color: #008000;">//</span><span style="color: #008000;">这样会编译报错，因为引用u1是final修饰的，里面的存的对象地址不能再重新赋值。</span>
+<span style="color: #000000;">
+  u1.id </span>= 89;<span style="color: #008000;">//</span><span style="color: #008000;">编译成功，final修饰的引用虽然指向了某个对象之后，但是所指向的对象内部的内存是可以修改的。</span>
+
+ </code></pre>
+
+<p>&nbsp;</p>
+<p>五、源码：</p>
+<p>D48_FinalKyeWord.java</p>
+<p>地址：</p>
+<p>https://github.com/ruigege66/Java/blob/master/D48_FinalKyeWord.java</p>
+<p>2.CSDN：https://blog.csdn.net/weixin_44630050（心悦君兮君不知-睿）</p>
+<p>3.博客园：https://www.cnblogs.com/ruigege0000/</p>
+<p>4.欢迎关注微信公众号：傅里叶变换，个人公众号，仅用于学习交流，后台回复&rdquo;礼包&ldquo;，获取大数据学习资料</p>
+<p>&nbsp;<img src="./images/Java连载48-final关键字1.png" alt="" /></p>
+<p>&nbsp;</p>
+
+</div><hr><script charset='utf-8' src='../../js/sming.js'></script></body></html>

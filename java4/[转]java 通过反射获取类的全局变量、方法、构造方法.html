@@ -1,0 +1,497 @@
+<html><head><meta charset='utf-8'><meta name='viewport' content='width=device-width, initial-scale=1'>
+<meta name='applicable-device' content='pc'><meta name='keywords' content='电脑,电脑讲解,电脑技术,编程,电脑故障维修[转]java 通过反射获取类的全局变量、方法、构造方法' />
+<script src='../../highlight/highlight.pack.js'></script>
+<link rel='stylesheet' type='text/css' href='../../highlight/styles/monokai.css'/>
+
+<link rel='stylesheet' href='../../fenxiang/dist/css/share.min.css'>
+<script src='../../fenxiang/src/js/social-share.js'></script>
+<script src='../../fenxiang/src/js/qrcode.js'></script>
+
+</head><body><script>hljs.initHighlightingOnLoad();</script><script>
+var system ={};  
+var p = navigator.platform;       
+system.win = p.indexOf('Win') == 0;  
+system.mac = p.indexOf('Mac') == 0;  
+system.x11 = (p == 'X11') || (p.indexOf('Linux') == 0);     
+if(system.win||system.mac||system.xll){
+document.write("<link href='../css/3.css' rel='stylesheet' type='text/css'>");}else{ document.write("<link href='../css/3wap.css' rel='stylesheet' type='text/css'>");}</script><script src='../../js/3.js'></script><div class='div2'><div class='heading_nav'><ul><div><li><a href='../../index.html'>首页</a></li>
+</div><div onclick='hidden1()' >分享</div>
+</ul></div></div>
+<div id='heading_nav2'> 
+<li class='row' >
+<div class='social-share' data-mode='prepend'><a href='javascript:' class='social-share-icon icon-heart'></a></div></li></div><script charset='utf-8' src='../../3/js/hengfu.js'></script><script charset='utf-8' src='../../3/js/hengfu2.js'></script><hr><div class='div1'><div class='biaoti'><center>[转]java 通过反射获取类的全局变量、方法、构造方法</center></div><div class='banquan'>原文出处:本文由博客园博主风雨兼程888提供。<br/>
+原文连接:https://www.cnblogs.com/2020fafa/p/11996826.html</div><br>
+    <h3>&nbsp;</h3>
+<src>
+<src id="highlighter_930478" class="syntaxhighlighter  java">
+<table border="0" cellspacing="0" cellpadding="0">
+<tbody>
+<tr>
+<td class="gutter">
+<src class="line number1 index0 alt2">1
+<src class="line number2 index1 alt1">2
+<src class="line number3 index2 alt2">3
+<src class="line number4 index3 alt1">4
+<src class="line number5 index4 alt2">5
+<src class="line number6 index5 alt1">6
+<src class="line number7 index6 alt2">7
+<src class="line number8 index7 alt1">8
+<src class="line number9 index8 alt2">9
+<src class="line number10 index9 alt1">10
+<src class="line number11 index10 alt2">11
+<src class="line number12 index11 alt1">12
+<src class="line number13 index12 alt2">13
+<src class="line number14 index13 alt1">14
+<src class="line number15 index14 alt2">15
+<src class="line number16 index15 alt1">16
+<src class="line number17 index16 alt2">17
+<src class="line number18 index17 alt1">18
+<src class="line number19 index18 alt2">19
+<src class="line number20 index19 alt1">20
+</td>
+<td class="code">
+<src class="container">
+<src class="line number1 index0 alt2"><code class="java keyword">package</code> <code class="java plain">com.str;</code>
+<src class="line number2 index1 alt1">&nbsp;
+<src class="line number3 index2 alt2"><code class="java keyword">public</code> <code class="java keyword">class</code> <code class="java plain">ZiFuChuan {</code>
+<src class="line number4 index3 alt1"><code class="java spaces">&nbsp;&nbsp;&nbsp;&nbsp;</code>&nbsp;
+<src class="line number5 index4 alt2"><code class="java spaces">&nbsp;&nbsp;&nbsp;&nbsp;</code><code class="java keyword">public</code> <code class="java keyword">static</code> <code class="java plain">String ss = </code><code class="java string">"全局变量!!!!!!"</code><code class="java plain">;</code>
+<src class="line number6 index5 alt1"><code class="java spaces">&nbsp;&nbsp;&nbsp;&nbsp;</code><code class="java plain">String s2 = </code><code class="java keyword">null</code><code class="java plain">;</code>
+<src class="line number7 index6 alt2"><code class="java spaces">&nbsp;&nbsp;&nbsp;&nbsp;</code><code class="java keyword">public</code> <code class="java keyword">int</code> <code class="java plain">aa = </code><code class="java value">1</code> <code class="java plain">;</code>
+<src class="line number8 index7 alt1"><code class="java spaces">&nbsp;&nbsp;&nbsp;&nbsp;</code><code class="java keyword">int</code> <code class="java plain">aa2;</code>
+<src class="line number9 index8 alt2"><code class="java spaces">&nbsp;&nbsp;&nbsp;&nbsp;</code><code class="java keyword">double</code> <code class="java plain">dou = </code><code class="java value">1.1</code><code class="java plain">;</code>
+<src class="line number10 index9 alt1"><code class="java spaces">&nbsp;&nbsp;&nbsp;&nbsp;</code><code class="java plain">Double d = </code><code class="java keyword">new</code> <code class="java plain">Double(</code><code class="java value">1.1</code><code class="java plain">);</code>
+<src class="line number11 index10 alt2"><code class="java spaces">&nbsp;&nbsp;&nbsp;&nbsp;</code><code class="java keyword">public</code> <code class="java keyword">static</code> <code class="java keyword">void</code> <code class="java plain">main(String[] args) {}</code>
+<src class="line number12 index11 alt1"><code class="java spaces">&nbsp;&nbsp;&nbsp;&nbsp;</code>&nbsp;
+<src class="line number13 index12 alt2"><code class="java spaces">&nbsp;&nbsp;&nbsp;&nbsp;</code><code class="java keyword">public</code> <code class="java plain">ZiFuChuan(){}</code>
+<src class="line number14 index13 alt1"><code class="java spaces">&nbsp;&nbsp;&nbsp;&nbsp;</code>&nbsp;
+<src class="line number15 index14 alt2"><code class="java spaces">&nbsp;&nbsp;&nbsp;&nbsp;</code><code class="java keyword">public</code> <code class="java plain">ZiFuChuan(String st){}</code>
+<src class="line number16 index15 alt1"><code class="java spaces">&nbsp;&nbsp;&nbsp;&nbsp;</code>&nbsp;
+<src class="line number17 index16 alt2"><code class="java spaces">&nbsp;&nbsp;&nbsp;&nbsp;</code><code class="java keyword">public</code> <code class="java plain">ZiFuChuan(</code><code class="java keyword">int</code> <code class="java plain">orgInt,String orgString){}</code>
+<src class="line number18 index17 alt1">&nbsp;
+<src class="line number19 index18 alt2"><code class="java spaces">&nbsp;&nbsp;&nbsp;&nbsp;</code><code class="java keyword">public</code> <code class="java keyword">static</code> <code class="java keyword">void</code> <code class="java plain">tmpArr(</code><code class="java keyword">int</code> <code class="java plain">a[],String s,StringBuffer s2){}</code>
+<src class="line number20 index19 alt1"><code class="java plain">}</code>
+
+</td>
+</tr>
+</tbody>
+</table>
+
+
+<h3>&nbsp;</h3>
+<src>
+<src id="highlighter_858681" class="syntaxhighlighter  java">
+<src class="toolbar"><a class="toolbar_item command_help help" href="https://blog.bccn.net/mooncharmzx/66830#">?</a>
+<table border="0" cellspacing="0" cellpadding="0">
+<tbody>
+<tr>
+<td class="gutter">
+<src class="line number1 index0 alt2">1
+<src class="line number2 index1 alt1">2
+<src class="line number3 index2 alt2">3
+<src class="line number4 index3 alt1">4
+<src class="line number5 index4 alt2">5
+<src class="line number6 index5 alt1">6
+<src class="line number7 index6 alt2">7
+<src class="line number8 index7 alt1">8
+<src class="line number9 index8 alt2">9
+<src class="line number10 index9 alt1">10
+<src class="line number11 index10 alt2">11
+<src class="line number12 index11 alt1">12
+<src class="line number13 index12 alt2">13
+<src class="line number14 index13 alt1">14
+<src class="line number15 index14 alt2">15
+<src class="line number16 index15 alt1">16
+<src class="line number17 index16 alt2">17
+<src class="line number18 index17 alt1">18
+<src class="line number19 index18 alt2">19
+<src class="line number20 index19 alt1">20
+<src class="line number21 index20 alt2">21
+<src class="line number22 index21 alt1">22
+<src class="line number23 index22 alt2">23
+<src class="line number24 index23 alt1">24
+<src class="line number25 index24 alt2">25
+<src class="line number26 index25 alt1">26
+<src class="line number27 index26 alt2">27
+<src class="line number28 index27 alt1">28
+<src class="line number29 index28 alt2">29
+<src class="line number30 index29 alt1">30
+<src class="line number31 index30 alt2">31
+<src class="line number32 index31 alt1">32
+<src class="line number33 index32 alt2">33
+<src class="line number34 index33 alt1">34
+<src class="line number35 index34 alt2">35
+<src class="line number36 index35 alt1">36
+<src class="line number37 index36 alt2">37
+<src class="line number38 index37 alt1">38
+<src class="line number39 index38 alt2">39
+<src class="line number40 index39 alt1">40
+<src class="line number41 index40 alt2">41
+<src class="line number42 index41 alt1">42
+<src class="line number43 index42 alt2">43
+<src class="line number44 index43 alt1">44
+<src class="line number45 index44 alt2">45
+<src class="line number46 index45 alt1">46
+<src class="line number47 index46 alt2">47
+<src class="line number48 index47 alt1">48
+<src class="line number49 index48 alt2">49
+<src class="line number50 index49 alt1">50
+<src class="line number51 index50 alt2">51
+<src class="line number52 index51 alt1">52
+<src class="line number53 index52 alt2">53
+<src class="line number54 index53 alt1">54
+<src class="line number55 index54 alt2">55
+<src class="line number56 index55 alt1">56
+<src class="line number57 index56 alt2">57
+<src class="line number58 index57 alt1">58
+<src class="line number59 index58 alt2">59
+<src class="line number60 index59 alt1">60
+<src class="line number61 index60 alt2">61
+<src class="line number62 index61 alt1">62
+<src class="line number63 index62 alt2">63
+<src class="line number64 index63 alt1">64
+<src class="line number65 index64 alt2">65
+<src class="line number66 index65 alt1">66
+<src class="line number67 index66 alt2">67
+<src class="line number68 index67 alt1">68
+<src class="line number69 index68 alt2">69
+<src class="line number70 index69 alt1">70
+<src class="line number71 index70 alt2">71
+<src class="line number72 index71 alt1">72
+<src class="line number73 index72 alt2">73
+<src class="line number74 index73 alt1">74
+<src class="line number75 index74 alt2">75
+<src class="line number76 index75 alt1">76
+<src class="line number77 index76 alt2">77
+<src class="line number78 index77 alt1">78
+<src class="line number79 index78 alt2">79
+<src class="line number80 index79 alt1">80
+<src class="line number81 index80 alt2">81
+<src class="line number82 index81 alt1">82
+<src class="line number83 index82 alt2">83
+<src class="line number84 index83 alt1">84
+<src class="line number85 index84 alt2">85
+<src class="line number86 index85 alt1">86
+<src class="line number87 index86 alt2">87
+<src class="line number88 index87 alt1">88
+<src class="line number89 index88 alt2">89
+<src class="line number90 index89 alt1">90
+<src class="line number91 index90 alt2">91
+<src class="line number92 index91 alt1">92
+<src class="line number93 index92 alt2">93
+<src class="line number94 index93 alt1">94
+<src class="line number95 index94 alt2">95
+<src class="line number96 index95 alt1">96
+<src class="line number97 index96 alt2">97
+<src class="line number98 index97 alt1">98
+<src class="line number99 index98 alt2">99
+<src class="line number100 index99 alt1">100
+<src class="line number101 index100 alt2">101
+<src class="line number102 index101 alt1">102
+<src class="line number103 index102 alt2">103
+<src class="line number104 index103 alt1">104
+<src class="line number105 index104 alt2">105
+<src class="line number106 index105 alt1">106
+<src class="line number107 index106 alt2">107
+<src class="line number108 index107 alt1">108
+<src class="line number109 index108 alt2">109
+<src class="line number110 index109 alt1">110
+<src class="line number111 index110 alt2">111
+<src class="line number112 index111 alt1">112
+<src class="line number113 index112 alt2">113
+<src class="line number114 index113 alt1">114
+<src class="line number115 index114 alt2">115
+<src class="line number116 index115 alt1">116
+<src class="line number117 index116 alt2">117
+<src class="line number118 index117 alt1">118
+<src class="line number119 index118 alt2">119
+<src class="line number120 index119 alt1">120
+<src class="line number121 index120 alt2">121
+<src class="line number122 index121 alt1">122
+<src class="line number123 index122 alt2">123
+<src class="line number124 index123 alt1">124
+<src class="line number125 index124 alt2">125
+<src class="line number126 index125 alt1">126
+<src class="line number127 index126 alt2">127
+<src class="line number128 index127 alt1">128
+<src class="line number129 index128 alt2">129
+<src class="line number130 index129 alt1">130
+<src class="line number131 index130 alt2">131
+<src class="line number132 index131 alt1">132
+<src class="line number133 index132 alt2">133
+<src class="line number134 index133 alt1">134
+<src class="line number135 index134 alt2">135
+<src class="line number136 index135 alt1">136
+<src class="line number137 index136 alt2">137
+<src class="line number138 index137 alt1">138
+<src class="line number139 index138 alt2">139
+<src class="line number140 index139 alt1">140
+<src class="line number141 index140 alt2">141
+<src class="line number142 index141 alt1">142
+<src class="line number143 index142 alt2">143
+<src class="line number144 index143 alt1">144
+<src class="line number145 index144 alt2">145
+<src class="line number146 index145 alt1">146
+<src class="line number147 index146 alt2">147
+<src class="line number148 index147 alt1">148
+<src class="line number149 index148 alt2">149
+<src class="line number150 index149 alt1">150
+<src class="line number151 index150 alt2">151
+<src class="line number152 index151 alt1">152
+<src class="line number153 index152 alt2">153
+<src class="line number154 index153 alt1">154
+<src class="line number155 index154 alt2">155
+<src class="line number156 index155 alt1">156
+<src class="line number157 index156 alt2">157
+<src class="line number158 index157 alt1">158
+<src class="line number159 index158 alt2">159
+<src class="line number160 index159 alt1">160
+<src class="line number161 index160 alt2">161
+<src class="line number162 index161 alt1">162
+<src class="line number163 index162 alt2">163
+<src class="line number164 index163 alt1">164
+<src class="line number165 index164 alt2">165
+<src class="line number166 index165 alt1">166
+<src class="line number167 index166 alt2">167
+<src class="line number168 index167 alt1">168
+<src class="line number169 index168 alt2">169
+<src class="line number170 index169 alt1">170
+<src class="line number171 index170 alt2">171
+<src class="line number172 index171 alt1">172
+<src class="line number173 index172 alt2">173
+<src class="line number174 index173 alt1">174
+<src class="line number175 index174 alt2">175
+<src class="line number176 index175 alt1">176
+<src class="line number177 index176 alt2">177
+<src class="line number178 index177 alt1">178
+<src class="line number179 index178 alt2">179
+<src class="line number180 index179 alt1">180
+<src class="line number181 index180 alt2">181
+<src class="line number182 index181 alt1">182
+<src class="line number183 index182 alt2">183
+<src class="line number184 index183 alt1">184
+<src class="line number185 index184 alt2">185
+<src class="line number186 index185 alt1">186
+<src class="line number187 index186 alt2">187
+<src class="line number188 index187 alt1">188
+<src class="line number189 index188 alt2">189
+<src class="line number190 index189 alt1">190
+<src class="line number191 index190 alt2">191
+<src class="line number192 index191 alt1">192
+<src class="line number193 index192 alt2">193
+<src class="line number194 index193 alt1">194
+<src class="line number195 index194 alt2">195
+<src class="line number196 index195 alt1">196
+<src class="line number197 index196 alt2">197
+<src class="line number198 index197 alt1">198
+<src class="line number199 index198 alt2">199
+</td>
+<td class="code">
+<src class="container">
+<src class="line number1 index0 alt2"><code class="java keyword">package</code> <code class="java plain">com.fanshe;</code>
+<src class="line number2 index1 alt1">&nbsp;
+<src class="line number3 index2 alt2"><code class="java keyword">import</code> <code class="java plain">java.lang.reflect.Constructor;</code>
+<src class="line number4 index3 alt1"><code class="java keyword">import</code> <code class="java plain">java.lang.reflect.Field;</code>
+<src class="line number5 index4 alt2"><code class="java keyword">import</code> <code class="java plain">java.lang.reflect.Method;</code>
+<src class="line number6 index5 alt1"><code class="java keyword">import</code> <code class="java plain">java.lang.reflect.Modifier;</code>
+<src class="line number7 index6 alt2"><code class="java keyword">import</code> <code class="java plain">java.lang.reflect.Type;</code>
+<src class="line number8 index7 alt1">&nbsp;
+<src class="line number9 index8 alt2"><code class="java keyword">import</code> <code class="java plain">com.str.ZiFuChuan;</code>
+<src class="line number10 index9 alt1">&nbsp;
+<src class="line number11 index10 alt2"><code class="java keyword">public</code> <code class="java keyword">class</code> <code class="java plain">GetClass {</code>
+<src class="line number12 index11 alt1">&nbsp;
+<src class="line number13 index12 alt2"><code class="java spaces">&nbsp;&nbsp;&nbsp;&nbsp;</code><code class="java keyword">public</code> <code class="java keyword">static</code> <code class="java keyword">void</code> <code class="java plain">main(String[] args) </code><code class="java keyword">throws</code> <code class="java plain">IllegalArgumentException, IllegalAccessException, InstantiationException {</code>
+<src class="line number14 index13 alt1"><code class="java spaces">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</code><code class="java comments">// TODO Auto-generated method stub</code>
+<src class="line number15 index14 alt2"><code class="java spaces">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</code><code class="java plain">Class classS = ZiFuChuan.</code><code class="java keyword">class</code><code class="java plain">;</code>
+<src class="line number16 index15 alt1"><code class="java spaces">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</code>&nbsp;
+<src class="line number17 index16 alt2"><code class="java spaces">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</code><code class="java comments">//获取包</code>
+<src class="line number18 index17 alt1"><code class="java spaces">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</code><code class="java plain">Package classPackage = classS.getPackage();</code>
+<src class="line number19 index18 alt2"><code class="java spaces">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</code><code class="java plain">System.out.println(</code><code class="java string">"package "</code><code class="java plain">+classPackage.getName());</code>
+<src class="line number20 index19 alt1"><code class="java spaces">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</code><code class="java comments">//获取类的修饰符</code>
+<src class="line number21 index20 alt2"><code class="java spaces">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</code><code class="java keyword">int</code> <code class="java plain">mod = classS.getModifiers();</code>
+<src class="line number22 index21 alt1"><code class="java spaces">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</code><code class="java plain">String classModifier = Modifier.toString(mod);</code>
+<src class="line number23 index22 alt2"><code class="java spaces">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</code><code class="java plain">System.out.println(classModifier + </code><code class="java string">" class ZiFuChuan {"</code><code class="java plain">);</code>
+<src class="line number24 index23 alt1"><code class="java spaces">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</code><code class="java comments">//调用全局变量方法</code>
+<src class="line number25 index24 alt2"><code class="java spaces">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</code><code class="java plain">getFieldContent(classS);</code>
+<src class="line number26 index25 alt1"><code class="java spaces">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</code><code class="java comments">//调用构造方法</code>
+<src class="line number27 index26 alt2"><code class="java spaces">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</code><code class="java plain">getConstructorContent(classS);</code>
+<src class="line number28 index27 alt1"><code class="java spaces">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</code><code class="java comments">//调用其他方法</code>
+<src class="line number29 index28 alt2"><code class="java spaces">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</code><code class="java plain">getMethodContent(classS);</code>
+<src class="line number30 index29 alt1"><code class="java spaces">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</code><code class="java plain">System.out.println(</code><code class="java string">"}"</code><code class="java plain">);</code>
+<src class="line number31 index30 alt2"><code class="java spaces">&nbsp;&nbsp;&nbsp;&nbsp;</code><code class="java plain">}</code>
+<src class="line number32 index31 alt1"><code class="java spaces">&nbsp;&nbsp;&nbsp;&nbsp;</code>&nbsp;
+<src class="line number33 index32 alt2"><code class="java spaces">&nbsp;&nbsp;&nbsp;&nbsp;</code><code class="java preprocessor">/**</code>
+<src class="line number34 index33 alt1"><code class="java spaces">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</code><code class="java preprocessor">* 获取所有全局变量</code>
+<src class="line number35 index34 alt2"><code class="java spaces">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</code><code class="java preprocessor">* @param classS</code>
+<src class="line number36 index35 alt1"><code class="java spaces">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</code><code class="java preprocessor">* @throws IllegalAccessException </code>
+<src class="line number37 index36 alt2"><code class="java spaces">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</code><code class="java preprocessor">* @throws IllegalArgumentException </code>
+<src class="line number38 index37 alt1"><code class="java spaces">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</code><code class="java preprocessor">* @throws InstantiationException </code>
+<src class="line number39 index38 alt2"><code class="java spaces">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</code><code class="java preprocessor">*/</code>
+<src class="line number40 index39 alt1"><code class="java spaces">&nbsp;&nbsp;&nbsp;&nbsp;</code><code class="java keyword">public</code> <code class="java keyword">static</code> <code class="java keyword">void</code> <code class="java plain">getFieldContent(Class classS) </code><code class="java keyword">throws</code> <code class="java plain">IllegalArgumentException, IllegalAccessException, InstantiationException{</code>
+<src class="line number41 index40 alt2"><code class="java spaces">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</code>&nbsp;
+<src class="line number42 index41 alt1"><code class="java spaces">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</code><code class="java plain">String typeName = </code><code class="java string">""</code><code class="java plain">; </code>
+<src class="line number43 index42 alt2"><code class="java spaces">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</code><code class="java plain">Field[] field =&nbsp; classS.getDeclaredFields();</code>
+<src class="line number44 index43 alt1"><code class="java spaces">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</code>&nbsp;
+<src class="line number45 index44 alt2"><code class="java spaces">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</code><code class="java keyword">for</code><code class="java plain">(Field fi : field){</code>
+<src class="line number46 index45 alt1"><code class="java spaces">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</code>&nbsp;
+<src class="line number47 index46 alt2"><code class="java spaces">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</code><code class="java plain">typeName = fi.getType().getName();</code>
+<src class="line number48 index47 alt1"><code class="java spaces">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</code><code class="java plain">String xsfTmp = Modifier.toString(fi.getModifiers()) ;</code>
+<src class="line number49 index48 alt2"><code class="java spaces">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</code>&nbsp;
+<src class="line number50 index49 alt1"><code class="java spaces">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</code><code class="java comments">//全局变量有修饰符的在变量前加修饰符并且修饰符和数据类型之间用空格分隔,否则不需要加空格</code>
+<src class="line number51 index50 alt2"><code class="java spaces">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</code><code class="java plain">String xiushifu = xsfTmp.length() == </code><code class="java value">0</code> <code class="java plain">? </code><code class="java string">""</code> <code class="java plain">: xsfTmp + </code><code class="java string">" "</code><code class="java plain">;</code>
+<src class="line number52 index51 alt1"><code class="java spaces">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</code><code class="java plain">String value = getValue(typeName,fi,classS);</code>
+<src class="line number53 index52 alt2"><code class="java spaces">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</code>&nbsp;
+<src class="line number54 index53 alt1"><code class="java spaces">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</code><code class="java keyword">if</code><code class="java plain">(</code><code class="java string">"null"</code><code class="java plain">.equals(value)||value == </code><code class="java keyword">null</code><code class="java plain">||</code><code class="java string">"null;"</code><code class="java plain">.equals(value)){</code>
+<src class="line number55 index54 alt2"><code class="java spaces">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</code><code class="java plain">System.out.println(</code><code class="java string">"&nbsp;&nbsp;&nbsp; "</code><code class="java plain">+xiushifu+typeName+</code><code class="java string">" "</code><code class="java plain">+fi.getName()+</code><code class="java string">"; "</code><code class="java plain">);</code>
+<src class="line number56 index55 alt1"><code class="java spaces">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</code><code class="java plain">}</code><code class="java keyword">else</code><code class="java plain">{</code>
+<src class="line number57 index56 alt2"><code class="java spaces">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</code><code class="java plain">System.out.println(</code><code class="java string">"&nbsp;&nbsp;&nbsp; "</code><code class="java plain">+xiushifu+typeName+</code><code class="java string">" "</code><code class="java plain">+fi.getName()+</code><code class="java string">" = "</code> <code class="java plain">+ getValue(typeName,fi,classS));</code>
+<src class="line number58 index57 alt1"><code class="java spaces">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</code><code class="java plain">}</code>
+<src class="line number59 index58 alt2"><code class="java spaces">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</code>&nbsp;
+<src class="line number60 index59 alt1"><code class="java spaces">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</code><code class="java plain">}</code>
+<src class="line number61 index60 alt2"><code class="java spaces">&nbsp;&nbsp;&nbsp;&nbsp;</code><code class="java plain">}</code>
+<src class="line number62 index61 alt1"><code class="java spaces">&nbsp;&nbsp;&nbsp;&nbsp;</code>&nbsp;
+<src class="line number63 index62 alt2"><code class="java spaces">&nbsp;&nbsp;&nbsp;&nbsp;</code><code class="java keyword">public</code> <code class="java keyword">static</code> <code class="java keyword">void</code> <code class="java plain">getConstructorContent(Class classS){</code>
+<src class="line number64 index63 alt1"><code class="java spaces">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</code>&nbsp;
+<src class="line number65 index64 alt2"><code class="java spaces">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</code><code class="java plain">Constructor[] con = classS.getConstructors();</code>
+<src class="line number66 index65 alt1"><code class="java spaces">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</code><code class="java keyword">for</code><code class="java plain">(Constructor c : con){</code>
+<src class="line number67 index66 alt2"><code class="java spaces">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</code><code class="java keyword">int</code> <code class="java plain">mod = c.getModifiers();</code>
+<src class="line number68 index67 alt1"><code class="java spaces">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</code><code class="java plain">String ConstructorModifier = Modifier.toString(mod);</code>
+<src class="line number69 index68 alt2"><code class="java spaces">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</code><code class="java plain">String constructorParameter = getConstructorParameter(c);</code>
+<src class="line number70 index69 alt1"><code class="java spaces">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</code><code class="java plain">System.out.println(</code><code class="java string">"&nbsp;&nbsp;&nbsp; "</code><code class="java plain">+ConstructorModifier+</code><code class="java string">" "</code> <code class="java plain">+ c.getName() + </code><code class="java string">"("</code><code class="java plain">+constructorParameter+</code><code class="java string">"){"</code><code class="java plain">);</code>
+<src class="line number71 index70 alt2"><code class="java spaces">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</code><code class="java plain">System.out.println(</code><code class="java string">"&nbsp;&nbsp;&nbsp; }"</code><code class="java plain">);</code>
+<src class="line number72 index71 alt1"><code class="java spaces">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</code><code class="java plain">}</code>
+<src class="line number73 index72 alt2"><code class="java spaces">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</code>&nbsp;
+<src class="line number74 index73 alt1"><code class="java spaces">&nbsp;&nbsp;&nbsp;&nbsp;</code><code class="java plain">}</code>
+<src class="line number75 index74 alt2"><code class="java spaces">&nbsp;&nbsp;&nbsp;&nbsp;</code>&nbsp;
+<src class="line number76 index75 alt1"><code class="java spaces">&nbsp;&nbsp;&nbsp;&nbsp;</code><code class="java preprocessor">/**</code>
+<src class="line number77 index76 alt2"><code class="java spaces">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</code><code class="java preprocessor">* 获取构造方法中的参数</code>
+<src class="line number78 index77 alt1"><code class="java spaces">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</code><code class="java preprocessor">* @param c</code>
+<src class="line number79 index78 alt2"><code class="java spaces">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</code><code class="java preprocessor">* @return</code>
+<src class="line number80 index79 alt1"><code class="java spaces">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</code><code class="java preprocessor">*/</code>
+<src class="line number81 index80 alt2"><code class="java spaces">&nbsp;&nbsp;&nbsp;&nbsp;</code><code class="java keyword">public</code> <code class="java keyword">static</code> <code class="java plain">String getConstructorParameter(Constructor c){</code>
+<src class="line number82 index81 alt1"><code class="java spaces">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</code><code class="java plain">String qxTemp = </code><code class="java string">""</code><code class="java plain">;</code>
+<src class="line number83 index82 alt2"><code class="java spaces">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</code><code class="java plain">String qx = </code><code class="java string">""</code><code class="java plain">;</code>
+<src class="line number84 index83 alt1"><code class="java spaces">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</code><code class="java keyword">int</code> <code class="java plain">con = </code><code class="java value">0</code><code class="java plain">;</code>
+<src class="line number85 index84 alt2"><code class="java spaces">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</code><code class="java plain">Class[] parameterTypeArr = c.getParameterTypes();</code>
+<src class="line number86 index85 alt1"><code class="java spaces">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</code>&nbsp;
+<src class="line number87 index86 alt2"><code class="java spaces">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</code><code class="java comments">//获取构造方法中的参数</code>
+<src class="line number88 index87 alt1"><code class="java spaces">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</code><code class="java keyword">for</code><code class="java plain">(Class clas : parameterTypeArr){</code>
+<src class="line number89 index88 alt2"><code class="java spaces">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</code>&nbsp;
+<src class="line number90 index89 alt1"><code class="java spaces">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</code><code class="java plain">qxTemp += clas.getTypeName() + </code><code class="java string">" org"</code><code class="java plain">+con+</code><code class="java string">","</code><code class="java plain">;</code>
+<src class="line number91 index90 alt2"><code class="java spaces">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</code><code class="java plain">con++;</code>
+<src class="line number92 index91 alt1"><code class="java spaces">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</code>&nbsp;
+<src class="line number93 index92 alt2"><code class="java spaces">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</code><code class="java plain">}</code>
+<src class="line number94 index93 alt1"><code class="java spaces">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</code>&nbsp;
+<src class="line number95 index94 alt2"><code class="java spaces">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</code><code class="java keyword">int</code> <code class="java plain">qxTempLength = qxTemp.length();</code>
+<src class="line number96 index95 alt1"><code class="java spaces">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</code>&nbsp;
+<src class="line number97 index96 alt2"><code class="java spaces">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</code><code class="java comments">//去掉空参的构造方法</code>
+<src class="line number98 index97 alt1"><code class="java spaces">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</code><code class="java keyword">if</code><code class="java plain">(qxTempLength &gt; </code><code class="java value">0</code><code class="java plain">){</code>
+<src class="line number99 index98 alt2"><code class="java spaces">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</code><code class="java plain">qx = qxTemp.substring(</code><code class="java value">0</code><code class="java plain">, qxTempLength-</code><code class="java value">1</code><code class="java plain">);</code>
+<src class="line number100 index99 alt1"><code class="java spaces">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</code><code class="java plain">}</code>
+<src class="line number101 index100 alt2"><code class="java spaces">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</code>&nbsp;
+<src class="line number102 index101 alt1"><code class="java spaces">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</code><code class="java keyword">return</code> <code class="java plain">qx;</code>
+<src class="line number103 index102 alt2"><code class="java spaces">&nbsp;&nbsp;&nbsp;&nbsp;</code><code class="java plain">}</code>
+<src class="line number104 index103 alt1"><code class="java spaces">&nbsp;&nbsp;&nbsp;&nbsp;</code>&nbsp;
+<src class="line number105 index104 alt2"><code class="java spaces">&nbsp;&nbsp;&nbsp;&nbsp;</code><code class="java preprocessor">/**</code>
+<src class="line number106 index105 alt1"><code class="java spaces">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</code><code class="java preprocessor">* 获取除构造方法外其他的方法的逻辑</code>
+<src class="line number107 index106 alt2"><code class="java spaces">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</code><code class="java preprocessor">* @param classS</code>
+<src class="line number108 index107 alt1"><code class="java spaces">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</code><code class="java preprocessor">*/</code>
+<src class="line number109 index108 alt2"><code class="java spaces">&nbsp;&nbsp;&nbsp;&nbsp;</code><code class="java keyword">public</code> <code class="java keyword">static</code> <code class="java keyword">void</code> <code class="java plain">getMethodContent(Class classS){</code>
+<src class="line number110 index109 alt1"><code class="java spaces">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</code><code class="java plain">Method[] method = classS.getDeclaredMethods();</code>
+<src class="line number111 index110 alt2"><code class="java spaces">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</code><code class="java keyword">for</code><code class="java plain">(Method m : method){</code>
+<src class="line number112 index111 alt1"><code class="java spaces">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</code>&nbsp;
+<src class="line number113 index112 alt2"><code class="java spaces">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</code><code class="java keyword">int</code> <code class="java plain">mod = m.getModifiers();</code>
+<src class="line number114 index113 alt1"><code class="java spaces">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</code><code class="java plain">String methodModifier = Modifier.toString(mod);</code>
+<src class="line number115 index114 alt2"><code class="java spaces">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</code><code class="java comments">//获取方法返回值类型</code>
+<src class="line number116 index115 alt1"><code class="java spaces">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</code><code class="java plain">Type type = m.getGenericReturnType();</code>
+<src class="line number117 index116 alt2"><code class="java spaces">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</code><code class="java plain">String methodParameter = getMethodParameter(m);</code>
+<src class="line number118 index117 alt1"><code class="java spaces">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</code><code class="java plain">System.out.println(</code><code class="java string">"&nbsp;&nbsp;&nbsp; "</code><code class="java plain">+methodModifier +</code><code class="java string">" "</code><code class="java plain">+ type.getTypeName() +</code><code class="java string">" "</code> <code class="java plain">+ m.getName() + </code><code class="java string">"("</code><code class="java plain">+methodParameter+</code><code class="java string">"){"</code><code class="java plain">);</code>
+<src class="line number119 index118 alt2"><code class="java spaces">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</code><code class="java plain">System.out.println(</code><code class="java string">"&nbsp;&nbsp;&nbsp; }"</code><code class="java plain">);</code>
+<src class="line number120 index119 alt1"><code class="java spaces">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</code><code class="java plain">}</code>
+<src class="line number121 index120 alt2"><code class="java spaces">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</code>&nbsp;
+<src class="line number122 index121 alt1"><code class="java spaces">&nbsp;&nbsp;&nbsp;&nbsp;</code><code class="java plain">}</code>
+<src class="line number123 index122 alt2"><code class="java spaces">&nbsp;&nbsp;&nbsp;&nbsp;</code>&nbsp;
+<src class="line number124 index123 alt1"><code class="java spaces">&nbsp;&nbsp;&nbsp;&nbsp;</code><code class="java preprocessor">/**</code>
+<src class="line number125 index124 alt2"><code class="java spaces">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</code><code class="java preprocessor">* 获取其他方法的参数</code>
+<src class="line number126 index125 alt1"><code class="java spaces">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</code><code class="java preprocessor">* @param m</code>
+<src class="line number127 index126 alt2"><code class="java spaces">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</code><code class="java preprocessor">* @return</code>
+<src class="line number128 index127 alt1"><code class="java spaces">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</code><code class="java preprocessor">*/</code>
+<src class="line number129 index128 alt2"><code class="java spaces">&nbsp;&nbsp;&nbsp;&nbsp;</code><code class="java keyword">public</code> <code class="java keyword">static</code> <code class="java plain">String getMethodParameter(Method m){</code>
+<src class="line number130 index129 alt1"><code class="java spaces">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</code><code class="java plain">String qxTemp = </code><code class="java string">""</code><code class="java plain">;</code>
+<src class="line number131 index130 alt2"><code class="java spaces">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</code><code class="java plain">String qx = </code><code class="java string">""</code><code class="java plain">;</code>
+<src class="line number132 index131 alt1"><code class="java spaces">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</code><code class="java keyword">int</code> <code class="java plain">con = </code><code class="java value">0</code><code class="java plain">;</code>
+<src class="line number133 index132 alt2"><code class="java spaces">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</code><code class="java plain">Class[] parameterTypeArr = m.getParameterTypes();</code>
+<src class="line number134 index133 alt1"><code class="java spaces">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</code>&nbsp;
+<src class="line number135 index134 alt2"><code class="java spaces">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</code><code class="java comments">//获取构造方法中的参数</code>
+<src class="line number136 index135 alt1"><code class="java spaces">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</code><code class="java keyword">for</code><code class="java plain">(Class clas : parameterTypeArr){</code>
+<src class="line number137 index136 alt2"><code class="java spaces">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</code>&nbsp;
+<src class="line number138 index137 alt1"><code class="java spaces">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</code><code class="java plain">qxTemp += clas.getTypeName()+</code><code class="java string">" org"</code><code class="java plain">+con+</code><code class="java string">","</code><code class="java plain">;</code>
+<src class="line number139 index138 alt2"><code class="java spaces">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</code><code class="java plain">con++;</code>
+<src class="line number140 index139 alt1"><code class="java spaces">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</code>&nbsp;
+<src class="line number141 index140 alt2"><code class="java spaces">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</code><code class="java plain">}</code>
+<src class="line number142 index141 alt1"><code class="java spaces">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</code>&nbsp;
+<src class="line number143 index142 alt2"><code class="java spaces">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</code><code class="java keyword">int</code> <code class="java plain">qxTempLength = qxTemp.length();</code>
+<src class="line number144 index143 alt1"><code class="java spaces">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</code>&nbsp;
+<src class="line number145 index144 alt2"><code class="java spaces">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</code><code class="java comments">//去掉空参的构造方法</code>
+<src class="line number146 index145 alt1"><code class="java spaces">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</code><code class="java keyword">if</code><code class="java plain">(qxTempLength &gt; </code><code class="java value">0</code><code class="java plain">){</code>
+<src class="line number147 index146 alt2"><code class="java spaces">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</code><code class="java plain">qx = qxTemp.substring(</code><code class="java value">0</code><code class="java plain">, qxTempLength-</code><code class="java value">1</code><code class="java plain">);</code>
+<src class="line number148 index147 alt1"><code class="java spaces">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</code><code class="java plain">}</code>
+<src class="line number149 index148 alt2"><code class="java spaces">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</code>&nbsp;
+<src class="line number150 index149 alt1"><code class="java spaces">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</code><code class="java keyword">return</code> <code class="java plain">qx;</code>
+<src class="line number151 index150 alt2"><code class="java spaces">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</code>&nbsp;
+<src class="line number152 index151 alt1"><code class="java spaces">&nbsp;&nbsp;&nbsp;&nbsp;</code><code class="java plain">}</code>
+<src class="line number153 index152 alt2"><code class="java spaces">&nbsp;&nbsp;&nbsp;&nbsp;</code><code class="java preprocessor">/**</code>
+<src class="line number154 index153 alt1"><code class="java spaces">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</code><code class="java preprocessor">* 全局变量初始化值</code>
+<src class="line number155 index154 alt2"><code class="java spaces">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</code><code class="java preprocessor">* @param typeName</code>
+<src class="line number156 index155 alt1"><code class="java spaces">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</code><code class="java preprocessor">* @param fi</code>
+<src class="line number157 index156 alt2"><code class="java spaces">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</code><code class="java preprocessor">* @param classS</code>
+<src class="line number158 index157 alt1"><code class="java spaces">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</code><code class="java preprocessor">* @return</code>
+<src class="line number159 index158 alt2"><code class="java spaces">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</code><code class="java preprocessor">* @throws IllegalArgumentException</code>
+<src class="line number160 index159 alt1"><code class="java spaces">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</code><code class="java preprocessor">* @throws IllegalAccessException</code>
+<src class="line number161 index160 alt2"><code class="java spaces">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</code><code class="java preprocessor">* @throws InstantiationException</code>
+<src class="line number162 index161 alt1"><code class="java spaces">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</code><code class="java preprocessor">*/</code>
+<src class="line number163 index162 alt2"><code class="java spaces">&nbsp;&nbsp;&nbsp;&nbsp;</code><code class="java keyword">public</code> <code class="java keyword">static</code> <code class="java plain">String getValue(String typeName,Field fi,Class classS) </code><code class="java keyword">throws</code> <code class="java plain">IllegalArgumentException, IllegalAccessException, InstantiationException{</code>
+<src class="line number164 index163 alt1"><code class="java spaces">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</code><code class="java plain">String value = </code><code class="java string">""</code><code class="java plain">;</code>
+<src class="line number165 index164 alt2"><code class="java spaces">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</code>&nbsp;
+<src class="line number166 index165 alt1"><code class="java spaces">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</code><code class="java plain">Object obj = classS.newInstance();</code>
+<src class="line number167 index166 alt2"><code class="java spaces">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</code><code class="java plain">fi.setAccessible(</code><code class="java keyword">true</code><code class="java plain">);</code>
+<src class="line number168 index167 alt1"><code class="java spaces">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</code>&nbsp;
+<src class="line number169 index168 alt2"><code class="java spaces">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</code><code class="java plain">String[] types = {</code><code class="java string">"java.lang.Integer"</code><code class="java plain">,</code>
+<src class="line number170 index169 alt1"><code class="java spaces">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</code><code class="java string">"java.lang.Double"</code><code class="java plain">,</code>
+<src class="line number171 index170 alt2"><code class="java spaces">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</code><code class="java string">"java.lang.Float"</code><code class="java plain">,</code>
+<src class="line number172 index171 alt1"><code class="java spaces">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</code><code class="java string">"java.lang.Long"</code><code class="java plain">,</code>
+<src class="line number173 index172 alt2"><code class="java spaces">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</code><code class="java string">"java.lang.Short"</code><code class="java plain">,</code>
+<src class="line number174 index173 alt1"><code class="java spaces">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</code><code class="java string">"java.lang.Byte"</code><code class="java plain">,</code>
+<src class="line number175 index174 alt2"><code class="java spaces">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</code><code class="java string">"java.lang.Boolean"</code><code class="java plain">,</code>
+<src class="line number176 index175 alt1"><code class="java spaces">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</code><code class="java string">"java.lang.Character"</code><code class="java plain">,</code>
+<src class="line number177 index176 alt2"><code class="java spaces">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</code><code class="java string">"int"</code><code class="java plain">,</code><code class="java string">"double"</code><code class="java plain">,</code><code class="java string">"long"</code><code class="java plain">,</code><code class="java string">"short"</code><code class="java plain">,</code><code class="java string">"byte"</code><code class="java plain">,</code><code class="java string">"boolean"</code><code class="java plain">,</code><code class="java string">"char"</code><code class="java plain">,</code><code class="java string">"float"</code><code class="java plain">};</code>
+<src class="line number178 index177 alt1"><code class="java spaces">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</code>&nbsp;
+<src class="line number179 index178 alt2"><code class="java spaces">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</code><code class="java keyword">for</code><code class="java plain">(String str : types) {</code>
+<src class="line number180 index179 alt1"><code class="java spaces">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</code>&nbsp;
+<src class="line number181 index180 alt2"><code class="java spaces">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</code><code class="java keyword">if</code><code class="java plain">(fi.getType().getName().equals(</code><code class="java string">"java.lang.String"</code><code class="java plain">)){</code>
+<src class="line number182 index181 alt1"><code class="java spaces">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</code><code class="java plain">Object fiObj = fi.get(obj);</code>
+<src class="line number183 index182 alt2"><code class="java spaces">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</code><code class="java comments">//判断变量是否初始化</code>
+<src class="line number184 index183 alt1"><code class="java spaces">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</code><code class="java keyword">if</code><code class="java plain">(fiObj != </code><code class="java keyword">null</code><code class="java plain">){</code>
+<src class="line number185 index184 alt2"><code class="java spaces">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</code><code class="java comments">//String 类型参数需要用双引号扩上</code>
+<src class="line number186 index185 alt1"><code class="java spaces">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</code><code class="java plain">value = </code><code class="java string">"\""</code><code class="java plain">+fiObj.toString()+</code><code class="java string">"\";"</code><code class="java plain">;</code>
+<src class="line number187 index186 alt2"><code class="java spaces">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</code><code class="java plain">}</code><code class="java keyword">else</code><code class="java plain">{</code>
+<src class="line number188 index187 alt1"><code class="java spaces">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</code><code class="java plain">value = </code><code class="java keyword">null</code><code class="java plain">;</code>
+<src class="line number189 index188 alt2"><code class="java spaces">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</code><code class="java plain">}</code>
+<src class="line number190 index189 alt1"><code class="java spaces">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</code><code class="java plain">}</code><code class="java keyword">else</code> <code class="java keyword">if</code><code class="java plain">(fi.getType().getName().equals(str)){</code>
+<src class="line number191 index190 alt2"><code class="java spaces">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</code><code class="java plain">value = fi.get(obj).toString()+</code><code class="java string">";"</code><code class="java plain">;</code>
+<src class="line number192 index191 alt1"><code class="java spaces">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</code><code class="java plain">}</code>
+<src class="line number193 index192 alt2"><code class="java spaces">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</code>&nbsp;
+<src class="line number194 index193 alt1"><code class="java spaces">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</code><code class="java plain">}&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; </code>
+<src class="line number195 index194 alt2"><code class="java spaces">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</code>&nbsp;
+<src class="line number196 index195 alt1"><code class="java spaces">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</code><code class="java keyword">return</code> <code class="java plain">value;</code>
+<src class="line number197 index196 alt2"><code class="java spaces">&nbsp;&nbsp;&nbsp;&nbsp;</code><code class="java plain">}</code>
+
+</td>
+</tr>
+</tbody>
+</table>
+
+
+<h3 id="h3-title"><a title="怎样解决编程语言之间的差异性问题？" href="https://www.iteye.com/news/32997">&nbsp;</a></h3>
+
+</div><hr><script charset='utf-8' src='../../js/sming.js'></script></body></html>

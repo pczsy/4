@@ -1,0 +1,152 @@
+<html><head><meta charset='utf-8'><meta name='viewport' content='width=device-width, initial-scale=1'>
+<meta name='applicable-device' content='pc'><meta name='keywords' content='电脑,电脑讲解,电脑技术,编程,电脑故障维修SpringBoot系列：Spring Boot定时任务Spring Schedule' />
+<script src='../../highlight/highlight.pack.js'></script>
+<link rel='stylesheet' type='text/css' href='../../highlight/styles/monokai.css'/>
+
+<link rel='stylesheet' href='../../fenxiang/dist/css/share.min.css'>
+<script src='../../fenxiang/src/js/social-share.js'></script>
+<script src='../../fenxiang/src/js/qrcode.js'></script>
+
+</head><body><script>hljs.initHighlightingOnLoad();</script><script>
+var system ={};  
+var p = navigator.platform;       
+system.win = p.indexOf('Win') == 0;  
+system.mac = p.indexOf('Mac') == 0;  
+system.x11 = (p == 'X11') || (p.indexOf('Linux') == 0);     
+if(system.win||system.mac||system.xll){
+document.write("<link href='../css/3.css' rel='stylesheet' type='text/css'>");}else{ document.write("<link href='../css/3wap.css' rel='stylesheet' type='text/css'>");}</script><script src='../../js/3.js'></script><div class='div2'><div class='heading_nav'><ul><div><li><a href='../../index.html'>首页</a></li>
+</div><div onclick='hidden1()' >分享</div>
+</ul></div></div>
+<div id='heading_nav2'> 
+<li class='row' >
+<div class='social-share' data-mode='prepend'><a href='javascript:' class='social-share-icon icon-heart'></a></div></li></div><script charset='utf-8' src='../../3/js/hengfu.js'></script><script charset='utf-8' src='../../3/js/hengfu2.js'></script><hr><div class='div1'><div class='biaoti'><center>SpringBoot系列：Spring Boot定时任务Spring Schedule</center></div><div class='banquan'>原文出处:本文由博客园博主杨小格子提供。<br/>
+原文连接:https://www.cnblogs.com/imyanger/p/11826227.html</div><br>
+    <p>Spring Schedule是Spring提供的定时任务框架，相较于Quartz，Schedule更加简单易用，在中小型应用中，对于大部分需求，Schedule都可以胜任。</p>
+<h3 id="一spring-schedule使用演示">一、Spring Schedule使用演示</h3>
+<p>在SpringBoot使用Spring Schedule非常简单，因为SpringBoot自身的starter中已经集成了Schedule，而不需要我们做更多的处理。</p>
+<p>使用@EnableScheduling注解开启定时功能，该注解可以使用在启动类上，也可以注解于定时任务的类上。然后使用@Scheduled注解配合其参数完成定时任务。</p>
+<p>例如我们需要每一秒执行一次的任务， 写成@Scheduled(fixedRate = 1000)即可。</p>
+<pre><code><code>@EnableScheduling
+@Component
+public class Task {
+
+    private static final SimpleDateFormat dateFormat = new SimpleDateFormat(&quot;HH:mm:ss&quot;);
+
+    @Scheduled(fixedRate = 1000)
+    public void taskOne(){
+        System.out.println(&quot;现在时间：&quot; + dateFormat.format(new Date()));
+    }
+
+}</code></code></pre>
+<p>启动程序，该定时就可以间隔一秒持续执行了。</p>
+<p><img src="./images/SpringBoot系列：Spring Boot定时任务Spring Schedule0.png" /></p>
+<p>使用Spring Schedule就是这么简单，如果有更多其他的需求，配合@Scheduled的其他参数，基本也可以实现。</p>
+<h3 id="一scheduled参数详解">一、@Scheduled参数详解</h3>
+<p><img src="./images/SpringBoot系列：Spring Boot定时任务Spring Schedule1.png" /></p>
+<h4 id="cron">cron</h4>
+<p>支持传入cron表达式：[秒] [分] [小时] [日] [月] [周] [年]，[年]不是必须的域，可以省略[年]，则一共6个域。</p>
+<table>
+<thead>
+<tr class="header">
+<th>位置</th>
+<th>说明</th>
+<th>必填</th>
+<th>允许填写的值</th>
+<th>允许的通配符</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>1</td>
+<td>秒</td>
+<td>是</td>
+<td>0-59</td>
+<td>- * /</td>
+</tr>
+<tr class="even">
+<td>2</td>
+<td>分</td>
+<td>是</td>
+<td>0-59</td>
+<td>- * /</td>
+</tr>
+<tr class="odd">
+<td>3</td>
+<td>时</td>
+<td>是</td>
+<td>0-23</td>
+<td>- * /</td>
+</tr>
+<tr class="even">
+<td>4</td>
+<td>日</td>
+<td>是</td>
+<td>1-31</td>
+<td>- * ? / L W</td>
+</tr>
+<tr class="odd">
+<td>5</td>
+<td>月</td>
+<td>是</td>
+<td>1-12 or JAN-DEC</td>
+<td>- * /</td>
+</tr>
+<tr class="even">
+<td>6</td>
+<td>周</td>
+<td>是</td>
+<td>1-7 or SUN-SAT</td>
+<td>- * ? / L #</td>
+</tr>
+<tr class="odd">
+<td>7</td>
+<td>年</td>
+<td>否</td>
+<td>1970-2099</td>
+<td>- * /</td>
+</tr>
+</tbody>
+</table>
+<ul>
+<li>* 表示所有值。 例如:在分的字段上设置 *,表示每一分钟都会触发。</li>
+<li>? 表示不指定值。使用的场景为不需要关心当前设置这个字段的值。例如:要在每月的10号触发一个操作，但不关心是周几，所以需要周位置的那个字段设置为”?” 具体设置为 0 0 0 10 * ?</li>
+<li>- 表示区间。例如 在小时上设置 “10-12”,表示 10,11,12点都会触发。</li>
+<li>, 表示指定多个值，例如在周字段上设置 “MON,WED,FRI” 表示周一，周三和周五触发/ 用于递增触发。如在秒上面设置”5/15” 表示从5秒开始，每增15秒触发(5,20,35,50)。 在月字段上设置’1/3’所示每月1号开始，每隔三天触发一次。</li>
+<li>L 表示最后的意思。在日字段设置上，表示当月的最后一天(依据当前月份，如果是二月还会依据是否是润年[leap]), 在周字段上表示星期六，相当于”7”或”SAT”。如果在”L”前加上数字，则表示该数据的最后一个。例如在周字段上设置”6L”这样的格式,则表示“本月最后一个星期五”</li>
+<li>W 表示离指定日期的最近那个工作日(周一至周五). 例如在日字段上置”15W”，表示离每月15号最近的那个工作日触发。如果15号正好是周六，则找最近的周五(14号)触发, 如果15号是周未，则找最近的下周一(16号)触发.如果15号正好在工作日(周一至周五)，则就在该天触发。如果指定格式为 “1W”,它则表示每月1号往后最近的工作日触发。如果1号正是周六，则将在3号下周一触发。(注，”W”前只能设置具体的数字,不允许区间”-“)。</li>
+<li># 序号(表示每月的第几个周几)，例如在周字段上设置”6#3”表示在每月的第三个周六.注意如果指定”#5”,正好第五周没有周六，则不会触发该配置(用在母亲节和父亲节再合适不过了) ；小提示：’L’和 ‘W’可以一组合使用。如果在日字段上设置”LW”,则表示在本月的最后一个工作日触发；周字段的设置，若使用英文字母是不区分大小写的，即MON与mon相同。</li>
+</ul>
+<h5 id="示例">示例</h5>
+<ul>
+<li>每隔5秒执行一次：<em>/5 </em> * * * ?</li>
+<li>每隔1分钟执行一次：0 <em>/1 </em> * * ?</li>
+<li>每天23点执行一次：0 0 23 * * ?</li>
+<li>每天凌晨1点执行一次：0 0 1 * * ?</li>
+<li>每月1号凌晨1点执行一次：0 0 1 1 * ?</li>
+<li>每月最后一天23点执行一次：0 0 23 L * ?</li>
+<li>每周星期天凌晨1点实行一次：0 0 1 ? * L</li>
+<li>在26分、29分、33分执行一次：0 26,29,33 * * * ?</li>
+<li>每天的0点、13点、18点、21点都执行一次：0 0 0,13,18,21 * * ?</li>
+</ul>
+<h4 id="zone">zone</h4>
+<p>表示时区，接收一个java.util.TimeZone#ID。cron表达式会基于该时区解析。默认是一个空字符串，即取服务器所在地的时区。</p>
+<h4 id="fixeddelay">fixedDelay</h4>
+<p>上一次执行完毕时间点之后多长时间再执行。</p>
+<h4 id="fixeddelaystring">fixedDelayString</h4>
+<p>与fixedDelay类似，传入字符串，也可支持传入${}占位符读取配置文件。</p>
+<pre><code><code>    @Scheduled(fixedDelayString = &quot;${task.two.fixedDelay}&quot;)
+    void taskTwo() {
+       System.out.println(&quot;现在时间：&quot; + dateFormat.format(new Date()));
+    }</code></code></pre>
+<h4 id="fixedrate">fixedRate</h4>
+<p>上一次开始执行时间点之后多长时间再执行。</p>
+<p>fixedRate与fixedDelay的区别就是：fixedDelay是在上一个任务结束后才开始进行间隔计时，也就是说两次任务之间的时间差等于间隔+任务执行耗时，而fixedRate是在上一个任务一开始就已经开始进行间隔计时了，可以视为固定等于设置的间隔时间。</p>
+<h4 id="fixedratestring">fixedRateString</h4>
+<p>与fixedRate一样，传入字符串，支持占位符读取配置文件。</p>
+<h4 id="initialdelay">initialDelay</h4>
+<p>第一次任务延迟时间。</p>
+<h4 id="initialdelaystring">initialDelayString</h4>
+<p>同initialDelay，支持占位符读取配置信息。</p>
+
+
+</div><hr><script charset='utf-8' src='../../js/sming.js'></script></body></html>

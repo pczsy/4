@@ -1,0 +1,72 @@
+<html><head><meta charset='utf-8'><meta name='viewport' content='width=device-width, initial-scale=1'>
+<meta name='applicable-device' content='pc'><meta name='keywords' content='电脑,电脑讲解,电脑技术,编程,电脑故障维修Java包机制package之间调用问题-cmd运行窗口编译运行' />
+<script src='../../highlight/highlight.pack.js'></script>
+<link rel='stylesheet' type='text/css' href='../../highlight/styles/monokai.css'/>
+
+<link rel='stylesheet' href='../../fenxiang/dist/css/share.min.css'>
+<script src='../../fenxiang/src/js/social-share.js'></script>
+<script src='../../fenxiang/src/js/qrcode.js'></script>
+
+</head><body><script>hljs.initHighlightingOnLoad();</script><script>
+var system ={};  
+var p = navigator.platform;       
+system.win = p.indexOf('Win') == 0;  
+system.mac = p.indexOf('Mac') == 0;  
+system.x11 = (p == 'X11') || (p.indexOf('Linux') == 0);     
+if(system.win||system.mac||system.xll){
+document.write("<link href='../css/3.css' rel='stylesheet' type='text/css'>");}else{ document.write("<link href='../css/3wap.css' rel='stylesheet' type='text/css'>");}</script><script src='../../js/3.js'></script><div class='div2'><div class='heading_nav'><ul><div><li><a href='../../index.html'>首页</a></li>
+</div><div onclick='hidden1()' >分享</div>
+</ul></div></div>
+<div id='heading_nav2'> 
+<li class='row' >
+<div class='social-share' data-mode='prepend'><a href='javascript:' class='social-share-icon icon-heart'></a></div></li></div><script charset='utf-8' src='../../3/js/hengfu.js'></script><script charset='utf-8' src='../../3/js/hengfu2.js'></script><hr><div class='div1'><div class='biaoti'><center>Java包机制package之间调用问题-cmd运行窗口编译运行</center></div><div class='banquan'>原文出处:本文由博客园博主Y小H提供。<br/>
+原文连接:https://www.cnblogs.com/csyh/p/11966058.html</div><br>
+    <p><strong>问题：</strong>在使用了java包机制（package）后，编译出现<em>错误：找不到或无法加载主类 xxx</em> 的错误提示信息（各种编译不通过）</p>
+<h2 id="先给演示结果">先给演示结果：</h2>
+<p><code>编译：javac -d classes src/a/HelloTest.java</code></p>
+<blockquote>
+<p>-d classes :指定存放class文件的路径<br />
+src/a/HelloTest.java ：在项目路径：D:\javacode\Hello的基础上指定源文件的路径<br />
+此时D:\javacode\Hello\classes路径下已经按照package路径结构生成了class文件<br />
+<img src="./images/Java包机制package之间调用问题-cmd运行窗口编译运行0.png" /></p>
+</blockquote>
+<p><code>运行：java -cp classes src.a.HelloTest</code></p>
+<blockquote>
+<p>-cp classes ：指定所要调用的.class文件所在路径（包所在的路径）<br />
+src.a.HelloTest :源文件中所设置的package路径（即：包名.类名）<br />
+<img src="./images/Java包机制package之间调用问题-cmd运行窗口编译运行1.png" /></p>
+</blockquote>
+<blockquote>
+<p><em>我的本地项目路径：D:\javacode\Hello</em><br />
+<img src="./images/Java包机制package之间调用问题-cmd运行窗口编译运行2.png" /><br />
+源文件HelloTest路径：D:\javacode\Hello\src\a\HelloTest.java<img src="./images/Java包机制package之间调用问题-cmd运行窗口编译运行3.png" /></p>
+</blockquote>
+<blockquote>
+<p>源文件Hello路径：D:\javacode\Hello\src\a\b\Hello.java<br />
+<img src="./images/Java包机制package之间调用问题-cmd运行窗口编译运行4.png" /></p>
+</blockquote>
+<p><strong>注意：</strong>Java的package机制非常强调路径，所以路径值指定搞清楚了就不会出问题（可能会有很多人会告诉你是CLASSPATH环境变量配置问题，然而它也只是起一个指定路径的作用，告诉java虚拟机你的class文件所在路径然后执行；所以你自己指定是一样的，没有关系。）</p>
+<h2 id="扩展">扩展</h2>
+<p>Java的package机制的使用关键在于对路径的设置容易出错；</p>
+<ul>
+<li><p><strong>先了解Java编译运行过程</strong></p>
+<p><strong>源文件.java</strong>--<em>使用javac编译</em>--&gt;<strong>字节码文件.class</strong>--<em>使用java解释执行</em>--&gt;<strong>特定平台的机器码</strong></p></li>
+<li><strong>包（package）机制</strong>：<br />
+<em>为解决众多的类库出现类重名的问题Java引入了package机制，提供了类的多层命名空间（类似Windows中的文件夹），将一组功能相关的类放在同一个package下，从而组成逻辑上的类库单元；</em>
+<ul>
+<li><p><strong>使用规则：</strong><br />
+<em>1.package语句必须为源文件的第一条语句（注释除外）；</em><br />
+<em>2.一个源文件中只能有一条package语句；</em></p>
+<blockquote>
+<p>补充：用package机制实继承时，出现 <em>错误：找不到符号</em> 时，可以使用*代替源文件进行编译：<code>javac *.java</code></p>
+</blockquote>
+<h3 id="结论">结论：</h3>
+<p><strong>在源文件有package语句时，无论是编译还是运行首先要确定自己作为调用者所在的路径，即cmd窗口所显示的路径（cd指令转换路径），然后以这个路径为基础设置源文件或者class文件的路径</strong>（问过一些网友和搜索一些结果，大部分回复什么CLASSPATH环境变量配置，但并不是这样，环境配置终究也是指定class文件的存储目录，方便java命令能直接找到，和我们指定一样，所以环境变量不是关键，要自己理解路径之间的结构关系）；</p>
+<blockquote>
+<p>补充：cmd相关指令：../ 匹配上一层目录（../../为上两层）；* 匹配文件名（如目录下有Hello和HlloTest两个源文件 编译javac Hello*.java会自动匹配到HelloTest）；. 表示当前路径</p>
+</blockquote></li>
+</ul></li>
+</ul>
+
+
+</div><hr><script charset='utf-8' src='../../js/sming.js'></script></body></html>

@@ -1,0 +1,58 @@
+<html><head><meta charset='utf-8'><meta name='viewport' content='width=device-width, initial-scale=1'>
+<meta name='applicable-device' content='pc'><meta name='keywords' content='电脑,电脑讲解,电脑技术,编程,电脑故障维修AIO、NIO、BIO' />
+<script src='../../highlight/highlight.pack.js'></script>
+<link rel='stylesheet' type='text/css' href='../../highlight/styles/monokai.css'/>
+
+<link rel='stylesheet' href='../../fenxiang/dist/css/share.min.css'>
+<script src='../../fenxiang/src/js/social-share.js'></script>
+<script src='../../fenxiang/src/js/qrcode.js'></script>
+
+</head><body><script>hljs.initHighlightingOnLoad();</script><script>
+var system ={};  
+var p = navigator.platform;       
+system.win = p.indexOf('Win') == 0;  
+system.mac = p.indexOf('Mac') == 0;  
+system.x11 = (p == 'X11') || (p.indexOf('Linux') == 0);     
+if(system.win||system.mac||system.xll){
+document.write("<link href='../css/3.css' rel='stylesheet' type='text/css'>");}else{ document.write("<link href='../css/3wap.css' rel='stylesheet' type='text/css'>");}</script><script src='../../js/3.js'></script><div class='div2'><div class='heading_nav'><ul><div><li><a href='../../index.html'>首页</a></li>
+</div><div onclick='hidden1()' >分享</div>
+</ul></div></div>
+<div id='heading_nav2'> 
+<li class='row' >
+<div class='social-share' data-mode='prepend'><a href='javascript:' class='social-share-icon icon-heart'></a></div></li></div><script charset='utf-8' src='../../3/js/hengfu.js'></script><script charset='utf-8' src='../../3/js/hengfu2.js'></script><hr><div class='div1'><div class='biaoti'><center>AIO、NIO、BIO</center></div><div class='banquan'>原文出处:本文由博客园博主MrHH提供。<br/>
+原文连接:https://www.cnblogs.com/HuiH/p/11792314.html</div><br>
+    <p><span style="color: #ff0000;"><strong><span style="font-size: 15px;">一、AIO（Asynchronous IO）</span></strong></span></p>
+<p><span style="font-size: 15px;">　　<span style="color: #0000ff;">AIO是一种<strong>异步非阻塞</strong>的IO模型，</span>异步IO是基于事件和回调机制实现的，也就是应用操作之后会直接返回，不会产生阻塞，当后台处理完成，操作系统会通知相应的线程进行后续的操作。</span></p>
+<p><span style="font-size: 15px;">　　<span style="color: #0000ff;">服务器实现模式为一个有效请求一个线程</span>，客户端的IO请求都是由OS先完成了再通知服务器应用去启动线程进行处理。</span></p>
+<p><span style="font-size: 15px;">　　AIO方式适用于连接数多且连接比较长的结构。</span></p>
+<p><strong><span style="font-size: 15px; color: #ff0000;">二、NIO（New IO）</span></strong></p>
+<p>　　<img src="./images/AIO、NIO、BIO0.png" alt="" width="398" height="255" /></p>
+<p>　　<span style="font-size: 15px;"><span style="color: #0000ff;">NIO是一种<strong>同步非阻塞</strong>的IO模型</span>，对于高负载、高并发的网络应用，应使用NIO的非阻塞模型来开发。传统IO基于字节流和字符流进行操作，而NIO基于channel和buffer进行操作，数据从通道读取到缓冲区中或从缓冲区写入通道中。selector用于监听多个通道的事件（如连接打开、数据到达），因此，单个线程可以监听多个数据通道。</span></p>
+<p><span style="font-size: 15px;">　<span style="color: #0000ff;">　服务器实现模式为一个请求一个线程</span>，即客户端发送的连接请求都会注册到多路复用器上，多路复用器轮询到连接有IO请求时才启动一个线程进行处理。</span></p>
+<p><span style="font-size: 15px;">　<strong>NIO的缓冲区</strong></span></p>
+<p><span style="font-size: 15px;">　　　Java IO面向流意味着每次从流中读一个或多个字节直至读取所有字节，它们没有缓存在任何地方。此外，它不能前后移动流中的数据。如果需要前后移动从流中读取的数据，需要先将它缓存到一个缓冲区。</span></p>
+<p><span style="font-size: 15px;">　　　NIO的缓冲导向方法不同，数据读取到一个它稍后处理的缓冲区，需要时可在缓冲区中前后移动。增加了处理过程的灵活性。但还需要检查是否该缓冲区中包含所有需要处理的数据。而且，需要确保当更多的数据读入缓冲区时，不能覆盖缓冲区里尚未处理的数据。</span></p>
+<p><span style="font-size: 15px;"><strong>　NIO的非阻塞</strong></span></p>
+<p><span style="font-size: 15px;">　　　NIO的非阻塞模式，使一个线程从某个通道发送请求读取数据，但是它仅能得到目前可用的数据，如果目前没有可用数据时，就什么都不会获取，而不是保持线程阻塞，所以直至数据可以读取之前，该线程可以继续做其他事情。非阻塞写也是如此，一个线程请求写入一些数据到某个通道，但不需要等待它完全写入，这个线程同时可以去做别的事情。</span></p>
+<p><span style="font-size: 15px;">　<strong><span style="color: #0000ff;">　NIO有三大核心组件，分别是：Channel（通道）、Buffer（缓冲区）、Selector（选择器）。</span></strong>NIO是用于连接数目多且比较短的架构。</span></p>
+<p><span style="font-size: 15px;">　　　　Channel（通道）：channel是双向的，既可以用来进行读操作，也可以用来进行写操作。NIO中的channel的主要实现有：FileChannel、DatagramChannel、SocketChannel、ServerSocketChannel分别对应文件IO、UDP和TCP（server和client）。</span></p>
+<p><span style="font-size: 15px;">　　　　Buffer（缓冲区）：实际上是一个连续的数组。读取或写入的数据都必须经由buffer。在NIO中，buffer是一个顶层父类，他是一个抽象类，常用的子类有：ByteBuffer、IntBuffer、...</span></p>
+<p>　　　　<img src="./images/AIO、NIO、BIO1.png" alt="" width="575" height="166" /></p>
+<p>　　　<span style="font-size: 15px;">　Selector（选择区）：Selector类是NIO的核心类，selector能够检测多个注册的通道上是否有事件发生，如果有事件发生，便获取事件然后针对每个事件进行相应的相应处理。</span></p>
+<p><span style="font-size: 15px;"><strong>　　1）NIO与传统IO的区别：</strong></span></p>
+<p><span style="font-size: 15px;">　　　　a. NIO是非阻塞的，比如说，单线程中从通道读取数据到buffer，同时可以继续做别的事情，当数据读取到buffer后，线程再继续处理数据，写数据也是一样的。IO流是阻塞的，当一个线程调用read()或write()时，该线程被阻塞，直到数据完全写入。该线程在此期间不能再干任何事情。</span></p>
+<p><span style="font-size: 15px;">　　　　b. NIO是面向缓冲区，所有数据都是用缓冲区（buffer）来处理的。在读取数据时，它是直接读到缓冲区中的；在写数据时，写入到缓冲区。IO是面向流的，在IO流中可以将数据直接写入或者数据直接读到stream对象中，虽然stream中也有buffer开头的扩展类，但只是流的包装类，还是从流读到缓冲区。</span></p>
+<p><span style="font-size: 15px;">　　　　c. NIO通过通道来读写，通道是双向的，可读可写；而流的读写是单向的。</span></p>
+<p><span style="font-size: 15px;">　　　　d. NIO有选择器，选择器用于使用单个线程管理多个通道；而IO没有。</span></p>
+<p><span style="font-size: 15px;">　　<strong>2）缺点：</strong></span></p>
+<p><span style="font-size: 15px;">　　　　JDK的NIO底层由epoll实现，该实现饱受诟病的空轮询bug会导致CPU飙升100%。</span></p>
+<p><span style="font-size: 15px;">　<strong>　3）NIO如何实现多路复用？</strong></span></p>
+<p><span style="font-size: 15px;">　　　　在多路复用IO模型中，会有一个线程不断去轮询多个socket的状态，只有当socket真正有读写事件时，才真正调用实际的IO读写操作。所以他大大减少了资源占用。在Java NIO中，是通过selector.select()去查询每个通道是否有到达事件，如果没有到达事件，则一直阻塞在那里，因此这种方式会造成用户线程的阻塞。</span></p>
+<p><span style="font-size: 15px;">　　　　另外多路复用IO为何比非阻塞IO模型的效率高？因为在非阻塞IO中，不断轮询socket状态是通过用户线程去进行的，而在多路复用IO中，轮询每个socket状态是内核在进行的，这个效率要比用户线程高得多。</span></p>
+<p><strong><span style="font-size: 15px; color: #ff0000;">三、BIO</span></strong></p>
+<p><span style="font-size: 15px;">　<span style="color: #0000ff;">　BIO是一种<strong>同步阻塞</strong>的IO模型。</span>数据的读写必须阻塞在一个线程内等待其完成。</span></p>
+<p><span style="font-size: 15px;">　<span style="color: #0000ff;">　服务器实现模式为一个连接一个线程，即客户端有连接请求时服务器端就需要启动一个线程进行处理，如果这个连接不做任何事情会造成不必要的线程开销。</span></span></p>
+<p><span style="font-size: 15px;">　　采用BIO通信模型，一般通过在while(true)循环中服务端会调用accept()方法等待接收客户端的连接方式监听请求，一旦接收到连接请求，就可以建立通信套接字进行读写操作，此时不能在接收其他客户端连接请求，只能等待当前连接的客户端操作执行完成。不过可以通过线程池和任务队列来支持多个客户端的连接。</span></p>
+<p><span style="font-size: 15px;">　　BIO方式适用于连接数比较小且固定的架构。</span></p>
+
+</div><hr><script charset='utf-8' src='../../js/sming.js'></script></body></html>

@@ -1,0 +1,173 @@
+<html><head><meta charset='utf-8'><meta name='viewport' content='width=device-width, initial-scale=1'>
+<meta name='applicable-device' content='pc'><meta name='keywords' content='电脑,电脑讲解,电脑技术,编程,电脑故障维修SpringMVC 视图解析器 InternalResourceViewResolver' />
+<script src='../../highlight/highlight.pack.js'></script>
+<link rel='stylesheet' type='text/css' href='../../highlight/styles/monokai.css'/>
+
+<link rel='stylesheet' href='../../fenxiang/dist/css/share.min.css'>
+<script src='../../fenxiang/src/js/social-share.js'></script>
+<script src='../../fenxiang/src/js/qrcode.js'></script>
+
+</head><body><script>hljs.initHighlightingOnLoad();</script><script>
+var system ={};  
+var p = navigator.platform;       
+system.win = p.indexOf('Win') == 0;  
+system.mac = p.indexOf('Mac') == 0;  
+system.x11 = (p == 'X11') || (p.indexOf('Linux') == 0);     
+if(system.win||system.mac||system.xll){
+document.write("<link href='../css/3.css' rel='stylesheet' type='text/css'>");}else{ document.write("<link href='../css/3wap.css' rel='stylesheet' type='text/css'>");}</script><script src='../../js/3.js'></script><div class='div2'><div class='heading_nav'><ul><div><li><a href='../../index.html'>首页</a></li>
+</div><div onclick='hidden1()' >分享</div>
+</ul></div></div>
+<div id='heading_nav2'> 
+<li class='row' >
+<div class='social-share' data-mode='prepend'><a href='javascript:' class='social-share-icon icon-heart'></a></div></li></div><script charset='utf-8' src='../../3/js/hengfu.js'></script><script charset='utf-8' src='../../3/js/hengfu2.js'></script><hr><div class='div1'><div class='biaoti'><center>SpringMVC 视图解析器 InternalResourceViewResolver</center></div><div class='banquan'>原文出处:本文由博客园博主Arebirth提供。<br/>
+原文连接:https://www.cnblogs.com/arebirth/p/springmvcirvr.html</div><br>
+    <p><strong>我们在使用SpringMVC的时候，想必都知道，为了安全性考虑，我们的JSP文件都会放在WEB-INF下，</strong></p>
+<p><strong>但是我们在外部是不可以直接访问/WEB-INF/目录下的资源对吧，</strong></p>
+<p><strong>只能通过内部服务器进行转发的形式进行访问，那么InternalResourceViewResolver底层通过转发形式帮我们解决了这个问题！</strong></p>
+<hr />
+<p>为了使用InternalResourceViewResolver我们都会在SpringMVC的配置文件中进行如下配置</p>
+<src class="cnblogs_code">
+<pre><code>    <span style="color: #008000;">&lt;!--</span><span style="color: #008000;">  自定义视图解析器  </span><span style="color: #008000;">--&gt;</span>
+<span style="color: #0000ff;">&lt;</span><span style="color: #800000;">bean </span><span style="color: #ff0000;">id</span><span style="color: #0000ff;">="viewResolver"</span><span style="color: #ff0000;"> class</span><span style="color: #0000ff;">="org.springframework.web.servlet.view.InternalResourceViewResolver"</span><span style="color: #0000ff;">&gt;</span>
+    <span style="color: #0000ff;">&lt;</span><span style="color: #800000;">property </span><span style="color: #ff0000;">name</span><span style="color: #0000ff;">="prefix"</span><span style="color: #ff0000;"> value</span><span style="color: #0000ff;">="/WEB-INF/"</span><span style="color: #0000ff;">/&gt;</span>
+    <span style="color: #0000ff;">&lt;</span><span style="color: #800000;">property </span><span style="color: #ff0000;">name</span><span style="color: #0000ff;">="suffix"</span><span style="color: #ff0000;"> value</span><span style="color: #0000ff;">=".jsp"</span><span style="color: #0000ff;">/&gt;</span>
+<span style="color: #0000ff;">&lt;/</span><span style="color: #800000;">bean</span><span style="color: #0000ff;">&gt;</span></code></pre>
+
+<p>然后我们想访问一个WEB-INF目录下的文件就可以直接输入这个文件的名字即可</p>
+<p>例如：</p>
+<p>　　view&nbsp; &nbsp;视图解析器就会在底层帮我们解析为 /WEB-INF/view.jsp&nbsp;</p>
+<p>那么，它的底层究竟是如何来实现的呢？</p>
+<hr />
+<p>&nbsp;</p>
+<p>InternalResourceViewResolver：它是UrlBasedViewResolver的子类，那么也就是说UrlBasedViewResolver所有的特性它全部支持，</p>
+<p>　　那么InternalResourceViewResolver到底有什么特性呢？我们从它的字面意义上来看，可以理解为内部资源视图解析器，也正是如此，它也是应用最广泛的视图解析器。</p>
+<p><img src="./images/SpringMVC 视图解析器 InternalResourceViewResolver0.png" alt="" /></p>
+<p>&nbsp;</p>
+<p>&nbsp;</p>
+<p>&nbsp;</p>
+<p>来让我们来看一下，它的底层源码</p>
+<src class="cnblogs_code">
+<pre><code><span style="color: #008000;">//</span>
+<span style="color: #008000;">//</span><span style="color: #008000;"> Source code recreated from a .class file by IntelliJ IDEA
+</span><span style="color: #008000;">//</span><span style="color: #008000;"> (powered by Fernflower decompiler)
+</span><span style="color: #008000;">//
+</span>
+<span style="color: #0000ff;">package</span><span style="color: #000000;"> org.springframework.web.servlet.view;
+
+</span><span style="color: #0000ff;">import</span><span style="color: #000000;"> org.springframework.util.ClassUtils;
+
+</span><span style="color: #0000ff;">public</span> <span style="color: #0000ff;">class</span> InternalResourceViewResolver <span style="color: #0000ff;">extends</span><span style="color: #000000;"> UrlBasedViewResolver {
+    </span><span style="color: #0000ff;">private</span> <span style="color: #0000ff;">static</span> <span style="color: #0000ff;">final</span> <span style="color: #0000ff;">boolean</span> jstlPresent = ClassUtils.isPresent("javax.servlet.jsp.jstl.core.Config", InternalResourceViewResolver.<span style="color: #0000ff;">class</span><span style="color: #000000;">.getClassLoader());
+    </span><span style="color: #0000ff;">private</span><span style="color: #000000;"> Boolean alwaysInclude;
+
+    </span><span style="color: #0000ff;">public</span><span style="color: #000000;"> InternalResourceViewResolver() {
+        Class</span>&lt;?&gt; viewClass = <span style="color: #0000ff;">this</span><span style="color: #000000;">.requiredViewClass();
+        </span><span style="color: #0000ff;">if</span> (viewClass.equals(InternalResourceView.<span style="color: #0000ff;">class</span>) &amp;&amp;<span style="color: #000000;"> jstlPresent) {
+            viewClass </span>= JstlView.<span style="color: #0000ff;">class</span><span style="color: #000000;">;
+        }
+
+        </span><span style="color: #0000ff;">this</span><span style="color: #000000;">.setViewClass(viewClass);
+    }
+
+    </span><span style="color: #0000ff;">protected</span> Class&lt;?&gt;<span style="color: #000000;"> requiredViewClass() {
+        </span><span style="color: #0000ff;">return</span> InternalResourceView.<span style="color: #0000ff;">class</span><span style="color: #000000;">;
+    }
+
+    </span><span style="color: #0000ff;">public</span> <span style="color: #0000ff;">void</span> setAlwaysInclude(<span style="color: #0000ff;">boolean</span><span style="color: #000000;"> alwaysInclude) {
+        </span><span style="color: #0000ff;">this</span>.alwaysInclude =<span style="color: #000000;"> alwaysInclude;
+    }
+
+    </span><span style="color: #0000ff;">protected</span> AbstractUrlBasedView buildView(String viewName) <span style="color: #0000ff;">throws</span><span style="color: #000000;"> Exception {
+        InternalResourceView view </span>= (InternalResourceView)<span style="color: #0000ff;">super</span><span style="color: #000000;">.buildView(viewName);
+        </span><span style="color: #0000ff;">if</span> (<span style="color: #0000ff;">this</span>.alwaysInclude != <span style="color: #0000ff;">null</span><span style="color: #000000;">) {
+            view.setAlwaysInclude(</span><span style="color: #0000ff;">this</span><span style="color: #000000;">.alwaysInclude);
+        }
+
+        view.setPreventDispatchLoop(</span><span style="color: #0000ff;">true</span><span style="color: #000000;">);
+        </span><span style="color: #0000ff;">return</span><span style="color: #000000;"> view;
+    }
+}</span></code></pre>
+
+<p>InternalResourceViewResolver会通过 执行buildView方法然后调用父类的vuildView方法，把我们返回的请求或返回的viewname传过去，我们来看下这个方法的实现</p>
+<src class="cnblogs_code">
+<pre><code>//将不重要的代码部分已删除<br /> <span style="color: #0000ff;">protected</span> AbstractUrlBasedView buildView(String viewName) <span style="color: #0000ff;">throws</span><span style="color: #000000;"> Exception {
+        AbstractUrlBasedView view </span>= (AbstractUrlBasedView)BeanUtils.instantiateClass(<span style="color: #0000ff;">this</span><span style="color: #000000;">.getViewClass());//获得一个视图类  有继承关系
+        view.setUrl(</span><span style="color: #0000ff;">this</span>.getPrefix() + viewName + <span style="color: #0000ff;">this</span><span style="color: #000000;">.getSuffix());//获取我们在配置文件中配置的prefix 和suffix和传进来的viewName 
+        String contentType </span>= <span style="color: #0000ff;">this</span><span style="color: #000000;">.getContentType();
+        </span><span style="color: #0000ff;">if</span> (contentType != <span style="color: #0000ff;">null</span><span style="color: #000000;">) {
+            view.setContentType(contentType);//视图类型
+        }
+
+        </span><span style="color: #0000ff;">return</span><span style="color: #000000;"> view;//返回我们的视图
+    }</span></code></pre>
+
+<p>我们通过这个方法可以发现，首选这个方法创建了一个视图，虽然我们不认识，但是他们间接的有继承关系，我们可以自行查看继承结构。</p>
+<p>然后就是获取我们在SpringMVC中配置的InternalResourceViewResolver的prefix和suffix还有viewName名，构成一个完整的url例如：/WEB-INF/a.jsp，最后把构成的视图返回构成了一个</p>
+<pre><code>InternalResourceView视图。然后InternalResourceView视图会把Controller处理器返回的模型属性全部都放到HttpServletRequest里面，让我们看下底层的执行<br /><br /></code></pre>
+<src class="cnblogs_code">
+<pre><code><span style="color: #008000;">//</span><span style="color: #008000;">调用的是InternalResourceView对象的方法</span>
+
+ <span style="color: #0000ff;">protected</span> <span style="color: #0000ff;">void</span> renderMergedOutputModel(Map&lt;String, Object&gt; model, HttpServletRequest request, HttpServletResponse response) <span style="color: #0000ff;">throws</span><span style="color: #000000;"> Exception {
+        </span><span style="color: #0000ff;">this</span><span style="color: #000000;">.exposeModelAsRequestAttributes(model, request);//通过调用这个方法然后执行放置到request，看接下来下面片段的代码
+        </span><span style="color: #0000ff;">this</span><span style="color: #000000;">.exposeHelpers(request);
+        String dispatcherPath </span>= <span style="color: #0000ff;">this</span><span style="color: #000000;">.prepareForRendering(request, response);
+        RequestDispatcher rd </span>= <span style="color: #0000ff;">this</span><span style="color: #000000;">.getRequestDispatcher(request, dispatcherPath);
+        </span><span style="color: #0000ff;">if</span> (rd == <span style="color: #0000ff;">null</span><span style="color: #000000;">) {
+            </span><span style="color: #0000ff;">throw</span> <span style="color: #0000ff;">new</span> ServletException("Could not get RequestDispatcher for [" + <span style="color: #0000ff;">this</span>.getUrl() + "]: Check that the corresponding file exists within your web application archive!"<span style="color: #000000;">);
+        } </span><span style="color: #0000ff;">else</span><span style="color: #000000;"> {
+            </span><span style="color: #0000ff;">if</span> (<span style="color: #0000ff;">this</span><span style="color: #000000;">.useInclude(request, response)) {
+                response.setContentType(</span><span style="color: #0000ff;">this</span><span style="color: #000000;">.getContentType());
+                </span><span style="color: #0000ff;">if</span> (<span style="color: #0000ff;">this</span><span style="color: #000000;">.logger.isDebugEnabled()) {
+                    </span><span style="color: #0000ff;">this</span>.logger.debug("Including resource [" + <span style="color: #0000ff;">this</span>.getUrl() + "] in InternalResourceView '" + <span style="color: #0000ff;">this</span>.getBeanName() + "'"<span style="color: #000000;">);
+                }
+
+                rd.include(request, response);
+            } </span><span style="color: #0000ff;">else</span><span style="color: #000000;"> {
+                </span><span style="color: #0000ff;">if</span> (<span style="color: #0000ff;">this</span><span style="color: #000000;">.logger.isDebugEnabled()) {
+                    </span><span style="color: #0000ff;">this</span>.logger.debug("Forwarding to resource [" + <span style="color: #0000ff;">this</span>.getUrl() + "] in InternalResourceView '" + <span style="color: #0000ff;">this</span>.getBeanName() + "'"<span style="color: #000000;">);
+                }
+
+                rd.forward(request, response);
+            }
+
+        }
+    }</span></code></pre>
+
+<p>&nbsp;</p>
+<src class="cnblogs_code">
+<pre><code><span style="color: #008000;">//</span><span style="color: #008000;">调用的是AbstractView 类</span>
+
+<span style="color: #0000ff;">protected</span> <span style="color: #0000ff;">void</span> exposeModelAsRequestAttributes(Map&lt;String, Object&gt; model, HttpServletRequest request) <span style="color: #0000ff;">throws</span><span style="color: #000000;"> Exception {
+        Iterator var3 </span>=<span style="color: #000000;"> model.entrySet().iterator();
+
+        </span><span style="color: #0000ff;">while</span><span style="color: #000000;">(var3.hasNext()) {
+            Entry</span>&lt;String, Object&gt; entry =<span style="color: #000000;"> (Entry)var3.next();
+            String modelName </span>=<span style="color: #000000;"> (String)entry.getKey();
+            Object modelValue </span>=<span style="color: #000000;"> entry.getValue();
+            </span><span style="color: #0000ff;">if</span> (modelValue != <span style="color: #0000ff;">null</span><span style="color: #000000;">) {
+                request.setAttribute(modelName, modelValue);//把Controller返回的模型属性值放入
+                </span><span style="color: #0000ff;">if</span> (<span style="color: #0000ff;">this</span><span style="color: #000000;">.logger.isDebugEnabled()) {
+                    </span><span style="color: #0000ff;">this</span>.logger.debug("Added model object '" + modelName + "' of type [" + modelValue.getClass().getName() + "] to request in view with name '" + <span style="color: #0000ff;">this</span>.getBeanName() + "'"<span style="color: #000000;">);
+                }
+            } </span><span style="color: #0000ff;">else</span><span style="color: #000000;"> {
+                request.removeAttribute(modelName);
+                </span><span style="color: #0000ff;">if</span> (<span style="color: #0000ff;">this</span><span style="color: #000000;">.logger.isDebugEnabled()) {
+                    </span><span style="color: #0000ff;">this</span>.logger.debug("Removed model object '" + modelName + "' from request in view with name '" + <span style="color: #0000ff;">this</span>.getBeanName() + "'"<span style="color: #000000;">);
+                }
+            }
+        }
+
+    }</span></code></pre>
+
+<p><strong>然后通过RequestDispatcher在服务器端把请求forword重定向到目标URL</strong></p>
+<p><strong>以上就是InternalResourceViewResolver解析流程</strong></p>
+<p><strong>连贯起来就是</strong></p>
+<p>InternalResourceViewResolver会把返回的视图名称都解析为InternalResourceView对象，InternalResourceView会把Controller处理器方法返回的模型属性都存放到对应的request属性中，然后通过RequestDispatcher在服务器端把请求forword重定向到目标URL。比如在InternalResourceViewResolver中定义了prefix=/WEB-INF/，suffix=.jsp，然后请求的Controller处理器方法返回的视图名称为test，那么这个时候InternalResourceViewResolver就会把test解析为一个InternalResourceView对象，先把返回的模型属性都存放到对应的HttpServletRequest属性中，然后利用RequestDispatcher在服务器端把请求forword到/WEB-INF/a.jsp。</p>
+<h3>&nbsp;</h3>
+<h3><strong>最后我们在总结下总体的视图解析流程：</strong></h3>
+<p>1、调用目标方法，SpringMVC将目标方法返回的String、View、ModelMap或是ModelAndView都转换为一个ModelAndView对象；</p>
+<p>2、然后通过视图解析器（ViewResolver）对ModelAndView对象中的View对象进行解析，将该逻辑视图View对象解析为一个物理视图View对象；</p>
+<p>3、最后调用物理视图View对象的render()方法进行视图渲染，得到响应结果。<br /><br /></p>
+<p>我的博客即将同步至腾讯云+社区，邀请大家一同入驻：https://cloud.tencent.com/developer/support-plan?invite_code=3ffaki66fp4wk</p>
+
+</div><hr><script charset='utf-8' src='../../js/sming.js'></script></body></html>

@@ -1,0 +1,117 @@
+<html><head><meta charset='utf-8'><meta name='viewport' content='width=device-width, initial-scale=1'>
+<meta name='applicable-device' content='pc'><meta name='keywords' content='电脑,电脑讲解,电脑技术,编程,电脑故障维修Spring 基础知识学习' />
+<script src='../../highlight/highlight.pack.js'></script>
+<link rel='stylesheet' type='text/css' href='../../highlight/styles/monokai.css'/>
+
+<link rel='stylesheet' href='../../fenxiang/dist/css/share.min.css'>
+<script src='../../fenxiang/src/js/social-share.js'></script>
+<script src='../../fenxiang/src/js/qrcode.js'></script>
+
+</head><body><script>hljs.initHighlightingOnLoad();</script><script>
+var system ={};  
+var p = navigator.platform;       
+system.win = p.indexOf('Win') == 0;  
+system.mac = p.indexOf('Mac') == 0;  
+system.x11 = (p == 'X11') || (p.indexOf('Linux') == 0);     
+if(system.win||system.mac||system.xll){
+document.write("<link href='../css/3.css' rel='stylesheet' type='text/css'>");}else{ document.write("<link href='../css/3wap.css' rel='stylesheet' type='text/css'>");}</script><script src='../../js/3.js'></script><div class='div2'><div class='heading_nav'><ul><div><li><a href='../../index.html'>首页</a></li>
+</div><div onclick='hidden1()' >分享</div>
+</ul></div></div>
+<div id='heading_nav2'> 
+<li class='row' >
+<div class='social-share' data-mode='prepend'><a href='javascript:' class='social-share-icon icon-heart'></a></div></li></div><script charset='utf-8' src='../../3/js/hengfu.js'></script><script charset='utf-8' src='../../3/js/hengfu2.js'></script><hr><div class='div1'><div class='biaoti'><center>Spring 基础知识学习</center></div><div class='banquan'>原文出处:本文由博客园博主Leton提供。<br/>
+原文连接:https://www.cnblogs.com/leton/p/11755192.html</div><br>
+    <h1 id="spring-总结">Spring 总结</h1>
+<p>在Spring框架的发布版本中，共包含了20个不同的模块，可以划分为6类不同的功能。</p>
+<h2 id="spring整体架构图">Spring整体架构图</h2>
+<p><img src="./images/Spring 基础知识学习0.png" /></p>
+<p>为了降低Java开发的复杂性，Spring采取了以下4种关键策略：</p>
+<ul>
+<li>基于POJO的轻量级和最小侵入性编程；</li>
+<li>通过依赖注入和面向接口实现松耦合；</li>
+<li>基于切面和惯例进行声明式编程；</li>
+<li>通过切面和模板减少样板式代码。</li>
+</ul>
+<h2 id="依赖注入-di">依赖注入 DI</h2>
+<p>创建应用对象之间协作关系的行为通常称为装配（wiring），这也是依赖注入（DI）的本质。</p>
+<p>当描述bean如何进行装配时，Spring具有非常大的灵活性，它提供了三种主要的装配机制：</p>
+<ul>
+<li>在XML中进行显式配置。</li>
+<li>在Java中进行显式配置。</li>
+<li>隐式的bean发现机制和自动装配。</li>
+</ul>
+<h3 id="自动化装配bean">自动化装配bean</h3>
+<p>Spring从两个角度来实现自动化装配：</p>
+<ul>
+<li>组件扫描（component scanning）：Spring会自动发现应用上下文中所创建的bean。</li>
+<li>自动装配（autowiring）：Spring自动满足bean之间的依赖。<br />
+组件扫描和自动装配组合在一起就能发挥出强大的威力，它们能够将你的显式配置降低到最少。</li>
+</ul>
+<p>@Component注解表明该类会作为组件类，并告知Spring要为这个类创建bean<br />
+@ComponentScan注解启用组件扫描<br />
+@Autowired注解实现自动装配</p>
+<h3 id="通过java代码装配bean">通过Java代码装配bean</h3>
+<p>@Bean注解会告诉Spring这个方法将会返回一个对象，该对象要注册为Spring应用上下文中的bean。</p>
+<h3 id="通过xml装配bean">通过XML装配bean</h3>
+<pre><code><code>&lt;?xml version=&quot;1.0&quot; encoding=&quot;UTF-8&quot;?&gt;
+&lt;beans xmlns=&quot;http://www.springframework.org/schema/beans&quot;
+       xmlns:xsi=&quot;http://www.w3.org/2001/XMLSchema-instance&quot;
+       xsi:schemaLocation=&quot;http://www.springframework.org/schema/beans
+      http://www.springframework.org/schema/beans/spring-beans.xsd&quot;&gt;
+
+    &lt;bean id=&quot;knight&quot; class=&quot;com.fiberhome.tongl.knight.BraveKnight&quot;&gt;
+        &lt;constructor-arg ref=&quot;quest&quot; /&gt;
+    &lt;/bean&gt;
+
+    &lt;bean id=&quot;quest&quot; class=&quot;com.fiberhome.tongl.knight.SlayDragonQuest&quot;&gt;
+        &lt;constructor-arg value=&quot;#{T(System).out}&quot; /&gt;
+    &lt;/bean&gt;
+&lt;/beans&gt;</code></code></pre>
+<p>在XML中声明DI时，会有多种可选的配置方案和风格。具体到构造器注入，有两种基本的配置方案可供选择：</p>
+<ul>
+<li><constructor-arg>元素</li>
+<li>使用Spring 3.0所引入的c-命名空间</li>
+</ul>
+<p>属性注入，也有两种基本的配置方案可供选择：</p>
+<ul>
+<li><property>元素</li>
+<li>p-命名空间</li>
+</ul>
+<h3 id="三种spring的配置使用总结">三种Spring的配置使用总结</h3>
+<p>尽可能地使用自动配置的机制。显式配置越少越好，以避免显式配置所带来的维护成本。当你必须要显式配置bean的时候（比如，有些源码不是由你来维护的，而当你需要为这些代码配置bean的时候），应该优先选择基于Java的配置，它比基于XML的配置更加强大、类型安全并且易于重构。最后，只有当你想要使用便利的XML命名空间，并且在JavaConfig中没有同样的实现时，才应该使用XML。</p>
+<h3 id="bean的作用域">bean的作用域</h3>
+<p>Spring定义了多种作用域，可以基于这些作用域创建bean，包括：</p>
+<ul>
+<li>单例（Singleton）：在整个应用中，只创建bean的一个实例。</li>
+<li>原型（Prototype）：每次注入或者通过Spring应用上下文获取的时候，都会创建一个新的bean实例。</li>
+<li>会话（Session）：在Web应用中，为每个会话创建一个bean实例。</li>
+<li>请求（Rquest）：在Web应用中，为每个请求创建一个bean实例。</li>
+</ul>
+<p>单例是默认的作用域，但是正如之前所述，对于易变的类型，这并不合适。如果选择其他的作用域，要使用@Scope注解，它可以与@Component或@Bean一起使用。</p>
+<h3 id="注入外部的值">注入外部的值</h3>
+<p>在Spring中，处理外部值的最简单方式就是声明属性源并通过Spring的Environment来检索属性。</p>
+<p>@PropertySource引用类路径中.properties的文件。<br />
+@Value 属性占位符（配置PropertySourcesPlaceholderConfigurer bean）</p>
+<h2 id="面向切面编程aspect-oriented-programmingaop">面向切面编程（aspect-oriented programming，AOP）</h2>
+<p>DI有助于应用对象之间的解耦，而AOP可以实现横切关注点与它们所影响的对象之间的解耦。</p>
+<h3 id="切点表达式">切点表达式</h3>
+<p><img src="./images/Spring 基础知识学习1.png" /></p>
+<p>　</p>
+<h3 id="使用注解创建切面">使用注解创建切面</h3>
+<p>@AspectJ注解解表明类不仅仅是一个POJO，还是一个切面</p>
+<p>@EnableAspectJAutoProxy注解启用自动代理功能</p>
+<p>AspectJ提供了五个注解来定义通知</p>
+<ul>
+<li>@After 通知方法会在目标方法返回或抛出异常后调用</li>
+<li>@AfterReturning 通知方法会在目标方法返回后调用</li>
+<li>@AfterThrowing 通知方法会在目标方法抛出异常后调用</li>
+<li>@Around 通知方法会将目标方法封装起来</li>
+<li>@Before 通知方法会在目标方法调用之前执行</li>
+</ul>
+<h2 id="reference">Reference</h2>
+<ul>
+<li>《Spring 实战（第四版）》</li>
+</ul>
+
+
+</div><hr><script charset='utf-8' src='../../js/sming.js'></script></body></html>

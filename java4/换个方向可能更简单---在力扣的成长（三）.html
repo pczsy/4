@@ -1,0 +1,34 @@
+<html><head><meta charset='utf-8'><meta name='viewport' content='width=device-width, initial-scale=1'>
+<meta name='applicable-device' content='pc'><meta name='keywords' content='电脑,电脑讲解,电脑技术,编程,电脑故障维修换个方向可能更简单---在力扣的成长（三）' />
+<script src='../../highlight/highlight.pack.js'></script>
+<link rel='stylesheet' type='text/css' href='../../highlight/styles/monokai.css'/>
+
+<link rel='stylesheet' href='../../fenxiang/dist/css/share.min.css'>
+<script src='../../fenxiang/src/js/social-share.js'></script>
+<script src='../../fenxiang/src/js/qrcode.js'></script>
+
+</head><body><script>hljs.initHighlightingOnLoad();</script><script>
+var system ={};  
+var p = navigator.platform;       
+system.win = p.indexOf('Win') == 0;  
+system.mac = p.indexOf('Mac') == 0;  
+system.x11 = (p == 'X11') || (p.indexOf('Linux') == 0);     
+if(system.win||system.mac||system.xll){
+document.write("<link href='../css/3.css' rel='stylesheet' type='text/css'>");}else{ document.write("<link href='../css/3wap.css' rel='stylesheet' type='text/css'>");}</script><script src='../../js/3.js'></script><div class='div2'><div class='heading_nav'><ul><div><li><a href='../../index.html'>首页</a></li>
+</div><div onclick='hidden1()' >分享</div>
+</ul></div></div>
+<div id='heading_nav2'> 
+<li class='row' >
+<div class='social-share' data-mode='prepend'><a href='javascript:' class='social-share-icon icon-heart'></a></div></li></div><script charset='utf-8' src='../../3/js/hengfu.js'></script><script charset='utf-8' src='../../3/js/hengfu2.js'></script><hr><div class='div1'><div class='biaoti'><center>换个方向可能更简单---在力扣的成长（三）</center></div><div class='banquan'>原文出处:本文由博客园博主菜逼黑提供。<br/>
+原文连接:https://www.cnblogs.com/heibo/p/11898426.html</div><br>
+    <p>算法解题地址：https://leetcode-cn.com/problems/trapping-rain-water/solution/xiang-xi-tong-su-de-si-lu-fen-xi-duo-jie-fa-by-w-8/</p>
+<p>这个是真的牛比，当看到这个解决方法时，我惊了，我的初始想法是通过柱子的变化趋势去找到所有的凹槽，然后用Math.min(left,right)*(rx-lx-1)-(中间的圆柱的体积)得到每个凹槽装水的体积，然后进行累加得到盛水的总体积，这种思路真的是太直了，直得一点弯都不转的，而且这种解法不适用于最后一个凹槽的情况。可能是看到题目的缘故把，让我直接想算所有凹槽盛水的体积。这个大神将这个题目完全转化成了几何问题，将整个分解成了每一行来算，将这个看起来极其复杂的问题转化成了一个很简单的问题，太厉害了。有的时候题目可能是最能迷惑人的地方，将我们的思路强行移动到一个方向，但这个方向可能很麻烦，如果说这个题目的问题是</p>
+<p>求蓝色区域的面积，我们可能很想的简单一些。所以说，不要总是停留在自己的世界里面了，多去看看其他人的想法可能会给你的编程带来帮助，你的脑袋也会更加活跃一些吧。</p>
+<p>以下是个人写的代码，如果有大佬帮忙给看一下，谢谢：</p>
+<p>　　　　<img src="./images/换个方向可能更简单---在力扣的成长（三）0.png" alt="" /><img src="./images/换个方向可能更简单---在力扣的成长（三）1.png" alt="" />　　</p>
+<p>package test;<br />/*<br />   * 本程序的基本思想<br /> *  通过柱子的变化趋势分别确定凹槽的左边界和右边界 <br /> *只遍历一遍柱子高度<br /> *该程序的过程<br /> *判断左边界，左边界确定判断右边界，最后将按照Math.min(left,right)*(rx-lx)-(中间的圆柱的体积)计算处<br /> *凹槽中盛水的体积<br /> */<br />public class RainWater {</p>
+<p>	public static void main(String[] args) {<br />		 //柱子的高度<br />		 int [] height=new int[]{0,1,0,2,1,0,1,3,2,1,2,1};<br />		 //左指针，用来记录凹槽的左边<br />		 int left=0;<br />		 //右指针，用来记录凹槽的右边<br />		 int right=0;<br />		 //游标 作为程序结束的条件<br />		 int cursor=1;<br />		 //柱子的个数，用来判断游标是否遍历到数组最后<br />		 int  size=height.length;<br />		 //凹槽装水的总体积<br />		 int  sum=0;<br />		 while(cursor&lt;size) {<br />			 //1、判断左边界<br />			 if(height[left]&lt;=height[cursor]) {<br />				 //a、没有变化趋势或者是上升趋势，那么这个柱子不能作为左边界，所以，将左边界向右移动<br />				   left++;<br />				 //b、游标向右移动<br />				   cursor++;<br />				 //c、进行下一次循环<br />				   continue;<br />			 }<br />			 else {<br />				 cursor++;<br />				 //a、说明有成为左边界的趋势，如果中间小于左边，直到找到一个&gt;=左边界的边作为右边界，每一次while循环找到一<br />				 //b、凹槽，并计算面积<br />				 while(cursor&lt;size&amp;&amp;height[left]&gt;height[cursor]) {<br />					 cursor++;<br />				 }<br />				 //c、当while循环调处时，判断是否因为遍历到最后找不到导致循环跳出<br />				 if(cursor==size) {<br />					 break;<br />				 }<br />				 else {<br />					 //d、找到了右边界，采用公式计算出当前凹槽的体积<br />					 right=cursor;<br />					 sum+=height[left]*(right-left-1)-getSum(0,left,right,height);<br />					 System.out.println("凹槽边界["+left+","+right+"],体积为"+(height[left]*(right-left-1)-getSum(0,left,right,height)));<br />					 //d、将左右边界重置，游标+1<br />					 left=right=cursor;<br />					 cursor++;<br />					 //e、寻找下一个凹槽，并计算凹槽体积<br />					 continue;<br />				 }<br />			 }<br />			 <br />		 }<br />		 System.out.println("装水的总体积为"+sum);<br />	}<br />	public static int getSum(int sum,int left,int right,int [] height) {<br />//		int sum=0;<br />		for(int i=left+1;i&lt;right;i++) {<br />			sum+=height[i];<br />		}<br />		return sum;<br />	}<br />}</p>
+<p>&nbsp;</p>
+<p>&nbsp;</p>
+
+</div><hr><script charset='utf-8' src='../../js/sming.js'></script></body></html>

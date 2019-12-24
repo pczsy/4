@@ -1,0 +1,70 @@
+<html><head><meta charset='utf-8'><meta name='viewport' content='width=device-width, initial-scale=1'>
+<meta name='applicable-device' content='pc'><meta name='keywords' content='电脑,电脑讲解,电脑技术,编程,电脑故障维修不借用第三变量，互换两个变量' />
+<script src='../../highlight/highlight.pack.js'></script>
+<link rel='stylesheet' type='text/css' href='../../highlight/styles/monokai.css'/>
+
+<link rel='stylesheet' href='../../fenxiang/dist/css/share.min.css'>
+<script src='../../fenxiang/src/js/social-share.js'></script>
+<script src='../../fenxiang/src/js/qrcode.js'></script>
+
+</head><body><script>hljs.initHighlightingOnLoad();</script><script>
+var system ={};  
+var p = navigator.platform;       
+system.win = p.indexOf('Win') == 0;  
+system.mac = p.indexOf('Mac') == 0;  
+system.x11 = (p == 'X11') || (p.indexOf('Linux') == 0);     
+if(system.win||system.mac||system.xll){
+document.write("<link href='../css/3.css' rel='stylesheet' type='text/css'>");}else{ document.write("<link href='../css/3wap.css' rel='stylesheet' type='text/css'>");}</script><script src='../../js/3.js'></script><div class='div2'><div class='heading_nav'><ul><div><li><a href='../../index.html'>首页</a></li>
+</div><div onclick='hidden1()' >分享</div>
+</ul></div></div>
+<div id='heading_nav2'> 
+<li class='row' >
+<div class='social-share' data-mode='prepend'><a href='javascript:' class='social-share-icon icon-heart'></a></div></li></div><script charset='utf-8' src='../../3/js/hengfu.js'></script><script charset='utf-8' src='../../3/js/hengfu2.js'></script><hr><div class='div1'><div class='biaoti'><center>不借用第三变量，互换两个变量</center></div><div class='banquan'>原文出处:本文由博客园博主MrHH提供。<br/>
+原文连接:https://www.cnblogs.com/HuiH/p/11676342.html</div><br>
+    <p><span style="font-size: 15px;">下面列出几种方法：</span></p>
+<p><span style="font-size: 15px;">1）算术运算</span></p>
+<src class="cnblogs_code">
+<pre><code><span style="font-size: 15px;"><span style="color: #008080;">1</span> <span style="color: #0000ff;">int</span><span style="color: #000000;"> a,b;
+</span><span style="color: #008080;">2</span> a=10;b=12<span style="color: #000000;">;
+</span><span style="color: #008080;">3</span> a=b-a; <span style="color: #008000;">//</span><span style="color: #008000;">a=2;b=12</span>
+<span style="color: #008080;">4</span> b=b-a; <span style="color: #008000;">//</span><span style="color: #008000;">a=2;b=10</span>
+<span style="color: #008080;">5</span> a=b+a; <span style="color: #008000;">//</span><span style="color: #008000;">a=12;b=10</span></span></code></pre>
+
+<p><span style="font-size: 15px;">它的原理是把A,B看作是数轴上的点，围绕两点间的距离来进行运算。</span></p>
+<p><span style="font-size: 15px;">缺点：因为是int类型，有可能造成数据溢出。</span></p>
+<p>&nbsp;</p>
+<p><span style="font-size: 15px;">2）指针地址操作</span></p>
+<src class="cnblogs_code">
+<pre><code><span style="font-size: 15px;"><span style="color: #008080;"> 1</span> <span style="color: #0000ff;">if</span>(a&lt;<span style="color: #000000;">b){
+</span><span style="color: #008080;"> 2</span> a=(<span style="color: #0000ff;">int</span>*)(b-<span style="color: #000000;">a);
+</span><span style="color: #008080;"> 3</span> b=(<span style="color: #0000ff;">int</span>*)(b-(<span style="color: #0000ff;">int</span>(a)&amp;0x0000ffff<span style="color: #000000;">));
+</span><span style="color: #008080;"> 4</span> a=(<span style="color: #0000ff;">int</span>*)(b+(<span style="color: #0000ff;">int</span>(a)&amp;0x0000ffff<span style="color: #000000;">));
+</span><span style="color: #008080;"> 5</span> <span style="color: #000000;">}
+</span><span style="color: #008080;"> 6</span> <span style="color: #0000ff;">else</span><span style="color: #000000;">{
+</span><span style="color: #008080;"> 7</span> b=(<span style="color: #0000ff;">int</span>*)(a-<span style="color: #000000;">b);
+</span><span style="color: #008080;"> 8</span> a=(<span style="color: #0000ff;">int</span>*)(a-(<span style="color: #0000ff;">int</span>(b)&amp;0x0000ffff<span style="color: #000000;">));
+</span><span style="color: #008080;"> 9</span> b=(<span style="color: #0000ff;">int</span>*)(a+(<span style="color: #0000ff;">int</span>(b)&amp;0x0000ffff<span style="color: #000000;">));
+</span><span style="color: #008080;">10</span> }</span></code></pre>
+
+<p><span style="font-size: 15px;">&nbsp;</span></p>
+<p><span style="font-size: 15px;">3）位运算</span></p>
+<src class="cnblogs_code">
+<pre><code><span style="font-size: 15px;"><span style="color: #008080;">1</span> <span style="color: #0000ff;">int</span> a=10,b=12; <span style="color: #008000;">//</span><span style="color: #008000;">a=1010^b=1100;</span>
+<span style="color: #008080;">2</span> a=a^b; <span style="color: #008000;">//</span><span style="color: #008000;">a=0110^b=1100;</span>
+<span style="color: #008080;">3</span> b=a^b; <span style="color: #008000;">//</span><span style="color: #008000;">a=0110^b=1010;</span>
+<span style="color: #008080;">4</span> a=a^b; <span style="color: #008000;">//</span><span style="color: #008000;">a=1100=12;b=1010;</span></span></code></pre>
+
+<p>&nbsp;</p>
+<p><span style="font-size: 15px;">4）利用栈的先入后出实现</span></p>
+<src class="cnblogs_code">
+<pre><code><span style="font-size: 15px;"><span style="color: #008080;">1</span> <span style="color: #0000ff;">int</span> exchange(<span style="color: #0000ff;">int</span> x,<span style="color: #0000ff;">int</span><span style="color: #000000;"> y) { 
+</span><span style="color: #008080;">2</span> <span style="color: #000000;">     stack S; 
+</span><span style="color: #008080;">3</span> <span style="color: #000000;">     push(S,x); 
+</span><span style="color: #008080;">4</span> <span style="color: #000000;">     push(S,y); 
+</span><span style="color: #008080;">5</span>      x=<span style="color: #000000;">pop(S); 
+</span><span style="color: #008080;">6</span>      y=<span style="color: #000000;">pop(S); 
+</span><span style="color: #008080;">7</span> }</span></code></pre>
+
+<p>&nbsp;</p>
+
+</div><hr><script charset='utf-8' src='../../js/sming.js'></script></body></html>

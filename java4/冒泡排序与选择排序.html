@@ -1,0 +1,115 @@
+<html><head><meta charset='utf-8'><meta name='viewport' content='width=device-width, initial-scale=1'>
+<meta name='applicable-device' content='pc'><meta name='keywords' content='电脑,电脑讲解,电脑技术,编程,电脑故障维修冒泡排序与选择排序' />
+<script src='../../highlight/highlight.pack.js'></script>
+<link rel='stylesheet' type='text/css' href='../../highlight/styles/monokai.css'/>
+
+<link rel='stylesheet' href='../../fenxiang/dist/css/share.min.css'>
+<script src='../../fenxiang/src/js/social-share.js'></script>
+<script src='../../fenxiang/src/js/qrcode.js'></script>
+
+</head><body><script>hljs.initHighlightingOnLoad();</script><script>
+var system ={};  
+var p = navigator.platform;       
+system.win = p.indexOf('Win') == 0;  
+system.mac = p.indexOf('Mac') == 0;  
+system.x11 = (p == 'X11') || (p.indexOf('Linux') == 0);     
+if(system.win||system.mac||system.xll){
+document.write("<link href='../css/3.css' rel='stylesheet' type='text/css'>");}else{ document.write("<link href='../css/3wap.css' rel='stylesheet' type='text/css'>");}</script><script src='../../js/3.js'></script><div class='div2'><div class='heading_nav'><ul><div><li><a href='../../index.html'>首页</a></li>
+</div><div onclick='hidden1()' >分享</div>
+</ul></div></div>
+<div id='heading_nav2'> 
+<li class='row' >
+<div class='social-share' data-mode='prepend'><a href='javascript:' class='social-share-icon icon-heart'></a></div></li></div><script charset='utf-8' src='../../3/js/hengfu.js'></script><script charset='utf-8' src='../../3/js/hengfu2.js'></script><hr><div class='div1'><div class='biaoti'><center>冒泡排序与选择排序</center></div><div class='banquan'>原文出处:本文由博客园博主donleo123提供。<br/>
+原文连接:https://www.cnblogs.com/donleo123/p/11649757.html</div><br>
+    <p>一、冒泡排序</p>
+<src class="cnblogs_code">
+<pre><code><span style="color: #008080;"> 1</span> <span style="color: #0000ff;">package</span><span style="color: #000000;"> day0911;
+</span><span style="color: #008080;"> 2</span> 
+<span style="color: #008080;"> 3</span> <span style="color: #0000ff;">import</span><span style="color: #000000;"> java.util.Arrays;
+</span><span style="color: #008080;"> 4</span> 
+<span style="color: #008080;"> 5</span> <span style="color: #008000;">/**</span>
+<span style="color: #008080;"> 6</span> <span style="color: #008000;"> * 冒泡排序
+</span><span style="color: #008080;"> 7</span>  <span style="color: #008000;">*/</span>
+<span style="color: #008080;"> 8</span> <span style="color: #0000ff;">public</span> <span style="color: #0000ff;">class</span><span style="color: #000000;"> MaoPaoPaiXu {
+</span><span style="color: #008080;"> 9</span>     <span style="color: #0000ff;">public</span> <span style="color: #0000ff;">static</span> <span style="color: #0000ff;">void</span><span style="color: #000000;"> main(String args[]){
+</span><span style="color: #008080;">10</span>         <span style="color: #008000;">//</span><span style="color: #008000;">定义一个数组</span>
+<span style="color: #008080;">11</span>         <span style="color: #0000ff;">int</span> [] maopao = {32,16,68,54,97,85,13,20<span style="color: #000000;">};
+</span><span style="color: #008080;">12</span>         <span style="color: #008000;">//</span><span style="color: #008000;">外层循环-1,maopao.length表示数组长度</span>
+<span style="color: #008080;">13</span>         <span style="color: #0000ff;">for</span>(<span style="color: #0000ff;">int</span> i=0;i&lt;maopao.length-1;i++<span style="color: #000000;">){
+</span><span style="color: #008080;">14</span>             <span style="color: #008000;">//</span><span style="color: #008000;">内层循环-1-i，总共八个数</span>
+<span style="color: #008080;">15</span>             <span style="color: #0000ff;">for</span> (<span style="color: #0000ff;">int</span> j=0;j&lt;maopao.length-1-i;j++<span style="color: #000000;">){
+</span><span style="color: #008080;">16</span>                 <span style="color: #008000;">//</span><span style="color: #008000;">定义一个空瓶子</span>
+<span style="color: #008080;">17</span>                 <span style="color: #0000ff;">int</span> temp = 0<span style="color: #000000;">;
+</span><span style="color: #008080;">18</span>                 <span style="color: #008000;">//</span><span style="color: #008000;">三个空瓶子互换模式
+</span><span style="color: #008080;">19</span>                 <span style="color: #008000;">//</span><span style="color: #008000;">如果前面的大于后面的，则把前面的数换到后面来，从小到大排序
+</span><span style="color: #008080;">20</span>                 <span style="color: #008000;">//</span><span style="color: #008000;">如果想从大到小排序，则用小于符号</span>
+<span style="color: #008080;">21</span>                 <span style="color: #0000ff;">if</span> (maopao[j]&gt;maopao[j+1<span style="color: #000000;">]){
+</span><span style="color: #008080;">22</span>                     <span style="color: #008000;">//</span><span style="color: #008000;">如果maopao[j]大于后面的，则赋值给空瓶子
+</span><span style="color: #008080;">23</span>                     <span style="color: #008000;">//</span><span style="color: #008000;">如果不大于，则maopao[j]位置不变</span>
+<span style="color: #008080;">24</span>                     temp=<span style="color: #000000;">maopao[j];
+</span><span style="color: #008080;">25</span>                     <span style="color: #008000;">//</span><span style="color: #008000;">如果前后对比数值小，则前移</span>
+<span style="color: #008080;">26</span>                     maopao[j]=maopao[j+1<span style="color: #000000;">];
+</span><span style="color: #008080;">27</span>                     <span style="color: #008000;">//</span><span style="color: #008000;">前后数值对比较大的数往后移</span>
+<span style="color: #008080;">28</span>                     maopao[j+1]=<span style="color: #000000;">temp;
+</span><span style="color: #008080;">29</span> <span style="color: #000000;">                }
+</span><span style="color: #008080;">30</span> <span style="color: #000000;">            }
+</span><span style="color: #008080;">31</span>             <span style="color: #008000;">//</span><span style="color: #008000;">内层循环每次都要执行打印
+</span><span style="color: #008080;">32</span>             <span style="color: #008000;">//</span><span style="color: #008000;">System.out.print(Arrays.toString(maopao));</span>
+<span style="color: #008080;">33</span> <span style="color: #000000;">        }
+</span><span style="color: #008080;">34</span>         <span style="color: #008000;">//</span><span style="color: #008000;">想要输出数组类型就得用Arrays.toString</span>
+<span style="color: #008080;">35</span> <span style="color: #000000;">        System.out.print(Arrays.toString(maopao));
+</span><span style="color: #008080;">36</span> <span style="color: #000000;">    }
+</span><span style="color: #008080;">37</span>     
+<span style="color: #008080;">38</span> }</code></pre>
+
+<p>二、选择排序</p>
+<src class="cnblogs_code">
+<pre><code><span style="color: #0000ff;">package</span><span style="color: #000000;"> day1010;
+
+</span><span style="color: #008000;">/**</span><span style="color: #008000;">
+ * </span><span style="color: #808080;">@author</span><span style="color: #008000;"> donleo
+ * date 2019-10-10
+ * code 选择排序
+ </span><span style="color: #008000;">*/</span>
+
+<span style="color: #0000ff;">public</span> <span style="color: #0000ff;">class</span><span style="color: #000000;"> SelectionSort {
+    </span><span style="color: #0000ff;">public</span> <span style="color: #0000ff;">static</span> <span style="color: #0000ff;">void</span><span style="color: #000000;"> main(String[] args) {
+        </span><span style="color: #008000;">//</span><span style="color: #008000;">模拟数据</span>
+        <span style="color: #0000ff;">int</span>[] array = {52, 63, 14, 59, 68, 35, 8, 67, 45, 99<span style="color: #000000;">};
+        System.out.println(</span>"原数组："<span style="color: #000000;">);
+        </span><span style="color: #0000ff;">for</span> (<span style="color: #0000ff;">int</span><span style="color: #000000;"> i : array){
+            System.out.print(i</span>+" "<span style="color: #000000;">);
+        }
+        System.out.println();
+        SelectionSort(array);
+        System.out.println(</span>"排序后："<span style="color: #000000;">);
+        </span><span style="color: #0000ff;">for</span> (<span style="color: #0000ff;">int</span><span style="color: #000000;"> i : array){
+            System.out.print(i</span>+" "<span style="color: #000000;">);
+        }
+
+    }
+
+    </span><span style="color: #0000ff;">public</span> <span style="color: #0000ff;">static</span> <span style="color: #0000ff;">void</span> SelectionSort(<span style="color: #0000ff;">int</span><span style="color: #000000;"> arr[]){
+        </span><span style="color: #0000ff;">for</span> (<span style="color: #0000ff;">int</span> i=0;i&lt;arr.length-1;i++<span style="color: #000000;">){
+            </span><span style="color: #0000ff;">int</span> min =<span style="color: #000000;"> i;
+            </span><span style="color: #0000ff;">for</span> (<span style="color: #0000ff;">int</span> j=i+1;j&lt;arr.length-1;j++<span style="color: #000000;">){
+                </span><span style="color: #0000ff;">if</span> (arr[j]&lt;<span style="color: #000000;">arr[min]){
+                    min</span>=<span style="color: #000000;">j;
+                }
+            }
+            </span><span style="color: #0000ff;">if</span> (min!=<span style="color: #000000;">i){
+                swap(arr,i,min);
+            }
+        }
+    }
+
+    </span><span style="color: #0000ff;">public</span> <span style="color: #0000ff;">static</span> <span style="color: #0000ff;">void</span> swap(<span style="color: #0000ff;">int</span> arr[],<span style="color: #0000ff;">int</span> a,<span style="color: #0000ff;">int</span><span style="color: #000000;"> b){
+        </span><span style="color: #0000ff;">int</span> temp=<span style="color: #000000;">arr[a];
+        arr[a] </span>=<span style="color: #000000;"> arr[b];
+        arr[b] </span>=<span style="color: #000000;"> temp;
+    }
+}</span></code></pre>
+
+<p>&nbsp;</p>
+
+</div><hr><script charset='utf-8' src='../../js/sming.js'></script></body></html>

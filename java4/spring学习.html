@@ -1,0 +1,404 @@
+<html><head><meta charset='utf-8'><meta name='viewport' content='width=device-width, initial-scale=1'>
+<meta name='applicable-device' content='pc'><meta name='keywords' content='电脑,电脑讲解,电脑技术,编程,电脑故障维修spring学习' />
+<script src='../../highlight/highlight.pack.js'></script>
+<link rel='stylesheet' type='text/css' href='../../highlight/styles/monokai.css'/>
+
+<link rel='stylesheet' href='../../fenxiang/dist/css/share.min.css'>
+<script src='../../fenxiang/src/js/social-share.js'></script>
+<script src='../../fenxiang/src/js/qrcode.js'></script>
+
+</head><body><script>hljs.initHighlightingOnLoad();</script><script>
+var system ={};  
+var p = navigator.platform;       
+system.win = p.indexOf('Win') == 0;  
+system.mac = p.indexOf('Mac') == 0;  
+system.x11 = (p == 'X11') || (p.indexOf('Linux') == 0);     
+if(system.win||system.mac||system.xll){
+document.write("<link href='../css/3.css' rel='stylesheet' type='text/css'>");}else{ document.write("<link href='../css/3wap.css' rel='stylesheet' type='text/css'>");}</script><script src='../../js/3.js'></script><div class='div2'><div class='heading_nav'><ul><div><li><a href='../../index.html'>首页</a></li>
+</div><div onclick='hidden1()' >分享</div>
+</ul></div></div>
+<div id='heading_nav2'> 
+<li class='row' >
+<div class='social-share' data-mode='prepend'><a href='javascript:' class='social-share-icon icon-heart'></a></div></li></div><script charset='utf-8' src='../../3/js/hengfu.js'></script><script charset='utf-8' src='../../3/js/hengfu2.js'></script><hr><div class='div1'><div class='biaoti'><center>spring学习</center></div><div class='banquan'>原文出处:本文由博客园博主lookroot提供。<br/>
+原文连接:https://www.cnblogs.com/lookroot/p/11609689.html</div><br>
+    <h1 id="spring基础">spring基础</h1>
+<blockquote>
+<p>Spring是一个开放源代码的设计层面框架，他解决的是业务逻辑层和其他各层的松耦合问题，因此它将面向接口的编程思想贯穿整个系统应用</p>
+</blockquote>
+<h2 id="ioc控制反转">IOC控制反转</h2>
+<p>把创建对象和维护对象之间的关系权利转交给spring管理，spring容器控制对象的创建，注入需要注入的对象</p>
+<h2 id="aop面向切面编程">aop面向切面编程</h2>
+<blockquote>
+<p>通过预编译方式和运行期动态代理实现程序功能的统一维护的一种技术</p>
+</blockquote>
+<p>隔离业务逻辑，降低耦合度，提高可用性和开发效率，主要用于日志记录，事务管理，异常处理等等</p>
+<h2 id="模块化">模块化</h2>
+<p>3.0版本后，根据需要引入模块需要的包，进行模块开发<br />
+<img src="./images/spring学习0.png" alt="image.png" /></p>
+<h2 id="小demo">小demo</h2>
+<h3 id="测试配置文件">测试配置文件</h3>
+<p>创建对象</p>
+<pre><code><code>@Data
+public class Person {
+    private String name;
+}</code></code></pre>
+<p>创建配置文件,为了方便测试放在同级目录下</p>
+<pre class="xml"><code>&lt;?xml version=&quot;1.0&quot; encoding=&quot;UTF-8&quot;?&gt;
+&lt;beans xmlns=&quot;http://www.springframework.org/schema/beans&quot;
+       xmlns:xsi=&quot;http://www.w3.org/2001/XMLSchema-instance&quot;
+       xsi:schemaLocation=&quot;http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd&quot;&gt;
+    &lt;bean id=&quot;person&quot; class=&quot;top.lzxw.demo01.Person&quot; name=&quot;person&quot;&gt;
+    &lt;/bean&gt;
+&lt;/beans&gt;</code></code></pre>
+<p>创建测试方法</p>
+<pre><code><code>public class SpringDemoTest {
+    @Test
+    public void tes01() {
+        //实例化管理对象
+        ClassPathResource resource = new ClassPathResource(&quot;/top/lzxw/demo01/spring-config.xml&quot;);
+        XmlBeanFactory factory = new XmlBeanFactory(resource);
+        //1根据id创建
+        Person u = (Person) factory.getBean(&quot;person&quot;);
+        u.setName(&quot;lili&quot;);
+        System.out.println(u);
+    }
+}</code></code></pre>
+<h2 id="三种获取实例化的方式上面已经写了一种">三种获取实例化的方式，上面已经写了一种</h2>
+<pre><code><code>         //2根据name和class
+        Person person = factory.getBean(&quot;person2&quot;, Person.class);
+        person.setName(&quot;lili&quot;);
+        //3直接根据字节码 但是配置文件必须唯一,一个对象配置多个bean的话，spring会无法选择
+        Person bean = factory.getBean(Person.class);
+        System.out.println(person);
+        </code></code></pre>
+<h2 id="application和beanfactory">Application和BeanFactory</h2>
+<ol>
+<li>创建对象的时机是
+<ul>
+<li>ApplicationContext在创建工厂的时候就会把bean实例化，优先加载</li>
+<li>BeanFactory使用对象时才会实例化</li>
+</ul></li>
+<li>关系
+<ul>
+<li>ApplicationContext实现BeanFactory</li>
+<li>ApplicationContext更强大</li>
+</ul></li>
+<li>ApplicationContext实现懒加载
+<ul>
+<li>全局：default-lazy-init=&quot;true&quot;</li>
+<li><p>单独节点： lazy-init=&quot;true&quot;</p>
+<h2 id="spring测试">spring测试</h2>
+<blockquote>
+<p>spring测试可以在不启动spring项目情况下进行单元测试</p>
+</blockquote></li>
+</ul></li>
+</ol>
+<pre><code><code>@ContextConfiguration(&quot;spring-config.xml&quot;)
+@RunWith(SpringJUnit4ClassRunner.class)
+public class SpringTest {
+    @Autowired
+    Person person;
+
+    @Test
+    public void test() {
+        person.setName(&quot;lili&quot;);
+        System.out.println(person);
+    }
+}</code></code></pre>
+<h2 id="singletonandprototype">singletonAndprototype</h2>
+<pre class="xml"><code>    &lt;bean id=&quot;person&quot; class=&quot;top.lzxw.singletonAndprototype.Person&quot; scope=&quot;prototype&quot;/&gt;
+</code></code></pre>
+<p>scope prototype多例 singleton单例</p>
+<pre><code><code>public class SpringTest {
+    @Test
+    public void test() {
+        ApplicationContext ac=new ClassPathXmlApplicationContext(&quot;top/lzxw/singletonAndprototype/spring-config.xml&quot;);
+        Person person1= (Person) ac.getBean(&quot;person&quot;);
+        Person person2= (Person) ac.getBean(&quot;person&quot;);
+        //单例的话就是同一个对象
+        System.out.println(person1==person2);//true
+    }
+}</code></code></pre>
+<h2 id="bean与bean之间的关系">bean与bean之间的关系</h2>
+<h3 id="继承">继承</h3>
+<ol>
+<li>通过parent指定继承</li>
+<li>有abstract属性的bean不能被实例化</li>
+<li><p>子bean可以覆盖父bean</p>
+<h3 id="依赖">依赖</h3></li>
+<li>可以通过depends-on=&quot;其他beani定依赖关系</li>
+<li>如果依赖了abstract的bean也不能实例化</li>
+</ol>
+<pre class="xml"><code> &lt;!--  模板bean  --&gt;
+    &lt;bean id=&quot;p&quot; class=&quot;top.lzxw.beanAndBean.Person&quot; abstract=&quot;true&quot;&gt;
+        &lt;property name=&quot;name&quot; value=&quot;张三&quot;&gt;&lt;/property&gt;
+    &lt;/bean&gt;
+    &lt;bean id=&quot;person&quot; class=&quot;top.lzxw.beanAndBean.Person&quot; parent=&quot;p&quot;/&gt;
+    &lt;bean id=&quot;person2&quot; class=&quot;top.lzxw.beanAndBean.Person&quot; parent=&quot;p&quot;&gt;
+        &lt;property name=&quot;name&quot; value=&quot;子覆盖了&quot;&gt;&lt;/property&gt;
+    &lt;/bean&gt;</code></code></pre>
+<pre><code><code>    @Test
+    public void test() {
+        ApplicationContext ac=new ClassPathXmlApplicationContext(&quot;top/lzxw/beanAndBean/spring-config.xml&quot;);
+        Person person= (Person) ac.getBean(&quot;person&quot;);
+        System.out.println(person);
+        Person person2= (Person) ac.getBean(&quot;person2&quot;);
+        System.out.println(person2);
+    }</code></code></pre>
+<h2 id="生命周期">生命周期</h2>
+<h3 id="基本声明周期">基本声明周期</h3>
+<pre><code><code>  &lt;!--  生命周期
+      构造方法
+      getset
+      init-method 初始化
+      destroy-method 销毁
+      --&gt;
+    &lt;bean id=&quot;person&quot; class=&quot;top.lzxw.beancycle.Person&quot; init-method=&quot;init&quot; destroy-method=&quot;destory&quot;/&gt;</code></code></pre>
+<pre><code><code></code></code></pre>
+<p>bean</p>
+<pre><code><code>@Data
+public class Person {
+    private String name;
+    public Person() {
+        System.out.println(&quot;构造方法调用了&quot;);
+    }
+
+    private void init() {
+        System.out.println(&quot;--init--&quot;);
+    }
+
+    private void destory() {
+        System.out.println(&quot;--destory--&quot;);
+    }
+}</code></code></pre>
+<h2 id="补充周期">补充周期</h2>
+<pre class="xml"><code> &lt;!--
+        实现BeanPostProcessor 细致的声明周期
+        postProcessBeforeInitialization 初始化方法之前
+        postProcessAfterInitialization 初始化方法之后
+    --&gt;
+    &lt;bean id=&quot;personBeanPostProcessor&quot; class=&quot;top.lzxw.beancycle.PersonBeanPostProcessor&quot;/&gt;</code></code></pre>
+<p>实现接口</p>
+<pre><code><code>public class PersonBeanPostProcessor implements BeanPostProcessor {
+    @Override
+    public Object postProcessBeforeInitialization(Object o, String s) throws BeansException {
+        System.out.println(&quot;postProcessBeforeInitialization&quot;);
+        return o;
+    }
+
+    @Override
+    public Object postProcessAfterInitialization(Object o, String s) throws BeansException {
+        System.out.println(&quot;postProcessAfterInitialization&quot;);
+        return o;
+    }
+}</code></code></pre>
+<p>测试</p>
+<pre><code><code>    @Test
+    public void test() {
+        ClassPathXmlApplicationContext ca=new ClassPathXmlApplicationContext(&quot;top/lzxw/beancycle/spring-config.xml&quot;);
+        Person person= (Person) ca.getBean(&quot;person&quot;);
+        ca.close();
+    }</code></code></pre>
+<h1 id="注入测试">注入测试</h1>
+<h2 id="spring原生注入方式实现三层架构">spring原生注入方式实现三层架构</h2>
+<p>dao</p>
+<pre><code><code>public class TestDao {
+    public int add() {
+        return 1;
+    }
+}</code></code></pre>
+<p>service</p>
+<pre><code><code>public interface TestService {
+    String add();
+}</code></code></pre>
+<pre><code><code>@Data
+public class TestServiceImpl implements TestService {
+    private TestDao testDao;
+
+    @Override
+    public String add() {
+        return testDao.add()==1?&quot;添加成功&quot;:&quot;添加失败&quot;;
+    }
+}</code></code></pre>
+<p>controller</p>
+<pre><code><code>@Data
+public class TestController {
+    private TestService testService;
+
+    public String add() {
+        return testService.add();
+    }
+}</code></code></pre>
+<p>配置文件</p>
+<pre class="xml"><code>&lt;beans xmlns=&quot;http://www.springframework.org/schema/beans&quot;
+       xmlns:xsi=&quot;http://www.w3.org/2001/XMLSchema-instance&quot;
+       xsi:schemaLocation=&quot;http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd&quot;&gt;
+    &lt;!--   set注入 --&gt;
+    &lt;bean id=&quot;testController&quot; class=&quot;top.lzxw._01.controller.TestController&quot;&gt;
+        &lt;property name=&quot;testService&quot; ref=&quot;testService&quot;/&gt;
+    &lt;/bean&gt;
+    &lt;bean id=&quot;testService&quot; class=&quot;top.lzxw._01.service.impl.TestServiceImpl&quot;&gt;
+        &lt;property name=&quot;testDao&quot; ref=&quot;testDao&quot;/&gt;
+    &lt;/bean&gt;
+    &lt;bean id=&quot;testDao&quot; class=&quot;top.lzxw._01.dao.TestDao&quot;&gt;&lt;/bean&gt;
+&lt;/beans&gt;</code></code></pre>
+<p>test</p>
+<pre><code><code>@RunWith(SpringJUnit4ClassRunner.class)
+@ContextConfiguration(&quot;/spring-config.xml&quot;)
+public class MyTest {
+    @Autowired
+    private TestController testController;
+
+    @Test
+    public void test01() {
+        String result = testController.add();
+        System.out.println(result);
+    }
+}
+</code></code></pre>
+<p>测试结果</p>
+<p><img src="1FD1587E4597451CAC2058213434531C" alt="image" /></p>
+<h2 id="注入basicdatasource">注入BasicDataSource</h2>
+<pre class="xml"><code>&lt;beans xmlns=&quot;http://www.springframework.org/schema/beans&quot;
+       xmlns:xsi=&quot;http://www.w3.org/2001/XMLSchema-instance&quot;
+       xmlns:context=&quot;http://www.springframework.org/schema/context&quot;
+       xsi:schemaLocation=&quot; http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd
+       http://www.springframework.org/schema/context
+       http://www.springframework.org/schema/context/spring-context-4.2.xsd
+&quot;&gt;
+    &lt;context:property-placeholder location=&quot;classpath:db.properties&quot;/&gt;
+    &lt;!-- 配置一个DBCP的Bean --&gt;
+    &lt;bean name=&quot;dateSource&quot; class=&quot;org.apache.commons.dbcp.BasicDataSource&quot;
+          destroy-method=&quot;close&quot;&gt;
+        &lt;!-- 注意：这里我们不是使用的ref引用，而是直接写的value，因此注入的数据是一个变通的值 --&gt;
+        &lt;property name=&quot;driverClassName&quot; value=&quot;${jdbc.driver}&quot;/&gt;
+        &lt;property name=&quot;url&quot; value=&quot;${jdbc.url}&quot;/&gt;
+        &lt;property name=&quot;username&quot; value=&quot;${jdbc.username}&quot;/&gt;
+        &lt;property name=&quot;password&quot; value=&quot;${jdbc.password}&quot;/&gt;
+    &lt;/bean&gt;
+
+&lt;/beans&gt;</code></code></pre>
+<p>db.properties</p>
+<pre><code><code>jdbc.driver=com.mysql.cj.jdbc.Driver
+jdbc.url=jdbc:mysql://localhost:3306/jdbcwork?useSSL=false&amp;serverTimezone=UTC
+jdbc.username=xxx
+jdbc.password=xxx</code></code></pre>
+<p>测试</p>
+<pre><code><code>@RunWith(SpringJUnit4ClassRunner.class)
+@ContextConfiguration(&quot;spring-config.xml&quot;)
+public class DataSourceTest {
+    @Autowired
+    BasicDataSource basicDataSource;
+
+    @Test
+    public void test01() {
+        try {
+            Connection connection = basicDataSource.getConnection();
+            connection.close();
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+    }
+}</code></code></pre>
+<p>无报错测试通过</p>
+<h2 id="其他注入">其他注入</h2>
+<pre><code><code>@Data
+@AllArgsConstructor
+@NoArgsConstructor
+public class Person {
+    private String username;
+    private Car car;
+    private String[] strings;
+    private List&lt;String&gt; list;
+    private Set&lt;String&gt; set;
+    private List&lt;Wife&gt; wifeList;
+    private Properties p1;
+    private Properties p2;
+}</code></code></pre>
+<pre class="xml"><code>&lt;beans xmlns=&quot;http://www.springframework.org/schema/beans&quot;
+       xmlns:xsi=&quot;http://www.w3.org/2001/XMLSchema-instance&quot; xmlns:util=&quot;http://www.springframework.org/schema/util&quot;
+       xsi:schemaLocation=&quot;http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd http://www.springframework.org/schema/util http://www.springframework.org/schema/util/spring-util.xsd&quot;&gt;
+    &lt;!--  外部bean注入  --&gt;
+    &lt;bean id=&quot;car&quot; class=&quot;top.lzxw._05other.Car&quot;&gt;
+        &lt;property name=&quot;price&quot; value=&quot;1.0&quot;/&gt;
+        &lt;property name=&quot;type&quot; value=&quot;bwm&quot;/&gt;
+    &lt;/bean&gt;
+    &lt;bean id=&quot;person&quot; class=&quot;top.lzxw._05other.Person&quot;&gt;
+        &lt;property name=&quot;username&quot; value=&quot;张三&quot;/&gt;
+        &lt;property name=&quot;car&quot; ref=&quot;car&quot;/&gt;
+    &lt;/bean&gt;
+    &lt;!--  内部bean定义  --&gt;
+    &lt;bean id=&quot;person2&quot; class=&quot;top.lzxw._05other.Person&quot;&gt;
+        &lt;property name=&quot;username&quot; value=&quot;张三&quot;/&gt;
+        &lt;property name=&quot;car&quot;&gt;
+            &lt;bean class=&quot;top.lzxw._05other.Car&quot;&gt;
+                &lt;property name=&quot;price&quot; value=&quot;1.0&quot;/&gt;
+                &lt;property name=&quot;type&quot; value=&quot;bwm&quot;/&gt;
+            &lt;/bean&gt;
+        &lt;/property&gt;
+    &lt;/bean&gt;
+    &lt;!--  其他类型的注入  --&gt;
+    &lt;bean id=&quot;person3&quot; class=&quot;top.lzxw._05other.Person&quot;&gt;
+        &lt;property name=&quot;username&quot; value=&quot;张三&quot;/&gt;
+        &lt;property name=&quot;car&quot;&gt;
+            &lt;bean class=&quot;top.lzxw._05other.Car&quot;&gt;
+                &lt;property name=&quot;price&quot; value=&quot;1.0&quot;/&gt;
+                &lt;property name=&quot;type&quot; value=&quot;bwm&quot;/&gt;
+            &lt;/bean&gt;
+        &lt;/property&gt;
+        &lt;!--    数组    --&gt;
+        &lt;property name=&quot;strings&quot; value=&quot;lili,keke&quot;/&gt;
+        &lt;!--    集合    --&gt;
+        &lt;property name=&quot;list&quot;&gt;
+            &lt;list&gt;
+                &lt;value&gt;1&lt;/value&gt;
+                &lt;value&gt;2&lt;/value&gt;
+                &lt;value&gt;3&lt;/value&gt;
+            &lt;/list&gt;
+        &lt;/property&gt;
+        &lt;!--    set    --&gt;
+        &lt;property name=&quot;set&quot;&gt;
+            &lt;set&gt;
+                &lt;value&gt;k&lt;/value&gt;
+                &lt;value&gt;e&lt;/value&gt;
+                &lt;value&gt;w&lt;/value&gt;
+            &lt;/set&gt;
+        &lt;/property&gt;
+        &lt;!--    泛型    --&gt;
+        &lt;property name=&quot;wifeList&quot;&gt;
+            &lt;list&gt;
+                &lt;bean class=&quot;top.lzxw._05other.Wife&quot;&gt;
+                    &lt;property name=&quot;username&quot; value=&quot;lili&quot;/&gt;
+                &lt;/bean&gt;
+            &lt;/list&gt;
+        &lt;/property&gt;
+        &lt;!--    Properties注入--&gt;
+        &lt;property name=&quot;p1&quot;&gt;
+            &lt;value&gt;proKey1=proValue1&lt;/value&gt;
+        &lt;/property&gt;
+        &lt;property name=&quot;p2&quot;&gt;
+            &lt;props&gt;
+                &lt;prop key=&quot;键1&quot;&gt;值1&lt;/prop&gt;
+            &lt;/props&gt;
+        &lt;/property&gt;
+    &lt;/bean&gt;
+&lt;/beans&gt;</code></code></pre>
+<p>测试</p>
+<pre><code><code>public class OtherTest {
+    @Test
+    public void test01() {
+        ApplicationContext ac=new ClassPathXmlApplicationContext(&quot;/top/lzxw/_05other/spring-config.xml&quot;);
+        Person person= (Person) ac.getBean(&quot;person&quot;);
+        Person person2= (Person) ac.getBean(&quot;person2&quot;);
+        Person person3= (Person) ac.getBean(&quot;person3&quot;);
+        System.out.println(person);
+        System.out.println(person2);
+        System.out.println(person3);
+    }
+}</code></code></pre>
+<blockquote>
+<p>关注<a href="https://www.lzxw.top/">我的个人博客林中小屋</a></p>
+</blockquote>
+
+
+</div><hr><script charset='utf-8' src='../../js/sming.js'></script></body></html>

@@ -1,0 +1,85 @@
+<html><head><meta charset='utf-8'><meta name='viewport' content='width=device-width, initial-scale=1'>
+<meta name='applicable-device' content='pc'><meta name='keywords' content='电脑,电脑讲解,电脑技术,编程,电脑故障维修Maven安装和在IDEA配置Maven' />
+<script src='../../highlight/highlight.pack.js'></script>
+<link rel='stylesheet' type='text/css' href='../../highlight/styles/monokai.css'/>
+
+<link rel='stylesheet' href='../../fenxiang/dist/css/share.min.css'>
+<script src='../../fenxiang/src/js/social-share.js'></script>
+<script src='../../fenxiang/src/js/qrcode.js'></script>
+
+</head><body><script>hljs.initHighlightingOnLoad();</script><script>
+var system ={};  
+var p = navigator.platform;       
+system.win = p.indexOf('Win') == 0;  
+system.mac = p.indexOf('Mac') == 0;  
+system.x11 = (p == 'X11') || (p.indexOf('Linux') == 0);     
+if(system.win||system.mac||system.xll){
+document.write("<link href='../css/3.css' rel='stylesheet' type='text/css'>");}else{ document.write("<link href='../css/3wap.css' rel='stylesheet' type='text/css'>");}</script><script src='../../js/3.js'></script><div class='div2'><div class='heading_nav'><ul><div><li><a href='../../index.html'>首页</a></li>
+</div><div onclick='hidden1()' >分享</div>
+</ul></div></div>
+<div id='heading_nav2'> 
+<li class='row' >
+<div class='social-share' data-mode='prepend'><a href='javascript:' class='social-share-icon icon-heart'></a></div></li></div><script charset='utf-8' src='../../3/js/hengfu.js'></script><script charset='utf-8' src='../../3/js/hengfu2.js'></script><hr><div class='div1'><div class='biaoti'><center>Maven安装和在IDEA配置Maven</center></div><div class='banquan'>原文出处:本文由博客园博主Lemon-青柠提供。<br/>
+原文连接:https://www.cnblogs.com/one-smile/p/11731341.html</div><br>
+    <p><span style="font-size: 18px; font-family: 'Microsoft YaHei';"><strong>一、Windows安装Maven</strong></span></p>
+<p><strong>　　1、下载Maven</strong></p>
+<p>　　　　这里需要注意：不要去官网下载最新的版本，因为会出现与IDEA不兼容的现象。</p>
+<p>　　　　这里提供下载地址：<a href="https://archive.apache.org/dist/maven/maven-3/">https://archive.apache.org/dist/maven/maven-3/</a></p>
+<p>　　　　由于现在最新的是3.6.2，所以这里我下载它之前的一个版本3.6.1，选择bin.zip文件下载即可。</p>
+<p>&nbsp;</p>
+<p><img src="./images/Maven安装和在IDEA配置Maven0.png" alt="" width="999" height="357" /></p>
+<p>&nbsp;　　　　*******<span style="background-color: #00ff00;">下载完后解压到本地，可以存放到任意目录 (最好不要放在C盘，然后要养成不起中文路径的好习惯)*</span>********</p>
+<p>&nbsp;</p>
+<p>　　<strong>2、设置系统的环境变量</strong></p>
+<p>　　　　（1）新建环境变量MAVEN_HOME，赋值刚才解压后存放的根目录；</p>
+<p>　　　　（2）然后编辑环境变量Path，点击&ldquo;新建&rdquo;，然后添加：<strong><span style="color: #ff0000;">%MAVEN_HOME%\bin;&nbsp;</span></strong></p>
+<p>　　　　（3）至此，maven已经完成了安装，可以通过DOS命令检查一下我们是否安装成功。</p>
+<p>　　　　打开命令提示符（cmd），输入：<strong><span style="color: #ff0000;">mvn -v</span></strong>，显示下面结果，表示maven已经安装成功。</p>
+<p><img src="./images/Maven安装和在IDEA配置Maven1.png" alt="" width="965" height="260" /></p>
+<p>&nbsp;</p>
+<p>　<strong>　3、配置本地仓库</strong></p>
+<p>　　　　maven解压后，可以修改maven中的配置文件，由于默认的maven仓库是指向到C盘的，因为每次我们引用一个新的依赖，就会将依赖包，</p>
+<p>　　　　下载到我们本地maven指向的位置，所以如果有需要，可以修改为自己想存放的位置。</p>
+<p>　　　　（1）打开maven根目录下的conf文件夹，然后编辑里面的<span style="color: #ff0000;">settings.xml</span>文件。</p>
+<p>　　　　　首先创建一个空文件夹，用作Maven的本地仓库，这样以后的所有的依赖都会存储到这个仓库里。</p>
+<p>　　　　　然后在配置文件settings.xml文件里添加如下代码，指定本地仓库的位置。</p>
+<src class="cnblogs_Highlighter">
+<pre><code>	&lt;!-- 下面是自己设置的本地仓库位置 --&gt;
+	<span style="color: #ff0000;">&lt;localRepository&gt;D:\SoftwaresFiles\Java\Maven_Local&lt;/localRepository&gt;
+</span></code></pre>
+
+<p>　　　　</p>
+<p>　　　　（2）接着添加Maven的依赖下载镜像，这里用阿里云镜像。</p>
+<p>&nbsp;　　　　（注意：阿里云镜像地址跟以往的下载地址不一样，所以要更改下载的路径，否则不成功）</p>
+<src class="cnblogs_Highlighter">
+<pre><code>&lt;mirror&gt;
+    &lt;id&gt;alimaven&lt;/id&gt;
+    &lt;name&gt;aliyun maven&lt;/name&gt;
+    &lt;url&gt;https://maven.aliyun.com/repository/grails-core&lt;/url&gt;
+    &lt;mirrorOf&gt;central&lt;/mirrorOf&gt;
+&lt;/mirror&gt;
+</code></pre>
+
+<p>　　</p>
+<p>　　　　查看效果如下：</p>
+<p><img src="./images/Maven安装和在IDEA配置Maven2.png" alt="" width="986" height="538" /></p>
+<p>&nbsp;</p>
+<p>　　　　（3）添加完后，保存settings.xml，然后重新打开命令提示符（cmd），输入：<strong><span style="color: #ff0000;">mvn help:system</span></strong></p>
+<p><img src="./images/Maven安装和在IDEA配置Maven3.png" alt="" width="1137" height="567" /></p>
+<p>&nbsp;　　　　</p>
+<p>　　　　*********<span style="background-color: #00ff00;">出现以上页面，表示配置成功。（如果失败，很有可能是因为网络问题，重新打开cmd再操作一次即可。）</span>**********</p>
+<p>&nbsp;</p>
+<p>&nbsp;</p>
+<p><strong><span style="font-family: 'Microsoft YaHei'; font-size: 18px;">二、IDEA里配置Maven</span></strong></p>
+<p>&nbsp;</p>
+<p>　　打开IDEA，点击File-&gt;Settings，在搜索栏里输入Maven；</p>
+<p>　　然后修改Maven home directory: <span style="color: #ff0000;">D:\SoftwaresFiles\Java\apache-maven-3.6.1</span>（改为你解压后的Maven根目录地址）</p>
+<p>　　接着修改 User settings file:&nbsp;<span style="color: #ff0000;">&nbsp;D:\SoftwaresFiles\Java\apache-maven-3.6.1\conf\settings.xml&nbsp;</span> （改为你配置文件settings.xml的地址）</p>
+<p>　　Local repository 会被自动识别为 D:\WorkSpace\MavenRepository</p>
+<p><img src="./images/Maven安装和在IDEA配置Maven4.png" alt="" width="1287" height="816" /></p>
+<p>&nbsp;</p>
+<p>　　　　**********<span style="background-color: #00ff00;">这样，IDEA中的maven就准备好了，此时是使用本地库以及阿里云的镜像</span>**********</p>
+<p>　　　　**********<span style="background-color: #00ff00;">以后项目中在使用Maven时，会自动下载jar到本地仓库</span>**********</p>
+<p>&nbsp;</p>
+
+</div><hr><script charset='utf-8' src='../../js/sming.js'></script></body></html>

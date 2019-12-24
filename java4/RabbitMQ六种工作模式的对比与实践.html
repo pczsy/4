@@ -1,0 +1,1490 @@
+<html><head><meta charset='utf-8'><meta name='viewport' content='width=device-width, initial-scale=1'>
+<meta name='applicable-device' content='pc'><meta name='keywords' content='电脑,电脑讲解,电脑技术,编程,电脑故障维修RabbitMQ六种工作模式的对比与实践' />
+<script src='../../highlight/highlight.pack.js'></script>
+<link rel='stylesheet' type='text/css' href='../../highlight/styles/monokai.css'/>
+
+<link rel='stylesheet' href='../../fenxiang/dist/css/share.min.css'>
+<script src='../../fenxiang/src/js/social-share.js'></script>
+<script src='../../fenxiang/src/js/qrcode.js'></script>
+
+</head><body><script>hljs.initHighlightingOnLoad();</script><script>
+var system ={};  
+var p = navigator.platform;       
+system.win = p.indexOf('Win') == 0;  
+system.mac = p.indexOf('Mac') == 0;  
+system.x11 = (p == 'X11') || (p.indexOf('Linux') == 0);     
+if(system.win||system.mac||system.xll){
+document.write("<link href='../css/3.css' rel='stylesheet' type='text/css'>");}else{ document.write("<link href='../css/3wap.css' rel='stylesheet' type='text/css'>");}</script><script src='../../js/3.js'></script><div class='div2'><div class='heading_nav'><ul><div><li><a href='../../index.html'>首页</a></li>
+</div><div onclick='hidden1()' >分享</div>
+</ul></div></div>
+<div id='heading_nav2'> 
+<li class='row' >
+<div class='social-share' data-mode='prepend'><a href='javascript:' class='social-share-icon icon-heart'></a></div></li></div><script charset='utf-8' src='../../3/js/hengfu.js'></script><script charset='utf-8' src='../../3/js/hengfu2.js'></script><hr><div class='div1'><div class='biaoti'><center>RabbitMQ六种工作模式的对比与实践</center></div><div class='banquan'>原文出处:本文由博客园博主侧身左睡提供。<br/>
+原文连接:https://www.cnblogs.com/xyfer1018/p/11581511.html</div><br>
+    <p>最近学习RabbitMQ的使用方式，记录下来，方便以后使用，也方便和大家共享，相互交流。</p>
+<p>RabbitMQ的六种工作模式：</p>
+<p>1、Work queues<br />2、Publish/subscribe<br />3、Routing<br />4、Topics<br />5、Header 模式<br />6、RPC</p>
+<p>一、Work queues</p>
+<p>多个消费端消费同一个队列中的消息，队列采用轮询的方式将消息是平均发送给消费者；</p>
+<p><img src="./images/RabbitMQ六种工作模式的对比与实践0.png" alt="" /></p>
+<p>&nbsp;</p>
+<p>&nbsp;特点：</p>
+<p>1、一条消息只会被一个消费端接收；</p>
+<p>2、队列采用轮询的方式将消息是平均发送给消费者的；</p>
+<p>3、消费者在处理完某条消息后，才会收到下一条消息</p>
+<p>生产端：</p>
+<p>1、声明队列</p>
+<p>2、创建连接</p>
+<p>3、创建通道</p>
+<p>4、通道声明队列</p>
+<p>5、制定消息</p>
+<p>6、发送消息，使用默认交换机</p>
+<p>消费端：</p>
+<p>1、声明队列</p>
+<p>2、创建连接</p>
+<p>3、创建通道</p>
+<p>4、通道声明队列</p>
+<p>5、重写消息消费方法</p>
+<p>6、执行消息方法</p>
+<p>新建两个maven工程，生产消息的生产端，消费消息的消费端；</p>
+<p>pom.xml文件中依赖坐标如下：</p>
+<src class="cnblogs_code">
+<pre><code><span style="color: #0000ff;">&lt;</span><span style="color: #800000;">dependencies</span><span style="color: #0000ff;">&gt;</span>
+    <span style="color: #0000ff;">&lt;</span><span style="color: #800000;">dependency</span><span style="color: #0000ff;">&gt;</span>
+            <span style="color: #0000ff;">&lt;</span><span style="color: #800000;">groupId</span><span style="color: #0000ff;">&gt;</span>org.springframework.boot<span style="color: #0000ff;">&lt;/</span><span style="color: #800000;">groupId</span><span style="color: #0000ff;">&gt;</span>
+            <span style="color: #0000ff;">&lt;</span><span style="color: #800000;">artifactId</span><span style="color: #0000ff;">&gt;</span>spring-boot-starter-logging<span style="color: #0000ff;">&lt;/</span><span style="color: #800000;">artifactId</span><span style="color: #0000ff;">&gt;</span>
+            <span style="color: #0000ff;">&lt;</span><span style="color: #800000;">version</span><span style="color: #0000ff;">&gt;</span>2.1.0.RELEASE<span style="color: #0000ff;">&lt;/</span><span style="color: #800000;">version</span><span style="color: #0000ff;">&gt;</span>
+        <span style="color: #0000ff;">&lt;/</span><span style="color: #800000;">dependency</span><span style="color: #0000ff;">&gt;</span>
+        <span style="color: #0000ff;">&lt;</span><span style="color: #800000;">dependency</span><span style="color: #0000ff;">&gt;</span>
+            <span style="color: #0000ff;">&lt;</span><span style="color: #800000;">groupId</span><span style="color: #0000ff;">&gt;</span>com.rabbitmq<span style="color: #0000ff;">&lt;/</span><span style="color: #800000;">groupId</span><span style="color: #0000ff;">&gt;</span>
+            <span style="color: #0000ff;">&lt;</span><span style="color: #800000;">artifactId</span><span style="color: #0000ff;">&gt;</span>amqp-client<span style="color: #0000ff;">&lt;/</span><span style="color: #800000;">artifactId</span><span style="color: #0000ff;">&gt;</span>
+            <span style="color: #0000ff;">&lt;</span><span style="color: #800000;">version</span><span style="color: #0000ff;">&gt;</span>5.7.0<span style="color: #0000ff;">&lt;/</span><span style="color: #800000;">version</span><span style="color: #0000ff;">&gt;</span>
+        <span style="color: #0000ff;">&lt;/</span><span style="color: #800000;">dependency</span><span style="color: #0000ff;">&gt;</span>
+<span style="color: #0000ff;">&lt;/</span><span style="color: #800000;">dependencies</span><span style="color: #0000ff;">&gt;</span></code></pre>
+
+<p>&nbsp;生产端的代码如下：</p>
+<src class="cnblogs_code">
+<pre><code><span style="color: #0000ff;">package</span><span style="color: #000000;"> com.xyfer;
+
+</span><span style="color: #0000ff;">import</span><span style="color: #000000;"> com.rabbitmq.client.BuiltinExchangeType;
+</span><span style="color: #0000ff;">import</span><span style="color: #000000;"> com.rabbitmq.client.Channel;
+</span><span style="color: #0000ff;">import</span><span style="color: #000000;"> com.rabbitmq.client.Connection;
+</span><span style="color: #0000ff;">import</span><span style="color: #000000;"> com.rabbitmq.client.ConnectionFactory;
+
+
+</span><span style="color: #0000ff;">import</span><span style="color: #000000;"> java.io.IOException;
+</span><span style="color: #0000ff;">import</span><span style="color: #000000;"> java.util.concurrent.TimeoutException;
+</span><span style="color: #008000;">/*</span><span style="color: #008000;">
+1、声明队列
+2、创建连接
+3、创建通道
+4、通道声明队列
+5、制定消息
+6、发送消息，使用默认交换机
+</span><span style="color: #008000;">*/</span>
+<span style="color: #0000ff;">public</span> <span style="color: #0000ff;">class</span><span style="color: #000000;"> Producer02 {
+    </span><span style="color: #008000;">//</span><span style="color: #008000;">声明队列</span>
+    <span style="color: #0000ff;">private</span> <span style="color: #0000ff;">static</span> <span style="color: #0000ff;">final</span> String QUEUE ="queue"<span style="color: #000000;">;
+    </span><span style="color: #0000ff;">public</span> <span style="color: #0000ff;">static</span> <span style="color: #0000ff;">void</span><span style="color: #000000;"> main(String[] args) {
+        Connection connection </span>= <span style="color: #0000ff;">null</span><span style="color: #000000;">;
+        Channel channel </span>= <span style="color: #0000ff;">null</span><span style="color: #000000;">;
+        </span><span style="color: #0000ff;">try</span><span style="color: #000000;"> {
+            ConnectionFactory connectionFactory </span>= <span style="color: #0000ff;">new</span><span style="color: #000000;"> ConnectionFactory();
+            connectionFactory.setHost(</span>"127.0.0.1");<span style="color: #008000;">//</span><span style="color: #008000;">mq服务ip地址</span>
+            connectionFactory.setPort(5672);<span style="color: #008000;">//</span><span style="color: #008000;">mq client连接端口</span>
+            connectionFactory.setUsername("guest");<span style="color: #008000;">//</span><span style="color: #008000;">mq登录用户名</span>
+            connectionFactory.setPassword("guest");<span style="color: #008000;">//</span><span style="color: #008000;">mq登录密码</span>
+            connectionFactory.setVirtualHost("/");<span style="color: #008000;">//</span><span style="color: #008000;">rabbitmq默认虚拟机名称为&ldquo;/&rdquo;，虚拟机相当于一个独立的mq服务器
+            </span><span style="color: #008000;">//</span><span style="color: #008000;">创建与RabbitMQ服务的TCP连接</span>
+            connection =<span style="color: #000000;"> connectionFactory.newConnection();
+            </span><span style="color: #008000;">//</span><span style="color: #008000;">创建与Exchange的通道，每个连接可以创建多个通道，每个通道代表一个会话任务</span>
+            channel =<span style="color: #000000;"> connection.createChannel();
+
+            </span><span style="color: #008000;">//</span><span style="color: #008000;">通道绑定队列</span>
+            <span style="color: #008000;">/**</span><span style="color: #008000;">
+             * 声明队列，如果Rabbit中没有此队列将自动创建
+             * param1:队列名称
+             * param2:是否持久化
+             * param3:队列是否独占此连接
+             * param4:队列不再使用时是否自动删除此队列
+             * param5:队列参数
+             * String queue, boolean durable, boolean exclusive, boolean autoDelete, Map&lt;String, Object&gt; arguments
+             *
+             </span><span style="color: #008000;">*/</span><span style="color: #000000;">
+            channel.queueDeclare(QUEUE,</span><span style="color: #0000ff;">true</span>,<span style="color: #0000ff;">false</span>,<span style="color: #0000ff;">false</span>,<span style="color: #0000ff;">null</span>);<span style="color: #008000;">//</span><span style="color: #008000;">通道绑定邮件队列</span>
+
+            <span style="color: #0000ff;">for</span>(<span style="color: #0000ff;">int</span> i = 0;i&lt;10;i++<span style="color: #000000;">){
+                String message </span>= <span style="color: #0000ff;">new</span> String("mq 发送消息。。。"<span style="color: #000000;">);
+                </span><span style="color: #008000;">/**</span><span style="color: #008000;">
+     &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;*&nbsp;消息发布方法
+     &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;*&nbsp;param1：Exchange的名称，如果没有指定，则使用Default&nbsp;Exchange
+     &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;*&nbsp;param2:routingKey,消息的路由Key，是用于Exchange（交换机）将消息转发到指定的消息队列
+     &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;*&nbsp;param3:消息包含的属性
+     &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;*&nbsp;param4：消息体
+                 &nbsp;*&nbsp;这里没有指定交换机，消息将发送给默认交换机，每个队列也会绑定那个默认的交换机，但是不能显示绑定或解除绑定
+                 &nbsp;*&nbsp;默认的交换机，routingKey等于队列名称
+                 </span><span style="color: #008000;">*/</span>
+                <span style="color: #008000;">//</span><span style="color: #008000;">String exchange, String routingKey, BasicProperties props, byte[] body</span>
+                channel.basicPublish("",QUEUE,<span style="color: #0000ff;">null</span>,message.getBytes("utf-8"<span style="color: #000000;">));
+                System.out.println(</span>"mq消息发送成功！"<span style="color: #000000;">);
+            }
+        } </span><span style="color: #0000ff;">catch</span><span style="color: #000000;"> (Exception e) {
+            e.printStackTrace();
+        } </span><span style="color: #0000ff;">finally</span><span style="color: #000000;"> {
+            </span><span style="color: #0000ff;">try</span><span style="color: #000000;"> {
+                channel.close();
+            } </span><span style="color: #0000ff;">catch</span><span style="color: #000000;"> (IOException e) {
+                e.printStackTrace();
+            } </span><span style="color: #0000ff;">catch</span><span style="color: #000000;"> (TimeoutException e) {
+                e.printStackTrace();
+            }
+            </span><span style="color: #0000ff;">try</span><span style="color: #000000;"> {
+                connection.close();
+            } </span><span style="color: #0000ff;">catch</span><span style="color: #000000;"> (IOException e) {
+                e.printStackTrace();
+            }
+        }
+    }
+}</span></code></pre>
+
+<p>消费端的代码如下：</p>
+<src class="cnblogs_code">
+<pre><code><span style="color: #0000ff;">package</span><span style="color: #000000;"> com.xyfer;
+
+</span><span style="color: #0000ff;">import</span> com.rabbitmq.client.*<span style="color: #000000;">;
+
+</span><span style="color: #0000ff;">import</span><span style="color: #000000;"> java.io.IOException;
+</span><span style="color: #0000ff;">import</span><span style="color: #000000;"> java.util.concurrent.TimeoutException;
+</span><span style="color: #008000;">/*</span><span style="color: #008000;">
+1、声明队列
+2、创建连接
+3、创建通道
+4、通道声明队列
+5、重写消息消费方法
+6、执行消息方法
+</span><span style="color: #008000;">*/</span>
+<span style="color: #0000ff;">public</span> <span style="color: #0000ff;">class</span><span style="color: #000000;"> Consumer02 {
+    </span><span style="color: #0000ff;">private</span> <span style="color: #0000ff;">static</span> <span style="color: #0000ff;">final</span> String QUEUE ="queue"<span style="color: #000000;">;
+    </span><span style="color: #0000ff;">public</span> <span style="color: #0000ff;">static</span> <span style="color: #0000ff;">void</span><span style="color: #000000;"> main(String[] args) {
+        Connection connection </span>= <span style="color: #0000ff;">null</span><span style="color: #000000;">;
+        Channel channel </span>= <span style="color: #0000ff;">null</span><span style="color: #000000;">;
+        </span><span style="color: #0000ff;">try</span><span style="color: #000000;"> {
+            ConnectionFactory connectionFactory </span>= <span style="color: #0000ff;">new</span><span style="color: #000000;"> ConnectionFactory();
+            connectionFactory.setHost(</span>"127.0.0.1"<span style="color: #000000;">);
+            connectionFactory.setPort(</span>5672<span style="color: #000000;">);
+            connection </span>=<span style="color: #000000;"> connectionFactory.newConnection();
+            channel </span>=<span style="color: #000000;"> connection.createChannel();
+            </span><span style="color: #008000;">//</span><span style="color: #008000;">通道绑定队列</span>
+            <span style="color: #008000;">/**</span><span style="color: #008000;">
+             * 声明队列，如果Rabbit中没有此队列将自动创建
+             * param1:队列名称
+             * param2:是否持久化
+             * param3:队列是否独占此连接
+             * param4:队列不再使用时是否自动删除此队列
+             * param5:队列参数
+             * String queue, boolean durable, boolean exclusive, boolean autoDelete, Map&lt;String, Object&gt; arguments
+             *
+             </span><span style="color: #008000;">*/</span><span style="color: #000000;">
+            channel.queueDeclare(QUEUE,</span><span style="color: #0000ff;">true</span>,<span style="color: #0000ff;">false</span>,<span style="color: #0000ff;">false</span>,<span style="color: #0000ff;">null</span>);<span style="color: #008000;">//</span><span style="color: #008000;">通道绑定邮件队列
+
+            </span><span style="color: #008000;">//</span><span style="color: #008000;">String consumerTag, Envelope envelope, BasicProperties properties, byte[] body</span>
+            DefaultConsumer consumer = <span style="color: #0000ff;">new</span><span style="color: #000000;"> DefaultConsumer(channel) {
+                </span><span style="color: #008000;">/**</span><span style="color: #008000;">
+     &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;*&nbsp;消费者接收消息调用此方法
+     &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;*&nbsp;</span><span style="color: #808080;">@param</span><span style="color: #008000;">&nbsp;consumerTag&nbsp;消费者的标签，在channel.basicConsume()去指定
+     &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;*&nbsp;</span><span style="color: #808080;">@param</span><span style="color: #008000;">&nbsp;envelope&nbsp;消息包的内容，可从中获取消息id，消息routingkey，交换机，消息和重传标志
+                    (收到消息失败后是否需要重新发送)
+     &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;*&nbsp;</span><span style="color: #808080;">@param</span><span style="color: #008000;">&nbsp;properties
+     &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;*&nbsp;</span><span style="color: #808080;">@param</span><span style="color: #008000;">&nbsp;body
+     &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;*&nbsp;</span><span style="color: #808080;">@throws</span><span style="color: #008000;">&nbsp;IOException
+                 * String consumerTag, Envelope envelope, BasicProperties properties, byte[] body
+                 </span><span style="color: #008000;">*/</span><span style="color: #000000;">
+                @Override
+                </span><span style="color: #0000ff;">public</span> <span style="color: #0000ff;">void</span> handleDelivery(String consumerTag, Envelope envelope, AMQP.BasicProperties properties, <span style="color: #0000ff;">byte</span>[] body) <span style="color: #0000ff;">throws</span><span style="color: #000000;"> IOException {
+                    </span><span style="color: #008000;">//</span><span style="color: #008000;">交换机</span>
+                    String exchange =<span style="color: #000000;"> envelope.getExchange();
+                    </span><span style="color: #008000;">//</span><span style="color: #008000;">路由key</span>
+                    String routingKey =<span style="color: #000000;"> envelope.getRoutingKey();
+                    envelope.getDeliveryTag();
+                    String msg </span>= <span style="color: #0000ff;">new</span> String(body,"utf-8"<span style="color: #000000;">);
+                    System.out.println(</span>"mq收到的消息是："+<span style="color: #000000;">msg );
+                }
+
+            };
+            System.out.println(</span>"消费者启动成功！"<span style="color: #000000;">);
+            channel.basicConsume(QUEUE,</span><span style="color: #0000ff;">true</span><span style="color: #000000;">,consumer);
+
+        } </span><span style="color: #0000ff;">catch</span><span style="color: #000000;"> (IOException e) {
+            e.printStackTrace();
+        } </span><span style="color: #0000ff;">catch</span><span style="color: #000000;"> (TimeoutException e) {
+            e.printStackTrace();
+        }
+    }
+}</span></code></pre>
+
+<p>生产端启动后，控制台打印信息如下：</p>
+<p><img src="./images/RabbitMQ六种工作模式的对比与实践1.png" alt="" /></p>
+<p>&nbsp;RabbitMQ中的已有消息：</p>
+<p><img src="./images/RabbitMQ六种工作模式的对比与实践2.png" alt="" /></p>
+<p>&nbsp;queue中的消息正是生产端发送的消息：</p>
+<p><img src="./images/RabbitMQ六种工作模式的对比与实践3.png" alt="" /></p>
+<p>&nbsp;二、Publish/subscribe 模式</p>
+<p>这种模式又称为发布订阅模式，相对于Work queues模式，该模式多了一个交换机，生产端先把消息发送到交换机，再由交换机把消息发送到绑定的队列中，每个绑定的队列都能收到由生产端发送的消息。</p>
+<p><img src="./images/RabbitMQ六种工作模式的对比与实践4.png" alt="" /></p>
+<p>发布订阅模式：</p>
+<p>1、每个消费者监听自己的队列；</p>
+<p>2、生产者将消息发给broker，由交换机将消息转发到绑定此交换机的每个队列，每个绑定交换机的队列都将接收<br />到消息</p>
+<p>应用场景：用户通知，当用户充值成功或转账完成系统通知用户，通知方式有短信、邮件多种方法；</p>
+<p>生产端：</p>
+<p>1、声明队列，声明交换机</p>
+<p>2、创建连接</p>
+<p>3、创建通道</p>
+<p>4、通道声明交换机</p>
+<p>5、通道声明队列</p>
+<p>6、通过通道使队列绑定到交换机</p>
+<p>7、制定消息</p>
+<p>8、发送消息</p>
+<p>消费端：</p>
+<p>1、声明队列，声明交换机</p>
+<p>2、创建连接</p>
+<p>3、创建通道</p>
+<p>4、通道声明交换机</p>
+<p>5、通道声明队列</p>
+<p>6、通过通道使队列绑定到交换机</p>
+<p>7、重写消息消费方法</p>
+<p>8、执行消息方法</p>
+<p>Publish/subscribe 模式绑定两个消费端，因此需要有两个消费端，一个邮件消费端，一个短信消费端；</p>
+<p>生产端的代码如下：</p>
+<src class="cnblogs_code">
+<pre><code><span style="color: #0000ff;">package</span><span style="color: #000000;"> com.xyfer;
+
+</span><span style="color: #0000ff;">import</span><span style="color: #000000;"> com.rabbitmq.client.BuiltinExchangeType;
+</span><span style="color: #0000ff;">import</span><span style="color: #000000;"> com.rabbitmq.client.Channel;
+</span><span style="color: #0000ff;">import</span><span style="color: #000000;"> com.rabbitmq.client.Connection;
+</span><span style="color: #0000ff;">import</span><span style="color: #000000;"> com.rabbitmq.client.ConnectionFactory;
+
+
+</span><span style="color: #0000ff;">import</span><span style="color: #000000;"> java.io.IOException;
+</span><span style="color: #0000ff;">import</span><span style="color: #000000;"> java.util.concurrent.TimeoutException;
+
+</span><span style="color: #0000ff;">public</span> <span style="color: #0000ff;">class</span><span style="color: #000000;"> Producer01 {
+    </span><span style="color: #008000;">//</span><span style="color: #008000;">声明两个队列和一个交换机
+    </span><span style="color: #008000;">//</span><span style="color: #008000;">Publish/subscribe发布订阅模式</span>
+    <span style="color: #0000ff;">private</span> <span style="color: #0000ff;">static</span> <span style="color: #0000ff;">final</span> String QUEUE_EMAIL ="queueEmail"<span style="color: #000000;">;
+    </span><span style="color: #0000ff;">private</span> <span style="color: #0000ff;">static</span> <span style="color: #0000ff;">final</span> String QUEUE_SMS ="queueSms"<span style="color: #000000;">;
+    </span><span style="color: #0000ff;">private</span> <span style="color: #0000ff;">static</span> <span style="color: #0000ff;">final</span> String EXCHANGE = "messageChange"<span style="color: #000000;">;
+    </span><span style="color: #0000ff;">public</span> <span style="color: #0000ff;">static</span> <span style="color: #0000ff;">void</span><span style="color: #000000;"> main(String[] args) {
+        Connection connection </span>= <span style="color: #0000ff;">null</span><span style="color: #000000;">;
+        Channel channel </span>= <span style="color: #0000ff;">null</span><span style="color: #000000;">;
+        </span><span style="color: #0000ff;">try</span><span style="color: #000000;"> {
+            ConnectionFactory connectionFactory </span>= <span style="color: #0000ff;">new</span><span style="color: #000000;"> ConnectionFactory();
+            connectionFactory.setHost(</span>"127.0.0.1");<span style="color: #008000;">//</span><span style="color: #008000;">mq服务ip地址</span>
+            connectionFactory.setPort(5672);<span style="color: #008000;">//</span><span style="color: #008000;">mq client连接端口</span>
+            connectionFactory.setUsername("guest");<span style="color: #008000;">//</span><span style="color: #008000;">mq登录用户名</span>
+            connectionFactory.setPassword("guest");<span style="color: #008000;">//</span><span style="color: #008000;">mq登录密码</span>
+            connectionFactory.setVirtualHost("/");<span style="color: #008000;">//</span><span style="color: #008000;">rabbitmq默认虚拟机名称为&ldquo;/&rdquo;，虚拟机相当于一个独立的mq服务器
+            </span><span style="color: #008000;">//</span><span style="color: #008000;">创建与RabbitMQ服务的TCP连接</span>
+            connection =<span style="color: #000000;"> connectionFactory.newConnection();
+            </span><span style="color: #008000;">//</span><span style="color: #008000;">创建与Exchange的通道，每个连接可以创建多个通道，每个通道代表一个会话任务</span>
+            channel =<span style="color: #000000;"> connection.createChannel();
+            </span><span style="color: #008000;">//</span><span style="color: #008000;">通道绑定交换机</span>
+            <span style="color: #008000;">/**</span><span style="color: #008000;">
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;*&nbsp;参数明细
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;*&nbsp;1、交换机名称
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;*&nbsp;2、交换机类型，fanout、topic、direct、headers
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span><span style="color: #008000;">*/</span>
+            <span style="color: #008000;">//</span><span style="color: #008000;">Publish/subscribe发布订阅模式</span>
+<span style="color: #000000;">            channel.exchangeDeclare(EXCHANGE, BuiltinExchangeType.FANOUT);
+            </span><span style="color: #008000;">//</span><span style="color: #008000;">通道绑定队列</span>
+            <span style="color: #008000;">/**</span><span style="color: #008000;">
+             * 声明队列，如果Rabbit中没有此队列将自动创建
+             * param1:队列名称
+             * param2:是否持久化
+             * param3:队列是否独占此连接
+             * param4:队列不再使用时是否自动删除此队列
+             * param5:队列参数
+             * String queue, boolean durable, boolean exclusive, boolean autoDelete, Map&lt;String, Object&gt; arguments
+             *
+             </span><span style="color: #008000;">*/</span><span style="color: #000000;">
+            channel.queueDeclare(QUEUE_EMAIL,</span><span style="color: #0000ff;">true</span>,<span style="color: #0000ff;">false</span>,<span style="color: #0000ff;">false</span>,<span style="color: #0000ff;">null</span>);<span style="color: #008000;">//</span><span style="color: #008000;">通道绑定邮件队列</span>
+            channel.queueDeclare(QUEUE_SMS,<span style="color: #0000ff;">true</span>,<span style="color: #0000ff;">false</span>,<span style="color: #0000ff;">false</span>,<span style="color: #0000ff;">null</span>);<span style="color: #008000;">//</span><span style="color: #008000;">通道绑定短信队列
+            </span><span style="color: #008000;">//</span><span style="color: #008000;">交换机和队列绑定</span>
+            <span style="color: #008000;">/**</span><span style="color: #008000;">
+             * 参数明细
+             * 1、队列名称
+             * 2、交换机名称
+             * 3、路由key
+             </span><span style="color: #008000;">*/</span>
+            <span style="color: #008000;">//</span><span style="color: #008000;">Publish/subscribe发布订阅模式</span>
+            channel.queueBind(QUEUE_EMAIL,EXCHANGE,""<span style="color: #000000;">);
+            channel.queueBind(QUEUE_SMS,EXCHANGE,</span>""<span style="color: #000000;">);
+            </span><span style="color: #0000ff;">for</span>(<span style="color: #0000ff;">int</span> i = 0;i&lt;10;i++<span style="color: #000000;">){
+                String message </span>= <span style="color: #0000ff;">new</span> String("mq 发送消息。。。"<span style="color: #000000;">);
+                </span><span style="color: #008000;">/**</span><span style="color: #008000;">
+     &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;*&nbsp;消息发布方法
+     &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;*&nbsp;param1：Exchange的名称，如果没有指定，则使用Default&nbsp;Exchange
+     &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;*&nbsp;param2:routingKey,消息的路由Key，是用于Exchange（交换机）将消息转发到指定的消息队列
+     &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;*&nbsp;param3:消息包含的属性
+     &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;*&nbsp;param4：消息体
+                 &nbsp;*&nbsp;这里没有指定交换机，消息将发送给默认交换机，每个队列也会绑定那个默认的交换机，但是不能显示绑定或解除绑定
+                 &nbsp;*&nbsp;默认的交换机，routingKey等于队列名称
+                 </span><span style="color: #008000;">*/</span>
+                <span style="color: #008000;">//</span><span style="color: #008000;">String exchange, String routingKey, BasicProperties props, byte[] body
+                </span><span style="color: #008000;">//</span><span style="color: #008000;">Publish/subscribe发布订阅模式</span>
+                channel.basicPublish(EXCHANGE,"",<span style="color: #0000ff;">null</span><span style="color: #000000;">,message.getBytes());
+                System.out.println(</span>"mq消息发送成功！"<span style="color: #000000;">);
+            }
+        } </span><span style="color: #0000ff;">catch</span><span style="color: #000000;"> (Exception e) {
+            e.printStackTrace();
+        } </span><span style="color: #0000ff;">finally</span><span style="color: #000000;"> {
+            </span><span style="color: #0000ff;">try</span><span style="color: #000000;"> {
+                channel.close();
+            } </span><span style="color: #0000ff;">catch</span><span style="color: #000000;"> (IOException e) {
+                e.printStackTrace();
+            } </span><span style="color: #0000ff;">catch</span><span style="color: #000000;"> (TimeoutException e) {
+                e.printStackTrace();
+            }
+            </span><span style="color: #0000ff;">try</span><span style="color: #000000;"> {
+                connection.close();
+            } </span><span style="color: #0000ff;">catch</span><span style="color: #000000;"> (IOException e) {
+                e.printStackTrace();
+            }
+        }
+    }
+}</span></code></pre>
+
+<p>邮件消费端的代码如下：</p>
+<src class="cnblogs_code">
+<pre><code><span style="color: #0000ff;">package</span><span style="color: #000000;"> com.xyfer;
+
+</span><span style="color: #0000ff;">import</span> com.rabbitmq.client.*<span style="color: #000000;">;
+
+</span><span style="color: #0000ff;">import</span><span style="color: #000000;"> java.io.IOException;
+</span><span style="color: #0000ff;">import</span><span style="color: #000000;"> java.util.concurrent.TimeoutException;
+
+</span><span style="color: #0000ff;">public</span> <span style="color: #0000ff;">class</span><span style="color: #000000;"> Consumer01 {
+    </span><span style="color: #008000;">//</span><span style="color: #008000;">Publish/subscribe发布订阅模式</span>
+    <span style="color: #0000ff;">private</span> <span style="color: #0000ff;">static</span> <span style="color: #0000ff;">final</span> String QUEUE_EMAIL ="queueEmail"<span style="color: #000000;">;
+    </span><span style="color: #0000ff;">private</span> <span style="color: #0000ff;">static</span> <span style="color: #0000ff;">final</span> String EXCHANGE = "messageChange"<span style="color: #000000;">;
+    </span><span style="color: #0000ff;">public</span> <span style="color: #0000ff;">static</span> <span style="color: #0000ff;">void</span><span style="color: #000000;"> main(String[] args) {
+        Connection connection </span>= <span style="color: #0000ff;">null</span><span style="color: #000000;">;
+        Channel channel </span>= <span style="color: #0000ff;">null</span><span style="color: #000000;">;
+        </span><span style="color: #0000ff;">try</span><span style="color: #000000;"> {
+            ConnectionFactory connectionFactory </span>= <span style="color: #0000ff;">new</span><span style="color: #000000;"> ConnectionFactory();
+            connectionFactory.setHost(</span>"127.0.0.1"<span style="color: #000000;">);
+            connectionFactory.setPort(</span>5672<span style="color: #000000;">);
+            connection </span>=<span style="color: #000000;"> connectionFactory.newConnection();
+            channel </span>=<span style="color: #000000;"> connection.createChannel();
+            </span><span style="color: #008000;">//</span><span style="color: #008000;">通道绑定交换机</span>
+            <span style="color: #008000;">/**</span><span style="color: #008000;">
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;*&nbsp;参数明细
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;*&nbsp;1、交换机名称
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;*&nbsp;2、交换机类型，fanout、topic、direct、headers
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span><span style="color: #008000;">*/</span>
+            <span style="color: #008000;">//</span><span style="color: #008000;">Publish/subscribe发布订阅模式</span>
+<span style="color: #000000;">            channel.exchangeDeclare(EXCHANGE, BuiltinExchangeType.FANOUT);
+            </span><span style="color: #008000;">//</span><span style="color: #008000;">通道绑定队列</span>
+            <span style="color: #008000;">/**</span><span style="color: #008000;">
+             * 声明队列，如果Rabbit中没有此队列将自动创建
+             * param1:队列名称
+             * param2:是否持久化
+             * param3:队列是否独占此连接
+             * param4:队列不再使用时是否自动删除此队列
+             * param5:队列参数
+             * String queue, boolean durable, boolean exclusive, boolean autoDelete, Map&lt;String, Object&gt; arguments
+             *
+             </span><span style="color: #008000;">*/</span><span style="color: #000000;">
+            channel.queueDeclare(QUEUE_EMAIL,</span><span style="color: #0000ff;">true</span>,<span style="color: #0000ff;">false</span>,<span style="color: #0000ff;">false</span>,<span style="color: #0000ff;">null</span>);<span style="color: #008000;">//</span><span style="color: #008000;">通道绑定邮件队列
+            </span><span style="color: #008000;">//</span><span style="color: #008000;">交换机和队列绑定</span>
+            <span style="color: #008000;">/**</span><span style="color: #008000;">
+             * 参数明细
+             * 1、队列名称
+             * 2、交换机名称
+             * 3、路由key
+             </span><span style="color: #008000;">*/</span>
+            <span style="color: #008000;">//</span><span style="color: #008000;">Publish/subscribe发布订阅模式</span>
+            channel.queueBind(QUEUE_EMAIL,EXCHANGE,""<span style="color: #000000;">);
+            </span><span style="color: #008000;">//</span><span style="color: #008000;">String consumerTag, Envelope envelope, BasicProperties properties, byte[] body</span>
+            DefaultConsumer consumer = <span style="color: #0000ff;">new</span><span style="color: #000000;"> DefaultConsumer(channel) {
+            </span><span style="color: #008000;">/**</span><span style="color: #008000;">
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;*&nbsp;消费者接收消息调用此方法
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;*&nbsp;</span><span style="color: #808080;">@param</span><span style="color: #008000;">&nbsp;consumerTag&nbsp;消费者的标签，在channel.basicConsume()去指定
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;*&nbsp;</span><span style="color: #808080;">@param</span><span style="color: #008000;">&nbsp;envelope&nbsp;消息包的内容，可从中获取消息id，消息routingkey，交换机，消息和重传标志
+                (收到消息失败后是否需要重新发送)
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;*&nbsp;</span><span style="color: #808080;">@param</span><span style="color: #008000;">&nbsp;properties
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;*&nbsp;</span><span style="color: #808080;">@param</span><span style="color: #008000;">&nbsp;body
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;*&nbsp;</span><span style="color: #808080;">@throws</span><span style="color: #008000;">&nbsp;IOException
+              * String consumerTag, Envelope envelope, BasicProperties properties, byte[] body
+              </span><span style="color: #008000;">*/</span><span style="color: #000000;">
+            @Override
+            </span><span style="color: #0000ff;">public</span> <span style="color: #0000ff;">void</span> handleDelivery(String consumerTag, Envelope envelope, AMQP.BasicProperties properties, <span style="color: #0000ff;">byte</span>[] body) <span style="color: #0000ff;">throws</span><span style="color: #000000;"> IOException {
+                </span><span style="color: #008000;">//</span><span style="color: #008000;">交换机</span>
+                String exchange =<span style="color: #000000;"> envelope.getExchange();
+                </span><span style="color: #008000;">//</span><span style="color: #008000;">路由key</span>
+                String routingKey =<span style="color: #000000;"> envelope.getRoutingKey();
+                envelope.getDeliveryTag();
+                String msg </span>= <span style="color: #0000ff;">new</span> String(body,"utf-8"<span style="color: #000000;">);
+                System.out.println(</span>"mq收到的消息是："+<span style="color: #000000;">msg );
+            }
+            };
+            System.out.println(</span>"消费者启动成功！"<span style="color: #000000;">);
+            channel.basicConsume(QUEUE_EMAIL,</span><span style="color: #0000ff;">true</span><span style="color: #000000;">,consumer);
+        } </span><span style="color: #0000ff;">catch</span><span style="color: #000000;"> (IOException e) {
+            e.printStackTrace();
+        } </span><span style="color: #0000ff;">catch</span><span style="color: #000000;"> (TimeoutException e) {
+            e.printStackTrace();
+        }
+    }
+}</span></code></pre>
+
+<p>短信消费端的代码如下：</p>
+<src class="cnblogs_code">
+<pre><code><span style="color: #0000ff;">package</span><span style="color: #000000;"> xyfer;
+
+</span><span style="color: #0000ff;">import</span> com.rabbitmq.client.*<span style="color: #000000;">;
+
+</span><span style="color: #0000ff;">import</span><span style="color: #000000;"> java.io.IOException;
+</span><span style="color: #0000ff;">import</span><span style="color: #000000;"> java.util.concurrent.TimeoutException;
+
+</span><span style="color: #0000ff;">public</span> <span style="color: #0000ff;">class</span><span style="color: #000000;"> Consumer01 {
+    </span><span style="color: #008000;">//</span><span style="color: #008000;">Publish/subscribe发布订阅模式</span>
+    <span style="color: #0000ff;">private</span> <span style="color: #0000ff;">static</span> <span style="color: #0000ff;">final</span> String QUEUE_SMS ="queueSms"<span style="color: #000000;">;
+    </span><span style="color: #0000ff;">private</span> <span style="color: #0000ff;">static</span> <span style="color: #0000ff;">final</span> String EXCHANGE = "messageChange"<span style="color: #000000;">;
+    </span><span style="color: #0000ff;">public</span> <span style="color: #0000ff;">static</span> <span style="color: #0000ff;">void</span><span style="color: #000000;"> main(String[] args) {
+        Connection connection </span>= <span style="color: #0000ff;">null</span><span style="color: #000000;">;
+        Channel channel </span>= <span style="color: #0000ff;">null</span><span style="color: #000000;">;
+        </span><span style="color: #0000ff;">try</span><span style="color: #000000;"> {
+            ConnectionFactory connectionFactory </span>= <span style="color: #0000ff;">new</span><span style="color: #000000;"> ConnectionFactory();
+            connectionFactory.setHost(</span>"127.0.0.1"<span style="color: #000000;">);
+            connectionFactory.setPort(</span>5672<span style="color: #000000;">);
+            connection </span>=<span style="color: #000000;"> connectionFactory.newConnection();
+            channel </span>=<span style="color: #000000;"> connection.createChannel();
+            </span><span style="color: #008000;">//</span><span style="color: #008000;">通道绑定交换机</span>
+            <span style="color: #008000;">/**</span><span style="color: #008000;">
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;*&nbsp;参数明细
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;*&nbsp;1、交换机名称
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;*&nbsp;2、交换机类型，fanout、topic、direct、headers
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span><span style="color: #008000;">*/</span>
+            <span style="color: #008000;">//</span><span style="color: #008000;">Publish/subscribe发布订阅模式</span>
+<span style="color: #000000;">            channel.exchangeDeclare(EXCHANGE, BuiltinExchangeType.FANOUT);
+            </span><span style="color: #008000;">//</span><span style="color: #008000;">通道绑定队列</span>
+            <span style="color: #008000;">/**</span><span style="color: #008000;">
+             * 声明队列，如果Rabbit中没有此队列将自动创建
+             * param1:队列名称
+             * param2:是否持久化
+             * param3:队列是否独占此连接
+             * param4:队列不再使用时是否自动删除此队列
+             * param5:队列参数
+             * String queue, boolean durable, boolean exclusive, boolean autoDelete, Map&lt;String, Object&gt; arguments
+             *
+             </span><span style="color: #008000;">*/</span><span style="color: #000000;">
+            channel.queueDeclare(QUEUE_SMS,</span><span style="color: #0000ff;">true</span>,<span style="color: #0000ff;">false</span>,<span style="color: #0000ff;">false</span>,<span style="color: #0000ff;">null</span>);<span style="color: #008000;">//</span><span style="color: #008000;">通道绑定短信队列
+            </span><span style="color: #008000;">//</span><span style="color: #008000;">交换机和队列绑定</span>
+            <span style="color: #008000;">/**</span><span style="color: #008000;">
+             * 参数明细
+             * 1、队列名称
+             * 2、交换机名称
+             * 3、路由key
+             </span><span style="color: #008000;">*/</span>
+            <span style="color: #008000;">//</span><span style="color: #008000;">Publish/subscribe发布订阅模式</span>
+            channel.queueBind(QUEUE_SMS,EXCHANGE,""<span style="color: #000000;">);
+            DefaultConsumer consumer </span>= <span style="color: #0000ff;">new</span><span style="color: #000000;"> DefaultConsumer(channel) {
+            </span><span style="color: #008000;">/**</span><span style="color: #008000;">
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;*&nbsp;消费者接收消息调用此方法
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;*&nbsp;</span><span style="color: #808080;">@param</span><span style="color: #008000;">&nbsp;consumerTag&nbsp;消费者的标签，在channel.basicConsume()去指定
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;*&nbsp;</span><span style="color: #808080;">@param</span><span style="color: #008000;">&nbsp;envelope&nbsp;消息包的内容，可从中获取消息id，消息routingkey，交换机，消息和重传标志
+                (收到消息失败后是否需要重新发送)
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;*&nbsp;</span><span style="color: #808080;">@param</span><span style="color: #008000;">&nbsp;properties
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;*&nbsp;</span><span style="color: #808080;">@param</span><span style="color: #008000;">&nbsp;body
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;*&nbsp;</span><span style="color: #808080;">@throws</span><span style="color: #008000;">&nbsp;IOException
+              * String consumerTag, Envelope envelope, BasicProperties properties, byte[] body
+              </span><span style="color: #008000;">*/</span><span style="color: #000000;">
+            @Override
+            </span><span style="color: #0000ff;">public</span> <span style="color: #0000ff;">void</span> handleDelivery(String consumerTag, Envelope envelope, AMQP.BasicProperties properties, <span style="color: #0000ff;">byte</span>[] body) <span style="color: #0000ff;">throws</span><span style="color: #000000;"> IOException {
+                </span><span style="color: #008000;">//</span><span style="color: #008000;">交换机</span>
+                String exchange =<span style="color: #000000;"> envelope.getExchange();
+                </span><span style="color: #008000;">//</span><span style="color: #008000;">路由key</span>
+                String routingKey =<span style="color: #000000;"> envelope.getRoutingKey();
+                envelope.getDeliveryTag();
+                String msg </span>= <span style="color: #0000ff;">new</span> String(body,"utf-8"<span style="color: #000000;">);
+                System.out.println(</span>"mq收到的消息是："+<span style="color: #000000;">msg );
+            }
+
+            };
+            System.out.println(</span>"消费者启动成功！"<span style="color: #000000;">);
+            channel.basicConsume(QUEUE_SMS,</span><span style="color: #0000ff;">true</span><span style="color: #000000;">,consumer);
+
+        } </span><span style="color: #0000ff;">catch</span><span style="color: #000000;"> (IOException e) {
+            e.printStackTrace();
+        } </span><span style="color: #0000ff;">catch</span><span style="color: #000000;"> (TimeoutException e) {
+            e.printStackTrace();
+        }
+    }
+}</span></code></pre>
+
+<p>三、Routing 路由模式</p>
+<p>Routing 模式又称路由模式，该种模式除了要绑定交换机外，发消息的时候还要制定routing key，即路由key，队列通过通道绑定交换机的时候，需要指定自己的routing key，这样，生产端发送消息的时候也会指定routing key，通过routing key就可以把相应的消息发送到绑定相应routing key的队列中去。</p>
+<p><img src="./images/RabbitMQ六种工作模式的对比与实践5.png" alt="" /></p>
+<p>路由模式：</p>
+<p>1、每个消费者监听自己的队列，并且设置routingkey；<br />2、生产者将消息发给交换机，由交换机根据routingkey来转发消息到指定的队列；</p>
+<p>应用场景：用户通知，当用户充值成功或转账完成系统通知用户，通知方式有短信、邮件多种方法；</p>
+<p>生产端：</p>
+<p>1、声明队列，声明交换机</p>
+<p>2、创建连接</p>
+<p>3、创建通道</p>
+<p>4、通道声明交换机</p>
+<p>5、通道声明队列</p>
+<p>6、通过通道使队列绑定到交换机并指定该队列的routingkey</p>
+<p>7、制定消息</p>
+<p>8、发送消息并指定routingkey</p>
+<p>消费端：</p>
+<p>1、声明队列，声明交换机</p>
+<p>2、创建连接</p>
+<p>3、创建通道</p>
+<p>4、通道声明交换机</p>
+<p>5、通道声明队列</p>
+<p>6、通过通道使队列绑定到交换机并指定routingkey</p>
+<p>7、重写消息消费方法</p>
+<p>8、执行消息方法</p>
+<p>按照假设的应用场景，同样，Routing 路由模式也是一个生产端，两个消费端，所不同的是，声明交换机的类型不同，队列绑定交换机的时候需要指定Routing key，发送消息的时候也需要指定Routing key，这样根据Routing key就能把相应的消息发送到相应的队列中去。</p>
+<p>生产端的代码如下：</p>
+<src class="cnblogs_code">
+<pre><code><span style="color: #0000ff;">package</span><span style="color: #000000;"> com.xyfer;
+
+</span><span style="color: #0000ff;">import</span><span style="color: #000000;"> com.rabbitmq.client.BuiltinExchangeType;
+</span><span style="color: #0000ff;">import</span><span style="color: #000000;"> com.rabbitmq.client.Channel;
+</span><span style="color: #0000ff;">import</span><span style="color: #000000;"> com.rabbitmq.client.Connection;
+</span><span style="color: #0000ff;">import</span><span style="color: #000000;"> com.rabbitmq.client.ConnectionFactory;
+
+
+</span><span style="color: #0000ff;">import</span><span style="color: #000000;"> java.io.IOException;
+</span><span style="color: #0000ff;">import</span><span style="color: #000000;"> java.util.concurrent.TimeoutException;
+
+</span><span style="color: #0000ff;">public</span> <span style="color: #0000ff;">class</span><span style="color: #000000;"> Producer03 {
+    </span><span style="color: #008000;">//</span><span style="color: #008000;">声明两个队列和一个交换机
+    </span><span style="color: #008000;">//</span><span style="color: #008000;">Routing 路由模式</span>
+    <span style="color: #0000ff;">private</span> <span style="color: #0000ff;">static</span> <span style="color: #0000ff;">final</span> String QUEUE_EMAIL ="queueEmail"<span style="color: #000000;">;
+    </span><span style="color: #0000ff;">private</span> <span style="color: #0000ff;">static</span> <span style="color: #0000ff;">final</span> String QUEUE_SMS ="queueSms"<span style="color: #000000;">;
+    </span><span style="color: #0000ff;">private</span> <span style="color: #0000ff;">static</span> <span style="color: #0000ff;">final</span> String EXCHANGE = "messageChange"<span style="color: #000000;">;
+    </span><span style="color: #0000ff;">public</span> <span style="color: #0000ff;">static</span> <span style="color: #0000ff;">void</span><span style="color: #000000;"> main(String[] args) {
+        Connection connection </span>= <span style="color: #0000ff;">null</span><span style="color: #000000;">;
+        Channel channel </span>= <span style="color: #0000ff;">null</span><span style="color: #000000;">;
+        </span><span style="color: #0000ff;">try</span><span style="color: #000000;"> {
+            ConnectionFactory connectionFactory </span>= <span style="color: #0000ff;">new</span><span style="color: #000000;"> ConnectionFactory();
+            connectionFactory.setHost(</span>"127.0.0.1");<span style="color: #008000;">//</span><span style="color: #008000;">mq服务ip地址</span>
+            connectionFactory.setPort(5672);<span style="color: #008000;">//</span><span style="color: #008000;">mq client连接端口</span>
+            connectionFactory.setUsername("guest");<span style="color: #008000;">//</span><span style="color: #008000;">mq登录用户名</span>
+            connectionFactory.setPassword("guest");<span style="color: #008000;">//</span><span style="color: #008000;">mq登录密码</span>
+            connectionFactory.setVirtualHost("/");<span style="color: #008000;">//</span><span style="color: #008000;">rabbitmq默认虚拟机名称为&ldquo;/&rdquo;，虚拟机相当于一个独立的mq服务器
+            </span><span style="color: #008000;">//</span><span style="color: #008000;">创建与RabbitMQ服务的TCP连接</span>
+            connection =<span style="color: #000000;"> connectionFactory.newConnection();
+            </span><span style="color: #008000;">//</span><span style="color: #008000;">创建与Exchange的通道，每个连接可以创建多个通道，每个通道代表一个会话任务</span>
+            channel =<span style="color: #000000;"> connection.createChannel();
+            </span><span style="color: #008000;">//</span><span style="color: #008000;">通道绑定交换机</span>
+            <span style="color: #008000;">/**</span><span style="color: #008000;">
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;*&nbsp;参数明细
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;*&nbsp;1、交换机名称
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;*&nbsp;2、交换机类型，fanout、topic、direct、headers
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span><span style="color: #008000;">*/</span>
+            <span style="color: #008000;">//</span><span style="color: #008000;">Routing 路由模式</span>
+<span style="color: #000000;">            channel.exchangeDeclare(EXCHANGE, BuiltinExchangeType.DIRECT);
+            </span><span style="color: #008000;">//</span><span style="color: #008000;">通道绑定队列</span>
+            <span style="color: #008000;">/**</span><span style="color: #008000;">
+             * 声明队列，如果Rabbit中没有此队列将自动创建
+             * param1:队列名称
+             * param2:是否持久化
+             * param3:队列是否独占此连接
+             * param4:队列不再使用时是否自动删除此队列
+             * param5:队列参数
+             * String queue, boolean durable, boolean exclusive, boolean autoDelete, Map&lt;String, Object&gt; arguments
+             *
+             </span><span style="color: #008000;">*/</span><span style="color: #000000;">
+            channel.queueDeclare(QUEUE_EMAIL,</span><span style="color: #0000ff;">true</span>,<span style="color: #0000ff;">false</span>,<span style="color: #0000ff;">false</span>,<span style="color: #0000ff;">null</span>);<span style="color: #008000;">//</span><span style="color: #008000;">通道绑定邮件队列</span>
+            channel.queueDeclare(QUEUE_SMS,<span style="color: #0000ff;">true</span>,<span style="color: #0000ff;">false</span>,<span style="color: #0000ff;">false</span>,<span style="color: #0000ff;">null</span>);<span style="color: #008000;">//</span><span style="color: #008000;">通道绑定短信队列
+            </span><span style="color: #008000;">//</span><span style="color: #008000;">交换机和队列绑定</span>
+            <span style="color: #008000;">/**</span><span style="color: #008000;">
+             * 参数明细
+             * 1、队列名称
+             * 2、交换机名称
+             * 3、路由key
+             </span><span style="color: #008000;">*/</span>
+            <span style="color: #008000;">//</span><span style="color: #008000;">Routing 路由模式</span>
+<span style="color: #000000;">            channel.queueBind(QUEUE_EMAIL,EXCHANGE,QUEUE_EMAIL);
+            channel.queueBind(QUEUE_SMS,EXCHANGE,QUEUE_SMS);
+            </span><span style="color: #008000;">//</span><span style="color: #008000;">给email队列发消息</span>
+            <span style="color: #0000ff;">for</span>(<span style="color: #0000ff;">int</span> i = 0;i&lt;10;i++<span style="color: #000000;">){
+                String message </span>= <span style="color: #0000ff;">new</span> String("mq 发送email消息。。。"<span style="color: #000000;">);
+                </span><span style="color: #008000;">/**</span><span style="color: #008000;">
+     &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;*&nbsp;消息发布方法
+     &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;*&nbsp;param1：Exchange的名称，如果没有指定，则使用Default&nbsp;Exchange
+     &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;*&nbsp;param2:routingKey,消息的路由Key，是用于Exchange（交换机）将消息转发到指定的消息队列
+     &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;*&nbsp;param3:消息包含的属性
+     &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;*&nbsp;param4：消息体
+                 &nbsp;*&nbsp;这里没有指定交换机，消息将发送给默认交换机，每个队列也会绑定那个默认的交换机，但是不能显示绑定或解除绑定
+                 &nbsp;*&nbsp;默认的交换机，routingKey等于队列名称
+                 </span><span style="color: #008000;">*/</span>
+                <span style="color: #008000;">//</span><span style="color: #008000;">String exchange, String routingKey, BasicProperties props, byte[] body
+                </span><span style="color: #008000;">//</span><span style="color: #008000;">Routing 路由模式</span>
+                channel.basicPublish(EXCHANGE,QUEUE_EMAIL,<span style="color: #0000ff;">null</span><span style="color: #000000;">,message.getBytes());
+                System.out.println(</span>"mq消息发送成功！"<span style="color: #000000;">);
+            }
+            </span><span style="color: #008000;">//</span><span style="color: #008000;">给sms队列发消息</span>
+            <span style="color: #0000ff;">for</span>(<span style="color: #0000ff;">int</span> i = 0;i&lt;10;i++<span style="color: #000000;">){
+                String message </span>= <span style="color: #0000ff;">new</span> String("mq 发送sms消息。。。"<span style="color: #000000;">);
+                </span><span style="color: #008000;">/**</span><span style="color: #008000;">
+     &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;*&nbsp;消息发布方法
+     &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;*&nbsp;param1：Exchange的名称，如果没有指定，则使用Default&nbsp;Exchange
+     &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;*&nbsp;param2:routingKey,消息的路由Key，是用于Exchange（交换机）将消息转发到指定的消息队列
+     &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;*&nbsp;param3:消息包含的属性
+     &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;*&nbsp;param4：消息体
+                 &nbsp;*&nbsp;这里没有指定交换机，消息将发送给默认交换机，每个队列也会绑定那个默认的交换机，但是不能显示绑定或解除绑定
+                 &nbsp;*&nbsp;默认的交换机，routingKey等于队列名称
+                 </span><span style="color: #008000;">*/</span>
+                <span style="color: #008000;">//</span><span style="color: #008000;">String exchange, String routingKey, BasicProperties props, byte[] body
+                </span><span style="color: #008000;">//</span><span style="color: #008000;">Routing 路由模式</span>
+                channel.basicPublish(EXCHANGE,QUEUE_SMS,<span style="color: #0000ff;">null</span><span style="color: #000000;">,message.getBytes());
+                System.out.println(</span>"mq消息发送成功！"<span style="color: #000000;">);
+            }
+        } </span><span style="color: #0000ff;">catch</span><span style="color: #000000;"> (Exception e) {
+            e.printStackTrace();
+        } </span><span style="color: #0000ff;">finally</span><span style="color: #000000;"> {
+            </span><span style="color: #0000ff;">try</span><span style="color: #000000;"> {
+                channel.close();
+            } </span><span style="color: #0000ff;">catch</span><span style="color: #000000;"> (IOException e) {
+                e.printStackTrace();
+            } </span><span style="color: #0000ff;">catch</span><span style="color: #000000;"> (TimeoutException e) {
+                e.printStackTrace();
+            }
+            </span><span style="color: #0000ff;">try</span><span style="color: #000000;"> {
+                connection.close();
+            } </span><span style="color: #0000ff;">catch</span><span style="color: #000000;"> (IOException e) {
+                e.printStackTrace();
+            }
+        }
+    }
+}</span></code></pre>
+
+<p>邮件消费端的代码如下：</p>
+<src class="cnblogs_code">
+<pre><code><span style="color: #0000ff;">package</span><span style="color: #000000;"> com.xyfer;
+
+</span><span style="color: #0000ff;">import</span> com.rabbitmq.client.*<span style="color: #000000;">;
+
+</span><span style="color: #0000ff;">import</span><span style="color: #000000;"> java.io.IOException;
+</span><span style="color: #0000ff;">import</span><span style="color: #000000;"> java.util.concurrent.TimeoutException;
+
+</span><span style="color: #0000ff;">public</span> <span style="color: #0000ff;">class</span><span style="color: #000000;"> Consumer03 {
+    </span><span style="color: #008000;">//</span><span style="color: #008000;">Routing 路由模式</span>
+    <span style="color: #0000ff;">private</span> <span style="color: #0000ff;">static</span> <span style="color: #0000ff;">final</span> String QUEUE_EMAIL ="queueEmail"<span style="color: #000000;">;
+    </span><span style="color: #0000ff;">private</span> <span style="color: #0000ff;">static</span> <span style="color: #0000ff;">final</span> String EXCHANGE = "messageChange"<span style="color: #000000;">;
+    </span><span style="color: #0000ff;">public</span> <span style="color: #0000ff;">static</span> <span style="color: #0000ff;">void</span><span style="color: #000000;"> main(String[] args) {
+        Connection connection </span>= <span style="color: #0000ff;">null</span><span style="color: #000000;">;
+        Channel channel </span>= <span style="color: #0000ff;">null</span><span style="color: #000000;">;
+        </span><span style="color: #0000ff;">try</span><span style="color: #000000;"> {
+            ConnectionFactory connectionFactory </span>= <span style="color: #0000ff;">new</span><span style="color: #000000;"> ConnectionFactory();
+            connectionFactory.setHost(</span>"127.0.0.1"<span style="color: #000000;">);
+            connectionFactory.setPort(</span>5672<span style="color: #000000;">);
+            connection </span>=<span style="color: #000000;"> connectionFactory.newConnection();
+            channel </span>=<span style="color: #000000;"> connection.createChannel();
+            </span><span style="color: #008000;">//</span><span style="color: #008000;">通道绑定交换机</span>
+            <span style="color: #008000;">/**</span><span style="color: #008000;">
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;*&nbsp;参数明细
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;*&nbsp;1、交换机名称
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;*&nbsp;2、交换机类型，fanout、topic、direct、headers
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span><span style="color: #008000;">*/</span>
+            <span style="color: #008000;">//</span><span style="color: #008000;">Routing 路由模式</span>
+<span style="color: #000000;">            channel.exchangeDeclare(EXCHANGE, BuiltinExchangeType.DIRECT);
+            </span><span style="color: #008000;">//</span><span style="color: #008000;">通道绑定队列</span>
+            <span style="color: #008000;">/**</span><span style="color: #008000;">
+             * 声明队列，如果Rabbit中没有此队列将自动创建
+             * param1:队列名称
+             * param2:是否持久化
+             * param3:队列是否独占此连接
+             * param4:队列不再使用时是否自动删除此队列
+             * param5:队列参数
+             * String queue, boolean durable, boolean exclusive, boolean autoDelete, Map&lt;String, Object&gt; arguments
+             *
+             </span><span style="color: #008000;">*/</span><span style="color: #000000;">
+            channel.queueDeclare(QUEUE_EMAIL,</span><span style="color: #0000ff;">true</span>,<span style="color: #0000ff;">false</span>,<span style="color: #0000ff;">false</span>,<span style="color: #0000ff;">null</span>);<span style="color: #008000;">//</span><span style="color: #008000;">通道绑定邮件队列
+            </span><span style="color: #008000;">//</span><span style="color: #008000;">交换机和队列绑定</span>
+            <span style="color: #008000;">/**</span><span style="color: #008000;">
+             * 参数明细
+             * 1、队列名称
+             * 2、交换机名称
+             * 3、路由key
+             </span><span style="color: #008000;">*/</span>
+            <span style="color: #008000;">//</span><span style="color: #008000;">Routing 路由模式</span>
+<span style="color: #000000;">            channel.queueBind(QUEUE_EMAIL,EXCHANGE,QUEUE_EMAIL);
+            </span><span style="color: #008000;">//</span><span style="color: #008000;">String consumerTag, Envelope envelope, BasicProperties properties, byte[] body</span>
+            DefaultConsumer consumer = <span style="color: #0000ff;">new</span><span style="color: #000000;"> DefaultConsumer(channel) {
+                </span><span style="color: #008000;">/**</span><span style="color: #008000;">
+     &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;*&nbsp;消费者接收消息调用此方法
+     &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;*&nbsp;</span><span style="color: #808080;">@param</span><span style="color: #008000;">&nbsp;consumerTag&nbsp;消费者的标签，在channel.basicConsume()去指定
+     &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;*&nbsp;</span><span style="color: #808080;">@param</span><span style="color: #008000;">&nbsp;envelope&nbsp;消息包的内容，可从中获取消息id，消息routingkey，交换机，消息和重传标志
+                    (收到消息失败后是否需要重新发送)
+     &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;*&nbsp;</span><span style="color: #808080;">@param</span><span style="color: #008000;">&nbsp;properties
+     &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;*&nbsp;</span><span style="color: #808080;">@param</span><span style="color: #008000;">&nbsp;body
+     &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;*&nbsp;</span><span style="color: #808080;">@throws</span><span style="color: #008000;">&nbsp;IOException
+                 * String consumerTag, Envelope envelope, BasicProperties properties, byte[] body
+                 </span><span style="color: #008000;">*/</span><span style="color: #000000;">
+                @Override
+                </span><span style="color: #0000ff;">public</span> <span style="color: #0000ff;">void</span> handleDelivery(String consumerTag, Envelope envelope, AMQP.BasicProperties properties, <span style="color: #0000ff;">byte</span>[] body) <span style="color: #0000ff;">throws</span><span style="color: #000000;"> IOException {
+                    </span><span style="color: #008000;">//</span><span style="color: #008000;">交换机</span>
+                    String exchange =<span style="color: #000000;"> envelope.getExchange();
+                    </span><span style="color: #008000;">//</span><span style="color: #008000;">路由key</span>
+                    String routingKey =<span style="color: #000000;"> envelope.getRoutingKey();
+                    envelope.getDeliveryTag();
+                    String msg </span>= <span style="color: #0000ff;">new</span> String(body,"utf-8"<span style="color: #000000;">);
+                    System.out.println(</span>"mq收到的消息是："+<span style="color: #000000;">msg );
+                }
+
+            };
+            System.out.println(</span>"消费者启动成功！"<span style="color: #000000;">);
+            channel.basicConsume(QUEUE_EMAIL,</span><span style="color: #0000ff;">true</span><span style="color: #000000;">,consumer);
+        } </span><span style="color: #0000ff;">catch</span><span style="color: #000000;"> (IOException e) {
+            e.printStackTrace();
+        } </span><span style="color: #0000ff;">catch</span><span style="color: #000000;"> (TimeoutException e) {
+            e.printStackTrace();
+        }
+    }
+}</span></code></pre>
+
+<p>短信消费端的代码如下：</p>
+<src class="cnblogs_code">
+<pre><code><span style="color: #0000ff;">package</span><span style="color: #000000;"> xyfer;
+
+</span><span style="color: #0000ff;">import</span> com.rabbitmq.client.*<span style="color: #000000;">;
+
+</span><span style="color: #0000ff;">import</span><span style="color: #000000;"> java.io.IOException;
+</span><span style="color: #0000ff;">import</span><span style="color: #000000;"> java.util.concurrent.TimeoutException;
+
+</span><span style="color: #0000ff;">public</span> <span style="color: #0000ff;">class</span><span style="color: #000000;"> Consumer03 {
+    </span><span style="color: #008000;">//</span><span style="color: #008000;">Routing 路由模式</span>
+    <span style="color: #0000ff;">private</span> <span style="color: #0000ff;">static</span> <span style="color: #0000ff;">final</span> String QUEUE_SMS ="queueSms"<span style="color: #000000;">;
+    </span><span style="color: #0000ff;">private</span> <span style="color: #0000ff;">static</span> <span style="color: #0000ff;">final</span> String EXCHANGE = "messageChange"<span style="color: #000000;">;
+    </span><span style="color: #0000ff;">public</span> <span style="color: #0000ff;">static</span> <span style="color: #0000ff;">void</span><span style="color: #000000;"> main(String[] args) {
+        Connection connection </span>= <span style="color: #0000ff;">null</span><span style="color: #000000;">;
+        Channel channel </span>= <span style="color: #0000ff;">null</span><span style="color: #000000;">;
+        </span><span style="color: #0000ff;">try</span><span style="color: #000000;"> {
+            ConnectionFactory connectionFactory </span>= <span style="color: #0000ff;">new</span><span style="color: #000000;"> ConnectionFactory();
+            connectionFactory.setHost(</span>"127.0.0.1"<span style="color: #000000;">);
+            connectionFactory.setPort(</span>5672<span style="color: #000000;">);
+            connection </span>=<span style="color: #000000;"> connectionFactory.newConnection();
+            channel </span>=<span style="color: #000000;"> connection.createChannel();
+            </span><span style="color: #008000;">//</span><span style="color: #008000;">通道绑定交换机</span>
+            <span style="color: #008000;">/**</span><span style="color: #008000;">
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;*&nbsp;参数明细
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;*&nbsp;1、交换机名称
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;*&nbsp;2、交换机类型，fanout、topic、direct、headers
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span><span style="color: #008000;">*/</span>
+            <span style="color: #008000;">//</span><span style="color: #008000;">Routing 路由模式</span>
+<span style="color: #000000;">            channel.exchangeDeclare(EXCHANGE, BuiltinExchangeType.DIRECT);
+            </span><span style="color: #008000;">//</span><span style="color: #008000;">通道绑定队列</span>
+            <span style="color: #008000;">/**</span><span style="color: #008000;">
+             * 声明队列，如果Rabbit中没有此队列将自动创建
+             * param1:队列名称
+             * param2:是否持久化
+             * param3:队列是否独占此连接
+             * param4:队列不再使用时是否自动删除此队列
+             * param5:队列参数
+             * String queue, boolean durable, boolean exclusive, boolean autoDelete, Map&lt;String, Object&gt; arguments
+             *
+             </span><span style="color: #008000;">*/</span><span style="color: #000000;">
+            channel.queueDeclare(QUEUE_SMS,</span><span style="color: #0000ff;">true</span>,<span style="color: #0000ff;">false</span>,<span style="color: #0000ff;">false</span>,<span style="color: #0000ff;">null</span>);<span style="color: #008000;">//</span><span style="color: #008000;">通道绑定短信队列
+            </span><span style="color: #008000;">//</span><span style="color: #008000;">交换机和队列绑定</span>
+            <span style="color: #008000;">/**</span><span style="color: #008000;">
+             * 参数明细
+             * 1、队列名称
+             * 2、交换机名称
+             * 3、路由key
+             </span><span style="color: #008000;">*/</span>
+            <span style="color: #008000;">//</span><span style="color: #008000;">Routing 路由模式</span>
+<span style="color: #000000;">            channel.queueBind(QUEUE_SMS,EXCHANGE,QUEUE_SMS);
+            DefaultConsumer consumer </span>= <span style="color: #0000ff;">new</span><span style="color: #000000;"> DefaultConsumer(channel) {
+                </span><span style="color: #008000;">/**</span><span style="color: #008000;">
+     &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;*&nbsp;消费者接收消息调用此方法
+     &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;*&nbsp;</span><span style="color: #808080;">@param</span><span style="color: #008000;">&nbsp;consumerTag&nbsp;消费者的标签，在channel.basicConsume()去指定
+     &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;*&nbsp;</span><span style="color: #808080;">@param</span><span style="color: #008000;">&nbsp;envelope&nbsp;消息包的内容，可从中获取消息id，消息routingkey，交换机，消息和重传标志
+                    (收到消息失败后是否需要重新发送)
+     &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;*&nbsp;</span><span style="color: #808080;">@param</span><span style="color: #008000;">&nbsp;properties
+     &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;*&nbsp;</span><span style="color: #808080;">@param</span><span style="color: #008000;">&nbsp;body
+     &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;*&nbsp;</span><span style="color: #808080;">@throws</span><span style="color: #008000;">&nbsp;IOException
+                 * String consumerTag, Envelope envelope, BasicProperties properties, byte[] body
+                 </span><span style="color: #008000;">*/</span><span style="color: #000000;">
+                @Override
+                </span><span style="color: #0000ff;">public</span> <span style="color: #0000ff;">void</span> handleDelivery(String consumerTag, Envelope envelope, AMQP.BasicProperties properties, <span style="color: #0000ff;">byte</span>[] body) <span style="color: #0000ff;">throws</span><span style="color: #000000;"> IOException {
+                    </span><span style="color: #008000;">//</span><span style="color: #008000;">交换机</span>
+                    String exchange =<span style="color: #000000;"> envelope.getExchange();
+                    </span><span style="color: #008000;">//</span><span style="color: #008000;">路由key</span>
+                    String routingKey =<span style="color: #000000;"> envelope.getRoutingKey();
+                    envelope.getDeliveryTag();
+                    String msg </span>= <span style="color: #0000ff;">new</span> String(body,"utf-8"<span style="color: #000000;">);
+                    System.out.println(</span>"mq收到的消息是："+<span style="color: #000000;">msg );
+                }
+            };
+            System.out.println(</span>"消费者启动成功！"<span style="color: #000000;">);
+            channel.basicConsume(QUEUE_SMS,</span><span style="color: #0000ff;">true</span><span style="color: #000000;">,consumer);
+        } </span><span style="color: #0000ff;">catch</span><span style="color: #000000;"> (IOException e) {
+            e.printStackTrace();
+        } </span><span style="color: #0000ff;">catch</span><span style="color: #000000;"> (TimeoutException e) {
+            e.printStackTrace();
+        }
+    }
+}</span></code></pre>
+
+<p>四、Topics 模式</p>
+<p>Topics 模式和Routing 路由模式最大的区别就是，Topics 模式发送消息和消费消息的时候是通过通配符去进行匹配的。</p>
+<p><img src="./images/RabbitMQ六种工作模式的对比与实践6.png" alt="" /></p>
+<p>路由模式：</p>
+<p>1、每个消费者监听自己的队列，并且设置带统配符的routingkey</p>
+<p>2、生产者将消息发给broker，由交换机根据routingkey来转发消息到指定的队列</p>
+<p>应用场景：用户通知，当用户充值成功或转账完成系统通知用户，通知方式有短信、邮件多种方法；</p>
+<p>生产端：</p>
+<p>1、声明队列，声明交换机</p>
+<p>2、创建连接</p>
+<p>3、创建通道</p>
+<p>4、通道声明交换机</p>
+<p>5、通道声明队列</p>
+<p>6、通过通道使队列绑定到交换机并指定该队列的routingkey（通配符）</p>
+<p>7、制定消息</p>
+<p>8、发送消息并指定routingkey（通配符）</p>
+<p>消费端：</p>
+<p>1、声明队列，声明交换机</p>
+<p>2、创建连接</p>
+<p>3、创建通道</p>
+<p>4、通道声明交换机</p>
+<p>5、通道声明队列</p>
+<p>6、通过通道使队列绑定到交换机并指定routingkey（通配符）</p>
+<p>7、重写消息消费方法</p>
+<p>8、执行消息方法</p>
+<p>按照假设的应用场景，Topics 模式也是一个生产端，两个消费端，生产端队列绑定交换机的时候，需要指定的routingkey是通配符，发送消息的时候绑定的routingkey也是通配符，消费端队列绑定交换机的时候routingkey也是通配符，这样就能根据通配符匹配到消息了。</p>
+<p>生产端的代码如下：</p>
+<src class="cnblogs_code">
+<pre><code><span style="color: #0000ff;">package</span><span style="color: #000000;"> com.xyfer;
+
+</span><span style="color: #0000ff;">import</span><span style="color: #000000;"> com.rabbitmq.client.BuiltinExchangeType;
+</span><span style="color: #0000ff;">import</span><span style="color: #000000;"> com.rabbitmq.client.Channel;
+</span><span style="color: #0000ff;">import</span><span style="color: #000000;"> com.rabbitmq.client.Connection;
+</span><span style="color: #0000ff;">import</span><span style="color: #000000;"> com.rabbitmq.client.ConnectionFactory;
+
+
+</span><span style="color: #0000ff;">import</span><span style="color: #000000;"> java.io.IOException;
+</span><span style="color: #0000ff;">import</span><span style="color: #000000;"> java.util.concurrent.TimeoutException;
+
+</span><span style="color: #0000ff;">public</span> <span style="color: #0000ff;">class</span><span style="color: #000000;"> Producer04 {
+    </span><span style="color: #008000;">//</span><span style="color: #008000;">声明两个队列和一个交换机
+    </span><span style="color: #008000;">//</span><span style="color: #008000;">Topics 模式</span>
+    <span style="color: #0000ff;">private</span> <span style="color: #0000ff;">static</span> <span style="color: #0000ff;">final</span> String QUEUE_EMAIL ="queueEmail"<span style="color: #000000;">;
+    </span><span style="color: #0000ff;">private</span> <span style="color: #0000ff;">static</span> <span style="color: #0000ff;">final</span> String QUEUE_SMS ="queueSms"<span style="color: #000000;">;
+    </span><span style="color: #0000ff;">private</span> <span style="color: #0000ff;">static</span> <span style="color: #0000ff;">final</span> String EXCHANGE = "messageChange"<span style="color: #000000;">;
+    </span><span style="color: #0000ff;">public</span> <span style="color: #0000ff;">static</span> <span style="color: #0000ff;">void</span><span style="color: #000000;"> main(String[] args) {
+        Connection connection </span>= <span style="color: #0000ff;">null</span><span style="color: #000000;">;
+        Channel channel </span>= <span style="color: #0000ff;">null</span><span style="color: #000000;">;
+        </span><span style="color: #0000ff;">try</span><span style="color: #000000;"> {
+            ConnectionFactory connectionFactory </span>= <span style="color: #0000ff;">new</span><span style="color: #000000;"> ConnectionFactory();
+            connectionFactory.setHost(</span>"127.0.0.1");<span style="color: #008000;">//</span><span style="color: #008000;">mq服务ip地址</span>
+            connectionFactory.setPort(5672);<span style="color: #008000;">//</span><span style="color: #008000;">mq client连接端口</span>
+            connectionFactory.setUsername("guest");<span style="color: #008000;">//</span><span style="color: #008000;">mq登录用户名</span>
+            connectionFactory.setPassword("guest");<span style="color: #008000;">//</span><span style="color: #008000;">mq登录密码</span>
+            connectionFactory.setVirtualHost("/");<span style="color: #008000;">//</span><span style="color: #008000;">rabbitmq默认虚拟机名称为&ldquo;/&rdquo;，虚拟机相当于一个独立的mq服务器
+            </span><span style="color: #008000;">//</span><span style="color: #008000;">创建与RabbitMQ服务的TCP连接</span>
+            connection =<span style="color: #000000;"> connectionFactory.newConnection();
+            </span><span style="color: #008000;">//</span><span style="color: #008000;">创建与Exchange的通道，每个连接可以创建多个通道，每个通道代表一个会话任务</span>
+            channel =<span style="color: #000000;"> connection.createChannel();
+            </span><span style="color: #008000;">//</span><span style="color: #008000;">通道绑定交换机</span>
+            <span style="color: #008000;">/**</span><span style="color: #008000;">
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;*&nbsp;参数明细
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;*&nbsp;1、交换机名称
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;*&nbsp;2、交换机类型，fanout、topic、direct、headers
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span><span style="color: #008000;">*/</span>
+            <span style="color: #008000;">//</span><span style="color: #008000;">Topics 模式</span>
+<span style="color: #000000;">            channel.exchangeDeclare(EXCHANGE, BuiltinExchangeType.TOPIC);
+            </span><span style="color: #008000;">//</span><span style="color: #008000;">通道绑定队列</span>
+            <span style="color: #008000;">/**</span><span style="color: #008000;">
+             * 声明队列，如果Rabbit中没有此队列将自动创建
+             * param1:队列名称
+             * param2:是否持久化
+             * param3:队列是否独占此连接
+             * param4:队列不再使用时是否自动删除此队列
+             * param5:队列参数
+             * String queue, boolean durable, boolean exclusive, boolean autoDelete, Map&lt;String, Object&gt; arguments
+             *
+             </span><span style="color: #008000;">*/</span><span style="color: #000000;">
+            channel.queueDeclare(QUEUE_EMAIL,</span><span style="color: #0000ff;">true</span>,<span style="color: #0000ff;">false</span>,<span style="color: #0000ff;">false</span>,<span style="color: #0000ff;">null</span>);<span style="color: #008000;">//</span><span style="color: #008000;">通道绑定邮件队列</span>
+            channel.queueDeclare(QUEUE_SMS,<span style="color: #0000ff;">true</span>,<span style="color: #0000ff;">false</span>,<span style="color: #0000ff;">false</span>,<span style="color: #0000ff;">null</span>);<span style="color: #008000;">//</span><span style="color: #008000;">通道绑定短信队列
+            </span><span style="color: #008000;">//</span><span style="color: #008000;">交换机和队列绑定</span>
+            <span style="color: #008000;">/**</span><span style="color: #008000;">
+             * 参数明细
+             * 1、队列名称
+             * 2、交换机名称
+             * 3、路由key
+             </span><span style="color: #008000;">*/</span><span style="color: #000000;">
+            channel.queueBind(QUEUE_EMAIL,EXCHANGE,</span>"inform.#.email.#"<span style="color: #000000;">);
+            channel.queueBind(QUEUE_SMS,EXCHANGE,</span>"inform.#.sms.#"<span style="color: #000000;">);
+            </span><span style="color: #008000;">//</span><span style="color: #008000;">给email队列发消息</span>
+            <span style="color: #0000ff;">for</span>(<span style="color: #0000ff;">int</span> i = 0;i&lt;10;i++<span style="color: #000000;">){
+                String message </span>= <span style="color: #0000ff;">new</span> String("mq 发送email消息。。。"<span style="color: #000000;">);
+                </span><span style="color: #008000;">/**</span><span style="color: #008000;">
+     &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;*&nbsp;消息发布方法
+     &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;*&nbsp;param1：Exchange的名称，如果没有指定，则使用Default&nbsp;Exchange
+     &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;*&nbsp;param2:routingKey,消息的路由Key，是用于Exchange（交换机）将消息转发到指定的消息队列
+     &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;*&nbsp;param3:消息包含的属性
+     &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;*&nbsp;param4：消息体
+                 &nbsp;*&nbsp;这里没有指定交换机，消息将发送给默认交换机，每个队列也会绑定那个默认的交换机，但是不能显示绑定或解除绑定
+                 &nbsp;*&nbsp;默认的交换机，routingKey等于队列名称
+                 </span><span style="color: #008000;">*/</span>
+                <span style="color: #008000;">//</span><span style="color: #008000;">String exchange, String routingKey, BasicProperties props, byte[] body</span>
+                channel.basicPublish(EXCHANGE,"inform.email",<span style="color: #0000ff;">null</span><span style="color: #000000;">,message.getBytes());
+                System.out.println(</span>"mq email 消息发送成功！"<span style="color: #000000;">);
+            }
+            </span><span style="color: #008000;">//</span><span style="color: #008000;">给sms队列发消息</span>
+            <span style="color: #0000ff;">for</span>(<span style="color: #0000ff;">int</span> i = 0;i&lt;10;i++<span style="color: #000000;">){
+                String message </span>= <span style="color: #0000ff;">new</span> String("mq 发送sms消息。。。"<span style="color: #000000;">);
+                </span><span style="color: #008000;">/**</span><span style="color: #008000;">
+     &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;*&nbsp;消息发布方法
+     &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;*&nbsp;param1：Exchange的名称，如果没有指定，则使用Default&nbsp;Exchange
+     &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;*&nbsp;param2:routingKey,消息的路由Key，是用于Exchange（交换机）将消息转发到指定的消息队列
+     &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;*&nbsp;param3:消息包含的属性
+     &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;*&nbsp;param4：消息体
+                 &nbsp;*&nbsp;这里没有指定交换机，消息将发送给默认交换机，每个队列也会绑定那个默认的交换机，但是不能显示绑定或解除绑定
+                 &nbsp;*&nbsp;默认的交换机，routingKey等于队列名称
+                 </span><span style="color: #008000;">*/</span>
+                <span style="color: #008000;">//</span><span style="color: #008000;">String exchange, String routingKey, BasicProperties props, byte[] body</span>
+                channel.basicPublish(EXCHANGE,"inform.sms",<span style="color: #0000ff;">null</span><span style="color: #000000;">,message.getBytes());
+                System.out.println(</span>"mq sms 消息发送成功！"<span style="color: #000000;">);
+            }
+            </span><span style="color: #008000;">//</span><span style="color: #008000;">给email和sms队列发消息</span>
+            <span style="color: #0000ff;">for</span>(<span style="color: #0000ff;">int</span> i = 0;i&lt;10;i++<span style="color: #000000;">){
+                String message </span>= <span style="color: #0000ff;">new</span> String("mq 发送email sms消息。。。"<span style="color: #000000;">);
+                </span><span style="color: #008000;">/**</span><span style="color: #008000;">
+     &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;*&nbsp;消息发布方法
+     &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;*&nbsp;param1：Exchange的名称，如果没有指定，则使用Default&nbsp;Exchange
+     &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;*&nbsp;param2:routingKey,消息的路由Key，是用于Exchange（交换机）将消息转发到指定的消息队列
+     &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;*&nbsp;param3:消息包含的属性
+     &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;*&nbsp;param4：消息体
+                 &nbsp;*&nbsp;这里没有指定交换机，消息将发送给默认交换机，每个队列也会绑定那个默认的交换机，但是不能显示绑定或解除绑定
+                 &nbsp;*&nbsp;默认的交换机，routingKey等于队列名称
+                 </span><span style="color: #008000;">*/</span>
+                <span style="color: #008000;">//</span><span style="color: #008000;">String exchange, String routingKey, BasicProperties props, byte[] body</span>
+                channel.basicPublish(EXCHANGE,"inform.email.sms",<span style="color: #0000ff;">null</span><span style="color: #000000;">,message.getBytes());
+                System.out.println(</span>"mq email sms 消息发送成功！"<span style="color: #000000;">);
+            }
+        } </span><span style="color: #0000ff;">catch</span><span style="color: #000000;"> (Exception e) {
+            e.printStackTrace();
+        } </span><span style="color: #0000ff;">finally</span><span style="color: #000000;"> {
+            </span><span style="color: #0000ff;">try</span><span style="color: #000000;"> {
+                channel.close();
+            } </span><span style="color: #0000ff;">catch</span><span style="color: #000000;"> (IOException e) {
+                e.printStackTrace();
+            } </span><span style="color: #0000ff;">catch</span><span style="color: #000000;"> (TimeoutException e) {
+                e.printStackTrace();
+            }
+            </span><span style="color: #0000ff;">try</span><span style="color: #000000;"> {
+                connection.close();
+            } </span><span style="color: #0000ff;">catch</span><span style="color: #000000;"> (IOException e) {
+                e.printStackTrace();
+            }
+        }
+    }
+}</span></code></pre>
+
+<p>邮件消费端的代码如下：</p>
+<src class="cnblogs_code">
+<pre><code><span style="color: #0000ff;">package</span><span style="color: #000000;"> com.xyfer;
+
+</span><span style="color: #0000ff;">import</span> com.rabbitmq.client.*<span style="color: #000000;">;
+
+</span><span style="color: #0000ff;">import</span><span style="color: #000000;"> java.io.IOException;
+</span><span style="color: #0000ff;">import</span><span style="color: #000000;"> java.util.concurrent.TimeoutException;
+
+</span><span style="color: #0000ff;">public</span> <span style="color: #0000ff;">class</span><span style="color: #000000;"> Consumer04 {
+    </span><span style="color: #0000ff;">private</span> <span style="color: #0000ff;">static</span> <span style="color: #0000ff;">final</span> String QUEUE_EMAIL ="queueEmail"<span style="color: #000000;">;
+    </span><span style="color: #0000ff;">private</span> <span style="color: #0000ff;">static</span> <span style="color: #0000ff;">final</span> String EXCHANGE = "messageChange"<span style="color: #000000;">;
+    </span><span style="color: #0000ff;">public</span> <span style="color: #0000ff;">static</span> <span style="color: #0000ff;">void</span><span style="color: #000000;"> main(String[] args) {
+        Connection connection </span>= <span style="color: #0000ff;">null</span><span style="color: #000000;">;
+        Channel channel </span>= <span style="color: #0000ff;">null</span><span style="color: #000000;">;
+        </span><span style="color: #0000ff;">try</span><span style="color: #000000;"> {
+            ConnectionFactory connectionFactory </span>= <span style="color: #0000ff;">new</span><span style="color: #000000;"> ConnectionFactory();
+            connectionFactory.setHost(</span>"127.0.0.1"<span style="color: #000000;">);
+            connectionFactory.setPort(</span>5672<span style="color: #000000;">);
+            connection </span>=<span style="color: #000000;"> connectionFactory.newConnection();
+            channel </span>=<span style="color: #000000;"> connection.createChannel();
+            </span><span style="color: #008000;">//</span><span style="color: #008000;">通道绑定交换机</span>
+            <span style="color: #008000;">/**</span><span style="color: #008000;">
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;*&nbsp;参数明细
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;*&nbsp;1、交换机名称
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;*&nbsp;2、交换机类型，fanout、topic、direct、headers
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span><span style="color: #008000;">*/</span><span style="color: #000000;">
+            channel.exchangeDeclare(EXCHANGE, BuiltinExchangeType.TOPIC);
+            </span><span style="color: #008000;">//</span><span style="color: #008000;">通道绑定队列</span>
+            <span style="color: #008000;">/**</span><span style="color: #008000;">
+             * 声明队列，如果Rabbit中没有此队列将自动创建
+             * param1:队列名称
+             * param2:是否持久化
+             * param3:队列是否独占此连接
+             * param4:队列不再使用时是否自动删除此队列
+             * param5:队列参数
+             * String queue, boolean durable, boolean exclusive, boolean autoDelete, Map&lt;String, Object&gt; arguments
+             *
+             </span><span style="color: #008000;">*/</span><span style="color: #000000;">
+            channel.queueDeclare(QUEUE_EMAIL,</span><span style="color: #0000ff;">true</span>,<span style="color: #0000ff;">false</span>,<span style="color: #0000ff;">false</span>,<span style="color: #0000ff;">null</span>);<span style="color: #008000;">//</span><span style="color: #008000;">通道绑定邮件队列
+            </span><span style="color: #008000;">//</span><span style="color: #008000;">交换机和队列绑定</span>
+            <span style="color: #008000;">/**</span><span style="color: #008000;">
+             * 参数明细
+             * 1、队列名称
+             * 2、交换机名称
+             * 3、路由key
+             </span><span style="color: #008000;">*/</span><span style="color: #000000;">
+            channel.queueBind(QUEUE_EMAIL,EXCHANGE,</span>"inform.#.email.#"<span style="color: #000000;">);
+            </span><span style="color: #008000;">//</span><span style="color: #008000;">String consumerTag, Envelope envelope, BasicProperties properties, byte[] body</span>
+            DefaultConsumer consumer = <span style="color: #0000ff;">new</span><span style="color: #000000;"> DefaultConsumer(channel) {
+                </span><span style="color: #008000;">/**</span><span style="color: #008000;">
+     &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;*&nbsp;消费者接收消息调用此方法
+     &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;*&nbsp;</span><span style="color: #808080;">@param</span><span style="color: #008000;">&nbsp;consumerTag&nbsp;消费者的标签，在channel.basicConsume()去指定
+     &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;*&nbsp;</span><span style="color: #808080;">@param</span><span style="color: #008000;">&nbsp;envelope&nbsp;消息包的内容，可从中获取消息id，消息routingkey，交换机，消息和重传标志
+                    (收到消息失败后是否需要重新发送)
+     &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;*&nbsp;</span><span style="color: #808080;">@param</span><span style="color: #008000;">&nbsp;properties
+     &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;*&nbsp;</span><span style="color: #808080;">@param</span><span style="color: #008000;">&nbsp;body
+     &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;*&nbsp;</span><span style="color: #808080;">@throws</span><span style="color: #008000;">&nbsp;IOException
+                 * String consumerTag, Envelope envelope, BasicProperties properties, byte[] body
+                 </span><span style="color: #008000;">*/</span><span style="color: #000000;">
+                @Override
+                </span><span style="color: #0000ff;">public</span> <span style="color: #0000ff;">void</span> handleDelivery(String consumerTag, Envelope envelope, AMQP.BasicProperties properties, <span style="color: #0000ff;">byte</span>[] body) <span style="color: #0000ff;">throws</span><span style="color: #000000;"> IOException {
+                    </span><span style="color: #008000;">//</span><span style="color: #008000;">交换机</span>
+                    String exchange =<span style="color: #000000;"> envelope.getExchange();
+                    </span><span style="color: #008000;">//</span><span style="color: #008000;">路由key</span>
+                    String routingKey =<span style="color: #000000;"> envelope.getRoutingKey();
+                    envelope.getDeliveryTag();
+                    String msg </span>= <span style="color: #0000ff;">new</span> String(body,"utf-8"<span style="color: #000000;">);
+                    System.out.println(</span>"mq收到的消息是："+<span style="color: #000000;">msg );
+                }
+
+            };
+            System.out.println(</span>"消费者启动成功！"<span style="color: #000000;">);
+            channel.basicConsume(QUEUE_EMAIL,</span><span style="color: #0000ff;">true</span><span style="color: #000000;">,consumer);
+        } </span><span style="color: #0000ff;">catch</span><span style="color: #000000;"> (IOException e) {
+            e.printStackTrace();
+        } </span><span style="color: #0000ff;">catch</span><span style="color: #000000;"> (TimeoutException e) {
+            e.printStackTrace();
+        }
+    }
+}</span></code></pre>
+
+<p>短信消费端的代码如下：</p>
+<src class="cnblogs_code">
+<pre><code><span style="color: #0000ff;">package</span><span style="color: #000000;"> xyfer;
+
+</span><span style="color: #0000ff;">import</span> com.rabbitmq.client.*<span style="color: #000000;">;
+
+</span><span style="color: #0000ff;">import</span><span style="color: #000000;"> java.io.IOException;
+</span><span style="color: #0000ff;">import</span><span style="color: #000000;"> java.util.concurrent.TimeoutException;
+
+</span><span style="color: #0000ff;">public</span> <span style="color: #0000ff;">class</span><span style="color: #000000;"> Consumer04 {
+    </span><span style="color: #0000ff;">private</span> <span style="color: #0000ff;">static</span> <span style="color: #0000ff;">final</span> String QUEUE_SMS ="queueSms"<span style="color: #000000;">;
+    </span><span style="color: #0000ff;">private</span> <span style="color: #0000ff;">static</span> <span style="color: #0000ff;">final</span> String EXCHANGE = "messageChange"<span style="color: #000000;">;
+    </span><span style="color: #0000ff;">public</span> <span style="color: #0000ff;">static</span> <span style="color: #0000ff;">void</span><span style="color: #000000;"> main(String[] args) {
+        Connection connection </span>= <span style="color: #0000ff;">null</span><span style="color: #000000;">;
+        Channel channel </span>= <span style="color: #0000ff;">null</span><span style="color: #000000;">;
+        </span><span style="color: #0000ff;">try</span><span style="color: #000000;"> {
+            ConnectionFactory connectionFactory </span>= <span style="color: #0000ff;">new</span><span style="color: #000000;"> ConnectionFactory();
+            connectionFactory.setHost(</span>"127.0.0.1"<span style="color: #000000;">);
+            connectionFactory.setPort(</span>5672<span style="color: #000000;">);
+            connection </span>=<span style="color: #000000;"> connectionFactory.newConnection();
+            channel </span>=<span style="color: #000000;"> connection.createChannel();
+            </span><span style="color: #008000;">//</span><span style="color: #008000;">通道绑定交换机</span>
+            <span style="color: #008000;">/**</span><span style="color: #008000;">
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;*&nbsp;参数明细
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;*&nbsp;1、交换机名称
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;*&nbsp;2、交换机类型，fanout、topic、direct、headers
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span><span style="color: #008000;">*/</span><span style="color: #000000;">
+            channel.exchangeDeclare(EXCHANGE, BuiltinExchangeType.TOPIC);
+            </span><span style="color: #008000;">//</span><span style="color: #008000;">通道绑定队列</span>
+            <span style="color: #008000;">/**</span><span style="color: #008000;">
+             * 声明队列，如果Rabbit中没有此队列将自动创建
+             * param1:队列名称
+             * param2:是否持久化
+             * param3:队列是否独占此连接
+             * param4:队列不再使用时是否自动删除此队列
+             * param5:队列参数
+             * String queue, boolean durable, boolean exclusive, boolean autoDelete, Map&lt;String, Object&gt; arguments
+             *
+             </span><span style="color: #008000;">*/</span><span style="color: #000000;">
+            channel.queueDeclare(QUEUE_SMS,</span><span style="color: #0000ff;">true</span>,<span style="color: #0000ff;">false</span>,<span style="color: #0000ff;">false</span>,<span style="color: #0000ff;">null</span>);<span style="color: #008000;">//</span><span style="color: #008000;">通道绑定邮件队列
+            </span><span style="color: #008000;">//</span><span style="color: #008000;">交换机和队列绑定</span>
+            <span style="color: #008000;">/**</span><span style="color: #008000;">
+             * 参数明细
+             * 1、队列名称
+             * 2、交换机名称
+             * 3、路由key
+             </span><span style="color: #008000;">*/</span><span style="color: #000000;">
+            channel.queueBind(QUEUE_SMS,EXCHANGE,</span>"inform.#.sms.#"<span style="color: #000000;">);
+            </span><span style="color: #008000;">//</span><span style="color: #008000;">String consumerTag, Envelope envelope, BasicProperties properties, byte[] body</span>
+            DefaultConsumer consumer = <span style="color: #0000ff;">new</span><span style="color: #000000;"> DefaultConsumer(channel) {
+                </span><span style="color: #008000;">/**</span><span style="color: #008000;">
+     &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;*&nbsp;消费者接收消息调用此方法
+     &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;*&nbsp;</span><span style="color: #808080;">@param</span><span style="color: #008000;">&nbsp;consumerTag&nbsp;消费者的标签，在channel.basicConsume()去指定
+     &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;*&nbsp;</span><span style="color: #808080;">@param</span><span style="color: #008000;">&nbsp;envelope&nbsp;消息包的内容，可从中获取消息id，消息routingkey，交换机，消息和重传标志
+                    (收到消息失败后是否需要重新发送)
+     &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;*&nbsp;</span><span style="color: #808080;">@param</span><span style="color: #008000;">&nbsp;properties
+     &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;*&nbsp;</span><span style="color: #808080;">@param</span><span style="color: #008000;">&nbsp;body
+     &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;*&nbsp;</span><span style="color: #808080;">@throws</span><span style="color: #008000;">&nbsp;IOException
+                 * String consumerTag, Envelope envelope, BasicProperties properties, byte[] body
+                 </span><span style="color: #008000;">*/</span><span style="color: #000000;">
+                @Override
+                </span><span style="color: #0000ff;">public</span> <span style="color: #0000ff;">void</span> handleDelivery(String consumerTag, Envelope envelope, AMQP.BasicProperties properties, <span style="color: #0000ff;">byte</span>[] body) <span style="color: #0000ff;">throws</span><span style="color: #000000;"> IOException {
+                    </span><span style="color: #008000;">//</span><span style="color: #008000;">交换机</span>
+                    String exchange =<span style="color: #000000;"> envelope.getExchange();
+                    </span><span style="color: #008000;">//</span><span style="color: #008000;">路由key</span>
+                    String routingKey =<span style="color: #000000;"> envelope.getRoutingKey();
+                    envelope.getDeliveryTag();
+                    String msg </span>= <span style="color: #0000ff;">new</span> String(body,"utf-8"<span style="color: #000000;">);
+                    System.out.println(</span>"mq收到的消息是："+<span style="color: #000000;">msg );
+                }
+
+            };
+            System.out.println(</span>"消费者启动成功！"<span style="color: #000000;">);
+            channel.basicConsume(QUEUE_SMS,</span><span style="color: #0000ff;">true</span><span style="color: #000000;">,consumer);
+        } </span><span style="color: #0000ff;">catch</span><span style="color: #000000;"> (IOException e) {
+            e.printStackTrace();
+        } </span><span style="color: #0000ff;">catch</span><span style="color: #000000;"> (TimeoutException e) {
+            e.printStackTrace();
+        }
+    }
+}</span></code></pre>
+
+<p>由于生产端同时发送了email的消息（10条），sms的消息（10条），email和sms同时收到的消息（10条），所以每个消费端都应收到各自的10条消息，加上同时都能收到的10条消息，每个消费端应该收到20条消息；</p>
+<p>生产端控制台打印：</p>
+<p><img src="./images/RabbitMQ六种工作模式的对比与实践7.png" alt="" /></p>
+<p>&nbsp;邮件消费端控制台打印：</p>
+<p><img src="./images/RabbitMQ六种工作模式的对比与实践8.png" alt="" /></p>
+<p>&nbsp;短信消费端的控制台打印：</p>
+<p><img src="./images/RabbitMQ六种工作模式的对比与实践9.png" alt="" /></p>
+<p>&nbsp;生产端执行后，RabbitMQ上的消息队列情况：</p>
+<p><img src="./images/RabbitMQ六种工作模式的对比与实践10.png" alt="" /></p>
+<p>&nbsp;两个消费端执行完后，RabbitMQ上的消息队列情况：</p>
+<p><img src="./images/RabbitMQ六种工作模式的对比与实践11.png" alt="" /></p>
+<p>&nbsp;五、Header 模式</p>
+<p>header模式与routing不同的地方在于，header模式取消routingkey，使用header中的 key/value（键值对）匹配队列。</p>
+<p>案例：</p>
+<p>根据用户的通知设置去通知用户，设置接收Email的用户只接收Email，设置接收sms的用户只接收sms，设置两种通知类型都接收的则两种通知都有效。</p>
+<p>根据假设使用场景，需要一个生产端，两个消费端，不同的是，生产端声明交换机时，交换机的类型不同，是headers类型，生产端队列绑定交换机时，不使用routingkey，而是使用header中的 key/value（键值对）匹配队列，发送消息时也是使用header中的 key/value（键值对）匹配队列。</p>
+<p>消费端同样是声明交换机时，交换机的类型不同，是headers类型，消费端队列绑定交换机时，不使用routingkey，而是使用header中的 key/value（键值对）匹配队列，消费消息时也是使用header中的 key/value（键值对）匹配队列。</p>
+<p>生产端的代码如下：</p>
+<src class="cnblogs_code">
+<pre><code><span style="color: #0000ff;">package</span><span style="color: #000000;"> com.xyfer;
+
+</span><span style="color: #0000ff;">import</span> com.rabbitmq.client.*<span style="color: #000000;">;
+
+
+</span><span style="color: #0000ff;">import</span><span style="color: #000000;"> java.io.IOException;
+</span><span style="color: #0000ff;">import</span><span style="color: #000000;"> java.util.Hashtable;
+</span><span style="color: #0000ff;">import</span><span style="color: #000000;"> java.util.Map;
+</span><span style="color: #0000ff;">import</span><span style="color: #000000;"> java.util.concurrent.TimeoutException;
+
+</span><span style="color: #0000ff;">public</span> <span style="color: #0000ff;">class</span><span style="color: #000000;"> Producer05 {
+    </span><span style="color: #008000;">//</span><span style="color: #008000;">声明两个队列和一个交换机
+    </span><span style="color: #008000;">//</span><span style="color: #008000;">Header 模式</span>
+    <span style="color: #0000ff;">private</span> <span style="color: #0000ff;">static</span> <span style="color: #0000ff;">final</span> String QUEUE_EMAIL ="queueEmail"<span style="color: #000000;">;
+    </span><span style="color: #0000ff;">private</span> <span style="color: #0000ff;">static</span> <span style="color: #0000ff;">final</span> String QUEUE_SMS ="queueSms"<span style="color: #000000;">;
+    </span><span style="color: #0000ff;">private</span> <span style="color: #0000ff;">static</span> <span style="color: #0000ff;">final</span> String EXCHANGE = "messageChange"<span style="color: #000000;">;
+    </span><span style="color: #0000ff;">public</span> <span style="color: #0000ff;">static</span> <span style="color: #0000ff;">void</span><span style="color: #000000;"> main(String[] args) {
+        Connection connection </span>= <span style="color: #0000ff;">null</span><span style="color: #000000;">;
+        Channel channel </span>= <span style="color: #0000ff;">null</span><span style="color: #000000;">;
+        </span><span style="color: #0000ff;">try</span><span style="color: #000000;"> {
+            ConnectionFactory connectionFactory </span>= <span style="color: #0000ff;">new</span><span style="color: #000000;"> ConnectionFactory();
+            connectionFactory.setHost(</span>"127.0.0.1");<span style="color: #008000;">//</span><span style="color: #008000;">mq服务ip地址</span>
+            connectionFactory.setPort(5672);<span style="color: #008000;">//</span><span style="color: #008000;">mq client连接端口</span>
+            connectionFactory.setUsername("guest");<span style="color: #008000;">//</span><span style="color: #008000;">mq登录用户名</span>
+            connectionFactory.setPassword("guest");<span style="color: #008000;">//</span><span style="color: #008000;">mq登录密码</span>
+            connectionFactory.setVirtualHost("/");<span style="color: #008000;">//</span><span style="color: #008000;">rabbitmq默认虚拟机名称为&ldquo;/&rdquo;，虚拟机相当于一个独立的mq服务器
+            </span><span style="color: #008000;">//</span><span style="color: #008000;">创建与RabbitMQ服务的TCP连接</span>
+            connection =<span style="color: #000000;"> connectionFactory.newConnection();
+            </span><span style="color: #008000;">//</span><span style="color: #008000;">创建与Exchange的通道，每个连接可以创建多个通道，每个通道代表一个会话任务</span>
+            channel =<span style="color: #000000;"> connection.createChannel();
+            </span><span style="color: #008000;">//</span><span style="color: #008000;">通道绑定交换机</span>
+            <span style="color: #008000;">/**</span><span style="color: #008000;">
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;*&nbsp;参数明细
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;*&nbsp;1、交换机名称
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;*&nbsp;2、交换机类型，fanout、topic、direct、headers
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span><span style="color: #008000;">*/</span>
+            <span style="color: #008000;">//</span><span style="color: #008000;">Header 模式</span>
+<span style="color: #000000;">            channel.exchangeDeclare(EXCHANGE, BuiltinExchangeType.HEADERS);
+            </span><span style="color: #008000;">//</span><span style="color: #008000;">通道绑定队列</span>
+            <span style="color: #008000;">/**</span><span style="color: #008000;">
+             * 声明队列，如果Rabbit中没有此队列将自动创建
+             * param1:队列名称
+             * param2:是否持久化
+             * param3:队列是否独占此连接
+             * param4:队列不再使用时是否自动删除此队列
+             * param5:队列参数
+             * String queue, boolean durable, boolean exclusive, boolean autoDelete, Map&lt;String, Object&gt; arguments
+             *
+             </span><span style="color: #008000;">*/</span><span style="color: #000000;">
+            channel.queueDeclare(QUEUE_EMAIL,</span><span style="color: #0000ff;">true</span>,<span style="color: #0000ff;">false</span>,<span style="color: #0000ff;">false</span>,<span style="color: #0000ff;">null</span>);<span style="color: #008000;">//</span><span style="color: #008000;">通道绑定邮件队列</span>
+            channel.queueDeclare(QUEUE_SMS,<span style="color: #0000ff;">true</span>,<span style="color: #0000ff;">false</span>,<span style="color: #0000ff;">false</span>,<span style="color: #0000ff;">null</span>);<span style="color: #008000;">//</span><span style="color: #008000;">通道绑定短信队列
+            </span><span style="color: #008000;">//</span><span style="color: #008000;">交换机和队列绑定</span>
+            <span style="color: #008000;">/**</span><span style="color: #008000;">
+             * 参数明细
+             * 1、队列名称
+             * 2、交换机名称
+             * 3、路由key
+             * 4、
+             * String queue, String exchange, String routingKey, Map&lt;String, Object&gt; arguments
+             </span><span style="color: #008000;">*/</span><span style="color: #000000;">
+            Map</span>&lt;String,Object&gt; headers_email = <span style="color: #0000ff;">new</span> Hashtable&lt;String,Object&gt;<span style="color: #000000;">();
+            headers_email.put(</span>"inform_type","email"<span style="color: #000000;">);
+            Map</span>&lt;String,Object&gt; headers_sms = <span style="color: #0000ff;">new</span> Hashtable&lt;String, Object&gt;<span style="color: #000000;">();
+            headers_sms.put(</span>"inform_type","sms"<span style="color: #000000;">);
+            channel.queueBind(QUEUE_EMAIL,EXCHANGE,</span>""<span style="color: #000000;">,headers_email);
+            channel.queueBind(QUEUE_SMS,EXCHANGE,</span>""<span style="color: #000000;">,headers_sms);
+            </span><span style="color: #008000;">//</span><span style="color: #008000;">给email队列发消息</span>
+            <span style="color: #0000ff;">for</span>(<span style="color: #0000ff;">int</span> i = 0;i&lt;10;i++<span style="color: #000000;">){
+                String message </span>= <span style="color: #0000ff;">new</span> String("mq 发送email消息。。。"<span style="color: #000000;">);
+                Map</span>&lt;String,Object&gt; headers = <span style="color: #0000ff;">new</span> Hashtable&lt;String,Object&gt;<span style="color: #000000;">();
+                headers.put(</span>"inform_type","email");<span style="color: #008000;">//</span><span style="color: #008000;">匹配email通知消费者绑定的header</span>
+                <span style="color: #008000;">/**</span><span style="color: #008000;">
+     &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;*&nbsp;消息发布方法
+     &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;*&nbsp;param1：Exchange的名称，如果没有指定，则使用Default&nbsp;Exchange
+     &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;*&nbsp;param2:routingKey,消息的路由Key，是用于Exchange（交换机）将消息转发到指定的消息队列
+     &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;*&nbsp;param3:消息包含的属性
+     &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;*&nbsp;param4：消息体
+                 &nbsp;*&nbsp;这里没有指定交换机，消息将发送给默认交换机，每个队列也会绑定那个默认的交换机，但是不能显示绑定或解除绑定
+                 &nbsp;*&nbsp;默认的交换机，routingKey等于队列名称
+                 </span><span style="color: #008000;">*/</span>
+                <span style="color: #008000;">//</span><span style="color: #008000;">String exchange, String routingKey, BasicProperties props, byte[] body</span>
+                AMQP.BasicProperties.Builder properties = <span style="color: #0000ff;">new</span><span style="color: #000000;"> AMQP.BasicProperties.Builder();
+                properties.headers(headers);
+                </span><span style="color: #008000;">//</span><span style="color: #008000;">Email通知</span>
+                channel.basicPublish(EXCHANGE,""<span style="color: #000000;">,properties.build(),message.getBytes());
+                System.out.println(</span>"mq email 消息发送成功！"<span style="color: #000000;">);
+            }
+            </span><span style="color: #008000;">//</span><span style="color: #008000;">给sms队列发消息</span>
+            <span style="color: #0000ff;">for</span>(<span style="color: #0000ff;">int</span> i = 0;i&lt;10;i++<span style="color: #000000;">){
+                String message </span>= <span style="color: #0000ff;">new</span> String("mq 发送sms消息。。。"<span style="color: #000000;">);
+                Map</span>&lt;String,Object&gt; headers = <span style="color: #0000ff;">new</span> Hashtable&lt;String,Object&gt;<span style="color: #000000;">();
+                headers.put(</span>"inform_type","sms");<span style="color: #008000;">//</span><span style="color: #008000;">匹配sms通知消费者绑定的header</span>
+                <span style="color: #008000;">/**</span><span style="color: #008000;">
+     &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;*&nbsp;消息发布方法
+     &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;*&nbsp;param1：Exchange的名称，如果没有指定，则使用Default&nbsp;Exchange
+     &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;*&nbsp;param2:routingKey,消息的路由Key，是用于Exchange（交换机）将消息转发到指定的消息队列
+     &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;*&nbsp;param3:消息包含的属性
+     &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;*&nbsp;param4：消息体
+                 &nbsp;*&nbsp;这里没有指定交换机，消息将发送给默认交换机，每个队列也会绑定那个默认的交换机，但是不能显示绑定或解除绑定
+                 &nbsp;*&nbsp;默认的交换机，routingKey等于队列名称
+                 </span><span style="color: #008000;">*/</span>
+                <span style="color: #008000;">//</span><span style="color: #008000;">String exchange, String routingKey, BasicProperties props, byte[] body</span>
+                AMQP.BasicProperties.Builder properties = <span style="color: #0000ff;">new</span><span style="color: #000000;"> AMQP.BasicProperties.Builder();
+                properties.headers(headers);
+                </span><span style="color: #008000;">//</span><span style="color: #008000;">sms通知</span>
+                channel.basicPublish(EXCHANGE,""<span style="color: #000000;">,properties.build(),message.getBytes());
+                System.out.println(</span>"mq sms 消息发送成功！"<span style="color: #000000;">);
+            }
+        } </span><span style="color: #0000ff;">catch</span><span style="color: #000000;"> (Exception e) {
+            e.printStackTrace();
+        } </span><span style="color: #0000ff;">finally</span><span style="color: #000000;"> {
+            </span><span style="color: #0000ff;">try</span><span style="color: #000000;"> {
+                channel.close();
+            } </span><span style="color: #0000ff;">catch</span><span style="color: #000000;"> (IOException e) {
+                e.printStackTrace();
+            } </span><span style="color: #0000ff;">catch</span><span style="color: #000000;"> (TimeoutException e) {
+                e.printStackTrace();
+            }
+            </span><span style="color: #0000ff;">try</span><span style="color: #000000;"> {
+                connection.close();
+            } </span><span style="color: #0000ff;">catch</span><span style="color: #000000;"> (IOException e) {
+                e.printStackTrace();
+            }
+        }
+    }
+}</span></code></pre>
+
+<p>邮件消费端的代码如下：</p>
+<src class="cnblogs_code">
+<pre><code><span style="color: #0000ff;">package</span><span style="color: #000000;"> com.xyfer;
+
+</span><span style="color: #0000ff;">import</span> com.rabbitmq.client.*<span style="color: #000000;">;
+
+</span><span style="color: #0000ff;">import</span><span style="color: #000000;"> java.io.IOException;
+</span><span style="color: #0000ff;">import</span><span style="color: #000000;"> java.util.Hashtable;
+</span><span style="color: #0000ff;">import</span><span style="color: #000000;"> java.util.Map;
+</span><span style="color: #0000ff;">import</span><span style="color: #000000;"> java.util.concurrent.TimeoutException;
+
+</span><span style="color: #0000ff;">public</span> <span style="color: #0000ff;">class</span><span style="color: #000000;"> Consumer05 {
+    </span><span style="color: #0000ff;">private</span> <span style="color: #0000ff;">static</span> <span style="color: #0000ff;">final</span> String QUEUE_EMAIL ="queueEmail"<span style="color: #000000;">;
+    </span><span style="color: #0000ff;">private</span> <span style="color: #0000ff;">static</span> <span style="color: #0000ff;">final</span> String EXCHANGE = "messageChange"<span style="color: #000000;">;
+    </span><span style="color: #0000ff;">public</span> <span style="color: #0000ff;">static</span> <span style="color: #0000ff;">void</span><span style="color: #000000;"> main(String[] args) {
+        Connection connection </span>= <span style="color: #0000ff;">null</span><span style="color: #000000;">;
+        Channel channel </span>= <span style="color: #0000ff;">null</span><span style="color: #000000;">;
+        </span><span style="color: #0000ff;">try</span><span style="color: #000000;"> {
+            ConnectionFactory connectionFactory </span>= <span style="color: #0000ff;">new</span><span style="color: #000000;"> ConnectionFactory();
+            connectionFactory.setHost(</span>"127.0.0.1"<span style="color: #000000;">);
+            connectionFactory.setPort(</span>5672<span style="color: #000000;">);
+            connection </span>=<span style="color: #000000;"> connectionFactory.newConnection();
+            channel </span>=<span style="color: #000000;"> connection.createChannel();
+            </span><span style="color: #008000;">//</span><span style="color: #008000;">通道绑定交换机</span>
+            <span style="color: #008000;">/**</span><span style="color: #008000;">
+             &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;*&nbsp;参数明细
+             &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;*&nbsp;1、交换机名称
+             &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;*&nbsp;2、交换机类型，fanout、topic、direct、headers
+             &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span><span style="color: #008000;">*/</span><span style="color: #000000;">
+            channel.exchangeDeclare(EXCHANGE, BuiltinExchangeType.HEADERS);
+            </span><span style="color: #008000;">//</span><span style="color: #008000;">通道绑定队列</span>
+            <span style="color: #008000;">/**</span><span style="color: #008000;">
+             * 声明队列，如果Rabbit中没有此队列将自动创建
+             * param1:队列名称
+             * param2:是否持久化
+             * param3:队列是否独占此连接
+             * param4:队列不再使用时是否自动删除此队列
+             * param5:队列参数
+             * String queue, boolean durable, boolean exclusive, boolean autoDelete, Map&lt;String, Object&gt; arguments
+             *
+             </span><span style="color: #008000;">*/</span><span style="color: #000000;">
+            channel.queueDeclare(QUEUE_EMAIL,</span><span style="color: #0000ff;">true</span>,<span style="color: #0000ff;">false</span>,<span style="color: #0000ff;">false</span>,<span style="color: #0000ff;">null</span>);<span style="color: #008000;">//</span><span style="color: #008000;">通道绑定邮件队列
+            </span><span style="color: #008000;">//</span><span style="color: #008000;">交换机和队列绑定</span>
+            <span style="color: #008000;">/**</span><span style="color: #008000;">
+             * 参数明细
+             * 1、队列名称
+             * 2、交换机名称
+             * 3、路由key
+             * 4、
+             * String queue, String exchange, String routingKey, Map&lt;String, Object&gt; arguments
+             </span><span style="color: #008000;">*/</span><span style="color: #000000;">
+            Map</span>&lt;String,Object&gt; headers_email = <span style="color: #0000ff;">new</span> Hashtable&lt;String,Object&gt;<span style="color: #000000;">();
+            headers_email.put(</span>"inform_email","email"<span style="color: #000000;">);
+            channel.queueBind(QUEUE_EMAIL,EXCHANGE,</span>""<span style="color: #000000;">,headers_email);
+            </span><span style="color: #008000;">//</span><span style="color: #008000;">String consumerTag, Envelope envelope, BasicProperties properties, byte[] body</span>
+            DefaultConsumer consumer = <span style="color: #0000ff;">new</span><span style="color: #000000;"> DefaultConsumer(channel) {
+                </span><span style="color: #008000;">/**</span><span style="color: #008000;">
+     &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;*&nbsp;消费者接收消息调用此方法
+     &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;*&nbsp;</span><span style="color: #808080;">@param</span><span style="color: #008000;">&nbsp;consumerTag&nbsp;消费者的标签，在channel.basicConsume()去指定
+     &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;*&nbsp;</span><span style="color: #808080;">@param</span><span style="color: #008000;">&nbsp;envelope&nbsp;消息包的内容，可从中获取消息id，消息routingkey，交换机，消息和重传标志
+                    (收到消息失败后是否需要重新发送)
+     &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;*&nbsp;</span><span style="color: #808080;">@param</span><span style="color: #008000;">&nbsp;properties
+     &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;*&nbsp;</span><span style="color: #808080;">@param</span><span style="color: #008000;">&nbsp;body
+     &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;*&nbsp;</span><span style="color: #808080;">@throws</span><span style="color: #008000;">&nbsp;IOException
+                 * String consumerTag, Envelope envelope, BasicProperties properties, byte[] body
+                 </span><span style="color: #008000;">*/</span><span style="color: #000000;">
+                @Override
+                </span><span style="color: #0000ff;">public</span> <span style="color: #0000ff;">void</span> handleDelivery(String consumerTag, Envelope envelope, AMQP.BasicProperties properties, <span style="color: #0000ff;">byte</span>[] body) <span style="color: #0000ff;">throws</span><span style="color: #000000;"> IOException {
+                    </span><span style="color: #008000;">//</span><span style="color: #008000;">交换机</span>
+                    String exchange =<span style="color: #000000;"> envelope.getExchange();
+                    </span><span style="color: #008000;">//</span><span style="color: #008000;">路由key</span>
+                    String routingKey =<span style="color: #000000;"> envelope.getRoutingKey();
+                    envelope.getDeliveryTag();
+                    String msg </span>= <span style="color: #0000ff;">new</span> String(body,"utf-8"<span style="color: #000000;">);
+                    System.out.println(</span>"mq收到的消息是："+<span style="color: #000000;">msg );
+                }
+
+            };
+            System.out.println(</span>"消费者启动成功！"<span style="color: #000000;">);
+            channel.basicConsume(QUEUE_EMAIL,</span><span style="color: #0000ff;">true</span><span style="color: #000000;">,consumer);
+        } </span><span style="color: #0000ff;">catch</span><span style="color: #000000;"> (IOException e) {
+            e.printStackTrace();
+        } </span><span style="color: #0000ff;">catch</span><span style="color: #000000;"> (TimeoutException e) {
+            e.printStackTrace();
+        }
+    }
+}</span></code></pre>
+
+<p>短信消费端的代码如下：</p>
+<src class="cnblogs_code">
+<pre><code><span style="color: #0000ff;">package</span><span style="color: #000000;"> xyfer;
+
+</span><span style="color: #0000ff;">import</span> com.rabbitmq.client.*<span style="color: #000000;">;
+
+</span><span style="color: #0000ff;">import</span><span style="color: #000000;"> java.io.IOException;
+</span><span style="color: #0000ff;">import</span><span style="color: #000000;"> java.util.Hashtable;
+</span><span style="color: #0000ff;">import</span><span style="color: #000000;"> java.util.Map;
+</span><span style="color: #0000ff;">import</span><span style="color: #000000;"> java.util.concurrent.TimeoutException;
+
+</span><span style="color: #0000ff;">public</span> <span style="color: #0000ff;">class</span><span style="color: #000000;"> Consumer05 {
+    </span><span style="color: #0000ff;">private</span> <span style="color: #0000ff;">static</span> <span style="color: #0000ff;">final</span> String QUEUE_SMS ="queueSms"<span style="color: #000000;">;
+    </span><span style="color: #0000ff;">private</span> <span style="color: #0000ff;">static</span> <span style="color: #0000ff;">final</span> String EXCHANGE = "messageChange"<span style="color: #000000;">;
+    </span><span style="color: #0000ff;">public</span> <span style="color: #0000ff;">static</span> <span style="color: #0000ff;">void</span><span style="color: #000000;"> main(String[] args) {
+        Connection connection </span>= <span style="color: #0000ff;">null</span><span style="color: #000000;">;
+        Channel channel </span>= <span style="color: #0000ff;">null</span><span style="color: #000000;">;
+        </span><span style="color: #0000ff;">try</span><span style="color: #000000;"> {
+            ConnectionFactory connectionFactory </span>= <span style="color: #0000ff;">new</span><span style="color: #000000;"> ConnectionFactory();
+            connectionFactory.setHost(</span>"127.0.0.1"<span style="color: #000000;">);
+            connectionFactory.setPort(</span>5672<span style="color: #000000;">);
+            connection </span>=<span style="color: #000000;"> connectionFactory.newConnection();
+            channel </span>=<span style="color: #000000;"> connection.createChannel();
+            </span><span style="color: #008000;">//</span><span style="color: #008000;">通道绑定交换机</span>
+            <span style="color: #008000;">/**</span><span style="color: #008000;">
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;*&nbsp;参数明细
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;*&nbsp;1、交换机名称
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;*&nbsp;2、交换机类型，fanout、topic、direct、headers
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span><span style="color: #008000;">*/</span><span style="color: #000000;">
+            channel.exchangeDeclare(EXCHANGE, BuiltinExchangeType.HEADERS);
+            </span><span style="color: #008000;">//</span><span style="color: #008000;">通道绑定队列</span>
+            <span style="color: #008000;">/**</span><span style="color: #008000;">
+             * 声明队列，如果Rabbit中没有此队列将自动创建
+             * param1:队列名称
+             * param2:是否持久化
+             * param3:队列是否独占此连接
+             * param4:队列不再使用时是否自动删除此队列
+             * param5:队列参数
+             * String queue, boolean durable, boolean exclusive, boolean autoDelete, Map&lt;String, Object&gt; arguments
+             *
+             </span><span style="color: #008000;">*/</span><span style="color: #000000;">
+            channel.queueDeclare(QUEUE_SMS,</span><span style="color: #0000ff;">true</span>,<span style="color: #0000ff;">false</span>,<span style="color: #0000ff;">false</span>,<span style="color: #0000ff;">null</span>);<span style="color: #008000;">//</span><span style="color: #008000;">通道绑定邮件队列
+            </span><span style="color: #008000;">//</span><span style="color: #008000;">交换机和队列绑定</span>
+            <span style="color: #008000;">/**</span><span style="color: #008000;">
+             * 参数明细
+             * 1、队列名称
+             * 2、交换机名称
+             * 3、路由key
+             * 4、
+             * String queue, String exchange, String routingKey, Map&lt;String, Object&gt; arguments
+             </span><span style="color: #008000;">*/</span><span style="color: #000000;">
+            Map</span>&lt;String,Object&gt; headers_email = <span style="color: #0000ff;">new</span> Hashtable&lt;String,Object&gt;<span style="color: #000000;">();
+            headers_email.put(</span>"inform_email","sms"<span style="color: #000000;">);
+            channel.queueBind(QUEUE_SMS,EXCHANGE,</span>""<span style="color: #000000;">,headers_email);
+            </span><span style="color: #008000;">//</span><span style="color: #008000;">String consumerTag, Envelope envelope, BasicProperties properties, byte[] body</span>
+            DefaultConsumer consumer = <span style="color: #0000ff;">new</span><span style="color: #000000;"> DefaultConsumer(channel) {
+                </span><span style="color: #008000;">/**</span><span style="color: #008000;">
+     &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;*&nbsp;消费者接收消息调用此方法
+     &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;*&nbsp;</span><span style="color: #808080;">@param</span><span style="color: #008000;">&nbsp;consumerTag&nbsp;消费者的标签，在channel.basicConsume()去指定
+     &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;*&nbsp;</span><span style="color: #808080;">@param</span><span style="color: #008000;">&nbsp;envelope&nbsp;消息包的内容，可从中获取消息id，消息routingkey，交换机，消息和重传标志
+                    (收到消息失败后是否需要重新发送)
+     &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;*&nbsp;</span><span style="color: #808080;">@param</span><span style="color: #008000;">&nbsp;properties
+     &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;*&nbsp;</span><span style="color: #808080;">@param</span><span style="color: #008000;">&nbsp;body
+     &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;*&nbsp;</span><span style="color: #808080;">@throws</span><span style="color: #008000;">&nbsp;IOException
+                 * String consumerTag, Envelope envelope, BasicProperties properties, byte[] body
+                 </span><span style="color: #008000;">*/</span><span style="color: #000000;">
+                @Override
+                </span><span style="color: #0000ff;">public</span> <span style="color: #0000ff;">void</span> handleDelivery(String consumerTag, Envelope envelope, AMQP.BasicProperties properties, <span style="color: #0000ff;">byte</span>[] body) <span style="color: #0000ff;">throws</span><span style="color: #000000;"> IOException {
+                    </span><span style="color: #008000;">//</span><span style="color: #008000;">交换机</span>
+                    String exchange =<span style="color: #000000;"> envelope.getExchange();
+                    </span><span style="color: #008000;">//</span><span style="color: #008000;">路由key</span>
+                    String routingKey =<span style="color: #000000;"> envelope.getRoutingKey();
+                    envelope.getDeliveryTag();
+                    String msg </span>= <span style="color: #0000ff;">new</span> String(body,"utf-8"<span style="color: #000000;">);
+                    System.out.println(</span>"mq收到的消息是："+<span style="color: #000000;">msg );
+                }
+
+            };
+            System.out.println(</span>"消费者启动成功！"<span style="color: #000000;">);
+            channel.basicConsume(QUEUE_SMS,</span><span style="color: #0000ff;">true</span><span style="color: #000000;">,consumer);
+        } </span><span style="color: #0000ff;">catch</span><span style="color: #000000;"> (IOException e) {
+            e.printStackTrace();
+        } </span><span style="color: #0000ff;">catch</span><span style="color: #000000;"> (TimeoutException e) {
+            e.printStackTrace();
+        }
+    }
+}</span></code></pre>
+
+<p>生产端启动后RabbitMQ上面的消息队列情况：</p>
+<p><img src="./images/RabbitMQ六种工作模式的对比与实践12.png" alt="" /></p>
+<p>六、RPC 模式</p>
+<p><img src="./images/RabbitMQ六种工作模式的对比与实践13.png" alt="" /></p>
+<p>&nbsp;RPC即客户端远程调用服务端的方法 ，使用MQ可以实现RPC的异步调用，基于Direct交换机实现，流程如下：</p>
+<p>1、客户端即是生产者也是消费者，向RPC请求队列发送RPC调用消息，同时监听RPC响应队列。</p>
+<p>2、服务端监听RPC请求队列的消息，收到消息后执行服务端的方法，得到方法返回的结果。</p>
+<p>3、服务端将RPC方法 的结果发送到RPC响应队列。</p>
+<p>4、客户端（RPC调用方）监听RPC响应队列，接收到RPC调用结果。</p>
+<p>&nbsp;</p>
+<p>至此，RabbitMQ的六种工作模式已经介绍完毕，手动代码实现，实际体验六种工作模式的不同。</p>
+<p>&nbsp;</p>
+
+</div><hr><script charset='utf-8' src='../../js/sming.js'></script></body></html>

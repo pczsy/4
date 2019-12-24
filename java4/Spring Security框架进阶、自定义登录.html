@@ -1,0 +1,404 @@
+<html><head><meta charset='utf-8'><meta name='viewport' content='width=device-width, initial-scale=1'>
+<meta name='applicable-device' content='pc'><meta name='keywords' content='电脑,电脑讲解,电脑技术,编程,电脑故障维修Spring Security框架进阶、自定义登录' />
+<script src='../../highlight/highlight.pack.js'></script>
+<link rel='stylesheet' type='text/css' href='../../highlight/styles/monokai.css'/>
+
+<link rel='stylesheet' href='../../fenxiang/dist/css/share.min.css'>
+<script src='../../fenxiang/src/js/social-share.js'></script>
+<script src='../../fenxiang/src/js/qrcode.js'></script>
+
+</head><body><script>hljs.initHighlightingOnLoad();</script><script>
+var system ={};  
+var p = navigator.platform;       
+system.win = p.indexOf('Win') == 0;  
+system.mac = p.indexOf('Mac') == 0;  
+system.x11 = (p == 'X11') || (p.indexOf('Linux') == 0);     
+if(system.win||system.mac||system.xll){
+document.write("<link href='../css/3.css' rel='stylesheet' type='text/css'>");}else{ document.write("<link href='../css/3wap.css' rel='stylesheet' type='text/css'>");}</script><script src='../../js/3.js'></script><div class='div2'><div class='heading_nav'><ul><div><li><a href='../../index.html'>首页</a></li>
+</div><div onclick='hidden1()' >分享</div>
+</ul></div></div>
+<div id='heading_nav2'> 
+<li class='row' >
+<div class='social-share' data-mode='prepend'><a href='javascript:' class='social-share-icon icon-heart'></a></div></li></div><script charset='utf-8' src='../../3/js/hengfu.js'></script><script charset='utf-8' src='../../3/js/hengfu2.js'></script><hr><div class='div1'><div class='biaoti'><center>Spring Security框架进阶、自定义登录</center></div><div class='banquan'>原文出处:本文由博客园博主梦在将醒未醒时成真提供。<br/>
+原文连接:https://www.cnblogs.com/lulli/p/11880598.html</div><br>
+    <src class="cnblogs_code">&nbsp;
+<h1 align="justify"><strong>1.Spring Security框架进阶</strong></h1>
+<h2><strong>1.1 Spring Security简介</strong></h2>
+<p>Spring Security是一个能够为基于Spring的企业应用系统提供声明式的安全访问控制解决方案的安全框架。它提供了一组可以在Spring应用上下文中配置的Bean，充分利用了Spring IoC，DI（控制反转Inversion of Control ,DI:Dependency Injection&nbsp;依赖注入）和AOP（面向切面编程）功能，为应用系统提供声明式的安全访问控制功能，减少了为企业系统安全控制编写大量重复代码的工作。</p>
+<h2><strong>1.2 Spring Security入门小Demo</strong></h2>
+<h3><strong>1.2.1最简单Demo</strong></h3>
+<p>（1）创建工程spring-security-demo ,pom.xml内容</p>
+<table border="1" cellspacing="0">
+<tbody>
+<tr>
+<td valign="top" width="568">
+<p><em>&lt;properties&gt;</em></p>
+<p><em>&lt;spring.version&gt;4.2.4.RELEASE&lt;/spring.version&gt;</em></p>
+<p><em>&lt;/properties&gt;</em></p>
+<p><em>&lt;dependencies&gt;</em></p>
+<p><em>&lt;dependency&gt;</em></p>
+<p><em>&lt;groupId&gt;org.springframework&lt;/groupId&gt;</em></p>
+<p><em>&lt;artifactId&gt;spring-core&lt;/artifactId&gt;</em></p>
+<p><em>&lt;version&gt;${spring.version}&lt;/version&gt;</em></p>
+<p><em>&lt;/dependency&gt;</em></p>
+<p><em>&lt;dependency&gt;</em></p>
+<p><em>&lt;groupId&gt;org.springframework&lt;/groupId&gt;</em></p>
+<p><em>&lt;artifactId&gt;spring-web&lt;/artifactId&gt;</em></p>
+<p><em>&lt;version&gt;${spring.version}&lt;/version&gt;</em></p>
+<p><em>&lt;/dependency&gt;</em></p>
+<p><em>&lt;dependency&gt;</em></p>
+<p><em>&lt;groupId&gt;org.springframework&lt;/groupId&gt;</em></p>
+<p><em>&lt;artifactId&gt;spring-webmvc&lt;/artifactId&gt;</em></p>
+<p><em>&lt;version&gt;${spring.version}&lt;/version&gt;</em></p>
+<p><em>&lt;/dependency&gt;</em></p>
+<p><em>&lt;dependency&gt;</em></p>
+<p><em>&lt;groupId&gt;org.springframework&lt;/groupId&gt;</em></p>
+<p><em>&lt;artifactId&gt;spring-context-support&lt;/artifactId&gt;</em></p>
+<p><em>&lt;version&gt;${spring.version}&lt;/version&gt;</em></p>
+<p><em>&lt;/dependency&gt;</em></p>
+<p><em>&lt;dependency&gt;</em></p>
+<p><em>&lt;groupId&gt;org.springframework&lt;/groupId&gt;</em></p>
+<p><em>&lt;artifactId&gt;spring-test&lt;/artifactId&gt;</em></p>
+<p><em>&lt;version&gt;${spring.version}&lt;/version&gt;</em></p>
+<p><em>&lt;/dependency&gt;</em></p>
+<p><em>&lt;dependency&gt;</em></p>
+<p><em>&lt;groupId&gt;org.springframework&lt;/groupId&gt;</em></p>
+<p><em>&lt;artifactId&gt;spring-jdbc&lt;/artifactId&gt;</em></p>
+<p><em>&lt;version&gt;${spring.version}&lt;/version&gt;</em></p>
+<p><em>&lt;/dependency&gt;</em></p>
+<p><em>&lt;dependency&gt;</em></p>
+<p><em>&lt;groupId&gt;org.springframework.security&lt;/groupId&gt;</em></p>
+<p><em>&lt;artifactId&gt;spring-security-web&lt;/artifactId&gt;</em></p>
+<p><em>&lt;version&gt;4.1.0.RELEASE&lt;/version&gt;</em></p>
+<p><em>&lt;/dependency&gt;</em></p>
+<p><em>&lt;dependency&gt;</em></p>
+<p><em>&lt;groupId&gt;org.springframework.security&lt;/groupId&gt;</em></p>
+<p><em>&lt;artifactId&gt;spring-security-config&lt;/artifactId&gt;</em></p>
+<p><em>&lt;version&gt;4.1.0.RELEASE&lt;/version&gt;</em></p>
+<p><em>&lt;/dependency&gt;</em></p>
+<p><em>&lt;dependency&gt;</em></p>
+<p><em>&lt;groupId&gt;javax.servlet&lt;/groupId&gt;</em></p>
+<p><em>&lt;artifactId&gt;servlet-api&lt;/artifactId&gt;</em></p>
+<p><em>&lt;version&gt;2.5&lt;/version&gt;</em></p>
+<p><em>&lt;scope&gt;provided&lt;/scope&gt;</em></p>
+<p><em>&lt;/dependency&gt;</em></p>
+<p><em>&lt;/dependencies&gt;</em></p>
+<p><em>&lt;build&gt;</em></p>
+<p><em>&nbsp;&nbsp;&lt;plugins&gt;</em></p>
+<p><em>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&lt;!-- java编译插件 --&gt;</em></p>
+<p><em>&nbsp;&nbsp;&lt;plugin&gt;</em></p>
+<p><em>&lt;groupId&gt;org.apache.maven.plugins&lt;/groupId&gt;</em></p>
+<p><em>&lt;artifactId&gt;maven-compiler-plugin&lt;/artifactId&gt;</em></p>
+<p><em>&lt;version&gt;3.2&lt;/version&gt;</em></p>
+<p><em>&lt;configuration&gt;</em></p>
+<p><em>&lt;source&gt;1.7&lt;/source&gt;</em></p>
+<p><em>&lt;target&gt;1.7&lt;/target&gt;</em></p>
+<p><em>&lt;encoding&gt;UTF-8&lt;/encoding&gt;</em></p>
+<p><em>&lt;/configuration&gt;</em></p>
+<p><em>&nbsp;&nbsp;&lt;/plugin&gt; &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</em></p>
+<p><em>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&lt;plugin&gt;</em></p>
+<p><em>&lt;groupId&gt;org.apache.tomcat.maven&lt;/groupId&gt;</em></p>
+<p><em>&lt;artifactId&gt;tomcat7-maven-plugin&lt;/artifactId&gt;</em></p>
+<p><em>&lt;configuration&gt;</em></p>
+<p><em>&lt;!-- 指定端口 --&gt;</em></p>
+<p><em>&lt;port&gt;9090&lt;/port&gt;</em></p>
+<p><em>&lt;!-- 请求路径 --&gt;</em></p>
+<p><em>&lt;path&gt;/&lt;/path&gt;</em></p>
+<p><em>&lt;/configuration&gt;</em></p>
+<p><em>&nbsp;&nbsp;</em><em>&nbsp;&nbsp;&lt;/plugin&gt;</em></p>
+<p><em>&nbsp;&nbsp;&nbsp;&lt;/plugins&gt; &nbsp;</em></p>
+<p><em>&nbsp;&nbsp;&nbsp;&nbsp;&lt;/build&gt;</em></p>
+</td>
+</tr>
+</tbody>
+</table>
+<p>&nbsp;</p>
+<p>（2）创建web.xml</p>
+<table border="1" cellspacing="0">
+<tbody>
+<tr>
+<td valign="top" width="568">
+<p>&lt;?xml version="1.0" encoding="UTF-8"?&gt;</p>
+<p>&lt;web-app xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"</p>
+<p>xmlns="http://java.sun.com/xml/ns/javaee"</p>
+<p>xsi:schemaLocation="http://java.sun.com/xml/ns/javaee http://java.sun.com/xml/ns/javaee/web-app_2_5.xsd"</p>
+<p>version="2.5"&gt;</p>
+<p>&nbsp;&nbsp; &nbsp;&lt;context-param&gt;</p>
+<p>&lt;param-name&gt;contextConfigLocation&lt;/param-name&gt;</p>
+<p>&lt;param-value&gt;classpath:spring-security.xml&lt;/param-value&gt;</p>
+<p>&nbsp;&lt;/context-param&gt;</p>
+<p>&nbsp;&lt;listener&gt;</p>
+<p>&lt;listener-class&gt;</p>
+<p>org.springframework.web.context.ContextLoaderListener</p>
+<p>&lt;/listener-class&gt;</p>
+<p>&nbsp;&lt;/listener&gt;</p>
+<p>&nbsp;&lt;filter&gt; &nbsp;</p>
+<p>&lt;filter-name&gt;springSecurityFilterChain&lt;/filter-name&gt; &nbsp;</p>
+<p>&lt;filter-class&gt;org.springframework.web.filter.DelegatingFilterProxy&lt;/filter-class&gt; &nbsp;</p>
+<p>&nbsp;&lt;/filter&gt; &nbsp;</p>
+<p>&nbsp;&lt;filter-mapping&gt; &nbsp;</p>
+<p>&lt;filter-name&gt;springSecurityFilterChain&lt;/filter-name&gt; &nbsp;</p>
+<p>&lt;url-pattern&gt;/*&lt;/url-pattern&gt; &nbsp;</p>
+<p>&nbsp;&lt;/filter-mapping&gt;</p>
+<p>&lt;/web-app&gt;</p>
+</td>
+</tr>
+</tbody>
+</table>
+<p>&nbsp;</p>
+<p>（3）创建index.html &nbsp;</p>
+<table border="1" cellspacing="0">
+<tbody>
+<tr>
+<td valign="top" width="568">
+<p>&lt;!DOCTYPE html&gt;</p>
+<p>&lt;html&gt;</p>
+<p>&lt;head&gt;</p>
+<p>&lt;meta charset="UTF-8"&gt;</p>
+<p>&lt;title&gt;首页&lt;/title&gt;</p>
+<p>&lt;/head&gt;</p>
+<p>&lt;body&gt;</p>
+<p>欢迎进入神奇的spring security世界~~~</p>
+<p>&lt;/body&gt;</p>
+<p>&lt;/html&gt;</p>
+</td>
+</tr>
+</tbody>
+</table>
+<p>&nbsp;</p>
+<p>（4）创建spring&nbsp;配置文件spring-security.xml</p>
+<p>&nbsp;</p>
+<src class="cnblogs_code">
+<pre><code><span style="color: #0000ff;">&lt;?</span><span style="color: #ff00ff;">xml version="1.0" encoding="UTF-8"</span><span style="color: #0000ff;">?&gt;</span>
+<span style="color: #0000ff;">&lt;</span><span style="color: #800000;">beans:beans 
+    </span><span style="color: #ff0000;">xmlns</span><span style="color: #0000ff;">="http://www.springframework.org/schema/security"</span><span style="color: #ff0000;">
+    xmlns:beans</span><span style="color: #0000ff;">="http://www.springframework.org/schema/beans"</span><span style="color: #ff0000;"> 
+    xmlns:xsi</span><span style="color: #0000ff;">="http://www.w3.org/2001/XMLSchema-instance"</span><span style="color: #ff0000;">
+    xmlns:dubbo</span><span style="color: #0000ff;">="http://code.alibabatech.com/schema/dubbo"</span><span style="color: #ff0000;"> 
+    xsi:schemaLocation</span><span style="color: #0000ff;">="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd
+                        http://code.alibabatech.com/schema/dubbo http://code.alibabatech.com/schema/dubbo/dubbo.xsd
+                        http://www.springframework.org/schema/security http://www.springframework.org/schema/security/spring-security.xsd"</span><span style="color: #0000ff;">&gt;</span>
+    
+    <span style="color: #0000ff;">&lt;</span><span style="color: #800000;">http </span><span style="color: #ff0000;">pattern</span><span style="color: #0000ff;">="/*.html"</span><span style="color: #ff0000;"> security</span><span style="color: #0000ff;">="none"</span><span style="color: #0000ff;">/&gt;</span>
+    <span style="color: #0000ff;">&lt;</span><span style="color: #800000;">http </span><span style="color: #ff0000;">pattern</span><span style="color: #0000ff;">="/css/**"</span><span style="color: #ff0000;"> security</span><span style="color: #0000ff;">="none"</span><span style="color: #0000ff;">/&gt;</span>
+    <span style="color: #0000ff;">&lt;</span><span style="color: #800000;">http </span><span style="color: #ff0000;">pattern</span><span style="color: #0000ff;">="/img/**"</span><span style="color: #ff0000;"> security</span><span style="color: #0000ff;">="none"</span><span style="color: #0000ff;">/&gt;</span>
+    <span style="color: #0000ff;">&lt;</span><span style="color: #800000;">http </span><span style="color: #ff0000;">pattern</span><span style="color: #0000ff;">="/js/**"</span><span style="color: #ff0000;"> security</span><span style="color: #0000ff;">="none"</span><span style="color: #0000ff;">/&gt;</span>
+    <span style="color: #0000ff;">&lt;</span><span style="color: #800000;">http </span><span style="color: #ff0000;">pattern</span><span style="color: #0000ff;">="/plugins/**"</span><span style="color: #ff0000;"> security</span><span style="color: #0000ff;">="none"</span><span style="color: #0000ff;">/&gt;</span>
+    <span style="color: #0000ff;">&lt;</span><span style="color: #800000;">http </span><span style="color: #ff0000;">pattern</span><span style="color: #0000ff;">="/seller/add.do"</span><span style="color: #ff0000;"> security</span><span style="color: #0000ff;">="none"</span><span style="color: #0000ff;">/&gt;</span>
+    
+    <span style="color: #008000;">&lt;!--</span><span style="color: #008000;"> use-expressions:设置是否启动SpEL表达式，默认值是true。 </span><span style="color: #008000;">--&gt;</span>
+    <span style="color: #0000ff;">&lt;</span><span style="color: #800000;">http </span><span style="color: #ff0000;">use-expressions</span><span style="color: #0000ff;">="false"</span><span style="color: #0000ff;">&gt;</span>
+        <span style="color: #008000;">&lt;!--</span><span style="color: #008000;"> 
+            配置SpringSecurity的拦截路径（拦截规则） 
+            * pattern:配置拦截规则。   /* 代表的是根路径下的所有资源（不包含子路径） /**代表的是根路径下所有的资源（包含子路径）
+            * access:设置角色  角色命名 ROLE_角色名称  如：  ROLE_USER  
+        </span><span style="color: #008000;">--&gt;</span>
+        <span style="color: #0000ff;">&lt;</span><span style="color: #800000;">intercept-url </span><span style="color: #ff0000;">pattern</span><span style="color: #0000ff;">="/**"</span><span style="color: #ff0000;"> access</span><span style="color: #0000ff;">="ROLE_SELLER"</span><span style="color: #0000ff;">/&gt;</span>
+        
+        <span style="color: #008000;">&lt;!--</span><span style="color: #008000;"> 
+        开启表单验证 
+            username-parameter="username" 
+            password-parameter="password" 
+            login-page            :登录页面名称  以  / 开始
+            default-target-url    :登录成功后跳转的页面
+            login-processing-url:提交的路径的设置 默认值"/login" 可以修改
+        </span><span style="color: #008000;">--&gt;</span>
+        <span style="color: #0000ff;">&lt;</span><span style="color: #800000;">form-login </span><span style="color: #ff0000;">login-page</span><span style="color: #0000ff;">="/login.html"</span><span style="color: #ff0000;"> default-target-url</span><span style="color: #0000ff;">="/admin/index.html"</span><span style="color: #ff0000;"> always-use-default-target</span><span style="color: #0000ff;">="true"</span><span style="color: #ff0000;"> authentication-failure-url</span><span style="color: #0000ff;">="/login.html"</span><span style="color: #0000ff;">/&gt;</span>
+        
+        <span style="color: #008000;">&lt;!--</span><span style="color: #008000;"> 不使用csrf的校验 </span><span style="color: #008000;">--&gt;</span>
+        <span style="color: #0000ff;">&lt;</span><span style="color: #800000;">csrf </span><span style="color: #ff0000;">disabled</span><span style="color: #0000ff;">="true"</span><span style="color: #0000ff;">/&gt;</span>
+        
+        <span style="color: #008000;">&lt;!--</span><span style="color: #008000;"> 配置框架页面不拦截 </span><span style="color: #008000;">--&gt;</span>
+        <span style="color: #0000ff;">&lt;</span><span style="color: #800000;">headers</span><span style="color: #0000ff;">&gt;</span>
+            <span style="color: #0000ff;">&lt;</span><span style="color: #800000;">frame-options </span><span style="color: #ff0000;">policy</span><span style="color: #0000ff;">="SAMEORIGIN"</span><span style="color: #0000ff;">/&gt;</span>
+        <span style="color: #0000ff;">&lt;/</span><span style="color: #800000;">headers</span><span style="color: #0000ff;">&gt;</span>
+        
+        <span style="color: #008000;">&lt;!--</span><span style="color: #008000;"> 注销的配置 </span><span style="color: #008000;">--&gt;</span>
+        <span style="color: #0000ff;">&lt;</span><span style="color: #800000;">logout </span><span style="color: #ff0000;">logout-url</span><span style="color: #0000ff;">="/logout"</span><span style="color: #ff0000;"> logout-success-url</span><span style="color: #0000ff;">="/shoplogin.html"</span> <span style="color: #0000ff;">/&gt;</span>
+    <span style="color: #0000ff;">&lt;/</span><span style="color: #800000;">http</span><span style="color: #0000ff;">&gt;</span>
+    
+    <span style="color: #008000;">&lt;!--</span><span style="color: #008000;"> 配置认证管理器 </span><span style="color: #008000;">--&gt;</span>
+    <span style="color: #0000ff;">&lt;</span><span style="color: #800000;">authentication-manager</span><span style="color: #0000ff;">&gt;</span>
+        <span style="color: #008000;">&lt;!--</span><span style="color: #008000;"> 认证的提供者 </span><span style="color: #008000;">--&gt;</span>
+        <span style="color: #0000ff;">&lt;</span><span style="color: #800000;">authentication-provider </span><span style="color: #ff0000;">user-service-ref</span><span style="color: #0000ff;">="userDetailsService"</span><span style="color: #0000ff;">&gt;</span>
+        <span style="color: #0000ff;">&lt;/</span><span style="color: #800000;">authentication-provider</span><span style="color: #0000ff;">&gt;</span>
+    <span style="color: #0000ff;">&lt;/</span><span style="color: #800000;">authentication-manager</span><span style="color: #0000ff;">&gt;</span>
+        
+
+    <span style="color: #008000;">&lt;!--</span><span style="color: #008000;"> 配置自定义的认证类 </span><span style="color: #008000;">--&gt;</span>
+    <span style="color: #0000ff;">&lt;</span><span style="color: #800000;">beans:bean </span><span style="color: #ff0000;">id</span><span style="color: #0000ff;">="userDetailsService"</span><span style="color: #ff0000;"> class</span><span style="color: #0000ff;">="com.luli.code.service.UserDetailsServiceImpl"</span><span style="color: #0000ff;">&gt;</span>
+        <span style="color: #0000ff;">&lt;</span><span style="color: #800000;">beans:property </span><span style="color: #ff0000;">name</span><span style="color: #0000ff;">="sellerService"</span><span style="color: #ff0000;"> ref</span><span style="color: #0000ff;">="sellerService"</span><span style="color: #0000ff;">&gt;&lt;/</span><span style="color: #800000;">beans:property</span><span style="color: #0000ff;">&gt;</span>
+    <span style="color: #0000ff;">&lt;/</span><span style="color: #800000;">beans:bean</span><span style="color: #0000ff;">&gt;</span>
+
+
+<span style="color: #0000ff;">&lt;/</span><span style="color: #800000;">beans:beans</span><span style="color: #0000ff;">&gt;</span></code></pre>
+
+<p>&nbsp;</p>
+<p>因为登录页会被反复重定向。</p>
+<p>login-page：指定登录页面。<br />authentication-failure-url：指定了身份验证失败时跳转到的页面。<br />default-target-url：指定了成功进行身份验证和授权后默认呈现给用户的页面。</p>
+<p>csrf disabled="true" &nbsp;关闭csrf ,如果不加会出现错误</p>
+<p>&nbsp;</p>
+<p>CSRF（Cross-site request forgery）跨站请求伪造，也被称为&ldquo;One Click Attack&rdquo;或者Session Riding，通常缩写为CSRF或者XSRF，是一种对网站的恶意利用。</p>
+<p>&nbsp;</p>
+<table border="1" cellspacing="0">
+<tbody>
+<tr>
+<td valign="top" width="568">
+<p align="justify"><strong>IDEA启动tomcat显示build success但无法继续启动的解决方法</strong></p>
+<p>&nbsp;</p>
+<p>&lt;<strong>plugin</strong>&gt;<br />&nbsp;&nbsp;&nbsp;&nbsp;&lt;<strong>groupId</strong>&gt;org.apache.tomcat.maven&lt;/<strong>groupId</strong>&gt;<br />&nbsp;&nbsp;&nbsp;&nbsp;&lt;<strong>artifactId</strong>&gt;tomcat7-maven-plugin&lt;/<strong>artifactId</strong>&gt;<br />&nbsp;&nbsp;&nbsp;&nbsp;&lt;<strong>configuration</strong>&gt;<br />&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&lt;<strong>ignorePackaging</strong>&gt;true&lt;/<strong>ignorePackaging</strong>&gt;<br />&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<em>&lt;!-- 指定端口 --&gt;</em><em><br /></em><em>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</em>&lt;<strong>port</strong>&gt;9090&lt;/<strong>port</strong>&gt;<br />&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<em>&lt;!-- 请求路径 --&gt;</em><em><br /></em><em>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</em>&lt;<strong>path</strong>&gt;/&lt;/<strong>path</strong>&gt;<br />&nbsp;&nbsp;&nbsp;&nbsp;&lt;/<strong>configuration</strong>&gt;<br />&lt;/<strong>plugin</strong>&gt;</p>
+<p>&nbsp;</p>
+<p>告诉Tomcat插件，当前不是使用war包装。在pom.xml的tomcat plugin的configuration中加入&lt;ignorePackaging&gt;true&lt;/ignorePackaging&gt;，即告诉tomcat启动时忽略当前是否有war包，再次运行tomcat7:run命令，tomcat即可正常启动。</p>
+
+
+</td>
+
+
+</tr>
+
+
+</tbody>
+
+
+</table>
+<p>&nbsp;</p>
+<p>&nbsp;</p>
+<p>access=<em>"ROLE_USER"</em><em>&nbsp;access&nbsp;必须是</em><em>ROLE_</em><em>开头</em></p>
+<p>此案例我们没有登录页，而是使用了系统自动生成的登陆页，效果如下：</p>
+<p>&nbsp;<img src="./images/Spring Security框架进阶、自定义登录0.png" alt="" /></p>
+<p>&nbsp;</p>
+<p>配置说明：</p>
+<p>intercept-url&nbsp;表示拦截页面 &nbsp;&nbsp;</p>
+<p>/* &nbsp;表示的是该目录下的资源，只包括本级目录不包括下级目录</p>
+<p>/**&nbsp;表示的是该目录以及该目录下所有级别子目录的资源</p>
+<p>form-login &nbsp;为开启表单登陆</p>
+<p>use-expressions&nbsp;为是否使用使用&nbsp;Spring&nbsp;表达式语言（&nbsp;SpEL&nbsp;），默认为true ,如果开启，则拦截的配置应该写成以下形式</p>
+<p>login-processing-url=&rdquo;/login2&rdquo;&nbsp;指定其他登录页</p>
+<p>username-parameter="" password-parameter=""&nbsp;来改写login的 用户名和属性名</p>
+<table border="1" cellspacing="0">
+<tbody>
+<tr>
+<td valign="top" width="568">
+<p>&lt;intercept-url&nbsp;pattern=<em>"/**"</em>&nbsp;access=<em>"hasRole('ROLE_USER')"</em>&nbsp;/&gt;</p>
+
+
+
+</td>
+
+
+
+</tr>
+
+
+
+</tbody>
+
+
+
+</table>
+<p>&nbsp;</p>
+<p class="15">（5）构建登陆页login.html：</p>
+<table border="1" cellspacing="0">
+<tbody>
+<tr>
+<td valign="top" width="568">
+<p>&nbsp;&lt;!DOCTYPE html&gt;</p>
+<p>&lt;html&gt;</p>
+<p>&lt;head&gt;</p>
+<p>&lt;meta charset="UTF-8"&gt;</p>
+<p>&lt;title&gt;登陆&lt;/title&gt;</p>
+<p>&lt;/head&gt;</p>
+<p>&lt;body&gt;</p>
+<p>&nbsp;</p>
+<p>--欢迎的登陆我的系统--</p>
+<p>&lt;form action="/login" method="post"&gt;</p>
+<p>用户名：&lt;input name="username"&gt;&lt;br&gt;</p>
+<p>密码：&lt;input name="password"&gt;&lt;br&gt;</p>
+<p>&lt;button&gt;登陆&lt;/button&gt;</p>
+<p>&lt;/form&gt;</p>
+<p>&lt;/body&gt;</p>
+<p>&lt;/html&gt;</p>
+
+
+
+</td>
+
+
+
+</tr>
+
+
+
+</tbody>
+
+
+
+</table>
+<p>&nbsp;</p>
+<p>（6）构建登陆失败页&nbsp;&nbsp;login_error.html</p>
+<table border="1" cellspacing="0">
+<tbody>
+<tr>
+<td valign="top" width="568">
+<p>&nbsp;&lt;!DOCTYPE html&gt;</p>
+<p>&lt;html&gt;</p>
+<p>&lt;head&gt;</p>
+<p>&lt;meta charset="UTF-8"&gt;</p>
+<p>&lt;title&gt;首页&lt;/title&gt;</p>
+<p>&lt;/head&gt;</p>
+<p>&lt;body&gt;</p>
+<p>用户名或密码错误~~~</p>
+<p>&lt;/body&gt;</p>
+<p>&lt;/html&gt;</p>
+
+
+
+</td>
+
+
+
+</tr>
+
+
+
+</tbody>
+
+
+
+</table>
+<p>(7)&nbsp;&nbsp;UserDetailsServiceImpl.java文件</p>
+<src class="cnblogs_code">
+<pre><code><span style="color: #000000;">package com.luli.code.service;
+
+import com.luli.code.pojo.Seller;
+import org.springframework.security.core.GrantedAuthority;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
+import org.springframework.security.core.userdetails.User;
+import org.springframework.security.core.userdetails.UserDetails;
+import org.springframework.security.core.userdetails.UserDetailsService;
+import org.springframework.security.core.userdetails.UsernameNotFoundException;
+import java.util.ArrayList;
+import java.util.List;
+
+public class UserDetailsServiceImpl implements UserDetailsService {
+
+    private SellerService sellerService;
+
+    public void setSellerService(SellerService sellerService) {
+        this.sellerService = sellerService;
+    }
+    /*自定义登录验证*/
+    @Override
+    public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
+        List</span><span style="color: #0000ff;">&lt;</span><span style="color: #800000;">GrantedAuthority</span><span style="color: #0000ff;">&gt;</span> grantedAuthorities = new ArrayList<span style="color: #0000ff;">&lt;&gt;</span><span style="color: #000000;">();
+        grantedAuthorities.add(new SimpleGrantedAuthority("ROLE_SELLER"));
+        //查找数据库
+        Seller seller = sellerService.findOne(username);
+        if(seller != null &amp;&amp; ("1").equals(seller.getStatus())) {　　　　
+            return new User(username, seller.getPassword(), grantedAuthorities);　　　　</span>//判断账户密码</code></pre>
+<pre><code><span style="color: #000000;">}else{ return null; } } }</span></code></pre>
+
+<p>&nbsp;</p>
+<p>&nbsp;</p>
+
+</div><hr><script charset='utf-8' src='../../js/sming.js'></script></body></html>

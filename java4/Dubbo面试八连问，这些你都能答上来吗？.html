@@ -1,0 +1,149 @@
+<html><head><meta charset='utf-8'><meta name='viewport' content='width=device-width, initial-scale=1'>
+<meta name='applicable-device' content='pc'><meta name='keywords' content='电脑,电脑讲解,电脑技术,编程,电脑故障维修Dubbo面试八连问，这些你都能答上来吗？' />
+<script src='../../highlight/highlight.pack.js'></script>
+<link rel='stylesheet' type='text/css' href='../../highlight/styles/monokai.css'/>
+
+<link rel='stylesheet' href='../../fenxiang/dist/css/share.min.css'>
+<script src='../../fenxiang/src/js/social-share.js'></script>
+<script src='../../fenxiang/src/js/qrcode.js'></script>
+
+</head><body><script>hljs.initHighlightingOnLoad();</script><script>
+var system ={};  
+var p = navigator.platform;       
+system.win = p.indexOf('Win') == 0;  
+system.mac = p.indexOf('Mac') == 0;  
+system.x11 = (p == 'X11') || (p.indexOf('Linux') == 0);     
+if(system.win||system.mac||system.xll){
+document.write("<link href='../css/3.css' rel='stylesheet' type='text/css'>");}else{ document.write("<link href='../css/3wap.css' rel='stylesheet' type='text/css'>");}</script><script src='../../js/3.js'></script><div class='div2'><div class='heading_nav'><ul><div><li><a href='../../index.html'>首页</a></li>
+</div><div onclick='hidden1()' >分享</div>
+</ul></div></div>
+<div id='heading_nav2'> 
+<li class='row' >
+<div class='social-share' data-mode='prepend'><a href='javascript:' class='social-share-icon icon-heart'></a></div></li></div><script charset='utf-8' src='../../3/js/hengfu.js'></script><script charset='utf-8' src='../../3/js/hengfu2.js'></script><hr><div class='div1'><div class='biaoti'><center>Dubbo面试八连问，这些你都能答上来吗？</center></div><div class='banquan'>原文出处:本文由博客园博主Java知音*提供。<br/>
+原文连接:https://www.cnblogs.com/javazhiyin/p/11966271.html</div><br>
+    <blockquote><ol class="list-paddingleft-2">
+<li>
+<p>Dubbo是什么？</p>
+</li>
+<li>
+<p>Dubbo能做什么？</p>
+</li>
+<li>
+<p>Dubbo内置了哪几种服务容器？</p>
+</li>
+<li>
+<p>Dubbo 核心的配置有哪些？</p>
+</li>
+<li>
+<p>Dubbo有哪几种集群容错方案，默认是哪种？</p>
+</li>
+<li>
+<p>Dubbo有哪几种负载均衡策略，默认是哪种？</p>
+</li>
+<li>
+<p>Dubbo默认使用的是什么通信框架，还有别的选择吗？</p>
+</li>
+<li>
+<p>你觉得用Dubbo好还是SpringCloud好？</p>
+</li>
+</ol></blockquote>
+<h3>1.Dubbo是什么？</h3>
+<p>Dubbo是阿里巴巴开源的基于 Java 的高性能 RPC 分布式服务框架，现已成为 Apache 基金会孵化项目。致力于提供高性能和透明化的RPC远程服务调用方案，以及SOA服务治理方案。</p>
+<p>简单的说，dubbo就是个服务框架，如果没有分布式的需求，其实是不需要用的，只有在分布式的时候，才有dubbo这样的分布式服务框架的需求，并且本质上是个服务调用的东东，说白了就是个远程服务调用的分布式框架（告别Web Service模式中的WSdl，以服务者与消费者的方式在dubbo上注册）</p>
+<p>其核心部分包含:</p>
+<blockquote><ol class="list-paddingleft-2">
+<li>
+<p>远程通讯: 提供对多种基于长连接的NIO框架抽象封装，包括多种线程模型，序列化，以及&ldquo;请求-响应&rdquo;模式的信息交换方式。</p>
+</li>
+<li>
+<p>集群容错: 提供基于接口方法的透明远程过程调用，包括多协议支持，以及软负载均衡，失败容错，地址路由，动态配置等集群支持。</p>
+</li>
+<li>
+<p>自动发现: 基于注册中心目录服务，使服务消费方能动态的查找服务提供方，使地址透明，使服务提供方可以平滑增加或减少机器。</p>
+</li>
+</ol></blockquote>
+<h3>2. Dubbo能做什么？</h3>
+<blockquote><ol class="list-paddingleft-2">
+<li>
+<p>透明化的远程方法调用，就像调用本地方法一样调用远程方法，只需简单配置，没有任何API侵入。</p>
+</li>
+<li>
+<p>软负载均衡及容错机制，可在内网替代F5等硬件负载均衡器，降低成本，减少单点。</p>
+</li>
+<li>
+<p>服务自动注册与发现，不再需要写死服务提供方地址，注册中心基于接口名查询服务提供者的IP地址，并且能够平滑添加或删除服务提供者。</p>
+</li>
+</ol></blockquote>
+<p>Dubbo采用全Spring配置方式，透明化接入应用，对应用没有任何API侵入，只需用Spring加载Dubbo的配置即可，Dubbo基于Spring的Schema扩展进行加载。</p>
+<h3>3.Dubbo内置了哪几种服务容器？</h3>
+<p>Spring Container</p>
+<p>Jetty Container</p>
+<p>Log4j Container</p>
+<h3>4.Dubbo 核心的配置有哪些？</h3>
+<p><img title="【27期】Dubbo面试八连问，这些你都能答上来吗？" src="./images/Dubbo面试八连问，这些你都能答上来吗？0.png" alt="【27期】Dubbo面试八连问，这些你都能答上来吗？" data-original="./images/Dubbo面试八连问，这些你都能答上来吗？0.png" /></p>
+<p>配置关系：</p>
+<p><img title="【27期】Dubbo面试八连问，这些你都能答上来吗？" src="./images/Dubbo面试八连问，这些你都能答上来吗？1.png" alt="【27期】Dubbo面试八连问，这些你都能答上来吗？" data-original="./images/Dubbo面试八连问，这些你都能答上来吗？1.png" /></p>
+<h3>5.Dubbo有哪几种集群容错方案，默认是哪种？</h3>
+<p><img title="【27期】Dubbo面试八连问，这些你都能答上来吗？" src="./images/Dubbo面试八连问，这些你都能答上来吗？2.png" alt="【27期】Dubbo面试八连问，这些你都能答上来吗？" data-original="./images/Dubbo面试八连问，这些你都能答上来吗？2.png" /></p>
+<h3>6.Dubbo有哪几种负载均衡策略，默认是哪种？</h3>
+<p><img title="【27期】Dubbo面试八连问，这些你都能答上来吗？" src="./images/Dubbo面试八连问，这些你都能答上来吗？3.png" alt="【27期】Dubbo面试八连问，这些你都能答上来吗？" data-original="./images/Dubbo面试八连问，这些你都能答上来吗？3.png" /></p>
+<h3>7.Dubbo默认使用的是什么通信框架，还有别的选择吗？</h3>
+<p>Dubbo 默认使用 Netty 框架，也是推荐的选择，另外内容还集成有Mina、Grizzly。</p>
+<h3>8.你觉得用Dubbo好还是SpringCloud好？</h3>
+<p>没有好坏，只有适合不适合。</p>
+<p>&nbsp;</p>
+<p><strong>dubbo的优势</strong></p>
+<p>&nbsp;</p>
+<blockquote>
+<ul class="list-paddingleft-2">
+<li>
+<p>单一应用架构，当网站流量很小时，只需一个应用，将所有功能都部署在一起，以减少部署节点和成本。此时，用于简化增删改查工作量的 数据访问框架（ORM）是关键。</p>
+</li>
+<li>
+<p>垂直应用架构，当访问量逐渐增大，单一应用增加机器带来的加速度越来越小，将应用拆成互不相干的几个应用，以提升效率。此时，用于加速前端页面开发的 Web框架（MVC）是关键。</p>
+</li>
+<li>
+<p>分布式服务架构，当垂直应用越来越多，应用之间交互不可避免，将核心业务抽取出来，作为独立的服务，逐渐形成稳定的服务中心，使前端应用能更快速的响应多变的市场需求。此时，用于提高业务复用及整合的 分布式服务框架（RPC）是关键。</p>
+</li>
+<li>
+<p>流动计算架构当服务越来越多，容量的评估，小服务资源的浪费等问题逐渐显现，此时需增加一个调度中心基于访问压力实时管理集群容量，提高集群利用率。此时，用于提高机器利用率的 资源调度和治理中心（SOA）是关键。</p>
+</li>
+</ul>
+</blockquote>
+<p>&nbsp;</p>
+<p><strong>SpringCloud优势</strong></p>
+<p>&nbsp;</p>
+<blockquote>
+<ul class="list-paddingleft-2">
+<li>
+<p>约定优于配置</p>
+</li>
+<li>
+<p>开箱即用、快速启动</p>
+</li>
+<li>
+<p>适用于各种环境</p>
+</li>
+<li>
+<p>轻量级的组件</p>
+</li>
+<li>
+<p>组件支持丰富，功能齐全</p>
+</li>
+</ul>
+</blockquote>
+<p>&nbsp;</p>
+<p><strong>两者相比较</strong></p>
+<p>1、dubbo由于是二进制的传输，占用带宽会更少</p>
+<p>2、springCloud是http协议传输，带宽会比较多，同时使用http协议一般会使用JSON报文，消耗会更大</p>
+<p>3、dubbo的开发难度较大，原因是dubbo的jar包依赖问题很多大型工程无法解决</p>
+<p>4、springcloud的接口协议约定比较自由且松散，需要有强有力的行政措施来限制接口无序升级</p>
+<p>5、dubbo的注册中心可以选择zk,redis等多种，springcloud的注册中心只能用eureka或者自研</p>
+<p>根据具体的团队水平，业务情况等特点，dubbo和SpringCloud各自可以发挥各自不同的优势，没有最好的框架，只有最合适的。（这道题比较灵活，要是提前知道对方公司采用的是哪个，可以使劲吹哪个~）</p>
+<p>&nbsp;</p>
+<p><strong>最近三期</strong></p>
+<p><a href="http://mp.weixin.qq.com/s?__biz=MzIyNDU2ODA4OQ==&amp;mid=2247484027&amp;idx=1&amp;sn=ecc59c3c5cd4d0926b57db653b615157&amp;chksm=e80db40ddf7a3d1bcb82ee1a83f63d25a8667287c2675f2b8a9a27bae1d7a80088a466ab77c1&amp;scene=21#wechat_redirect" rel="nofollow" target="_blank">【23期】请你谈谈关于IO同步、异步、阻塞、非阻塞的区别</a></p>
+<p><a href="http://mp.weixin.qq.com/s?__biz=MzIyNDU2ODA4OQ==&amp;mid=2247484031&amp;idx=1&amp;sn=52f46de4f3864d2c19b1c07e227a99e7&amp;chksm=e80db409df7a3d1f55fd764d0c8b38f904d60d5772739a2108cf83648f1df94470196cdeca6e&amp;scene=21#wechat_redirect" rel="nofollow" target="_blank">【24期】请你谈谈单例模式的优缺点,注意事项,使用场景</a></p>
+<p><a href="http://mp.weixin.qq.com/s?__biz=MzIyNDU2ODA4OQ==&amp;mid=2247484035&amp;idx=1&amp;sn=a2249508576ec0f43fc8e5ad1dc4b75d&amp;chksm=e80db4f5df7a3de384298e1787b56024469ace3a433cc39ee63e56c3335664daa0b9e0800866&amp;scene=21#wechat_redirect" rel="nofollow" target="_blank">【25期】这三道常见的面试题，你有被问过吗？</a></p>
+
+</div><hr><script charset='utf-8' src='../../js/sming.js'></script></body></html>

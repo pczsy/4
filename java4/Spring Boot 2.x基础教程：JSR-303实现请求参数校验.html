@@ -1,0 +1,330 @@
+<html><head><meta charset='utf-8'><meta name='viewport' content='width=device-width, initial-scale=1'>
+<meta name='applicable-device' content='pc'><meta name='keywords' content='电脑,电脑讲解,电脑技术,编程,电脑故障维修Spring Boot 2.x基础教程：JSR-303实现请求参数校验' />
+<script src='../../highlight/highlight.pack.js'></script>
+<link rel='stylesheet' type='text/css' href='../../highlight/styles/monokai.css'/>
+
+<link rel='stylesheet' href='../../fenxiang/dist/css/share.min.css'>
+<script src='../../fenxiang/src/js/social-share.js'></script>
+<script src='../../fenxiang/src/js/qrcode.js'></script>
+
+</head><body><script>hljs.initHighlightingOnLoad();</script><script>
+var system ={};  
+var p = navigator.platform;       
+system.win = p.indexOf('Win') == 0;  
+system.mac = p.indexOf('Mac') == 0;  
+system.x11 = (p == 'X11') || (p.indexOf('Linux') == 0);     
+if(system.win||system.mac||system.xll){
+document.write("<link href='../css/3.css' rel='stylesheet' type='text/css'>");}else{ document.write("<link href='../css/3wap.css' rel='stylesheet' type='text/css'>");}</script><script src='../../js/3.js'></script><div class='div2'><div class='heading_nav'><ul><div><li><a href='../../index.html'>首页</a></li>
+</div><div onclick='hidden1()' >分享</div>
+</ul></div></div>
+<div id='heading_nav2'> 
+<li class='row' >
+<div class='social-share' data-mode='prepend'><a href='javascript:' class='social-share-icon icon-heart'></a></div></li></div><script charset='utf-8' src='../../3/js/hengfu.js'></script><script charset='utf-8' src='../../3/js/hengfu2.js'></script><hr><div class='div1'><div class='biaoti'><center>Spring Boot 2.x基础教程：JSR-303实现请求参数校验</center></div><div class='banquan'>原文出处:本文由博客园博主程序猿DD提供。<br/>
+原文连接:https://www.cnblogs.com/didispace/p/11633661.html</div><br>
+    <p>请求参数的校验是很多新手开发非常容易犯错，或存在较多改进点的常见场景。比较常见的问题主要表现在以下几个方面：</p>
+<ul>
+<li>仅依靠前端框架解决参数校验，缺失服务端的校验。这种情况常见于需要同时开发前后端的时候，虽然程序的正常使用不会有问题，但是开发者忽略了非正常操作。比如绕过前端程序，直接模拟客户端请求，这时候就会突然在前端预设的各种限制，直击各种数据访问接口，使得我们的系统存在安全隐患。</li>
+<li>大量地使用<code>if/else</code>语句嵌套实现，校验逻辑晦涩难通，不利于长期维护。</li>
+</ul>
+<p>所以，针对上面的问题，建议服务端开发在实现接口的时候，对于请求参数必须要有服务端校验以保障数据安全与稳定的系统运行。同时，对于参数的校验实现需要足够优雅，要满足逻辑易读、易维护的基本特点。</p>
+<p>接下来，我们就在本篇教程中详细说说，如何优雅地实现Spring Boot服务端的请求参数校验。</p>
+<h2 id="jsr-303">JSR-303</h2>
+<p>在开始动手实践之前，我们先了解一下接下来我们将使用的一项标准规范：JSR-303</p>
+<p><strong>什么是JSR？</strong></p>
+<p>JSR是Java Specification Requests的缩写，意思是Java 规范提案。是指向JCP(Java Community Process)提出新增一个标准化技术规范的正式请求。任何人都可以提交JSR，以向Java平台增添新的API和服务。JSR已成为Java界的一个重要标准。</p>
+<p><strong>JSR-303定义的是什么标准？</strong></p>
+<p>JSR-303 是JAVA EE 6 中的一项子规范，叫做Bean Validation，Hibernate Validator 是 Bean Validation 的参考实现 . Hibernate Validator 提供了 JSR 303 规范中所有内置 constraint 的实现，除此之外还有一些附加的 constraint。</p>
+<p><strong>Bean Validation中内置的constraint</strong></p>
+<p><img src="./images/Spring Boot 2.x基础教程：JSR-303实现请求参数校验0.png" /></p>
+<p><strong>Hibernate Validator附加的constraint</strong></p>
+<p><img src="./images/Spring Boot 2.x基础教程：JSR-303实现请求参数校验1.png" /></p>
+<p>在JSR-303的标准之下，我们可以通过上面这些注解，优雅的定义各个请求参数的校验。更多关于JSR的内容可以参与官方文档或参考资料中的引文[1]。</p>
+<h2 id="动手实践">动手实践</h2>
+<p>已经了解了JSR-303之后，接下来我们就来尝试一下，基于此规范如何实现参数的校验！</p>
+<h3 id="准备工作">准备工作</h3>
+<p>读者可以拿任何一个使用Spring Boot 2.x构建的提供RESTful API的项目作为基础。也可以使用<a href="http://blog.didispace.com/spring-boot-learning-21-2-2/">Spring Boot 2.x基础教程：使用Swagger2构建强大的API文档</a>中构建的实验工程作为基础，您可以通过下面仓库中的<code>chapter2-2</code>目录取得：</p>
+<ul>
+<li>Github：<a href="https://github.com/dyc87112/SpringBoot-Learning/tree/2.x" class="uri">https://github.com/dyc87112/SpringBoot-Learning/tree/2.x</a></li>
+<li>Gitee：<a href="https://gitee.com/didispace/SpringBoot-Learning/tree/2.x" class="uri">https://gitee.com/didispace/SpringBoot-Learning/tree/2.x</a></li>
+</ul>
+<p>当然，您也可以根据前文再构建一个作为复习，也是完全没有问题的。</p>
+<h3 id="快速入门">快速入门</h3>
+<p>我们先来做一个简单的例子，比如：定义字段不能为<code>Null</code>。只需要两步</p>
+<p><strong>第一步</strong>：在要校验的字段上添加上<code>@NotNull</code>注解，具体如下：</p>
+<pre><code><code>@Data
+@ApiModel(description=&quot;用户实体&quot;)
+public class User {
+
+    @ApiModelProperty(&quot;用户编号&quot;)
+    private Long id;
+
+    @NotNull
+    @ApiModelProperty(&quot;用户姓名&quot;)
+    private String name;
+
+    @NotNull
+    @ApiModelProperty(&quot;用户年龄&quot;)
+    private Integer age;
+
+}</code></code></pre>
+<p><strong>第二步</strong>：在需要校验的参数实体前添加<code>@Valid</code>注解，具体如下：</p>
+<pre><code><code>@PostMapping(&quot;/&quot;)
+@ApiOperation(value = &quot;创建用户&quot;, notes = &quot;根据User对象创建用户&quot;)
+public String postUser(@Valid @RequestBody User user) {
+    users.put(user.getId(), user);
+    return &quot;success&quot;;
+}</code></code></pre>
+<p>完成上面配置之后，启动应用，并用POST请求访问<code>localhost:8080/users/</code>接口，body使用一个空对象，<code>{}</code>。你可以用Postman等测试工具发起，也可以使用curl发起，比如这样：</p>
+<pre class="bash"><code>curl -X POST \
+  http://localhost:8080/users/ \
+  -H &#39;Content-Type: application/json&#39; \
+  -H &#39;Postman-Token: 72745d04-caa5-44a1-be84-ba9c115f4dfb&#39; \
+  -H &#39;cache-control: no-cache&#39; \
+  -d &#39;{
+    
+}&#39;</code></code></pre>
+<p>不出意外，你可以得到如下结果：</p>
+<pre class="json"><code>{
+    &quot;timestamp&quot;: &quot;2019-10-05T05:45:19.221+0000&quot;,
+    &quot;status&quot;: 400,
+    &quot;error&quot;: &quot;Bad Request&quot;,
+    &quot;errors&quot;: [
+        {
+            &quot;codes&quot;: [
+                &quot;NotNull.user.age&quot;,
+                &quot;NotNull.age&quot;,
+                &quot;NotNull.java.lang.Integer&quot;,
+                &quot;NotNull&quot;
+            ],
+            &quot;arguments&quot;: [
+                {
+                    &quot;codes&quot;: [
+                        &quot;user.age&quot;,
+                        &quot;age&quot;
+                    ],
+                    &quot;arguments&quot;: null,
+                    &quot;defaultMessage&quot;: &quot;age&quot;,
+                    &quot;code&quot;: &quot;age&quot;
+                }
+            ],
+            &quot;defaultMessage&quot;: &quot;不能为null&quot;,
+            &quot;objectName&quot;: &quot;user&quot;,
+            &quot;field&quot;: &quot;age&quot;,
+            &quot;rejectedValue&quot;: null,
+            &quot;bindingFailure&quot;: false,
+            &quot;code&quot;: &quot;NotNull&quot;
+        },
+        {
+            &quot;codes&quot;: [
+                &quot;NotNull.user.name&quot;,
+                &quot;NotNull.name&quot;,
+                &quot;NotNull.java.lang.String&quot;,
+                &quot;NotNull&quot;
+            ],
+            &quot;arguments&quot;: [
+                {
+                    &quot;codes&quot;: [
+                        &quot;user.name&quot;,
+                        &quot;name&quot;
+                    ],
+                    &quot;arguments&quot;: null,
+                    &quot;defaultMessage&quot;: &quot;name&quot;,
+                    &quot;code&quot;: &quot;name&quot;
+                }
+            ],
+            &quot;defaultMessage&quot;: &quot;不能为null&quot;,
+            &quot;objectName&quot;: &quot;user&quot;,
+            &quot;field&quot;: &quot;name&quot;,
+            &quot;rejectedValue&quot;: null,
+            &quot;bindingFailure&quot;: false,
+            &quot;code&quot;: &quot;NotNull&quot;
+        }
+    ],
+    &quot;message&quot;: &quot;Validation failed for object=&#39;user&#39;. Error count: 2&quot;,
+    &quot;path&quot;: &quot;/users/&quot;
+}</code></code></pre>
+<p>其中返回内容的各参数含义如下：</p>
+<ul>
+<li><code>timestamp</code>：请求时间</li>
+<li><code>status</code>：HTTP返回的状态码，这里返回400，即：请求无效、错误的请求，通常参数校验不通过均为400</li>
+<li><code>error</code>：HTTP返回的错误描述，这里对应的就是400状态的错误描述：Bad Request</li>
+<li><code>errors</code>：具体错误原因，是一个数组类型；因为错误校验可能存在多个字段的错误，比如这里因为定义了两个参数不能为<code>Null</code>，所以存在两条错误记录信息</li>
+<li><code>message</code>：概要错误消息，返回内容中很容易可以知道，这里的错误原因是对user对象的校验失败，其中错误数量为<code>2</code>，而具体的错误信息就定义在上面的<code>errors</code>数组中</li>
+<li><code>path</code>：请求路径</li>
+</ul>
+<p>请求的调用端在拿到这个规范化的错误信息之后，就可以方便的解析并作出对应的措施以完成自己的业务逻辑了。</p>
+<h3 id="尝试一些其他校验">尝试一些其他校验</h3>
+<p>在完成了上面的例子之后，我们还可以增加一些校验规则，比如：校验字符串的长度、校验数字的大小、校验字符串格式是否为邮箱等。下面我们就来定义一些复杂的校验定义，比如：</p>
+<pre><code><code>@Data
+@ApiModel(description=&quot;用户实体&quot;)
+public class User {
+
+    @ApiModelProperty(&quot;用户编号&quot;)
+    private Long id;
+
+    @NotNull
+    @Size(min = 2, max = 5)
+    @ApiModelProperty(&quot;用户姓名&quot;)
+    private String name;
+
+    @NotNull
+    @Max(100)
+    @Min(10)
+    @ApiModelProperty(&quot;用户年龄&quot;)
+    private Integer age;
+
+    @NotNull
+    @Email
+    @ApiModelProperty(&quot;用户邮箱&quot;)
+    private String email;
+
+}</code></code></pre>
+<p>发起一个可以出发<code>name</code>、<code>age</code>、<code>email</code>都校验不通过的请求，比如下面这样：</p>
+<pre class="bash"><code>curl -X POST \
+  http://localhost:8080/users/ \
+  -H &#39;Content-Type: application/json&#39; \
+  -H &#39;Postman-Token: 114db0f0-bdce-4ba5-baf6-01e5104a68a3&#39; \
+  -H &#39;cache-control: no-cache&#39; \
+  -d &#39;{
+    &quot;name&quot;: &quot;abcdefg&quot;,
+    &quot;age&quot;: 8,
+    &quot;email&quot;: &quot;aaaa&quot;
+}&#39;</code></code></pre>
+<p>我们将得到如下的错误返回：</p>
+<pre class="json"><code>{
+    &quot;timestamp&quot;: &quot;2019-10-05T06:24:30.518+0000&quot;,
+    &quot;status&quot;: 400,
+    &quot;error&quot;: &quot;Bad Request&quot;,
+    &quot;errors&quot;: [
+        {
+            &quot;codes&quot;: [
+                &quot;Size.user.name&quot;,
+                &quot;Size.name&quot;,
+                &quot;Size.java.lang.String&quot;,
+                &quot;Size&quot;
+            ],
+            &quot;arguments&quot;: [
+                {
+                    &quot;codes&quot;: [
+                        &quot;user.name&quot;,
+                        &quot;name&quot;
+                    ],
+                    &quot;arguments&quot;: null,
+                    &quot;defaultMessage&quot;: &quot;name&quot;,
+                    &quot;code&quot;: &quot;name&quot;
+                },
+                5,
+                2
+            ],
+            &quot;defaultMessage&quot;: &quot;个数必须在2和5之间&quot;,
+            &quot;objectName&quot;: &quot;user&quot;,
+            &quot;field&quot;: &quot;name&quot;,
+            &quot;rejectedValue&quot;: &quot;abcdefg&quot;,
+            &quot;bindingFailure&quot;: false,
+            &quot;code&quot;: &quot;Size&quot;
+        },
+        {
+            &quot;codes&quot;: [
+                &quot;Min.user.age&quot;,
+                &quot;Min.age&quot;,
+                &quot;Min.java.lang.Integer&quot;,
+                &quot;Min&quot;
+            ],
+            &quot;arguments&quot;: [
+                {
+                    &quot;codes&quot;: [
+                        &quot;user.age&quot;,
+                        &quot;age&quot;
+                    ],
+                    &quot;arguments&quot;: null,
+                    &quot;defaultMessage&quot;: &quot;age&quot;,
+                    &quot;code&quot;: &quot;age&quot;
+                },
+                10
+            ],
+            &quot;defaultMessage&quot;: &quot;最小不能小于10&quot;,
+            &quot;objectName&quot;: &quot;user&quot;,
+            &quot;field&quot;: &quot;age&quot;,
+            &quot;rejectedValue&quot;: 8,
+            &quot;bindingFailure&quot;: false,
+            &quot;code&quot;: &quot;Min&quot;
+        },
+        {
+            &quot;codes&quot;: [
+                &quot;Email.user.email&quot;,
+                &quot;Email.email&quot;,
+                &quot;Email.java.lang.String&quot;,
+                &quot;Email&quot;
+            ],
+            &quot;arguments&quot;: [
+                {
+                    &quot;codes&quot;: [
+                        &quot;user.email&quot;,
+                        &quot;email&quot;
+                    ],
+                    &quot;arguments&quot;: null,
+                    &quot;defaultMessage&quot;: &quot;email&quot;,
+                    &quot;code&quot;: &quot;email&quot;
+                },
+                [],
+                {
+                    &quot;defaultMessage&quot;: &quot;.*&quot;,
+                    &quot;codes&quot;: [
+                        &quot;.*&quot;
+                    ],
+                    &quot;arguments&quot;: null
+                }
+            ],
+            &quot;defaultMessage&quot;: &quot;不是一个合法的电子邮件地址&quot;,
+            &quot;objectName&quot;: &quot;user&quot;,
+            &quot;field&quot;: &quot;email&quot;,
+            &quot;rejectedValue&quot;: &quot;aaaa&quot;,
+            &quot;bindingFailure&quot;: false,
+            &quot;code&quot;: &quot;Email&quot;
+        }
+    ],
+    &quot;message&quot;: &quot;Validation failed for object=&#39;user&#39;. Error count: 3&quot;,
+    &quot;path&quot;: &quot;/users/&quot;
+}</code></code></pre>
+<p>从<code>errors</code>数组中的各个错误明细中，知道各个字段的<code>defaultMessage</code>，可以看到很清晰的错误描述。</p>
+<h3 id="swagger文档中的体现">Swagger文档中的体现</h3>
+<p>可能有读者会问了，我的接口中是定了这么多。上一篇教程中，不是还教了如何自动生成文档么，那么对于参数的校验逻辑该如何描述呢？</p>
+<p>这里要分两种情况，Swagger自身对JSR-303有一定的支持，但是支持的并那么完善，并没有覆盖所有的注解的。</p>
+<p>比如，上面我们使用的注解是可以自动生成的，启动上面我们的实验工程，然后访问<code>http://localhost:8080/swagger-ui.html</code>，在<code>Models</code>不是，我们可以看到如下图所示的内容：</p>
+<p><img src="./images/Spring Boot 2.x基础教程：JSR-303实现请求参数校验2.png" /></p>
+<p>其中：<code>name</code>和<code>age</code>字段相比上一篇教程中的文档描述，多了一些关于校验相关的说明；而<code>email</code>字段则没有体现相关校验说明。目前，Swagger共支持以下几个注解：<code>@NotNull</code>、<code>@Max</code>、<code>@Min</code>、<code>@Size</code>、<code>@Pattern</code>。在实际开发过程中，我们需要分情况来处理，对于Swagger支自动生成的可以利用原生支持来产生，如果有部分字段无法产生，则可以在<code>@ApiModelProperty</code>注解的描述中他，添加相应的校验说明，以便于使用方查看。</p>
+<h3 id="番外也许你会有这些疑问">番外：也许你会有这些疑问</h3>
+<p><strong>当请求参数校验出现错误信息的时候，错误格式可以修改吗？</strong></p>
+<p>答案是肯定的。这里的错误信息实际上由Spring Boot的异常处理机制统一组织并返回的，我们将在后面的教程中详细介绍，Spring Boot是如何统一处理异常返回以及我们该如何定时异常返回。</p>
+<p><strong><code>spring-boot-starter-validation</code>是必须的吗？</strong></p>
+<p>有读者之前问过，看到很多教程都写了还要引入<code>spring-boot-starter-validation</code>依赖，这个依赖到底是否需要？（本篇中并没有引入）</p>
+<pre class="xml"><code>&lt;dependency&gt;
+    &lt;groupId&gt;org.springframework.boot&lt;/groupId&gt;
+    &lt;artifactId&gt;spring-boot-starter-validation&lt;/artifactId&gt;
+&lt;/dependency&gt;</code></code></pre>
+<p>其实，只需要仔细看一下<code>spring-boot-starter-validation</code>依赖主要是为了引入了什么，再根据当前自己使用的Spring Boot版本来判断即可。实际上，<code>spring-boot-starter-validation</code>依赖主要是为了引入下面这个依赖：</p>
+<pre class="xml"><code>&lt;dependency&gt;
+   &lt;groupId&gt;org.hibernate.validator&lt;/groupId&gt;
+    &lt;artifactId&gt;hibernate-validator&lt;/artifactId&gt;
+    &lt;version&gt;6.0.14.Final&lt;/version&gt;
+    &lt;scope&gt;compile&lt;/scope&gt;
+&lt;/dependency&gt;</code></code></pre>
+<p>我们可以看看当前工程的依赖中是否有它，就可以判断是否还需要额外引入。在Spring Boot 2.1版本中，该依然其实已经包含在了<code>spring-boot-starter-web</code>依赖中，并不需要额外引入，所以您在本文中找不到这一步。</p>
+<h2 id="代码示例">代码示例</h2>
+<p>本文的完整工程可以查看下面仓库中的<code>chapter2-3</code>目录：</p>
+<ul>
+<li>Github：<a href="https://github.com/dyc87112/SpringBoot-Learning/tree/2.x" class="uri">https://github.com/dyc87112/SpringBoot-Learning/tree/2.x</a></li>
+<li>Gitee：<a href="https://gitee.com/didispace/SpringBoot-Learning/tree/2.x" class="uri">https://gitee.com/didispace/SpringBoot-Learning/tree/2.x</a></li>
+</ul>
+<p>如果您觉得本文不错，欢迎<strong>Star</strong>支持，您的关注是我坚持的动力！</p>
+<h2 id="参考资料">参考资料</h2>
+<ul>
+<li>[1] https://www.jianshu.com/p/554533f88370</li>
+<li>[2] http://blog.didispace.com/spring-boot-starter-swagger-1.3.0/</li>
+</ul>
+<blockquote>
+<p>欢迎关注我的公众号：程序猿DD，获得独家整理的学习资源和日常干货推送。如果您对我的专题内容感兴趣，也可以关注我的博客：<a href="http://blog.didispace.com">didispace.com</a></p>
+</blockquote>
+
+
+</div><hr><script charset='utf-8' src='../../js/sming.js'></script></body></html>

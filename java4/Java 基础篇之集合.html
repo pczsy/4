@@ -1,0 +1,229 @@
+<html><head><meta charset='utf-8'><meta name='viewport' content='width=device-width, initial-scale=1'>
+<meta name='applicable-device' content='pc'><meta name='keywords' content='电脑,电脑讲解,电脑技术,编程,电脑故障维修Java 基础篇之集合' />
+<script src='../../highlight/highlight.pack.js'></script>
+<link rel='stylesheet' type='text/css' href='../../highlight/styles/monokai.css'/>
+
+<link rel='stylesheet' href='../../fenxiang/dist/css/share.min.css'>
+<script src='../../fenxiang/src/js/social-share.js'></script>
+<script src='../../fenxiang/src/js/qrcode.js'></script>
+
+</head><body><script>hljs.initHighlightingOnLoad();</script><script>
+var system ={};  
+var p = navigator.platform;       
+system.win = p.indexOf('Win') == 0;  
+system.mac = p.indexOf('Mac') == 0;  
+system.x11 = (p == 'X11') || (p.indexOf('Linux') == 0);     
+if(system.win||system.mac||system.xll){
+document.write("<link href='../css/3.css' rel='stylesheet' type='text/css'>");}else{ document.write("<link href='../css/3wap.css' rel='stylesheet' type='text/css'>");}</script><script src='../../js/3.js'></script><div class='div2'><div class='heading_nav'><ul><div><li><a href='../../index.html'>首页</a></li>
+</div><div onclick='hidden1()' >分享</div>
+</ul></div></div>
+<div id='heading_nav2'> 
+<li class='row' >
+<div class='social-share' data-mode='prepend'><a href='javascript:' class='social-share-icon icon-heart'></a></div></li></div><script charset='utf-8' src='../../3/js/hengfu.js'></script><script charset='utf-8' src='../../3/js/hengfu2.js'></script><hr><div class='div1'><div class='biaoti'><center>Java 基础篇之集合</center></div><div class='banquan'>原文出处:本文由博客园博主SRE工程师提供。<br/>
+原文连接:https://www.cnblogs.com/Tianny/p/11619659.html</div><br>
+    <h3 id="list-集合">List 集合</h3>
+<p>List 集合中元素有序、可重复，集合中每个元素都有其对应的索引顺序。</p>
+<blockquote>
+<p>List 判断两个对象相等，只要通过 equals 方法比较返回 true 即可。</p>
+</blockquote>
+<p>看个例子：</p>
+<pre><code><code>public class A {
+    public boolean equals(Object obj) {
+        return true;
+    }
+}
+
+import java.util.ArrayList;
+import java.util.List;
+
+public class ListTest2 {
+    public static void main(String[] args) {
+        List books = new ArrayList();
+        books.add(new String(&quot;a&quot;));
+        books.add(new String(&quot;b&quot;));
+        books.add(new String(&quot;c&quot;));
+        System.out.println(books);
+        books.remove(new A());
+        System.out.println(books);
+        books.remove(new A());
+        System.out.println(books);
+    }
+}</code></code></pre>
+<p>当试图删除一个 A 对象时，List 会调用 A 对象的 equals 方法依次与集合元素进行比较。如果 equals 方法以某个集合元素作为参数时返回 true，List 将会删除该元素。这里 A 重写了 equals 方法，总是返回 true，所以每次都会从 List 集合中删除一个元素。</p>
+<h4 id="arraylist-类">ArrayList 类</h4>
+<p>ArrayList 类是基于数组实现的 List 类，完全支持前面介绍的 List 接口的全部功能。</p>
+<p>ArrayList 封装了一个动态的、允许再分配的 Object[] 数组。</p>
+<h3 id="set-集合">Set 集合</h3>
+<h4 id="hashset-类">HashSet 类</h4>
+<ul>
+<li><p>元素没有顺序，集合元素的值可以是 null</p></li>
+<li><p>HashSet 不是同步的，假设有多个线程同时修改了 HashSet 集合时，必须通过代码来保证其同步</p></li>
+</ul>
+<blockquote>
+<p>HashSet 判断元素相等的标准是两个对象通过 equals() 比较相等，同时两个对象的 hashCode()返回值也相等。</p>
+</blockquote>
+<blockquote>
+<p>hashCode 和 equals 符合这样一个约定:equals 返回 true， hashCode 必须相等。很多 Java 类库中的代码都是按照这种约定使用这两个方法的，比 如 HashSet。这也是为什么我们要求如果一个类覆盖了 hashCode 方法，就 一定要覆盖 equals 方法，并保证方法的实现符合上述约定</p>
+</blockquote>
+<p>当向 HashSet 集合中存入一个元素时，HashSet 会调用该对象的 hashCode() 方法来获得该对象的 hashCode 值，然后根据该 hashCode 值决定该对象在 HashSet 中的存储位置。</p>
+<p>HashSet 中每个能存储元素的槽位称为桶(bucket)。如果多个元素的 hashCode 值相同，但它们通过 equals 方法比较返回 false，就需要在一个桶里放多个元素，这会导致性能下降。所以，建议在需要把某个类的对象保存到 HashSet 集合时，重写该类的 equals 和 hashCode 方法，尽量保证两个对象通过 equals 方法比较返回 true 时，他们的 hashCode 方法返回值也相等。</p>
+<p>当把可变对象添加到 HashSet 中后，需要特别小心，尽量不要去修改可变对象中参与计算 hashCode() 、equals() 方法的实例变量，否则会导致 HashSet 无法正确访问这些集合元素。</p>
+<p>看个例子：</p>
+<pre><code><code>public class R {
+    int count;
+    public R(int count) {
+        this.count = count;
+    }
+    public String toString() {
+        return &quot;R[count:&quot; + count + &quot;]&quot;;
+    }
+
+    @Override
+    public boolean equals(Object obj) {
+        if (this == obj) {
+            return true;
+        }
+        if (obj != null &amp;&amp; obj.getClass() == R.class) {
+            R r = (R)obj;
+            return this.count == r.count;
+        }
+        return false;
+    }
+    public int hashCode() {
+        return this.count;
+    }
+}
+
+import java.util.HashSet;
+import java.util.Iterator;
+
+public class HashSetTest2 {
+    public static void main(String[] args) {
+        HashSet hs = new HashSet();
+        hs.add(new R(5));
+        hs.add(new R(-3));
+        hs.add(new R(9));
+        hs.add(new R(-2));
+        System.out.println(hs);
+        Iterator it = hs.iterator();
+        R first = (R)it.next();
+        first.count = -3;
+        System.out.println(hs);
+        hs.remove(new R(-3));
+        System.out.println(hs);
+        System.out.println(&quot;hs 是否包含 count 为 -3 的 R 对象&quot; + hs.contains(new R(-3)));
+        System.out.println(&quot;hs 是否包含 count 为 -2 的 R 对象&quot; + hs.contains(new R(-2)));
+    }
+}
+
+/*
+[R[count:-2], R[count:-3], R[count:5], R[count:9]]
+[R[count:-3], R[count:-3], R[count:5], R[count:9]]
+[R[count:-3], R[count:5], R[count:9]]
+hs 是否包含 count 为 -3 的 R 对象false
+hs 是否包含 count 为 -2 的 R 对象false
+*/</code></code></pre>
+<h4 id="linkedhashset-类">LinkedHashSet 类</h4>
+<p>LinkedHashSet 是 HashSet 的子类，同样根据 hashCode 值来决定元素的存储位置。但是使用链表维护元素的次序，使得当遍历 LinkedHashSet 集合里的元素时，LinkedHashSet 会按元素的添加顺序访问集合里的元素。</p>
+<p>LinkedHashSet 需要维护元素的插入顺序，因此性能略低于 HashSet，但在迭代访问 Set 里的全部元素时会有很好的性能，因为它以链表维护内部的顺序。</p>
+<h4 id="treeset-类">TreeSet 类</h4>
+<p>TreeSet 是 SortedSet 接口的实现类，顾名思义这是一种排序的 Set 集合。</p>
+<p>TreeSet 底层使用 TreeMap 实现，采用红黑树的数据结构来存储集合元素。TreeSet 支持两种排序方法：自然排序和定制排序。默认情况下，使用自然排序。</p>
+<h5 id="自然排序">自然排序</h5>
+<p>Java 提供了 Comparable 接口，接口定义了一个 compareTo(Object obj) 方法。实现该接口的类必须实现该抽象方法。</p>
+<p>compareTo(Object obj) 比较规则如下：</p>
+<ul>
+<li>obj1.compareTo(obj2) 返回值为 0，表明相等</li>
+<li>obj1.compareTo(obj2) 返回值大于 0，表明 obj1 &gt; obj2</li>
+<li>obj1.compareTo(obj2) 返回值小于 0，表明 obj1 &lt; obj2</li>
+</ul>
+<p>TreeSet 会调用集合元素的 compareTo(Object obj) 方法来比较元素大小关系，再将集合元素按升序排序，这就是自然排序。所以自然排序中的元素对象都必须实现了 Comparable 接口。</p>
+<blockquote>
+<p>如果两个对象通过 compareTo(Object obj) 比较相等， 即返回值为0，TreeSet 认为它们相等，那么新对象将无法添加到 TreeSet 集合中。</p>
+</blockquote>
+<blockquote>
+<p>如果希望 TreeSet 能正常工作，TreeSet 只能添加同一种类型的对象。</p>
+</blockquote>
+<h5 id="定制排序">定制排序</h5>
+<p>如果需要实现定制排序，需要在创建 TreeSet 集合对象时，提供一个 Comparator 对象与该 TreeSet 集合关联。Comparator 是一个函数式接口，可以使用 Lambda 表达式代替。</p>
+<p>通过定制排序方式时，依然不可以向 TreeSet 中添加不同类型的对象，否则引发 ClassCastException 异常。此时集合判断两个元素相等的标准是：通过 Comparator 比较两个元素返回了 0， 这样 TreeSet 也不会把第二个元素添加到集合中。</p>
+<pre><code><code>import java.util.TreeSet;
+
+public class TreeSettest4 {
+    public static void main(String[] args) {
+        TreeSet ts = new TreeSet((o1, o2) -&gt; {
+            M m1 = (M) o1;
+            M m2 = (M) o2;
+            return m1.age &gt; m2.age ? -1 : m1.age &lt; m2.age ? 1: 0;
+        });
+        ts.add(new M(5));
+        ts.add(new M(-3));
+        ts.add(new M(9));
+        System.out.println(ts);
+    }
+}</code></code></pre>
+<p>上面使用目标类型为 Comparator 的 Lambda 表达式，它负责 ts 集合的排序。所有 M 类无需实现 Comparable 接口，而是由 TreeSet 关联的 Lambda 表达式负责元素的排序。</p>
+<p>在实现 compareTo 方法时，强烈推荐与 equals 结果一致，否则可能会出现一些奇怪的错误。因为有些类是根据 equals 来判断重复性，有些是利用自然排序 x.compareTo(y) == 0 来判断。compareTo 是判断元素在排序中的位置是否相等，equals 是判断元素是否相等，既然一个决定排序位置，一个决定相等，所以我们非常有必要确保当排序位置相同时，其equals也应该相等。</p>
+<h4 id="enumset-类">EnumSet 类</h4>
+<p>EnumSet 是专为枚举类设计的集合类，EnumSet 中的所有元素都必须是指定枚举类型的枚举类，该枚举类型在创建 EnumSet 时显式或隐式的的指定。</p>
+<p>EnumSet 的集合元素是有序的，以枚举值在 Enum 类内的定义顺序来决定集合元素的顺序。EnumSet 集合不允许插入 null 元素。</p>
+<p>EnumSet 内部以位向量的形式存储，这种存储形式紧凑高效，占用内存很小，运行效率很高。尤其是在进行批量操作时，比如调用 containsAll 和 retainAll 方法时。</p>
+<h3 id="map-集合">Map 集合</h3>
+<p>定义：Map 用于保存具有映射关系的数据，key 和 value 之间存在单向的一对一关系，key 不允许重复。</p>
+<blockquote>
+<p>Set 与 Map 之间关系非常密切，如果把 key-value 对中的 value 当成 key 的附庸，key 在哪里，value 就在哪里。这样就可以像对待 Set 一样对待 Map 了。</p>
+<p>实际上，Map 提供了一个 Entry 内部类来封装 key-value 对，而计算 Entry 存储时则只考虑 Entry 封装的 key。从源码来看，Java 是先实现了 Map，然后通过包装一个所有 value 都为 null 的 Map 就实现了 Set 集合。</p>
+</blockquote>
+<h4 id="hashmap-实现类">HashMap 实现类</h4>
+<p>HashMap 中用作 key 的对象必须实现 hashCode() 方法和 equals() 方法。</p>
+<blockquote>
+<p>HashMap 判断两个 key 相等的标准是：两个 key 通过 equals() 方法比较返回 true，两个 key 的 hashCode 值也相等。</p>
+</blockquote>
+<blockquote>
+<p>HashMap 判断两个 value 相等的标准是：两个对象通过 equals() 方法返回 true 即可。</p>
+</blockquote>
+<p>与 HashSet 类似，当使用自定义类作为 HashMap 的 key 时，如果重写该类的 equals() 方法 和 hashCode() 方法，则应该保证两个方法的判断标准一致，即当两个 key 通过 equals() 方法比较返回 true 时，两个 key 的 hashCode() 方法返回值也应该相同。</p>
+<p>与 HashSet 类似，尽量不要使用可变对象作为 HashMap 的 key，如果使用了，则尽量不要在程序中修改作为 key 的可变对象。</p>
+<h4 id="linkedhashmap-实现类">LinkedHashMap 实现类</h4>
+<p>LinkedHashMap 也使用双向链表来维护 key-value 对的次序（其实只需要考虑 key 的次序），该链表负责维护 Map 的迭代顺序，迭代顺序与 key-value 对的插入顺序保持一致。</p>
+<pre><code><code>import java.util.LinkedHashMap;
+
+public class LinkedHashMapTest {
+    public static void main(String[] args) {
+        LinkedHashMap scores = new LinkedHashMap();
+        scores.put(&quot;Chinses&quot;, 80);
+        scores.put(&quot;English&quot;, 82);
+        scores.put(&quot;Math&quot;, 76);
+        scores.forEach((key ,value) -&gt; System.out.println(key + &quot;---&gt;&quot; + value));
+    }
+}</code></code></pre>
+<h4 id="treemap-实现类">TreeMap 实现类</h4>
+<p>TreeMap 是一个红黑树数据结构，每个 key-value 对即作为红黑树的一个节点。TreeMap 存储 key-value 对节点时，需要根据 key 对节点进行排序。TreeMap 可以保证所有的 key-value 对处于有序状态。</p>
+<p>两种排序方式：</p>
+<ul>
+<li>自然排序：TreeMap 的所有 key 必须实现 Comparable 接口，而且所有的 key 应该是同一个类的对象，否则会抛出 ClassCastException 异常</li>
+<li>定制排序：创建 TreeMap 时，传入一个 Comparator 对象，该对象负责对 TreeMap 中的所有 key 进行排序。采用定制排序时不要求 Map 的 key 实现 Comparable 接口</li>
+</ul>
+<blockquote>
+<p>TreeMap 判断两个 key 相等的标准是：两个 key 通过 compareTo 方法返回 0。</p>
+</blockquote>
+<p>类似于 TreeSet，如果使用自定义类作为 TreeMap 的 key，为了让 TreeMap 良好的工作，则重写该类的 equals() 方法和 compareTo() 方法时应该保持一致的结果：两个 key 通过 equals 方法比较返回 true 时，它们通过 compareTo 方法比较应该返回 0。</p>
+<p>在实现 compareTo 方法时，强烈推荐与 equals 结果一致，否则可能会出现一些奇怪的错误。因为有些类是根据 equals 来判断重复性，有些是利用自然排序 x.compareTo(y) == 0 来判断。compareTo 是判断元素在排序中的位置是否相等，equals 是判断元素是否相等，既然一个决定排序位置，一个决定相等，所以我们非常有必要确保当排序位置相同时，其equals也应该相等。</p>
+<p>官方文档的说明：</p>
+<blockquote>
+<p>Virtually all Java core classes that implement Comparable have natural orderings that are consistent with equals.</p>
+</blockquote>
+<h4 id="enummap-实现类">EnumMap 实现类</h4>
+<p>EnumMap 的 key 必须是单个枚举类的枚举值。</p>
+<p>EnumMap 具有以下特征：</p>
+<ul>
+<li><p>EnumMap 在内部以数组形式保存</p></li>
+<li><p>EnumMap 根据 key 的自然顺序（即枚举值在枚举类中的定义顺序）来维护 key-value 对的顺序</p></li>
+<li><p>EnumMap 不能使用 null 作为 key 值</p></li>
+</ul>
+<p>创建 EnumMap 时必须指定一个枚举类，从而将该 EnumMap 和指定枚举类相关联。</p>
+<p>欢迎关注我的公众号<br />
+<img src="./images/Java 基础篇之集合0.png" /></p>
+
+
+</div><hr><script charset='utf-8' src='../../js/sming.js'></script></body></html>

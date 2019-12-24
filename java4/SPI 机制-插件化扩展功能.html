@@ -1,0 +1,91 @@
+<html><head><meta charset='utf-8'><meta name='viewport' content='width=device-width, initial-scale=1'>
+<meta name='applicable-device' content='pc'><meta name='keywords' content='电脑,电脑讲解,电脑技术,编程,电脑故障维修SPI 机制-插件化扩展功能' />
+<script src='../../highlight/highlight.pack.js'></script>
+<link rel='stylesheet' type='text/css' href='../../highlight/styles/monokai.css'/>
+
+<link rel='stylesheet' href='../../fenxiang/dist/css/share.min.css'>
+<script src='../../fenxiang/src/js/social-share.js'></script>
+<script src='../../fenxiang/src/js/qrcode.js'></script>
+
+</head><body><script>hljs.initHighlightingOnLoad();</script><script>
+var system ={};  
+var p = navigator.platform;       
+system.win = p.indexOf('Win') == 0;  
+system.mac = p.indexOf('Mac') == 0;  
+system.x11 = (p == 'X11') || (p.indexOf('Linux') == 0);     
+if(system.win||system.mac||system.xll){
+document.write("<link href='../css/3.css' rel='stylesheet' type='text/css'>");}else{ document.write("<link href='../css/3wap.css' rel='stylesheet' type='text/css'>");}</script><script src='../../js/3.js'></script><div class='div2'><div class='heading_nav'><ul><div><li><a href='../../index.html'>首页</a></li>
+</div><div onclick='hidden1()' >分享</div>
+</ul></div></div>
+<div id='heading_nav2'> 
+<li class='row' >
+<div class='social-share' data-mode='prepend'><a href='javascript:' class='social-share-icon icon-heart'></a></div></li></div><script charset='utf-8' src='../../3/js/hengfu.js'></script><script charset='utf-8' src='../../3/js/hengfu2.js'></script><hr><div class='div1'><div class='biaoti'><center>SPI 机制-插件化扩展功能</center></div><div class='banquan'>原文出处:本文由博客园博主good_andyxu提供。<br/>
+原文连接:https://www.cnblogs.com/goodAndyxublog/p/11428011.html</div><br>
+    <p>SPI(Service Provider Interfaces),中文直译服务提供者接口，一种服务发现机制。可能很多人都不太熟悉这个机制，但是平常或多或少都用到了这个机制，比如我们使用 JDBC 连接操作数据库的时候。</p>
+<p>SPI 主要适用于功能扩展的场景，如一些框架提供某一部分功能可以由第三方开发人员扩展，满足其自身业务需求。</p>
+<p>假设我们在公司内实现了一个统一登陆框架，框架内部仅仅提供用户名/密码登陆方式。后来 A 部门想使用该框架，但是他们想增加微信登陆授权。正常情况下，我们可以改动登陆框架代码，增加微信登陆实现方式。如果后面又增加 QQ 登陆，淘宝登陆那？也只能不断相应的实现。</p>
+<h2 id="spi-实现方式">SPI 实现方式</h2>
+<p>这种情况如果使用 SPI，可以在不用改动框架代码前提下，增加新的登陆实现方式。下面用代码演示如何使用 SPI。</p>
+<p><strong>定义接口</strong></p>
+<p>首先我们新建一个 maven 项目 <code>oauth-api</code>，在这个项目创建一个公共接口。</p>
+<pre><code><code>public interface OauthLoginService {
+    void login();
+}</code></code></pre>
+<p><strong>第三方实现该接口</strong></p>
+<p>再新建一个 maven 项目 <code>wechat-oauth</code> ，引入上面 <code>oauth-api</code> 依赖</p>
+<pre><code><code>public class WechatLoginService implements OauthLoginService {
+    @Override
+    public void login() {
+        System.out.println(&quot;使用微信登陆授权&quot;);
+    }
+}</code></code></pre>
+<p><strong>定义配置文件</strong></p>
+<p>SPI 需要将接口实现定义在配置文件中，文件名为接口全名称，如 <code>com.andyxh.OauthLoginService</code>，配置文件需放在 <strong>resources\META-INF\services</strong> 文件夹下。文件内容如下：</p>
+<pre><code><code>com.another.WechatLoginService</code></code></pre>
+<p><strong>加载接口实现类</strong></p>
+<p>新建 maven 项目 <code>oauth-login</code>,在这个项目中引入 <code>wechat-oauth</code> 与 <code>oauth-api</code> 依赖。SPI 核心将会使用 <code>java.util.ServiceLoader</code>读取上面上面定义配置文件，加载所有服务实现类。使用代码如下：</p>
+<pre><code><code>
+ServiceLoader&lt;OauthLoginService&gt; serviceLoader=ServiceLoader.load(OauthLoginService.class);
+serviceLoader.forEach(OauthLoginService::login);</code></code></pre>
+<p>打印结果：</p>
+<pre><code><code>使用微信登陆授权</code></code></pre>
+<h2 id="spi-实际应用">SPI 实际应用</h2>
+<p>上面说过 JDBC 中使用到 SPI 进制。 JDK 定义标准数据库接口，相应的数据库厂商实现这类接口。以 <code>mysql-connector-javal</code> 为例。</p>
+<pre class="pom"><code>        &lt;dependency&gt;
+            &lt;groupId&gt;mysql&lt;/groupId&gt;
+            &lt;artifactId&gt;mysql-connector-java&lt;/artifactId&gt;
+            &lt;version&gt;8.0.16&lt;/version&gt;
+        &lt;/dependency&gt;</code></code></pre>
+<p>mysql jar 包 META-INF/services 中存在<code>java.sql.Driver</code> 文件，这个文件定义了实现类。</p>
+<p><img src="./images/SPI 机制-插件化扩展功能0.png" alt="image.png" /></p>
+<pre><code><code>com.mysql.cj.jdbc.Driver</code></code></pre>
+<p>可以看到 <code>java.sql.Driver</code> 是标准 SPI 接口，而 <code>com.mysql.cj.jdbc.Driver</code> 是 mysql 标准实现接口。</p>
+<p><strong>何时加载 <code>java.sql.Driver</code>？</strong></p>
+<p>我们将会使用 <code>DriverManager.getConnection</code> 获取相应数据库连接。这个类内部存在一个静态代码块，将会使用 <code>ServiceLoader</code> 加载实现类。</p>
+<pre><code><code>    static {
+        loadInitialDrivers();
+        println(&quot;JDBC DriverManager initialized&quot;);
+    }
+
+ private static void loadInitialDrivers() {
+        ....
+     ServiceLoader&lt;Driver&gt; loadedDrivers = ServiceLoader.load(Driver.class);  
+     Iterator&lt;Driver&gt; driversIterator = loadedDrivers.iterator();  
+     try{  
+         while(driversIterator.hasNext()) {  
+         driversIterator.next();  
+     }  
+     } catch(Throwable t) {  
+         // Do nothing  
+     }  
+         return null;  
+     }
+    ....
+    }</code></code></pre>
+<h2 id="java-spi-存在问题">Java SPI 存在问题</h2>
+<p><code>ServiceLoader</code> 一次性将会实例化所有实现，但是如果没有某一扩展初始化耗时很久，但是却不需要立刻使用，就会非常浪费资源。</p>
+<p>基于这个问题， Dubbo SPI 机制改进 Java SPI 的不足，做到按需加载并且增加 ioc 与 aop 的功能，下篇文章可以在具体聊聊，敬请期待。<br />
+<img src="./images/SPI 机制-插件化扩展功能1.png" alt="其他平台.png" /></p>
+
+
+</div><hr><script charset='utf-8' src='../../js/sming.js'></script></body></html>

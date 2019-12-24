@@ -1,0 +1,97 @@
+<html><head><meta charset='utf-8'><meta name='viewport' content='width=device-width, initial-scale=1'>
+<meta name='applicable-device' content='pc'><meta name='keywords' content='电脑,电脑讲解,电脑技术,编程,电脑故障维修Java 基于Spire.Cloud.Excel 将Excel转为PDF' />
+<script src='../../highlight/highlight.pack.js'></script>
+<link rel='stylesheet' type='text/css' href='../../highlight/styles/monokai.css'/>
+
+<link rel='stylesheet' href='../../fenxiang/dist/css/share.min.css'>
+<script src='../../fenxiang/src/js/social-share.js'></script>
+<script src='../../fenxiang/src/js/qrcode.js'></script>
+
+</head><body><script>hljs.initHighlightingOnLoad();</script><script>
+var system ={};  
+var p = navigator.platform;       
+system.win = p.indexOf('Win') == 0;  
+system.mac = p.indexOf('Mac') == 0;  
+system.x11 = (p == 'X11') || (p.indexOf('Linux') == 0);     
+if(system.win||system.mac||system.xll){
+document.write("<link href='../css/3.css' rel='stylesheet' type='text/css'>");}else{ document.write("<link href='../css/3wap.css' rel='stylesheet' type='text/css'>");}</script><script src='../../js/3.js'></script><div class='div2'><div class='heading_nav'><ul><div><li><a href='../../index.html'>首页</a></li>
+</div><div onclick='hidden1()' >分享</div>
+</ul></div></div>
+<div id='heading_nav2'> 
+<li class='row' >
+<div class='social-share' data-mode='prepend'><a href='javascript:' class='social-share-icon icon-heart'></a></div></li></div><script charset='utf-8' src='../../3/js/hengfu.js'></script><script charset='utf-8' src='../../3/js/hengfu2.js'></script><hr><div class='div1'><div class='biaoti'><center>Java 基于Spire.Cloud.Excel 将Excel转为PDF</center></div><div class='banquan'>原文出处:本文由博客园博主E-iceblue提供。<br/>
+原文连接:https://www.cnblogs.com/Yesi/p/12016626.html</div><br>
+    <p>Spire.Cloud.Excel Sdk 提供GeneralApi接口和WorkbookApi接口，支持将本地Excel和云端Excel文档转换为ODS, PDF, XPS, PCL, PS等格式。本文以将Excel表格转为PDF为例，介绍实现格式转换的步骤及方法。</p>
+<p>&nbsp;</p>
+<p><strong>所需工具：</strong>Spire.Cloud.Excel.Sdk</p>
+<p><strong>&nbsp;</strong></p>
+<p><strong>必要步骤：</strong></p>
+<p><strong>步骤1：Jar文件下载及导入。</strong>可通过&ldquo;下载中心&rdquo;<span style="color: #3366ff;"><a href="https://cloud.e-iceblue.cn/index.php/java-webapi-sdk-downloads" target="_blank"><span style="color: #3366ff;">下载</span></a></span>获取jar；或者通过maven仓库安装导入，具体参考<span style="color: #3366ff;"><a href="https://www.e-iceblue.cn/cloud/maven-spire-cloud-web-api.html" target="_blank"><span style="color: #3366ff;">安装方法</span></a></span>。</p>
+<p><strong>步骤2：ID及Key获取。</strong>需要在<span style="color: #3366ff;"><a href="https://cloud.e-iceblue.cn/" target="_blank"><span style="color: #3366ff;">云端</span></a></span>创建账号，并在&ldquo;我的应用&rdquo;板块中创建应用以获得App ID及App Key。</p>
+<p><strong>步骤3：</strong>在将云端Excel文档转为PDF时，需要在&ldquo;文档管理&rdquo;板块先上传Excel文档。</p>
+<p><span style="color: #339966;"><span style="color: #ff6600;"><strong>注：</strong></span>在云端创建的账号可免费试用1 万次调用次数及 2G 文档内存。</span></p>
+<p>&nbsp;</p>
+<p><strong>【示例1】将本地Excel文档转换为PDF</strong></p>
+<src class="cnblogs_code">
+<pre><code><span style="color: #0000ff;">import</span><span style="color: #000000;"> spire.cloud.excel.sdk.ApiException;
+</span><span style="color: #0000ff;">import</span><span style="color: #000000;"> spire.cloud.excel.sdk.api.GeneralApi;
+</span><span style="color: #0000ff;">import</span><span style="color: #000000;"> spire.cloud.excel.sdk.model.ExportFormat;
+
+</span><span style="color: #0000ff;">import</span><span style="color: #000000;"> java.io.File;
+
+</span><span style="color: #0000ff;">public</span> <span style="color: #0000ff;">class</span><span style="color: #000000;"> ExcelToPDF {
+    </span><span style="color: #0000ff;">private</span> <span style="color: #0000ff;">static</span> String appId = "App ID"<span style="color: #000000;">;
+    </span><span style="color: #0000ff;">private</span> <span style="color: #0000ff;">static</span> String appKey = "App Key"<span style="color: #000000;">;
+
+    </span><span style="color: #0000ff;">public</span> <span style="color: #0000ff;">static</span> <span style="color: #0000ff;">void</span> main(String[] args) <span style="color: #0000ff;">throws</span><span style="color: #000000;"> ApiException{
+        </span><span style="color: #008000;">//</span><span style="color: #008000;">创建GeneralApi实例并配置账号信息</span>
+        GeneralApi generalApi = <span style="color: #0000ff;">new</span><span style="color: #000000;"> GeneralApi(appId, appKey);
+        </span><span style="color: #008000;">//</span><span style="color: #008000;">配置相关参数</span>
+        String format =<span style="color: #000000;"> ExportFormat.PDF.toString();
+        String inputFilePath </span>= "test.xlsx"<span style="color: #000000;">;
+        File data </span>= <span style="color: #0000ff;">new</span><span style="color: #000000;"> File(inputFilePath );
+        String outputFilePath </span>= "ToPDF.pdf"<span style="color: #000000;">;
+        String password </span>= <span style="color: #0000ff;">null</span><span style="color: #000000;">;
+
+        </span><span style="color: #008000;">//</span><span style="color: #008000;">调用putWorkbookConvert接口将文档保存为PDF</span>
+<span style="color: #000000;">        generalApi.putWorkbookConvert(format,outputFilePath,data, password);
+    }
+}</span></code></pre>
+
+<p>&nbsp;</p>
+<p><strong>【示例2】将云端Excel文档转换为PDF</strong></p>
+<src class="cnblogs_code">
+<pre><code><span style="color: #0000ff;">import</span><span style="color: #000000;"> spire.cloud.excel.sdk.ApiException;
+</span><span style="color: #0000ff;">import</span><span style="color: #000000;"> spire.cloud.excel.sdk.api.WorkbookApi;
+</span><span style="color: #0000ff;">import</span><span style="color: #000000;"> spire.cloud.excel.sdk.model.ExportFormat;
+</span><span style="color: #0000ff;">import</span><span style="color: #000000;"> spire.cloud.excel.sdk.model.ExportOptions;
+
+</span><span style="color: #0000ff;">public</span> <span style="color: #0000ff;">class</span><span style="color: #000000;"> ExcelToPDF2 {
+    </span><span style="color: #0000ff;">private</span> <span style="color: #0000ff;">static</span> String appId = "App ID"<span style="color: #000000;">;
+    </span><span style="color: #0000ff;">private</span> <span style="color: #0000ff;">static</span> String appKey = "App Key"<span style="color: #000000;">;
+
+    </span><span style="color: #0000ff;">public</span> <span style="color: #0000ff;">static</span> <span style="color: #0000ff;">void</span> main(String[] args)<span style="color: #0000ff;">throws</span><span style="color: #000000;"> ApiException {
+        </span><span style="color: #008000;">//</span><span style="color: #008000;">创建WorkbookApi实例并配置账号信息</span>
+        WorkbookApi workbookApi = <span style="color: #0000ff;">new</span><span style="color: #000000;"> WorkbookApi(appId, appKey);
+
+        </span><span style="color: #008000;">//</span><span style="color: #008000;">配置相关参数</span>
+        String name= "test.xlsx"<span style="color: #000000;">;
+        String outputFilePath </span>= "ToPDF2.pdf"<span style="color: #000000;">;
+        String format </span>=<span style="color: #000000;"> ExportFormat.PDF.toString();
+        ExportOptions options </span>= <span style="color: #0000ff;">null</span><span style="color: #000000;">;
+        String storage </span>= <span style="color: #0000ff;">null</span><span style="color: #000000;">;
+        String inputFolder </span>= "input"<span style="color: #000000;">;
+        String password </span>= <span style="color: #0000ff;">null</span><span style="color: #000000;">;
+
+        </span><span style="color: #008000;">//</span><span style="color: #008000;">调用putWorkbookSaveAs接口将文档保存为PDF</span>
+<span style="color: #000000;">        workbookApi.putWorkbookSaveAs(name, outputFilePath, format, options, password, storage, inputFolder);
+    }
+}</span></code></pre>
+
+<p>文档转换结果可在&ldquo;文档管理&rdquo;板块中查看，如下：</p>
+<p><img src="./images/Java 基于Spire.Cloud.Excel 将Excel转为PDF0.png" alt="" /></p>
+<p>&nbsp;</p>
+<p>（本文完）</p>
+<p>&nbsp;</p>
+
+</div><hr><script charset='utf-8' src='../../js/sming.js'></script></body></html>

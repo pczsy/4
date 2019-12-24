@@ -1,0 +1,107 @@
+<html><head><meta charset='utf-8'><meta name='viewport' content='width=device-width, initial-scale=1'>
+<meta name='applicable-device' content='pc'><meta name='keywords' content='电脑,电脑讲解,电脑技术,编程,电脑故障维修方法重载（overload）与方法重写（override）' />
+<script src='../../highlight/highlight.pack.js'></script>
+<link rel='stylesheet' type='text/css' href='../../highlight/styles/monokai.css'/>
+
+<link rel='stylesheet' href='../../fenxiang/dist/css/share.min.css'>
+<script src='../../fenxiang/src/js/social-share.js'></script>
+<script src='../../fenxiang/src/js/qrcode.js'></script>
+
+</head><body><script>hljs.initHighlightingOnLoad();</script><script>
+var system ={};  
+var p = navigator.platform;       
+system.win = p.indexOf('Win') == 0;  
+system.mac = p.indexOf('Mac') == 0;  
+system.x11 = (p == 'X11') || (p.indexOf('Linux') == 0);     
+if(system.win||system.mac||system.xll){
+document.write("<link href='../css/3.css' rel='stylesheet' type='text/css'>");}else{ document.write("<link href='../css/3wap.css' rel='stylesheet' type='text/css'>");}</script><script src='../../js/3.js'></script><div class='div2'><div class='heading_nav'><ul><div><li><a href='../../index.html'>首页</a></li>
+</div><div onclick='hidden1()' >分享</div>
+</ul></div></div>
+<div id='heading_nav2'> 
+<li class='row' >
+<div class='social-share' data-mode='prepend'><a href='javascript:' class='social-share-icon icon-heart'></a></div></li></div><script charset='utf-8' src='../../3/js/hengfu.js'></script><script charset='utf-8' src='../../3/js/hengfu2.js'></script><hr><div class='div1'><div class='biaoti'><center>方法重载（overload）与方法重写（override）</center></div><div class='banquan'>原文出处:本文由博客园博主...来杯茶提供。<br/>
+原文连接:https://www.cnblogs.com/baijian/p/11622151.html</div><br>
+    <p>一、方法重载：</p>
+<p>　　在同一个类中，允许存在一个及以上的同名方法，只要他们的参数列表不同（参数的个数或者参数的类型不同）即可。注意方法重载与返回值类型、访问权限修饰符、和抛出的异常无关。重载是在本类中，与继承关系无关。</p>
+<p>（1）为什么要进行方法重载？</p>
+<p>　　刚刚接触java的同学，可能会对方法重载的用处有点疑惑。方法重载最经典的就是构造器了，我们知道构造器是和类名一致的，但我们要用不同的方式来实例化对象时，单一的构造器已经不能满足我们的要求，所以这时就用到了方法重载，方法重载起源于构造器。</p>
+<p>　　当然除了构造器之外我们也可以在其他方法中用到方法重载，例如一个程序完成两个数相加，如果不用方法重载时，我就需要写n个方法，给n个方法起n个方法名，在调用时我不知道该调用哪一个，然后翻来翻去才找到，这很不利于别人来使用这些方法。原本这些方法完成的功能都是一致的，为了统一管理和调用方便，所以引入方法重载这一概念。<br /><br /></p>
+<src class="cnblogs_Highlighter">
+<pre><code>public class Test {
+	
+	//方法1
+	public static int add(int a, int b) {
+		return a + b;
+	}
+	
+	//方法2
+	public static double add(int a, double b) {
+		return a + b;
+	}
+	
+	//方法3
+	public static double add(double a, int b) {
+		return a + b;
+	}
+	
+	//方法4
+	public static int add(int a, int b, int c) {
+		return a + b + c;
+	}
+	
+	//方法5
+	public static int add(int... a) {
+		int temp = 0;
+		for(int i = 0; i &lt; a.length; i++) {
+			temp += a[i];
+		}
+		return temp;
+	}
+	
+	public static void main(String[] args) {
+		
+	}
+
+}
+</code></pre>
+
+<p>&nbsp;　　如上面的代码，有因为不同数据类型的重载、有参数位置不同的重载、有参数个数不同的重载。由此看来重载还是很强大的。</p>
+<p>（2）重载方法的调用</p>
+<p>　　有了方法，我们就要想该怎样使用这些方法，当我们传实参时，编译器会调用哪个方法呢？这其中就有一个匹配度的问题，编译器会自动调用高匹配度的那个方法，例如：当我add（1,1）；时会调用方法1，因为他的匹配度为100（安全匹配）。当然编译器找不到那个完全匹配的方法，会调用实参类型能够自动转化成形参类型的那个方法（兼容性匹配）。但这也就引发了问题，当我把方法1去掉，再调用add（1,1）；这时会调用哪个方法？答案是编译器会报错。因为方法2与方法3的匹配度是相同的，引起了冲突。</p>
+<p>　　最后方法重载支持可变参数重载，可变参数本身就相当于一个数组，在匹配中他的匹配度是最低的，当其他方法不满足时，才会调用可变参数方法。</p>
+<p>二、方法重写：</p>
+<p>　　方法的重写与方法的重载没有一点关系，硬要说有关系，那就是它们很容易被弄混。</p>
+<src class="cnblogs_code">
+<pre><code><span style="color: #0000ff;">class</span><span style="color: #000000;"> Person{
+    </span><span style="color: #0000ff;">public</span>  <span style="color: #0000ff;">void</span><span style="color: #000000;"> say() {
+        System.out.println(</span>"人说话"<span style="color: #000000;">);
+    }
+}
+
+</span><span style="color: #0000ff;">public</span> <span style="color: #0000ff;">class</span> Student <span style="color: #0000ff;">extends</span><span style="color: #000000;"> Person{
+    @Override
+    </span><span style="color: #0000ff;">public</span> <span style="color: #0000ff;">void</span><span style="color: #000000;"> say() {
+        System.out.println(</span>"学生说话"<span style="color: #000000;">);
+    }
+
+}</span></code></pre>
+
+<p>&nbsp;</p>
+<p>（1）为什么要进行方法重写：</p>
+<p>　　方法的重写发生在继承关系中，在继承中子类可以继承父类中的除了构造器、静态属性、静态方法、内部类、代码块外的所有东西。方法也不例外，但是如果父类的方法并不能满足我的需求，这时候子类就需要对父类的方法进行改造扩充，这就是方法的重写。</p>
+<p>（2）方法重写遵循的规则：（下面的大于和小于是一种描述习惯）</p>
+<p>　　1.重写的方法与被重写的方法的方法签名要一致</p>
+<p>　　2.子类重写方法的访问权限必须大于等于父类方法的访问权限，例如父类方法用public修饰，那么子类方法也必须用public修饰。</p>
+<p>　　3.重写与被重写的方法不能被static与final修饰</p>
+<p>　　4.子类抛出的受检异常不能大于父类的受检异常（注意只针对受检异常，非受检异常没有此限制）</p>
+<p>　　5.子类的方法的返回值类型可以小于等于父类的返回值类型</p>
+<p>　　6.子类不能重写父类的private方法，添加@override注解会报错，因为这个方法是父类私有的子类不能访问，虽然子类继承了这个方法，但是子类只有拥有权没有使用权。如果去掉@override注解就不会再报错，所以说进行方法重写时要记得添加@override注解，让编译器帮助你做检查。</p>
+<p>&nbsp;</p>
+<p>　　当以个方法被子类重写了，调用这个方法时，调用的时重写后的方法，但如果你就是想调用原来的方法，可以通过super关键字来实现。super关键字是一个标识，代表父类内存空间的标识。super可以用于访问父类中定义的属性，可以用于调用父类中定义的成员方法（例如toString中可以调用父类的toString然后再拼接上子类的特有的东西）、可以在子类中调用父类的构造器（后面详细说明）。</p>
+<p>&nbsp;</p>
+<p>&nbsp;</p>
+<p>文章中有不对的地方，请批评指正！</p>
+<p><img id="uploading_image_56235" src="./images/方法重载（overload）与方法重写（override）0.png" alt="" /></p>
+<p>&nbsp;</p>
+
+</div><hr><script charset='utf-8' src='../../js/sming.js'></script></body></html>

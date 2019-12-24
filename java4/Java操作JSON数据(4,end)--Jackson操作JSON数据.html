@@ -1,0 +1,302 @@
+<html><head><meta charset='utf-8'><meta name='viewport' content='width=device-width, initial-scale=1'>
+<meta name='applicable-device' content='pc'><meta name='keywords' content='电脑,电脑讲解,电脑技术,编程,电脑故障维修Java操作JSON数据(4,end)--Jackson操作JSON数据' />
+<script src='../../highlight/highlight.pack.js'></script>
+<link rel='stylesheet' type='text/css' href='../../highlight/styles/monokai.css'/>
+
+<link rel='stylesheet' href='../../fenxiang/dist/css/share.min.css'>
+<script src='../../fenxiang/src/js/social-share.js'></script>
+<script src='../../fenxiang/src/js/qrcode.js'></script>
+
+</head><body><script>hljs.initHighlightingOnLoad();</script><script>
+var system ={};  
+var p = navigator.platform;       
+system.win = p.indexOf('Win') == 0;  
+system.mac = p.indexOf('Mac') == 0;  
+system.x11 = (p == 'X11') || (p.indexOf('Linux') == 0);     
+if(system.win||system.mac||system.xll){
+document.write("<link href='../css/3.css' rel='stylesheet' type='text/css'>");}else{ document.write("<link href='../css/3wap.css' rel='stylesheet' type='text/css'>");}</script><script src='../../js/3.js'></script><div class='div2'><div class='heading_nav'><ul><div><li><a href='../../index.html'>首页</a></li>
+</div><div onclick='hidden1()' >分享</div>
+</ul></div></div>
+<div id='heading_nav2'> 
+<li class='row' >
+<div class='social-share' data-mode='prepend'><a href='javascript:' class='social-share-icon icon-heart'></a></div></li></div><script charset='utf-8' src='../../3/js/hengfu.js'></script><script charset='utf-8' src='../../3/js/hengfu2.js'></script><hr><div class='div1'><div class='biaoti'><center>Java操作JSON数据(4,end)--Jackson操作JSON数据</center></div><div class='banquan'>原文出处:本文由博客园博主咏吟提供。<br/>
+原文连接:https://www.cnblogs.com/wuyongyin/p/12017052.html</div><br>
+    <src>Jackson是SpringBoot默认使用的JSON处理库，它可以轻松的将Java对象转换成JSON对象，同样也可以将JSON转换成Java对象。本文介绍下Jackson的基本使用方法，包括序列化和反序列化；文中所使用到的软件版本：Java 1.8.0_191、Jackson 2.10.0。
+<src>
+<h2>1、引入依赖</h2>
+<src class="cnblogs_code">
+<pre><code><span style="color: #0000ff;">&lt;</span><span style="color: #800000;">dependency</span><span style="color: #0000ff;">&gt;</span>
+  <span style="color: #0000ff;">&lt;</span><span style="color: #800000;">groupId</span><span style="color: #0000ff;">&gt;</span>com.fasterxml.jackson.core<span style="color: #0000ff;">&lt;/</span><span style="color: #800000;">groupId</span><span style="color: #0000ff;">&gt;</span>
+  <span style="color: #0000ff;">&lt;</span><span style="color: #800000;">artifactId</span><span style="color: #0000ff;">&gt;</span>jackson-core<span style="color: #0000ff;">&lt;/</span><span style="color: #800000;">artifactId</span><span style="color: #0000ff;">&gt;</span>
+  <span style="color: #0000ff;">&lt;</span><span style="color: #800000;">version</span><span style="color: #0000ff;">&gt;</span>2.10.0<span style="color: #0000ff;">&lt;/</span><span style="color: #800000;">version</span><span style="color: #0000ff;">&gt;</span>
+<span style="color: #0000ff;">&lt;/</span><span style="color: #800000;">dependency</span><span style="color: #0000ff;">&gt;</span>
+<span style="color: #0000ff;">&lt;</span><span style="color: #800000;">dependency</span><span style="color: #0000ff;">&gt;</span>
+  <span style="color: #0000ff;">&lt;</span><span style="color: #800000;">groupId</span><span style="color: #0000ff;">&gt;</span>com.fasterxml.jackson.core<span style="color: #0000ff;">&lt;/</span><span style="color: #800000;">groupId</span><span style="color: #0000ff;">&gt;</span>
+  <span style="color: #0000ff;">&lt;</span><span style="color: #800000;">artifactId</span><span style="color: #0000ff;">&gt;</span>jackson-databind<span style="color: #0000ff;">&lt;/</span><span style="color: #800000;">artifactId</span><span style="color: #0000ff;">&gt;</span>
+  <span style="color: #0000ff;">&lt;</span><span style="color: #800000;">version</span><span style="color: #0000ff;">&gt;</span>2.10.0<span style="color: #0000ff;">&lt;/</span><span style="color: #800000;">version</span><span style="color: #0000ff;">&gt;</span>
+<span style="color: #0000ff;">&lt;/</span><span style="color: #800000;">dependency</span><span style="color: #0000ff;">&gt;</span>
+<span style="color: #0000ff;">&lt;</span><span style="color: #800000;">dependency</span><span style="color: #0000ff;">&gt;</span>
+  <span style="color: #0000ff;">&lt;</span><span style="color: #800000;">groupId</span><span style="color: #0000ff;">&gt;</span>com.fasterxml.jackson.core<span style="color: #0000ff;">&lt;/</span><span style="color: #800000;">groupId</span><span style="color: #0000ff;">&gt;</span>
+  <span style="color: #0000ff;">&lt;</span><span style="color: #800000;">artifactId</span><span style="color: #0000ff;">&gt;</span>jackson-annotations<span style="color: #0000ff;">&lt;/</span><span style="color: #800000;">artifactId</span><span style="color: #0000ff;">&gt;</span>
+  <span style="color: #0000ff;">&lt;</span><span style="color: #800000;">version</span><span style="color: #0000ff;">&gt;</span>2.10.0<span style="color: #0000ff;">&lt;/</span><span style="color: #800000;">version</span><span style="color: #0000ff;">&gt;</span>
+<span style="color: #0000ff;">&lt;/</span><span style="color: #800000;">dependency</span><span style="color: #0000ff;">&gt;</span></code></pre>
+
+<p>如果使用的是SpringBoot，默认就使用了Jackson，则无需引入。</p>
+<h2>2、序列化</h2>
+<src class="cnblogs_code">
+<pre><code>    <span style="color: #0000ff;">public</span> <span style="color: #0000ff;">static</span><span style="color: #000000;"> String serialize() {
+        MyBean bean </span>= <span style="color: #0000ff;">new</span><span style="color: #000000;"> MyBean();
+        bean.setS(</span>"测试字符串"<span style="color: #000000;">);
+        Calendar calendar </span>=<span style="color: #000000;"> Calendar.getInstance();
+        calendar.add(Calendar.HOUR_OF_DAY, </span>-1<span style="color: #000000;">);
+        bean.setD(calendar.getTime());
+
+        List</span>&lt;MyBean&gt; list = <span style="color: #0000ff;">new</span> ArrayList&lt;MyBean&gt;<span style="color: #000000;">();
+        list.add(bean);
+        Map</span>&lt;String, List&lt;MyBean&gt;&gt; map = <span style="color: #0000ff;">new</span> HashMap&lt;String, List&lt;MyBean&gt;&gt;<span style="color: #000000;">();
+        map.put(</span>"data"<span style="color: #000000;">, list);
+        String result </span>= ""<span style="color: #000000;">;
+        </span><span style="color: #0000ff;">try</span><span style="color: #000000;"> {
+            ObjectMapper objectMapper </span>= <span style="color: #0000ff;">new</span><span style="color: #000000;"> ObjectMapper();
+            </span><span style="color: #008000;">//</span><span style="color: #008000;">设置日期格式，也可在类属性上使用@JsonFormat(pattern="yyyy-MM-dd HH:mm:ss")来设置</span>
+            objectMapper.setDateFormat(<span style="color: #0000ff;">new</span> SimpleDateFormat("yyyy-MM-dd HH:mm:ss"<span style="color: #000000;">));
+            objectMapper.setSerializationInclusion(Include.ALWAYS);
+            </span><span style="color: #008000;">//</span><span style="color: #008000;">字符串如果为null则输出""</span>
+            objectMapper.setSerializerFactory(objectMapper.getSerializerFactory().withSerializerModifier(<span style="color: #0000ff;">new</span><span style="color: #000000;"> BeanSerializerModifier() {
+                @Override
+                </span><span style="color: #0000ff;">public</span> List&lt;BeanPropertyWriter&gt; changeProperties(SerializationConfig config, BeanDescription beanDesc, List&lt;BeanPropertyWriter&gt;<span style="color: #000000;"> beanProperties) {
+                    </span><span style="color: #0000ff;">for</span><span style="color: #000000;"> (BeanPropertyWriter writer : beanProperties) {
+                        Class</span>&lt;?&gt; clazz =<span style="color: #000000;"> writer.getType().getRawClass();
+                        </span><span style="color: #0000ff;">if</span> (CharSequence.<span style="color: #0000ff;">class</span>.isAssignableFrom(clazz) || Character.<span style="color: #0000ff;">class</span><span style="color: #000000;">.isAssignableFrom(clazz)) {
+                            writer.assignNullSerializer(</span><span style="color: #0000ff;">new</span> JsonSerializer&lt;Object&gt;<span style="color: #000000;">() {
+                                @Override
+                                </span><span style="color: #0000ff;">public</span> <span style="color: #0000ff;">void</span> serialize(Object o, JsonGenerator jsonGenerator, SerializerProvider serializerProvider) <span style="color: #0000ff;">throws</span><span style="color: #000000;"> IOException {
+                                    jsonGenerator.writeString(</span>""<span style="color: #000000;">);
+                                }
+                            });
+                        }
+                    }
+                    </span><span style="color: #0000ff;">return</span><span style="color: #000000;"> beanProperties;
+                }
+            }));
+
+            result </span>=<span style="color: #000000;"> objectMapper.writeValueAsString(map);
+            System.out.println(result);
+        } </span><span style="color: #0000ff;">catch</span><span style="color: #000000;"> (Exception e) {
+            e.printStackTrace();
+        }
+
+        </span><span style="color: #0000ff;">return</span><span style="color: #000000;"> result;
+    }</span></code></pre>
+
+<h2>3、反序列化</h2>
+<src class="cnblogs_code">
+<pre><code>    <span style="color: #0000ff;">public</span> <span style="color: #0000ff;">static</span> <span style="color: #0000ff;">void</span><span style="color: #000000;"> deserialize() {
+        String s </span>=<span style="color: #000000;"> serialize();
+        </span><span style="color: #0000ff;">try</span><span style="color: #000000;"> {
+            ObjectMapper objectMapper </span>= <span style="color: #0000ff;">new</span><span style="color: #000000;"> ObjectMapper();
+            objectMapper.setDateFormat(</span><span style="color: #0000ff;">new</span> SimpleDateFormat("yyyy-MM-dd HH:mm:ss"<span style="color: #000000;">));
+            TypeReference</span>&lt;Map&lt;String, List&lt;MyBean&gt;&gt;&gt; type = <span style="color: #0000ff;">new</span> TypeReference&lt;Map&lt;String, List&lt;MyBean&gt;&gt;&gt;<span style="color: #000000;">(){};
+            Map</span>&lt;String, List&lt;MyBean&gt;&gt; map =<span style="color: #000000;"> objectMapper.readValue(s, type);
+            System.out.println(map);
+            
+            </span><span style="color: #008000;">//</span><span style="color: #008000;">树模型api</span>
+            JsonNode root =<span style="color: #000000;"> objectMapper.readTree(s);
+            JsonNode bean </span>= root.get("data").get(0<span style="color: #000000;">);
+            System.out.println(bean.get(</span>"s"<span style="color: #000000;">).asText());
+            </span><span style="color: #008000;">//</span><span style="color: #008000;">...</span>
+        } <span style="color: #0000ff;">catch</span><span style="color: #000000;"> (Exception e) {
+            e.printStackTrace();
+        }
+    }</span></code></pre>
+
+<h2>4、完整例子</h2>
+<src class="cnblogs_code" onclick="cnblogs_code_show('4cd43912-84ad-4667-aa1b-e37fcb3fd765')"><img id="code_img_closed_4cd43912-84ad-4667-aa1b-e37fcb3fd765" class="code_img_closed" src="./images/Java操作JSON数据(4,end)--Jackson操作JSON数据0.png" alt="" /><img id="code_img_opened_4cd43912-84ad-4667-aa1b-e37fcb3fd765" class="code_img_opened" style="display: none;" onclick="cnblogs_code_hide('4cd43912-84ad-4667-aa1b-e37fcb3fd765',event)" src="./images/Java操作JSON数据(4,end)--Jackson操作JSON数据1.png" alt="" />
+<src id="cnblogs_code_open_4cd43912-84ad-4667-aa1b-e37fcb3fd765" class="cnblogs_code_hide">
+<pre><code><span style="color: #0000ff;">package</span><span style="color: #000000;"> com.inspur.demo.json;
+
+</span><span style="color: #0000ff;">import</span><span style="color: #000000;"> java.io.IOException;
+</span><span style="color: #0000ff;">import</span><span style="color: #000000;"> java.text.SimpleDateFormat;
+</span><span style="color: #0000ff;">import</span><span style="color: #000000;"> java.util.ArrayList;
+</span><span style="color: #0000ff;">import</span><span style="color: #000000;"> java.util.Calendar;
+</span><span style="color: #0000ff;">import</span><span style="color: #000000;"> java.util.HashMap;
+</span><span style="color: #0000ff;">import</span><span style="color: #000000;"> java.util.List;
+</span><span style="color: #0000ff;">import</span><span style="color: #000000;"> java.util.Map;
+
+</span><span style="color: #0000ff;">import</span><span style="color: #000000;"> com.fasterxml.jackson.annotation.JsonInclude.Include;
+</span><span style="color: #0000ff;">import</span><span style="color: #000000;"> com.fasterxml.jackson.core.JsonGenerator;
+</span><span style="color: #0000ff;">import</span><span style="color: #000000;"> com.fasterxml.jackson.core.type.TypeReference;
+</span><span style="color: #0000ff;">import</span><span style="color: #000000;"> com.fasterxml.jackson.databind.BeanDescription;
+</span><span style="color: #0000ff;">import</span><span style="color: #000000;"> com.fasterxml.jackson.databind.JsonNode;
+</span><span style="color: #0000ff;">import</span><span style="color: #000000;"> com.fasterxml.jackson.databind.JsonSerializer;
+</span><span style="color: #0000ff;">import</span><span style="color: #000000;"> com.fasterxml.jackson.databind.ObjectMapper;
+</span><span style="color: #0000ff;">import</span><span style="color: #000000;"> com.fasterxml.jackson.databind.SerializationConfig;
+</span><span style="color: #0000ff;">import</span><span style="color: #000000;"> com.fasterxml.jackson.databind.SerializerProvider;
+</span><span style="color: #0000ff;">import</span><span style="color: #000000;"> com.fasterxml.jackson.databind.ser.BeanPropertyWriter;
+</span><span style="color: #0000ff;">import</span><span style="color: #000000;"> com.fasterxml.jackson.databind.ser.BeanSerializerModifier;
+
+</span><span style="color: #008000;">/**</span><span style="color: #008000;">
+ * Jackson操作JSON数据
+ </span><span style="color: #008000;">*/</span>
+<span style="color: #0000ff;">public</span> <span style="color: #0000ff;">class</span><span style="color: #000000;"> JacksonCase {
+    </span><span style="color: #008000;">/**</span><span style="color: #008000;">
+     * 序列化
+     </span><span style="color: #008000;">*/</span>
+    <span style="color: #0000ff;">public</span> <span style="color: #0000ff;">static</span><span style="color: #000000;"> String serialize() {
+        MyBean bean </span>= <span style="color: #0000ff;">new</span><span style="color: #000000;"> MyBean();
+        bean.setS(</span>"测试字符串"<span style="color: #000000;">);
+        Calendar calendar </span>=<span style="color: #000000;"> Calendar.getInstance();
+        calendar.add(Calendar.HOUR_OF_DAY, </span>-1<span style="color: #000000;">);
+        bean.setD(calendar.getTime());
+
+        List</span>&lt;MyBean&gt; list = <span style="color: #0000ff;">new</span> ArrayList&lt;MyBean&gt;<span style="color: #000000;">();
+        list.add(bean);
+        Map</span>&lt;String, List&lt;MyBean&gt;&gt; map = <span style="color: #0000ff;">new</span> HashMap&lt;String, List&lt;MyBean&gt;&gt;<span style="color: #000000;">();
+        map.put(</span>"data"<span style="color: #000000;">, list);
+        String result </span>= ""<span style="color: #000000;">;
+        </span><span style="color: #0000ff;">try</span><span style="color: #000000;"> {
+            ObjectMapper objectMapper </span>= <span style="color: #0000ff;">new</span><span style="color: #000000;"> ObjectMapper();
+            </span><span style="color: #008000;">//</span><span style="color: #008000;">设置日期格式，也可在类属性上使用@JsonFormat(pattern="yyyy-MM-dd HH:mm:ss")来设置</span>
+            objectMapper.setDateFormat(<span style="color: #0000ff;">new</span> SimpleDateFormat("yyyy-MM-dd HH:mm:ss"<span style="color: #000000;">));
+            objectMapper.setSerializationInclusion(Include.ALWAYS);
+            </span><span style="color: #008000;">//</span><span style="color: #008000;">字符串如果为null则输出""</span>
+            objectMapper.setSerializerFactory(objectMapper.getSerializerFactory().withSerializerModifier(<span style="color: #0000ff;">new</span><span style="color: #000000;"> BeanSerializerModifier() {
+                @Override
+                </span><span style="color: #0000ff;">public</span> List&lt;BeanPropertyWriter&gt; changeProperties(SerializationConfig config, BeanDescription beanDesc, List&lt;BeanPropertyWriter&gt;<span style="color: #000000;"> beanProperties) {
+                    </span><span style="color: #0000ff;">for</span><span style="color: #000000;"> (BeanPropertyWriter writer : beanProperties) {
+                        Class</span>&lt;?&gt; clazz =<span style="color: #000000;"> writer.getType().getRawClass();
+                        </span><span style="color: #0000ff;">if</span> (CharSequence.<span style="color: #0000ff;">class</span>.isAssignableFrom(clazz) || Character.<span style="color: #0000ff;">class</span><span style="color: #000000;">.isAssignableFrom(clazz)) {
+                            writer.assignNullSerializer(</span><span style="color: #0000ff;">new</span> JsonSerializer&lt;Object&gt;<span style="color: #000000;">() {
+                                @Override
+                                </span><span style="color: #0000ff;">public</span> <span style="color: #0000ff;">void</span> serialize(Object o, JsonGenerator jsonGenerator, SerializerProvider serializerProvider) <span style="color: #0000ff;">throws</span><span style="color: #000000;"> IOException {
+                                    jsonGenerator.writeString(</span>""<span style="color: #000000;">);
+                                }
+                            });
+                        }
+                    }
+                    </span><span style="color: #0000ff;">return</span><span style="color: #000000;"> beanProperties;
+                }
+            }));
+
+            result </span>=<span style="color: #000000;"> objectMapper.writeValueAsString(map);
+            System.out.println(result);
+        } </span><span style="color: #0000ff;">catch</span><span style="color: #000000;"> (Exception e) {
+            e.printStackTrace();
+        }
+
+        </span><span style="color: #0000ff;">return</span><span style="color: #000000;"> result;
+    }
+
+    </span><span style="color: #008000;">/**</span><span style="color: #008000;">
+     * 反序列化
+     </span><span style="color: #008000;">*/</span>
+    <span style="color: #0000ff;">public</span> <span style="color: #0000ff;">static</span> <span style="color: #0000ff;">void</span><span style="color: #000000;"> deserialize() {
+        String s </span>=<span style="color: #000000;"> serialize();
+        </span><span style="color: #0000ff;">try</span><span style="color: #000000;"> {
+            ObjectMapper objectMapper </span>= <span style="color: #0000ff;">new</span><span style="color: #000000;"> ObjectMapper();
+            objectMapper.setDateFormat(</span><span style="color: #0000ff;">new</span> SimpleDateFormat("yyyy-MM-dd HH:mm:ss"<span style="color: #000000;">));
+            TypeReference</span>&lt;Map&lt;String, List&lt;MyBean&gt;&gt;&gt; type = <span style="color: #0000ff;">new</span> TypeReference&lt;Map&lt;String, List&lt;MyBean&gt;&gt;&gt;<span style="color: #000000;">(){};
+            Map</span>&lt;String, List&lt;MyBean&gt;&gt; map =<span style="color: #000000;"> objectMapper.readValue(s, type);
+            System.out.println(map);
+            
+            </span><span style="color: #008000;">//</span><span style="color: #008000;">树模型api</span>
+            JsonNode root =<span style="color: #000000;"> objectMapper.readTree(s);
+            JsonNode bean </span>= root.get("data").get(0<span style="color: #000000;">);
+            System.out.println(bean.get(</span>"s"<span style="color: #000000;">).asText());
+            </span><span style="color: #008000;">//</span><span style="color: #008000;">...</span>
+        } <span style="color: #0000ff;">catch</span><span style="color: #000000;"> (Exception e) {
+            e.printStackTrace();
+        }
+    }
+    
+    </span><span style="color: #0000ff;">public</span> <span style="color: #0000ff;">static</span> <span style="color: #0000ff;">void</span><span style="color: #000000;"> main(String[] args) {
+        serialize();
+        deserialize();
+    }
+
+}</span></code></pre>
+
+<span class="cnblogs_code_collapse">JacksonCase</span>
+<src class="cnblogs_code" onclick="cnblogs_code_show('f08414b8-168a-4cb5-8ba0-d167ddecf936')"><img id="code_img_closed_f08414b8-168a-4cb5-8ba0-d167ddecf936" class="code_img_closed" src="./images/Java操作JSON数据(4,end)--Jackson操作JSON数据0.png" alt="" /><img id="code_img_opened_f08414b8-168a-4cb5-8ba0-d167ddecf936" class="code_img_opened" style="display: none;" onclick="cnblogs_code_hide('f08414b8-168a-4cb5-8ba0-d167ddecf936',event)" src="./images/Java操作JSON数据(4,end)--Jackson操作JSON数据1.png" alt="" />
+<src id="cnblogs_code_open_f08414b8-168a-4cb5-8ba0-d167ddecf936" class="cnblogs_code_hide">
+<pre><code><span style="color: #0000ff;">package</span><span style="color: #000000;"> com.inspur.demo.json;
+
+</span><span style="color: #0000ff;">import</span><span style="color: #000000;"> java.util.Arrays;
+</span><span style="color: #0000ff;">import</span><span style="color: #000000;"> java.util.Date;
+
+</span><span style="color: #0000ff;">public</span> <span style="color: #0000ff;">class</span><span style="color: #000000;"> MyBean {
+    </span><span style="color: #0000ff;">private</span> String s = "字符串"<span style="color: #000000;">;
+    </span><span style="color: #0000ff;">private</span><span style="color: #000000;"> String s2;
+    </span><span style="color: #0000ff;">private</span> String s3 = "字符串3"<span style="color: #000000;">;
+    </span><span style="color: #0000ff;">private</span> <span style="color: #0000ff;">int</span> i = 123<span style="color: #000000;">;
+    </span><span style="color: #0000ff;">private</span><span style="color: #000000;"> Integer i2;
+    </span><span style="color: #0000ff;">private</span> <span style="color: #0000ff;">char</span> c = '到'<span style="color: #000000;">;
+    </span><span style="color: #0000ff;">private</span> <span style="color: #0000ff;">char</span>[] c2 = <span style="color: #0000ff;">new</span> <span style="color: #0000ff;">char</span>[]{'a', 'b'<span style="color: #000000;">};
+    </span><span style="color: #0000ff;">private</span> Date d = <span style="color: #0000ff;">new</span><span style="color: #000000;"> Date();
+    </span><span style="color: #0000ff;">private</span> Date[] d2 = <span style="color: #0000ff;">new</span> Date[]{<span style="color: #0000ff;">new</span> Date(), <span style="color: #0000ff;">new</span><span style="color: #000000;"> Date()};
+    </span><span style="color: #0000ff;">public</span><span style="color: #000000;"> String getS() {
+        </span><span style="color: #0000ff;">return</span><span style="color: #000000;"> s;
+    }
+    </span><span style="color: #0000ff;">public</span> <span style="color: #0000ff;">void</span><span style="color: #000000;"> setS(String s) {
+        </span><span style="color: #0000ff;">this</span>.s =<span style="color: #000000;"> s;
+    }
+    </span><span style="color: #0000ff;">public</span><span style="color: #000000;"> String getS2() {
+        </span><span style="color: #0000ff;">return</span><span style="color: #000000;"> s2;
+    }
+    </span><span style="color: #0000ff;">public</span> <span style="color: #0000ff;">void</span><span style="color: #000000;"> setS2(String s2) {
+        </span><span style="color: #0000ff;">this</span>.s2 =<span style="color: #000000;"> s2;
+    }
+    </span><span style="color: #0000ff;">public</span><span style="color: #000000;"> String getS3() {
+        </span><span style="color: #0000ff;">return</span><span style="color: #000000;"> s3;
+    }
+    </span><span style="color: #0000ff;">public</span> <span style="color: #0000ff;">void</span><span style="color: #000000;"> setS3(String s3) {
+        </span><span style="color: #0000ff;">this</span>.s3 =<span style="color: #000000;"> s3;
+    }
+    </span><span style="color: #0000ff;">public</span> <span style="color: #0000ff;">int</span><span style="color: #000000;"> getI() {
+        </span><span style="color: #0000ff;">return</span><span style="color: #000000;"> i;
+    }
+    </span><span style="color: #0000ff;">public</span> <span style="color: #0000ff;">void</span> setI(<span style="color: #0000ff;">int</span><span style="color: #000000;"> i) {
+        </span><span style="color: #0000ff;">this</span>.i =<span style="color: #000000;"> i;
+    }
+    </span><span style="color: #0000ff;">public</span><span style="color: #000000;"> Integer getI2() {
+        </span><span style="color: #0000ff;">return</span><span style="color: #000000;"> i2;
+    }
+    </span><span style="color: #0000ff;">public</span> <span style="color: #0000ff;">void</span><span style="color: #000000;"> setI2(Integer i2) {
+        </span><span style="color: #0000ff;">this</span>.i2 =<span style="color: #000000;"> i2;
+    }
+    </span><span style="color: #0000ff;">public</span> <span style="color: #0000ff;">char</span><span style="color: #000000;"> getC() {
+        </span><span style="color: #0000ff;">return</span><span style="color: #000000;"> c;
+    }
+    </span><span style="color: #0000ff;">public</span> <span style="color: #0000ff;">void</span> setC(<span style="color: #0000ff;">char</span><span style="color: #000000;"> c) {
+        </span><span style="color: #0000ff;">this</span>.c =<span style="color: #000000;"> c;
+    }
+    </span><span style="color: #0000ff;">public</span> <span style="color: #0000ff;">char</span><span style="color: #000000;">[] getC2() {
+        </span><span style="color: #0000ff;">return</span><span style="color: #000000;"> c2;
+    }
+    </span><span style="color: #0000ff;">public</span> <span style="color: #0000ff;">void</span> setC2(<span style="color: #0000ff;">char</span><span style="color: #000000;">[] c2) {
+        </span><span style="color: #0000ff;">this</span>.c2 =<span style="color: #000000;"> c2;
+    }
+    </span><span style="color: #0000ff;">public</span><span style="color: #000000;"> Date getD() {
+        </span><span style="color: #0000ff;">return</span><span style="color: #000000;"> d;
+    }
+    </span><span style="color: #0000ff;">public</span> <span style="color: #0000ff;">void</span><span style="color: #000000;"> setD(Date d) {
+        </span><span style="color: #0000ff;">this</span>.d =<span style="color: #000000;"> d;
+    }
+    </span><span style="color: #0000ff;">public</span><span style="color: #000000;"> Date[] getD2() {
+        </span><span style="color: #0000ff;">return</span><span style="color: #000000;"> d2;
+    }
+    </span><span style="color: #0000ff;">public</span> <span style="color: #0000ff;">void</span><span style="color: #000000;"> setD2(Date[] d2) {
+        </span><span style="color: #0000ff;">this</span>.d2 =<span style="color: #000000;"> d2;
+    }
+    @Override
+    </span><span style="color: #0000ff;">public</span><span style="color: #000000;"> String toString() {
+        </span><span style="color: #0000ff;">return</span> "MyBean [s=" + s + ", s2=" + s2 + ", s3=" + s3 + ", i=" + i + ", i2=" + i2 + ", c=" + c + ", c2="
+                + Arrays.toString(c2) + ", d=" + d + ", d2=" + Arrays.toString(d2) + "]"<span style="color: #000000;">;
+    }
+}</span></code></pre>
+
+<span class="cnblogs_code_collapse">MyBean</span>
+<p>&nbsp;</p>
+
+
+</div><hr><script charset='utf-8' src='../../js/sming.js'></script></body></html>

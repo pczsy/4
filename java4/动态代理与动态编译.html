@@ -1,0 +1,58 @@
+<html><head><meta charset='utf-8'><meta name='viewport' content='width=device-width, initial-scale=1'>
+<meta name='applicable-device' content='pc'><meta name='keywords' content='电脑,电脑讲解,电脑技术,编程,电脑故障维修动态代理与动态编译' />
+<script src='../../highlight/highlight.pack.js'></script>
+<link rel='stylesheet' type='text/css' href='../../highlight/styles/monokai.css'/>
+
+<link rel='stylesheet' href='../../fenxiang/dist/css/share.min.css'>
+<script src='../../fenxiang/src/js/social-share.js'></script>
+<script src='../../fenxiang/src/js/qrcode.js'></script>
+
+</head><body><script>hljs.initHighlightingOnLoad();</script><script>
+var system ={};  
+var p = navigator.platform;       
+system.win = p.indexOf('Win') == 0;  
+system.mac = p.indexOf('Mac') == 0;  
+system.x11 = (p == 'X11') || (p.indexOf('Linux') == 0);     
+if(system.win||system.mac||system.xll){
+document.write("<link href='../css/3.css' rel='stylesheet' type='text/css'>");}else{ document.write("<link href='../css/3wap.css' rel='stylesheet' type='text/css'>");}</script><script src='../../js/3.js'></script><div class='div2'><div class='heading_nav'><ul><div><li><a href='../../index.html'>首页</a></li>
+</div><div onclick='hidden1()' >分享</div>
+</ul></div></div>
+<div id='heading_nav2'> 
+<li class='row' >
+<div class='social-share' data-mode='prepend'><a href='javascript:' class='social-share-icon icon-heart'></a></div></li></div><script charset='utf-8' src='../../3/js/hengfu.js'></script><script charset='utf-8' src='../../3/js/hengfu2.js'></script><hr><div class='div1'><div class='biaoti'><center>动态代理与动态编译</center></div><div class='banquan'>原文出处:本文由博客园博主说点一二提供。<br/>
+原文连接:https://www.cnblogs.com/perserv/p/11714858.html</div><br>
+    <p>&nbsp;</p>
+<h2>动态编程</h2>
+<p>&nbsp;　　动态编程是相对于静态编程而言，平时我们大多讨论的都是静态编程，java便是一种静态编程语言，它 的类型检查是在编译期间完成的。而动态编程是绕过了编译期间，在运行时完成类型检查。java有如下方法实现动态编程：动态代理，动态编译</p>
+<h3>动态代理：</h3>
+<p>　　动态代理在我在设计模式中已经介绍过了，主要是通过&nbsp;<span class="md-plain">Proxy类的</span>newProxyInstance方法和接口<span class="md-plain">InvocationHandler来实现动态代理。</span><span class="md-plain">代理对象的的生产过程在这里简单说一下：</span></p>
+<p>1、ProxyGenerator.generateProxyClass方法负责生成代理类的字节码，生成逻辑比较复杂，了解原理继续分析源码&nbsp;sun.misc.ProxyGenerator；</p>
+<p>byte[] proxyClassFile = ProxyGenerator.generateProxyClass(proxyName, interfaces, accessFlags);<br />2、native方法Proxy.defineClass0负责字节码加载的实现，并返回对应的Class对象。</p>
+<p>Class clazz = defineClass0(loader, proxyName, proxyClassFile, 0, proxyClassFile.length);<br />3、利用clazz.newInstance反射机制生成代理类的对象；</p>
+<p>　　<strong>动态代理的局限性：它必须要求委托类实现一个接口，但是并非所有的类都有接口，对于没有实现接口的类，无法使用该方法实现代理；而且该方法无法 对委托类的方法内部逻辑作修改。</strong></p>
+<h3>动态编译：</h3>
+<p>　　动态编译就是利用字节码修改技术，来操作java字节码在运行期间jvm中动态生成新类或者对已有类进行修改。动态编译时在java&nbsp;6开始支持的，主要是通过一个JavaCompiler接口来完成的。可以解决需要动态插入代码的场景，比如动态代理的实现，实现AOP编程。</p>
+<p>操作java字节码的工具有两个比较流行，一个是ASM，一个是Javassit 。</p>
+<p>ASM ：直接操作字节码指令，执行效率高，要是使用者掌握Java类字节码文件格式及指令，对使用者的要求比较高。</p>
+<p>Javassit 提供了更高级的API，执行效率相对较差，但无需掌握字节码指令的知识，对使用者要求较低。</p>
+<p>应用层面来讲一般使用建议优先选择Javassit，如果后续发现Javassit 成为了整个应用的效率瓶颈的话可以再考虑ASM.当然如果开发的是一个基础类库，或者基础平台，还是直接使用ASM吧，相信从事这方面工作的开发者能力应该比较高。<br /><br /></p>
+<h3>javassit使用：</h3>
+<p>　　Java 字节码以二进制的形式存储在 .class 文件中，每一个 .class 文件包含一个 Java 类或接口。Javaassist 就是一个用来 处理 Java 字节码的类库。它可以在一个已经编译好的类中添加新的方法，或者是修改已有的方法，并且不需要对字节码方面有深入的了解。同时也可以去生成一个新的类对象，通过完全手动的方式。</p>
+<p>首先需要引入jar包：</p>
+<src class="esa-clipboard-button" title="复制代码" data-clipboard-target="#copy_target_0">
+<src class="cnblogs_code">
+<pre><code>&lt;dependency&gt;
+  &lt;groupId&gt;org.javassist&lt;/groupId&gt;
+  &lt;artifactId&gt;javassist&lt;/artifactId&gt;
+  &lt;version&gt;3.25.0-GA&lt;/version&gt;
+&lt;/dependency&gt;</code></pre>
+
+<p>Javassist中最为重要的是ClassPool，CtClass ，CtMethod 以及 CtField这几个类。</p>
+
+<p><strong>ClassPool：一个基于HashMap实现的CtClass对象容器，其中键是类名称，值是表示该类的CtClass对象。默认的ClassPool使用与底层JVM相同的类路径，因此在某些情况下，可能需要向ClassPool添加类路径或类字节。</strong></p>
+<p><strong>CtClass：表示一个类，这些CtClass对象可以从ClassPool获得。</strong></p>
+<p><strong>CtMethods：表示类中的方法。</strong></p>
+<p><strong>CtFields ：表示类中的字段。</strong></p>
+<p><strong>待续</strong></p>
+
+</div><hr><script charset='utf-8' src='../../js/sming.js'></script></body></html>

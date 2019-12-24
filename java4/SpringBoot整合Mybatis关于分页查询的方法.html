@@ -1,0 +1,126 @@
+<html><head><meta charset='utf-8'><meta name='viewport' content='width=device-width, initial-scale=1'>
+<meta name='applicable-device' content='pc'><meta name='keywords' content='电脑,电脑讲解,电脑技术,编程,电脑故障维修SpringBoot整合Mybatis关于分页查询的方法' />
+<script src='../../highlight/highlight.pack.js'></script>
+<link rel='stylesheet' type='text/css' href='../../highlight/styles/monokai.css'/>
+
+<link rel='stylesheet' href='../../fenxiang/dist/css/share.min.css'>
+<script src='../../fenxiang/src/js/social-share.js'></script>
+<script src='../../fenxiang/src/js/qrcode.js'></script>
+
+</head><body><script>hljs.initHighlightingOnLoad();</script><script>
+var system ={};  
+var p = navigator.platform;       
+system.win = p.indexOf('Win') == 0;  
+system.mac = p.indexOf('Mac') == 0;  
+system.x11 = (p == 'X11') || (p.indexOf('Linux') == 0);     
+if(system.win||system.mac||system.xll){
+document.write("<link href='../css/3.css' rel='stylesheet' type='text/css'>");}else{ document.write("<link href='../css/3wap.css' rel='stylesheet' type='text/css'>");}</script><script src='../../js/3.js'></script><div class='div2'><div class='heading_nav'><ul><div><li><a href='../../index.html'>首页</a></li>
+</div><div onclick='hidden1()' >分享</div>
+</ul></div></div>
+<div id='heading_nav2'> 
+<li class='row' >
+<div class='social-share' data-mode='prepend'><a href='javascript:' class='social-share-icon icon-heart'></a></div></li></div><script charset='utf-8' src='../../3/js/hengfu.js'></script><script charset='utf-8' src='../../3/js/hengfu2.js'></script><hr><div class='div1'><div class='biaoti'><center>SpringBoot整合Mybatis关于分页查询的方法</center></div><div class='banquan'>原文出处:本文由博客园博主社会大哥提供。<br/>
+原文连接:https://www.cnblogs.com/zhukf/p/11853171.html</div><br>
+    <p>最近公司在用到SpringBoot整合Mybatis时当web端页面数据增多时需要使用分页查询以方便来展示数据。本人对分页查询进行了一些步骤的总结，希望能够帮助到有需要的博友。如有更好的方式，也希望评论留言，本人以作更好的改进。</p>
+<p>&nbsp;</p>
+<h1 id="SpringBoot+Mybatis+PageHelper%E5%AE%9E%E7%8E%B0%E5%88%86%E9%A1%B5">SpringBoot+Mybatis+PageHelper实现分页</h1>
+<p>以下介绍实战中数据库框架使用的是mybatis，对整合mybatis此处不做介绍。</p>
+<p>使用pageHelper实现分页查询其实非常简单，共三步：</p>
+<p>一、导入依赖；&nbsp; </p>
+<p>推荐博友可以上maven中央仓库去找合适的版本进行PageHelper的依赖导入</p>
+<p>maven中央仓库地址：<a title="maven中央仓库" href="https://mvnrepository.com/" target="_blank">https://mvnrepository.com</a></p>
+<p>进入maven中央仓库后在搜索框搜索PageHelper,选择合适的版本</p>
+<p>&nbsp;</p>
+<p><img src="./images/SpringBoot整合Mybatis关于分页查询的方法0.png" alt="" /></p>
+<p>&nbsp;</p>
+<p>&nbsp;</p>
+<p>&nbsp;</p>
+<p>pagehelper支持多种数据库：Oracle,MySql,MariaDB,SQLite,DB2,PostgreSQL,SqlServer 等</p>
+<p>在这里我们选择pageHelper-spring-boot-starter</p>
+<p>&nbsp;</p>
+<p><img src="./images/SpringBoot整合Mybatis关于分页查询的方法1.png" alt="" /></p>
+<p>&nbsp;</p>
+<p>&nbsp;</p>
+<p>&nbsp;</p>
+<p>，点击进入后根据项目需要选择版本，在这里我选择1.2.12的最新版本</p>
+<p>&nbsp;</p>
+<p><img src="./images/SpringBoot整合Mybatis关于分页查询的方法2.png" alt="" /></p>
+<p>&nbsp;</p>
+<p>&nbsp;</p>
+<p>&nbsp;复制maven依赖，添加至项目的pom.xml中</p>
+<p><img src="./images/SpringBoot整合Mybatis关于分页查询的方法3.png" alt="" /></p>
+<p>&nbsp;</p>
+<p>&nbsp;</p>
+<p>&nbsp;至此，PageHelper插件就引入完成。</p>
+<p>&nbsp;</p>
+<p> 二、添加配置；</p>
+<p>aplication.yml或aplication.xml中添加配置：</p>
+<p><img src="./images/SpringBoot整合Mybatis关于分页查询的方法4.png" alt="" /></p>
+<p>&nbsp;</p>
+<p>&nbsp;</p>
+<p>&nbsp;配置项说明：</p>
+<pre><code>1.helperDialect：指定数据库<br />2.reasonable：默认是<span class="token boolean">false。启用合理化时，如果pageNum<span class="token operator">&lt;<span class="token number">1会查询第一页，如果pageNum<span class="token operator">&gt;pages（最大页数）会查询最后一页。<br />  禁用合理化时，如果pageNum<span class="token operator">&lt;<span class="token number">1或pageNum<span class="token operator">&gt;pages会返回空数据<br />3.</span></span></span></span></span></span></span>supportMethodsArguments：是否支持接口参数来传递分页参数，默认<span class="token boolean">false<br />4.</span><span class="token function">params：为了支持startPage<span class="token punctuation">(Object params<span class="token punctuation">)方法，增加了该参数来配置参数映射，用于从对象中根据属性名取值，<br />  可以配置 pageNum<span class="token punctuation">,pageSize<span class="token punctuation">,count<span class="token punctuation">,pageSizeZero<span class="token punctuation">,reasonable，不配置映射的用默认值， <br />  默认值为pageNum<span class="token operator">=pageNum<span class="token punctuation">;pageSize<span class="token operator">=pageSize<span class="token punctuation">;count<span class="token operator">=countSql<span class="token punctuation">;reasonable<span class="token operator">=reasonable<span class="token punctuation">;pageSizeZero<span class="token operator">=pageSizeZero<br /></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span>  其余参数详情请看官方文档：<a title="pagehelper官方文档" href="https://pagehelper.github.io/docs/howtouse" target="_blank">https</a><span class="token punctuation"><a title="pagehelper官方文档" href="https://pagehelper.github.io/docs/howtouse" target="_blank">:</a><span class="token operator"><a title="pagehelper官方文档" href="https://pagehelper.github.io/docs/howtouse" target="_blank">/</a><span class="token operator"><a title="pagehelper官方文档" href="https://pagehelper.github.io/docs/howtouse" target="_blank">/pagehelper</a><span class="token punctuation"><a title="pagehelper官方文档" href="https://pagehelper.github.io/docs/howtouse" target="_blank">.github</a><span class="token punctuation"><a title="pagehelper官方文档" href="https://pagehelper.github.io/docs/howtouse" target="_blank">.io</a><span class="token operator"><a title="pagehelper官方文档" href="https://pagehelper.github.io/docs/howtouse" target="_blank">/docs</a><span class="token regex"><a title="pagehelper官方文档" href="https://pagehelper.github.io/docs/howtouse" target="_blank">/howtouse<br /></a><br />除此之外介绍另外一种方法：<br /></span></span></span></span></span></span></span></code></pre>
+<p><span style="color: #ff0000;"><strong>编写分页bean类，注意：这个类一定要放在springboot启动类所在位置的平级或子级的包中，保证能springboot扫描到</strong></span>。</p>
+<p>import java.util.Properties;</p>
+<p>import org.apache.ibatis.plugin.Interceptor;</p>
+<p>import org.mybatis.spring.SqlSessionFactoryBean;</p>
+<p>import org.springframework.context.annotation.Bean;</p>
+<p>import org.springframework.context.annotation.Configuration;</p>
+<p>import com.github.pagehelper.PageHelper;</p>
+<p>&nbsp;</p>
+<p>@Configuration</p>
+<p>public class PageHelperBean {</p>
+<p>&nbsp;</p>
+<p>@Bean</p>
+<p>&nbsp; &nbsp; PageHelper pageHelper(){</p>
+<p>&nbsp; &nbsp; &nbsp; &nbsp; //分页插件</p>
+<p>&nbsp; &nbsp; &nbsp; &nbsp; PageHelper pageHelper = new PageHelper();</p>
+<p>&nbsp; &nbsp; &nbsp; &nbsp; Properties properties = new Properties();</p>
+<p>&nbsp; &nbsp; &nbsp; &nbsp; properties.setProperty("reasonable", "true");</p>
+<p>&nbsp; &nbsp; &nbsp; &nbsp; properties.setProperty("supportMethodsArguments", "true");</p>
+<p>&nbsp; &nbsp; &nbsp; &nbsp; properties.setProperty("returnPageInfo", "check");</p>
+<p>&nbsp; &nbsp; &nbsp; &nbsp; properties.setProperty("params", "count=countSql");</p>
+<p>&nbsp; &nbsp; &nbsp; &nbsp; pageHelper.setProperties(properties);</p>
+<p>&nbsp; &nbsp; &nbsp; &nbsp; //添加插件</p>
+<p>&nbsp; &nbsp; &nbsp; &nbsp; new SqlSessionFactoryBean().setPlugins(new Interceptor[]{pageHelper});</p>
+<p>&nbsp; &nbsp; &nbsp; &nbsp; return pageHelper;</p>
+<p>&nbsp; &nbsp; }</p>
+<p>}</p>
+<p>本人使用第一种方式（推荐使用）</p>
+<p>三、在程序代码中使用分页查询；</p>
+<p>&lt;1&gt;.接口层（Mapper层）代码展示：</p>
+<p><img src="./images/SpringBoot整合Mybatis关于分页查询的方法5.png" alt="" /></p>
+<p>&nbsp;</p>
+<p>&nbsp;</p>
+<p>&nbsp;&lt;2.&gt;业务层(service层)代码展示：</p>
+<p><img src="./images/SpringBoot整合Mybatis关于分页查询的方法6.png" alt="" /></p>
+<p>&nbsp;</p>
+<p>&nbsp;</p>
+<p>&nbsp;注：使用PageHelper.startPage()方法设置分页：pageCount:当前页数&nbsp; pageSize:每页显示的总记录数</p>
+<p>&lt;3.&gt;控制器层(controller层)代码展示:</p>
+<p><img src="./images/SpringBoot整合Mybatis关于分页查询的方法7.png" alt="" /></p>
+<p>&nbsp;</p>
+<p>使用postman工作对方法进行测试：</p>
+<p>get请求，输入参数后进行测试</p>
+<p><img src="./images/SpringBoot整合Mybatis关于分页查询的方法8.png" alt="" /></p>
+<p>&nbsp;</p>
+<p>&nbsp;</p>
+<p>&nbsp;</p>
+<p>测试结果如下：</p>
+<p><img src="./images/SpringBoot整合Mybatis关于分页查询的方法9.png" alt="" /></p>
+<p>&nbsp;</p>
+<p>&nbsp;<img src="./images/SpringBoot整合Mybatis关于分页查询的方法10.png" alt="" /></p>
+<p>&nbsp;</p>
+<p>&nbsp;</p>
+<p>&nbsp;<img src="./images/SpringBoot整合Mybatis关于分页查询的方法11.png" alt="" /></p>
+<p>&nbsp;</p>
+<p>&nbsp;当传入参数pageCount=1,pageSize=3时，total记录为4，进行了分页操作，第一个记录了三条数据，共两页</p>
+<p>&nbsp;</p>
+<p>总结： 使用pagehelper插件后写sql时不需要再在mapper.xml文件中写分页，简化了代码，提高开发效率</p>
+<p>&nbsp;</p>
+<p>&nbsp;</p>
+<p>&nbsp;</p>
+<p>&nbsp;</p>
+<p>&nbsp;</p>
+
+</div><hr><script charset='utf-8' src='../../js/sming.js'></script></body></html>

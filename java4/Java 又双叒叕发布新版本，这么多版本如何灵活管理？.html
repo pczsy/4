@@ -1,0 +1,102 @@
+<html><head><meta charset='utf-8'><meta name='viewport' content='width=device-width, initial-scale=1'>
+<meta name='applicable-device' content='pc'><meta name='keywords' content='电脑,电脑讲解,电脑技术,编程,电脑故障维修Java 又双叒叕发布新版本，这么多版本如何灵活管理？' />
+<script src='../../highlight/highlight.pack.js'></script>
+<link rel='stylesheet' type='text/css' href='../../highlight/styles/monokai.css'/>
+
+<link rel='stylesheet' href='../../fenxiang/dist/css/share.min.css'>
+<script src='../../fenxiang/src/js/social-share.js'></script>
+<script src='../../fenxiang/src/js/qrcode.js'></script>
+
+</head><body><script>hljs.initHighlightingOnLoad();</script><script>
+var system ={};  
+var p = navigator.platform;       
+system.win = p.indexOf('Win') == 0;  
+system.mac = p.indexOf('Mac') == 0;  
+system.x11 = (p == 'X11') || (p.indexOf('Linux') == 0);     
+if(system.win||system.mac||system.xll){
+document.write("<link href='../css/3.css' rel='stylesheet' type='text/css'>");}else{ document.write("<link href='../css/3wap.css' rel='stylesheet' type='text/css'>");}</script><script src='../../js/3.js'></script><div class='div2'><div class='heading_nav'><ul><div><li><a href='../../index.html'>首页</a></li>
+</div><div onclick='hidden1()' >分享</div>
+</ul></div></div>
+<div id='heading_nav2'> 
+<li class='row' >
+<div class='social-share' data-mode='prepend'><a href='javascript:' class='social-share-icon icon-heart'></a></div></li></div><script charset='utf-8' src='../../3/js/hengfu.js'></script><script charset='utf-8' src='../../3/js/hengfu2.js'></script><hr><div class='div1'><div class='biaoti'><center>Java 又双叒叕发布新版本，这么多版本如何灵活管理？</center></div><div class='banquan'>原文出处:本文由博客园博主good_andyxu提供。<br/>
+原文连接:https://www.cnblogs.com/goodAndyxublog/p/11939838.html</div><br>
+    <blockquote>
+<p>文章来源：<a href="http://1t.click/bjAG" class="uri">http://1t.click/bjAG</a></p>
+</blockquote>
+<h2 id="前言">前言</h2>
+<p>不知不觉 JDK13 发布已有两个月，不知道各位有没有下载学习体验一番？每次下载安装之后，需要重新配置一下 Java 环境变量。等到运行平时的项目又需要切回之前 JDK 版本，这又需要重新环境变量。这么重复配置显然非常低效，又不能灵活切换版本。</p>
+<p>所幸通过万能 Google 找到解决方案，使用 <strong>jenv</strong> 管理 JDK 版本。</p>
+<h2 id="jenv-介绍">jenv 介绍</h2>
+<p>熟悉 Ruby 的同学，应该会觉得比较眼熟，jenv 就是 Java 平台的 <code>rbenv</code> 工具。</p>
+<p>jenv 是一个命令行工具，可以在 Linux/OS X 平台使用，可以管理多个版本 JDK，方便在多个版本 JDK 之间切换，另外其还可以设置 <code>JAVA_HOME</code> 环境变量。</p>
+<blockquote>
+<p>Windows 真的伤不起 😭</p>
+</blockquote>
+<p>使用 jenv 有一个前提，必须提前安装 JDK，其不提供下载安装 JDK 的功能。MacOSX 平台可以提前使用 <code>brew</code> 安装 JDK。</p>
+<h2 id="jenv-安装">jenv 安装</h2>
+<p><strong>手动安装</strong></p>
+<p>首先下载 jenv 源程序</p>
+<p><code>git clone https://github.com/jenv/jenv.git ~/.jenv</code></p>
+<p>然后再将 jenv 命令路径放入 Shell 配置文件中。</p>
+<p>若使用 Shell 为 <code>bash</code>：</p>
+<pre><code><code>echo &#39;export PATH=&quot;$HOME/.jenv/bin:$PATH&quot;&#39; &gt;&gt; ~/.bash_profile   
+echo &#39;eval &quot;$(jenv init -)&quot;&#39; &gt;&gt; ~/.bash_profile
+source ~/.bash_profile</code></code></pre>
+<p>若使用 Shell 为 <code>zsh</code></p>
+<pre><code><code>echo &#39;export PATH=&quot;$HOME/.jenv/bin:$PATH&quot;&#39; &gt;&gt; ~/.zshrc  
+echo &#39;eval &quot;$(jenv init -)&quot;&#39; &gt;&gt; ~/.zshrc
+source ~/.zshrc</code></code></pre>
+<p><strong>自动安装</strong></p>
+<p>若使用 MacOSX，可以直接使用 <code>brew</code> 安装：</p>
+<pre><code><code>brew install jenv</code></code></pre>
+<p><strong>jenv 校验</strong></p>
+<p>安装 jenv 之后，可以运行 <code>jenv doctor</code> 检查是否正确安装。以下为我本机 MacOSX 输出：</p>
+<p><img src="./images/Java 又双叒叕发布新版本，这么多版本如何灵活管理？0.png" /></p>
+<p>刚安装小伙伴运行 <code>jenv doctor</code> ，可以观察到输出：</p>
+<pre><code><code>[ERROR] Java binary in path is not in the jenv shims.</code></code></pre>
+<p>这代表还未正确添加 JDK，需要运行下面指令添加 JDK。</p>
+<h2 id="jenv-配置">jenv 配置</h2>
+<p><strong>JDK 配置</strong></p>
+<p>运行 <code>jenv add jdk_path</code>,将 JDK 交给 jenv 管理。</p>
+<p><img src="./images/Java 又双叒叕发布新版本，这么多版本如何灵活管理？1.png" /></p>
+<p>可能有些小伙伴并不知道 JDK 安装路径，若是 MacOSX，JDK 是通过 Oracle 提供安装包或者通过 <code>brew</code> 安装，可以通过运行 <code>/usr/libexec/java_home -V</code> 查找 JDK 路径。</p>
+<p><img src="./images/Java 又双叒叕发布新版本，这么多版本如何灵活管理？2.png" /></p>
+<p>若不是通过以上方式，或者为 Linux 平台，可以先通过 <code>which java</code> 或者 <code>whereis java</code> 找出命令路径。然后通过使用 <code>ls -l</code> 查看命名的实际路径。</p>
+<p><img src="./images/Java 又双叒叕发布新版本，这么多版本如何灵活管理？3.png" /></p>
+<p><strong>JAVA_HOME 配置</strong></p>
+<p>有些应用程序将会读取系统 <code>${JAVA_HOME}</code> 环境变量，通过安装 jenv 插件，切换 JDK 版本时，将会同步设置 <code>${JAVA_HOME}</code> 变量。</p>
+<pre><code><code>jenv enable-plugin export
+## 运行这个才会生效
+exec $SHELL -l</code></code></pre>
+<h2 id="jenv-使用教程">jenv 使用教程</h2>
+<h3 id="jenv-versions">jenv versions</h3>
+<p>查看当前系统 jenv 管理所有 JDK 版本。</p>
+<pre><code><code>jenv versions</code></code></pre>
+<p><img src="./images/Java 又双叒叕发布新版本，这么多版本如何灵活管理？4.png" /></p>
+<h3 id="jenv-local">jenv local</h3>
+<p>通过上面命令，我们知道当前系统所有 JDK 版本之后，通过下面命令切换 JDK 版本。</p>
+<p><strong>JDK 版本切换 JDK1.7</strong></p>
+<pre><code><code>jenv local 1.7</code></code></pre>
+<p><img src="./images/Java 又双叒叕发布新版本，这么多版本如何灵活管理？5.png" /></p>
+<p>这里需要注意的，<code>jenv local</code> 切换 JDK 版本只对当前文件夹有效,如果切换到其他文件夹，将会切换会当前默认 JDK 版本。</p>
+<h3 id="jenv-shell">jenv shell</h3>
+<p>使用 <code>jenv shell</code> 使切换的 JDK 版本对整个 Shell session 有效。重启 Shell 终端或重新打开新的 Shell 终端，该配置失效。</p>
+<pre><code><code>jenv shell 9.0</code></code></pre>
+<h3 id="jenv-global">jenv global</h3>
+<p><code>jenv global</code> 将会设置一个全局默认的 JDK 版本，即使重启 Shell 窗口，该配置也不会改变。</p>
+<pre><code><code>jenv global 9.0</code></code></pre>
+<h2 id="jenv-小问题">jenv 小问题</h2>
+<p>上面几个是 jenv 经常使用的指令，若想了解 jenv 其他指令，可以通过 <code>jenv commands</code> 查找其他指令。</p>
+<p>使用 jenv 过程可能会发现，当切换 JDK 版本之后， <code>${JAVA_HOME}</code> 环境变量没有改变，还是上一个 JDK 版本配置。</p>
+<p><img src="./images/Java 又双叒叕发布新版本，这么多版本如何灵活管理？6.png" /></p>
+<p>这时可以运行 <code>exec $SHELL -l</code> ， <code>${JAVA_HOME}</code> 将会变成当前版本。</p>
+<h2 id="最后">最后</h2>
+<p>做个小调查，你还在用那个版本 JDK？各位小伙伴可以留言一下，嘿嘿~</p>
+<blockquote>
+<p>欢迎关注我的公众号：程序通事，获得日常干货推送。如果您对我的专题内容感兴趣，也可以关注我的博客：<a href="https://studyidea.cn">studyidea.cn</a></p>
+</blockquote>
+<p><img src="./images/Java 又双叒叕发布新版本，这么多版本如何灵活管理？7.png" alt="其他平台.png" /></p>
+
+
+</div><hr><script charset='utf-8' src='../../js/sming.js'></script></body></html>

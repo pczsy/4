@@ -1,0 +1,92 @@
+<html><head><meta charset='utf-8'><meta name='viewport' content='width=device-width, initial-scale=1'>
+<meta name='applicable-device' content='pc'><meta name='keywords' content='电脑,电脑讲解,电脑技术,编程,电脑故障维修java8 Lambda 表达式和函数式接口快速理解' />
+<script src='../../highlight/highlight.pack.js'></script>
+<link rel='stylesheet' type='text/css' href='../../highlight/styles/monokai.css'/>
+
+<link rel='stylesheet' href='../../fenxiang/dist/css/share.min.css'>
+<script src='../../fenxiang/src/js/social-share.js'></script>
+<script src='../../fenxiang/src/js/qrcode.js'></script>
+
+</head><body><script>hljs.initHighlightingOnLoad();</script><script>
+var system ={};  
+var p = navigator.platform;       
+system.win = p.indexOf('Win') == 0;  
+system.mac = p.indexOf('Mac') == 0;  
+system.x11 = (p == 'X11') || (p.indexOf('Linux') == 0);     
+if(system.win||system.mac||system.xll){
+document.write("<link href='../css/3.css' rel='stylesheet' type='text/css'>");}else{ document.write("<link href='../css/3wap.css' rel='stylesheet' type='text/css'>");}</script><script src='../../js/3.js'></script><div class='div2'><div class='heading_nav'><ul><div><li><a href='../../index.html'>首页</a></li>
+</div><div onclick='hidden1()' >分享</div>
+</ul></div></div>
+<div id='heading_nav2'> 
+<li class='row' >
+<div class='social-share' data-mode='prepend'><a href='javascript:' class='social-share-icon icon-heart'></a></div></li></div><script charset='utf-8' src='../../3/js/hengfu.js'></script><script charset='utf-8' src='../../3/js/hengfu2.js'></script><hr><div class='div1'><div class='biaoti'><center>java8 Lambda 表达式和函数式接口快速理解</center></div><div class='banquan'>原文出处:本文由博客园博主sanri1993提供。<br/>
+原文连接:https://www.cnblogs.com/sanri1993/p/11578746.html</div><br>
+    <h2 id="前言">前言</h2>
+<p>接上篇文章 <a href="https://blog.csdn.net/sanri1993/article/details/101176712">java8 新特性</a> 由于上篇过于庞大，使得重点不够清晰，本篇单独拿出 java8 的 Lambda 表达式和函数式接口说明。</p>
+<h2 id="lambda-表达式">Lambda 表达式</h2>
+<p>lambda 表达式其实就是使用了新的语法结构来实现一个接口，并实现里面的唯一的一个方法，用来代替以前的使用匿名内部类的方式。</p>
+<pre><code><code>// x 指参数列表 -&gt; 后面表示处理过程,Consumer 没有返回值 
+Consumer out = x -&gt; System.out.println(x);
+
+// x,y 指参数列表 -&gt; 后面表示处理过程和返回值
+BinaryOperator&lt;Integer&gt; binaryOperator  = (x,y) -&gt; {return x &gt; y ? 1 : -1 ;};</code></code></pre>
+<h2 id="函数式接口">函数式接口</h2>
+<p>根据上面来看，其实就是实现了接口中的一个方法，所以这种接口有一个限制，只能有一个方法，像这样的接口就叫函数式接口，你也可以当成正常的接口来使用。</p>
+<pre><code><code>Consumer&lt;String&gt; consumer = new Consumer&lt;String&gt;() {
+    @Override
+    public void accept(String o) {
+        System.out.println(o);            
+    }
+};</code></code></pre>
+<h2 id="常用的函数式接口">常用的函数式接口</h2>
+<p>我们基本不需要定义自己的函数式接口，Java8 已经给我们提供了大量的默认函数式接口，基本够用，在 <code>rt.jar</code> 包的 <code>java.util.function</code> 目录下可以看到所有默认的函数式接口，大致分为几类</p>
+<ul>
+<li><code>Function&lt;T,R&gt;</code> <strong>T</strong> 作为输入，返回的 <strong>R</strong> 作为输出</li>
+<li><code>Predicate&lt;T&gt;</code> <strong>T</strong> 作为输入 ，返回 <strong>boolean</strong> 值的输出</li>
+<li><code>Consumer&lt;T&gt;</code> <strong>T</strong> 作为输入 ，没有输出</li>
+<li><code>Supplier&lt;R&gt;</code> 没有输入 , <strong>R</strong> 作为输出</li>
+<li><code>BinaryOperator&lt;T&gt;</code> <strong>两个 T</strong> 作为输入 ，<strong>T</strong> 同样是输出</li>
+<li><code>UnaryOperator&lt;T&gt;</code> 是 <code>Function</code> 的变种 ，输入输出者是 <strong>T</strong></li>
+</ul>
+<p>其它的都是上面几种的各种扩展，只为更方便的使用，下面演示示例，你可以把其当成正常的接口使用，由用户使用 Lambda 来实现。</p>
+<pre><code><code>// hello world 示例
+Function&lt;String,String&gt; function = (x) -&gt; {return x+&quot;Function&quot;;};
+System.out.println(function.apply(&quot;hello world&quot;));  // hello world Function
+
+UnaryOperator&lt;String&gt; unaryOperator = x -&gt; x + 2;
+System.out.println(unaryOperator.apply(&quot;9420-&quot;));   // 9420-2
+
+// 判断输入值是否为偶数示例
+Predicate&lt;Integer&gt; predicate = (x) -&gt;{return x % 2 == 0 ;};
+System.out.println(predicate.test(1));              // false
+
+// 这个没有返回值
+Consumer&lt;String&gt; consumer = (x) -&gt; {System.out.println(x);};
+consumer.accept(&quot;hello world &quot;);                    // hello world
+
+// 这个没有输入 
+Supplier&lt;String&gt; supplier = () -&gt; {return &quot;Supplier&quot;;};
+System.out.println(supplier.get());                 // Supplier
+
+// 找出大数
+BinaryOperator&lt;Integer&gt; bina = (x, y) -&gt;{return x &gt; y ? x : y;};
+bina.apply(1,2);                                    // 2 </code></code></pre>
+<h2 id="方法引用">方法引用</h2>
+<pre><code><code>Supplier&lt;DateTimeConvert&gt; supplier = () -&gt; new DateTimeConvert();
+DateTimeConvert dateTimeConvert = supplier.get();
+Consumer&lt;DateTimeConvert&gt; consumer1 = (x) -&gt; x.toCalendar();
+consumer1.accept(dateTimeConvert);</code></code></pre>
+<p>可能 java 的开发者觉得上面的操作还是太复杂了，又创建了一个语法 <code>::</code> 来表示 Lambda 表达式</p>
+<pre><code><code>Supplier&lt;DateTimeConvert&gt; supplier2 = DateTimeConvert::new;
+Consumer&lt;DateTimeConvert&gt; consumer2 = DateTimeConvert::toCalendar;</code></code></pre>
+<h2 id="一点小推广">一点小推广</h2>
+<p>创作不易，希望可以支持下我的开源软件，及我的小工具，欢迎来 gitee 点星，fork ，提 bug 。</p>
+<p>Excel 通用导入导出，支持 Excel 公式<br />
+博客地址：<a href="https://blog.csdn.net/sanri1993/article/details/100601578" class="uri">https://blog.csdn.net/sanri1993/article/details/100601578</a><br />
+gitee：<a href="https://gitee.com/sanri/sanri-excel-poi" class="uri">https://gitee.com/sanri/sanri-excel-poi</a></p>
+<p>使用模板代码 ，从数据库生成代码 ，及一些项目中经常可以用到的小工具<br />
+博客地址：<a href="https://blog.csdn.net/sanri1993/article/details/98664034" class="uri">https://blog.csdn.net/sanri1993/article/details/98664034</a><br />
+gitee：<a href="https://gitee.com/sanri/sanri-tools-maven" class="uri">https://gitee.com/sanri/sanri-tools-maven</a></p>
+
+
+</div><hr><script charset='utf-8' src='../../js/sming.js'></script></body></html>

@@ -1,0 +1,292 @@
+<html><head><meta charset='utf-8'><meta name='viewport' content='width=device-width, initial-scale=1'>
+<meta name='applicable-device' content='pc'><meta name='keywords' content='电脑,电脑讲解,电脑技术,编程,电脑故障维修一篇文章让你彻底理解java中抽象类和接口' />
+<script src='../../highlight/highlight.pack.js'></script>
+<link rel='stylesheet' type='text/css' href='../../highlight/styles/monokai.css'/>
+
+<link rel='stylesheet' href='../../fenxiang/dist/css/share.min.css'>
+<script src='../../fenxiang/src/js/social-share.js'></script>
+<script src='../../fenxiang/src/js/qrcode.js'></script>
+
+</head><body><script>hljs.initHighlightingOnLoad();</script><script>
+var system ={};  
+var p = navigator.platform;       
+system.win = p.indexOf('Win') == 0;  
+system.mac = p.indexOf('Mac') == 0;  
+system.x11 = (p == 'X11') || (p.indexOf('Linux') == 0);     
+if(system.win||system.mac||system.xll){
+document.write("<link href='../css/3.css' rel='stylesheet' type='text/css'>");}else{ document.write("<link href='../css/3wap.css' rel='stylesheet' type='text/css'>");}</script><script src='../../js/3.js'></script><div class='div2'><div class='heading_nav'><ul><div><li><a href='../../index.html'>首页</a></li>
+</div><div onclick='hidden1()' >分享</div>
+</ul></div></div>
+<div id='heading_nav2'> 
+<li class='row' >
+<div class='social-share' data-mode='prepend'><a href='javascript:' class='social-share-icon icon-heart'></a></div></li></div><script charset='utf-8' src='../../3/js/hengfu.js'></script><script charset='utf-8' src='../../3/js/hengfu2.js'></script><hr><div class='div1'><div class='biaoti'><center>一篇文章让你彻底理解java中抽象类和接口</center></div><div class='banquan'>原文出处:本文由博客园博主宜春提供。<br/>
+原文连接:https://www.cnblogs.com/yichunguo/p/11803080.html</div><br>
+    <src class="toc">
+    <p class="toc-title">目录</p>
+    <src class="toc-list">
+        <ul>
+        <li><a href="#我所理解的抽象类">1、我所理解的抽象类</a></li>
+        <li><a href="#我所理解的接口">2、我所理解的接口</a></li>
+        <li><a href="#抽象类和接口本质区别">3、抽象类和接口本质区别</a></li>
+        </ul>
+    
+
+<p>相信大家都有这种感觉：抽象类与接口这两者有太多相似的地方，又有太多不同的地方。往往这二者可以让初学者摸不着头脑，无论是在实际编程的时候，还是在面试的时候，抽象类与接口都显得格外重要！希望看完这篇博客文章各位都能从容地明了二者...</p>
+<p>@</p>
+<h1 id="我所理解的抽象类">1、我所理解的抽象类</h1>
+<h4 id="抽象类和类的相样韵味">1、1 抽象类和类的<font color=red>相样韵味</font></h4>
+<p>1、抽象类和类一样，都是可以用来继承的<br />
+2、类可以有的成分，抽象类都可以拥有【包括构造方法、static静态修饰成分等】</p>
+<blockquote>
+<p>抽象类正如这个名字定义一样，它也是一个类</p>
+</blockquote>
+<h4 id="抽象方法">1、2 抽象方法</h4>
+<p>讲不同样韵味之前很有必要要先深知的<font color=red><strong>抽象方法</strong></font>：<br />
+1、抽象方法没有方法体<br />
+2、抽象方法必须用<code>abstract</code>关键字修饰<br />
+3、有抽象方法的类必然是抽象类<br />
+4、抽象方法必须为<code>public</code>或者<code>protected</code>，缺省情况下默认为<code>public</code></p>
+<blockquote>
+<p>抽象类不一定有抽象方法</p>
+</blockquote>
+<h4 id="抽象类和类的异样韵味">1、3 抽象类和类的<font color=red>异样韵味</font></h4>
+<p>1、抽象类必须用abstract关键字进行修饰，有abstract修饰的类就是抽象类！<br />
+2、抽象类可有可无抽象方法<br />
+3、抽象类虽然有构造方法但不能用来直接创建对象实例<br />
+4、抽象类不能用<code>final</code>、<code>private</code>修饰<br />
+5、外部抽象类不能用Static修饰，但内部的抽象类可以使用static声明。这句话理解代码如下：</p>
+<pre><code><code>//定义一个抽象类A
+abstract class A{
+   //定义一个内部抽象类B
+    static abstract class B{  //static定义的内部类属于外部类
+        public abstract void saoMethod();
+    }
+}
+
+class C extends A.B{
+
+    public void saoMethod(){
+        System.out.println(&quot;======saoMethod方法执行了======&quot;);
+    }
+}
+public class StaticDemo {
+
+    public static void main(String[] args) {
+        A.B ab = new C();//向上转型
+        ab.saoMethod();
+    }
+
+}
+
+运行结果：  ======saoMethod方法执行了======</code></code></pre>
+<p>有的童鞋就看懵逼了， <code>C extends A.B</code>是啥骚操作啊，还能这样玩？是的，当使用<code>static</code>声明的内部抽象类相当于一个外部抽象类，继承的时候使用“外部类.内部类”的形式表示类名称。这种骚操作属实是稳中带皮。</p>
+<blockquote>
+<p>抽象类是一个特殊的类，抽象类和普通类有着本质区别</p>
+</blockquote>
+<h4 id="掌握抽象类">1、4 掌握抽象类</h4>
+<p>抽象类就是为了继承而存在的，定义了一个抽象类，却不去继承它，创建的这个抽象类就毫无意义!</p>
+<p><font color=red>抽象类虽然有构造方法但不能直接被实例化</font>，要创建对象涉及向上转型，主要是用于被其子类调用</p>
+<p>还有对于抽象类可以没有抽象方法这句话，这只是一个要记住的重要概念，一定要记住！实际开发中抽象类一般都有抽象方法，不然该抽象类就失去存在意义，和普通类没啥两样！</p>
+<p>一个普通类A继承一个抽象类B，则子类A必须实现父类B的所有抽象方法。如果子类A没有实现父类B的抽象方法，则必须将子类A也定义为为abstract类，也就是抽象类。</p>
+<h1 id="我所理解的接口">2、我所理解的接口</h1>
+<p>接口（interface）可以说成是抽象类的一种特例，抽象类与接口这两者有太多相似的地方，又有太多不同的地方。相对的，接口更像是一种行为的抽象！</p>
+<h4 id="接口特性">2、1 接口特性</h4>
+<p>1、接口中的<strong>方法</strong>默认为<font color=red><strong>public abstract</strong></font>类型，接口中的<strong>成员变量</strong>类型不写默认为<font color=red><strong>public static final</strong></font>。<br />
+2、接口没有构造方法<br />
+3、接口可以实现“多继承”，一个类可以实现多个接口，实现写法格式为直接用逗号隔开即可。</p>
+<h4 id="接口必知">2、2 接口必知</h4>
+<p>接口中只能含有<code>public static final</code>变量，不写默认是<code>public static final</code>，用<code>private</code>修饰会编译失败。</p>
+<p>接口中所以的方法会被隐式地指定为<code>public abstract</code>方法且只能是<code>public abstract</code>方法，用其他关键字，比如<font color=red><strong>private、protected、static、 final</strong></font>等修饰会编译失败。</p>
+<h4 id="接口误区">2、3 接口误区</h4>
+<p>网上很多文章说接口中的所有方法都是抽象方法，博主回去研究了一下发现，实际上这样说是不够严谨的，直接看个简单程序吧</p>
+<pre><code><code>package InterfaceDemo;
+
+interface AA{   //接口AA
+   default void hh(){
+       System.out.println(&quot;123&quot;);
+   };
+}
+
+class BB implements AA{  //实现接口
+    
+}
+
+public class InterfaceDesign {
+
+    public static void main(String[] args) {
+        AA a=new BB(); //通过实现类创建实例
+        a.hh();
+    }
+}
+运行结果： 123</code></code></pre>
+<p>显然<code>hh</code>方法并不是抽象方法，但是这样设计就失去接口的意义了，实际开发中不会出现这样的代码，确实有点专牛角尖的韵味,所以我也不否认网上的言论，只是觉得不够严谨，我觉得大家还是注意一下比较好...如果面试官听到你这样的回答，可能对你刮目相看，会认为你是一个对知识极度向往、探索以及有个人思维想法的学习者 ~说白了，就是杠精，这里杠精是褒义词~</p>
+<h1 id="抽象类和接口本质区别">3、抽象类和接口本质区别</h1>
+<p>抽象类和接口本质区别主要从语法区别和设计思想两方面下手</p>
+<h4 id="语法区别">3、1 语法区别</h4>
+<blockquote>
+<p>1.抽象类可以有构造方法，接口中不能有构造方法。</p>
+<p>2.抽象类中可以有任何类型成员变量，接口中只能有<code>public static final</code>变量</p>
+<p>3.抽象类中可以包含非抽象的普通方法，接口中的可以有非抽象方法，比如<code>deaflut</code>方法</p>
+<p>4.抽象类中的抽象方法的访问类型可以是<code>public</code>，<code>protected</code>和（默认类型,虽然 <code>eclipse</code>下不报错，但应该也不行），但接口中的抽象方法只能是<code>public</code>类型的，并且默认即为<code>public abstract</code>类型。</p>
+<p>5.抽象类中可以包含静态方法，接口中不能包含静态方法</p>
+<p>6.抽象类和接口中都可以包含静态成员变量，抽象类中的静态成员变量的访问类型可以任意，但接口中定义的变量只能是<code>public static final</code>类型，并且默认即为<code>public static final</code>类型。</p>
+<p>7.一个类可以实现多个接口，但只能继承一个抽象类。</p>
+</blockquote>
+<h4 id="设计思想区别">3、2 设计思想区别</h4>
+<p>对于抽象类，如果需要添加新的方法，可以直接在抽象类中添加具体的实现（相当于写普通类的普通方法并添加方法体的实现代码），子类可以不进行变更；而对于接口则不行，如果接口进行了变更，则所有实现这个接口的类都必须进行相应的改动。这一点应该很好理解。</p>
+<p>从设计角度来讲抽象类是对一种对类抽象，抽象类是对整个类整体进行抽象，包括属性、行为。而接口是对行为的抽象，接口是对类局部（行为）进行抽象。从某一角度来讲，接口更像是抽象的抽象！</p>
+<p>怎么理解上面这段话呢？</p>
+<p>理解二者设计思想的区别从程序员宜春和花姑娘（一头可爱的小母猪）的故事开始，程序员宜春每天过着三点一线的生活，不是吃就是睡觉，闲暇之余还会敲敲代码，而花姑娘就厉害了，每天都是一点一线的生活，不是吃就是睡觉，闲暇之余不是吃就是睡觉。程序员宜春和花姑娘都过着幸福安逸的生活，突然有一天，风起云涌，天射大便~天色大变~，万恶的产品经理来需求了，要设计一个程序员宜春和花姑娘的一个程序，要求使用抽象类或者接口去设计，这个时候你会怎么去设计，下面给出两个设计方案...</p>
+<p>方案一：使用抽象类设计，分别设计<code>eat、sleep、qiaoDaiMa</code>方法，具体代码如下：</p>
+<pre><code><code>abstract class Myclass{
+    public abstract void eat();
+    public abstract void sleep();
+    public abstract void qiaoDaiMa();
+  }</code></code></pre>
+<p>方案二：使用接口设计，分别设计<code>eat、sleep、qiaoDaiMa</code>方法，具体代码如下：</p>
+<pre><code><code>interface Myclass{
+    public abstract void eat();
+    public abstract void sleep();
+    public abstract void qiaoDaiMa();
+  }</code></code></pre>
+<p>显然，不管是哪个类继承抽象类或者实现上面的接口，都会出现同样的状况：重写它们的抽象方法。<br />
+如果有一百个程序员宜春，上面的设计都是很好地得到解决。但是到花姑娘身上就不管用了，花姑娘不会敲代码这种高端操作啊！一百个花姑娘都重写的<code>qiaoDaiMa</code>方法都没有意义啊，显然这样设计有问题。</p>
+<p>从上面可以看出，<code>eat、sleep</code>对于<code>qiaoDaiMa</code>方法不是同一范畴内的行为（方法）。实际上我们可以这样设计：定义一个抽象类，包含<code>eat、sleep</code>方法，再定义一个接口包含<code>qiaoDaiMa</code>方法，具体代码如下：</p>
+<pre><code><code>abstract class Myclass{
+    public abstract void eat();
+    public abstract void sleep();
+   }
+
+interface MyclassTwo{
+    public abstract void qiaoDaiMa();
+  }
+  
+class YiChun extends Myclass implements MyclassTwo{
+
+          @Override
+          public void eat() {
+              
+          }
+
+          @Override
+          public void sleep() {
+
+          }
+
+          @Override
+          public void qiaoDaiMa() {
+
+          }
+      }</code></code></pre>
+<p>我们只要让一百个程序员宜春继承抽象类并实现接口就好了，而花姑娘就直接继承抽象类就好了。这样一设计，堪称完美...</p>
+<p>同样的，这样讲述是很不负责的，为啥捏？因为你会发现，这样设计不管是抽象类还是接口好像没有什么区别，刚才的抽象类换成接口，接口换成抽象类，实现效果也一致，代码如下：</p>
+<pre><code><code>interface Myclass{
+    public abstract void eat();
+    public abstract void sleep();
+   }
+
+abstract class MyclassTwo{
+    public abstract void qiaoDaiMa();
+  }</code></code></pre>
+<p>所以，为了讲解清晰设计思想区别，程序员宜春和花姑娘的故事不得不继续讲下去...</p>
+<p>我们都知道，可爱的小母猪一般都是粉色的对吧，这个时候我们的产品经理又改需求了。啥？产品经理家中一百只小猪有一只是黑白sai的，额...</p>
+<p>万恶的产品经理只会无理改需求，可是产品经理永远不会知道他一味逼程序员，程序员自己都不知道自己有多优秀！</p>
+<p>我们都知道，可爱的小母猪一般都是粉色的对吧，这个时候我们的产品经理又改需求了。啥？产品经理家中一百只小猪有一只是黑白sai的，额...</p>
+<p>万恶的产品经理只会无理改需求，可是产品经理永远不会知道他一味逼程序员，程序员自己都不知道自己有多优秀！</p>
+<p>那么这个时候，我们都知道,<font color=red><strong>抽象类和接口都是可以有成员变量的，只不过接口比较苛刻只能是<code>public static final</code>正是因为这一点！抽象类和接口的设计精髓就在这里了</strong></font>，这个时候我们这样设计：</p>
+<pre><code><code>interface Myclass{
+    public abstract void eat();
+    public abstract void sleep();
+   }
+
+abstract class MyclassTwo{
+    String color=&quot;red&quot;;
+    public abstract void qiaoDaiMa();
+  }</code></code></pre>
+<p>让宜春类这样设计</p>
+<pre><code><code>package AbstractTest;
+
+interface Myclass {
+    public abstract void eat();
+
+    public abstract void sleep();
+}
+
+abstract class MyclassTwo {
+    String color = &quot;red&quot;;
+
+    public abstract void qiaoDaiMa();
+}
+
+class YiChun extends MyclassTwo implements Myclass {
+
+    @Override
+    public void eat() {
+
+    }
+
+    @Override
+    public void sleep() {
+
+    }
+
+    @Override
+    public void qiaoDaiMa() {
+
+    }
+}
+
+public class AbstractDemo {
+    public static void main(String[] args) {
+        YiChun yc = new YiChun();
+    }
+
+}</code></code></pre>
+<p>然而宜春对于<code>color</code>这个属性可以是不理睬的，可以当做不存在，除非宜春不嫌弃自己也是一只红sai佩奇哈哈哈....</p>
+<p>而花姑娘类就要注意了！然后让产品经理家中的100只小猪设计代码如下;</p>
+<pre><code><code>package AbstractTest;
+
+interface Myclass {
+     public abstract void qiaoDaiMa();
+}
+
+abstract class MyclassTwo {
+    String color = &quot;red&quot;;
+
+    public abstract void eat();
+    public abstract void sleep();
+  
+}
+
+class Pig extends MyclassTwo {
+
+    @Override
+    public void eat() {
+
+    }
+
+    @Override
+    public void sleep() {
+
+    }
+
+}
+
+public class AbstractDemo {
+    public static void main(String[] args) {
+        Pig p = new Pig ();
+        String color = &quot;blackWhite&quot;;
+        System.out.println(color);
+    }
+
+}</code></code></pre>
+<p>其余的99只花姑娘就直接不用动了也就是不需要<code>String color = &quot;blackWhite&quot;</code>;这一句代码，它的<code>color</code>属性默认是<code>red</code>了...</p>
+<p>这个时候抽象类和接口就不能更换了，从而抽象类和接口的设计思想就很清晰了，你何识着咩啊~</p>
+<p><strong>如果本文对你有一点点帮助，那么请点个赞呗，谢谢~</strong></p>
+<blockquote>
+<p>最后，若有不足或者不正之处，欢迎指正批评，感激不尽！</p>
+</blockquote>
+<p>欢迎各位关注我的公众号，一起探讨技术，向往技术，追求技术</p>
+<p><img src="./images/一篇文章让你彻底理解java中抽象类和接口0.png" alt="在这里插入图片描述" /></p>
+
+</div><hr><script charset='utf-8' src='../../js/sming.js'></script></body></html>
